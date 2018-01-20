@@ -1,0 +1,31 @@
+loopSeconds: 3
+telegram:
+  botToken: 525402398:AAHEF7GHqFxJM05PME6ZJ9fRIQs66ClhrUc
+  chatId: -1001375286800
+exchanges:
+#  gdax-sandbox:
+#    apiKey: XXX
+#    secretKey: XXX
+#    passphrase: XXX
+jerseyClient:
+  timeout: 5000ms
+  connectionTimeout: 5000ms
+  connectionRequestTimeout: 5000ms
+#logging:
+#  level: TRACE
+#  loggers:
+#    com.grahamcrockford: DEBUG
+#  appenders:
+#    - type: console
+#      threshold: ALL
+#      timeZone: UTC
+#      target: stdout
+#      logFormat: "%p %d %C0 %m"
+#    - type: file
+#      currentLogFilename: app.log
+#      threshold: ALL
+#      archive: true
+#      archivedLogFilenamePattern: app-%d.log
+#      archivedFileCount: 5
+#      timeZone: UTC
+#      logFormat: "%p %d %t %C20 %m"
