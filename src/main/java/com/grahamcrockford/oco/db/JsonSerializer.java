@@ -1,43 +1,44 @@
 package com.grahamcrockford.oco.db;
 
-import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 import javax.inject.Inject;
 
-import org.mapdb.DataInput2;
-import org.mapdb.DataOutput2;
-import org.mapdb.Serializer;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-class JsonSerializer<T> implements Serializer<T> {
+public class JsonSerializer<T>  {
 
   private final ObjectMapper objectMapper;
   private final Type type;
 
-  JsonSerializer(ObjectMapper objectMapper, Type type) {
+  public JsonSerializer(ObjectMapper objectMapper, Type type) {
     this.objectMapper = objectMapper;
     this.type = type;
   }
 
-  @Override
-  public void serialize(DataOutput2 out, T value) throws IOException {
-    out.writeUTF(objectMapper.writeValueAsString(value));
+  public String serialize(T value) {
+    try {
+      return objectMapper.writeValueAsString(value);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  @Override
-  public T deserialize(DataInput2 input, int available) throws IOException {
-    return objectMapper.readValue(input.readUTF(), new TypeReference<T>() {
-      @Override
-      public Type getType() {
-        return type;
-      }
-    });
+  public T deserialize(String data) {
+    try {
+      return objectMapper.readValue(data, new TypeReference<T>() {
+        @Override
+        public Type getType() {
+          return type;
+        }
+      });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
-
 
   public static class Factory {
 

@@ -28,6 +28,7 @@
 		<maven.source.plugin.version>2.4</maven.source.plugin.version>
 		<maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
 		<jacoco.version>0.8.0</jacoco.version>
+		<streamex.version>0.6.6</streamex.version>
 	</properties>
 
 	<repositories>
@@ -78,11 +79,6 @@
 				<version>${xchange.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.mapdb</groupId>
-				<artifactId>mapdb</artifactId>
-				<version>3.0.5</version>
-			</dependency>
-			<dependency>
 				<groupId>com.google.inject</groupId>
 				<artifactId>guice</artifactId>
 				<version>4.1.0</version>
@@ -103,6 +99,11 @@
 				<artifactId>mockito-all</artifactId>
 				<version>1.10.19</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>one.util</groupId>
+				<artifactId>streamex</artifactId>
+				<version>${streamex.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -137,10 +138,6 @@
 			<artifactId>xchange-bittrex</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.mapdb</groupId>
-			<artifactId>mapdb</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 		</dependency>
@@ -160,6 +157,20 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>one.util</groupId>
+			<artifactId>streamex</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-all</artifactId>
+			<version>5.15.2</version>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 	        <groupId>com.kjetland.dropwizard</groupId> -->
+<!-- 	        <artifactId>dropwizard-activemq</artifactId> -->
+<!-- 	        <version>0.5.1</version> -->
+<!-- 	    </dependency> -->
 	</dependencies>
 
 	<build>

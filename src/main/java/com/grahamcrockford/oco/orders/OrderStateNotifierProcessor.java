@@ -13,11 +13,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Singleton;
+import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.AdvancedOrderPersistenceService;
+import com.grahamcrockford.oco.db.QueueAccess;
 
 @Singleton
 public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<OrderStateNotifier> {
@@ -25,7 +26,9 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
   private static final Logger LOGGER = LoggerFactory.getLogger(OrderStateNotifierProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
     LogColumn.builder().name("#").width(3).rightAligned(false),
+    LogColumn.builder().name("Exchange").width(10).rightAligned(false),
     LogColumn.builder().name("Pair").width(10).rightAligned(false),
+    LogColumn.builder().name("Operation").width(13).rightAligned(false),
     LogColumn.builder().name("Order id").width(50).rightAligned(false),
     LogColumn.builder().name("Status").width(16).rightAligned(false),
     LogColumn.builder().name("Amount").width(13).rightAligned(true),
@@ -34,23 +37,21 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
   );
 
   private final TelegramService telegramService;
-  private final AdvancedOrderPersistenceService persistenceService;
   private final TradeServiceFactory tradeServiceFactory;
 
   private final AtomicInteger logRowCount = new AtomicInteger();
 
 
   @Inject
-  public OrderStateNotifierProcessor(final AdvancedOrderPersistenceService persistenceService,
-                                     final TelegramService telegramService,
+  public OrderStateNotifierProcessor(final TelegramService telegramService,
                                      final TradeServiceFactory tradeServiceFactory) {
-    this.persistenceService = persistenceService;
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
   }
 
+
   @Override
-  public void tick(OrderStateNotifier job, Ticker ticker) throws Exception {
+  public void tick(OrderStateNotifier job, Ticker ticker, QueueAccess<AdvancedOrder> queueAccess) throws Exception {
 
     final AdvancedOrderInfo ex = job.basic();
 
@@ -128,7 +129,9 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
 
     COLUMN_LOGGER.line(
       job.id(),
+      ex.exchange(),
       ex.pairName(),
+      "Monitor order",
       job.orderId(),
       status,
       amount,
@@ -136,8 +139,8 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
       job.description()
     );
 
-    if (exit) {
-      persistenceService.deleteJob(job.id());
-    }
+//    if (exit) {
+//      persistenceService.deleteJob(job.id());
+//    }
   }
 }

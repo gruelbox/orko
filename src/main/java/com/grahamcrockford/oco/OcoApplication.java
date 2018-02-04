@@ -8,12 +8,11 @@ import javax.ws.rs.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
-import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -26,7 +25,7 @@ public class OcoApplication extends Application<OcoConfiguration> {
   }
 
   @Inject
-  private Set<AbstractScheduledService> services;
+  private Set<Service> services;
 
   @Inject
   private Set<WebResource> webResources;
@@ -38,7 +37,6 @@ public class OcoApplication extends Application<OcoConfiguration> {
 
   @Override
   public void initialize(final Bootstrap<OcoConfiguration> bootstrap) {
-    // TODO: application initialization
   }
 
   @Override
@@ -46,35 +44,13 @@ public class OcoApplication extends Application<OcoConfiguration> {
     final Client client = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
     final Injector injector = Guice.createInjector(new OcoModule(configuration, environment.getObjectMapper(), client));
     injector.injectMembers(this);
-
+    environment.lifecycle().manage(new BrokerTask());
     services.stream()
       .peek(t -> LOGGER.info("Starting managed task {}", t))
-      .map(ManagedPeriodicTask::new)
+      .map(ManagedServiceTask::new)
       .forEach(environment.lifecycle()::manage);
     webResources.stream()
       .peek(t -> LOGGER.info("Registering resource {}", t))
       .forEach(environment.jersey()::register);
-  }
-
-  /**
-   * Allows an {@link AbstractScheduledService} to be managed by DropWizard lifecycle.
-   */
-  private static final class ManagedPeriodicTask implements Managed {
-
-    private final AbstractScheduledService periodicTask;
-
-    public ManagedPeriodicTask(AbstractScheduledService periodicTask) {
-      this.periodicTask = periodicTask;
-    }
-
-    @Override
-    public void start() throws Exception {
-      periodicTask.startAsync().awaitRunning();
-    }
-
-    @Override
-    public void stop() throws Exception {
-      periodicTask.stopAsync().awaitTerminated();
-    }
   }
 }

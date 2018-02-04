@@ -28,7 +28,7 @@ import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
 import com.grahamcrockford.oco.core.ExchangeService;
-import com.grahamcrockford.oco.core.GameLoop;
+import com.grahamcrockford.oco.core.JMSListener;
 import com.grahamcrockford.oco.db.AdvancedOrderPersistenceService;
 
 public class TestGameLoop {
@@ -51,13 +51,13 @@ public class TestGameLoop {
   @Mock private Injector injector;
   @Mock private MockOrder.Processor processor;
 
-  private GameLoop gameLoop;
+  private JMSListener gameLoop;
 
 
   @Before
   public void before() {
     MockitoAnnotations.initMocks(this);
-    gameLoop = new GameLoop(ocoConfiguration, persistenceService, exchangeService, injector, telegramService);
+    gameLoop = new JMSListener(ocoConfiguration, persistenceService, exchangeService, injector, telegramService);
     when(injector.getInstance(MockOrder.Processor.class)).thenReturn(processor);
   }
 

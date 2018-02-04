@@ -19,12 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
+import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.AdvancedOrderPersistenceService;
+import com.grahamcrockford.oco.db.QueueAccess;
 
 @Singleton
 public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTrailingStop> {
@@ -32,7 +33,9 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   private static final Logger LOGGER = LoggerFactory.getLogger(SoftTrailingStopProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
       LogColumn.builder().name("#").width(3).rightAligned(false),
+      LogColumn.builder().name("Exchange").width(10).rightAligned(false),
       LogColumn.builder().name("Pair").width(10).rightAligned(false),
+      LogColumn.builder().name("Operation").width(13).rightAligned(false),
       LogColumn.builder().name("Entry").width(13).rightAligned(true),
       LogColumn.builder().name("Stop").width(13).rightAligned(true),
       LogColumn.builder().name("Bid").width(13).rightAligned(true),
@@ -42,7 +45,6 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   private static final BigDecimal HUNDRED = new BigDecimal(100);
 
   private final TelegramService telegramService;
-  private final AdvancedOrderPersistenceService persistenceService;
   private final TradeServiceFactory tradeServiceFactory;
   private final ExchangeService exchangeService;
 
@@ -50,18 +52,16 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
 
 
   @Inject
-  public SoftTrailingStopProcessor(final AdvancedOrderPersistenceService persistenceService,
-                                   final TelegramService telegramService,
+  public SoftTrailingStopProcessor(final TelegramService telegramService,
                                    final TradeServiceFactory tradeServiceFactory,
                                    final ExchangeService exchangeService) {
-    this.persistenceService = persistenceService;
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
     this.exchangeService = exchangeService;
   }
 
   @Override
-  public void tick(SoftTrailingStop trailingStop, Ticker ticker) throws Exception {
+  public void tick(SoftTrailingStop trailingStop, Ticker ticker, QueueAccess<AdvancedOrder> queueAccess) throws Exception {
 
     final AdvancedOrderInfo ex = trailingStop.basic();
 
@@ -113,23 +113,23 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
       limitPrice
     ));
 
-    // Spawn a new job to monitor the progress of the stop
-    persistenceService.saveJob(OrderStateNotifier.builder()
-        .id(persistenceService.newJobId())
-        .basic(trailingStop.basic())
-        .description("Stop")
-        .orderId(xChangeOrderId)
-        .build());
+//    // Spawn a new job to monitor the progress of the stop
+//    persistenceService.saveJob(OrderStateNotifier.builder()
+//        .id(persistenceService.newJobId())
+//        .basic(trailingStop.basic())
+//        .description("Stop")
+//        .orderId(xChangeOrderId)
+//        .build());
 
     // And we're done
-    persistenceService.deleteJob(trailingStop.id());
+//    persistenceService.deleteJob(trailingStop.id());
   }
 
   private void updateSyncPrice(SoftTrailingStop trailingStop, Ticker ticker) throws IOException {
-    persistenceService.saveJob(
-        trailingStop.toBuilder()
-          .lastSyncPrice(ticker.getBid())
-          .build());
+//    persistenceService.saveJob(
+//        trailingStop.toBuilder()
+//          .lastSyncPrice(ticker.getBid())
+//          .build());
   }
 
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {
@@ -144,7 +144,9 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
     }
     COLUMN_LOGGER.line(
       trailingStop.id(),
+      ex.exchange(),
       ex.pairName(),
+      "Trailing stop",
       trailingStop.startPrice().setScale(currencyPairMetaData.getPriceScale(), HALF_UP),
       stopPrice(trailingStop, currencyPairMetaData),
       ticker.getBid().setScale(currencyPairMetaData.getPriceScale(), HALF_UP),

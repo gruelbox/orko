@@ -1,13 +1,18 @@
 package com.grahamcrockford.oco;
 
+import javax.jms.ConnectionFactory;
 import javax.ws.rs.client.Client;
 
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.RedeliveryPolicy;
+import org.apache.activemq.pool.PooledConnectionFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.core.CoreModule;
 import com.grahamcrockford.oco.resources.ResourcesModule;
 
@@ -28,16 +33,9 @@ class OcoModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    Multibinder.newSetBinder(binder(), Service.class);
     install(new CoreModule());
     install(new ResourcesModule());
-  }
-
-  @Provides
-  DB db() {
-    return DBMaker
-      .fileDB("trading.db")
-      .fileMmapEnable()
-      .make();
   }
 
   @Provides
@@ -53,5 +51,23 @@ class OcoModule extends AbstractModule {
   @Provides
   Client client() {
     return client;
+  }
+
+  @Provides
+  @Singleton
+  ConnectionFactory connectionFactory() {
+
+
+    ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory("failover:vm://localhost?create=false");
+
+    RedeliveryPolicy queuePolicy = new RedeliveryPolicy();
+    queuePolicy.setInitialRedeliveryDelay(100);
+    queuePolicy.setRedeliveryDelay(200);
+    queuePolicy.setUseExponentialBackOff(true);
+    queuePolicy.setMaximumRedeliveries(50);
+
+    activeMQConnectionFactory.setRedeliveryPolicy(queuePolicy);
+
+    return new PooledConnectionFactory(activeMQConnectionFactory);
   }
 }
