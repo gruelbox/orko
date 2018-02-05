@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.currency.CurrencyPair;
@@ -25,10 +23,11 @@ import org.mockito.MockitoAnnotations;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Injector;
+import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
+import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.AdvancedOrderPersistenceService;
 
 public class TestOrderStateNotifierProcessor {
 
@@ -46,7 +45,7 @@ public class TestOrderStateNotifierProcessor {
   private static final BigDecimal LIMIT_PRICE = new BigDecimal(90);
   private static final BigDecimal FILLED = new BigDecimal(999);
 
-  @Mock private AdvancedOrderPersistenceService persistenceService;
+  @Mock private AdvancedOrderEnqueuer enqueuer;
   @Mock private TelegramService telegramService;
 
   @Mock private TradeServiceFactory tradeServiceFactory;
@@ -54,7 +53,6 @@ public class TestOrderStateNotifierProcessor {
   @Mock private Injector injector;
 
   private OrderStateNotifierProcessor processor;
-  private final AtomicLong advancedOrderId = new AtomicLong();
 
   @Before
   public void before() throws IOException {
@@ -62,9 +60,8 @@ public class TestOrderStateNotifierProcessor {
     MockitoAnnotations.initMocks(this);
 
     when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
-    when(persistenceService.newJobId()).thenAnswer(args -> advancedOrderId.incrementAndGet());
 
-    processor = new OrderStateNotifierProcessor(persistenceService, telegramService, tradeServiceFactory);
+    processor = new OrderStateNotifierProcessor(telegramService, tradeServiceFactory, enqueuer);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -95,11 +92,11 @@ public class TestOrderStateNotifierProcessor {
   @Test
   public void testStatuses() throws Exception {
     for (final Order.OrderStatus status : Order.OrderStatus.values()) {
-      Mockito.reset(persistenceService, telegramService);
+      Mockito.reset(enqueuer, telegramService);
       when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, status)));
       processor.tick(baseJob().build(), null);
       if (ImmutableSet.of(Order.OrderStatus.PENDING_NEW, Order.OrderStatus.NEW, Order.OrderStatus.PARTIALLY_FILLED).contains(status)) {
-        verifyNoChanges();
+        verifyNoChanges(baseJob().build());
       } else {
         verifySentMessage();
         verifyFinishedJob();
@@ -109,8 +106,9 @@ public class TestOrderStateNotifierProcessor {
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
-  private void verifyNoChanges() {
-    verifyZeroInteractions(persistenceService, telegramService);
+  private void verifyNoChanges(AdvancedOrder order) {
+    verifyZeroInteractions(telegramService);
+    verify(enqueuer).enqueueAfterConfiguredDelay(order);
   }
 
   private void verifySentMessage() {
@@ -118,7 +116,7 @@ public class TestOrderStateNotifierProcessor {
   }
 
   private void verifyFinishedJob() {
-    verify(persistenceService).deleteJob(JOB_ID);
+    verifyZeroInteractions(enqueuer);
   }
 
   private OrderStateNotifier.Builder baseJob() {

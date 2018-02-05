@@ -162,15 +162,15 @@
 			<artifactId>streamex</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.kjetland.dropwizard</groupId>
+			<artifactId>dropwizard-activemq</artifactId>
+			<version>0.5.1</version>
+		</dependency>
+	    <dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-all</artifactId>
 			<version>5.15.2</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 	        <groupId>com.kjetland.dropwizard</groupId> -->
-<!-- 	        <artifactId>dropwizard-activemq</artifactId> -->
-<!-- 	        <version>0.5.1</version> -->
-<!-- 	    </dependency> -->
 	</dependencies>
 
 	<build>

@@ -11,8 +11,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.grahamcrockford.oco.api.AdvancedOrder;
+import com.grahamcrockford.oco.core.AdvancedOrderListener;
+import com.kjetland.dropwizard.activemq.ActiveMQBundle;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -30,6 +34,14 @@ public class OcoApplication extends Application<OcoConfiguration> {
   @Inject
   private Set<WebResource> webResources;
 
+  @Inject
+  private Set<Managed> managedTasks;
+
+  @Inject
+  private AdvancedOrderListener jmsListener;
+
+  private ActiveMQBundle activeMQBundle;
+
   @Override
   public String getName() {
     return "oco";
@@ -37,18 +49,35 @@ public class OcoApplication extends Application<OcoConfiguration> {
 
   @Override
   public void initialize(final Bootstrap<OcoConfiguration> bootstrap) {
+    this.activeMQBundle = new ActiveMQBundle();
+    bootstrap.addBundle(activeMQBundle);
   }
 
   @Override
   public void run(final OcoConfiguration configuration, final Environment environment) {
+
+    // Jersey client
     final Client client = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
-    final Injector injector = Guice.createInjector(new OcoModule(configuration, environment.getObjectMapper(), client));
+
+    // Injector
+    final Injector injector = Guice.createInjector(new OcoModule(configuration, environment.getObjectMapper(), client, activeMQBundle));
     injector.injectMembers(this);
-    environment.lifecycle().manage(new BrokerTask());
+
+    // Any managed tasks
+    managedTasks.stream()
+      .peek(t -> LOGGER.info("Starting managed task {}", t))
+      .forEach(environment.lifecycle()::manage);
+
+    // And now the MQ listeners
+    activeMQBundle.registerReceiver(AdvancedOrder.class.getName(), jmsListener, AdvancedOrder.class, false);
+
+    // And any bound services
     services.stream()
       .peek(t -> LOGGER.info("Starting managed task {}", t))
       .map(ManagedServiceTask::new)
       .forEach(environment.lifecycle()::manage);
+
+    // And any REST resources
     webResources.stream()
       .peek(t -> LOGGER.info("Registering resource {}", t))
       .forEach(environment.jersey()::register);

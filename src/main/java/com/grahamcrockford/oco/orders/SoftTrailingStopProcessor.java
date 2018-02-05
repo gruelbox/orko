@@ -19,20 +19,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
 import com.grahamcrockford.oco.core.ExchangeService;
+import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
+import com.grahamcrockford.oco.core.AdvancedOrderIdGenerator;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.QueueAccess;
 
 @Singleton
 public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTrailingStop> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SoftTrailingStopProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
-      LogColumn.builder().name("#").width(3).rightAligned(false),
+      LogColumn.builder().name("#").width(13).rightAligned(false),
       LogColumn.builder().name("Exchange").width(10).rightAligned(false),
       LogColumn.builder().name("Pair").width(10).rightAligned(false),
       LogColumn.builder().name("Operation").width(13).rightAligned(false),
@@ -47,32 +47,41 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
   private final ExchangeService exchangeService;
+  private final AdvancedOrderEnqueuer advancedOrderEnqueuer;
+  private final AdvancedOrderIdGenerator advancedOrderIdGenerator;
 
   private final AtomicInteger logRowCount = new AtomicInteger();
+
 
 
   @Inject
   public SoftTrailingStopProcessor(final TelegramService telegramService,
                                    final TradeServiceFactory tradeServiceFactory,
-                                   final ExchangeService exchangeService) {
+                                   final ExchangeService exchangeService,
+                                   final AdvancedOrderEnqueuer advancedOrderEnqueuer,
+                                   final AdvancedOrderIdGenerator advancedOrderIdGenerator) {
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
     this.exchangeService = exchangeService;
+    this.advancedOrderEnqueuer = advancedOrderEnqueuer;
+    this.advancedOrderIdGenerator = advancedOrderIdGenerator;
   }
 
   @Override
-  public void tick(SoftTrailingStop trailingStop, Ticker ticker, QueueAccess<AdvancedOrder> queueAccess) throws Exception {
+  public void tick(SoftTrailingStop order, Ticker ticker) throws Exception {
 
-    final AdvancedOrderInfo ex = trailingStop.basic();
+    final AdvancedOrderInfo ex = order.basic();
 
     if (ticker.getAsk() == null) {
       LOGGER.warn("Market {}/{}/{} has no sellers!", ex.exchange(), ex.base(), ex.counter());
       telegramService.sendMessage(String.format("Market %s/%s/%s has no sellers!", ex.exchange(), ex.base(), ex.counter()));
+      advancedOrderEnqueuer.enqueueAfterConfiguredDelay(order);
       return;
     }
     if (ticker.getBid() == null) {
       LOGGER.warn("Market {}/{}/{} has no buyers!", ex.exchange(), ex.base(), ex.counter());
       telegramService.sendMessage(String.format("Market %s/%s/%s has no buyers!", ex.exchange(), ex.base(), ex.counter()));
+      advancedOrderEnqueuer.enqueueAfterConfiguredDelay(order);
       return;
     }
 
@@ -81,20 +90,34 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
       .getCurrencyPairs()
       .get(ex.currencyPair());
 
-    logStatus(trailingStop, ticker, currencyPairMetaData);
+    logStatus(order, ticker, currencyPairMetaData);
 
-    if (ticker.getBid().compareTo(stopPrice(trailingStop, currencyPairMetaData)) <= 0) {
-      limitSell(trailingStop, ticker, limitPrice(trailingStop, currencyPairMetaData));
+    // If we've hit the stop price, we're done
+    if (ticker.getBid().compareTo(stopPrice(order, currencyPairMetaData)) <= 0) {
+
+      // Sell up
+      String xChangeOrderId = limitSell(order, ticker, limitPrice(order, currencyPairMetaData));
+
+      // Spawn a new job to monitor the progress of the stop
+      advancedOrderEnqueuer.enqueue(OrderStateNotifier.builder()
+          .id(advancedOrderIdGenerator.next())
+          .basic(order.basic())
+          .description("Stop")
+          .orderId(xChangeOrderId)
+          .build());
       return;
     }
 
-    if (ticker.getBid().compareTo(trailingStop.lastSyncPrice()) > 0 ) {
-      updateSyncPrice(trailingStop, ticker);
-      return;
+    if (ticker.getBid().compareTo(order.lastSyncPrice()) > 0 ) {
+      order = order.toBuilder()
+        .lastSyncPrice(ticker.getBid())
+        .build();
     }
+
+    advancedOrderEnqueuer.enqueueAfterConfiguredDelay(order);
   }
 
-  private void limitSell(SoftTrailingStop trailingStop, Ticker ticker, BigDecimal limitPrice) throws IOException {
+  private String limitSell(SoftTrailingStop trailingStop, Ticker ticker, BigDecimal limitPrice) throws IOException {
     final AdvancedOrderInfo ex = trailingStop.basic();
 
     LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}]", trailingStop.amount(), ex.base(), limitPrice, ex.counter());
@@ -113,24 +136,9 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
       limitPrice
     ));
 
-//    // Spawn a new job to monitor the progress of the stop
-//    persistenceService.saveJob(OrderStateNotifier.builder()
-//        .id(persistenceService.newJobId())
-//        .basic(trailingStop.basic())
-//        .description("Stop")
-//        .orderId(xChangeOrderId)
-//        .build());
-
-    // And we're done
-//    persistenceService.deleteJob(trailingStop.id());
+    return xChangeOrderId;
   }
 
-  private void updateSyncPrice(SoftTrailingStop trailingStop, Ticker ticker) throws IOException {
-//    persistenceService.saveJob(
-//        trailingStop.toBuilder()
-//          .lastSyncPrice(ticker.getBid())
-//          .build());
-  }
 
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {
     final AdvancedOrderInfo ex = trailingStop.basic();

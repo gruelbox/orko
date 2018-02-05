@@ -12,23 +12,28 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.grahamcrockford.oco.core.ExchangeConfiguration;
 import com.grahamcrockford.oco.core.TelegramConfiguration;
+import com.kjetland.dropwizard.activemq.ActiveMQConfig;
+import com.kjetland.dropwizard.activemq.ActiveMQConfigHolder;
 
 /**
  * Runtime config. Should really be broken up.
  */
-public class OcoConfiguration extends Configuration {
+public class OcoConfiguration extends Configuration implements ActiveMQConfigHolder {
 
   @NotNull
   @Min(1L)
   private int loopSeconds;
 
-  private TelegramConfiguration telegram;
-
-  private Map<String, ExchangeConfiguration> exchanges;
-
   @Valid
   @NotNull
   private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
+
+  @Valid
+  @NotNull
+  private ActiveMQConfig activeMQ;
+
+  private TelegramConfiguration telegram;
+  private Map<String, ExchangeConfiguration> exchanges;
 
 
   public OcoConfiguration() {
@@ -73,5 +78,16 @@ public class OcoConfiguration extends Configuration {
   @JsonProperty("jerseyClient")
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
       this.jerseyClient = jerseyClient;
+  }
+
+  @Override
+  @JsonProperty
+  public ActiveMQConfig getActiveMQ() {
+      return activeMQ;
+  }
+  @JsonProperty
+  public void setActiveMQ(ActiveMQConfig activeMQ) {
+    this.activeMQ = activeMQ;
+    return;
   }
 }

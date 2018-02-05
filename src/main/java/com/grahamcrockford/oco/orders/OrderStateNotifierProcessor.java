@@ -13,19 +13,18 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
+import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.QueueAccess;
 
 @Singleton
 public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<OrderStateNotifier> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OrderStateNotifierProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
-    LogColumn.builder().name("#").width(3).rightAligned(false),
+    LogColumn.builder().name("#").width(13).rightAligned(false),
     LogColumn.builder().name("Exchange").width(10).rightAligned(false),
     LogColumn.builder().name("Pair").width(10).rightAligned(false),
     LogColumn.builder().name("Operation").width(13).rightAligned(false),
@@ -38,20 +37,23 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
 
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
+  private final AdvancedOrderEnqueuer advancedOrderEnqueuer;
 
   private final AtomicInteger logRowCount = new AtomicInteger();
 
 
   @Inject
   public OrderStateNotifierProcessor(final TelegramService telegramService,
-                                     final TradeServiceFactory tradeServiceFactory) {
+                                     final TradeServiceFactory tradeServiceFactory,
+                                     final AdvancedOrderEnqueuer advancedOrderEnqueuer) {
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
+    this.advancedOrderEnqueuer = advancedOrderEnqueuer;
   }
 
 
   @Override
-  public void tick(OrderStateNotifier job, Ticker ticker, QueueAccess<AdvancedOrder> queueAccess) throws Exception {
+  public void tick(OrderStateNotifier job, Ticker ticker) throws Exception {
 
     final AdvancedOrderInfo ex = job.basic();
 
@@ -139,8 +141,9 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
       job.description()
     );
 
-//    if (exit) {
-//      persistenceService.deleteJob(job.id());
-//    }
+    // If we're not done, queue up another check
+    if (!exit) {
+      advancedOrderEnqueuer.enqueueAfterConfiguredDelay(job);
+    }
   }
 }

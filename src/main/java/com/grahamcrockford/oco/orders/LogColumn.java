@@ -3,7 +3,7 @@ package com.grahamcrockford.oco.orders;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
-public abstract class LogColumn {
+abstract class LogColumn {
 
   static Builder builder() {
     return new AutoValue_LogColumn.Builder();

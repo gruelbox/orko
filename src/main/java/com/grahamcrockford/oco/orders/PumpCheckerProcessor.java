@@ -12,13 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
+import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
 import com.grahamcrockford.oco.core.TelegramService;
-import com.grahamcrockford.oco.db.QueueAccess;
-
 import one.util.streamex.StreamEx;
 
 @Singleton
@@ -26,7 +23,7 @@ public class PumpCheckerProcessor implements AdvancedOrderProcessor<PumpChecker>
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpCheckerProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
-    LogColumn.builder().name("#").width(3).rightAligned(false),
+    LogColumn.builder().name("#").width(13).rightAligned(false),
     LogColumn.builder().name("Exchange").width(10).rightAligned(false),
     LogColumn.builder().name("Pair").width(10).rightAligned(false),
     LogColumn.builder().name("Operation").width(13).rightAligned(false),
@@ -36,16 +33,17 @@ public class PumpCheckerProcessor implements AdvancedOrderProcessor<PumpChecker>
   private final AtomicInteger logRowCount = new AtomicInteger();
 
   private final TelegramService telegramService;
-  private final OcoConfiguration configuration;
+  private final AdvancedOrderEnqueuer sender;
+
 
   @Inject
-  public PumpCheckerProcessor(TelegramService telegramService, OcoConfiguration configuration) {
+  public PumpCheckerProcessor(TelegramService telegramService, AdvancedOrderEnqueuer sender) {
     this.telegramService = telegramService;
-    this.configuration = configuration;
+    this.sender = sender;
   }
 
   @Override
-  public void tick(PumpChecker job, Ticker ticker, QueueAccess<AdvancedOrder> queueAccess) throws Exception {
+  public void tick(PumpChecker job, Ticker ticker) throws Exception {
 
     LinkedList<BigDecimal> linkedList = new LinkedList<>(job.priceHistory());
     linkedList.add(ticker.getLast());
@@ -93,7 +91,7 @@ public class PumpCheckerProcessor implements AdvancedOrderProcessor<PumpChecker>
         );
     }
 
-    // Add the next go to the queue
-    queueAccess.submit(job.toBuilder().priceHistory(linkedList).build(), Long.toString(job.id()), configuration.getLoopSeconds() * 1000);
+    // Queue up the next check
+    sender.enqueueAfterConfiguredDelay(job.toBuilder().priceHistory(linkedList).build());
   }
 }

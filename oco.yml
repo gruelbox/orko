@@ -11,6 +11,21 @@ jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
   connectionRequestTimeout: 5000ms
+activeMQ:
+  brokerUrl: failover:vm://localhost?create=false
+  # brokerUsername: username
+  # brokerPassword: password
+  # shutdownWaitInSeconds: 20
+  # healthCheckMillisecondsToWait: 2000
+  # timeToLiveInSeconds: -1     (Default message time-to-live is off. Specify a maximum lifespan here in seconds for all messages.)
+  pool:
+    maxConnections: 2
+    maximumActiveSessionPerConnection: 4
+    blockIfSessionPoolIsFull: false
+    idleTimeoutMills: 30000
+    # expiryTimeoutMills:
+    createConnectionOnStartup: true
+    timeBetweenExpirationCheckMillis: 20000
 #logging:
 #  level: TRACE
 #  loggers:
