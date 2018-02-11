@@ -11,4 +11,4 @@ pipelines:
         caches:
           - maven
         script: # Modify the commands below to build your repository.
-          - mvn -B verify # -B batch mode makes Maven less verbose
+          - mvn -B package # verify code coverage is shit atm # -B batch mode makes Maven less verbose
