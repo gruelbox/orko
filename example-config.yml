@@ -1,8 +1,8 @@
 loopSeconds: 3
-telegram:
-  botToken: 525402398:AAHEF7GHqFxJM05PME6ZJ9fRIQs66ClhrUc
-  chatId: -1001375286800
-exchanges:
+#telegram:
+#  botToken: XXX
+#  chatId: XXX
+#exchanges:
 #  gdax-sandbox:
 #    apiKey: XXX
 #    secretKey: XXX

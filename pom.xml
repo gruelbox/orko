@@ -19,8 +19,13 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<mainClass>com.grahamcrockford.oco.ocoApplication</mainClass>
 
-		<dropwizard.version>1.2.2</dropwizard.version>
-		<xchange.version>4.3.3-SNAPSHOT</xchange.version>
+		<dropwizard.version>1.2.3</dropwizard.version>
+		<dropwizard.activemq.version>0.5.1</dropwizard.activemq.version>
+		<activemq.version>5.14.1</activemq.version>
+		<xchange.version>4.3.4-SNAPSHOT</xchange.version>
+		<streamex.version>0.6.6</streamex.version>
+		<guice.version>4.1.0</guice.version>
+		<autovalue.version>1.5</autovalue.version>
 
 		<maven.shade.plugin.version>2.4.1</maven.shade.plugin.version>
 		<maven.jar.plugin.version>2.6</maven.jar.plugin.version>
@@ -28,15 +33,24 @@
 		<maven.source.plugin.version>2.4</maven.source.plugin.version>
 		<maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
 		<jacoco.version>0.8.0</jacoco.version>
-		<streamex.version>0.6.6</streamex.version>
+		<mockito.version>1.10.19</mockito.version>
 	</properties>
 
 	<repositories>
-		<repository>
-			<id>sonatype-oss-snapshot</id>
-			<snapshots />
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</repository>
+<!-- 		<repository> -->
+<!-- 			<id>central</id> -->
+<!-- 			<name>Maven Repository Switchboard</name> -->
+<!-- 			<layout>default</layout> -->
+<!-- 			<url>http://repo1.maven.org/maven2</url> -->
+<!-- 			<snapshots> -->
+<!-- 				<enabled>false</enabled> -->
+<!-- 			</snapshots> -->
+<!-- 		</repository> -->
+<!-- 		<repository> -->
+<!-- 			<id>sonatype-oss-snapshot</id> -->
+<!-- 			<snapshots /> -->
+<!-- 			<url>https://oss.sonatype.org/content/repositories/snapshots</url> -->
+<!-- 		</repository> -->
 	</repositories>
 
 	<dependencyManagement>
@@ -81,29 +95,44 @@
 			<dependency>
 				<groupId>com.google.inject</groupId>
 				<artifactId>guice</artifactId>
-				<version>4.1.0</version>
+				<version>${guice.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.inject.extensions</groupId>
 				<artifactId>guice-multibindings</artifactId>
-				<version>4.1.0</version>
+				<version>${guice.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.auto.value</groupId>
 				<artifactId>auto-value</artifactId>
-				<version>1.5</version>
+				<version>${autovalue.version}</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-all</artifactId>
-				<version>1.10.19</version>
+				<version>${mockito.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>one.util</groupId>
 				<artifactId>streamex</artifactId>
 				<version>${streamex.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.kjetland.dropwizard</groupId>
+				<artifactId>dropwizard-activemq</artifactId>
+				<version>${dropwizard.activemq.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-broker</artifactId>
+				<version>${activemq.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-kahadb-store</artifactId>
+				<version>${activemq.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -116,6 +145,10 @@
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.dropwizard</groupId>
+			<artifactId>dropwizard-auth</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
@@ -164,12 +197,14 @@
 		<dependency>
 			<groupId>com.kjetland.dropwizard</groupId>
 			<artifactId>dropwizard-activemq</artifactId>
-			<version>0.5.1</version>
 		</dependency>
-	    <dependency>
+		<dependency>
 			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-all</artifactId>
-			<version>5.15.2</version>
+			<artifactId>activemq-broker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-kahadb-store</artifactId>
 		</dependency>
 	</dependencies>
 

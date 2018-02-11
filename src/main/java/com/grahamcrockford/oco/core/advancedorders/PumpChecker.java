@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.orders;
+package com.grahamcrockford.oco.core.advancedorders;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,6 +12,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
+import com.grahamcrockford.oco.core.advancedorders.AutoValue_PumpChecker;
 
 @AutoValue
 @JsonDeserialize(builder = PumpChecker.Builder.class)

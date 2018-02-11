@@ -1,5 +1,6 @@
-package com.grahamcrockford.oco.orders;
+package com.grahamcrockford.oco.core.advancedorders;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,6 +9,7 @@ import javax.inject.Inject;
 
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.marketdata.Ticker;
+import org.knowm.xchange.exceptions.ExchangeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,8 @@ import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
 import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
+
+import si.mazi.rescu.HttpStatusExceptionSupport;
 
 @Singleton
 public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<OrderStateNotifier> {
@@ -70,26 +74,13 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
     BigDecimal filled = null;
     boolean exit = false;
 
-    final Collection<Order> matchingOrders = tradeServiceFactory.getForExchange(ex.exchange()).getOrder(job.orderId());
-    if (matchingOrders == null || matchingOrders.isEmpty()) {
+    final Order order = getOrder(job, ex);
+    if (order == null) {
 
-      telegramService.sendMessage(String.format(
-        "Order [%d] on [%s/%s/%s] was not found on the exchange. Giving up.",
-        job.id(), ex.exchange(), ex.base(), ex.counter()
-      ));
-      exit = true;
-
-    } else if (matchingOrders.size() != 1) {
-
-      telegramService.sendMessage(String.format(
-        "Order [%d] on [%s/%s/%s] was not unique on the exchange. Giving up.",
-        job.id(), ex.exchange(), ex.base(), ex.counter()
-      ));
       exit = true;
 
     } else {
 
-      final Order order = Iterables.getOnlyElement(matchingOrders);
       amount = order.getOriginalAmount();
       filled = order.getCumulativeAmount();
       status = order.getStatus();
@@ -145,5 +136,46 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
     if (!exit) {
       advancedOrderEnqueuer.enqueueAfterConfiguredDelay(job);
     }
+  }
+
+  private Order getOrder(OrderStateNotifier job, final AdvancedOrderInfo ex) throws IOException {
+    final Collection<Order> matchingOrders;
+    try {
+      matchingOrders = tradeServiceFactory.getForExchange(ex.exchange()).getOrder(job.orderId());
+    } catch (ExchangeException e) {
+      if (e.getCause() instanceof HttpStatusExceptionSupport && ((HttpStatusExceptionSupport)e.getCause()).getHttpStatusCode() == 404) {
+        notFoundMessage(job, ex);
+        return null;
+      }
+      throw e;
+    }
+
+    if (matchingOrders == null || matchingOrders.isEmpty()) {
+      notFoundMessage(job, ex);
+      return null;
+    } else if (matchingOrders.size() != 1) {
+      notUniqueMessage(job, ex);
+      return null;
+    }
+
+    return Iterables.getOnlyElement(matchingOrders);
+  }
+
+  private void notUniqueMessage(OrderStateNotifier job, final AdvancedOrderInfo ex) {
+    String message = String.format(
+      "Order [%d] on [%s/%s/%s] was not unique on the exchange. Giving up.",
+      job.id(), ex.exchange(), ex.base(), ex.counter()
+    );
+    LOGGER.error(message);
+    telegramService.sendMessage(message);
+  }
+
+  private void notFoundMessage(OrderStateNotifier job, final AdvancedOrderInfo ex) {
+    String message = String.format(
+        "Order [%d] on [%s/%s/%s] was not found on the exchange. It may have been cancelled. Giving up.",
+        job.id(), ex.exchange(), ex.base(), ex.counter()
+      );
+    LOGGER.error(message);
+    telegramService.sendMessage(message);
   }
 }

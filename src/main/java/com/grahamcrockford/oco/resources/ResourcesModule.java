@@ -7,6 +7,8 @@ import com.grahamcrockford.oco.WebResource;
 public class ResourcesModule extends AbstractModule {
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(TradeResource.class);
+    Multibinder<WebResource> resources = Multibinder.newSetBinder(binder(), WebResource.class);
+    resources.addBinding().to(ExchangeResource.class);
+    resources.addBinding().to(AdvancedOrderResource.class);
   }
 }

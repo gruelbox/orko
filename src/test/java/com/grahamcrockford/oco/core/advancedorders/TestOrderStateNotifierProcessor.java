@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.orders;
+package com.grahamcrockford.oco.core.advancedorders;
 
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.mockito.Mockito.mock;
@@ -28,6 +28,8 @@ import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
+import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifier;
+import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifierProcessor;
 
 public class TestOrderStateNotifierProcessor {
 
@@ -93,7 +95,7 @@ public class TestOrderStateNotifierProcessor {
   public void testStatuses() throws Exception {
     for (final Order.OrderStatus status : Order.OrderStatus.values()) {
       Mockito.reset(enqueuer, telegramService);
-      when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, status)));
+      when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, BigDecimal.ZERO, status)));
       processor.tick(baseJob().build(), null);
       if (ImmutableSet.of(Order.OrderStatus.PENDING_NEW, Order.OrderStatus.NEW, Order.OrderStatus.PARTIALLY_FILLED).contains(status)) {
         verifyNoChanges(baseJob().build());

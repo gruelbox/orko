@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.orders;
+package com.grahamcrockford.oco.core.advancedorders;
 
 import java.util.List;
 import org.slf4j.Logger;

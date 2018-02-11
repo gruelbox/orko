@@ -9,6 +9,9 @@ import com.google.inject.Singleton;
 
 import io.dropwizard.lifecycle.Managed;
 
+/**
+ * Starts and stops the ActiveMQ broker when the application starts.
+ */
 @Singleton
 final class BrokerTask implements Managed {
 

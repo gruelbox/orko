@@ -4,3 +4,6 @@
 /target
 /.settings
 /*.log
+/my-config.yml
+/.factorypath
+/dependency-reduced-pom.xml

@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.orders;
+package com.grahamcrockford.oco.core.advancedorders;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,6 +34,9 @@ import com.grahamcrockford.oco.core.AdvancedOrderIdGenerator;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
+import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifier;
+import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStop;
+import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStopProcessor;
 
 public class TestSoftTrailingStopProcessor {
 

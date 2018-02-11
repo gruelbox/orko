@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.orders;
+package com.grahamcrockford.oco.core.advancedorders;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
+import com.grahamcrockford.oco.core.advancedorders.AutoValue_OrderStateNotifier;
 
 @AutoValue
 @JsonDeserialize(builder = OrderStateNotifier.Builder.class)
