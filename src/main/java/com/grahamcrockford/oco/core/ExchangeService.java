@@ -31,36 +31,42 @@ public class ExchangeService {
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
     public Exchange load(String name) throws Exception {
-      if (configuration.getExchanges() == null) {
-        LOGGER.warn("No API connection details.  Connecting to public API: " + name);
-        return ExchangeFactory.INSTANCE.createExchange(map(name));
-      }
+      if (configuration.getExchanges() == null)
+        return publicApi(name);
       final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(name);
-      if (exchangeConfiguration == null) {
-        LOGGER.warn("No API connection details.  Connecting to public API: " + name);
-        return ExchangeFactory.INSTANCE.createExchange(map(name));
-      } else {
-        try {
-          LOGGER.info("Connecting to private API: " + name);
-          final ExchangeSpecification exSpec = map(name).newInstance().getDefaultExchangeSpecification();
+      if (exchangeConfiguration == null)
+        return publicApi(name);
+      if (exchangeConfiguration.getApiKey() == null)
+        return publicApi(name);
+      return privateApi(name, exchangeConfiguration);
+    }
 
-          if (name.toLowerCase().equals("gdax-sandbox")) {
-            exSpec.setSslUri("https://api-public.sandbox.gdax.com");
-            exSpec.setHost("api-public.sandbox.gdax.com");
-          }
+    private Exchange publicApi(String name) {
+      LOGGER.warn("No API connection details.  Connecting to public API: " + name);
+      return ExchangeFactory.INSTANCE.createExchange(map(name));
+    }
 
-          if (name.toLowerCase().equals("gdax-sandbox") || name.toLowerCase().equals("gdax")) {
-            exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
-          }
+    private Exchange privateApi(String name, final ExchangeConfiguration exchangeConfiguration) {
+      try {
+        LOGGER.info("Connecting to private API: " + name);
+        final ExchangeSpecification exSpec = map(name).newInstance().getDefaultExchangeSpecification();
 
-          exSpec.setUserName(exchangeConfiguration.getUserName());
-          exSpec.setApiKey(exchangeConfiguration.getApiKey());
-          exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
-
-          return ExchangeFactory.INSTANCE.createExchange(exSpec);
-        } catch (InstantiationException | IllegalAccessException e) {
-          throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
+        if (name.toLowerCase().equals("gdax-sandbox")) {
+          exSpec.setSslUri("https://api-public.sandbox.gdax.com");
+          exSpec.setHost("api-public.sandbox.gdax.com");
         }
+
+        if (name.toLowerCase().equals("gdax-sandbox") || name.toLowerCase().equals("gdax")) {
+          exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
+        }
+
+        exSpec.setUserName(exchangeConfiguration.getUserName());
+        exSpec.setApiKey(exchangeConfiguration.getApiKey());
+        exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
+
+        return ExchangeFactory.INSTANCE.createExchange(exSpec);
+      } catch (InstantiationException | IllegalAccessException e) {
+        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
     }
 

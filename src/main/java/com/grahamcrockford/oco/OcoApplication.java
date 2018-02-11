@@ -21,6 +21,8 @@ import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
+import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -59,6 +61,12 @@ public class OcoApplication extends Application<OcoConfiguration> {
   public void initialize(final Bootstrap<OcoConfiguration> bootstrap) {
     this.activeMQBundle = new ActiveMQBundle();
     bootstrap.addBundle(activeMQBundle);
+    bootstrap.setConfigurationSourceProvider(
+      new SubstitutingSourceProvider(
+        bootstrap.getConfigurationSourceProvider(),
+        new EnvironmentVariableSubstitutor()
+      )
+    );
   }
 
   @Override
