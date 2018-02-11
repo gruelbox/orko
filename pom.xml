@@ -22,7 +22,7 @@
 		<dropwizard.version>1.2.3</dropwizard.version>
 		<dropwizard.activemq.version>0.5.1</dropwizard.activemq.version>
 		<activemq.version>5.14.1</activemq.version>
-		<xchange.version>4.3.4-SNAPSHOT</xchange.version>
+		<xchange.version>4.3.3</xchange.version>
 		<streamex.version>0.6.6</streamex.version>
 		<guice.version>4.1.0</guice.version>
 		<autovalue.version>1.5</autovalue.version>

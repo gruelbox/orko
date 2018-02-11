@@ -10,11 +10,6 @@ password: ${PASSWORD}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN}
   chatId: ${TELEGRAM_CHAT_ID}
-exchanges:
-  gdax-sandbox:
-    apiKey: ${GDAX_SANDBOX_API_KEY:-default}
-    secretKey: ${GDAX_SANDBOX_SECRET_KEY:-default}
-    passphrase: ${GDAX_SANDBOX_PASSPHRASE:-default}
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
