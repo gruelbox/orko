@@ -17,7 +17,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<mainClass>com.grahamcrockford.oco.ocoApplication</mainClass>
+		<mainClass>com.grahamcrockford.oco.OcoApplication</mainClass>
 
 		<dropwizard.version>1.2.3</dropwizard.version>
 		<dropwizard.activemq.version>0.5.1</dropwizard.activemq.version>
