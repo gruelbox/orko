@@ -15,13 +15,6 @@ exchanges:
     apiKey: ${GDAX_SANDBOX_API_KEY:-default}
     secretKey: ${GDAX_SANDBOX_SECRET_KEY:-default}
     passphrase: ${GDAX_SANDBOX_PASSPHRASE:-default}
-#  gdax:
-#    apiKey: ${GDAX_API_KEY:-default}
-#    secretKey: ${GDAX_SECRET_KEY:-default}
-#    passphrase: ${GDAX_PASSPHRASE:-default}
-#  binance:
-#    apiKey: ${BINANCE_API_KEY:-default}
-#    secretKey: ${BINANCE_SECRET_KEY:-default}
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
