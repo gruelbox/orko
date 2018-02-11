@@ -4,7 +4,7 @@ server:
   connector:
     type: http
     port: 8080
-loopSeconds: ${LOOP_SECONDS:-default 5}
+loopSeconds: ${LOOP_SECONDS:-5}
 userName: ${USER_NAME}
 password: ${PASSWORD}
 telegram:
@@ -12,16 +12,16 @@ telegram:
   chatId: ${TELEGRAM_CHAT_ID}
 exchanges:
   gdax-sandbox:
-    apiKey: ${GDAX_SANDBOX_API_KEY:-default null}
-    secretKey: ${GDAX_SANDBOX_SECRET_KEY:-default null}
-    passphrase: ${GDAX_SANDBOX_PASSPHRASE:-default null}
+    apiKey: ${GDAX_SANDBOX_API_KEY:-default}
+    secretKey: ${GDAX_SANDBOX_SECRET_KEY:-default}
+    passphrase: ${GDAX_SANDBOX_PASSPHRASE:-default}
   gdax:
-    apiKey: ${GDAX_API_KEY:-default null}
-    secretKey: ${GDAX_SECRET_KEY:-default null}
-    passphrase: ${GDAX_PASSPHRASE:-default null}
+    apiKey: ${GDAX_API_KEY:-default}
+    secretKey: ${GDAX_SECRET_KEY:-default}
+    passphrase: ${GDAX_PASSPHRASE:-default}
   binance:
-    apiKey: ${BINANCE_API_KEY:-default null}
-    secretKey: ${BINANCE_SECRET_KEY:-default null}
+    apiKey: ${BINANCE_API_KEY:-default}
+    secretKey: ${BINANCE_SECRET_KEY:-default}
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
