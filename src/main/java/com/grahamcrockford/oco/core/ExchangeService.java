@@ -36,7 +36,7 @@ public class ExchangeService {
       final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(name);
       if (exchangeConfiguration == null)
         return publicApi(name);
-      if (exchangeConfiguration.getApiKey() == null)
+      if (exchangeConfiguration.getApiKey() == null || exchangeConfiguration.getApiKey().equals("null"))
         return publicApi(name);
       return privateApi(name, exchangeConfiguration);
     }
