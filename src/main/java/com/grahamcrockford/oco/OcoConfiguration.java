@@ -24,6 +24,12 @@ public class OcoConfiguration extends Configuration implements ActiveMQConfigHol
   @Min(1L)
   private int loopSeconds;
 
+  @NotNull
+  private String userName;
+
+  @NotNull
+  private String password;
+
   @Valid
   @NotNull
   private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
@@ -48,6 +54,26 @@ public class OcoConfiguration extends Configuration implements ActiveMQConfigHol
   @JsonProperty
   public void setLoopSeconds(int loopSeconds) {
     this.loopSeconds = loopSeconds;
+  }
+
+  @JsonProperty
+  public String getUserName() {
+    return userName;
+  }
+
+  @JsonProperty
+  public void setUserName(String userName) {
+    this.userName = userName;
+  }
+
+  @JsonProperty
+  public String getPassword() {
+    return password;
+  }
+
+  @JsonProperty
+  public void setPassword(String password) {
+    this.password = password;
   }
 
   @JsonProperty

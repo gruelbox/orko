@@ -5,6 +5,8 @@ server:
     type: http
     port: 8080
 loopSeconds: ${LOOP_SECONDS}
+userName: ${USER_NAME}
+password: ${PASSWORD}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN}
   chatId: ${TELEGRAM_CHAT_ID}
