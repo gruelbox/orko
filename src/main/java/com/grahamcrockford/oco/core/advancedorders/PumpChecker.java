@@ -12,7 +12,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
-import com.grahamcrockford.oco.core.advancedorders.AutoValue_PumpChecker;
 
 @AutoValue
 @JsonDeserialize(builder = PumpChecker.Builder.class)
@@ -27,7 +26,7 @@ public abstract class PumpChecker implements AdvancedOrder {
   @JsonPOJOBuilder(withPrefix = "")
   public static abstract class Builder {
     @JsonCreator private static Builder create() { return PumpChecker.builder(); }
-    public abstract Builder id(long value);
+    public abstract Builder id(String value);
     public abstract Builder basic(AdvancedOrderInfo exchangeInfo);
     public abstract Builder priceHistory(List<BigDecimal> history);
     public abstract PumpChecker build();
@@ -38,7 +37,7 @@ public abstract class PumpChecker implements AdvancedOrder {
 
   @Override
   @JsonProperty
-  public abstract long id();
+  public abstract String id();
 
   @JsonProperty
   public abstract List<BigDecimal> priceHistory();

@@ -23,7 +23,6 @@ import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.advancedorders.PumpChecker;
 import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStop;
 import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
-import com.grahamcrockford.oco.core.AdvancedOrderIdGenerator;
 import com.grahamcrockford.oco.core.AdvancedOrderListener;
 
 /**
@@ -37,16 +36,13 @@ public class AdvancedOrderResource implements WebResource {
   private final ExchangeService exchanges;
   private final AdvancedOrderEnqueuer advancedOrderEnqueuer;
   private final AdvancedOrderListener advancedOrderListener;
-  private final AdvancedOrderIdGenerator advancedOrderIdGenerator;
 
   @Inject
   AdvancedOrderResource(AdvancedOrderEnqueuer advancedOrderEnqueuer,
                         AdvancedOrderListener advancedOrderListener,
-                        AdvancedOrderIdGenerator advancedOrderIdGenerator,
                         ExchangeService exchanges) {
     this.advancedOrderEnqueuer = advancedOrderEnqueuer;
     this.advancedOrderListener = advancedOrderListener;
-    this.advancedOrderIdGenerator = advancedOrderIdGenerator;
     this.exchanges = exchanges;
   }
 
@@ -70,9 +66,8 @@ public class AdvancedOrderResource implements WebResource {
                                            @QueryParam("limitPc") BigDecimal limitPercentage) throws Exception {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
-    final SoftTrailingStop order =
+    return advancedOrderEnqueuer.enqueue(
       SoftTrailingStop.builder()
-        .id(advancedOrderIdGenerator.next())
         .basic(AdvancedOrderInfo.builder()
           .exchange(exchange)
           .base(base)
@@ -83,9 +78,8 @@ public class AdvancedOrderResource implements WebResource {
         .startPrice(ticker.getBid())
         .stopPercentage(stopPercentage)
         .limitPercentage(limitPercentage)
-        .build();
-    advancedOrderEnqueuer.enqueue(order);
-    return order;
+        .build()
+    );
   }
 
   @PUT
@@ -95,16 +89,15 @@ public class AdvancedOrderResource implements WebResource {
   public PumpChecker pumpChecker(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base) throws Exception {
-    PumpChecker job = PumpChecker.builder()
-        .id(advancedOrderIdGenerator.next())
+    return advancedOrderEnqueuer.enqueue(
+      PumpChecker.builder()
         .basic(AdvancedOrderInfo.builder()
           .exchange(exchange)
           .base(base)
           .counter(counter)
           .build()
         )
-        .build();
-    advancedOrderEnqueuer.enqueue(job);
-    return job;
+        .build()
+    );
   }
 }

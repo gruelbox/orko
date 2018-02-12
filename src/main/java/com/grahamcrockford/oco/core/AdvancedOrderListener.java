@@ -13,8 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
-import com.kjetland.dropwizard.activemq.ActiveMQReceiver;
-
 import jersey.repackaged.com.google.common.collect.Maps;
 import jersey.repackaged.com.google.common.collect.Sets;
 
@@ -22,7 +20,7 @@ import jersey.repackaged.com.google.common.collect.Sets;
  * Monitors the queue.
  */
 @Singleton
-public class AdvancedOrderListener implements ActiveMQReceiver<AdvancedOrder> {
+public class AdvancedOrderListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedOrderListener.class);
 
@@ -42,7 +40,6 @@ public class AdvancedOrderListener implements ActiveMQReceiver<AdvancedOrder> {
   /**
    * @see com.kjetland.dropwizard.activemq.ActiveMQReceiver#receive(java.lang.Object)
    */
-  @Override
   public void receive(AdvancedOrder job) {
     if (deadJobIds.contains(job.id())) {
       LOGGER.info("Deleted job {}", job.id());

@@ -23,7 +23,6 @@ import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
-import com.grahamcrockford.oco.core.AdvancedOrderIdGenerator;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
 
@@ -48,7 +47,6 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   private final TradeServiceFactory tradeServiceFactory;
   private final ExchangeService exchangeService;
   private final AdvancedOrderEnqueuer advancedOrderEnqueuer;
-  private final AdvancedOrderIdGenerator advancedOrderIdGenerator;
 
   private final AtomicInteger logRowCount = new AtomicInteger();
 
@@ -58,13 +56,11 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   public SoftTrailingStopProcessor(final TelegramService telegramService,
                                    final TradeServiceFactory tradeServiceFactory,
                                    final ExchangeService exchangeService,
-                                   final AdvancedOrderEnqueuer advancedOrderEnqueuer,
-                                   final AdvancedOrderIdGenerator advancedOrderIdGenerator) {
+                                   final AdvancedOrderEnqueuer advancedOrderEnqueuer) {
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
     this.exchangeService = exchangeService;
     this.advancedOrderEnqueuer = advancedOrderEnqueuer;
-    this.advancedOrderIdGenerator = advancedOrderIdGenerator;
   }
 
   @Override
@@ -100,7 +96,6 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
 
       // Spawn a new job to monitor the progress of the stop
       advancedOrderEnqueuer.enqueue(OrderStateNotifier.builder()
-          .id(advancedOrderIdGenerator.next())
           .basic(order.basic())
           .description("Stop")
           .orderId(xChangeOrderId)

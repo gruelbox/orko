@@ -3,6 +3,11 @@ package com.grahamcrockford.oco.core.advancedorders;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
+import org.jongo.marshall.jackson.oid.MongoId;
+import org.jongo.marshall.jackson.oid.MongoObjectId;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,7 +16,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
-import com.grahamcrockford.oco.core.advancedorders.AutoValue_SoftTrailingStop;
 
 @AutoValue
 @JsonDeserialize(builder = SoftTrailingStop.Builder.class)
@@ -28,7 +32,7 @@ public abstract class SoftTrailingStop implements AdvancedOrder {
 
     @JsonCreator private static Builder create() { return SoftTrailingStop.builder(); }
 
-    public abstract Builder id(long value);
+    @MongoId @MongoObjectId public abstract Builder id(String value);
     public abstract Builder basic(AdvancedOrderInfo exchangeInfo);
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder startPrice(BigDecimal value);
@@ -53,7 +57,10 @@ public abstract class SoftTrailingStop implements AdvancedOrder {
 
   @Override
   @JsonProperty
-  public abstract long id();
+  @Nullable
+  @MongoId
+  @MongoObjectId
+  public abstract String id();
 
   @Override
   @JsonProperty

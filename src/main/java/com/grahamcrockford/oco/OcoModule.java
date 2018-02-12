@@ -8,8 +8,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.core.CoreModule;
+import com.grahamcrockford.oco.db.DbModule;
 import com.grahamcrockford.oco.resources.ResourcesModule;
-import com.kjetland.dropwizard.activemq.ActiveMQBundle;
 
 import io.dropwizard.lifecycle.Managed;
 
@@ -20,22 +20,21 @@ class OcoModule extends AbstractModule {
 
   private final ObjectMapper objectMapper;
   private final OcoConfiguration configuration;
-  private final Client client;
-  private final ActiveMQBundle activeMQBundle;
+  private final Client jerseyClient;
 
-  public OcoModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client, ActiveMQBundle activeMQBundle) {
+  public OcoModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client) {
     this.configuration = configuration;
     this.objectMapper = objectMapper;
-    this.client = client;
-    this.activeMQBundle = activeMQBundle;
+    this.jerseyClient = client;
   }
 
   @Override
   protected void configure() {
     Multibinder.newSetBinder(binder(), Service.class);
-    Multibinder.newSetBinder(binder(), Managed.class).addBinding().toInstance(new BrokerTask());
+    Multibinder.newSetBinder(binder(), Managed.class);
     install(new CoreModule());
     install(new ResourcesModule());
+    install(new DbModule());
   }
 
   @Provides
@@ -49,12 +48,7 @@ class OcoModule extends AbstractModule {
   }
 
   @Provides
-  Client client() {
-    return client;
-  }
-
-  @Provides
-  ActiveMQBundle mqBundle() {
-    return activeMQBundle;
+  Client jerseyClient() {
+    return jerseyClient;
   }
 }

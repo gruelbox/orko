@@ -1,5 +1,7 @@
 package com.grahamcrockford.oco.core.advancedorders;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,7 +10,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.api.AdvancedOrderInfo;
-import com.grahamcrockford.oco.core.advancedorders.AutoValue_OrderStateNotifier;
 
 @AutoValue
 @JsonDeserialize(builder = OrderStateNotifier.Builder.class)
@@ -22,7 +23,7 @@ public abstract class OrderStateNotifier implements AdvancedOrder {
   @JsonPOJOBuilder(withPrefix = "")
   public static abstract class Builder {
     @JsonCreator private static Builder create() { return OrderStateNotifier.builder(); }
-    public abstract Builder id(long value);
+    public abstract Builder id(String value);
     public abstract Builder basic(AdvancedOrderInfo exchangeInfo);
     public abstract Builder description(String description);
     public abstract Builder orderId(String orderId);
@@ -34,7 +35,8 @@ public abstract class OrderStateNotifier implements AdvancedOrder {
 
   @Override
   @JsonProperty
-  public abstract long id();
+  @Nullable
+  public abstract String id();
 
   @Override
   @JsonProperty

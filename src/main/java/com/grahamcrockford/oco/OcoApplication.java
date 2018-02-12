@@ -12,11 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.grahamcrockford.oco.api.AdvancedOrder;
 import com.grahamcrockford.oco.auth.SimpleAuthenticator;
 import com.grahamcrockford.oco.auth.User;
-import com.grahamcrockford.oco.core.AdvancedOrderListener;
-import com.kjetland.dropwizard.activemq.ActiveMQBundle;
+
 import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
@@ -47,11 +45,6 @@ public class OcoApplication extends Application<OcoConfiguration> {
   @Inject
   private SimpleAuthenticator authenticator;
 
-  @Inject
-  private AdvancedOrderListener jmsListener;
-
-  private ActiveMQBundle activeMQBundle;
-
   @Override
   public String getName() {
     return "oco";
@@ -59,8 +52,6 @@ public class OcoApplication extends Application<OcoConfiguration> {
 
   @Override
   public void initialize(final Bootstrap<OcoConfiguration> bootstrap) {
-    this.activeMQBundle = new ActiveMQBundle();
-    bootstrap.addBundle(activeMQBundle);
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         bootstrap.getConfigurationSourceProvider(),
@@ -73,10 +64,10 @@ public class OcoApplication extends Application<OcoConfiguration> {
   public void run(final OcoConfiguration configuration, final Environment environment) {
 
     // Jersey client
-    final Client client = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
+    final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
 
     // Injector
-    final Injector injector = Guice.createInjector(new OcoModule(configuration, environment.getObjectMapper(), client, activeMQBundle));
+    final Injector injector = Guice.createInjector(new OcoModule(configuration, environment.getObjectMapper(), jerseyClient));
     injector.injectMembers(this);
 
     // Auth
@@ -92,9 +83,6 @@ public class OcoApplication extends Application<OcoConfiguration> {
     managedTasks.stream()
       .peek(t -> LOGGER.info("Starting managed task {}", t))
       .forEach(environment.lifecycle()::manage);
-
-    // And now the MQ listeners
-    activeMQBundle.registerReceiver(AdvancedOrder.class.getName(), jmsListener, AdvancedOrder.class, false);
 
     // And any bound services
     services.stream()

@@ -1,15 +1,15 @@
 package com.grahamcrockford.oco.core;
 
-import javax.jms.TextMessage;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.jongo.Jongo;
+import org.jongo.MongoCollection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.AdvancedOrder;
-import com.kjetland.dropwizard.activemq.ActiveMQBundle;
-import com.kjetland.dropwizard.activemq.ActiveMQSender;
+import com.mongodb.DB;
+import com.mongodb.WriteResult;
+
 
 /**
  * Simple wrapper for sending orders to the queue.
@@ -17,15 +17,15 @@ import com.kjetland.dropwizard.activemq.ActiveMQSender;
 @Singleton
 public class AdvancedOrderEnqueuer {
 
-  private final ActiveMQSender sender;
-  private final ObjectMapper objectMapper;
   private final OcoConfiguration ocoConfiguration;
+  private final DB database;
+  private final ObjectMapper objectMapper;
 
   @Inject
-  AdvancedOrderEnqueuer(ActiveMQBundle activeMQBundle, ObjectMapper objectMapper, OcoConfiguration ocoConfiguration) {
+  AdvancedOrderEnqueuer(DB database, ObjectMapper objectMapper, OcoConfiguration ocoConfiguration) {
+    this.database = database;
     this.objectMapper = objectMapper;
     this.ocoConfiguration = ocoConfiguration;
-    this.sender = activeMQBundle.createSender(AdvancedOrder.class.getName(), true);
   }
 
   /**
@@ -33,8 +33,13 @@ public class AdvancedOrderEnqueuer {
    *
    * @param order The order.
    */
-  public void enqueue(AdvancedOrder order) {
-    sender.send(order);
+  @SuppressWarnings("unchecked")
+  public <T extends AdvancedOrder> T enqueue(T order) {
+    Jongo jongo = new Jongo(database);
+    MongoCollection collection = jongo.getCollection("ADVANCEDORDER");
+    WriteResult result = collection.insert(order);
+
+    return null;
   }
 
   /**
@@ -53,18 +58,18 @@ public class AdvancedOrderEnqueuer {
    * @param milliseconds The time to wait.
    */
   public void enqueueAfterMilliseconds(AdvancedOrder order, long milliseconds) {
-    sender.send(session -> {
-      try {
-        TextMessage textMessage = session.createTextMessage(objectMapper.writeValueAsString(order));
-        String correlationId = ActiveMQBundle.correlationID.get();
-        if (textMessage.getJMSCorrelationID() == null && correlationId != null) {
-          textMessage.setJMSCorrelationID(correlationId);
-        }
-        textMessage.setLongProperty("AMQ_SCHEDULED_DELAY", milliseconds);
-        return textMessage;
-      } catch (JsonProcessingException e) {
-        throw new RuntimeException(e);
-      }
-    });
+//    sender.send(session -> {
+//      try {
+//        TextMessage textMessage = session.createTextMessage(objectMapper.writeValueAsString(order));
+//        String correlationId = ActiveMQBundle.correlationID.get();
+//        if (textMessage.getJMSCorrelationID() == null && correlationId != null) {
+//          textMessage.setJMSCorrelationID(correlationId);
+//        }
+//        textMessage.setLongProperty("AMQ_SCHEDULED_DELAY", milliseconds);
+//        return textMessage;
+//      } catch (JsonProcessingException e) {
+//        throw new RuntimeException(e);
+//      }
+//    });
   }
 }

@@ -1,49 +1,20 @@
+loopSeconds: ${LOOP_SECONDS:-5}
+userName: ${USER_NAME}
+password: ${PASSWORD}
+mongoClientURI: ${MONGO_CLIENT_URI}
+mongoDatabase: ${MONGO_DATABASE}
+telegram:
+  botToken: ${TELEGRAM_BOT_TOKEN}
+  chatId: ${TELEGRAM_CHAT_ID}
 server:
   type: simple
   applicationContextPath: /
   connector:
     type: http
     port: 8080
-loopSeconds: ${LOOP_SECONDS:-5}
-userName: ${USER_NAME}
-password: ${PASSWORD}
-telegram:
-  botToken: ${TELEGRAM_BOT_TOKEN}
-  chatId: ${TELEGRAM_CHAT_ID}
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
   connectionRequestTimeout: 5000ms
-activeMQ:
-  brokerUrl: failover:vm://localhost?create=false
-  # brokerUsername: username
-  # brokerPassword: password
-  # shutdownWaitInSeconds: 20
-  # healthCheckMillisecondsToWait: 2000
-  # timeToLiveInSeconds: -1     (Default message time-to-live is off. Specify a maximum lifespan here in seconds for all messages.)
-  pool:
-    maxConnections: 2
-    maximumActiveSessionPerConnection: 4
-    blockIfSessionPoolIsFull: false
-    idleTimeoutMills: 30000
-    # expiryTimeoutMills:
-    createConnectionOnStartup: true
-    timeBetweenExpirationCheckMillis: 20000
 #logging:
 #  level: TRACE
-#  loggers:
-#    com.grahamcrockford: DEBUG
-#  appenders:
-#    - type: console
-#      threshold: ALL
-#      timeZone: UTC
-#      target: stdout
-#      logFormat: "%p %d %C0 %m"
-#    - type: file
-#      currentLogFilename: app.log
-#      threshold: ALL
-#      archive: true
-#      archivedLogFilenamePattern: app-%d.log
-#      archivedFileCount: 5
-#      timeZone: UTC
-#      logFormat: "%p %d %t %C20 %m"

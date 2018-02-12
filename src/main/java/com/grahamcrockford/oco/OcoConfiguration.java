@@ -12,13 +12,11 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.grahamcrockford.oco.core.ExchangeConfiguration;
 import com.grahamcrockford.oco.core.TelegramConfiguration;
-import com.kjetland.dropwizard.activemq.ActiveMQConfig;
-import com.kjetland.dropwizard.activemq.ActiveMQConfigHolder;
 
 /**
  * Runtime config. Should really be broken up.
  */
-public class OcoConfiguration extends Configuration implements ActiveMQConfigHolder {
+public class OcoConfiguration extends Configuration {
 
   @NotNull
   @Min(1L)
@@ -30,13 +28,15 @@ public class OcoConfiguration extends Configuration implements ActiveMQConfigHol
   @NotNull
   private String password;
 
-  @Valid
   @NotNull
-  private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
+  private String mongoClientURI;
+
+  @NotNull
+  private String mongoDatabase;
 
   @Valid
   @NotNull
-  private ActiveMQConfig activeMQ;
+  private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
 
   private TelegramConfiguration telegram;
   private Map<String, ExchangeConfiguration> exchanges;
@@ -77,6 +77,26 @@ public class OcoConfiguration extends Configuration implements ActiveMQConfigHol
   }
 
   @JsonProperty
+  public String getMongoClientURI() {
+    return mongoClientURI;
+  }
+
+  @JsonProperty
+  public void setMongoClientURI(String mongoClientURI) {
+    this.mongoClientURI = mongoClientURI;
+  }
+
+  @JsonProperty
+  public String getMongoDatabase() {
+    return mongoDatabase;
+  }
+
+  @JsonProperty
+  public void setMongoDatabase(String mongoDatabase) {
+    this.mongoDatabase = mongoDatabase;
+  }
+
+  @JsonProperty
   public TelegramConfiguration getTelegram() {
     return telegram;
   }
@@ -104,16 +124,5 @@ public class OcoConfiguration extends Configuration implements ActiveMQConfigHol
   @JsonProperty("jerseyClient")
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
       this.jerseyClient = jerseyClient;
-  }
-
-  @Override
-  @JsonProperty
-  public ActiveMQConfig getActiveMQ() {
-      return activeMQ;
-  }
-  @JsonProperty
-  public void setActiveMQ(ActiveMQConfig activeMQ) {
-    this.activeMQ = activeMQ;
-    return;
   }
 }
