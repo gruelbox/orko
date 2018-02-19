@@ -1,8 +1,11 @@
 package com.grahamcrockford.oco.core;
 
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +18,8 @@ import com.grahamcrockford.oco.core.JobExecutor.Factory;
 import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.db.JobLocker;
 
+import jersey.repackaged.com.google.common.collect.Sets;
+
 @Singleton
 class JobKeepAlive extends AbstractExecutionThreadService {
 
@@ -24,6 +29,7 @@ class JobKeepAlive extends AbstractExecutionThreadService {
   private final JobLocker jobLocker;
   private final Factory jobExecutorFactory;
   private final ExecutorService executorService;
+  private final Set<Future<?>> futures = Sets.newSetFromMap(new ConcurrentHashMap<>());
 
   @Inject
   JobKeepAlive(JobAccess advancedOrderAccess,
@@ -47,7 +53,7 @@ class JobKeepAlive extends AbstractExecutionThreadService {
           UUID uuid = UUID.randomUUID();
           if (jobLocker.attemptLock(job.id(), uuid)) {
             job = advancedOrderAccess.load(job.id());
-            executorService.execute(jobExecutorFactory.create(job, uuid));
+            futures.add(executorService.submit(jobExecutorFactory.create(job, uuid)));
           } else {
             locksFailed = true;
           }
@@ -72,6 +78,11 @@ class JobKeepAlive extends AbstractExecutionThreadService {
 
   @Override
   protected void shutDown() throws Exception {
+    futures.stream().forEach(f -> {
+      if (!f.isDone() && !f.isCancelled()) {
+        f.cancel(true);
+      }
+    });
     executorService.shutdown();
     super.shutDown();
   }
