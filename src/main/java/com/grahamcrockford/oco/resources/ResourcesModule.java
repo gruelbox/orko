@@ -9,6 +9,6 @@ public class ResourcesModule extends AbstractModule {
   protected void configure() {
     Multibinder<WebResource> resources = Multibinder.newSetBinder(binder(), WebResource.class);
     resources.addBinding().to(ExchangeResource.class);
-    resources.addBinding().to(AdvancedOrderResource.class);
+    resources.addBinding().to(JobResource.class);
   }
 }

@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,13 +16,13 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.grahamcrockford.oco.api.AdvancedOrder;
-import com.grahamcrockford.oco.api.AdvancedOrderBuilder;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.Job;
+import com.grahamcrockford.oco.api.JobBuilder;
+import com.grahamcrockford.oco.api.TickerSpec;
 
 @AutoValue
 @JsonDeserialize(builder = PumpChecker.Builder.class)
-public abstract class PumpChecker implements AdvancedOrder {
+public abstract class PumpChecker implements Job {
 
   public static final Builder builder() {
     return new AutoValue_PumpChecker.Builder()
@@ -31,12 +31,12 @@ public abstract class PumpChecker implements AdvancedOrder {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements AdvancedOrderBuilder {
+  public static abstract class Builder implements JobBuilder {
     @JsonCreator private static Builder create() { return PumpChecker.builder(); }
     @Override
     @Id @ObjectId
     public abstract Builder id(String value);
-    public abstract Builder tickTrigger(TickTrigger tickTrigger);
+    public abstract Builder tickTrigger(TickerSpec tickTrigger);
     public abstract Builder priceHistory(List<BigDecimal> history);
 
     final Builder priceHistoryStr(List<String> history) {
@@ -67,7 +67,7 @@ public abstract class PumpChecker implements AdvancedOrder {
   }
 
   @JsonProperty
-  public abstract TickTrigger tickTrigger();
+  public abstract TickerSpec tickTrigger();
 
   @JsonIgnore
   @Override

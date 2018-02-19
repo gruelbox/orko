@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.JobProcessor;
+import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
 import com.grahamcrockford.oco.util.Sleep;
@@ -24,7 +24,7 @@ import com.grahamcrockford.oco.util.Sleep;
 import si.mazi.rescu.HttpStatusExceptionSupport;
 
 @Singleton
-public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<OrderStateNotifier> {
+public class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OrderStateNotifierProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
@@ -59,7 +59,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
   @Override
   public Optional<OrderStateNotifier> process(OrderStateNotifier job) throws InterruptedException {
 
-    final TickTrigger ex = job.tickTrigger();
+    final TickerSpec ex = job.tickTrigger();
 
     final int rowCount = logRowCount.getAndIncrement();
     if (rowCount == 0) {
@@ -140,7 +140,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
         : Optional.of(job);
   }
 
-  private Order getOrder(OrderStateNotifier job, final TickTrigger ex) {
+  private Order getOrder(OrderStateNotifier job, final TickerSpec ex) {
     final Collection<Order> matchingOrders;
     try {
       matchingOrders = tradeServiceFactory.getForExchange(ex.exchange()).getOrder(job.orderId());
@@ -163,7 +163,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
     return Iterables.getOnlyElement(matchingOrders);
   }
 
-  private void notUniqueMessage(OrderStateNotifier job, final TickTrigger ex) {
+  private void notUniqueMessage(OrderStateNotifier job, final TickerSpec ex) {
     String message = String.format(
       "Order [%s] on [%s/%s/%s] was not unique on the exchange. Giving up.",
       job.id(), ex.exchange(), ex.base(), ex.counter()
@@ -172,7 +172,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
     telegramService.sendMessage(message);
   }
 
-  private void notFoundMessage(OrderStateNotifier job, final TickTrigger ex) {
+  private void notFoundMessage(OrderStateNotifier job, final TickerSpec ex) {
     String message = String.format(
         "Order [%s] on [%s/%s/%s] was not found on the exchange. It may have been cancelled. Giving up.",
         job.id(), ex.exchange(), ex.base(), ex.counter()

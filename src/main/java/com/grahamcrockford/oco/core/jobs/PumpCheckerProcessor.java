@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.JobProcessor;
+import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
@@ -22,7 +22,7 @@ import com.grahamcrockford.oco.util.Sleep;
 import one.util.streamex.StreamEx;
 
 @Singleton
-public class PumpCheckerProcessor implements AdvancedOrderProcessor<PumpChecker> {
+public class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
 
   private static final BigDecimal TARGET = new BigDecimal("0.5");
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpCheckerProcessor.class);
@@ -59,7 +59,7 @@ public class PumpCheckerProcessor implements AdvancedOrderProcessor<PumpChecker>
       logRowCount.set(0);
     }
 
-    final TickTrigger ex = job.tickTrigger();
+    final TickerSpec ex = job.tickTrigger();
 
     Ticker ticker = exchangeService.fetchTicker(ex);
 

@@ -13,21 +13,21 @@ import com.google.auto.value.AutoValue;
  * A generic trade request.
  */
 @AutoValue
-@JsonDeserialize(builder = TickTrigger.Builder.class)
-public abstract class TickTrigger {
+@JsonDeserialize(builder = TickerSpec.Builder.class)
+public abstract class TickerSpec {
 
   public static Builder builder() {
-    return new AutoValue_TickTrigger.Builder();
+    return new AutoValue_TickerSpec.Builder();
   }
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
   public abstract static class Builder {
-    @JsonCreator private static Builder create() { return TickTrigger.builder(); }
+    @JsonCreator private static Builder create() { return TickerSpec.builder(); }
     public abstract Builder exchange(String value);
     public abstract Builder counter(String value);
     public abstract Builder base(String value);
-    public abstract TickTrigger build();
+    public abstract TickerSpec build();
   }
 
   @JsonIgnore

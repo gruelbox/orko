@@ -9,33 +9,33 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-import com.grahamcrockford.oco.api.AdvancedOrder;
-import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
-import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.api.Job;
+import com.grahamcrockford.oco.api.JobProcessor;
+import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.db.JobLocker;
 
 public class JobExecutor implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutor.class);
 
-  private AdvancedOrder job;
+  private Job job;
   private final UUID uuid;
-  private final AdvancedOrderProcessor<AdvancedOrder> processor;
+  private final JobProcessor<Job> processor;
   private final TelegramService telegramService;
-  private final AdvancedOrderAccess advancedOrderAccess;
+  private final JobAccess advancedOrderAccess;
   private final JobLocker jobLocker;
 
   @SuppressWarnings("unchecked")
   @AssistedInject
-  JobExecutor(@Assisted AdvancedOrder job, @Assisted UUID uuid, Injector injector,
-      TelegramService telegramService, AdvancedOrderAccess advancedOrderAccess,
+  JobExecutor(@Assisted Job job, @Assisted UUID uuid, Injector injector,
+      TelegramService telegramService, JobAccess advancedOrderAccess,
       JobLocker jobLocker) {
     this.job = job;
     this.telegramService = telegramService;
     this.advancedOrderAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.uuid = uuid;
-    this.processor = (AdvancedOrderProcessor<AdvancedOrder>) injector.getInstance(job.processor());
+    this.processor = (JobProcessor<Job>) injector.getInstance(job.processor());
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -45,7 +45,7 @@ public class JobExecutor implements Runnable {
     while (true) {
       try {
 
-        Optional<AdvancedOrder> updated = processor.process(job);
+        Optional<Job> updated = processor.process(job);
 
         if (!updated.isPresent()) {
           advancedOrderAccess.delete(job.id());
@@ -80,6 +80,6 @@ public class JobExecutor implements Runnable {
 
 
   public interface Factory {
-    public JobExecutor create(AdvancedOrder job, UUID uuid);
+    public JobExecutor create(Job job, UUID uuid);
   }
 }

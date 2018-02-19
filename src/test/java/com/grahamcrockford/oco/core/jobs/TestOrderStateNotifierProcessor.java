@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import static org.junit.Assert.assertFalse;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
@@ -26,13 +26,13 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.grahamcrockford.oco.api.AdvancedOrder;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.Job;
+import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifier;
-import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifierProcessor;
-import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
+import com.grahamcrockford.oco.core.jobs.OrderStateNotifierProcessor;
+import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
 
@@ -52,7 +52,7 @@ public class TestOrderStateNotifierProcessor {
   private static final BigDecimal LIMIT_PRICE = new BigDecimal(90);
   private static final BigDecimal FILLED = new BigDecimal(999);
 
-  @Mock private AdvancedOrderAccess enqueuer;
+  @Mock private JobAccess enqueuer;
   @Mock private TelegramService telegramService;
 
   @Mock private TradeServiceFactory tradeServiceFactory;
@@ -113,7 +113,7 @@ public class TestOrderStateNotifierProcessor {
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
-  private void verifyNoChanges(AdvancedOrder order, Optional<OrderStateNotifier> result) {
+  private void verifyNoChanges(Job order, Optional<OrderStateNotifier> result) {
     verifyZeroInteractions(telegramService);
     Assert.assertEquals(order, result.get());
   }
@@ -132,7 +132,7 @@ public class TestOrderStateNotifierProcessor {
       .id(JOB_ID)
       .description(DESCRIPTION)
       .orderId(ORDER_ID)
-      .tickTrigger(TickTrigger.builder()
+      .tickTrigger(TickerSpec.builder()
         .base(BASE)
         .counter(COUNTER)
         .exchange(EXCHANGE)

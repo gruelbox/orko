@@ -19,7 +19,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.util.CheckedExceptions;
 
 /**
@@ -85,14 +85,14 @@ public class ExchangeService {
     return exchanges.getUnchecked(name);
   }
 
-  public Ticker fetchTicker(TickTrigger ex) {
+  public Ticker fetchTicker(TickerSpec ex) {
     return CheckedExceptions.callUnchecked(() ->
       get(ex.exchange())
       .getMarketDataService()
       .getTicker(ex.currencyPair()));
   }
 
-  public CurrencyPairMetaData fetchCurrencyPairMetaData(TickTrigger ex) {
+  public CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex) {
     return get(ex.exchange())
       .getExchangeMetaData()
       .getCurrencyPairs()

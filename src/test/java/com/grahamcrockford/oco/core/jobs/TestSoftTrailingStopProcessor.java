@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -24,14 +24,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifier;
-import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStop;
-import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStopProcessor;
-import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
+import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
+import com.grahamcrockford.oco.core.jobs.SoftTrailingStopProcessor;
+import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
 public class TestSoftTrailingStopProcessor {
@@ -57,7 +57,7 @@ public class TestSoftTrailingStopProcessor {
   private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair(BASE, COUNTER);
   private static final String EXCHANGE = "fooex";
 
-  @Mock private AdvancedOrderAccess enqueuer;
+  @Mock private JobAccess enqueuer;
   @Mock private TelegramService telegramService;
   @Mock private ExchangeService exchangeService;
 
@@ -382,7 +382,7 @@ public class TestSoftTrailingStopProcessor {
     verify(enqueuer).insert(OrderStateNotifier.builder()
         .description("Stop")
         .orderId(lastTradeId())
-        .tickTrigger(TickTrigger.builder().exchange(EXCHANGE).base(BASE).counter(COUNTER).build())
+        .tickTrigger(TickerSpec.builder().exchange(EXCHANGE).base(BASE).counter(COUNTER).build())
         .build(), OrderStateNotifier.class);
   }
 
@@ -407,7 +407,7 @@ public class TestSoftTrailingStopProcessor {
   }
 
   private SoftTrailingStop.Builder baseJob() {
-    TickTrigger ex = TickTrigger.builder()
+    TickerSpec ex = TickerSpec.builder()
       .base(BASE)
       .counter(COUNTER)
       .exchange(EXCHANGE)

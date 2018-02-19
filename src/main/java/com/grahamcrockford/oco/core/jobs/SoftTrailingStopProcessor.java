@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import static java.math.RoundingMode.HALF_UP;
 
@@ -20,16 +20,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.JobProcessor;
+import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
 @Singleton
-public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTrailingStop> {
+public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SoftTrailingStopProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
@@ -48,7 +48,7 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
   private final ExchangeService exchangeService;
-  private final AdvancedOrderAccess advancedOrderAccess;
+  private final JobAccess advancedOrderAccess;
   private final Sleep sleep;
 
   private final AtomicInteger logRowCount = new AtomicInteger();
@@ -58,7 +58,7 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   public SoftTrailingStopProcessor(final TelegramService telegramService,
                                    final TradeServiceFactory tradeServiceFactory,
                                    final ExchangeService exchangeService,
-                                   final AdvancedOrderAccess advancedOrderAccess,
+                                   final JobAccess advancedOrderAccess,
                                    final Sleep sleep) {
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
@@ -70,7 +70,7 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   @Override
   public Optional<SoftTrailingStop> process(final SoftTrailingStop order) throws InterruptedException {
 
-    final TickTrigger ex = order.tickTrigger();
+    final TickerSpec ex = order.tickTrigger();
 
     Ticker ticker = exchangeService.fetchTicker(ex);
 
@@ -120,7 +120,7 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
   }
 
   private String limitSell(SoftTrailingStop trailingStop, Ticker ticker, BigDecimal limitPrice) {
-    final TickTrigger ex = trailingStop.tickTrigger();
+    final TickerSpec ex = trailingStop.tickTrigger();
 
     LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}]", trailingStop.amount(), ex.base(), limitPrice, ex.counter());
     final TradeService tradeService = tradeServiceFactory.getForExchange(ex.exchange());
@@ -149,7 +149,7 @@ public class SoftTrailingStopProcessor implements AdvancedOrderProcessor<SoftTra
 
 
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {
-    final TickTrigger ex = trailingStop.tickTrigger();
+    final TickerSpec ex = trailingStop.tickTrigger();
 
     final int rowCount = logRowCount.getAndIncrement();
     if (rowCount == 0) {

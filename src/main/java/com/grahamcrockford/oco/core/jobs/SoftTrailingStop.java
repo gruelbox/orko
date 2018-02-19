@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -16,13 +16,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
-import com.grahamcrockford.oco.api.AdvancedOrder;
-import com.grahamcrockford.oco.api.AdvancedOrderBuilder;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.Job;
+import com.grahamcrockford.oco.api.JobBuilder;
+import com.grahamcrockford.oco.api.TickerSpec;
 
 @AutoValue
 @JsonDeserialize(builder = SoftTrailingStop.Builder.class)
-public abstract class SoftTrailingStop implements AdvancedOrder {
+public abstract class SoftTrailingStop implements Job {
 
   public static final Builder builder() {
     return new AutoValue_SoftTrailingStop.Builder()
@@ -31,13 +31,13 @@ public abstract class SoftTrailingStop implements AdvancedOrder {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements AdvancedOrderBuilder {
+  public static abstract class Builder implements JobBuilder {
 
     @JsonCreator private static Builder create() { return SoftTrailingStop.builder(); }
 
     @Override
     @Id @ObjectId public abstract Builder id(String value);
-    public abstract Builder tickTrigger(TickTrigger tickTrigger);
+    public abstract Builder tickTrigger(TickerSpec tickTrigger);
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder startPrice(BigDecimal value);
     abstract Builder lastSyncPrice(BigDecimal value);
@@ -77,7 +77,7 @@ public abstract class SoftTrailingStop implements AdvancedOrder {
   public abstract String id();
 
   @JsonProperty
-  public abstract TickTrigger tickTrigger();
+  public abstract TickerSpec tickTrigger();
 
   @JsonIgnore public abstract BigDecimal amount();
   @JsonIgnore public abstract BigDecimal startPrice();

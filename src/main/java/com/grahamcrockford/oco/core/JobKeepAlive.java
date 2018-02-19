@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.AdvancedOrder;
+import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.core.JobExecutor.Factory;
-import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.db.JobLocker;
 
 @Singleton
@@ -17,12 +17,12 @@ class JobKeepAlive extends AbstractExecutionThreadService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobKeepAlive.class);
 
-  private final AdvancedOrderAccess advancedOrderAccess;
+  private final JobAccess advancedOrderAccess;
   private final JobLocker jobLocker;
   private final Factory jobExecutorFactory;
 
   @Inject
-  JobKeepAlive(AdvancedOrderAccess advancedOrderAccess,
+  JobKeepAlive(JobAccess advancedOrderAccess,
                JobLocker jobLocker,
                JobExecutor.Factory jobExecutorFactory) {
     this.advancedOrderAccess = advancedOrderAccess;
@@ -37,7 +37,7 @@ class JobKeepAlive extends AbstractExecutionThreadService {
       try {
         boolean foundJobs = false;
         boolean locksFailed = false;
-        for (AdvancedOrder job : advancedOrderAccess.list()) {
+        for (Job job : advancedOrderAccess.list()) {
           foundJobs = true;
           UUID uuid = UUID.randomUUID();
           if (jobLocker.attemptLock(job.id(), uuid)) {

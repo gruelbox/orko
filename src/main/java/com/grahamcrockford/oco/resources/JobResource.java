@@ -17,27 +17,26 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
-import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.ExchangeService;
-import com.grahamcrockford.oco.core.advancedorders.PumpChecker;
-import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStop;
-import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.core.jobs.PumpChecker;
+import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
+import com.grahamcrockford.oco.db.JobAccess;
 
 /**
  * Slightly disorganised endpoint with a mix of methods. Will get re-organised.
  */
-@Path("/advancedorders")
+@Path("/jobs")
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
-public class AdvancedOrderResource implements WebResource {
+public class JobResource implements WebResource {
 
   private final ExchangeService exchanges;
-  private final AdvancedOrderAccess advancedOrderAccess;
+  private final JobAccess advancedOrderAccess;
 
   @Inject
-  AdvancedOrderResource(AdvancedOrderAccess advancedOrderAccess,
-                        ExchangeService exchanges) {
+  JobResource(JobAccess advancedOrderAccess, ExchangeService exchanges) {
     this.advancedOrderAccess = advancedOrderAccess;
     this.exchanges = exchanges;
   }
@@ -74,7 +73,7 @@ public class AdvancedOrderResource implements WebResource {
 
     SoftTrailingStop stop = advancedOrderAccess.insert(
       SoftTrailingStop.builder()
-        .tickTrigger(TickTrigger.builder()
+        .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
           .counter(counter)
@@ -100,7 +99,7 @@ public class AdvancedOrderResource implements WebResource {
                                  @QueryParam("base") String base) throws Exception {
     PumpChecker checker = advancedOrderAccess.insert(
       PumpChecker.builder()
-        .tickTrigger(TickTrigger.builder()
+        .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
           .counter(counter)

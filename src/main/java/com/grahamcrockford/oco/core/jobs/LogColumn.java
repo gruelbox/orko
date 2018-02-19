@@ -1,7 +1,6 @@
-package com.grahamcrockford.oco.core.advancedorders;
+package com.grahamcrockford.oco.core.jobs;
 
 import com.google.auto.value.AutoValue;
-import com.grahamcrockford.oco.core.advancedorders.AutoValue_LogColumn;
 
 @AutoValue
 abstract class LogColumn {

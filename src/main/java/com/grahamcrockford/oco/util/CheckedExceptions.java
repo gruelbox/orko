@@ -65,13 +65,11 @@ public class CheckedExceptions {
    * concurrent code, it is arguable that there may be much cleaner ways to shut down.
    * Please use with due consideration for why {@link InterruptedException} exists in
    * the first place!</li>
-   * </li>
    *  <li>All other checked exceptions are simply wrapped in a
    *  {@link RuntimeException} and rethrown.</li>
    * </ul>
    *
    * @param runnable The code to run, which may throw checked exceptions.
-   * @throws A {@link RuntimeException} wrapping any checked exceptions thrown.
    */
   public static void runUnchecked(ThrowingRunnable runnable) {
     try {
@@ -90,9 +88,9 @@ public class CheckedExceptions {
    * a {@link Callable}, returning the value returned.  See
    * {@link #runUnchecked(ThrowingRunnable)} for full information.
    *
+   * @param <T> The return type.
    * @param callable The code to run, which may throw checked exceptions.
    * @return The value returned by <code>callable</code>.
-   * @throws A {@link RuntimeException} wrapping any checked exceptions thrown.
    */
   public static <T> T callUnchecked(Callable<T> callable) {
     try {
@@ -111,9 +109,9 @@ public class CheckedExceptions {
    * a {@link Supplier}, returning the value returned.  See
    * {@link #runUnchecked(ThrowingRunnable)} for full information.
    *
+   * @param <T> The return type.
    * @param callable The code to run, which may throw checked exceptions.
    * @return The value returned by <code>callable</code>.
-   * @throws A {@link RuntimeException} wrapping any checked exceptions thrown.
    */
   public static <T> T getUnchecked(Callable<T> callable) {
     try {
@@ -137,11 +135,11 @@ public class CheckedExceptions {
    * <p>For example, the following deals with the unspecified {@link Exception} thrown
    * by an {@link AutoCloseable} resource used in a try with resources:</p>
    *
-   * <pre><code>executor.execute(CheckedExceptions.uncheck(() -> {
+   * <pre>executor.execute(CheckedExceptions.uncheck(() -&gt; {
    *  try (Connection c = getDBConnection();
    *    ...
    *  }
-   *}));</code></pre>
+   *}));</pre>
    *
    * <p>Note that the lambda is cast at construction time to {@link Serializable}
    * so may be serialised, assuming that you have provided serialisability on
@@ -166,8 +164,9 @@ public class CheckedExceptions {
    * any enclosed objects.  TODO REALLY NEED TO DOUBLE CHECK THIS. NOT
    * CONVINCED IN THE SLIGHTEST.  NEEDS TESTS</p>.
    *
+   * @param <T> The return type.
    * @param callable The lambda to wrap.
-   * @returnT he now non-throwing {@link Supplier}.
+   * @return The now non-throwing {@link Supplier}.
    */
   public static <T> Supplier<T> uncheck(Callable<T> callable) {
     return (Supplier<T> & Serializable)() -> callUnchecked(callable);
