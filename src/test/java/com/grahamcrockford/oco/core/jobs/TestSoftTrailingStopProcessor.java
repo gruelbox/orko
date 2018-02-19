@@ -42,15 +42,12 @@ public class TestSoftTrailingStopProcessor {
 
   private static final BigDecimal AMOUNT = new BigDecimal(1000);
 
-  private static final BigDecimal LIMIT_PC = new BigDecimal(10);
-  private static final BigDecimal STOP_PC = new BigDecimal(5);
-
   private static final BigDecimal ENTRY_PRICE = HUNDRED;
   private static final BigDecimal STOP_PRICE = new BigDecimal(95);
   private static final BigDecimal LIMIT_PRICE = new BigDecimal(90);
 
   private static final BigDecimal HIGHER_ENTRY_PRICE = new BigDecimal(200);
-  private static final BigDecimal HIGHER_STOP_PRICE = new BigDecimal(190);
+  private static final BigDecimal HIGHER_STOP_PRICE = new BigDecimal(195);
 
   private static final String BASE = "FOO";
   private static final String COUNTER = "USDT";
@@ -193,7 +190,10 @@ public class TestSoftTrailingStopProcessor {
   @Test
   public void testActiveStopTrueAdjusted1() throws Exception {
     final Ticker ticker = everythingAt(HIGHER_STOP_PRICE);
-    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    SoftTrailingStop job = baseJob()
+        .lastSyncPrice(HIGHER_ENTRY_PRICE)
+        .stopPrice(STOP_PRICE.add(HIGHER_ENTRY_PRICE).subtract(ENTRY_PRICE))
+        .build();
     when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
     Optional<SoftTrailingStop> result = processor.process(job);
@@ -211,7 +211,10 @@ public class TestSoftTrailingStopProcessor {
         .last(HIGHER_STOP_PRICE)
         .ask(HIGHER_STOP_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
-    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    SoftTrailingStop job = baseJob()
+        .lastSyncPrice(HIGHER_ENTRY_PRICE)
+        .stopPrice(HIGHER_STOP_PRICE)
+        .build();
     when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
     Optional<SoftTrailingStop> result = processor.process(job);
@@ -227,7 +230,10 @@ public class TestSoftTrailingStopProcessor {
         .last(HIGHER_STOP_PRICE.add(PENNY))
         .ask(HIGHER_STOP_PRICE.add(PENNY))
         .timestamp(new Date()).build();
-    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    SoftTrailingStop job = baseJob()
+        .lastSyncPrice(HIGHER_ENTRY_PRICE)
+        .stopPrice(HIGHER_STOP_PRICE)
+        .build();
     when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
     Optional<SoftTrailingStop> result = processor.process(job);
@@ -241,8 +247,8 @@ public class TestSoftTrailingStopProcessor {
   @Test
   public void testActiveStopFalseRounding() throws Exception {
     final SoftTrailingStop job = baseJob()
-        .stopPercentage(new BigDecimal("33.333333"))
-        .limitPercentage(new BigDecimal("40.111111"))
+        .stopPrice(new BigDecimal("66.674"))
+        .limitPrice(new BigDecimal("50"))
         .build();
 
     final Ticker ticker = everythingAt(new BigDecimal("66.68"));
@@ -257,8 +263,8 @@ public class TestSoftTrailingStopProcessor {
   @Test
   public void testActiveStopTrueRounding() throws Exception {
     final SoftTrailingStop job = baseJob()
-        .stopPercentage(new BigDecimal("33.333333"))
-        .limitPercentage(new BigDecimal("40.111111"))
+        .stopPrice(new BigDecimal("66.674"))
+        .limitPrice(new BigDecimal("50"))
         .build();
 
     final Ticker ticker = everythingAt(new BigDecimal("66.67"));
@@ -266,7 +272,7 @@ public class TestSoftTrailingStopProcessor {
 
     Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyLimitSellAt(ticker, new BigDecimal("59.89"));
+    verifyLimitSellAt(ticker, new BigDecimal("50"));
     verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
@@ -345,7 +351,10 @@ public class TestSoftTrailingStopProcessor {
         .last(HIGHER_ENTRY_PRICE)
         .ask(HIGHER_ENTRY_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
-    final SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    final SoftTrailingStop job = baseJob()
+        .lastSyncPrice(HIGHER_ENTRY_PRICE)
+        .stopPrice(STOP_PRICE.add(HIGHER_ENTRY_PRICE).subtract(ENTRY_PRICE))
+        .build();
     when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
     Optional<SoftTrailingStop> result = processor.process(job);
@@ -357,7 +366,13 @@ public class TestSoftTrailingStopProcessor {
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
   private void verifyResyncedPriceTo(SoftTrailingStop job, Optional<SoftTrailingStop> result, BigDecimal syncPrice) throws IOException {
-    Assert.assertEquals(job.toBuilder().lastSyncPrice(syncPrice).build(), result.get());
+    Assert.assertEquals(
+      job.toBuilder()
+        .lastSyncPrice(syncPrice)
+        .stopPrice(job.stopPrice().add(syncPrice).subtract(job.lastSyncPrice()))
+        .build(),
+      result.get()
+    );
   }
 
   private void verifyWillRepeatWithoutChange(SoftTrailingStop job, Optional<SoftTrailingStop> result) {
@@ -416,8 +431,8 @@ public class TestSoftTrailingStopProcessor {
     return SoftTrailingStop.builder()
       .amount(AMOUNT)
       .startPrice(ENTRY_PRICE)
-      .stopPercentage(STOP_PC)
-      .limitPercentage(LIMIT_PC)
+      .stopPrice(STOP_PRICE)
+      .limitPrice(LIMIT_PRICE)
       .tickTrigger(ex);
   }
 }

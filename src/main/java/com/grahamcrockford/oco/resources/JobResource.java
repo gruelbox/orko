@@ -17,6 +17,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
+import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.ExchangeService;
@@ -41,6 +42,14 @@ public class JobResource implements WebResource {
     this.exchanges = exchanges;
   }
 
+  @SuppressWarnings("unchecked")
+  @PUT
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public <T extends Job> T put(T job) {
+    return advancedOrderAccess.insert(job, (Class<T>)job.getClass());
+  }
+
   @DELETE
   @Timed
   @RolesAllowed(Roles.TRADER)
@@ -55,7 +64,6 @@ public class JobResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
     advancedOrderAccess.delete(id);
-    // TODO shutdown
   }
 
   @PUT
@@ -66,12 +74,12 @@ public class JobResource implements WebResource {
                                            @QueryParam("counter") String counter,
                                            @QueryParam("base") String base,
                                            @QueryParam("amount") BigDecimal amount,
-                                           @QueryParam("stopPc") BigDecimal stopPercentage,
-                                           @QueryParam("limitPc") BigDecimal limitPercentage) throws Exception {
+                                           @QueryParam("stop") BigDecimal stopPrice,
+                                           @QueryParam("limit") BigDecimal limitPrice) throws Exception {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    SoftTrailingStop stop = advancedOrderAccess.insert(
+    return put(
       SoftTrailingStop.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
@@ -81,13 +89,10 @@ public class JobResource implements WebResource {
         )
         .amount(amount)
         .startPrice(ticker.getBid())
-        .stopPercentage(stopPercentage)
-        .limitPercentage(limitPercentage)
-        .build(),
-      SoftTrailingStop.class
+        .stopPrice(stopPrice)
+        .limitPrice(limitPrice)
+        .build()
     );
-
-    return stop;
   }
 
   @PUT
@@ -97,7 +102,7 @@ public class JobResource implements WebResource {
   public PumpChecker pumpChecker(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base) throws Exception {
-    PumpChecker checker = advancedOrderAccess.insert(
+    return put(
       PumpChecker.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
@@ -105,10 +110,7 @@ public class JobResource implements WebResource {
           .counter(counter)
           .build()
         )
-        .build(),
-      PumpChecker.class
+        .build()
     );
-
-    return checker;
   }
 }

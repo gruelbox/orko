@@ -26,7 +26,7 @@ public abstract class SoftTrailingStop implements Job {
 
   public static final Builder builder() {
     return new AutoValue_SoftTrailingStop.Builder()
-        .limitPercentage(BigDecimal.ZERO);
+        .limitPrice(BigDecimal.ZERO);
   }
 
   @AutoValue.Builder
@@ -41,15 +41,15 @@ public abstract class SoftTrailingStop implements Job {
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder startPrice(BigDecimal value);
     abstract Builder lastSyncPrice(BigDecimal value);
-    public abstract Builder stopPercentage(BigDecimal value);
-    public abstract Builder limitPercentage(BigDecimal value);
+    public abstract Builder stopPrice(BigDecimal value);
+    public abstract Builder limitPrice(BigDecimal value);
 
     final Builder bigDecimals(Map<String, String> values) {
       amount(new BigDecimal(values.get("amount")));
       startPrice(new BigDecimal(values.get("startPrice")));
       lastSyncPrice(new BigDecimal(values.get("lastSyncPrice")));
-      stopPercentage(new BigDecimal(values.get("stopPercentage")));
-      limitPercentage(new BigDecimal(values.get("limitPercentage")));
+      stopPrice(new BigDecimal(values.get("stopPrice")));
+      limitPrice(new BigDecimal(values.get("limitPrice")));
       return this;
     }
 
@@ -82,8 +82,8 @@ public abstract class SoftTrailingStop implements Job {
   @JsonIgnore public abstract BigDecimal amount();
   @JsonIgnore public abstract BigDecimal startPrice();
   @JsonIgnore public abstract BigDecimal lastSyncPrice();
-  @JsonIgnore public abstract BigDecimal stopPercentage();
-  @JsonIgnore public abstract BigDecimal limitPercentage();
+  @JsonIgnore public abstract BigDecimal stopPrice();
+  @JsonIgnore public abstract BigDecimal limitPrice();
 
   @JsonProperty
   final Map<String, String> bigDecimals() {
@@ -91,8 +91,8 @@ public abstract class SoftTrailingStop implements Job {
         .put("amount", amount().toPlainString())
         .put("startPrice", startPrice().toPlainString())
         .put("lastSyncPrice", lastSyncPrice().toPlainString())
-        .put("stopPercentage", stopPercentage().toPlainString())
-        .put("limitPercentage", limitPercentage().toPlainString())
+        .put("stopPrice", stopPrice().toPlainString())
+        .put("limitPrice", limitPrice().toPlainString())
         .build();
   }
 

@@ -33,7 +33,7 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SoftTrailingStopProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
-      LogColumn.builder().name("#").width(32).rightAligned(false),
+      LogColumn.builder().name("#").width(26).rightAligned(false),
       LogColumn.builder().name("Exchange").width(12).rightAligned(false),
       LogColumn.builder().name("Pair").width(10).rightAligned(false),
       LogColumn.builder().name("Operation").width(13).rightAligned(false),
@@ -43,7 +43,6 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
       LogColumn.builder().name("Last").width(13).rightAligned(true),
       LogColumn.builder().name("Ask").width(13).rightAligned(true)
   );
-  private static final BigDecimal HUNDRED = new BigDecimal(100);
 
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
@@ -110,6 +109,7 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
     if (ticker.getBid().compareTo(order.lastSyncPrice()) > 0 ) {
       newOrder = order.toBuilder()
         .lastSyncPrice(ticker.getBid())
+        .stopPrice(order.stopPrice().add(ticker.getBid()).subtract(order.lastSyncPrice()))
         .build();
     } else {
       newOrder = order;
@@ -172,14 +172,10 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
   }
 
   private BigDecimal stopPrice(SoftTrailingStop trailingStop, CurrencyPairMetaData currencyPairMetaData) {
-    final BigDecimal stopPrice = trailingStop.lastSyncPrice()
-        .multiply(BigDecimal.ONE.subtract(trailingStop.stopPercentage().divide(HUNDRED)));
-    return stopPrice.setScale(currencyPairMetaData.getPriceScale(), RoundingMode.HALF_UP);
+    return trailingStop.stopPrice().setScale(currencyPairMetaData.getPriceScale(), RoundingMode.HALF_UP);
   }
 
   private BigDecimal limitPrice(SoftTrailingStop trailingStop, CurrencyPairMetaData currencyPairMetaData) {
-    final BigDecimal limitPrice = trailingStop.startPrice()
-        .multiply(BigDecimal.ONE.subtract(trailingStop.limitPercentage().divide(HUNDRED)));
-    return limitPrice.setScale(currencyPairMetaData.getPriceScale(), RoundingMode.HALF_UP);
+    return trailingStop.limitPrice().setScale(currencyPairMetaData.getPriceScale(), RoundingMode.HALF_UP);
   }
 }
