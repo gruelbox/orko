@@ -100,5 +100,5 @@ Example of payload for `PUT /jobs`:
 
 This adds an OCO order where:
 
-# if the price drops below 0.00055, we will sell at the bid price
-# If the price rises above 0.00057, we will start a trailing stop where the stop price trails the bid price by 0.000005.
+* if the price drops below 0.00055, we will sell at the bid price
+* If the price rises above 0.00057, we will start a trailing stop where the stop price trails the bid price by 0.000005.
