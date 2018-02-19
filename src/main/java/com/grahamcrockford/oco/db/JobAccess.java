@@ -34,7 +34,7 @@ public class JobAccess {
    * Enqueues the job for immediate action.
    *
    * @param <T> The job type.
-   * @param order The job.
+   * @param job The job.
    * @return The updated order with ID set.
    */
   @SuppressWarnings("unchecked")
@@ -46,28 +46,28 @@ public class JobAccess {
    * Enqueues the job for immediate action.
    *
    * @param <T> The job type.
-   * @param order The job.
+   * @param job The job.
    * @param clazz Sets the job type.
    * @return The updated order with ID set.
    */
   @SuppressWarnings("unchecked")
-  public <T extends Job> T insert(T order, Class<T> clazz) {
+  public <T extends Job> T insert(T job, Class<T> clazz) {
     JacksonDBCollection<T, org.bson.types.ObjectId> coll = collection(clazz);
-    WriteResult<T, org.bson.types.ObjectId> result = coll.insert(order);
+    WriteResult<T, org.bson.types.ObjectId> result = coll.insert(job);
     org.bson.types.ObjectId savedId = result.getSavedId();
-    return (T) order.toBuilder().id(savedId.toHexString()).build();
+    return (T) job.toBuilder().id(savedId.toHexString()).build();
   }
 
   /**
    * Updates the job.
    *
    * @param <T> The job type.
-   * @param order The job.
+   * @param job The job.
    * @param clazz Sets the job type.
    */
-  public <T extends Job> void update(T order, Class<T> clazz) {
+  public <T extends Job> void update(T job, Class<T> clazz) {
     JacksonDBCollection<T, org.bson.types.ObjectId> coll = collection(clazz);
-    coll.update(DBQuery.is("_id", order.id()), order);
+    coll.update(DBQuery.is("_id", job.id()), job);
   }
 
   @SuppressWarnings("unchecked")
