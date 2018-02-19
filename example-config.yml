@@ -1,8 +1,8 @@
-loopSeconds: ${LOOP_SECONDS:-5}
-lockSeconds: 10
+loopSeconds: ${LOOP_SECONDS:-3}
+lockSeconds: ${LOCK_SECONDS:-10}
 userName: ${USER_NAME}
 password: ${PASSWORD}
-mongoClientURI: ${MONGO_CLIENT_URI}
+mongoClientURI: ${MONGODB_URI}
 mongoDatabase: ${MONGO_DATABASE}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN}

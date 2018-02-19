@@ -31,7 +31,7 @@ public abstract class PumpChecker implements Job {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder {
+  public static abstract class Builder implements JobBuilder<PumpChecker> {
     @JsonCreator private static Builder create() { return PumpChecker.builder(); }
     @Override
     @Id @ObjectId

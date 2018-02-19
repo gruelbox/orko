@@ -25,7 +25,7 @@ public abstract class OrderStateNotifier implements Job {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder {
+  public static abstract class Builder implements JobBuilder<OrderStateNotifier> {
     @JsonCreator private static Builder create() { return OrderStateNotifier.builder(); }
     @Override
     @Id @ObjectId

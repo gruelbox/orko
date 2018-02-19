@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 
 import org.knowm.xchange.dto.Order;
@@ -28,7 +26,7 @@ public class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotif
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OrderStateNotifierProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
-    LogColumn.builder().name("#").width(26).rightAligned(false),
+    LogColumn.builder().name("#").width(24).rightAligned(false),
     LogColumn.builder().name("Exchange").width(12).rightAligned(false),
     LogColumn.builder().name("Pair").width(10).rightAligned(false),
     LogColumn.builder().name("Operation").width(13).rightAligned(false),
@@ -42,8 +40,6 @@ public class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotif
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
   private final Sleep sleep;
-
-  private final AtomicInteger logRowCount = new AtomicInteger();
 
 
   @Inject
@@ -60,14 +56,6 @@ public class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotif
   public Optional<OrderStateNotifier> process(OrderStateNotifier job) throws InterruptedException {
 
     final TickerSpec ex = job.tickTrigger();
-
-    final int rowCount = logRowCount.getAndIncrement();
-    if (rowCount == 0) {
-      COLUMN_LOGGER.header();
-    }
-    if (rowCount == 25) {
-      logRowCount.set(0);
-    }
 
     Order.OrderStatus status = null;
     BigDecimal amount = null;

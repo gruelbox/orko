@@ -86,7 +86,7 @@ public class JobLocker {
   }
 
   private DBCollection createLockCollection() {
-    DBCollection exclusiveLock = mongoClient.getDB(DbModule.DB_NAME).getCollection("job").getCollection("lock");
+    DBCollection exclusiveLock = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("job").getCollection("lock");
     createTtlIndex(exclusiveLock);
     createAidIndex(exclusiveLock);
     return exclusiveLock;

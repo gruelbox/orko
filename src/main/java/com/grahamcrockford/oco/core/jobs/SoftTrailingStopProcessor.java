@@ -7,8 +7,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 
 import org.knowm.xchange.dto.Order;
@@ -49,8 +47,6 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
   private final ExchangeService exchangeService;
   private final JobAccess advancedOrderAccess;
   private final Sleep sleep;
-
-  private final AtomicInteger logRowCount = new AtomicInteger();
 
 
   @Inject
@@ -150,14 +146,6 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
 
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {
     final TickerSpec ex = trailingStop.tickTrigger();
-
-    final int rowCount = logRowCount.getAndIncrement();
-    if (rowCount == 0) {
-      COLUMN_LOGGER.header();
-    }
-    if (rowCount == 25) {
-      logRowCount.set(0);
-    }
     COLUMN_LOGGER.line(
       trailingStop.id(),
       ex.exchange(),

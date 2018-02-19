@@ -1,9 +1,9 @@
 package com.grahamcrockford.oco.api;
 
-public interface JobBuilder {
+public interface JobBuilder<T extends Job> {
 
-  public JobBuilder id(String id);
+  public JobBuilder<T> id(String id);
 
-  public Job build();
+  public T build();
 
 }

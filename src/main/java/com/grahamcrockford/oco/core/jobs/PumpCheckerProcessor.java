@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.LinkedList;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -34,8 +32,6 @@ public class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
     LogColumn.builder().name("3 tick Mvmt %").width(13).rightAligned(true)
   );
 
-  private final AtomicInteger logRowCount = new AtomicInteger();
-
   private final TelegramService telegramService;
   private final ExchangeService exchangeService;
   private final Sleep sleep;
@@ -50,14 +46,6 @@ public class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
 
   @Override
   public Optional<PumpChecker> process(PumpChecker job) throws InterruptedException {
-
-    final int rowCount = logRowCount.getAndIncrement();
-    if (rowCount == 0) {
-      COLUMN_LOGGER.header();
-    }
-    if (rowCount == 25) {
-      logRowCount.set(0);
-    }
 
     final TickerSpec ex = job.tickTrigger();
 

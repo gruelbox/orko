@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -30,6 +31,7 @@ import com.grahamcrockford.oco.db.JobAccess;
  */
 @Path("/jobs")
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Singleton
 public class JobResource implements WebResource {
 
@@ -46,8 +48,8 @@ public class JobResource implements WebResource {
   @PUT
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public <T extends Job> T put(T job) {
-    return advancedOrderAccess.insert(job, (Class<T>)job.getClass());
+  public Job put(Job job) {
+    return advancedOrderAccess.insert(job, Job.class);
   }
 
   @DELETE
@@ -79,7 +81,7 @@ public class JobResource implements WebResource {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    return put(
+    return (SoftTrailingStop) put(
       SoftTrailingStop.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
@@ -102,7 +104,7 @@ public class JobResource implements WebResource {
   public PumpChecker pumpChecker(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base) throws Exception {
-    return put(
+    return (PumpChecker) put(
       PumpChecker.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)

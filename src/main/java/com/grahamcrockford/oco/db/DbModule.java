@@ -15,8 +15,6 @@ import io.dropwizard.lifecycle.Managed;
 
 public class DbModule extends AbstractModule {
 
-  public static final String DB_NAME = "oco";
-
   private static final Logger LOGGER = LoggerFactory.getLogger(DbModule.class);
 
   @Override

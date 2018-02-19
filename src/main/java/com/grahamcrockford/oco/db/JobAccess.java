@@ -7,6 +7,7 @@ import org.mongojack.WriteResult;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.Job;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -20,11 +21,24 @@ public class JobAccess {
 
   private final MongoClient mongoClient;
   private final JobLocker jobLocker;
+  private final OcoConfiguration configuration;
 
   @Inject
-  JobAccess(MongoClient mongoClient, JobLocker jobLocker) {
+  JobAccess(MongoClient mongoClient, JobLocker jobLocker, OcoConfiguration configuration) {
     this.mongoClient = mongoClient;
     this.jobLocker = jobLocker;
+    this.configuration = configuration;
+  }
+
+  /**
+   * Enqueues the order for immediate action.
+   *
+   * @param order The order.
+   * @return The updated order with ID set.
+   */
+  @SuppressWarnings("unchecked")
+  public <T extends Job> T insert(T job) {
+    return insert(job, (Class<T>)job.getClass());
   }
 
   /**
@@ -78,6 +92,6 @@ public class JobAccess {
   }
 
   private <T extends Job> JacksonDBCollection<T, ObjectId> collection(Class<T> clazz) {
-    return JacksonDBCollection.wrap(mongoClient.getDB(DbModule.DB_NAME).getCollection("job"), clazz, org.bson.types.ObjectId.class);
+    return JacksonDBCollection.wrap(mongoClient.getDB(configuration.getMongoDatabase()).getCollection("job"), clazz, org.bson.types.ObjectId.class);
   }
 }
