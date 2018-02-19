@@ -1,6 +1,9 @@
 package com.grahamcrockford.oco.core;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,7 @@ class JobKeepAlive extends AbstractExecutionThreadService {
   private final JobAccess advancedOrderAccess;
   private final JobLocker jobLocker;
   private final Factory jobExecutorFactory;
+  private final ExecutorService executorService;
 
   @Inject
   JobKeepAlive(JobAccess advancedOrderAccess,
@@ -28,6 +32,7 @@ class JobKeepAlive extends AbstractExecutionThreadService {
     this.advancedOrderAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.jobExecutorFactory = jobExecutorFactory;
+    this.executorService = Executors.newCachedThreadPool();
   }
 
   @Override
@@ -42,7 +47,7 @@ class JobKeepAlive extends AbstractExecutionThreadService {
           UUID uuid = UUID.randomUUID();
           if (jobLocker.attemptLock(job.id(), uuid)) {
             job = advancedOrderAccess.load(job.id());
-            new Thread(jobExecutorFactory.create(job, uuid)).start();
+            executorService.execute(jobExecutorFactory.create(job, uuid));
           } else {
             locksFailed = true;
           }
@@ -63,5 +68,11 @@ class JobKeepAlive extends AbstractExecutionThreadService {
       }
     }
     LOGGER.info(this + " stopped");
+  }
+
+  @Override
+  protected void shutDown() throws Exception {
+    executorService.shutdown();
+    super.shutDown();
   }
 }
