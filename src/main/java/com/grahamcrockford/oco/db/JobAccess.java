@@ -31,9 +31,10 @@ public class JobAccess {
   }
 
   /**
-   * Enqueues the order for immediate action.
+   * Enqueues the job for immediate action.
    *
-   * @param order The order.
+   * @param <T> The job type.
+   * @param order The job.
    * @return The updated order with ID set.
    */
   @SuppressWarnings("unchecked")
@@ -42,11 +43,11 @@ public class JobAccess {
   }
 
   /**
-   * Enqueues the order for immediate action.
+   * Enqueues the job for immediate action.
    *
-   * @param <T> The order type.
-   * @param order The order.
-   * @param clazz Sets the order type.
+   * @param <T> The job type.
+   * @param order The job.
+   * @param clazz Sets the job type.
    * @return The updated order with ID set.
    */
   @SuppressWarnings("unchecked")
@@ -58,11 +59,11 @@ public class JobAccess {
   }
 
   /**
-   * Updates the order.
+   * Updates the job.
    *
-   * @param <T> The order type.
-   * @param order The order.
-   * @param clazz Sets the order type.
+   * @param <T> The job type.
+   * @param order The job.
+   * @param clazz Sets the job type.
    */
   public <T extends Job> void update(T order, Class<T> clazz) {
     JacksonDBCollection<T, org.bson.types.ObjectId> coll = collection(clazz);
