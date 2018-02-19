@@ -17,13 +17,12 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
-import com.grahamcrockford.oco.api.AdvancedOrderInfo;
+import com.grahamcrockford.oco.api.TickTrigger;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.advancedorders.PumpChecker;
 import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStop;
-import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
-import com.grahamcrockford.oco.core.AdvancedOrderListener;
+import com.grahamcrockford.oco.db.AdvancedOrderAccess;
 
 /**
  * Slightly disorganised endpoint with a mix of methods. Will get re-organised.
@@ -34,24 +33,30 @@ import com.grahamcrockford.oco.core.AdvancedOrderListener;
 public class AdvancedOrderResource implements WebResource {
 
   private final ExchangeService exchanges;
-  private final AdvancedOrderEnqueuer advancedOrderEnqueuer;
-  private final AdvancedOrderListener advancedOrderListener;
+  private final AdvancedOrderAccess advancedOrderAccess;
 
   @Inject
-  AdvancedOrderResource(AdvancedOrderEnqueuer advancedOrderEnqueuer,
-                        AdvancedOrderListener advancedOrderListener,
+  AdvancedOrderResource(AdvancedOrderAccess advancedOrderAccess,
                         ExchangeService exchanges) {
-    this.advancedOrderEnqueuer = advancedOrderEnqueuer;
-    this.advancedOrderListener = advancedOrderListener;
+    this.advancedOrderAccess = advancedOrderAccess;
     this.exchanges = exchanges;
   }
+
+  @DELETE
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public void deleteJob() {
+    advancedOrderAccess.delete();
+  }
+
 
   @DELETE
   @Path("{id}")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public void deleteJob(@PathParam("id") long id) {
-    advancedOrderListener.delete(id);
+  public void deleteJob(@PathParam("id") String id) {
+    advancedOrderAccess.delete(id);
+    // TODO shutdown
   }
 
   @PUT
@@ -66,9 +71,10 @@ public class AdvancedOrderResource implements WebResource {
                                            @QueryParam("limitPc") BigDecimal limitPercentage) throws Exception {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
-    return advancedOrderEnqueuer.enqueue(
+
+    SoftTrailingStop stop = advancedOrderAccess.insert(
       SoftTrailingStop.builder()
-        .basic(AdvancedOrderInfo.builder()
+        .tickTrigger(TickTrigger.builder()
           .exchange(exchange)
           .base(base)
           .counter(counter)
@@ -78,8 +84,11 @@ public class AdvancedOrderResource implements WebResource {
         .startPrice(ticker.getBid())
         .stopPercentage(stopPercentage)
         .limitPercentage(limitPercentage)
-        .build()
+        .build(),
+      SoftTrailingStop.class
     );
+
+    return stop;
   }
 
   @PUT
@@ -89,15 +98,18 @@ public class AdvancedOrderResource implements WebResource {
   public PumpChecker pumpChecker(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base) throws Exception {
-    return advancedOrderEnqueuer.enqueue(
+    PumpChecker checker = advancedOrderAccess.insert(
       PumpChecker.builder()
-        .basic(AdvancedOrderInfo.builder()
+        .tickTrigger(TickTrigger.builder()
           .exchange(exchange)
           .base(base)
           .counter(counter)
           .build()
         )
-        .build()
+        .build(),
+      PumpChecker.class
     );
+
+    return checker;
   }
 }

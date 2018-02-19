@@ -9,6 +9,8 @@ import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.binance.BinanceExchange;
 import org.knowm.xchange.bittrex.BittrexExchange;
 import org.knowm.xchange.cryptopia.CryptopiaExchange;
+import org.knowm.xchange.dto.marketdata.Ticker;
+import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.gdax.GDAXExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.api.TickTrigger;
+import com.grahamcrockford.oco.util.CheckedExceptions;
 
 /**
  * API-friendly name mapping for exchanges.
@@ -79,6 +83,20 @@ public class ExchangeService {
 
   public Exchange get(String name) {
     return exchanges.getUnchecked(name);
+  }
+
+  public Ticker fetchTicker(TickTrigger ex) {
+    return CheckedExceptions.callUnchecked(() ->
+      get(ex.exchange())
+      .getMarketDataService()
+      .getTicker(ex.currencyPair()));
+  }
+
+  public CurrencyPairMetaData fetchCurrencyPairMetaData(TickTrigger ex) {
+    return get(ex.exchange())
+      .getExchangeMetaData()
+      .getCurrencyPairs()
+      .get(ex.currencyPair());
   }
 
   private Class<? extends Exchange> map(String friendlyName) {

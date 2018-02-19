@@ -1,19 +1,23 @@
 package com.grahamcrockford.oco.db;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.db.MongoClientTask;
-import com.mongodb.DB;
+import com.grahamcrockford.oco.util.CheckedExceptions;
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
-
 import io.dropwizard.lifecycle.Managed;
 
 public class DbModule extends AbstractModule {
+
+  public static final String DB_NAME = "oco";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DbModule.class);
 
   @Override
   protected void configure() {
@@ -29,18 +33,15 @@ public class DbModule extends AbstractModule {
   @Provides
   @Singleton
   MongoClient mongoClient(MongoClientTask mongoClientTask) {
-    return mongoClientTask.getMongoClient();
-  }
-
-  @Provides
-  @Singleton
-  MongoDatabase mongoDatabase(MongoClient mongoClient, OcoConfiguration configuration) {
-    return mongoClient.getDatabase(configuration.getMongoDatabase());
-  }
-
-  @Provides
-  @Singleton
-  DB MongoDB(MongoClient mongoClient, OcoConfiguration configuration) {
-    return mongoClient.getDB(configuration.getMongoDatabase());
+    MongoClient mongoClient = null;
+    while (mongoClient == null) {
+      try {
+        mongoClient = mongoClientTask.getMongoClient();
+      } catch (Exception e) {
+        LOGGER.error("Failed to create Mongo client", e);
+        CheckedExceptions.runUnchecked(() -> Thread.sleep(10000));
+      }
+    }
+    return mongoClient;
   }
 }

@@ -3,23 +3,23 @@ package com.grahamcrockford.oco.core.advancedorders;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
 import org.knowm.xchange.dto.Order;
-import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.AdvancedOrderInfo;
 import com.grahamcrockford.oco.api.AdvancedOrderProcessor;
-import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
+import com.grahamcrockford.oco.api.TickTrigger;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
+import com.grahamcrockford.oco.util.Sleep;
 
 import si.mazi.rescu.HttpStatusExceptionSupport;
 
@@ -28,8 +28,8 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OrderStateNotifierProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
-    LogColumn.builder().name("#").width(13).rightAligned(false),
-    LogColumn.builder().name("Exchange").width(10).rightAligned(false),
+    LogColumn.builder().name("#").width(26).rightAligned(false),
+    LogColumn.builder().name("Exchange").width(12).rightAligned(false),
     LogColumn.builder().name("Pair").width(10).rightAligned(false),
     LogColumn.builder().name("Operation").width(13).rightAligned(false),
     LogColumn.builder().name("Order id").width(50).rightAligned(false),
@@ -41,7 +41,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
 
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
-  private final AdvancedOrderEnqueuer advancedOrderEnqueuer;
+  private final Sleep sleep;
 
   private final AtomicInteger logRowCount = new AtomicInteger();
 
@@ -49,17 +49,17 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
   @Inject
   public OrderStateNotifierProcessor(final TelegramService telegramService,
                                      final TradeServiceFactory tradeServiceFactory,
-                                     final AdvancedOrderEnqueuer advancedOrderEnqueuer) {
+                                     final Sleep sleep) {
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
-    this.advancedOrderEnqueuer = advancedOrderEnqueuer;
+    this.sleep = sleep;
   }
 
 
   @Override
-  public void tick(OrderStateNotifier job, Ticker ticker) throws Exception {
+  public Optional<OrderStateNotifier> process(OrderStateNotifier job) throws InterruptedException {
 
-    final AdvancedOrderInfo ex = job.basic();
+    final TickTrigger ex = job.tickTrigger();
 
     final int rowCount = logRowCount.getAndIncrement();
     if (rowCount == 0) {
@@ -92,7 +92,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
         case REPLACED:
         case REJECTED:
           telegramService.sendMessage(String.format(
-            "Order [%d] (%s) on [%s/%s/%s] " + status + ". Giving up.",
+            "Order [%s] (%s) on [%s/%s/%s] " + status + ". Giving up.",
             job.id(), job.description(), ex.exchange(), ex.base(), ex.counter()
           ));
           exit = true;
@@ -100,7 +100,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
         case FILLED:
         case STOPPED:
           telegramService.sendMessage(String.format(
-            "Order [%d] (%s) on [%s/%s/%s] has " + status + ". Average price [%s %s]",
+            "Order [%s] (%s) on [%s/%s/%s] has " + status + ". Average price [%s %s]",
             job.id(), job.description(), ex.exchange(), ex.base(), ex.counter(), order.getAveragePrice(), ex.counter()
           ));
           exit = true;
@@ -112,7 +112,7 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
           break;
         default:
           telegramService.sendMessage(String.format(
-            "Order [%d] (%s) on [%s/%s/%s] in unknown status " + status + ". Giving up.",
+            "Order [%s] (%s) on [%s/%s/%s] in unknown status " + status + ". Giving up.",
             job.id(), job.description(), ex.exchange(), ex.base(), ex.counter()
           ));
           exit = true;
@@ -132,22 +132,24 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
       job.description()
     );
 
-    // If we're not done, queue up another check
-    if (!exit) {
-      advancedOrderEnqueuer.enqueueAfterConfiguredDelay(job);
-    }
+    if (!exit)
+      sleep.sleep();
+
+    return exit
+        ? Optional.empty()
+        : Optional.of(job);
   }
 
-  private Order getOrder(OrderStateNotifier job, final AdvancedOrderInfo ex) throws IOException {
+  private Order getOrder(OrderStateNotifier job, final TickTrigger ex) {
     final Collection<Order> matchingOrders;
     try {
       matchingOrders = tradeServiceFactory.getForExchange(ex.exchange()).getOrder(job.orderId());
-    } catch (ExchangeException e) {
+    } catch (ExchangeException | IOException e) {
       if (e.getCause() instanceof HttpStatusExceptionSupport && ((HttpStatusExceptionSupport)e.getCause()).getHttpStatusCode() == 404) {
         notFoundMessage(job, ex);
         return null;
       }
-      throw e;
+      throw new RuntimeException(e);
     }
 
     if (matchingOrders == null || matchingOrders.isEmpty()) {
@@ -161,18 +163,18 @@ public class OrderStateNotifierProcessor implements AdvancedOrderProcessor<Order
     return Iterables.getOnlyElement(matchingOrders);
   }
 
-  private void notUniqueMessage(OrderStateNotifier job, final AdvancedOrderInfo ex) {
+  private void notUniqueMessage(OrderStateNotifier job, final TickTrigger ex) {
     String message = String.format(
-      "Order [%d] on [%s/%s/%s] was not unique on the exchange. Giving up.",
+      "Order [%s] on [%s/%s/%s] was not unique on the exchange. Giving up.",
       job.id(), ex.exchange(), ex.base(), ex.counter()
     );
     LOGGER.error(message);
     telegramService.sendMessage(message);
   }
 
-  private void notFoundMessage(OrderStateNotifier job, final AdvancedOrderInfo ex) {
+  private void notFoundMessage(OrderStateNotifier job, final TickTrigger ex) {
     String message = String.format(
-        "Order [%d] on [%s/%s/%s] was not found on the exchange. It may have been cancelled. Giving up.",
+        "Order [%s] on [%s/%s/%s] was not found on the exchange. It may have been cancelled. Giving up.",
         job.id(), ex.exchange(), ex.base(), ex.counter()
       );
     LOGGER.error(message);

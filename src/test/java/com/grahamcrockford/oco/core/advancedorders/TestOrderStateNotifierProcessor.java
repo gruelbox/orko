@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.core.advancedorders;
 
+import static org.junit.Assert.assertFalse;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -10,6 +11,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.currency.CurrencyPair;
@@ -22,18 +26,19 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Injector;
 import com.grahamcrockford.oco.api.AdvancedOrder;
-import com.grahamcrockford.oco.api.AdvancedOrderInfo;
-import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
+import com.grahamcrockford.oco.api.TickTrigger;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
 import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifier;
 import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifierProcessor;
+import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.util.Sleep;
+
 
 public class TestOrderStateNotifierProcessor {
 
-  private static final long JOB_ID = 555L;
+  private static final String JOB_ID = "555";
 
   private static final String BASE = "FOO";
   private static final String COUNTER = "USDT";
@@ -47,12 +52,12 @@ public class TestOrderStateNotifierProcessor {
   private static final BigDecimal LIMIT_PRICE = new BigDecimal(90);
   private static final BigDecimal FILLED = new BigDecimal(999);
 
-  @Mock private AdvancedOrderEnqueuer enqueuer;
+  @Mock private AdvancedOrderAccess enqueuer;
   @Mock private TelegramService telegramService;
 
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private TradeService tradeService;
-  @Mock private Injector injector;
+  @Mock private Sleep sleep;
 
   private OrderStateNotifierProcessor processor;
 
@@ -63,32 +68,32 @@ public class TestOrderStateNotifierProcessor {
 
     when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
 
-    processor = new OrderStateNotifierProcessor(telegramService, tradeServiceFactory, enqueuer);
+    processor = new OrderStateNotifierProcessor(telegramService, tradeServiceFactory, sleep);
   }
 
   /* -------------------------------------------------------------------------------------- */
 
   @Test
   public void testNotFound1() throws Exception {
-    processor.tick(baseJob().build(), null);
+    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
     verifySentMessage();
-    verifyFinishedJob();
+    verifyFinishedJob(result);
   }
 
   @Test
   public void testNotFound2() throws Exception {
     when(tradeService.getOrder(ORDER_ID)).thenReturn(Collections.emptyList());
-    processor.tick(baseJob().build(), null);
+    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
     verifySentMessage();
-    verifyFinishedJob();
+    verifyFinishedJob(result);
   }
 
   @Test
   public void testNotUnique() throws Exception {
     when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
-    processor.tick(baseJob().build(), null);
+    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
     verifySentMessage();
-    verifyFinishedJob();
+    verifyFinishedJob(result);
   }
 
   @Test
@@ -96,29 +101,30 @@ public class TestOrderStateNotifierProcessor {
     for (final Order.OrderStatus status : Order.OrderStatus.values()) {
       Mockito.reset(enqueuer, telegramService);
       when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, BigDecimal.ZERO, status)));
-      processor.tick(baseJob().build(), null);
+      Optional<OrderStateNotifier> result = processor.process(baseJob().build());
       if (ImmutableSet.of(Order.OrderStatus.PENDING_NEW, Order.OrderStatus.NEW, Order.OrderStatus.PARTIALLY_FILLED).contains(status)) {
-        verifyNoChanges(baseJob().build());
+        verifyNoChanges(baseJob().build(), result);
       } else {
         verifySentMessage();
-        verifyFinishedJob();
+        verifyFinishedJob(result);
       }
     }
   }
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
-  private void verifyNoChanges(AdvancedOrder order) {
+  private void verifyNoChanges(AdvancedOrder order, Optional<OrderStateNotifier> result) {
     verifyZeroInteractions(telegramService);
-    verify(enqueuer).enqueueAfterConfiguredDelay(order);
+    Assert.assertEquals(order, result.get());
   }
 
   private void verifySentMessage() {
     verify(telegramService).sendMessage(Mockito.anyString());
   }
 
-  private void verifyFinishedJob() {
+  private void verifyFinishedJob(Optional<OrderStateNotifier> result) {
     verifyZeroInteractions(enqueuer);
+    assertFalse(result.isPresent());
   }
 
   private OrderStateNotifier.Builder baseJob() {
@@ -126,7 +132,7 @@ public class TestOrderStateNotifierProcessor {
       .id(JOB_ID)
       .description(DESCRIPTION)
       .orderId(ORDER_ID)
-      .basic(AdvancedOrderInfo.builder()
+      .tickTrigger(TickTrigger.builder()
         .base(BASE)
         .counter(COUNTER)
         .exchange(EXCHANGE)

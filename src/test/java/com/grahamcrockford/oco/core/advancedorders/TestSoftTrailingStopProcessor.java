@@ -1,6 +1,5 @@
 package com.grahamcrockford.oco.core.advancedorders;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -8,9 +7,9 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.Exchange;
@@ -18,7 +17,6 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
-import org.knowm.xchange.dto.meta.ExchangeMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -26,25 +24,21 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.inject.Injector;
-import com.grahamcrockford.oco.api.AdvancedOrderInfo;
-import com.grahamcrockford.oco.core.AdvancedOrderEnqueuer;
-import com.grahamcrockford.oco.core.AdvancedOrderIdGenerator;
+import com.grahamcrockford.oco.api.TickTrigger;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
 import com.grahamcrockford.oco.core.advancedorders.OrderStateNotifier;
 import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStop;
 import com.grahamcrockford.oco.core.advancedorders.SoftTrailingStopProcessor;
+import com.grahamcrockford.oco.db.AdvancedOrderAccess;
+import com.grahamcrockford.oco.util.Sleep;
 
 public class TestSoftTrailingStopProcessor {
 
   private static final int PRICE_SCALE = 2;
   private static final BigDecimal HUNDRED = new BigDecimal(100);
   private static final BigDecimal PENNY = new BigDecimal("0.01");
-
-  private static final long JOB_ID = 555L;
 
   private static final BigDecimal AMOUNT = new BigDecimal(1000);
 
@@ -63,8 +57,7 @@ public class TestSoftTrailingStopProcessor {
   private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair(BASE, COUNTER);
   private static final String EXCHANGE = "fooex";
 
-  @Mock private AdvancedOrderEnqueuer enqueuer;
-  @Mock private AdvancedOrderIdGenerator advancedOrderIdGenerator;
+  @Mock private AdvancedOrderAccess enqueuer;
   @Mock private TelegramService telegramService;
   @Mock private ExchangeService exchangeService;
 
@@ -72,63 +65,56 @@ public class TestSoftTrailingStopProcessor {
   @Mock private MarketDataService marketDataService;
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private TradeService tradeService;
-  @Mock private Injector injector;
+  @Mock private Sleep sleep;
+  @Mock private CurrencyPairMetaData currencyPairMetaData;
 
   private SoftTrailingStopProcessor processor;
   private final AtomicInteger xChangeOrderId = new AtomicInteger();
-  private final AtomicLong advancedOrderId = new AtomicLong();
 
   @Before
   public void before() throws IOException {
 
     MockitoAnnotations.initMocks(this);
 
-    when(exchangeService.get(EXCHANGE)).thenReturn(exchange);
-    when(exchange.getMarketDataService()).thenReturn(marketDataService);
-    when(exchange.getTradeService()).thenReturn(tradeService);
-    final ExchangeMetaData exchangeMetaData = mock(ExchangeMetaData.class);
-    when(exchange.getExchangeMetaData()).thenReturn(exchangeMetaData);
-    final CurrencyPairMetaData currencyPairMetaData = mock(CurrencyPairMetaData.class);
-    when(exchangeMetaData.getCurrencyPairs()).thenReturn(ImmutableMap.of(CURRENCY_PAIR, currencyPairMetaData));
     when(currencyPairMetaData.getPriceScale()).thenReturn(PRICE_SCALE);
 
     when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenAnswer(args -> newTradeId());
 
-    when(advancedOrderIdGenerator.next()).thenAnswer(a -> advancedOrderId.incrementAndGet());
-
-    processor = new SoftTrailingStopProcessor(telegramService, tradeServiceFactory, exchangeService, enqueuer, advancedOrderIdGenerator);
+    processor = new SoftTrailingStopProcessor(telegramService, tradeServiceFactory, exchangeService, enqueuer, sleep);
   }
 
   /* -------------------------------------------------------------------------------------- */
 
   @Test
   public void testErrNoBuyers() throws Exception {
-    final Ticker ticker = new Ticker.Builder()
+    SoftTrailingStop job = baseJob().build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
         .last(ENTRY_PRICE)
         .ask(ENTRY_PRICE.add(PENNY))
         .timestamp(new Date())
-      .build();
+        .build());
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
     verifySentMessage();
-    verifyWillRepeatWithoutChange(baseJob().build());
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testErrNoSellers() throws Exception {
-    final Ticker ticker = new Ticker.Builder()
-        .bid(ENTRY_PRICE.subtract(PENNY))
+    SoftTrailingStop job = baseJob().build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
         .last(ENTRY_PRICE)
+        .ask(ENTRY_PRICE.add(PENNY))
         .timestamp(new Date())
-        .build();
+        .build());
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
     verifySentMessage();
-    verifyWillRepeatWithoutChange(baseJob().build());
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
@@ -136,72 +122,85 @@ public class TestSoftTrailingStopProcessor {
 
   @Test
   public void testActiveStopFalseDefault1() throws Exception {
-    final Ticker ticker = everythingAt(STOP_PRICE.add(PENNY));
+    SoftTrailingStop job = baseJob().build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(everythingAt(STOP_PRICE.add(PENNY)));
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyWillRepeatWithoutChange(baseJob().build());
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testActiveStopTrueDefault1() throws Exception {
-    final Ticker ticker = everythingAt(STOP_PRICE);
+    SoftTrailingStop job = baseJob().build();
+    Ticker ticker = everythingAt(STOP_PRICE);
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
     verifySentMessage();
+    verifyFinished(result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testActiveStopFalseDefault2() throws Exception {
-    final Ticker ticker = new Ticker.Builder()
+    SoftTrailingStop job = baseJob().build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
         .bid(STOP_PRICE.add(PENNY))
         .last(STOP_PRICE)
         .ask(STOP_PRICE.add(PENNY).add(PENNY))
-        .timestamp(new Date()).build();
+        .timestamp(new Date()).build());
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(baseJob().build());
 
-    verifyWillRepeatWithoutChange(baseJob().build());
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testActiveStopTrueDefault2() throws Exception {
+    SoftTrailingStop job = baseJob().build();
     final Ticker ticker = new Ticker.Builder()
         .bid(STOP_PRICE)
         .last(STOP_PRICE.add(PENNY))
         .ask(STOP_PRICE.add(PENNY))
         .timestamp(new Date()).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
     verifySentMessage();
+    verifyFinished(result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testActiveStopFalseAdjusted1() throws Exception {
     final Ticker ticker = everythingAt(HIGHER_STOP_PRICE.add(PENNY));
-    SoftTrailingStop stop = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
-    processor.tick(stop, ticker);
+    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    verifyWillRepeatWithoutChange(stop);
+    Optional<SoftTrailingStop> result = processor.process(job);
+
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testActiveStopTrueAdjusted1() throws Exception {
     final Ticker ticker = everythingAt(HIGHER_STOP_PRICE);
-    SoftTrailingStop stop = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
-    processor.tick(stop, ticker);
+    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
+
+    Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
     verifySentMessage();
+    verifyFinished(result);
     verifyDidNothingElse();
   }
 
@@ -212,11 +211,12 @@ public class TestSoftTrailingStopProcessor {
         .last(HIGHER_STOP_PRICE)
         .ask(HIGHER_STOP_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
-    SoftTrailingStop stop = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(stop, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyWillRepeatWithoutChange(stop);
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
@@ -227,12 +227,14 @@ public class TestSoftTrailingStopProcessor {
         .last(HIGHER_STOP_PRICE.add(PENNY))
         .ask(HIGHER_STOP_PRICE.add(PENNY))
         .timestamp(new Date()).build();
-    SoftTrailingStop stop = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(stop, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
     verifySentMessage();
+    verifyFinished(result);
     verifyDidNothingElse();
   }
 
@@ -244,10 +246,11 @@ public class TestSoftTrailingStopProcessor {
         .build();
 
     final Ticker ticker = everythingAt(new BigDecimal("66.68"));
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(job, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyWillRepeatWithoutChange(job);
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
@@ -259,11 +262,13 @@ public class TestSoftTrailingStopProcessor {
         .build();
 
     final Ticker ticker = everythingAt(new BigDecimal("66.67"));
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(job, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAt(ticker, new BigDecimal("59.89"));
     verifySentMessage();
+    verifyFinished(result);
     verifyDidNothingElse();
   }
 
@@ -271,21 +276,25 @@ public class TestSoftTrailingStopProcessor {
 
   @Test
   public void testActivePriceChangeFalseDefault() throws Exception {
+    SoftTrailingStop job = baseJob().build();
     final Ticker ticker = everythingAt(ENTRY_PRICE);
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyWillRepeatWithoutChange(baseJob().build());
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testActivePriceChangeDownDefault() throws Exception {
+    SoftTrailingStop job = baseJob().build();
     final Ticker ticker = everythingAt(ENTRY_PRICE.subtract(PENNY));
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(baseJob().build(), ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyWillRepeatWithoutChange(baseJob().build());
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
@@ -297,33 +306,35 @@ public class TestSoftTrailingStopProcessor {
         .ask(ENTRY_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
     final SoftTrailingStop job = baseJob().build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(job, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verify(exchangeService).get(EXCHANGE);
-    verifyResyncedPriceTo(job, ENTRY_PRICE.add(PENNY));
+    verifyResyncedPriceTo(job, result, ENTRY_PRICE.add(PENNY));
     verifyDidNothingElse();
   }
 
   @Test
   public void testActivePriceChangeFalseAdjusted() throws Exception {
     final Ticker ticker = everythingAt(HIGHER_ENTRY_PRICE);
+    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    SoftTrailingStop stop = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
-    processor.tick(stop, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyWillRepeatWithoutChange(stop);
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
   @Test
   public void testActivePriceChangeDownAdjusted() throws Exception {
     final Ticker ticker = everythingAt(HIGHER_ENTRY_PRICE.subtract(PENNY));
+    SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    SoftTrailingStop stop = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
-    processor.tick(stop, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verifyWillRepeatWithoutChange(stop);
+    verifyWillRepeatWithoutChange(job, result);
     verifyDidNothingElse();
   }
 
@@ -335,22 +346,23 @@ public class TestSoftTrailingStopProcessor {
         .ask(HIGHER_ENTRY_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
     final SoftTrailingStop job = baseJob().lastSyncPrice(HIGHER_ENTRY_PRICE).build();
+    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(ticker);
 
-    processor.tick(job, ticker);
+    Optional<SoftTrailingStop> result = processor.process(job);
 
-    verify(exchangeService).get(EXCHANGE);
-    verifyResyncedPriceTo(job, HIGHER_ENTRY_PRICE.add(PENNY));
+    verifyResyncedPriceTo(job, result, HIGHER_ENTRY_PRICE.add(PENNY));
     verifyDidNothingElse();
   }
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
-  private void verifyResyncedPriceTo(SoftTrailingStop job, BigDecimal syncPrice) throws IOException {
-    verify(enqueuer).enqueueAfterConfiguredDelay(job.toBuilder().lastSyncPrice(syncPrice).build());
+  private void verifyResyncedPriceTo(SoftTrailingStop job, Optional<SoftTrailingStop> result, BigDecimal syncPrice) throws IOException {
+    Assert.assertEquals(job.toBuilder().lastSyncPrice(syncPrice).build(), result.get());
   }
 
-  private void verifyWillRepeatWithoutChange(SoftTrailingStop job) {
-    verify(enqueuer).enqueueAfterConfiguredDelay(job);
+  private void verifyWillRepeatWithoutChange(SoftTrailingStop job, Optional<SoftTrailingStop> result) {
+    Assert.assertTrue(result.isPresent());
+    Assert.assertEquals(job, result.get());
   }
 
   private void verifyDidNothingElse() {
@@ -367,12 +379,15 @@ public class TestSoftTrailingStopProcessor {
 
   private void verifyLimitSellAt(final Ticker ticker, BigDecimal price) throws IOException {
     verify(tradeService).placeLimitOrder(limitSell(AMOUNT, null, ticker.getTimestamp(), price));
-    verify(enqueuer).enqueue(OrderStateNotifier.builder()
-        .id(advancedOrderId.get())
+    verify(enqueuer).insert(OrderStateNotifier.builder()
         .description("Stop")
         .orderId(lastTradeId())
-        .basic(AdvancedOrderInfo.builder().exchange(EXCHANGE).base(BASE).counter(COUNTER).build())
-        .build());
+        .tickTrigger(TickTrigger.builder().exchange(EXCHANGE).base(BASE).counter(COUNTER).build())
+        .build(), OrderStateNotifier.class);
+  }
+
+  private void verifyFinished(Optional<SoftTrailingStop> result) {
+    Assert.assertFalse(result.isPresent());
   }
 
   private LimitOrder limitSell(BigDecimal amount, String id, Date timestamp, BigDecimal price) {
@@ -392,17 +407,17 @@ public class TestSoftTrailingStopProcessor {
   }
 
   private SoftTrailingStop.Builder baseJob() {
+    TickTrigger ex = TickTrigger.builder()
+      .base(BASE)
+      .counter(COUNTER)
+      .exchange(EXCHANGE)
+      .build();
+    when(exchangeService.fetchCurrencyPairMetaData(ex)).thenReturn(currencyPairMetaData);
     return SoftTrailingStop.builder()
-      .id(JOB_ID)
       .amount(AMOUNT)
       .startPrice(ENTRY_PRICE)
       .stopPercentage(STOP_PC)
       .limitPercentage(LIMIT_PC)
-      .basic(AdvancedOrderInfo.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build()
-       );
+      .tickTrigger(ex);
   }
 }

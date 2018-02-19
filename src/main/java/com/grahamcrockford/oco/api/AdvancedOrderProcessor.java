@@ -1,9 +1,7 @@
 package com.grahamcrockford.oco.api;
 
-import org.knowm.xchange.dto.marketdata.Ticker;
-
 public interface AdvancedOrderProcessor<T extends AdvancedOrder> {
 
-  public void tick(T order, Ticker ticker) throws Exception;
+  public java.util.Optional<T> process(T order) throws InterruptedException;
 
 }

@@ -1,12 +1,13 @@
 package com.grahamcrockford.oco.core.advancedorders;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
 
-import org.jongo.marshall.jackson.oid.MongoId;
-import org.jongo.marshall.jackson.oid.MongoObjectId;
+import org.mongojack.Id;
+import org.mongojack.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,8 +15,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 import com.grahamcrockford.oco.api.AdvancedOrder;
-import com.grahamcrockford.oco.api.AdvancedOrderInfo;
+import com.grahamcrockford.oco.api.AdvancedOrderBuilder;
+import com.grahamcrockford.oco.api.TickTrigger;
 
 @AutoValue
 @JsonDeserialize(builder = SoftTrailingStop.Builder.class)
@@ -28,22 +31,33 @@ public abstract class SoftTrailingStop implements AdvancedOrder {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder {
+  public static abstract class Builder implements AdvancedOrderBuilder {
 
     @JsonCreator private static Builder create() { return SoftTrailingStop.builder(); }
 
-    @MongoId @MongoObjectId public abstract Builder id(String value);
-    public abstract Builder basic(AdvancedOrderInfo exchangeInfo);
+    @Override
+    @Id @ObjectId public abstract Builder id(String value);
+    public abstract Builder tickTrigger(TickTrigger tickTrigger);
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder startPrice(BigDecimal value);
     abstract Builder lastSyncPrice(BigDecimal value);
     public abstract Builder stopPercentage(BigDecimal value);
     public abstract Builder limitPercentage(BigDecimal value);
 
+    final Builder bigDecimals(Map<String, String> values) {
+      amount(new BigDecimal(values.get("amount")));
+      startPrice(new BigDecimal(values.get("startPrice")));
+      lastSyncPrice(new BigDecimal(values.get("lastSyncPrice")));
+      stopPercentage(new BigDecimal(values.get("stopPercentage")));
+      limitPercentage(new BigDecimal(values.get("limitPercentage")));
+      return this;
+    }
+
     abstract BigDecimal startPrice();
     abstract Optional<BigDecimal> lastSyncPrice();
     abstract SoftTrailingStop autoBuild();
 
+    @Override
     public SoftTrailingStop build() {
       if (!lastSyncPrice().isPresent()) {
         lastSyncPrice(startPrice());
@@ -52,34 +66,35 @@ public abstract class SoftTrailingStop implements AdvancedOrder {
     }
   }
 
+  @Override
   @JsonIgnore
   public abstract Builder toBuilder();
 
   @Override
   @JsonProperty
   @Nullable
-  @MongoId
-  @MongoObjectId
+  @Id @ObjectId
   public abstract String id();
 
-  @Override
   @JsonProperty
-  public abstract AdvancedOrderInfo basic();
+  public abstract TickTrigger tickTrigger();
+
+  @JsonIgnore public abstract BigDecimal amount();
+  @JsonIgnore public abstract BigDecimal startPrice();
+  @JsonIgnore public abstract BigDecimal lastSyncPrice();
+  @JsonIgnore public abstract BigDecimal stopPercentage();
+  @JsonIgnore public abstract BigDecimal limitPercentage();
 
   @JsonProperty
-  public abstract BigDecimal amount();
-
-  @JsonProperty
-  public abstract BigDecimal startPrice();
-
-  @JsonProperty
-  public abstract BigDecimal lastSyncPrice();
-
-  @JsonProperty
-  public abstract BigDecimal stopPercentage();
-
-  @JsonProperty
-  public abstract BigDecimal limitPercentage();
+  final Map<String, String> bigDecimals() {
+    return ImmutableMap.<String, String>builder()
+        .put("amount", amount().toPlainString())
+        .put("startPrice", startPrice().toPlainString())
+        .put("lastSyncPrice", lastSyncPrice().toPlainString())
+        .put("stopPercentage", stopPercentage().toPlainString())
+        .put("limitPercentage", limitPercentage().toPlainString())
+        .build();
+  }
 
   @JsonIgnore
   @Override

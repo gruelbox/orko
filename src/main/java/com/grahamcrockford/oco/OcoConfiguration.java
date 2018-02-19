@@ -23,6 +23,10 @@ public class OcoConfiguration extends Configuration {
   private int loopSeconds;
 
   @NotNull
+  @Min(1L)
+  private int lockSeconds;
+
+  @NotNull
   private String userName;
 
   @NotNull
@@ -124,5 +128,15 @@ public class OcoConfiguration extends Configuration {
   @JsonProperty("jerseyClient")
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
       this.jerseyClient = jerseyClient;
+  }
+
+  @JsonProperty
+  public int getLockSeconds() {
+    return lockSeconds;
+  }
+
+  @JsonProperty
+  public void setLockSeconds(int lockSeconds) {
+    this.lockSeconds = lockSeconds;
   }
 }
