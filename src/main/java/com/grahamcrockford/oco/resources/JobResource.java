@@ -44,7 +44,6 @@ public class JobResource implements WebResource {
     this.exchanges = exchanges;
   }
 
-  @SuppressWarnings("unchecked")
   @PUT
   @Timed
   @RolesAllowed(Roles.TRADER)
@@ -81,8 +80,7 @@ public class JobResource implements WebResource {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    return (SoftTrailingStop) put(
-      SoftTrailingStop.builder()
+    SoftTrailingStop job = SoftTrailingStop.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
@@ -93,8 +91,11 @@ public class JobResource implements WebResource {
         .startPrice(ticker.getBid())
         .stopPrice(stopPrice)
         .limitPrice(limitPrice)
-        .build()
-    );
+        .build();
+
+    advancedOrderAccess.insert(job, SoftTrailingStop.class);
+
+    return job;
   }
 
   @PUT
@@ -104,15 +105,21 @@ public class JobResource implements WebResource {
   public PumpChecker pumpChecker(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base) throws Exception {
-    return (PumpChecker) put(
-      PumpChecker.builder()
+
+    // Just check it's a valid ticker
+    exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
+
+    PumpChecker job = PumpChecker.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
           .counter(counter)
           .build()
         )
-        .build()
-    );
+        .build();
+
+    advancedOrderAccess.insert(job, PumpChecker.class);
+
+    return job;
   }
 }
