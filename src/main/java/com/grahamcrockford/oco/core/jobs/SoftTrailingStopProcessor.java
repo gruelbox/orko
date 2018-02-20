@@ -128,7 +128,7 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
 
       LOGGER.info("| - Order [{}] placed.", xChangeOrderId);
       telegramService.sendMessage(String.format(
-        "Bot [%s] on [%s/%s/%s] placed limit sell at [%s]",
+        "Job [%s] on [%s/%s/%s] placed limit sell at [%s]",
         trailingStop.id(),
         ex.exchange(),
         ex.base(),

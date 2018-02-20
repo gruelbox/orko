@@ -73,28 +73,32 @@ public class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
         if (!StreamEx.of(linkedList)
               .pairMap((a, b) -> a.compareTo(b) > 0)
               .has(true)) {
-          telegramService.sendMessage(String.format(
-            "Bot [%s] on [%s/%s/%s] detected %s%% pump",
-            job.id(),
-            ex.exchange(),
-            ex.base(),
-            ex.counter(),
-            asPercentage
-          ));
+          String message = String.format(
+              "Job [%s] on [%s/%s/%s] detected %s%% pump",
+              job.id(),
+              ex.exchange(),
+              ex.base(),
+              ex.counter(),
+              asPercentage
+            );
+          LOGGER.info(message);
+          telegramService.sendMessage(message);
           linkedList.clear();
         };
       } else if (asPercentage.compareTo(TARGET.negate()) < 0) {
         if (!StreamEx.of(linkedList)
             .pairMap((a, b) -> a.compareTo(b) < 0)
             .has(true)) {
-        telegramService.sendMessage(String.format(
-          "Bot [%s] on [%s/%s/%s] detected %s%% dump",
-          job.id(),
-          ex.exchange(),
-          ex.base(),
-          ex.counter(),
-          asPercentage
-        ));
+          String message = String.format(
+              "Job [%s] on [%s/%s/%s] detected %s%% dump",
+              job.id(),
+              ex.exchange(),
+              ex.base(),
+              ex.counter(),
+              asPercentage
+            );
+          LOGGER.info(message);
+          telegramService.sendMessage(message);
         linkedList.clear();
       };
     }

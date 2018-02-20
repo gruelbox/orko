@@ -60,7 +60,7 @@ public class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
 
       LOGGER.info("| - Bid price ({}) hit low threshold ({}). Triggering low action.", ticker.getBid(), job.low().threshold());
       telegramService.sendMessage(String.format(
-        "Bot [%s] on [%s/%s/%s]: bid price (%s) hit low threshold (%s). Triggering low action.",
+        "Job [%s] on [%s/%s/%s]: bid price (%s) hit low threshold (%s). Triggering low action.",
         job.id(),
         ex.exchange(),
         ex.base(),
@@ -76,7 +76,7 @@ public class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
 
       LOGGER.info("| - Bid price ({}) hit high threshold {}). Triggering high action.", ticker.getBid(), job.high().threshold());
       telegramService.sendMessage(String.format(
-        "Bot [%s] on [%s/%s/%s]: bid price (%s) hit high threshold (%s). Triggering high action.",
+        "Job [%s] on [%s/%s/%s]: bid price (%s) hit high threshold (%s). Triggering high action.",
         job.id(),
         ex.exchange(),
         ex.base(),
