@@ -18,6 +18,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import com.mongodb.WriteResult;
 
 @Singleton
@@ -101,10 +102,27 @@ public class JobLocker {
   }
 
   private void createTtlIndex(DBCollection exclusiveLock) {
-    BasicDBObject index = new BasicDBObject();
-    index.put("ts", 1);
-    BasicDBObject indexOpts = new BasicDBObject();
-    indexOpts.put("expireAfterSeconds", configuration.getLockSeconds());
-    exclusiveLock.createIndex(index, indexOpts);
+    BasicDBObject index = new BasicDBObject().append("ts", 1);
+    BasicDBObject indexOpts = new BasicDBObject()
+        .append("name", "ttl")
+        .append("expireAfterSeconds", configuration.getLockSeconds());
+    try {
+      exclusiveLock.createIndex(index, indexOpts);
+    } catch (MongoException e) {
+      LOGGER.warn("TTL index failed to be created ({}). Dropping existing TTL indexes", e.getMessage());
+      safeDropIndex(exclusiveLock, "ts_1");
+      safeDropIndex(exclusiveLock, "ttl");
+      exclusiveLock.createIndex(index, indexOpts);
+      LOGGER.info("TTL index recreated successfully");
+    }
+  }
+
+  private void safeDropIndex(DBCollection coll, String indexName) {
+    try {
+      coll.dropIndex(indexName);
+      LOGGER.info("Dropped {} index", indexName);
+    } catch (MongoException e) {
+      LOGGER.info("Failed to drop {} index ({})", indexName, e.getMessage());
+    }
   }
 }
