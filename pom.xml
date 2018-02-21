@@ -81,12 +81,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.knowm.xchange</groupId>
-				<artifactId>xchange-bittrex</artifactId>
-				<version>${xchange.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.knowm.xchange</groupId>
-				<artifactId>xchange-cryptopia</artifactId>
+				<artifactId>xchange-kucoin</artifactId>
 				<version>${xchange.version}</version>
 			</dependency>
 			<dependency>
@@ -171,11 +166,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-cryptopia</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-bittrex</artifactId>
+			<artifactId>xchange-kucoin</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>

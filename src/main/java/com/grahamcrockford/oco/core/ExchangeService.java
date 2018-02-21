@@ -7,11 +7,10 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.binance.BinanceExchange;
-import org.knowm.xchange.bittrex.BittrexExchange;
-import org.knowm.xchange.cryptopia.CryptopiaExchange;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.gdax.GDAXExchange;
+import org.knowm.xchange.kucoin.KucoinExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,8 +101,7 @@ public class ExchangeService {
   private Class<? extends Exchange> map(String friendlyName) {
     switch (friendlyName.toLowerCase()) {
       case "binance" : return BinanceExchange.class;
-      case "bittrex" : return BittrexExchange.class;
-      case "cryptopia" : return CryptopiaExchange.class;
+      case "kucoin" : return KucoinExchange.class;
       case "gdax" : return GDAXExchange.class;
       case "gdax-sandbox" : return GDAXExchange.class;
       default: throw new IllegalArgumentException("Unknown exchange [" + friendlyName + "]");
