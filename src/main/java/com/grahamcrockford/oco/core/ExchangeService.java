@@ -1,16 +1,18 @@
 package com.grahamcrockford.oco.core;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.knowm.xchange.BaseExchange;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
-import org.knowm.xchange.binance.BinanceExchange;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
-import org.knowm.xchange.gdax.GDAXExchange;
-import org.knowm.xchange.kucoin.KucoinExchange;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +82,17 @@ public class ExchangeService {
     this.configuration = configuration;
   }
 
+  public Collection<String> getExchanges() {
+    return new Reflections("org.knowm.xchange")
+        .getSubTypesOf(Exchange.class)
+        .stream()
+        .filter(c -> !c.equals(BaseExchange.class))
+        .map(Class::getSimpleName)
+        .map(s -> s.replace("Exchange", ""))
+        .map(String::toLowerCase)
+        .collect(Collectors.toSet());
+  }
+
   public Exchange get(String name) {
     return exchanges.getUnchecked(name);
   }
@@ -98,13 +111,17 @@ public class ExchangeService {
       .get(ex.currencyPair());
   }
 
+  @SuppressWarnings("unchecked")
   private Class<? extends Exchange> map(String friendlyName) {
-    switch (friendlyName.toLowerCase()) {
-      case "binance" : return BinanceExchange.class;
-      case "kucoin" : return KucoinExchange.class;
-      case "gdax" : return GDAXExchange.class;
-      case "gdax-sandbox" : return GDAXExchange.class;
-      default: throw new IllegalArgumentException("Unknown exchange [" + friendlyName + "]");
+    try {
+      return (Class<? extends Exchange>) Class.forName("org.knowm.xchange." +
+          friendlyName +
+          "." +
+          Character.toUpperCase(friendlyName.charAt(0)) +
+          friendlyName.substring(1) +
+          "Exchange");
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("Unknown exchange [" + friendlyName + "]");
     }
   }
 }

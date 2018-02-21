@@ -3,6 +3,7 @@ package com.grahamcrockford.oco.resources;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.security.RolesAllowed;
@@ -14,17 +15,18 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.knowm.xchange.BaseExchange;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.ExchangeService;
@@ -49,8 +51,8 @@ public class ExchangeResource implements WebResource {
   @GET
   @Timed
   @RolesAllowed(Roles.PUBLIC)
-  public List<String> list() {
-    return ImmutableList.of("gdax-sandbox", "binance", "gdax", "kucoin");
+  public Collection<String> list() {
+    return exchanges.getExchanges();
   }
 
   @GET
@@ -62,7 +64,7 @@ public class ExchangeResource implements WebResource {
   }
 
   @GET
-  @Path("{exchange}/orders/{currency}")
+  @Path("{exchange}/currencies/{currency}/orders")
   @Timed
   @RolesAllowed(Roles.TRADER)
   public List<Order> orders(@PathParam("exchange") String exchangeCode,
