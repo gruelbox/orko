@@ -13,7 +13,7 @@ import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
-public class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
+class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OneCancelsOtherProcessor.class);
 

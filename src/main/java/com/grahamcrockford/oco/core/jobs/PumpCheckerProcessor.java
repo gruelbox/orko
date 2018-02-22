@@ -10,7 +10,6 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.JobProcessor;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
@@ -19,8 +18,7 @@ import com.grahamcrockford.oco.util.Sleep;
 
 import one.util.streamex.StreamEx;
 
-@Singleton
-public class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
+class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
 
   private static final BigDecimal TARGET = new BigDecimal("0.5");
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpCheckerProcessor.class);
@@ -48,11 +46,9 @@ public class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
   public Optional<PumpChecker> process(PumpChecker job) throws InterruptedException {
 
     final TickerSpec ex = job.tickTrigger();
-
     Ticker ticker = exchangeService.fetchTicker(ex);
 
     BigDecimal asPercentage = BigDecimal.ZERO;
-
     LinkedList<BigDecimal> linkedList = new LinkedList<>(job.priceHistory());
 
     LOGGER.debug("Current price history: {}", linkedList);
@@ -99,9 +95,9 @@ public class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
             );
           LOGGER.info(message);
           telegramService.sendMessage(message);
-        linkedList.clear();
-      };
-    }
+          linkedList.clear();
+        };
+      }
     }
 
     LOGGER.debug("New price history: {}", linkedList);

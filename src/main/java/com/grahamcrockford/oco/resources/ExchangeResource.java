@@ -95,8 +95,8 @@ public class ExchangeResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public OpenOrders orders(@PathParam("exchange") String exchange,
-                       @PathParam("counter") String counter,
-                       @PathParam("base") String base) throws IOException {
+                           @PathParam("counter") String counter,
+                           @PathParam("base") String base) throws IOException {
     return exchanges.get(exchange)
         .getTradeService()
         .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(new CurrencyPair(base, counter)));

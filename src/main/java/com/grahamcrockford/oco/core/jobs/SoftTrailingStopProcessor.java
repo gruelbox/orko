@@ -17,7 +17,6 @@ import org.knowm.xchange.service.trade.TradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.JobProcessor;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
@@ -26,8 +25,7 @@ import com.grahamcrockford.oco.core.TradeServiceFactory;
 import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
-@Singleton
-public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
+class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SoftTrailingStopProcessor.class);
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
@@ -92,7 +90,7 @@ public class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop>
 
       // Spawn a new job to monitor the progress of the stop
       advancedOrderAccess.insert(OrderStateNotifier.builder()
-          .tickTrigger(order.tickTrigger())
+          .exchange(order.tickTrigger().exchange())
           .description("Stop")
           .orderId(xChangeOrderId)
           .build(), OrderStateNotifier.class);

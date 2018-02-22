@@ -22,6 +22,7 @@ import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.ExchangeService;
+import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
 import com.grahamcrockford.oco.db.JobAccess;
@@ -54,7 +55,7 @@ public class JobResource implements WebResource {
   @DELETE
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public void deleteJob() {
+  public void deleteAllJobs() {
     advancedOrderAccess.delete();
   }
 
@@ -119,6 +120,24 @@ public class JobResource implements WebResource {
         .build();
 
     advancedOrderAccess.insert(job, PumpChecker.class);
+
+    return job;
+  }
+
+  @PUT
+  @Path("monitororder")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public OrderStateNotifier monitorOrder(@QueryParam("exchange") String exchange,
+                                         @QueryParam("orderId") String orderId) throws Exception {
+
+    OrderStateNotifier job = OrderStateNotifier.builder()
+        .exchange(exchange)
+        .description("Web request")
+        .orderId(orderId)
+        .build();
+
+    advancedOrderAccess.insert(job, OrderStateNotifier.class);
 
     return job;
   }

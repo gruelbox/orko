@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
+import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.trade.TradeService;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -27,7 +28,6 @@ import org.mockito.MockitoAnnotations;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.api.Job;
-import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
@@ -72,6 +72,14 @@ public class TestOrderStateNotifierProcessor {
   }
 
   /* -------------------------------------------------------------------------------------- */
+
+  @Test
+  public void testNotSupportedByExchange() throws Exception {
+    when(tradeService.getOrder(ORDER_ID)).thenThrow(new NotAvailableFromExchangeException());
+    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
+    verifySentMessage();
+    verifyFinishedJob(result);
+  }
 
   @Test
   public void testNotFound1() throws Exception {
@@ -132,11 +140,6 @@ public class TestOrderStateNotifierProcessor {
       .id(JOB_ID)
       .description(DESCRIPTION)
       .orderId(ORDER_ID)
-      .tickTrigger(TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build()
-       );
+      .exchange(EXCHANGE);
   }
 }

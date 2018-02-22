@@ -397,7 +397,7 @@ public class TestSoftTrailingStopProcessor {
     verify(enqueuer).insert(OrderStateNotifier.builder()
         .description("Stop")
         .orderId(lastTradeId())
-        .tickTrigger(TickerSpec.builder().exchange(EXCHANGE).base(BASE).counter(COUNTER).build())
+        .exchange(EXCHANGE)
         .build(), OrderStateNotifier.class);
   }
 

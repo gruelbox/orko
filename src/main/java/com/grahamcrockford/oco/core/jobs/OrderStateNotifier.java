@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.JobBuilder;
-import com.grahamcrockford.oco.api.TickerSpec;
 
 @AutoValue
 @JsonDeserialize(builder = OrderStateNotifier.Builder.class)
@@ -30,7 +29,7 @@ public abstract class OrderStateNotifier implements Job {
     @Override
     @Id @ObjectId
     public abstract Builder id(String value);
-    public abstract Builder tickTrigger(TickerSpec trigger);
+    public abstract Builder exchange(String exchange);
     public abstract Builder description(String description);
     public abstract Builder orderId(String orderId);
     @Override
@@ -48,7 +47,7 @@ public abstract class OrderStateNotifier implements Job {
   public abstract String id();
 
   @JsonProperty
-  public abstract TickerSpec tickTrigger();
+  public abstract String exchange();
 
   @JsonIgnore
   @Override
@@ -61,6 +60,5 @@ public abstract class OrderStateNotifier implements Job {
 
   @JsonProperty
   public abstract String orderId();
-
 
 }
