@@ -11,7 +11,8 @@ public class CoreModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new FactoryModuleBuilder().build(JobExecutor.Factory.class));
-    Multibinder.newSetBinder(binder(), Service.class).addBinding().to(JobKeepAlive.class);
+    Multibinder.newSetBinder(binder(), Service.class).addBinding().toProvider(JobKeepAlive.ProviderA.class);
+    Multibinder.newSetBinder(binder(), Service.class).addBinding().toProvider(JobKeepAlive.ProviderB.class);
   }
 
   @Provides

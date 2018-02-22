@@ -10,13 +10,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.Provider;
 import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.core.JobExecutor.Factory;
 import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.db.JobLocker;
 
-@Singleton
 class JobKeepAlive extends AbstractExecutionThreadService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobKeepAlive.class);
@@ -76,5 +75,40 @@ class JobKeepAlive extends AbstractExecutionThreadService {
     executorService.shutdownNow();
     executorService.awaitTermination(30, TimeUnit.SECONDS);
     super.shutDown();
+  }
+
+  @Override
+  protected String serviceName() {
+    return getClass().getSimpleName() + "[" + System.identityHashCode(this);
+  }
+
+  static final class ProviderA implements Provider<JobKeepAlive> {
+
+    private final JobKeepAlive jobKeepAlive;
+
+    @Inject
+    ProviderA(JobKeepAlive jobKeepAlive) {
+      this.jobKeepAlive = jobKeepAlive;
+    }
+
+    @Override
+    public JobKeepAlive get() {
+      return jobKeepAlive;
+    }
+  }
+
+  static final class ProviderB implements Provider<JobKeepAlive> {
+
+    private final JobKeepAlive jobKeepAlive;
+
+    @Inject
+    ProviderB(JobKeepAlive jobKeepAlive) {
+      this.jobKeepAlive = jobKeepAlive;
+    }
+
+    @Override
+    public JobKeepAlive get() {
+      return jobKeepAlive;
+    }
   }
 }
