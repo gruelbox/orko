@@ -42,34 +42,36 @@ public class JobExecutor implements Runnable {
   @Override
   public void run() {
     LOGGER.info(this + " started");
-    while (true) {
+    while (!Thread.currentThread().isInterrupted()) {
       try {
 
         Optional<Job> updated = processor.process(job);
 
         if (!updated.isPresent()) {
           advancedOrderAccess.delete(job.id());
-          jobLocker.releaseLock(job.id(), uuid);
-          return;
-        } else {
-          if (!updated.get().equals(job)) {
-            job = updated.get();
-            LOGGER.debug("Saving updated job: " + job);
-            advancedOrderAccess.update(job, (Class) job.getClass());
-          }
+          break;
         }
 
+        if (!updated.get().equals(job)) {
+          job = updated.get();
+          LOGGER.debug("Saving updated job: " + job);
+          advancedOrderAccess.update(job, (Class) job.getClass());
+        }
+
+        if (!jobLocker.updateLock(job.id(), uuid))
+          break;
+
       } catch (InterruptedException e) {
-        jobLocker.releaseLock(job.id(), uuid);
+        Thread.currentThread().interrupt();
         break;
       } catch (Exception e) {
         LOGGER.error("Failed to handle job #" + job.id(), e);
         telegramService.sendMessage("Error handling job " + job.id() + ": " + e.getMessage());
+        LOGGER.info(this + " failed. Not releasing lock. Retry expected after a short delay");
+        throw e;
       }
-
-      if (!jobLocker.updateLock(job.id(), uuid))
-        break;
     }
+    jobLocker.releaseLock(job.id(), uuid);
     LOGGER.info(this + " stopped");
   }
 
