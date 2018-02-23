@@ -94,9 +94,7 @@ public class JobResource implements WebResource {
         .limitPrice(limitPrice)
         .build();
 
-    advancedOrderAccess.insert(job, SoftTrailingStop.class);
-
-    return job;
+    return advancedOrderAccess.insert(job, SoftTrailingStop.class);
   }
 
   @PUT
@@ -119,9 +117,7 @@ public class JobResource implements WebResource {
         )
         .build();
 
-    advancedOrderAccess.insert(job, PumpChecker.class);
-
-    return job;
+    return advancedOrderAccess.insert(job, PumpChecker.class);
   }
 
   @PUT
@@ -137,8 +133,6 @@ public class JobResource implements WebResource {
         .orderId(orderId)
         .build();
 
-    advancedOrderAccess.insert(job, OrderStateNotifier.class);
-
-    return job;
+    return advancedOrderAccess.insert(job, OrderStateNotifier.class);
   }
 }

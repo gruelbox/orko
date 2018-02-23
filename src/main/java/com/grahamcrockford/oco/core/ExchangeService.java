@@ -1,8 +1,9 @@
 package com.grahamcrockford.oco.core;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -12,6 +13,7 @@ import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
+import org.knowm.xchange.gdax.GDAXExchange;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,12 @@ import com.grahamcrockford.oco.util.CheckedExceptions;
 public class ExchangeService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeService.class);
+
+  private static final List<Class<? extends Exchange>> EXCHANGE_TYPES = new Reflections("org.knowm.xchange")
+      .getSubTypesOf(Exchange.class)
+      .stream()
+      .filter(c -> !c.equals(BaseExchange.class))
+      .collect(Collectors.toList());
 
   private final OcoConfiguration configuration;
 
@@ -83,10 +91,8 @@ public class ExchangeService {
   }
 
   public Collection<String> getExchanges() {
-    return new Reflections("org.knowm.xchange")
-        .getSubTypesOf(Exchange.class)
+    return EXCHANGE_TYPES
         .stream()
-        .filter(c -> !c.equals(BaseExchange.class))
         .map(Class::getSimpleName)
         .map(s -> s.replace("Exchange", ""))
         .map(String::toLowerCase)
@@ -111,17 +117,14 @@ public class ExchangeService {
       .get(ex.currencyPair());
   }
 
-  @SuppressWarnings("unchecked")
   private Class<? extends Exchange> map(String friendlyName) {
-    try {
-      return (Class<? extends Exchange>) Class.forName("org.knowm.xchange." +
-          friendlyName +
-          "." +
-          Character.toUpperCase(friendlyName.charAt(0)) +
-          friendlyName.substring(1) +
-          "Exchange");
-    } catch (ClassNotFoundException e) {
+    if (friendlyName.equals("gdax-sandbox"))
+      return GDAXExchange.class;
+    Optional<Class<? extends Exchange>> result = EXCHANGE_TYPES.stream()
+        .filter(c -> c.getSimpleName().replace("Exchange", "").toLowerCase().equals(friendlyName))
+        .findFirst();
+    if (!result.isPresent())
       throw new IllegalArgumentException("Unknown exchange [" + friendlyName + "]");
-    }
+    return result.get();
   }
 }
