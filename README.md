@@ -16,10 +16,10 @@ How to deploy to Heroku
 
 | Variable             | Set to                 | 
 | -------------------- | ---------------------- |
-| `LOOP_SECONDS`       | Between 3 and 10       |
-| `LOCK_SECONDS`       | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side. |
-| `USER_NAME`          | The username for HTTP authentication. |
-| `PASSWORD`           | The password for HTTP authentication. |
+| `LOOP_SECONDS`       | Between 3 and 10. 5 is good.       |
+| `LOCK_SECONDS`       | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side.  I normally go for 30. |
+| `USER_NAME`          | The username for HTTP authentication.  You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
+| `PASSWORD`           | The password for HTTP authentication. You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
 | `MONGODB_URI`        | Should already have been set up for you by the add-on. |
 | `MONGO_DATABASE`     | The bit at the end of `MONGODB_URI` after the last slash. |
 | `TELEGRAM_BOT_TOKEN` | The bot API token. |
