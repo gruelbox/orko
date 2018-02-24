@@ -33,10 +33,13 @@ public class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-    return sourceIp().equals(whiteListedIp.get());
+    return configuration.getSecretKey() == null || sourceIp().equals(whiteListedIp.get());
   }
 
   public boolean whiteListRequestIp(int token) {
+    if (configuration.getSecretKey() == null)
+      return true;
+
     String ip = sourceIp();
     if (!googleAuthenticator.authorize(configuration.getSecretKey(), token)) {
       LOGGER.error("Whitelist attempt failed from: " + ip);

@@ -17,10 +17,13 @@ The application will now use this bot to send you notifications on your private 
 1. Run `mvn clean package` to build the application
 1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
 1. Store that somewhere safe and enter it into Google Authenticator on your phone.
+1. Spin up a mongodb instance on Docker using this image: https://hub.docker.com/r/library/mongo/.
 
 How to start the application locally:
 ---
-1. Copy `example-config.yml` as `my-config.xml` and replace the wildcards with the appropriate settings (details below).
+1. Copy `example-config.yml` as `my-config.xml` and replace the wildcards with the appropriate settings.
+1. Note that you can omit the `secretKey` for running locally - the 2FA is a PITA if you don't need it.
+1. You can also omit the entire telegram section if you don't want your phone beeping.
 1. Start application with `java -jar target/oco-0.0.1-SNAPSHOT.jar server my-config.yml`
 
 The 2FA is a bit clunky.  I bodged something together quickly to make things a bit more secure but it's not great.  It works as follows:

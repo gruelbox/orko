@@ -13,7 +13,6 @@ public class AuthConfiguration extends Configuration {
   @NotNull
   private String password;
 
-  @NotNull
   private String secretKey;
 
   @NotNull
