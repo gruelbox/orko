@@ -74,7 +74,7 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
       return Optional.empty();
     } else if (ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
-      LOGGER.info("| - Bid price ({}) hit high threshold {}). Triggering high action.", ticker.getBid(), job.high().threshold());
+      LOGGER.info("| - Bid price ({}) hit high threshold ({}). Triggering high action.", ticker.getBid(), job.high().threshold());
       telegramService.sendMessage(String.format(
         "Job [%s] on [%s/%s/%s]: bid price (%s) hit high threshold (%s). Triggering high action.",
         job.id(),

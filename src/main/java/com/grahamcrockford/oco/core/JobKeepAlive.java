@@ -60,7 +60,7 @@ class JobKeepAlive extends AbstractExecutionThreadService {
 
   @Override
   protected String serviceName() {
-    return getClass().getSimpleName() + "[" + System.identityHashCode(this);
+    return getClass().getSimpleName() + "[" + System.identityHashCode(this) + "]";
   }
 
   static final class ProviderA implements Provider<JobKeepAlive> {

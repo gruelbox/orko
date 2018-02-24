@@ -37,7 +37,6 @@ public class JobLocker {
   }
 
   public boolean attemptLock(String jobId, UUID uuid) {
-
     BasicDBObject doc = new BasicDBObject()
         .append("_id", new ObjectId(jobId))
         .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
