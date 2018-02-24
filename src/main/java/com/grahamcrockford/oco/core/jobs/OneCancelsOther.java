@@ -50,9 +50,11 @@ public abstract class OneCancelsOther implements Job {
   @Nullable
   public abstract String id();
 
+  @Nullable
   @JsonProperty
   public abstract ThresholdAndJob low();
 
+  @Nullable
   @JsonProperty
   public abstract ThresholdAndJob high();
 

@@ -51,12 +51,12 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
         ex.exchange(),
         ex.pairName(),
         "OCO",
-        job.low().threshold(),
+        job.low() == null ? "-" : job.low().threshold(),
         ticker.getBid(),
-        job.high().threshold()
+        job.high() == null ? "-" : job.high().threshold()
       );
 
-    if (ticker.getBid().compareTo(job.low().threshold()) <= 0) {
+    if (job.low() != null && ticker.getBid().compareTo(job.low().threshold()) <= 0) {
 
       LOGGER.info("| - Bid price ({}) hit low threshold ({}). Triggering low action.", ticker.getBid(), job.low().threshold());
       telegramService.sendMessage(String.format(
@@ -72,7 +72,8 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
       jobSubmitter.submitNew(job.low().job());
 
       return Optional.empty();
-    } else if (ticker.getBid().compareTo(job.high().threshold()) >= 0) {
+
+    } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
       LOGGER.info("| - Bid price ({}) hit high threshold ({}). Triggering high action.", ticker.getBid(), job.high().threshold());
       telegramService.sendMessage(String.format(
