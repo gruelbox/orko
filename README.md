@@ -28,6 +28,8 @@ The 2FA is a bit clunky.  I bodged something together quickly to make things a b
 1. Call `PUT /auth?token=YourGoogleAuthenticatorCode` to authorise your originating IP.  Only a single IP address is allowed at any one time.
 2. Then call any other of the entry points (listed below) using basic authentication and the configured username/password.
 
+The currently authorised IP is held in memory, which is a bit crap.  The plan is to change the `auth` entry point to return back a session token which expires after a certain period.  Dunno.  Welcome to hear your thoughts.  I know 2FA is a pain with something like this, but this thing is deployed pubicly and can do unspeakable things.
+
 All this should secure enough over SSL or on a private box.
 
 How to deploy to Heroku
