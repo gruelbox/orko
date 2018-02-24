@@ -28,10 +28,10 @@ public class JobLocker {
 
   private final Supplier<DBCollection> lock = Suppliers.memoize(this::createLockCollection);
   private final MongoClient mongoClient;
-  private final OcoConfiguration configuration;
+  private final DbConfiguration configuration;
 
   @Inject
-  JobLocker(MongoClient mongoClient, OcoConfiguration configuration) {
+  JobLocker(MongoClient mongoClient, DbConfiguration configuration) {
     this.mongoClient = mongoClient;
     this.configuration = configuration;
   }

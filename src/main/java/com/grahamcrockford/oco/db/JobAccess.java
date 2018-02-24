@@ -7,7 +7,6 @@ import org.mongojack.WriteResult;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.Job;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -21,10 +20,10 @@ public class JobAccess {
 
   private final MongoClient mongoClient;
   private final JobLocker jobLocker;
-  private final OcoConfiguration configuration;
+  private final DbConfiguration configuration;
 
   @Inject
-  JobAccess(MongoClient mongoClient, JobLocker jobLocker, OcoConfiguration configuration) {
+  JobAccess(MongoClient mongoClient, JobLocker jobLocker, DbConfiguration configuration) {
     this.mongoClient = mongoClient;
     this.jobLocker = jobLocker;
     this.configuration = configuration;

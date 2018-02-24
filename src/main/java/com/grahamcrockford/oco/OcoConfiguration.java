@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.grahamcrockford.oco.core.ExchangeConfiguration;
 import com.grahamcrockford.oco.core.TelegramConfiguration;
+import com.grahamcrockford.oco.db.DbConfiguration;
 
 /**
  * Runtime config. Should really be broken up.
@@ -23,10 +24,6 @@ public class OcoConfiguration extends Configuration {
   private int loopSeconds;
 
   @NotNull
-  @Min(1L)
-  private int lockSeconds;
-
-  @NotNull
   private String userName;
 
   @NotNull
@@ -36,10 +33,7 @@ public class OcoConfiguration extends Configuration {
   private String secretKey;
 
   @NotNull
-  private String mongoClientURI;
-
-  @NotNull
-  private String mongoDatabase;
+  private DbConfiguration database;
 
   @NotNull
   private boolean proxied;
@@ -97,23 +91,13 @@ public class OcoConfiguration extends Configuration {
   }
 
   @JsonProperty
-  public String getMongoClientURI() {
-    return mongoClientURI;
+  public DbConfiguration getDatabase() {
+    return database;
   }
 
   @JsonProperty
-  public void setMongoClientURI(String mongoClientURI) {
-    this.mongoClientURI = mongoClientURI;
-  }
-
-  @JsonProperty
-  public String getMongoDatabase() {
-    return mongoDatabase;
-  }
-
-  @JsonProperty
-  public void setMongoDatabase(String mongoDatabase) {
-    this.mongoDatabase = mongoDatabase;
+  public void setDatabase(DbConfiguration database) {
+    this.database = database;
   }
 
   @JsonProperty
@@ -144,16 +128,6 @@ public class OcoConfiguration extends Configuration {
   @JsonProperty("jerseyClient")
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
       this.jerseyClient = jerseyClient;
-  }
-
-  @JsonProperty
-  public int getLockSeconds() {
-    return lockSeconds;
-  }
-
-  @JsonProperty
-  public void setLockSeconds(int lockSeconds) {
-    this.lockSeconds = lockSeconds;
   }
 
   @JsonProperty

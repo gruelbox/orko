@@ -1,11 +1,12 @@
 loopSeconds: ${LOOP_SECONDS:-3}
-lockSeconds: ${LOCK_SECONDS:-10}
 userName: ${USER_NAME}
 password: ${PASSWORD}
 secretKey: ${AUTH_TOKEN}
 proxied: ${PROXIED}
-mongoClientURI: ${MONGODB_URI}
-mongoDatabase: ${MONGO_DATABASE}
+database:
+  mongoClientURI: ${MONGODB_URI}
+  mongoDatabase: ${MONGO_DATABASE}
+  lockSeconds: ${LOCK_SECONDS:-10}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN}
   chatId: ${TELEGRAM_CHAT_ID}

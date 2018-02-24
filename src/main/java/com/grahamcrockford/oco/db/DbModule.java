@@ -23,8 +23,13 @@ public class DbModule extends AbstractModule {
   }
 
   @Provides
+  DbConfiguration dbConfiguration(OcoConfiguration ocoConfiguration) {
+    return ocoConfiguration.getDatabase();
+  }
+
+  @Provides
   @Singleton
-  MongoClientTask mongoClientTask(OcoConfiguration configuration, ObjectMapper objectMapper) {
+  MongoClientTask mongoClientTask(DbConfiguration configuration, ObjectMapper objectMapper) {
     return new MongoClientTask(configuration, objectMapper);
   }
 
