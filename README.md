@@ -51,6 +51,7 @@ API
 | PUT    | /jobs                                                 | Adds a fully specified job | None       | JSON | See below |
 | PUT    | /jobs/pumpchecker                                     | Shortcut to add a pump checker | exchange, counter, base | None | PUT /jobs/pumpchecker?exchange=binance&counter=BTC&base=ICX |
 | PUT    | /jobs/softtrailingstop                                | Shortcut to add a soft trailing stop | exchange, counter, base, amount, stop, limit| None | PUT /jobs/softtrailingstop?exchange=binance&counter=BTC&base=VEN&amount=0.5&stop=0.000555&limit=0.0005 |
+| PUT    | /jobs/limitorder                                      | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitorder?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
 | DELETE | /jobs                                                 | Deletes all active jobs | None | None | DELETE /jobs |
 | DELETE | /jobs/{id}                                            | Deletes the specified job | None | None | DELETE /jobs/512EDA231BFEA23 |
 | GET    | /exchanges/{exchange}/markets/{base}-{counter}/ticker | Gets the current ticker | None | None | GET /exchanges/gdax/markets/BTC-EUR/ticker |

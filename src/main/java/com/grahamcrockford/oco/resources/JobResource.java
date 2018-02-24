@@ -23,6 +23,7 @@ import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.JobSubmitter;
+import com.grahamcrockford.oco.core.jobs.LimitSell;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
@@ -124,12 +125,37 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public OrderStateNotifier monitorOrder(@QueryParam("exchange") String exchange,
-                                         @QueryParam("orderId") String orderId) throws Exception {
+                                         @QueryParam("orderId") String orderId) {
 
     return jobSubmitter.submitNew(OrderStateNotifier.builder()
         .exchange(exchange)
         .description("Web request")
         .orderId(orderId)
+        .build());
+  }
+
+  @PUT
+  @Path("limitsell")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public LimitSell limitSell(@QueryParam("exchange") String exchange,
+                             @QueryParam("counter") String counter,
+                             @QueryParam("base") String base,
+                             @QueryParam("amount") BigDecimal amount,
+                             @QueryParam("limit") BigDecimal limitPrice) throws Exception {
+
+    // Just check it's a valid ticker
+    exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
+
+    return jobSubmitter.submitNew(LimitSell.builder()
+        .tickTrigger(TickerSpec.builder()
+            .exchange(exchange)
+            .base(base)
+            .counter(counter)
+            .build()
+          )
+        .amount(amount)
+        .limitPrice(limitPrice)
         .build());
   }
 }
