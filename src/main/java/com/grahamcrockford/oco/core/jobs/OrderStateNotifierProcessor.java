@@ -129,6 +129,9 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
     } catch (NotAvailableFromExchangeException e) {
       notSupportedMessage(job);
       return null;
+    } catch (ArithmeticException e) {
+      gdaxBugMessage(job);
+      return null;
     } catch (ExchangeException | IOException e) {
       if (e.getCause() instanceof HttpStatusExceptionSupport && ((HttpStatusExceptionSupport)e.getCause()).getHttpStatusCode() == 404) {
         notFoundMessage(job);
@@ -148,6 +151,16 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
 
     return Iterables.getOnlyElement(matchingOrders);
   }
+
+  private void gdaxBugMessage(OrderStateNotifier job) {
+    String message = String.format(
+        "Order [%s] on [%s] can't be checked. There's a bug in the GDAX access library which prevents it. It'll be fixed soon.",
+        job.id(), job.exchange()
+      );
+      LOGGER.error(message);
+      telegramService.sendMessage(message);
+  }
+
 
   private void notUniqueMessage(OrderStateNotifier job) {
     String message = String.format(
