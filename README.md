@@ -14,16 +14,26 @@ How to deploy to Heroku
 1. Once you've noted down the channel ID, make your channel private from the app so no-one else can access it.
 1. Set up the environment variables:
 
-| Variable             | Set to                 | 
-| -------------------- | ---------------------- |
-| `LOOP_SECONDS`       | Between 3 and 10. 5 is good.       |
-| `LOCK_SECONDS`       | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side.  I normally go for 30. |
-| `USER_NAME`          | The username for HTTP authentication.  You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
-| `PASSWORD`           | The password for HTTP authentication. You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
-| `MONGODB_URI`        | Should already have been set up for you by the add-on. |
-| `MONGO_DATABASE`     | The bit at the end of `MONGODB_URI` after the last slash. |
-| `TELEGRAM_BOT_TOKEN` | The bot API token. |
-| `TELEGRAM_CHAT_ID`   | The chat ID. |
+| Variable                  | Set to                 | 
+| ------------------------- | ---------------------- |
+| `LOOP_SECONDS`            | Between 3 and 10. 5 is good.       |
+| `LOCK_SECONDS`            | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side.  I normally go for 30. |
+| `USER_NAME`               | The username for HTTP authentication.  You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
+| `PASSWORD`                | The password for HTTP authentication. You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
+| `MONGODB_URI`             | Should already have been set up for you by the add-on. |
+| `MONGO_DATABASE`          | The bit at the end of `MONGODB_URI` after the last slash. |
+| `TELEGRAM_BOT_TOKEN`      | The bot API token. |
+| `TELEGRAM_CHAT_ID`        | The chat ID. |
+| `GDAX_SANDBOX_API_KEY`    | Your API key from the GDAX sandbox (https://public.sandbox.gdax.com). Just put XXX if you don't have one. |
+| `GDAX_SANDBOX_SECRET`     | Your secret from the GDAX sandbox (https://public.sandbox.gdax.com). Just put XXX if you don't have one. |
+| `GDAX_SANDBOX_PASSPHRASE` | Your passphrase from the GDAX sandbox (https://public.sandbox.gdax.com). Just put XXX if you don't have one. |
+| `GDAX_API_KEY`            | Your GDAX API key. Just put XXX if you don't have one. |
+| `GDAX_SECRET`             | Your GDAX secret. Just put XXX if you don't have one. |
+| `GDAX_PASSPHRASE`         | Your GDAX passphrase. Just put XXX if you don't have one. |
+| `BINANCE_API_KEY`         | Your Binance API key. Just put XXX if you don't have one. |
+| `BINANCE_SECRET`          | Your Binance secret. Just put XXX if you don't have one. |
+| `KUCOIN_API_KEY`          | Your Kucoin API key. Just put XXX if you don't have one. | 
+| `KUCOIN_SECRET`           | Your Kucoin secret. Just put XXX if you don't have one.
 
 1. Deploy and run.  Multiple instances will compete for the work and can be stopped/started freely. State is persistent.
 
