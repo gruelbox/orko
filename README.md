@@ -1,7 +1,28 @@
 # oco
 
+
+How to start the application locally:
+---
+
+1. Install the Java JDK (`sudo apt-get install default-jdk`)
+1. Install Maven (`sudo apt-get install maven`)
+1. Run `mvn clean package` to build the application
+1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
+1. Copy `example-config.yml` as `my-config.xml` and replace the wildcards with the appropriate settings.
+1. Remove the entire telegram section if you don't have a telegram bot set up, otherwise follow steps 5-9 above to get the auth token and ID.
+1. Start application with `java -jar target/oco-0.0.1-SNAPSHOT.jar server my-config.yml`
+
+I've cobbled together a 2FA setup whereby there's a single permitted address, held in memory.  I'll make it persistent soon since it's a bit of a PITA otherwise.  The way it works is:
+
+1. Call `/auth?token=YourGoogleAuthenticatorCode` to authorise your originating IP
+2. Then call any other of the entry points using basic authentication and the configured username/password.
+
+Every call changes the single permitted IP.
+
 How to deploy to Heroku
 ---
+
+Once you've got it working locally, you probably want to deploy it somewhere it's not going to fall over. I like Heroku. The Hobby account is cheap at $7/pm if running constantly, SSL is provided out of the box and continuous deployment is sexy as fuck.
 
 1. Create a Heroku account
 1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, add the application.
@@ -20,6 +41,8 @@ How to deploy to Heroku
 | `LOCK_SECONDS`            | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side.  I normally go for 30. |
 | `USER_NAME`               | The username for HTTP authentication.  You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
 | `PASSWORD`                | The password for HTTP authentication. You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
+| `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`)|
+| `PROXIED`                | `true` on Heroku so it uses the `X-Forwarded-For` header to determine the source IP.  This MUST be `false` if you're not hosted behind a trusted proxy where you can 100% believe the `X-Forwarded-For` header. |
 | `MONGODB_URI`             | Should already have been set up for you by the add-on. |
 | `MONGO_DATABASE`          | The bit at the end of `MONGODB_URI` after the last slash. |
 | `TELEGRAM_BOT_TOKEN`      | The bot API token. |
@@ -36,17 +59,6 @@ How to deploy to Heroku
 | `KUCOIN_SECRET`           | Your Kucoin secret. Just put XXX if you don't have one.
 
 1. Deploy and run.  Multiple instances will compete for the work and can be stopped/started freely. State is persistent.
-
-How to start the application locally:
----
-
-1. Install the Java JDK (`sudo apt-get install default-jdk`)
-1. Install Maven (`sudo apt-get install maven`)
-1. Run `mvn clean package` to build the application
-1. Copy `example-config.yml` as `my-config.xml` and replace the wildcards with the appropriate settings.
-1. Remove the entire telegram section if you don't have a telegram bot set up, otherwise follow steps 5-9 above to get the auth token and ID.
-1. Start application with `java -jar target/oco-0.0.1-SNAPSHOT.jar server my-config.yml`
-1. To check that your application is running enter url `http://localhost:8080`
 
 Health Check
 ---

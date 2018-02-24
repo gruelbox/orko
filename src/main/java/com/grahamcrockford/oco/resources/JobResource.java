@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.resources;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 
 import javax.annotation.security.RolesAllowed;
@@ -29,6 +30,8 @@ import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
 import com.grahamcrockford.oco.db.JobAccess;
 
+import io.dropwizard.auth.AuthenticationException;
+
 /**
  * Slightly disorganised endpoint with a mix of methods. Will get re-organised.
  */
@@ -52,14 +55,14 @@ public class JobResource implements WebResource {
   @PUT
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public Job put(Job job) {
+  public Job put(Job job) throws AuthenticationException {
     return jobSubmitter.submitNew(job);
   }
 
   @DELETE
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public void deleteAllJobs() {
+  public void deleteAllJobs() throws AuthenticationException {
     jobAccess.delete();
   }
 
@@ -81,7 +84,7 @@ public class JobResource implements WebResource {
                                            @QueryParam("base") String base,
                                            @QueryParam("amount") BigDecimal amount,
                                            @QueryParam("stop") BigDecimal stopPrice,
-                                           @QueryParam("limit") BigDecimal limitPrice) throws Exception {
+                                           @QueryParam("limit") BigDecimal limitPrice) throws IOException {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
@@ -105,7 +108,7 @@ public class JobResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public PumpChecker pumpChecker(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
-                                 @QueryParam("base") String base) throws Exception {
+                                 @QueryParam("base") String base) throws IOException {
 
     // Just check it's a valid ticker
     exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
@@ -142,7 +145,7 @@ public class JobResource implements WebResource {
                              @QueryParam("counter") String counter,
                              @QueryParam("base") String base,
                              @QueryParam("amount") BigDecimal amount,
-                             @QueryParam("limit") BigDecimal limitPrice) throws Exception {
+                             @QueryParam("limit") BigDecimal limitPrice) throws IOException {
 
     // Just check it's a valid ticker
     exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));

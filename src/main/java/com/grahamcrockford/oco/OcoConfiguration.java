@@ -33,10 +33,16 @@ public class OcoConfiguration extends Configuration {
   private String password;
 
   @NotNull
+  private String secretKey;
+
+  @NotNull
   private String mongoClientURI;
 
   @NotNull
   private String mongoDatabase;
+
+  @NotNull
+  private boolean proxied;
 
   @Valid
   @NotNull
@@ -78,6 +84,16 @@ public class OcoConfiguration extends Configuration {
   @JsonProperty
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  @JsonProperty
+  public String getSecretKey() {
+    return secretKey;
+  }
+
+  @JsonProperty
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
   }
 
   @JsonProperty
@@ -138,5 +154,15 @@ public class OcoConfiguration extends Configuration {
   @JsonProperty
   public void setLockSeconds(int lockSeconds) {
     this.lockSeconds = lockSeconds;
+  }
+
+  @JsonProperty
+  public boolean isProxied() {
+    return proxied;
+  }
+
+  @JsonProperty
+  public void setProxied(boolean proxied) {
+    this.proxied = proxied;
   }
 }

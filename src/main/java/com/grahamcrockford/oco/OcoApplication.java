@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.servlet.GuiceFilter;
 import com.grahamcrockford.oco.auth.SimpleAuthenticator;
 import com.grahamcrockford.oco.auth.User;
 
@@ -78,6 +79,9 @@ public class OcoApplication extends Application<OcoConfiguration> {
       .buildAuthFilter()
     ));
     environment.jersey().register(RolesAllowedDynamicFeature.class);
+
+    environment.servlets().addFilter("GuiceFilter", GuiceFilter.class)
+      .addMappingForUrlPatterns(java.util.EnumSet.allOf(javax.servlet.DispatcherType.class), true, "/*");
 
     // Any managed tasks
     managedTasks.stream()

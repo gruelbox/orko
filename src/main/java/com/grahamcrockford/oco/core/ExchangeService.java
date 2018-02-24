@@ -3,6 +3,7 @@ package com.grahamcrockford.oco.core;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -18,9 +19,13 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.util.CheckedExceptions;
@@ -33,13 +38,9 @@ public class ExchangeService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeService.class);
 
-  private static final List<Class<? extends Exchange>> EXCHANGE_TYPES = new Reflections("org.knowm.xchange")
-      .getSubTypesOf(Exchange.class)
-      .stream()
-      .filter(c -> !c.equals(BaseExchange.class))
-      .collect(Collectors.toList());
-
   private final OcoConfiguration configuration;
+  private final Supplier<List<Class<? extends Exchange>>> exchangeTypes;
+
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
@@ -88,15 +89,22 @@ public class ExchangeService {
   @Inject
   ExchangeService(OcoConfiguration configuration) {
     this.configuration = configuration;
+    this.exchangeTypes = Suppliers.memoize(
+        () -> new Reflections("org.knowm.xchange")
+          .getSubTypesOf(Exchange.class)
+          .stream()
+          .filter(c -> !c.equals(BaseExchange.class))
+          .collect(Collectors.toList()));
   }
 
   public Collection<String> getExchanges() {
-    return EXCHANGE_TYPES
-        .stream()
-        .map(Class::getSimpleName)
-        .map(s -> s.replace("Exchange", ""))
-        .map(String::toLowerCase)
-        .collect(Collectors.toSet());
+    return ImmutableSet.<String>builder()
+        .addAll(FluentIterable.from(exchangeTypes.get())
+                  .transform(Class::getSimpleName)
+                  .transform(s -> s.replace("Exchange", ""))
+                  .transform(String::toLowerCase))
+        .add("gdax-sandbox")
+        .build();
   }
 
   public Exchange get(String name) {
@@ -117,10 +125,12 @@ public class ExchangeService {
       .get(ex.currencyPair());
   }
 
-  private Class<? extends Exchange> map(String friendlyName) {
+  @VisibleForTesting
+  Class<? extends Exchange> map(String friendlyName) {
     if (friendlyName.equals("gdax-sandbox"))
       return GDAXExchange.class;
-    Optional<Class<? extends Exchange>> result = EXCHANGE_TYPES.stream()
+    Optional<Class<? extends Exchange>> result = exchangeTypes.get()
+        .stream()
         .filter(c -> c.getSimpleName().replace("Exchange", "").toLowerCase().equals(friendlyName))
         .findFirst();
     if (!result.isPresent())

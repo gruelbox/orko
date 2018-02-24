@@ -5,8 +5,9 @@ import javax.ws.rs.client.Client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.servlet.ServletModule;
+import com.grahamcrockford.oco.auth.AuthModule;
 import com.grahamcrockford.oco.core.CoreModule;
 import com.grahamcrockford.oco.db.DbModule;
 import com.grahamcrockford.oco.resources.ResourcesModule;
@@ -30,25 +31,18 @@ class OcoModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    install(new ServletModule());
+
     Multibinder.newSetBinder(binder(), Service.class);
     Multibinder.newSetBinder(binder(), Managed.class);
+
+    bind(ObjectMapper.class).toInstance(objectMapper);
+    bind(OcoConfiguration.class).toInstance(configuration);
+    bind(Client.class).toInstance(jerseyClient);
+
     install(new CoreModule());
     install(new ResourcesModule());
     install(new DbModule());
-  }
-
-  @Provides
-  ObjectMapper objectMapper() {
-    return objectMapper;
-  }
-
-  @Provides
-  OcoConfiguration config() {
-    return configuration;
-  }
-
-  @Provides
-  Client jerseyClient() {
-    return jerseyClient;
+    install(new AuthModule());
   }
 }
