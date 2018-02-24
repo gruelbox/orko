@@ -17,7 +17,7 @@ import io.dropwizard.auth.Authorizer;
 import io.dropwizard.auth.basic.BasicCredentials;
 
 @Singleton
-public class SimpleAuthenticator implements Authenticator<BasicCredentials, User>, Authorizer<User> {
+class SimpleAuthenticator implements Authenticator<BasicCredentials, User>, Authorizer<User> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SimpleAuthenticator.class);
 

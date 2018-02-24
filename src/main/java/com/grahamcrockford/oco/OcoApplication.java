@@ -5,7 +5,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 
-import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +12,8 @@ import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
-import com.grahamcrockford.oco.auth.SimpleAuthenticator;
-import com.grahamcrockford.oco.auth.User;
 
 import io.dropwizard.Application;
-import io.dropwizard.auth.AuthDynamicFeature;
-import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -34,21 +29,15 @@ public class OcoApplication extends Application<OcoConfiguration> {
     new OcoApplication().run(args);
   }
 
-  @Inject
-  private Set<Service> services;
+  @Inject private Set<Service> services;
+  @Inject private Set<EnvironmentInitialiser> environmentInitialisers;
+  @Inject private Set<WebResource> webResources;
+  @Inject private Set<Managed> managedTasks;
 
-  @Inject
-  private Set<WebResource> webResources;
-
-  @Inject
-  private Set<Managed> managedTasks;
-
-  @Inject
-  private SimpleAuthenticator authenticator;
 
   @Override
   public String getName() {
-    return "oco";
+    return "Background Trade Control";
   }
 
   @Override
@@ -71,17 +60,13 @@ public class OcoApplication extends Application<OcoConfiguration> {
     final Injector injector = Guice.createInjector(new OcoModule(configuration, environment.getObjectMapper(), jerseyClient));
     injector.injectMembers(this);
 
-    // Auth
-    environment.jersey().register(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<User>()
-      .setAuthenticator(authenticator)
-      .setAuthorizer(authenticator)
-      .setRealm("SUPER SECRET STUFF")
-      .buildAuthFilter()
-    ));
-    environment.jersey().register(RolesAllowedDynamicFeature.class);
-
     environment.servlets().addFilter("GuiceFilter", GuiceFilter.class)
       .addMappingForUrlPatterns(java.util.EnumSet.allOf(javax.servlet.DispatcherType.class), true, "/*");
+
+    // Any environment initialisation
+    environmentInitialisers.stream()
+      .peek(t -> LOGGER.info("Initialising environment for {}", t))
+      .forEach(t -> t.init(environment));
 
     // Any managed tasks
     managedTasks.stream()

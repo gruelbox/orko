@@ -35,6 +35,7 @@ class OcoModule extends AbstractModule {
 
     Multibinder.newSetBinder(binder(), Service.class);
     Multibinder.newSetBinder(binder(), Managed.class);
+    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class);
 
     bind(ObjectMapper.class).toInstance(objectMapper);
     bind(OcoConfiguration.class).toInstance(configuration);
