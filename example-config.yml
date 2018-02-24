@@ -7,6 +7,21 @@ mongoDatabase: ${MONGO_DATABASE}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN}
   chatId: ${TELEGRAM_CHAT_ID}
+exchanges:
+  gdax-sandbox:
+    apiKey: ${GDAX_SANDBOX_API_KEY}
+    secretKey: ${GDAX_SANDBOX_SECRET}
+    passphrase: ${GDAX_SANDBOX_PASSPHRASE}
+  gdax:
+    apiKey: ${GDAX_API_KEY}
+    secretKey: ${GDAX_SECRET}
+    passphrase: ${GDAX_PASSPHRASE}
+  binance:
+    apiKey: ${BINANCE_API_KEY}
+    secretKey: ${BINANCE_SECRET}
+  kucoin:
+    apiKey: ${KUCOIN_API_KEY}
+    secretKey: ${KUCOIN_SECRET}
 server:
   type: simple
   applicationContextPath: /
