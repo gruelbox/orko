@@ -1,23 +1,34 @@
 # oco
 
-
-How to start the application locally:
+1: Set up Telegram so you can get notifications.
 ---
+1. Create a Telegram bot using the BotFather: https://core.telegram.org/bots. Note down the API token.
+1. Create a new channel from the Telegram app, and make it public (we'll make it private shortly).
+1. Add your bot as a member of the channel, so it can post to it.
+1. Use the following URL to get the ID of your channel: https://api.telegram.org/YOURBOTID:YOURTOKEN/getChat?chat_id=@YourChannelName
+1. Once you've noted down the channel ID, make your channel private from the app so no-one else can access it (you can't use the above API to ge the IP of a private channel).
 
+The application will now use this bot to send you notifications on your private channel.  You can add more people to the channel if you like.
+
+2: Local setup and build
+---
 1. Install the Java JDK (`sudo apt-get install default-jdk`)
 1. Install Maven (`sudo apt-get install maven`)
 1. Run `mvn clean package` to build the application
 1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
-1. Copy `example-config.yml` as `my-config.xml` and replace the wildcards with the appropriate settings.
-1. Remove the entire telegram section if you don't have a telegram bot set up, otherwise follow steps 5-9 above to get the auth token and ID.
+1. Store that somewhere safe and enter it into Google Authenticator on your phone.
+
+How to start the application locally:
+---
+1. Copy `example-config.yml` as `my-config.xml` and replace the wildcards with the appropriate settings (details below).
 1. Start application with `java -jar target/oco-0.0.1-SNAPSHOT.jar server my-config.yml`
 
-I've cobbled together a 2FA setup whereby there's a single permitted address, held in memory.  I'll make it persistent soon since it's a bit of a PITA otherwise.  The way it works is:
+The 2FA is a bit clunky.  I bodged something together quickly to make things a bit more secure but it's not great.  It works as follows:
 
-1. Call `/auth?token=YourGoogleAuthenticatorCode` to authorise your originating IP
-2. Then call any other of the entry points using basic authentication and the configured username/password.
+1. Call `PUT /auth?token=YourGoogleAuthenticatorCode` to authorise your originating IP.  Only a single IP address is allowed at any one time.
+2. Then call any other of the entry points (listed below) using basic authentication and the configured username/password.
 
-Every call changes the single permitted IP.
+All this should secure enough over SSL or on a private box.
 
 How to deploy to Heroku
 ---
@@ -27,12 +38,7 @@ Once you've got it working locally, you probably want to deploy it somewhere it'
 1. Create a Heroku account
 1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, add the application.
 1. Add the PaperTrail and mLab MongoDB addons to your application.
-1. Upgrade to a Hobby Dyno or the application wil shut down when you're not sending web requests to it.
-1. Create a Telegram bit using the BotFather: https://core.telegram.org/bots. Note down the API token.
-1. Create a Telegram channel from the app and make it public (we'll make it private shortly)
-1. Add the bot as a member of the channel.
-1. Use the following URL to get the ID of your channel: https://api.telegram.org/YOURBOTID:YOURTOKEN/getChat?chat_id=@YourChannelName
-1. Once you've noted down the channel ID, make your channel private from the app so no-one else can access it.
+1. Upgrade to a Hobby Dyno or the application will shut down when you're not sending web requests to it.
 1. Set up the environment variables:
 
 | Variable                  | Set to                 | 
@@ -58,7 +64,7 @@ Once you've got it working locally, you probably want to deploy it somewhere it'
 | `KUCOIN_API_KEY`          | Your Kucoin API key. Just put XXX if you don't have one. | 
 | `KUCOIN_SECRET`           | Your Kucoin secret. Just put XXX if you don't have one.
 
-1. Deploy and run.  Multiple instances will compete for the work and can be stopped/started freely. State is persistent.
+1. Deploy and scale.  Multiple instances will compete for the work and can be stopped/started freely. State is persistent.
 
 Health Check
 ---
@@ -70,6 +76,7 @@ API
 
 | Verb   | URI                                                   | Action | Parameters | Payload | Example |
 | ------ | ----------------------------------------------------- | ---------- |---------- | ------- | ------- |
+| PUT    | /auth                                                 | Whitelists your IP | `token` = the response from Google Authenticator. | None | PUT /auth?token=623432 |
 | PUT    | /jobs                                                 | Adds a fully specified job | None       | JSON | See below |
 | PUT    | /jobs/pumpchecker                                     | Shortcut to add a pump checker | exchange, counter, base | None | PUT /jobs/pumpchecker?exchange=binance&counter=BTC&base=ICX |
 | PUT    | /jobs/softtrailingstop                                | Shortcut to add a soft trailing stop | exchange, counter, base, amount, stop, limit| None | PUT /jobs/softtrailingstop?exchange=binance&counter=BTC&base=VEN&amount=0.5&stop=0.000555&limit=0.0005 |
