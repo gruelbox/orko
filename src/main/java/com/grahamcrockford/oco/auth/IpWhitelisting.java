@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.OcoConfiguration;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 
 /**
@@ -23,11 +22,11 @@ public class IpWhitelisting {
 
   private final Provider<HttpServletRequest> request;
   private final GoogleAuthenticator googleAuthenticator;
-  private final OcoConfiguration configuration;
+  private final AuthConfiguration configuration;
   private final AtomicReference<String> whiteListedIp = new AtomicReference<String>(null);
 
   @Inject
-  IpWhitelisting(Provider<HttpServletRequest> request, GoogleAuthenticator googleAuthenticator, OcoConfiguration configuration) {
+  IpWhitelisting(Provider<HttpServletRequest> request, GoogleAuthenticator googleAuthenticator, AuthConfiguration configuration) {
     this.request = request;
     this.googleAuthenticator = googleAuthenticator;
     this.configuration = configuration;

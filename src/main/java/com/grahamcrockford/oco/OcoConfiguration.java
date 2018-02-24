@@ -10,6 +10,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grahamcrockford.oco.auth.AuthConfiguration;
 import com.grahamcrockford.oco.core.ExchangeConfiguration;
 import com.grahamcrockford.oco.core.TelegramConfiguration;
 import com.grahamcrockford.oco.db.DbConfiguration;
@@ -24,27 +25,19 @@ public class OcoConfiguration extends Configuration {
   private int loopSeconds;
 
   @NotNull
-  private String userName;
-
-  @NotNull
-  private String password;
-
-  @NotNull
-  private String secretKey;
+  private AuthConfiguration auth;
 
   @NotNull
   private DbConfiguration database;
 
   @NotNull
-  private boolean proxied;
+  private TelegramConfiguration telegram;
 
   @Valid
   @NotNull
   private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
 
-  private TelegramConfiguration telegram;
   private Map<String, ExchangeConfiguration> exchanges;
-
 
   public OcoConfiguration() {
     super();
@@ -61,33 +54,13 @@ public class OcoConfiguration extends Configuration {
   }
 
   @JsonProperty
-  public String getUserName() {
-    return userName;
+  public AuthConfiguration getAuth() {
+    return auth;
   }
 
   @JsonProperty
-  public void setUserName(String userName) {
-    this.userName = userName;
-  }
-
-  @JsonProperty
-  public String getPassword() {
-    return password;
-  }
-
-  @JsonProperty
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  @JsonProperty
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  @JsonProperty
-  public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
+  public void setAuth(AuthConfiguration auth) {
+    this.auth = auth;
   }
 
   @JsonProperty
@@ -128,15 +101,5 @@ public class OcoConfiguration extends Configuration {
   @JsonProperty("jerseyClient")
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
       this.jerseyClient = jerseyClient;
-  }
-
-  @JsonProperty
-  public boolean isProxied() {
-    return proxied;
-  }
-
-  @JsonProperty
-  public void setProxied(boolean proxied) {
-    this.proxied = proxied;
   }
 }

@@ -1,8 +1,9 @@
 loopSeconds: ${LOOP_SECONDS:-3}
-userName: ${USER_NAME}
-password: ${PASSWORD}
-secretKey: ${AUTH_TOKEN}
-proxied: ${PROXIED}
+auth:
+  userName: ${USER_NAME}
+  password: ${PASSWORD}
+  secretKey: ${AUTH_TOKEN}
+  proxied: ${PROXIED}
 database:
   mongoClientURI: ${MONGODB_URI}
   mongoDatabase: ${MONGO_DATABASE}
