@@ -8,30 +8,23 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
-import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.service.marketdata.MarketDataService;
-import org.knowm.xchange.service.trade.TradeService;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
+import com.grahamcrockford.oco.core.JobSubmitter;
 import com.grahamcrockford.oco.core.TelegramService;
-import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStopProcessor;
-import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
 public class TestSoftTrailingStopProcessor {
@@ -51,22 +44,18 @@ public class TestSoftTrailingStopProcessor {
 
   private static final String BASE = "FOO";
   private static final String COUNTER = "USDT";
-  private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair(BASE, COUNTER);
   private static final String EXCHANGE = "fooex";
 
-  @Mock private JobAccess enqueuer;
+  @Mock private JobSubmitter enqueuer;
   @Mock private TelegramService telegramService;
   @Mock private ExchangeService exchangeService;
 
   @Mock private Exchange exchange;
   @Mock private MarketDataService marketDataService;
-  @Mock private TradeServiceFactory tradeServiceFactory;
-  @Mock private TradeService tradeService;
   @Mock private Sleep sleep;
   @Mock private CurrencyPairMetaData currencyPairMetaData;
 
   private SoftTrailingStopProcessor processor;
-  private final AtomicInteger xChangeOrderId = new AtomicInteger();
 
   @Before
   public void before() throws IOException {
@@ -75,10 +64,7 @@ public class TestSoftTrailingStopProcessor {
 
     when(currencyPairMetaData.getPriceScale()).thenReturn(PRICE_SCALE);
 
-    when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
-    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenAnswer(args -> newTradeId());
-
-    processor = new SoftTrailingStopProcessor(telegramService, tradeServiceFactory, exchangeService, enqueuer, sleep);
+    processor = new SoftTrailingStopProcessor(telegramService, exchangeService, enqueuer, sleep);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -137,7 +123,6 @@ public class TestSoftTrailingStopProcessor {
     Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
-    verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
   }
@@ -170,7 +155,6 @@ public class TestSoftTrailingStopProcessor {
     Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
-    verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
   }
@@ -199,7 +183,6 @@ public class TestSoftTrailingStopProcessor {
     Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
-    verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
   }
@@ -239,7 +222,6 @@ public class TestSoftTrailingStopProcessor {
     Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAtLimitPrice(ticker);
-    verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
   }
@@ -273,7 +255,6 @@ public class TestSoftTrailingStopProcessor {
     Optional<SoftTrailingStop> result = processor.process(job);
 
     verifyLimitSellAt(ticker, new BigDecimal("50"));
-    verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
   }
@@ -381,7 +362,7 @@ public class TestSoftTrailingStopProcessor {
   }
 
   private void verifyDidNothingElse() {
-    verifyNoMoreInteractions(telegramService, tradeService, enqueuer);
+    verifyNoMoreInteractions(telegramService, enqueuer);
   }
 
   private void verifySentMessage() {
@@ -393,28 +374,22 @@ public class TestSoftTrailingStopProcessor {
   }
 
   private void verifyLimitSellAt(final Ticker ticker, BigDecimal price) throws IOException {
-    verify(tradeService).placeLimitOrder(limitSell(AMOUNT, null, ticker.getTimestamp(), price));
-    verify(enqueuer).insert(OrderStateNotifier.builder()
-        .description("Stop")
-        .orderId(lastTradeId())
-        .exchange(EXCHANGE)
-        .build(), OrderStateNotifier.class);
+    verify(enqueuer).submitNew(
+      LimitSell.builder()
+        .tickTrigger(TickerSpec.builder()
+            .exchange(EXCHANGE)
+            .counter(COUNTER)
+            .base(BASE)
+            .build()
+        )
+        .amount(AMOUNT)
+        .limitPrice(price)
+        .build()
+    );
   }
 
   private void verifyFinished(Optional<SoftTrailingStop> result) {
     Assert.assertFalse(result.isPresent());
-  }
-
-  private LimitOrder limitSell(BigDecimal amount, String id, Date timestamp, BigDecimal price) {
-    return new LimitOrder(Order.OrderType.ASK, amount, CURRENCY_PAIR, id, timestamp, price);
-  }
-
-  private String newTradeId() {
-    return Integer.toString(xChangeOrderId.incrementAndGet());
-  }
-
-  private String lastTradeId() {
-    return Integer.toString(xChangeOrderId.get());
   }
 
   private Ticker everythingAt(BigDecimal price) {

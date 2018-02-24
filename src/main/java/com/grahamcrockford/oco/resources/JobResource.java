@@ -22,6 +22,7 @@ import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.ExchangeService;
+import com.grahamcrockford.oco.core.JobSubmitter;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
@@ -37,11 +38,13 @@ import com.grahamcrockford.oco.db.JobAccess;
 public class JobResource implements WebResource {
 
   private final ExchangeService exchanges;
-  private final JobAccess advancedOrderAccess;
+  private final JobSubmitter jobSubmitter;
+  private final JobAccess jobAccess;
 
   @Inject
-  JobResource(JobAccess advancedOrderAccess, ExchangeService exchanges) {
-    this.advancedOrderAccess = advancedOrderAccess;
+  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter, ExchangeService exchanges) {
+    this.jobAccess = jobAccess;
+    this.jobSubmitter = jobSubmitter;
     this.exchanges = exchanges;
   }
 
@@ -49,14 +52,14 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public Job put(Job job) {
-    return advancedOrderAccess.insert(job, Job.class);
+    return jobSubmitter.submitNew(job);
   }
 
   @DELETE
   @Timed
   @RolesAllowed(Roles.TRADER)
   public void deleteAllJobs() {
-    advancedOrderAccess.delete();
+    jobAccess.delete();
   }
 
 
@@ -65,7 +68,7 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
-    advancedOrderAccess.delete(id);
+    jobAccess.delete(id);
   }
 
   @PUT
@@ -81,7 +84,7 @@ public class JobResource implements WebResource {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    SoftTrailingStop job = SoftTrailingStop.builder()
+   return jobSubmitter.submitNew(SoftTrailingStop.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
@@ -92,9 +95,7 @@ public class JobResource implements WebResource {
         .startPrice(ticker.getBid())
         .stopPrice(stopPrice)
         .limitPrice(limitPrice)
-        .build();
-
-    return advancedOrderAccess.insert(job, SoftTrailingStop.class);
+        .build());
   }
 
   @PUT
@@ -108,16 +109,14 @@ public class JobResource implements WebResource {
     // Just check it's a valid ticker
     exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    PumpChecker job = PumpChecker.builder()
+    return jobSubmitter.submitNew(PumpChecker.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
           .counter(counter)
           .build()
         )
-        .build();
-
-    return advancedOrderAccess.insert(job, PumpChecker.class);
+        .build());
   }
 
   @PUT
@@ -127,12 +126,10 @@ public class JobResource implements WebResource {
   public OrderStateNotifier monitorOrder(@QueryParam("exchange") String exchange,
                                          @QueryParam("orderId") String orderId) throws Exception {
 
-    OrderStateNotifier job = OrderStateNotifier.builder()
+    return jobSubmitter.submitNew(OrderStateNotifier.builder()
         .exchange(exchange)
         .description("Web request")
         .orderId(orderId)
-        .build();
-
-    return advancedOrderAccess.insert(job, OrderStateNotifier.class);
+        .build());
   }
 }

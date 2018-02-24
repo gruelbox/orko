@@ -1,6 +1,5 @@
 package com.grahamcrockford.oco.core.jobs;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -11,49 +10,33 @@ import org.knowm.xchange.service.trade.TradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.JobProcessor;
 import com.grahamcrockford.oco.api.TickerSpec;
+import com.grahamcrockford.oco.core.JobSubmitter;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.JobAccess;
 
-@Singleton
-public class LimitSellProcessor implements JobProcessor<LimitSell> {
+class LimitSellProcessor implements JobProcessor<LimitSell> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LimitSellProcessor.class);
 
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
-  private final JobAccess advancedOrderAccess;
+  private final JobSubmitter jobSubmitter;
 
 
   @Inject
   public LimitSellProcessor(final TelegramService telegramService,
                             final TradeServiceFactory tradeServiceFactory,
-                            final JobAccess advancedOrderAccess) {
+                            final JobSubmitter jobSubmitter) {
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
-    this.advancedOrderAccess = advancedOrderAccess;
+    this.jobSubmitter = jobSubmitter;
   }
 
   @Override
   public Optional<LimitSell> process(final LimitSell job) throws InterruptedException {
 
-    String xChangeOrderId = limitSell(job);
-
-    // Spawn a new job to monitor the progress of the order
-    advancedOrderAccess.insert(OrderStateNotifier.builder()
-        .tickTrigger(job.tickTrigger())
-        .description("Stop")
-        .orderId(xChangeOrderId)
-        .build(), OrderStateNotifier.class);
-
-    return Optional.empty();
-
-  }
-
-  private String limitSell(LimitSell job) {
     final TickerSpec ex = job.tickTrigger();
 
     LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}]", job.amount(), ex.base(), job.limitPrice(), ex.counter());
@@ -61,23 +44,53 @@ public class LimitSellProcessor implements JobProcessor<LimitSell> {
     final Date timestamp = new Date();
     final LimitOrder order = new LimitOrder(Order.OrderType.ASK, job.amount(), ex.currencyPair(), null, timestamp, job.limitPrice());
 
+    String xChangeOrderId;
     try {
-      String xChangeOrderId = tradeService.placeLimitOrder(order);
-
-      LOGGER.info("| - Order [{}] placed.", xChangeOrderId);
-      telegramService.sendMessage(String.format(
-        "Bot [%s] on [%s/%s/%s] placed limit sell at [%s]",
-        job.id(),
-        ex.exchange(),
-        ex.base(),
-        ex.counter(),
-        job.limitPrice()
-      ));
-
-      return xChangeOrderId;
-
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      xChangeOrderId = tradeService.placeLimitOrder(order);
+    } catch (Throwable e) {
+      reportFailed(job, e);
+      return Optional.empty();
     }
+
+    reportSuccess(job,  xChangeOrderId);
+
+    // Spawn a new job to monitor the progress of the order
+    jobSubmitter.submitNew(OrderStateNotifier.builder()
+        .exchange(job.tickTrigger().exchange())
+        .description("Stop")
+        .orderId(xChangeOrderId)
+        .build());
+
+    return Optional.empty();
+
+  }
+
+  private void reportSuccess(final LimitSell job, String xChangeOrderId) {
+    final TickerSpec ex = job.tickTrigger();
+
+    LOGGER.info("| - Order [{}] placed.", xChangeOrderId);
+    telegramService.sendMessage(String.format(
+      "Bot [%s] on [%s/%s/%s] placed limit sell at [%s]",
+      job.id(),
+      ex.exchange(),
+      ex.base(),
+      ex.counter(),
+      job.limitPrice()
+    ));
+  }
+
+  private void reportFailed(final LimitSell job, Throwable e) {
+    final TickerSpec ex = job.tickTrigger();
+
+    LOGGER.error("| - Order failed to be placed. Giving up.", e);
+    telegramService.sendMessage(String.format(
+      "Bot [%s] on [%s/%s/%s] FAILED to place limit sell at [%s]. Cannot continue - it might have worked: %s",
+      job.id(),
+      ex.exchange(),
+      ex.base(),
+      ex.counter(),
+      job.limitPrice(),
+      e.getMessage()
+    ));
   }
 }

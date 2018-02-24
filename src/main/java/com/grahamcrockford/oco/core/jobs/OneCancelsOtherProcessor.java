@@ -9,8 +9,8 @@ import com.google.inject.Inject;
 import com.grahamcrockford.oco.api.JobProcessor;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
+import com.grahamcrockford.oco.core.JobSubmitter;
 import com.grahamcrockford.oco.core.TelegramService;
-import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
 class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
@@ -28,14 +28,14 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
   );
 
   private final ExchangeService exchangeService;
-  private final JobAccess jobAccess;
+  private final JobSubmitter jobSubmitter;
   private final TelegramService telegramService;
   private final Sleep sleep;
 
   @Inject
-  OneCancelsOtherProcessor(ExchangeService exchangeService, JobAccess jobAccess, TelegramService telegramService, Sleep sleep) {
+  OneCancelsOtherProcessor(ExchangeService exchangeService, JobSubmitter jobSubmitter, TelegramService telegramService, Sleep sleep) {
     this.exchangeService = exchangeService;
-    this.jobAccess = jobAccess;
+    this.jobSubmitter = jobSubmitter;
     this.telegramService = telegramService;
     this.sleep = sleep;
   }
@@ -69,7 +69,7 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
         job.low().threshold()
       ));
 
-      jobAccess.insert(job.low().job());
+      jobSubmitter.submitNew(job.low().job());
 
       return Optional.empty();
     } else if (ticker.getBid().compareTo(job.high().threshold()) >= 0) {
@@ -85,7 +85,7 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
         job.high().threshold()
       ));
 
-      jobAccess.insert(job.high().job());
+      jobSubmitter.submitNew(job.high().job());
       return Optional.empty();
     }
 

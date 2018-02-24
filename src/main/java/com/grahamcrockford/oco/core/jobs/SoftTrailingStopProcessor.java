@@ -2,27 +2,21 @@ package com.grahamcrockford.oco.core.jobs;
 
 import static java.math.RoundingMode.HALF_UP;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Date;
 import java.util.Optional;
 import javax.inject.Inject;
 
-import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
-import org.knowm.xchange.dto.trade.LimitOrder;
-import org.knowm.xchange.service.trade.TradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.grahamcrockford.oco.api.JobProcessor;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
+import com.grahamcrockford.oco.core.JobSubmitter;
 import com.grahamcrockford.oco.core.TelegramService;
-import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
 class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
@@ -41,22 +35,19 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
   );
 
   private final TelegramService telegramService;
-  private final TradeServiceFactory tradeServiceFactory;
   private final ExchangeService exchangeService;
-  private final JobAccess advancedOrderAccess;
+  private final JobSubmitter jobSubmitter;
   private final Sleep sleep;
 
 
   @Inject
   public SoftTrailingStopProcessor(final TelegramService telegramService,
-                                   final TradeServiceFactory tradeServiceFactory,
                                    final ExchangeService exchangeService,
-                                   final JobAccess advancedOrderAccess,
+                                   final JobSubmitter jobSubmitter,
                                    final Sleep sleep) {
     this.telegramService = telegramService;
-    this.tradeServiceFactory = tradeServiceFactory;
     this.exchangeService = exchangeService;
-    this.advancedOrderAccess = advancedOrderAccess;
+    this.jobSubmitter = jobSubmitter;
     this.sleep = sleep;
   }
 
@@ -85,15 +76,11 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
     // If we've hit the stop price, we're done
     if (ticker.getBid().compareTo(stopPrice(order, currencyPairMetaData)) <= 0) {
 
-      // Sell up
-      String xChangeOrderId = limitSell(order, ticker, limitPrice(order, currencyPairMetaData));
-
-      // Spawn a new job to monitor the progress of the stop
-      advancedOrderAccess.insert(OrderStateNotifier.builder()
-          .exchange(order.tickTrigger().exchange())
-          .description("Stop")
-          .orderId(xChangeOrderId)
-          .build(), OrderStateNotifier.class);
+      jobSubmitter.submitNew(LimitSell.builder()
+          .tickTrigger(ex)
+          .amount(order.amount())
+          .limitPrice(order.limitPrice())
+          .build());
 
       return Optional.empty();
     }
@@ -113,35 +100,6 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
     return Optional.of(newOrder);
   }
 
-  private String limitSell(SoftTrailingStop trailingStop, Ticker ticker, BigDecimal limitPrice) {
-    final TickerSpec ex = trailingStop.tickTrigger();
-
-    LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}]", trailingStop.amount(), ex.base(), limitPrice, ex.counter());
-    final TradeService tradeService = tradeServiceFactory.getForExchange(ex.exchange());
-    final Date timestamp = ticker.getTimestamp() == null ? new Date() : ticker.getTimestamp();
-    final LimitOrder order = new LimitOrder(Order.OrderType.ASK, trailingStop.amount(), ex.currencyPair(), null, timestamp, limitPrice);
-
-    try {
-      String xChangeOrderId = tradeService.placeLimitOrder(order);
-
-      LOGGER.info("| - Order [{}] placed.", xChangeOrderId);
-      telegramService.sendMessage(String.format(
-        "Job [%s] on [%s/%s/%s] placed limit sell at [%s]",
-        trailingStop.id(),
-        ex.exchange(),
-        ex.base(),
-        ex.counter(),
-        limitPrice
-      ));
-
-      return xChangeOrderId;
-
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {
     final TickerSpec ex = trailingStop.tickTrigger();
     COLUMN_LOGGER.line(
@@ -159,9 +117,5 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
 
   private BigDecimal stopPrice(SoftTrailingStop trailingStop, CurrencyPairMetaData currencyPairMetaData) {
     return trailingStop.stopPrice().setScale(currencyPairMetaData.getPriceScale(), RoundingMode.HALF_UP);
-  }
-
-  private BigDecimal limitPrice(SoftTrailingStop trailingStop, CurrencyPairMetaData currencyPairMetaData) {
-    return trailingStop.limitPrice().setScale(currencyPairMetaData.getPriceScale(), RoundingMode.HALF_UP);
   }
 }
