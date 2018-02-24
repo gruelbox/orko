@@ -6,6 +6,7 @@ import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.WebResource;
 
 public class CoreModule extends AbstractModule {
   @Override
@@ -13,6 +14,8 @@ public class CoreModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(JobExecutor.Factory.class));
     Multibinder.newSetBinder(binder(), Service.class).addBinding().toProvider(JobKeepAlive.ProviderA.class);
     Multibinder.newSetBinder(binder(), Service.class).addBinding().toProvider(JobKeepAlive.ProviderB.class);
+    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(JobResource.class);
+    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(ExchangeResource.class);
   }
 
   @Provides

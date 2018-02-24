@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.db;
+package com.grahamcrockford.oco.core;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Suppliers;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.db.DbConfiguration;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DuplicateKeyException;
@@ -22,7 +22,7 @@ import com.mongodb.MongoException;
 import com.mongodb.WriteResult;
 
 @Singleton
-public class JobLocker {
+class JobLocker {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobLocker.class);
 

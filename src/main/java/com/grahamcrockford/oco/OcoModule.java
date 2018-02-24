@@ -10,8 +10,6 @@ import com.google.inject.servlet.ServletModule;
 import com.grahamcrockford.oco.auth.AuthModule;
 import com.grahamcrockford.oco.core.CoreModule;
 import com.grahamcrockford.oco.db.DbModule;
-import com.grahamcrockford.oco.resources.ResourcesModule;
-
 import io.dropwizard.lifecycle.Managed;
 
 /**
@@ -42,7 +40,6 @@ class OcoModule extends AbstractModule {
     bind(Client.class).toInstance(jerseyClient);
 
     install(new CoreModule());
-    install(new ResourcesModule());
     install(new DbModule());
     install(new AuthModule());
   }

@@ -30,9 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
-import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
-import com.grahamcrockford.oco.core.jobs.OrderStateNotifierProcessor;
-import com.grahamcrockford.oco.db.JobAccess;
 import com.grahamcrockford.oco.util.Sleep;
 
 
@@ -52,7 +49,6 @@ public class TestOrderStateNotifierProcessor {
   private static final BigDecimal LIMIT_PRICE = new BigDecimal(90);
   private static final BigDecimal FILLED = new BigDecimal(999);
 
-  @Mock private JobAccess enqueuer;
   @Mock private TelegramService telegramService;
 
   @Mock private TradeServiceFactory tradeServiceFactory;
@@ -107,7 +103,7 @@ public class TestOrderStateNotifierProcessor {
   @Test
   public void testStatuses() throws Exception {
     for (final Order.OrderStatus status : Order.OrderStatus.values()) {
-      Mockito.reset(enqueuer, telegramService);
+      Mockito.reset(telegramService);
       when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, BigDecimal.ZERO, status)));
       Optional<OrderStateNotifier> result = processor.process(baseJob().build());
       if (ImmutableSet.of(Order.OrderStatus.PENDING_NEW, Order.OrderStatus.NEW, Order.OrderStatus.PARTIALLY_FILLED).contains(status)) {
@@ -131,7 +127,6 @@ public class TestOrderStateNotifierProcessor {
   }
 
   private void verifyFinishedJob(Optional<OrderStateNotifier> result) {
-    verifyZeroInteractions(enqueuer);
     assertFalse(result.isPresent());
   }
 

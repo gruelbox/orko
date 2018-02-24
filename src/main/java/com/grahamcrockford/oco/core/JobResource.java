@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.resources;
+package com.grahamcrockford.oco.core;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -22,13 +22,10 @@ import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.auth.Roles;
-import com.grahamcrockford.oco.core.ExchangeService;
-import com.grahamcrockford.oco.core.JobSubmitter;
 import com.grahamcrockford.oco.core.jobs.LimitSell;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
-import com.grahamcrockford.oco.db.JobAccess;
 
 import io.dropwizard.auth.AuthenticationException;
 

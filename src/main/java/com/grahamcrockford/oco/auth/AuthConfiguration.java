@@ -15,6 +15,8 @@ public class AuthConfiguration extends Configuration {
 
   private String secretKey;
 
+  private Integer whitelistExpirySeconds;
+
   @NotNull
   private boolean proxied;
 
@@ -60,5 +62,15 @@ public class AuthConfiguration extends Configuration {
   @JsonProperty
   public void setProxied(boolean proxied) {
     this.proxied = proxied;
+  }
+
+  @JsonProperty
+  public Integer getWhitelistExpirySeconds() {
+    return whitelistExpirySeconds;
+  }
+
+  @JsonProperty
+  public void setWhitelistExpirySeconds(Integer whitelistExpirySeconds) {
+    this.whitelistExpirySeconds = whitelistExpirySeconds;
   }
 }

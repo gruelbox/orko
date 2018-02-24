@@ -7,7 +7,6 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.grahamcrockford.oco.api.Job;
-import com.grahamcrockford.oco.db.JobAccess;
 
 class JobKeepAlive extends AbstractExecutionThreadService {
 

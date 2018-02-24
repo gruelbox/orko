@@ -4,6 +4,7 @@ auth:
   password: ${PASSWORD}
   secretKey: ${AUTH_TOKEN}
   proxied: ${PROXIED}
+  whitelistExpirySeconds: 7200
 database:
   mongoClientURI: ${MONGODB_URI}
   mongoDatabase: ${MONGO_DATABASE}

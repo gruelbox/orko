@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.resources;
+package com.grahamcrockford.oco.auth;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -11,7 +11,6 @@ import javax.ws.rs.core.Response;
 
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
-import com.grahamcrockford.oco.auth.IpWhitelisting;
 
 /**
  * Allows an IP to be whitelisted.

@@ -1,7 +1,5 @@
 package com.grahamcrockford.oco.auth;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -23,17 +21,21 @@ public class IpWhitelisting {
   private final Provider<HttpServletRequest> request;
   private final GoogleAuthenticator googleAuthenticator;
   private final AuthConfiguration configuration;
-  private final AtomicReference<String> whiteListedIp = new AtomicReference<String>(null);
+  private final IpWhitelistAccess ipWhitelistAccess;
 
   @Inject
-  IpWhitelisting(Provider<HttpServletRequest> request, GoogleAuthenticator googleAuthenticator, AuthConfiguration configuration) {
+  IpWhitelisting(Provider<HttpServletRequest> request,
+                 GoogleAuthenticator googleAuthenticator,
+                 AuthConfiguration configuration,
+                 IpWhitelistAccess ipWhitelistAccess) {
     this.request = request;
     this.googleAuthenticator = googleAuthenticator;
     this.configuration = configuration;
+    this.ipWhitelistAccess = ipWhitelistAccess;
   }
 
   public boolean authoriseIp() {
-    return configuration.getSecretKey() == null || sourceIp().equals(whiteListedIp.get());
+    return configuration.getSecretKey() == null || sourceIp().equals(ipWhitelistAccess.getIp());
   }
 
   public boolean whiteListRequestIp(int token) {
@@ -45,7 +47,7 @@ public class IpWhitelisting {
       LOGGER.error("Whitelist attempt failed from: " + ip);
       return false;
     }
-    whiteListedIp.set(ip);
+    ipWhitelistAccess.setIp(ip);
     LOGGER.info("Whitelisted ip: " + ip);
     return true;
   }

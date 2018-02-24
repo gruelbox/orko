@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.resources;
+package com.grahamcrockford.oco.core;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
-import com.grahamcrockford.oco.core.ExchangeService;
 
 /**
  * Access to exchange information.
@@ -105,7 +104,7 @@ public class ExchangeResource implements WebResource {
   @GET
   @Path("{exchange}/orders/{id}")
   @Timed
-  @RolesAllowed(Roles.PUBLIC)
+  @RolesAllowed(Roles.TRADER)
   public Collection<Order> order(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
     return exchanges.get(exchange)
         .getTradeService()

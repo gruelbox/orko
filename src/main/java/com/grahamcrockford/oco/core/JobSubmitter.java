@@ -8,8 +8,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.core.JobExecutor.Factory;
-import com.grahamcrockford.oco.db.JobAccess;
-import com.grahamcrockford.oco.db.JobLocker;
 
 public class JobSubmitter {
 

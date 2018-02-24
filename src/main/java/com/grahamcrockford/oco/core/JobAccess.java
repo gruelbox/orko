@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.db;
+package com.grahamcrockford.oco.core;
 
 import org.bson.types.ObjectId;
 import org.mongojack.DBQuery;
@@ -8,6 +8,7 @@ import org.mongojack.WriteResult;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.Job;
+import com.grahamcrockford.oco.db.DbConfiguration;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 
@@ -16,7 +17,7 @@ import com.mongodb.MongoClient;
  * Simple wrapper for sending orders to the queue.
  */
 @Singleton
-public class JobAccess {
+class JobAccess {
 
   private final MongoClient mongoClient;
   private final JobLocker jobLocker;
