@@ -21,6 +21,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.jobs.LimitSell;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;

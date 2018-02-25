@@ -6,6 +6,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
 
 public class CoreModule extends AbstractModule {
@@ -16,6 +17,7 @@ public class CoreModule extends AbstractModule {
 
     bind(TradeServiceFactory.class).to(LiveTradeServiceFactory.class);
     bind(ExchangeService.class).to(ExchangeServiceImpl.class);
+    bind(JobSubmitter.class).to(JobSubmitterImpl.class);
 
     Multibinder.newSetBinder(binder(), Service.class).addBinding().toProvider(JobKeepAlive.ProviderA.class);
     Multibinder.newSetBinder(binder(), Service.class).addBinding().toProvider(JobKeepAlive.ProviderB.class);

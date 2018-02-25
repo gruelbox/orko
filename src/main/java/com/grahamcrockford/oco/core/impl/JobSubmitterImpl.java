@@ -6,10 +6,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
+import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.impl.JobExecutor.Factory;
 import com.grahamcrockford.oco.core.spi.Job;
 
-public class JobSubmitter {
+class JobSubmitterImpl implements JobSubmitter {
 
   private final JobAccess advancedOrderAccess;
   private final JobLocker jobLocker;
@@ -18,7 +19,7 @@ public class JobSubmitter {
   private final UUID uuid;
 
   @Inject
-  JobSubmitter(JobAccess advancedOrderAccess, JobLocker jobLocker, JobExecutor.Factory jobExecutorFactory) {
+  JobSubmitterImpl(JobAccess advancedOrderAccess, JobLocker jobLocker, JobExecutor.Factory jobExecutorFactory) {
     this.advancedOrderAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.jobExecutorFactory = jobExecutorFactory;
@@ -26,6 +27,10 @@ public class JobSubmitter {
     this.uuid = UUID.randomUUID();
   }
 
+  /**
+   * @see com.grahamcrockford.oco.core.api.JobSubmitter#submitNew(T)
+   */
+  @Override
   @SuppressWarnings({ "unchecked" })
   public <T extends Job> T submitNew(T job) {
     job = (T) advancedOrderAccess.insert(job, Job.class);
@@ -33,6 +38,10 @@ public class JobSubmitter {
     return job;
   }
 
+  /**
+   * @see com.grahamcrockford.oco.core.api.JobSubmitter#submitExisting(com.grahamcrockford.oco.core.spi.Job)
+   */
+  @Override
   public boolean submitExisting(Job job) {
     if (jobLocker.attemptLock(job.id(), uuid)) {
       job = advancedOrderAccess.load(job.id());
@@ -43,6 +52,10 @@ public class JobSubmitter {
     }
   }
 
+  /**
+   * @see com.grahamcrockford.oco.core.api.JobSubmitter#shutdown()
+   */
+  @Override
   public void shutdown() throws InterruptedException {
     executorService.shutdownNow();
     executorService.awaitTermination(30, TimeUnit.SECONDS);

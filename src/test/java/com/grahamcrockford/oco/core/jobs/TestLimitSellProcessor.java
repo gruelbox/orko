@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,9 +23,8 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
-import com.grahamcrockford.oco.core.impl.JobSubmitter;
-import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 

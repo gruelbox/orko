@@ -5,6 +5,7 @@ import static java.math.RoundingMode.HALF_UP;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
+
 import javax.inject.Inject;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -13,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.grahamcrockford.oco.core.api.ExchangeService;
-import com.grahamcrockford.oco.core.impl.JobSubmitter;
+import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;

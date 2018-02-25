@@ -19,7 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.grahamcrockford.oco.core.api.ExchangeService;
-import com.grahamcrockford.oco.core.impl.JobSubmitter;
+import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.jobs.OneCancelsOther.ThresholdAndJob;
 import com.grahamcrockford.oco.core.spi.Job;
 import com.grahamcrockford.oco.core.spi.TickerSpec;

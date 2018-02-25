@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.core.jobs;
 
 import java.util.Date;
 import java.util.Optional;
+
 import javax.inject.Inject;
 
 import org.knowm.xchange.dto.Order;
@@ -10,8 +11,8 @@ import org.knowm.xchange.service.trade.TradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
-import com.grahamcrockford.oco.core.impl.JobSubmitter;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
