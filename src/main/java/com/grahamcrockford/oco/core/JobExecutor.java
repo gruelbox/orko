@@ -11,6 +11,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.JobProcessor;
+import com.grahamcrockford.oco.telegram.TelegramService;
 
 public class JobExecutor implements Runnable {
 

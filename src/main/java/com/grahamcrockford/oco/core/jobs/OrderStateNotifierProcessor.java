@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.grahamcrockford.oco.api.JobProcessor;
-import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
+import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
 
 import si.mazi.rescu.HttpStatusExceptionSupport;

@@ -1,10 +1,11 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.telegram;
 
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ public class TelegramService {
   @Inject
   TelegramService(TelegramConfiguration configuration, Client client) {
     this.configuration = configuration;
-    this.telegramTarget = configuration == null
+    this.telegramTarget = configuration == null || StringUtils.isEmpty(configuration.getBotToken())
         ? null
         : client.target("https://api.telegram.org/bot" + configuration.getBotToken());
   }

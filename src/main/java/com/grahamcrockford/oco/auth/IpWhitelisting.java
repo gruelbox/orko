@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.auth;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,11 +36,11 @@ public class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-    return configuration.getSecretKey() == null || sourceIp().equals(ipWhitelistAccess.getIp());
+    return StringUtils.isEmpty(configuration.getSecretKey()) || sourceIp().equals(ipWhitelistAccess.getIp());
   }
 
   public boolean whiteListRequestIp(int token) {
-    if (configuration.getSecretKey() == null)
+    if (StringUtils.isEmpty(configuration.getSecretKey()))
       return true;
 
     String ip = sourceIp();

@@ -28,8 +28,8 @@ import org.mockito.MockitoAnnotations;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.api.Job;
-import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.TradeServiceFactory;
+import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
 
 

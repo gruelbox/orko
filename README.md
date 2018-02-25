@@ -31,6 +31,8 @@ The 2FA is a bit clunky.  I bodged something together quickly to make things a b
 1. Call `PUT /auth?token=YourGoogleAuthenticatorCode` to authorise your originating IP.  Only a single IP address is allowed at any one time.  By default the whitelisting expires after 10 minutes and you need to authorise again.
 2. Then call any other of the entry points (listed below) using basic authentication and the configured username/password.
 
+Best way to work is to catch 401 any time you call an entry point, and if you get one, call `auth` then retry.
+
 The plan is to change the `auth` entry point to return back a session token which expires after a certain period.  Dunno.  Welcome to hear your thoughts.  I know 2FA is a pain with something like this, but this thing is deployed publicly and can do unspeakable things.
 
 All this should secure enough over SSL or on a private box.
@@ -42,32 +44,33 @@ Once you've got it working locally, you probably want to deploy it somewhere it'
 
 1. Create a Heroku account
 1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, add the application.
-1. Add the PaperTrail and mLab MongoDB addons to your application.
-1. Upgrade to a Hobby Dyno or the application will shut down when you're not sending web requests to it.
+1. Add the mLab MongoDB addon (required)
+1. Add the Papertrail addon (optional, but by far the easiest way to handle logs)
+1. Upgrade to a Hobby Dyno or the application will shut down when you're not sending web requests to it.  It's free until you pass a certain number of minutes running per month.
 1. Set up the environment variables:
 
 | Variable                  | Set to                 | 
 | ------------------------- | ---------------------- |
-| `LOOP_SECONDS`            | Between 3 and 10. 5 is good.       |
-| `LOCK_SECONDS`            | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side.  I normally go for 30. |
-| `USER_NAME`               | The username for HTTP authentication.  You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
-| `PASSWORD`                | The password for HTTP authentication. You must deploy the application over SSL (HTTPS) to make this secure. This is the default on Heroku.|
-| `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`)|
-| `PROXIED`                | `true` on Heroku so it uses the `X-Forwarded-For` header to determine the source IP.  This MUST be `false` if you're not hosted behind a trusted proxy where you can 100% believe the `X-Forwarded-For` header. |
+| `LOOP_SECONDS`            | Between 3 and 10. 5 is good. Note that at the moment, a game loop is used, but I'll be phasing this out in favour of a continuous event stream from exchanges' web socket APIs where they are supported. Beware if you set this low and have a lot of running jobs on a single exchange, you may end up spamming the exchange API and get banned. You'll get Telegram alerts when this happens but you'll need to shut down the app quick-smart or the ban could be lengthly.  |
+| `LOCK_SECONDS`            | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side.  I normally go for 30. This isn't perfect and I'm looking at alternatives like ZooKeeper in the longer term. |
+| `USER_NAME`               | The username for HTTP authentication.  You must deploy the application over SSL (HTTPS) to make this secure (his is the default on Heroku).|
+| `PASSWORD`                | The password for HTTP authentication. You must deploy the application over SSL (HTTPS) to make this secure (this is the default on Heroku).|
+| `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`).  Can be left blank (in which case 2FA is disabled) but must be defined.|
+| `PROXIED`                | Set to `true` on Heroku so it uses the `X-Forwarded-For` header to determine the source IP.  This MUST be `false` if you're not hosted behind a trusted proxy where you can 100% believe the `X-Forwarded-For` header, or someone could easily spoof their IP and bypass your 2FA. |
 | `MONGODB_URI`             | Should already have been set up for you by the add-on. |
-| `MONGO_DATABASE`          | The bit at the end of `MONGODB_URI` after the last slash. |
-| `TELEGRAM_BOT_TOKEN`      | The bot API token. |
-| `TELEGRAM_CHAT_ID`        | The chat ID. |
-| `GDAX_SANDBOX_API_KEY`    | Your API key from the GDAX sandbox (https://public.sandbox.gdax.com). Just put XXX if you don't have one. |
-| `GDAX_SANDBOX_SECRET`     | Your secret from the GDAX sandbox (https://public.sandbox.gdax.com). Just put XXX if you don't have one. |
-| `GDAX_SANDBOX_PASSPHRASE` | Your passphrase from the GDAX sandbox (https://public.sandbox.gdax.com). Just put XXX if you don't have one. |
-| `GDAX_API_KEY`            | Your GDAX API key. Just put XXX if you don't have one. |
-| `GDAX_SECRET`             | Your GDAX secret. Just put XXX if you don't have one. |
-| `GDAX_PASSPHRASE`         | Your GDAX passphrase. Just put XXX if you don't have one. |
-| `BINANCE_API_KEY`         | Your Binance API key. Just put XXX if you don't have one. |
-| `BINANCE_SECRET`          | Your Binance secret. Just put XXX if you don't have one. |
-| `KUCOIN_API_KEY`          | Your Kucoin API key. Just put XXX if you don't have one. | 
-| `KUCOIN_SECRET`           | Your Kucoin secret. Just put XXX if you don't have one.
+| `MONGO_DATABASE`          | The bit at the end of `MONGODB_URI` after the last slash.  I should really just extract it from the URL. To do. |
+| `TELEGRAM_BOT_TOKEN`      | The bot API token. Can be left blank, in which case Telegram notifications won't be used, but must be defined. |
+| `TELEGRAM_CHAT_ID`        | The chat ID. Must be defined but may be blank if `TELEGRAM_BOT_TOKEN`  is. |
+| `GDAX_SANDBOX_API_KEY`    | Your API key from the GDAX sandbox (https://public.sandbox.gdax.com). If left blank, paper trading will be used. |
+| `GDAX_SANDBOX_SECRET`     | Your secret from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading. |
+| `GDAX_SANDBOX_PASSPHRASE` | Your passphrase from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading. |
+| `GDAX_API_KEY`            | Your GDAX API key. May be left blank for paper trading. |
+| `GDAX_SECRET`             | Your GDAX secret. May be left blank for paper trading.. |
+| `GDAX_PASSPHRASE`         | Your GDAX passphrase. May be left blank for paper trading. |
+| `BINANCE_API_KEY`         | Your Binance API key. May be left blank for paper trading. |
+| `BINANCE_SECRET`          | Your Binance secret. May be left blank for paper trading. |
+| `KUCOIN_API_KEY`          | Your Kucoin API key. May be left blank for paper trading. | 
+| `KUCOIN_SECRET`           | Your Kucoin secret. May be left blank for paper trading. |
 
 1. Deploy and scale.  Multiple instances will compete for the work and can be stopped/started freely. State is persistent.
 
@@ -93,8 +96,10 @@ API
 | GET    | /exchanges/{exchange}/orders                          | Gets your open orders on the specified exchange. Not supported on many exchanges. | None | None | GET /exchanges/gdax/orders |
 | GET    | /exchanges/{exchange}/orders/{id}                     | Gets a specific order. | None | None | GET /exchanges/binance/orders/DRGN-BTC/orders/5a9098f1d038110f1c4b7b0e |
 
+Advanced examples
+---
 
-Example of payload for `PUT /jobs`:
+To perform an OCO trade, call `PUT /jobs` with a payload like this:
 
 ```
 {

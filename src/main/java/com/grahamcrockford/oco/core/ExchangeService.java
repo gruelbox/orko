@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.BaseExchange;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
@@ -50,7 +51,7 @@ public class ExchangeService {
       final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(name);
       if (exchangeConfiguration == null)
         return publicApi(name);
-      if (exchangeConfiguration.getApiKey() == null || exchangeConfiguration.getApiKey().equals("default"))
+      if (StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
         return publicApi(name);
       return privateApi(name, exchangeConfiguration);
     }

@@ -1,15 +1,11 @@
-package com.grahamcrockford.oco.core;
-
-import org.hibernate.validator.constraints.NotEmpty;
+package com.grahamcrockford.oco.telegram;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TelegramConfiguration {
 
-  @NotEmpty
   private String botToken;
 
-  @NotEmpty
   private String chatId;
 
   @JsonProperty

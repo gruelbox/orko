@@ -22,8 +22,8 @@ import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
 import com.grahamcrockford.oco.core.JobSubmitter;
-import com.grahamcrockford.oco.core.TelegramService;
 import com.grahamcrockford.oco.core.jobs.OneCancelsOther.ThresholdAndJob;
+import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
 
 public class TestOneCancelsOtherProcessor {

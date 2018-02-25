@@ -12,8 +12,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.grahamcrockford.oco.auth.AuthConfiguration;
 import com.grahamcrockford.oco.core.ExchangeConfiguration;
-import com.grahamcrockford.oco.core.TelegramConfiguration;
 import com.grahamcrockford.oco.db.DbConfiguration;
+import com.grahamcrockford.oco.telegram.TelegramConfiguration;
 
 /**
  * Runtime config. Should really be broken up.

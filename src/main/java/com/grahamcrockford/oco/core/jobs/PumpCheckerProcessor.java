@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.grahamcrockford.oco.api.JobProcessor;
 import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.core.ExchangeService;
-import com.grahamcrockford.oco.core.TelegramService;
+import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
 
 import one.util.streamex.StreamEx;
