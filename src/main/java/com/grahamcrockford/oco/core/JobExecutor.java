@@ -13,7 +13,7 @@ import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.api.JobProcessor;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
-public class JobExecutor implements Runnable {
+class JobExecutor implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JobExecutor.class);
 
