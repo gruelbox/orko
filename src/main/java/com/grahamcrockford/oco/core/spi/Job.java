@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.spi;
+package com.grahamcrockford.oco.core.spi;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;

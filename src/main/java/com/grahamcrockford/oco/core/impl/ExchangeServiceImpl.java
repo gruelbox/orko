@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.core.impl;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,16 +28,17 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.util.CheckedExceptions;
 
 /**
  * API-friendly name mapping for exchanges.
  */
 @Singleton
-public class ExchangeService {
+class ExchangeServiceImpl implements ExchangeService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
   private final OcoConfiguration configuration;
   private final Supplier<List<Class<? extends Exchange>>> exchangeTypes;
@@ -88,7 +89,7 @@ public class ExchangeService {
   });
 
   @Inject
-  ExchangeService(OcoConfiguration configuration) {
+  ExchangeServiceImpl(OcoConfiguration configuration) {
     this.configuration = configuration;
     this.exchangeTypes = Suppliers.memoize(
         () -> new Reflections("org.knowm.xchange")
@@ -98,6 +99,10 @@ public class ExchangeService {
           .collect(Collectors.toList()));
   }
 
+  /**
+   * @see com.grahamcrockford.oco.core.api.ExchangeService#getExchanges()
+   */
+  @Override
   public Collection<String> getExchanges() {
     return ImmutableSet.<String>builder()
         .addAll(FluentIterable.from(exchangeTypes.get())
@@ -108,10 +113,18 @@ public class ExchangeService {
         .build();
   }
 
+  /**
+   * @see com.grahamcrockford.oco.core.api.ExchangeService#get(java.lang.String)
+   */
+  @Override
   public Exchange get(String name) {
     return exchanges.getUnchecked(name);
   }
 
+  /**
+   * @see com.grahamcrockford.oco.core.api.ExchangeService#fetchTicker(com.grahamcrockford.oco.core.spi.TickerSpec)
+   */
+  @Override
   public Ticker fetchTicker(TickerSpec ex) {
     return CheckedExceptions.callUnchecked(() ->
       get(ex.exchange())
@@ -119,6 +132,10 @@ public class ExchangeService {
       .getTicker(ex.currencyPair()));
   }
 
+  /**
+   * @see com.grahamcrockford.oco.core.api.ExchangeService#fetchCurrencyPairMetaData(com.grahamcrockford.oco.core.spi.TickerSpec)
+   */
+  @Override
   public CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex) {
     return get(ex.exchange())
       .getExchangeMetaData()

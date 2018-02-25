@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.core.impl;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -6,8 +6,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.core.JobExecutor.Factory;
-import com.grahamcrockford.oco.spi.Job;
+import com.grahamcrockford.oco.core.impl.JobExecutor.Factory;
+import com.grahamcrockford.oco.core.spi.Job;
 
 public class JobSubmitter {
 

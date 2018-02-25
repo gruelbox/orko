@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.core.impl;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
+import com.grahamcrockford.oco.core.api.ExchangeService;
 
 /**
  * Access to exchange information.

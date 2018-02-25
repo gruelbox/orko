@@ -16,9 +16,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
-import com.grahamcrockford.oco.spi.Job;
-import com.grahamcrockford.oco.spi.JobBuilder;
-import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.core.spi.Job;
+import com.grahamcrockford.oco.core.spi.JobBuilder;
+import com.grahamcrockford.oco.core.spi.TickerSpec;
 
 @AutoValue
 @JsonDeserialize(builder = SoftTrailingStop.Builder.class)

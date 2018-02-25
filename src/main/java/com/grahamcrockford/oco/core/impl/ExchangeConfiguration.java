@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.core.impl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

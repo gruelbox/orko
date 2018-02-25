@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.core.impl;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -20,12 +20,13 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
+import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.jobs.LimitSell;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
-import com.grahamcrockford.oco.spi.Job;
-import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.core.spi.Job;
+import com.grahamcrockford.oco.core.spi.TickerSpec;
 
 import io.dropwizard.auth.AuthenticationException;
 

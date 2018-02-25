@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.api;
+package com.grahamcrockford.oco.core.api;
 
 import org.knowm.xchange.service.trade.TradeService;
 

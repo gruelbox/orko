@@ -11,8 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
-import com.grahamcrockford.oco.spi.Job;
-import com.grahamcrockford.oco.spi.JobBuilder;
+import com.grahamcrockford.oco.core.spi.Job;
+import com.grahamcrockford.oco.core.spi.JobBuilder;
 
 @AutoValue
 @JsonDeserialize(builder = OrderStateNotifier.Builder.class)

@@ -8,7 +8,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.servlet.ServletModule;
 import com.grahamcrockford.oco.auth.AuthModule;
-import com.grahamcrockford.oco.core.CoreModule;
+import com.grahamcrockford.oco.core.impl.CoreModule;
 import com.grahamcrockford.oco.db.DbModule;
 import com.grahamcrockford.oco.telegram.TelegramModule;
 

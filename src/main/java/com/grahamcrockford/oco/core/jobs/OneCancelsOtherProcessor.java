@@ -6,10 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.core.ExchangeService;
-import com.grahamcrockford.oco.core.JobSubmitter;
-import com.grahamcrockford.oco.spi.JobProcessor;
-import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.grahamcrockford.oco.core.impl.JobSubmitter;
+import com.grahamcrockford.oco.core.spi.JobProcessor;
+import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
 

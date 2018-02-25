@@ -1,11 +1,12 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.core.impl;
 
 import java.util.Map;
 
 import org.knowm.xchange.service.trade.TradeService;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.TradeServiceFactory;
+import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.grahamcrockford.oco.core.api.TradeServiceFactory;
 
 /**
  * Actually allows live trading.

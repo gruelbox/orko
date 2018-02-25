@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.core.impl;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -8,14 +8,15 @@ import org.knowm.xchange.gdax.GDAXExchange;
 import org.knowm.xchange.kucoin.KucoinExchange;
 
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.core.impl.ExchangeServiceImpl;
 
 public class TestExchangeService {
 
-  private ExchangeService exchangeService;
+  private ExchangeServiceImpl exchangeService;
 
   @Before
   public void setup() {
-    exchangeService = new ExchangeService(new OcoConfiguration());
+    exchangeService = new ExchangeServiceImpl(new OcoConfiguration());
   }
 
   @Test
