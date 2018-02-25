@@ -1,10 +1,7 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.api;
 
 import org.knowm.xchange.service.trade.TradeService;
 
-import com.google.inject.ImplementedBy;
-
-@ImplementedBy(LiveTradeServiceFactory.class)
 public interface TradeServiceFactory {
 
   public TradeService getForExchange(String exchange);

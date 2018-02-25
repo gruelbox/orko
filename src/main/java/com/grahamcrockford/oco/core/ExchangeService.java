@@ -28,7 +28,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.TickerSpec;
+import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.util.CheckedExceptions;
 
 /**

@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-import com.grahamcrockford.oco.api.Job;
-import com.grahamcrockford.oco.api.JobProcessor;
+import com.grahamcrockford.oco.spi.Job;
+import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
 class JobExecutor implements Runnable {

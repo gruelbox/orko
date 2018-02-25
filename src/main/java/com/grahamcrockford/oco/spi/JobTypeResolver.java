@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.api;
+package com.grahamcrockford.oco.spi;
 
 import java.io.IOException;
 

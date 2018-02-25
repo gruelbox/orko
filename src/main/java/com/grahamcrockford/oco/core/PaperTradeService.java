@@ -38,6 +38,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
+import com.grahamcrockford.oco.api.TradeServiceFactory;
 
 /**
  * Paper trading implementation.  Note: doesn't work between restarts. Probably not thread

@@ -19,13 +19,13 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.WebResource;
-import com.grahamcrockford.oco.api.Job;
-import com.grahamcrockford.oco.api.TickerSpec;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.jobs.LimitSell;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
+import com.grahamcrockford.oco.spi.Job;
+import com.grahamcrockford.oco.spi.TickerSpec;
 
 import io.dropwizard.auth.AuthenticationException;
 

@@ -7,8 +7,8 @@ import org.mongojack.WriteResult;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.Job;
 import com.grahamcrockford.oco.db.DbConfiguration;
+import com.grahamcrockford.oco.spi.Job;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 

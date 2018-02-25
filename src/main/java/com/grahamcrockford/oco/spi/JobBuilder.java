@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.api;
+package com.grahamcrockford.oco.spi;
 
 public interface JobBuilder<T extends Job> {
 

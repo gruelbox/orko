@@ -5,11 +5,12 @@ import java.util.Map;
 import org.knowm.xchange.service.trade.TradeService;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.api.TradeServiceFactory;
 
 /**
  * Actually allows live trading.
  */
-public class LiveTradeServiceFactory implements TradeServiceFactory {
+class LiveTradeServiceFactory implements TradeServiceFactory {
 
   private final ExchangeService exchangeService;
   private final OcoConfiguration configuration;
