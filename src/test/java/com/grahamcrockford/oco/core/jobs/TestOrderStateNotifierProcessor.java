@@ -1,36 +1,40 @@
 package com.grahamcrockford.oco.core.jobs;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Optional;
+import java.util.function.Consumer;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
+import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.trade.TradeService;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.eventbus.AsyncEventBus;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
-import com.grahamcrockford.oco.core.spi.Job;
+import com.grahamcrockford.oco.core.spi.JobControl;
+import com.grahamcrockford.oco.core.spi.KeepAliveEvent;
 import com.grahamcrockford.oco.telegram.TelegramService;
-import com.grahamcrockford.oco.util.Sleep;
 
 
 public class TestOrderStateNotifierProcessor {
@@ -53,18 +57,15 @@ public class TestOrderStateNotifierProcessor {
 
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private TradeService tradeService;
-  @Mock private Sleep sleep;
+  @Mock private JobControl jobControl;
+  @Mock private AsyncEventBus asyncEventBus;
 
-  private OrderStateNotifierProcessor processor;
+  @Captor private ArgumentCaptor<Consumer<Ticker>> tickerConsumerCaptor;
 
   @Before
   public void before() throws IOException {
-
     MockitoAnnotations.initMocks(this);
-
     when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
-
-    processor = new OrderStateNotifierProcessor(telegramService, tradeServiceFactory, sleep);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -72,62 +73,120 @@ public class TestOrderStateNotifierProcessor {
   @Test
   public void testNotSupportedByExchange() throws Exception {
     when(tradeService.getOrder(ORDER_ID)).thenThrow(new NotAvailableFromExchangeException());
-    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
+
+    OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+    assertFalse(processor.start());
+    verify(tradeService).getOrder(ORDER_ID);
     verifySentMessage();
-    verifyFinishedJob(result);
+    verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
 
   @Test
-  public void testNotFound1() throws Exception {
-    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
+  public void testNotFoundStartup1() throws Exception {
+    OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+    assertFalse(processor.start());
+    verify(tradeService).getOrder(ORDER_ID);
     verifySentMessage();
-    verifyFinishedJob(result);
+    verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
 
   @Test
-  public void testNotFound2() throws Exception {
+  public void testNotFoundPoll1() throws Exception {
+    OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+    returnOrder(Order.OrderStatus.NEW);
+    assertTrue(processor.start());
+    verify(tradeService).getOrder(ORDER_ID);
+    verify(asyncEventBus).register(processor);
+    verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
+
+    when(tradeService.getOrder(ORDER_ID)).thenReturn(null);
+    processor.process(KeepAliveEvent.INSTANCE);
+
+    verifySentMessage();
+    verify(jobControl).finish();
+  }
+
+  @Test
+  public void testNotFoundStartup2() throws Exception {
     when(tradeService.getOrder(ORDER_ID)).thenReturn(Collections.emptyList());
-    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
+    OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+    assertFalse(processor.start());
+    verify(tradeService).getOrder(ORDER_ID);
     verifySentMessage();
-    verifyFinishedJob(result);
+    verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
 
   @Test
-  public void testNotUnique() throws Exception {
+  public void testNotFoundPoll2() throws Exception {
+    OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+    returnOrder(Order.OrderStatus.NEW);
+    assertTrue(processor.start());
+    verify(tradeService).getOrder(ORDER_ID);
+    verify(asyncEventBus).register(processor);
+    verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
+
+    when(tradeService.getOrder(ORDER_ID)).thenReturn(Collections.emptyList());
+    processor.process(KeepAliveEvent.INSTANCE);
+
+    verifySentMessage();
+    verify(jobControl).finish();
+  }
+
+  @Test
+  public void testNotUniqueStartup() throws Exception {
     when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
-    Optional<OrderStateNotifier> result = processor.process(baseJob().build());
+    OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+    assertFalse(processor.start());
+    verify(tradeService).getOrder(ORDER_ID);
     verifySentMessage();
-    verifyFinishedJob(result);
+    verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
 
   @Test
-  public void testStatuses() throws Exception {
+  public void testNotUniquePoll() throws Exception {
+    OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+    returnOrder(Order.OrderStatus.NEW);
+    assertTrue(processor.start());
+    verify(tradeService).getOrder(ORDER_ID);
+    verify(asyncEventBus).register(processor);
+    verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
+
+    when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
+    processor.process(KeepAliveEvent.INSTANCE);
+
+    verifySentMessage();
+    verify(jobControl).finish();
+  }
+
+  @Test
+  public void testStatusesStartup() throws Exception {
     for (final Order.OrderStatus status : Order.OrderStatus.values()) {
-      Mockito.reset(telegramService);
-      when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, BigDecimal.ZERO, status)));
-      Optional<OrderStateNotifier> result = processor.process(baseJob().build());
+      Mockito.reset(telegramService, tradeService);
+      returnOrder(status);
+      OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
+      boolean runningAsync = processor.start();
       if (ImmutableSet.of(Order.OrderStatus.PENDING_NEW, Order.OrderStatus.NEW, Order.OrderStatus.PARTIALLY_FILLED).contains(status)) {
-        verifyNoChanges(baseJob().build(), result);
+        assertTrue(runningAsync);
+        verify(tradeService).getOrder(ORDER_ID);
+        verify(asyncEventBus).register(processor);
+        verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
       } else {
+        assertFalse(runningAsync);
+        verify(tradeService).getOrder(ORDER_ID);
         verifySentMessage();
-        verifyFinishedJob(result);
+        verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
       }
     }
   }
 
-  /* ---------------------------------- Utility methods  ---------------------------------------------------- */
-
-  private void verifyNoChanges(Job order, Optional<OrderStateNotifier> result) {
-    verifyZeroInteractions(telegramService);
-    Assert.assertEquals(order, result.get());
+  private void returnOrder(final Order.OrderStatus status) throws IOException {
+    when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, BigDecimal.ZERO, status)));
   }
+
+  /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
   private void verifySentMessage() {
     verify(telegramService).sendMessage(Mockito.anyString());
-  }
-
-  private void verifyFinishedJob(Optional<OrderStateNotifier> result) {
-    assertFalse(result.isPresent());
   }
 
   private OrderStateNotifier.Builder baseJob() {

@@ -11,6 +11,7 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.Assisted;
@@ -72,7 +73,8 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
     exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
   }
 
-  private void tick(Ticker ticker) {
+  @VisibleForTesting
+  void tick(Ticker ticker) {
 
     final TickerSpec ex = job.tickTrigger();
 

@@ -9,6 +9,7 @@ import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.Subscribe;
@@ -60,8 +61,12 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
 
   @Override
   public boolean start() {
-    asyncEventBus.register(this);
-    return true;
+    if (tick()) {
+      asyncEventBus.register(this);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -70,29 +75,36 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
   }
 
   @Subscribe
-  private void process(KeepAliveEvent keepAliveEvent) {
+  @VisibleForTesting
+  void process(KeepAliveEvent keepAliveEvent) {
+    if (!tick())
+      jobControl.finish();
+  }
 
-    Order.OrderStatus status = null;
-    BigDecimal amount = null;
-    BigDecimal filled = null;
+  private boolean tick() {
 
     final Order order = getOrder(job);
-    if (order != null) {
-      amount = order.getOriginalAmount();
-      filled = order.getCumulativeAmount();
-      status = order.getStatus();
-    }
-
     if (order == null) {
 
-      jobControl.finish();
-      return;
+      return false;
 
     } else {
 
-      amount = order.getOriginalAmount();
-      filled = order.getCumulativeAmount();
-      status = order.getStatus();
+      BigDecimal amount = order.getOriginalAmount();
+      BigDecimal filled = order.getCumulativeAmount();
+      Order.OrderStatus status = order.getStatus();
+
+      COLUMN_LOGGER.line(
+        job.id(),
+        job.exchange(),
+        "Monitor order",
+        job.orderId(),
+        status,
+        amount,
+        filled,
+        job.description()
+      );
+
       switch (order.getStatus()) {
         case PENDING_CANCEL:
         case CANCELED:
@@ -104,41 +116,27 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
             "Order [%s] (%s) on [%s] " + status + ". Giving up.",
             job.id(), job.description(), job.exchange()
           ));
-          jobControl.finish();
-          return;
+          return false;
         case FILLED:
         case STOPPED:
           telegramService.sendMessage(String.format(
             "Order [%s] (%s) on [%s] has " + status + ". Average price [%s]",
             job.id(), job.description(), job.exchange(), order.getAveragePrice()
           ));
-          jobControl.finish();
-          return;
+          return false;
         case PENDING_NEW:
         case NEW:
         case PARTIALLY_FILLED:
           // In progress so ignore
-          break;
+          return true;
         default:
           telegramService.sendMessage(String.format(
             "Order [%s] (%s) on [%s] in unknown status " + status + ". Giving up.",
             job.id(), job.description(), job.exchange()
           ));
-          jobControl.finish();
-          return;
+          return false;
       }
     }
-
-    COLUMN_LOGGER.line(
-      job.id(),
-      job.exchange(),
-      "Monitor order",
-      job.orderId(),
-      status,
-      amount,
-      filled,
-      job.description()
-    );
   }
 
   private Order getOrder(OrderStateNotifier job) {

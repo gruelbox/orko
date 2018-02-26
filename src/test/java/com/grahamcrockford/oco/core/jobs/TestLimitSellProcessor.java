@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOError;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
@@ -25,6 +24,7 @@ import org.mockito.MockitoAnnotations;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
+import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
@@ -45,8 +45,8 @@ public class TestLimitSellProcessor {
   @Mock private Exchange exchange;
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private TradeService tradeService;
+  @Mock private JobControl jobControl;
 
-  private LimitSellProcessor processor;
   private final AtomicInteger xChangeOrderId = new AtomicInteger();
 
   @Before
@@ -56,8 +56,6 @@ public class TestLimitSellProcessor {
 
     when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenAnswer(args -> newTradeId());
-
-    processor = new LimitSellProcessor(telegramService, tradeServiceFactory, enqueuer);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -75,7 +73,8 @@ public class TestLimitSellProcessor {
         .tickTrigger(ex)
         .build();
 
-    Optional<LimitSell> result = processor.process(job);
+    LimitSellProcessor processor = new LimitSellProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    boolean result = processor.start();
 
     verifyLimitSell();
     verifySubmitWatcher();
@@ -100,7 +99,8 @@ public class TestLimitSellProcessor {
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(IOError.class);
 
-    Optional<LimitSell> result = processor.process(job);
+    LimitSellProcessor processor = new LimitSellProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    boolean result = processor.start();
 
     verifyLimitSell();
     verifySentMessage();
@@ -112,7 +112,7 @@ public class TestLimitSellProcessor {
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
   private void verifyDidNothingElse() {
-    verifyNoMoreInteractions(telegramService, tradeService, enqueuer);
+    verifyNoMoreInteractions(telegramService, tradeService, enqueuer, jobControl);
   }
 
   private void verifySentMessage() {
@@ -135,8 +135,8 @@ public class TestLimitSellProcessor {
         .build());
   }
 
-  private void verifyFinished(Optional<LimitSell> result) {
-    Assert.assertFalse(result.isPresent());
+  private void verifyFinished(boolean result) {
+    Assert.assertFalse(result);
   }
 
   private String newTradeId() {

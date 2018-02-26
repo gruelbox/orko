@@ -1,12 +1,11 @@
 package com.grahamcrockford.oco.core.jobs;
 
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,23 +13,26 @@ import org.junit.Test;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.service.marketdata.MarketDataService;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.jobs.OneCancelsOther.ThresholdAndJob;
 import com.grahamcrockford.oco.core.spi.Job;
+import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
-import com.grahamcrockford.oco.util.Sleep;
 
 public class TestOneCancelsOtherProcessor {
 
   private static final BigDecimal LOW_PRICE = new BigDecimal(100);
   private static final BigDecimal HIGH_PRICE = new BigDecimal(200);
 
+  private static final String JOB_ID = "XXX";
   private static final String BASE = "FOO";
   private static final String COUNTER = "USDT";
   private static final String EXCHANGE = "fooex";
@@ -42,21 +44,20 @@ public class TestOneCancelsOtherProcessor {
 
   @Mock private JobSubmitter enqueuer;
   @Mock private TelegramService telegramService;
-  @Mock private ExchangeService exchangeService;
 
   @Mock private Exchange exchange;
   @Mock private MarketDataService marketDataService;
-  @Mock private Sleep sleep;
+  @Mock private JobControl jobControl;
+  @Mock private ExchangeEventRegistry exchangeEventRegistry;
 
   @Mock private Job job1;
   @Mock private Job job2;
 
-  private OneCancelsOtherProcessor processor;
+  @Captor private ArgumentCaptor<Consumer<Ticker>> tickerConsumerCaptor;
 
   @Before
   public void before() throws IOException {
     MockitoAnnotations.initMocks(this);
-    processor = new OneCancelsOtherProcessor(exchangeService, enqueuer, telegramService, sleep);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -64,114 +65,131 @@ public class TestOneCancelsOtherProcessor {
   @Test
   public void testAtLowNoJob() throws Exception {
     OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
         .tickTrigger(TICKER_SPEC)
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
-    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
         .bid(LOW_PRICE)
         .build());
 
-    Optional<OneCancelsOther> result = processor.process(job);
-
-    Assert.assertTrue(result.isPresent());
-
-    verify(exchangeService).fetchTicker(TICKER_SPEC);
-    verifyNoMoreInteractions(telegramService, enqueuer);
+    verifyDidNothingElse();
   }
+
 
   @Test
   public void testAtLow() throws Exception {
     OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
         .tickTrigger(TICKER_SPEC)
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
-    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
         .bid(LOW_PRICE)
         .build());
 
-    Optional<OneCancelsOther> result = processor.process(job);
-
-    Assert.assertFalse(result.isPresent());
-
-    verify(exchangeService).fetchTicker(TICKER_SPEC);
     verify(telegramService).sendMessage(Mockito.anyString());
     verify(enqueuer).submitNew(job1);
-    verifyNoMoreInteractions(telegramService, enqueuer);
+    verify(jobControl).finish();
+    verifyDidNothingElse();
   }
 
   @Test
   public void testAboveLow() throws Exception {
     OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
         .tickTrigger(TICKER_SPEC)
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
-    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
         .bid(LOW_PRICE.add(BigDecimal.ONE))
         .build());
 
-    Optional<OneCancelsOther> result = processor.process(job);
-
-    Assert.assertTrue(result.isPresent());
-    verify(exchangeService).fetchTicker(TICKER_SPEC);
-    verifyNoMoreInteractions(telegramService, enqueuer);
+    verifyDidNothingElse();
   }
 
   @Test
   public void testBelowHigh() throws Exception {
     OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
         .tickTrigger(TICKER_SPEC)
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
-    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
         .bid(HIGH_PRICE.subtract(BigDecimal.ONE))
         .build());
 
-    Optional<OneCancelsOther> result = processor.process(job);
-
-    Assert.assertTrue(result.isPresent());
-    verify(exchangeService).fetchTicker(TICKER_SPEC);
-    verifyNoMoreInteractions(telegramService, enqueuer);
+    verifyDidNothingElse();
   }
 
   @Test
   public void testAtHigh() throws Exception {
     OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
         .tickTrigger(TICKER_SPEC)
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
-    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
         .bid(HIGH_PRICE)
         .build());
 
-    Optional<OneCancelsOther> result = processor.process(job);
-
-    Assert.assertFalse(result.isPresent());
-
-    verify(exchangeService).fetchTicker(TICKER_SPEC);
     verify(telegramService).sendMessage(Mockito.anyString());
     verify(enqueuer).submitNew(job2);
-    verifyNoMoreInteractions(telegramService, enqueuer);
+    verify(jobControl).finish();
+    verifyDidNothingElse();
   }
 
   @Test
   public void testAtHighNoHighJob() throws Exception {
     OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
         .tickTrigger(TICKER_SPEC)
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .build();
-    when(exchangeService.fetchTicker(job.tickTrigger())).thenReturn(new Ticker.Builder()
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
         .bid(HIGH_PRICE)
         .build());
 
-    Optional<OneCancelsOther> result = processor.process(job);
+    verifyDidNothingElse();
+  }
 
-    Assert.assertTrue(result.isPresent());
-
-    verify(exchangeService).fetchTicker(TICKER_SPEC);
-    verifyNoMoreInteractions(telegramService, enqueuer);
+  private void verifyDidNothingElse() {
+    verifyNoMoreInteractions(exchangeEventRegistry, telegramService, enqueuer, jobControl);
   }
 }
