@@ -8,7 +8,7 @@ public class Sleep {
   private final OcoConfiguration configuration;
 
   @Inject
-  Sleep(OcoConfiguration configuration) {
+  public Sleep(OcoConfiguration configuration) {
     this.configuration = configuration;
   }
 

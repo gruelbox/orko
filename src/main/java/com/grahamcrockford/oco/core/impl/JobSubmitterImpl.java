@@ -103,6 +103,7 @@ class JobSubmitterImpl implements JobSubmitter {
       if (!status.get().equals(JobStatus.RUNNING))
         return;
       if (!jobLocker.updateLock(job.id(), uuid)) {
+        LOGGER.debug(job + " stopping due to loss of lock...");
         if (stopAndUnregister())
           LOGGER.debug(job + " stopped due to loss of lock");
       }
@@ -146,7 +147,6 @@ class JobSubmitterImpl implements JobSubmitter {
     private boolean stopAndUnregister() {
       if (!status.compareAndSet(JobStatus.RUNNING, JobStatus.STOPPING))
         return false;
-      LOGGER.debug(job + " stopping...");
       processor.stop();
       asyncEventBus.unregister(this);
       status.set(JobStatus.STOPPED);

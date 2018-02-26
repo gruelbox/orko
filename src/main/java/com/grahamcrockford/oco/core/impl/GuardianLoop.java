@@ -7,6 +7,7 @@ import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.spi.Job;
 import com.grahamcrockford.oco.core.spi.KeepAliveEvent;
@@ -19,14 +20,17 @@ class GuardianLoop extends AbstractExecutionThreadService {
   private final JobAccess advancedOrderAccess;
   private final JobSubmitter jobSubmitter;
   private final AsyncEventBus asyncEventBus;
+  private final OcoConfiguration ocoConfiguration;
 
   @Inject
   GuardianLoop(JobAccess advancedOrderAccess,
                JobSubmitter jobSubmitter,
-               AsyncEventBus asyncEventBus) {
+               AsyncEventBus asyncEventBus,
+               OcoConfiguration ocoConfiguration) {
     this.advancedOrderAccess = advancedOrderAccess;
     this.jobSubmitter = jobSubmitter;
     this.asyncEventBus = asyncEventBus;
+    this.ocoConfiguration = ocoConfiguration;
   }
 
   @Override
@@ -39,7 +43,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
         lockAndStartInactiveJobs();
 
         try {
-          Thread.sleep(5000);
+          Thread.sleep(ocoConfiguration.getLoopSeconds() * 1000);
         } catch (InterruptedException e) {
           LOGGER.info("Shutting down " + this);
           break;
