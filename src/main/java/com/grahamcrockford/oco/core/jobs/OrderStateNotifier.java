@@ -51,8 +51,8 @@ public abstract class OrderStateNotifier implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<OrderStateNotifierProcessor> processor() {
-    return OrderStateNotifierProcessor.class;
+  public final Class<OrderStateNotifierProcessor.Factory> processorFactory() {
+    return OrderStateNotifierProcessor.Factory.class;
   }
 
   @JsonProperty

@@ -1,6 +1,6 @@
-package com.grahamcrockford.oco.core.impl;
+package com.grahamcrockford.oco.core.spi;
 
-final class KeepAliveEvent {
+public final class KeepAliveEvent {
 
   public static final KeepAliveEvent INSTANCE = new KeepAliveEvent();
 

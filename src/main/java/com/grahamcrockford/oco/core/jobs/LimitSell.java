@@ -74,7 +74,7 @@ public abstract class LimitSell implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<LimitSellProcessor> processor() {
-    return LimitSellProcessor.class;
+  public final Class<LimitSellProcessor.Factory> processorFactory() {
+    return LimitSellProcessor.Factory.class;
   }
 }

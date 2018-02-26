@@ -4,8 +4,6 @@ import static java.math.RoundingMode.HALF_UP;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Optional;
-
 import javax.inject.Inject;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -13,15 +11,18 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Singleton;
+import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
+import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
-import com.grahamcrockford.oco.util.Sleep;
 
-@Singleton
 class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SoftTrailingStopProcessor.class);
@@ -40,67 +41,77 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
   private final TelegramService telegramService;
   private final ExchangeService exchangeService;
   private final JobSubmitter jobSubmitter;
-  private final Sleep sleep;
+  private final SoftTrailingStop job;
+  private final JobControl jobControl;
+  private final ExchangeEventRegistry exchangeEventRegistry;
 
 
   @Inject
-  public SoftTrailingStopProcessor(final TelegramService telegramService,
+  public SoftTrailingStopProcessor(@Assisted SoftTrailingStop job,
+                                   @Assisted JobControl jobControl,
+                                   final TelegramService telegramService,
                                    final ExchangeService exchangeService,
                                    final JobSubmitter jobSubmitter,
-                                   final Sleep sleep) {
+                                   final ExchangeEventRegistry exchangeEventRegistry) {
+    this.job = job;
+    this.jobControl = jobControl;
     this.telegramService = telegramService;
     this.exchangeService = exchangeService;
     this.jobSubmitter = jobSubmitter;
-    this.sleep = sleep;
+    this.exchangeEventRegistry = exchangeEventRegistry;
   }
 
   @Override
-  public Optional<SoftTrailingStop> process(final SoftTrailingStop order) throws InterruptedException {
+  public boolean start() {
+    exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
+    return true;
+  }
 
-    final TickerSpec ex = order.tickTrigger();
+  @Override
+  public void stop() {
+    exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
+  }
 
-    Ticker ticker = exchangeService.fetchTicker(ex);
+  private void tick(Ticker ticker) {
+
+    final TickerSpec ex = job.tickTrigger();
 
     if (ticker.getAsk() == null) {
       LOGGER.warn("Market {}/{}/{} has no sellers!", ex.exchange(), ex.base(), ex.counter());
       telegramService.sendMessage(String.format("Market %s/%s/%s has no sellers!", ex.exchange(), ex.base(), ex.counter()));
-      return Optional.of(order);
+      return;
     }
     if (ticker.getBid() == null) {
       LOGGER.warn("Market {}/{}/{} has no buyers!", ex.exchange(), ex.base(), ex.counter());
       telegramService.sendMessage(String.format("Market %s/%s/%s has no buyers!", ex.exchange(), ex.base(), ex.counter()));
-      return Optional.of(order);
+      return;
     }
 
     final CurrencyPairMetaData currencyPairMetaData = exchangeService.fetchCurrencyPairMetaData(ex);
 
-    logStatus(order, ticker, currencyPairMetaData);
+    logStatus(job, ticker, currencyPairMetaData);
 
     // If we've hit the stop price, we're done
-    if (ticker.getBid().compareTo(stopPrice(order, currencyPairMetaData)) <= 0) {
+    if (ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) <= 0) {
 
       jobSubmitter.submitNew(LimitSell.builder()
           .tickTrigger(ex)
-          .amount(order.amount())
-          .limitPrice(order.limitPrice())
+          .amount(job.amount())
+          .limitPrice(job.limitPrice())
           .build());
 
-      return Optional.empty();
+      jobControl.finish();
+      return;
     }
 
-    SoftTrailingStop newOrder;
-
-    if (ticker.getBid().compareTo(order.lastSyncPrice()) > 0 ) {
-      newOrder = order.toBuilder()
-        .lastSyncPrice(ticker.getBid())
-        .stopPrice(order.stopPrice().add(ticker.getBid()).subtract(order.lastSyncPrice()))
-        .build();
-    } else {
-      newOrder = order;
+    if (ticker.getBid().compareTo(job.lastSyncPrice()) > 0 ) {
+      jobControl.replace(
+        job.toBuilder()
+          .lastSyncPrice(ticker.getBid())
+          .stopPrice(job.stopPrice().add(ticker.getBid()).subtract(job.lastSyncPrice()))
+          .build()
+      );
     }
-
-    sleep.sleep();
-    return Optional.of(newOrder);
   }
 
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {
@@ -120,5 +131,16 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
 
   private BigDecimal stopPrice(SoftTrailingStop trailingStop, CurrencyPairMetaData currencyPairMetaData) {
     return trailingStop.stopPrice().setScale(currencyPairMetaData.getPriceScale(), RoundingMode.HALF_UP);
+  }
+
+  public interface Factory extends JobProcessor.Factory<SoftTrailingStop> { }
+
+  public static final class Module extends AbstractModule {
+    @Override
+    protected void configure() {
+      install(new FactoryModuleBuilder()
+          .implement(new TypeLiteral<JobProcessor<SoftTrailingStop>>() {}, SoftTrailingStopProcessor.class)
+          .build(Factory.class));
+    }
   }
 }

@@ -98,7 +98,7 @@ public abstract class SoftTrailingStop implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<SoftTrailingStopProcessor> processor() {
-    return SoftTrailingStopProcessor.class;
+  public final Class<SoftTrailingStopProcessor.Factory> processorFactory() {
+    return SoftTrailingStopProcessor.Factory.class;
   }
 }

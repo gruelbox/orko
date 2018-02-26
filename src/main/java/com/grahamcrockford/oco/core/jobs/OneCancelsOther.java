@@ -63,8 +63,8 @@ public abstract class OneCancelsOther implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<OneCancelsOtherProcessor> processor() {
-    return OneCancelsOtherProcessor.class;
+  public final Class<OneCancelsOtherProcessor.Factory> processorFactory() {
+    return OneCancelsOtherProcessor.Factory.class;
   }
 
   @AutoValue

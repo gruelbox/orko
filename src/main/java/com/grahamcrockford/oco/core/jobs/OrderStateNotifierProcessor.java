@@ -3,9 +3,6 @@ package com.grahamcrockford.oco.core.jobs;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.Optional;
-import javax.inject.Inject;
-
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
@@ -13,11 +10,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
+import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
+import com.grahamcrockford.oco.core.spi.KeepAliveEvent;
 import com.grahamcrockford.oco.telegram.TelegramService;
-import com.grahamcrockford.oco.util.Sleep;
-
 import si.mazi.rescu.HttpStatusExceptionSupport;
 
 class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
@@ -36,31 +40,53 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
 
   private final TelegramService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
-  private final Sleep sleep;
+  private final AsyncEventBus asyncEventBus;
+  private final OrderStateNotifier job;
+  private final JobControl jobControl;
 
 
-  @Inject
-  public OrderStateNotifierProcessor(final TelegramService telegramService,
+  @AssistedInject
+  public OrderStateNotifierProcessor(@Assisted OrderStateNotifier job,
+                                     @Assisted JobControl jobControl,
+                                     final TelegramService telegramService,
                                      final TradeServiceFactory tradeServiceFactory,
-                                     final Sleep sleep) {
+                                     final AsyncEventBus asyncEventBus) {
+    this.job = job;
+    this.jobControl = jobControl;
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
-    this.sleep = sleep;
+    this.asyncEventBus = asyncEventBus;
   }
 
+  @Override
+  public boolean start() {
+    asyncEventBus.register(this);
+    return true;
+  }
 
   @Override
-  public Optional<OrderStateNotifier> process(OrderStateNotifier job) throws InterruptedException {
+  public void stop() {
+    asyncEventBus.unregister(this);
+  }
+
+  @Subscribe
+  private void process(KeepAliveEvent keepAliveEvent) {
 
     Order.OrderStatus status = null;
     BigDecimal amount = null;
     BigDecimal filled = null;
-    boolean exit = false;
 
     final Order order = getOrder(job);
+    if (order != null) {
+      amount = order.getOriginalAmount();
+      filled = order.getCumulativeAmount();
+      status = order.getStatus();
+    }
+
     if (order == null) {
 
-      exit = true;
+      jobControl.finish();
+      return;
 
     } else {
 
@@ -78,16 +104,16 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
             "Order [%s] (%s) on [%s] " + status + ". Giving up.",
             job.id(), job.description(), job.exchange()
           ));
-          exit = true;
-          break;
+          jobControl.finish();
+          return;
         case FILLED:
         case STOPPED:
           telegramService.sendMessage(String.format(
             "Order [%s] (%s) on [%s] has " + status + ". Average price [%s]",
             job.id(), job.description(), job.exchange(), order.getAveragePrice()
           ));
-          exit = true;
-          break;
+          jobControl.finish();
+          return;
         case PENDING_NEW:
         case NEW:
         case PARTIALLY_FILLED:
@@ -98,8 +124,8 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
             "Order [%s] (%s) on [%s] in unknown status " + status + ". Giving up.",
             job.id(), job.description(), job.exchange()
           ));
-          exit = true;
-          break;
+          jobControl.finish();
+          return;
       }
     }
 
@@ -113,13 +139,6 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
       filled,
       job.description()
     );
-
-    if (!exit)
-      sleep.sleep();
-
-    return exit
-        ? Optional.empty()
-        : Optional.of(job);
   }
 
   private Order getOrder(OrderStateNotifier job) {
@@ -157,7 +176,7 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
         "Order [%s] on [%s] can't be checked. There's a bug in the GDAX access library which prevents it. It'll be fixed soon.",
         job.id(), job.exchange()
       );
-      LOGGER.error(message);
+      LOGGER.warn(message);
       telegramService.sendMessage(message);
   }
 
@@ -176,7 +195,7 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
         "Order [%s] on [%s] was not found on the exchange. It may have been cancelled. Giving up.",
         job.id(), job.exchange()
       );
-    LOGGER.error(message);
+    LOGGER.warn(message);
     telegramService.sendMessage(message);
   }
 
@@ -185,7 +204,18 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
         "Order [%s] on [%s] can't be checked. The exchange doesn't support order status checks. Giving up.",
         job.id(), job.exchange()
       );
-    LOGGER.error(message);
+    LOGGER.warn(message);
     telegramService.sendMessage(message);
+  }
+
+  public interface Factory extends JobProcessor.Factory<OrderStateNotifier> { }
+
+  public static final class Module extends AbstractModule {
+    @Override
+    protected void configure() {
+      install(new FactoryModuleBuilder()
+          .implement(new TypeLiteral<JobProcessor<OrderStateNotifier>>() {}, OrderStateNotifierProcessor.class)
+          .build(Factory.class));
+    }
   }
 }

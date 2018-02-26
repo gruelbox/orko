@@ -3,22 +3,22 @@ package com.grahamcrockford.oco.core.jobs;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.LinkedList;
-import java.util.function.Consumer;
-
-import javax.inject.Inject;
-
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Singleton;
+import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
+import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 import one.util.streamex.StreamEx;
 
-@Singleton
 class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
 
   private static final BigDecimal TARGET = new BigDecimal("0.5");
@@ -32,25 +32,33 @@ class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
   );
 
   private final TelegramService telegramService;
-  private final ExchangeEventRegistry tickerRegistry;
+  private final ExchangeEventRegistry exchangeEventRegistry;
+  private final PumpChecker job;
+  private final JobControl jobControl;
 
-  @Inject
-  public PumpCheckerProcessor(TelegramService telegramService, ExchangeEventRegistry tickerRegistry) {
+  @AssistedInject
+  public PumpCheckerProcessor(@Assisted PumpChecker job,
+                              @Assisted JobControl jobControl,
+                              TelegramService telegramService,
+                              ExchangeEventRegistry exchangeEventRegistry) {
+    this.job = job;
+    this.jobControl = jobControl;
     this.telegramService = telegramService;
-    this.tickerRegistry = tickerRegistry;
+    this.exchangeEventRegistry = exchangeEventRegistry;
   }
 
   @Override
-  public void start(PumpChecker job, Consumer<PumpChecker> onUpdate, Runnable onFinished) {
-    tickerRegistry.registerTicker(job.tickTrigger(), job.id(), ticker -> process(job, ticker, onUpdate));
+  public boolean start() {
+    exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
+    return true;
   }
 
   @Override
-  public void stop(PumpChecker job) {
-    tickerRegistry.unregisterTicker(job.tickTrigger(), job.id());
+  public void stop() {
+    exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
   }
 
-  private void process(PumpChecker job, Ticker ticker, Consumer<PumpChecker> onUpdate) {
+  private void tick(Ticker ticker) {
     final TickerSpec ex = job.tickTrigger();
 
     BigDecimal asPercentage = BigDecimal.ZERO;
@@ -115,6 +123,17 @@ class PumpCheckerProcessor implements JobProcessor<PumpChecker> {
         asPercentage
       );
 
-    onUpdate.accept(job.toBuilder().priceHistory(linkedList).build());
+    jobControl.replace(job.toBuilder().priceHistory(linkedList).build());
+  }
+
+  public interface Factory extends JobProcessor.Factory<PumpChecker> { }
+
+  public static final class Module extends AbstractModule {
+    @Override
+    protected void configure() {
+      install(new FactoryModuleBuilder()
+          .implement(new TypeLiteral<JobProcessor<PumpChecker>>() {}, PumpCheckerProcessor.class)
+          .build(Factory.class));
+    }
   }
 }

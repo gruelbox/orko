@@ -9,6 +9,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.spi.Job;
+import com.grahamcrockford.oco.core.spi.KeepAliveEvent;
 
 @Singleton
 class GuardianLoop extends AbstractExecutionThreadService {

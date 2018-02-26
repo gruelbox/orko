@@ -71,7 +71,7 @@ public abstract class PumpChecker implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<PumpCheckerProcessor> processor() {
-    return PumpCheckerProcessor.class;
+  public final Class<PumpCheckerProcessor.Factory> processorFactory() {
+    return PumpCheckerProcessor.Factory.class;
   }
 }

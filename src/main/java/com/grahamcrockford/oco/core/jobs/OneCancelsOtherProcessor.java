@@ -1,20 +1,21 @@
 package com.grahamcrockford.oco.core.jobs;
 
-import java.util.function.Consumer;
-
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.grahamcrockford.oco.core.api.JobSubmitter;
+import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
+import com.grahamcrockford.oco.core.api.JobSubmitter;
+import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
-@Singleton
 class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OneCancelsOtherProcessor.class);
@@ -31,26 +32,36 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
 
   private final JobSubmitter jobSubmitter;
   private final TelegramService telegramService;
-  private final ExchangeEventRegistry tickerRegistry;
+  private final ExchangeEventRegistry exchangeEventRegistry;
 
-  @Inject
-  OneCancelsOtherProcessor(JobSubmitter jobSubmitter, TelegramService telegramService, ExchangeEventRegistry tickerRegistry) {
+  private final OneCancelsOther job;
+  private final JobControl jobControl;
+
+  @AssistedInject
+  OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
+                           @Assisted JobControl jobControl,
+                           JobSubmitter jobSubmitter,
+                           TelegramService telegramService,
+                           ExchangeEventRegistry exchangeEventRegistry) {
+    this.job = job;
+    this.jobControl = jobControl;
     this.jobSubmitter = jobSubmitter;
     this.telegramService = telegramService;
-    this.tickerRegistry = tickerRegistry;
+    this.exchangeEventRegistry = exchangeEventRegistry;
   }
 
   @Override
-  public void start(OneCancelsOther job, Consumer<OneCancelsOther> onUpdate, Runnable onFinished) {
-    tickerRegistry.registerTicker(job.tickTrigger(), job.id(), ticker -> process(job, ticker, onFinished));
+  public boolean start() {
+    exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
+    return true;
   }
 
   @Override
-  public void stop(OneCancelsOther job) {
-    tickerRegistry.unregisterTicker(job.tickTrigger(), job.id());
+  public void stop() {
+    exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
   }
 
-  private void process(OneCancelsOther job, Ticker ticker, Runnable onFinished) {
+  private void tick(Ticker ticker) {
 
     final TickerSpec ex = job.tickTrigger();
 
@@ -78,7 +89,7 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
       ));
 
       jobSubmitter.submitNew(job.low().job());
-      onFinished.run();
+      jobControl.finish();
       return;
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
@@ -95,9 +106,20 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
       ));
 
       jobSubmitter.submitNew(job.high().job());
-      onFinished.run();
+      jobControl.finish();
       return;
 
+    }
+  }
+
+  public interface Factory extends JobProcessor.Factory<OneCancelsOther> { }
+
+  public static final class Module extends AbstractModule {
+    @Override
+    protected void configure() {
+      install(new FactoryModuleBuilder()
+          .implement(new TypeLiteral<JobProcessor<OneCancelsOther>>() {}, OneCancelsOtherProcessor.class)
+          .build(Factory.class));
     }
   }
 }
