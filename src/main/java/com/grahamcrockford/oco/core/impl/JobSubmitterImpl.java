@@ -104,7 +104,7 @@ class JobSubmitterImpl implements JobSubmitter {
         return;
       if (!jobLocker.updateLock(job.id(), uuid)) {
         if (stopAndUnregister())
-          LOGGER.info(job + " stopped due to loss of lock");
+          LOGGER.debug(job + " stopped due to loss of lock");
       }
     }
 
@@ -116,7 +116,7 @@ class JobSubmitterImpl implements JobSubmitter {
         return;
       }
       jobLocker.releaseLock(job.id(), uuid);
-      LOGGER.info(job + " stopped due to shutdown");
+      LOGGER.debug(job + " stopped due to shutdown");
     }
 
     @Override

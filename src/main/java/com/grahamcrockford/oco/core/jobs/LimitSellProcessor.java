@@ -46,7 +46,7 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
   public boolean start() {
     final TickerSpec ex = job.tickTrigger();
 
-    LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}]", job.amount(), ex.base(), job.limitPrice(), ex.counter());
+    LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}] on {}", job.amount(), ex.base(), job.limitPrice(), ex.counter(), ex.exchange());
     final TradeService tradeService = tradeServiceFactory.getForExchange(ex.exchange());
     final Date timestamp = new Date();
     final LimitOrder order = new LimitOrder(Order.OrderType.ASK, job.amount(), ex.currencyPair(), null, timestamp, job.limitPrice());
