@@ -87,8 +87,8 @@ class JobSubmitterImpl implements JobSubmitter {
         throw new IllegalStateException("Job lifecycle status indicates re-use of lifetime manager: " + job);
       LOGGER.debug(job + " starting...");
       if (!processor.start()) {
-        processor.stop();
         advancedOrderAccess.delete(job.id());
+        processor.stop();
         status.set(JobStatus.STOPPED);
         LOGGER.debug(job + " finished immediately");
       } else {

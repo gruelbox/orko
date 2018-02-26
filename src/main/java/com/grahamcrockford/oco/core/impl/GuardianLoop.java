@@ -64,7 +64,11 @@ class GuardianLoop extends AbstractExecutionThreadService {
     boolean locksFailed = false;
     for (Job job : advancedOrderAccess.list()) {
       foundJobs = true;
-      locksFailed = !jobSubmitter.submitExisting(job);
+      try {
+        locksFailed = !jobSubmitter.submitExisting(job);
+      } catch (Throwable e) {
+        LOGGER.error("Failed to start job [" + job + "]", e);
+      }
     }
     if (!foundJobs) {
       LOGGER.debug("Nothing running");

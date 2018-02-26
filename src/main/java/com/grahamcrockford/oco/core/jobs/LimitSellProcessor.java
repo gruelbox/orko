@@ -24,10 +24,13 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
   private static final Logger LOGGER = LoggerFactory.getLogger(LimitSellProcessor.class);
 
   private final TelegramService telegramService;
-  private final TradeServiceFactory tradeServiceFactory;
   private final JobSubmitter jobSubmitter;
+  private final TradeServiceFactory tradeServiceFactory;
 
   private final LimitSell job;
+
+  private TradeService tradeService;
+  private LimitOrder order;
 
 
   @AssistedInject
@@ -42,21 +45,29 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
     this.jobSubmitter = jobSubmitter;
   }
 
+  /**
+   * We do preparatory work in the start method - retries are safe.
+   */
   @Override
   public boolean start() {
-    final TickerSpec ex = job.tickTrigger();
+    this.tradeService = tradeServiceFactory.getForExchange(job.tickTrigger().exchange());
+    this.order = new LimitOrder(Order.OrderType.ASK, job.amount(), job.tickTrigger().currencyPair(), null, new Date(), job.limitPrice());
+    return false;
+  }
 
-    LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}] on {}", job.amount(), ex.base(), job.limitPrice(), ex.counter(), ex.exchange());
-    final TradeService tradeService = tradeServiceFactory.getForExchange(ex.exchange());
-    final Date timestamp = new Date();
-    final LimitOrder order = new LimitOrder(Order.OrderType.ASK, job.amount(), ex.currencyPair(), null, timestamp, job.limitPrice());
 
+  /**
+   * We do the actual trade n the stop handler to make absolutely sure that
+   * the code is never retried.
+   */
+  @Override
+  public void stop() {
     String xChangeOrderId;
     try {
       xChangeOrderId = tradeService.placeLimitOrder(order);
     } catch (Throwable e) {
       reportFailed(job, e);
-      return false;
+      return;
     }
 
     reportSuccess(job,  xChangeOrderId);
@@ -67,13 +78,6 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
         .description("Stop")
         .orderId(xChangeOrderId)
         .build());
-
-    return false;
-  }
-
-  @Override
-  public void stop() {
-    // Nothing to do
   }
 
   private void reportSuccess(final LimitSell job, String xChangeOrderId) {

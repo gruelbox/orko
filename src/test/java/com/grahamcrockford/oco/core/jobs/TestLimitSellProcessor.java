@@ -75,6 +75,7 @@ public class TestLimitSellProcessor {
 
     LimitSellProcessor processor = new LimitSellProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
     boolean result = processor.start();
+    processor.stop();
 
     verifyLimitSell();
     verifySubmitWatcher();
@@ -101,6 +102,7 @@ public class TestLimitSellProcessor {
 
     LimitSellProcessor processor = new LimitSellProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
     boolean result = processor.start();
+    processor.stop();
 
     verifyLimitSell();
     verifySentMessage();
