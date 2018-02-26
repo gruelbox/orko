@@ -151,6 +151,29 @@ public class TestJobExecutionIntegration {
 
 
   /**
+   * Handle jobs getting updated and continuing.
+   */
+  @Test
+  public void testUpdate() throws Exception {
+    CountDownLatch start = new CountDownLatch(2);
+    CountDownLatch completion = new CountDownLatch(2);
+    addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).update(true).startLatch(start).completionLatch(completion).build(), false);
+
+    start();
+
+    // We expect to have started twice but finished once
+    Assert.assertTrue(start.await(WAIT_SECONDS, TimeUnit.SECONDS));
+    Assert.assertFalse(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+
+    // Mimic shutdown
+    asyncEventBus.post(StopEvent.INSTANCE);
+
+    // Should die
+    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+  }
+
+
+  /**
    * Three jobs which should run a single tick then stop.
    */
   @Test

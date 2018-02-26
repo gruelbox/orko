@@ -21,7 +21,7 @@ import com.grahamcrockford.oco.core.spi.JobBuilder;
 public abstract class TestingJob implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_TestingJob.Builder().runAsync(false).stayResident(false);
+    return new AutoValue_TestingJob.Builder().runAsync(false).update(false).stayResident(false);
   }
 
   @AutoValue.Builder
@@ -35,14 +35,13 @@ public abstract class TestingJob implements Job {
 
     public abstract Builder runAsync(boolean runAsync);
     public abstract Builder stayResident(boolean stayResident);
+    public abstract Builder update(boolean update);
 
     public abstract Builder startLatch(CountDownLatch startLatch);
     public abstract Builder completionLatch(CountDownLatch completionLatch);
 
     @Override
     public abstract TestingJob build();
-
-
   }
 
   @Override
@@ -57,6 +56,7 @@ public abstract class TestingJob implements Job {
 
   public abstract boolean runAsync();
   public abstract boolean stayResident();
+  public abstract boolean update();
 
   @Nullable
   public abstract CountDownLatch startLatch();

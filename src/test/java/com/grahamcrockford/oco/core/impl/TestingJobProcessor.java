@@ -44,6 +44,8 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
       job.startLatch().countDown();
     if (!job.stayResident())
       jobControl.finish();
+    if (job.update())
+      jobControl.replace(job.toBuilder().update(false).build());
   }
 
   @Override

@@ -129,7 +129,7 @@ class JobSubmitterImpl implements JobSubmitter {
         return;
       }
       advancedOrderAccess.update(newVersion, (Class) newVersion.getClass());
-      asyncEventBus.register(new JobLifetimeManager(newVersion));
+      new JobLifetimeManager(newVersion).start();
       LOGGER.debug(newVersion + " replaced");
     }
 
