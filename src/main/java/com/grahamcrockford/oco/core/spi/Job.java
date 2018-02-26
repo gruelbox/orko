@@ -9,4 +9,5 @@ public interface Job {
   public String id();
   public JobBuilder<? extends Job> toBuilder();
   public Class<? extends JobProcessor<? extends Job>> processor();
+
 }

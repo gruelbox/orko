@@ -1,18 +1,20 @@
 package com.grahamcrockford.oco.core.jobs;
 
-import java.util.Optional;
+import java.util.function.Consumer;
+
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.core.api.ExchangeService;
+import com.google.inject.Singleton;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
+import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
-import com.grahamcrockford.oco.util.Sleep;
 
+@Singleton
 class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OneCancelsOtherProcessor.class);
@@ -27,24 +29,30 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
     LogColumn.builder().name("High target").width(13).rightAligned(true)
   );
 
-  private final ExchangeService exchangeService;
   private final JobSubmitter jobSubmitter;
   private final TelegramService telegramService;
-  private final Sleep sleep;
+  private final ExchangeEventRegistry tickerRegistry;
 
   @Inject
-  OneCancelsOtherProcessor(ExchangeService exchangeService, JobSubmitter jobSubmitter, TelegramService telegramService, Sleep sleep) {
-    this.exchangeService = exchangeService;
+  OneCancelsOtherProcessor(JobSubmitter jobSubmitter, TelegramService telegramService, ExchangeEventRegistry tickerRegistry) {
     this.jobSubmitter = jobSubmitter;
     this.telegramService = telegramService;
-    this.sleep = sleep;
+    this.tickerRegistry = tickerRegistry;
   }
 
   @Override
-  public Optional<OneCancelsOther> process(OneCancelsOther job) throws InterruptedException {
+  public void start(OneCancelsOther job, Consumer<OneCancelsOther> onUpdate, Runnable onFinished) {
+    tickerRegistry.registerTicker(job.tickTrigger(), job.id(), ticker -> process(job, ticker, onFinished));
+  }
+
+  @Override
+  public void stop(OneCancelsOther job) {
+    tickerRegistry.unregisterTicker(job.tickTrigger(), job.id());
+  }
+
+  private void process(OneCancelsOther job, Ticker ticker, Runnable onFinished) {
 
     final TickerSpec ex = job.tickTrigger();
-    Ticker ticker = exchangeService.fetchTicker(ex);
 
     COLUMN_LOGGER.line(
         job.id(),
@@ -70,8 +78,8 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
       ));
 
       jobSubmitter.submitNew(job.low().job());
-
-      return Optional.empty();
+      onFinished.run();
+      return;
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
@@ -87,10 +95,9 @@ class OneCancelsOtherProcessor implements JobProcessor<OneCancelsOther> {
       ));
 
       jobSubmitter.submitNew(job.high().job());
-      return Optional.empty();
-    }
+      onFinished.run();
+      return;
 
-    sleep.sleep();
-    return Optional.of(job);
+    }
   }
 }

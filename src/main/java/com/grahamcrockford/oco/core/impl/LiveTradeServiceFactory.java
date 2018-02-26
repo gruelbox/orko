@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.core.impl;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.service.trade.TradeService;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.OcoConfiguration;
@@ -31,7 +32,7 @@ class LiveTradeServiceFactory implements TradeServiceFactory {
       return paperTradeServiceFactory.getForExchange(exchange);
     }
     final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(exchange);
-    if (exchangeConfiguration == null) {
+    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey())) {
       return paperTradeServiceFactory.getForExchange(exchange);
     }
     return exchangeService.get(exchange).getTradeService();

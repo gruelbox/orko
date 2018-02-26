@@ -13,6 +13,7 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Singleton;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
@@ -20,6 +21,7 @@ import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
 
+@Singleton
 class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SoftTrailingStopProcessor.class);

@@ -8,6 +8,4 @@ public interface JobSubmitter {
 
   boolean submitExisting(Job job);
 
-  void shutdown() throws InterruptedException;
-
 }

@@ -1,7 +1,6 @@
 package com.grahamcrockford.oco.core.spi;
 
 import org.knowm.xchange.currency.CurrencyPair;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

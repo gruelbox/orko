@@ -1,7 +1,7 @@
 package com.grahamcrockford.oco.core.jobs;
 
 import java.util.Date;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -36,8 +36,7 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
   }
 
   @Override
-  public Optional<LimitSell> process(final LimitSell job) throws InterruptedException {
-
+  public void start(LimitSell job, Consumer<LimitSell> onUpdate, Runnable onFinished) {
     final TickerSpec ex = job.tickTrigger();
 
     LOGGER.info("| - Placing limit sell of [{} {}] at limit price [{} {}]", job.amount(), ex.base(), job.limitPrice(), ex.counter());
@@ -50,7 +49,8 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
       xChangeOrderId = tradeService.placeLimitOrder(order);
     } catch (Throwable e) {
       reportFailed(job, e);
-      return Optional.empty();
+      onFinished.run();
+      return;
     }
 
     reportSuccess(job,  xChangeOrderId);
@@ -62,8 +62,12 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
         .orderId(xChangeOrderId)
         .build());
 
-    return Optional.empty();
+    onFinished.run();
+  }
 
+  @Override
+  public void stop(LimitSell job) {
+    // Nothing to do
   }
 
   private void reportSuccess(final LimitSell job, String xChangeOrderId) {

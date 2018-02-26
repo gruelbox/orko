@@ -1,29 +1,36 @@
 package com.grahamcrockford.oco.core.impl;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
-import com.grahamcrockford.oco.core.impl.JobExecutor.Factory;
 import com.grahamcrockford.oco.core.spi.Job;
+import com.grahamcrockford.oco.core.spi.JobProcessor;
 
+@Singleton
 class JobSubmitterImpl implements JobSubmitter {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobSubmitterImpl.class);
 
   private final JobAccess advancedOrderAccess;
   private final JobLocker jobLocker;
-  private final ExecutorService executorService;
-  private final Factory jobExecutorFactory;
   private final UUID uuid;
+  private final Injector injector;
+  private final AsyncEventBus asyncEventBus;
 
   @Inject
-  JobSubmitterImpl(JobAccess advancedOrderAccess, JobLocker jobLocker, JobExecutor.Factory jobExecutorFactory) {
+  JobSubmitterImpl(JobAccess advancedOrderAccess, JobLocker jobLocker, Injector injector, AsyncEventBus asyncEventBus) {
     this.advancedOrderAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
-    this.jobExecutorFactory = jobExecutorFactory;
-    this.executorService = Executors.newCachedThreadPool();
+    this.injector = injector;
+    this.asyncEventBus = asyncEventBus;
     this.uuid = UUID.randomUUID();
   }
 
@@ -45,19 +52,56 @@ class JobSubmitterImpl implements JobSubmitter {
   public boolean submitExisting(Job job) {
     if (jobLocker.attemptLock(job.id(), uuid)) {
       job = advancedOrderAccess.load(job.id());
-      executorService.execute(jobExecutorFactory.create(job, uuid));
+      LOGGER.info(job + " starting...");
+      asyncEventBus.register(new JobLifetime(job));
       return true;
     } else {
       return false;
     }
   }
 
-  /**
-   * @see com.grahamcrockford.oco.core.api.JobSubmitter#shutdown()
-   */
-  @Override
-  public void shutdown() throws InterruptedException {
-    executorService.shutdownNow();
-    executorService.awaitTermination(30, TimeUnit.SECONDS);
+  private final class JobLifetime {
+
+    private Job job;
+    private final JobProcessor<Job> processor;
+
+    @SuppressWarnings("unchecked")
+    JobLifetime(Job job) {
+      this.job = job;
+      this.processor = (JobProcessor<Job>) injector.getInstance(job.processor());
+      processor.start(job, this::onUpdated, this::onFinished);
+      LOGGER.debug(job + " started");
+    }
+
+    @Subscribe
+    public void onKeepAlive(KeepAliveEvent keepAlive) {
+      if (!jobLocker.updateLock(job.id(), uuid)) {
+        asyncEventBus.unregister(this);
+        processor.stop(job);
+        LOGGER.info(job + " stopped");
+      }
+    }
+
+    @Subscribe
+    public void stop(StopEvent stop) {
+      LOGGER.debug(job + " stopping...");
+      processor.stop(job);
+      jobLocker.releaseLock(job.id(), uuid);
+      LOGGER.info(job + " stopped");
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public void onUpdated(Job newVersion) {
+      LOGGER.debug("Saving updated job: " + newVersion);
+      advancedOrderAccess.update(newVersion, (Class) newVersion.getClass());
+      processor.stop(job);
+      this.job = newVersion;
+      processor.start(newVersion, this::onUpdated, this::onFinished);
+    }
+
+    public void onFinished() {
+      LOGGER.info(job + " finished");
+      advancedOrderAccess.delete(job.id());
+    }
   }
 }

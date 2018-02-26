@@ -33,6 +33,8 @@ public class OcoConfiguration extends Configuration {
   @NotNull
   private TelegramConfiguration telegram;
 
+  private MqConfiguration mq;
+
   @Valid
   @NotNull
   private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
@@ -101,5 +103,15 @@ public class OcoConfiguration extends Configuration {
   @JsonProperty("jerseyClient")
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
       this.jerseyClient = jerseyClient;
+  }
+
+  @JsonProperty
+  public MqConfiguration getMq() {
+    return mq;
+  }
+
+  @JsonProperty
+  public void setMq(MqConfiguration mq) {
+    this.mq = mq;
   }
 }
