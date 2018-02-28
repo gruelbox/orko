@@ -79,7 +79,7 @@ Health Check
 
 No health checks are currently implemented.
 
-API
+Job submission API
 ---
 
 | Verb   | URI                                                   | Action | Parameters | Payload | Example |
@@ -91,10 +91,20 @@ API
 | PUT    | /jobs/limitsell                                      | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitsell?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
 | DELETE | /jobs                                                 | Deletes all active jobs | None | None | DELETE /jobs |
 | DELETE | /jobs/{id}                                            | Deletes the specified job | None | None | DELETE /jobs/512EDA231BFEA23 |
+
+Exchange API
+---
+
+| Verb   | URI                                                   | Action | Parameters | Payload | Example |
+| ------ | ----------------------------------------------------- | ---------- |---------- | ------- | ------- |
+| GET    | /exchanges                                            | Gets the list of supported exchanges | None | None | GET /exchanges |
+| GET    | /exchanges/{exchange}/counters                        | Gets the list of supported countercurrencies on the exchange (e.g. USDT, BTC) | None | None | GET /exchanges/binance/counters |
+| GET    | /exchanges/{exchange}/counters/{counter}/bases        | Gets the list of currencies which can be traded against the specified countercurrency. | None | None | GET /exchanges/binance/counters/BTC/bases |
 | GET    | /exchanges/{exchange}/markets/{base}-{counter}/ticker | Gets the current ticker | None | None | GET /exchanges/gdax/markets/BTC-EUR/ticker |
 | GET    | /exchanges/{exchange}/markets/{base}-{counter}/orders | Gets your open orders on the specified ticker. | None | None | GET /exchanges/kucoin/markets/DRGN-BTC/orders |
 | GET    | /exchanges/{exchange}/orders                          | Gets your open orders on the specified exchange. Not supported on many exchanges. | None | None | GET /exchanges/gdax/orders |
 | GET    | /exchanges/{exchange}/orders/{id}                     | Gets a specific order. | None | None | GET /exchanges/binance/orders/DRGN-BTC/orders/5a9098f1d038110f1c4b7b0e |
+
 
 Advanced examples
 ---

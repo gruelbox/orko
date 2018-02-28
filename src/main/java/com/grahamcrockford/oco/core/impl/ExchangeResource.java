@@ -8,10 +8,12 @@ import java.util.stream.Collectors;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.knowm.xchange.Exchange;
@@ -50,6 +52,36 @@ public class ExchangeResource implements WebResource {
   @RolesAllowed(Roles.PUBLIC)
   public Collection<String> list() {
     return exchanges.getExchanges();
+  }
+
+  @GET
+  @Timed
+  @Path("{exchange}/counters")
+  @RolesAllowed(Roles.PUBLIC)
+  public Collection<String> counters(@PathParam("exchange") String exchange) {
+    return exchanges.get(exchange)
+        .getExchangeMetaData()
+        .getCurrencyPairs()
+        .keySet()
+        .stream()
+        .map(currencyPair -> currencyPair.counter.getCurrencyCode())
+        .collect(Collectors.toSet());
+  }
+
+  @GET
+  @Timed
+  @Path("{exchange}/counters/{counter}/bases")
+  @RolesAllowed(Roles.PUBLIC)
+  public Collection<String> bases(@PathParam("exchange") String exchange,
+                                  @PathParam("counter") String counter) {
+    return exchanges.get(exchange)
+        .getExchangeMetaData()
+        .getCurrencyPairs()
+        .keySet()
+        .stream()
+        .filter(currencyPair -> currencyPair.counter.getCurrencyCode().equals(counter))
+        .map(currencyPair -> currencyPair.base.getCurrencyCode())
+        .collect(Collectors.toSet());
   }
 
   @GET
