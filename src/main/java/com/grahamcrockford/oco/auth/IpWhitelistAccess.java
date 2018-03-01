@@ -16,6 +16,7 @@ import com.grahamcrockford.oco.db.DbConfiguration;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
@@ -39,11 +40,21 @@ class IpWhitelistAccess {
   }
 
   public void setIp(String ip) {
-    BasicDBObject doc = new BasicDBObject()
-        .append("uid", SINGLETON_OBJECT_ID)
-        .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-        .append("ip", ip);
-    collection.get().save(doc);
+    try {
+      BasicDBObject doc = new BasicDBObject()
+          .append("uid", SINGLETON_OBJECT_ID)
+          .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
+          .append("ip", ip);
+      collection.get().insert(doc);
+    } catch (DuplicateKeyException e) {
+      collection.get().update(
+        new BasicDBObject()
+          .append("uid", SINGLETON_OBJECT_ID),
+        new BasicDBObject()
+          .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
+          .append("ip", ip)
+      );
+    }
   }
 
   public String getIp() {
