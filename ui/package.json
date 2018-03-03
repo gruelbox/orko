@@ -4,10 +4,11 @@
   "private": true,
   "dependencies": {
     "fetch": "^1.1.0",
-    "material-ui": "^0.20.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-tradingview-widget": "^1.2.2",
+    "semantic-ui-css": "^2.3.0",
+    "semantic-ui-react": "^0.78.3",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
