@@ -4,9 +4,14 @@
   "private": true,
   "dependencies": {
     "fetch": "^1.1.0",
+    "immutable": "^3.8.2",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "react-redux": "^5.0.7",
     "react-tradingview-widget": "^1.2.2",
+    "redux": "^3.7.2",
+    "redux-cache": "^0.3.0",
+    "redux-thunk": "^2.2.0",
     "semantic-ui-css": "^2.3.0",
     "semantic-ui-react": "^0.78.3",
     "whatwg-fetch": "^2.0.3"

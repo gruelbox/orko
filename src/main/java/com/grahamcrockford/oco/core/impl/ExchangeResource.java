@@ -1,19 +1,21 @@
 package com.grahamcrockford.oco.core.impl;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.knowm.xchange.Exchange;
@@ -26,6 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Maps;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.api.ExchangeService;
@@ -89,8 +95,47 @@ public class ExchangeResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public OpenOrders orders(@PathParam("exchange") String exchange) throws IOException {
-    return exchanges.get(exchange).getTradeService().getOpenOrders();
+    return exchanges.get(exchange)
+        .getTradeService()
+        .getOpenOrders();
   }
+
+  @GET
+  @Path("{exchange}/balance/{currencies}")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public Map<String, Balance> balances(@PathParam("exchange") String exchange, @PathParam("currencies") String currenciesAsString) throws IOException {
+
+    Set<String> currencies = Stream.of(currenciesAsString.split(","))
+        .collect(Collectors.toSet());
+
+    FluentIterable<Balance> balances = FluentIterable.from(
+        exchanges.get(exchange)
+          .getAccountService()
+          .getAccountInfo()
+          .getWallet()
+          .getBalances()
+          .entrySet()
+      )
+      .transform(Map.Entry::getValue)
+      .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()))
+      .transform(balance -> {
+        Balance result = new Balance();
+        result.currency = balance.getCurrency().getCurrencyCode();
+        result.total = balance.getTotal();
+        result.available = balance.getAvailable();
+        return result;
+      });
+
+    return Maps.uniqueIndex(balances, balance -> balance.currency);
+  }
+
+  public static final class Balance {
+    @JsonIgnore public String currency;
+    @JsonProperty public BigDecimal total;
+    @JsonProperty public BigDecimal available;
+  }
+
 
   @GET
   @Path("{exchange}/currencies/{currency}/orders")
