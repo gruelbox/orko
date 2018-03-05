@@ -20,7 +20,10 @@ export const fetchBalances = (exchange, currencies) => (dispatch, getState) => {
 		type: FETCH_BALANCE_REQUEST
     });
     
-    const meta = { exchange: exchange, currencies: currencies };
+    const meta = {
+        exchange: exchange,
+        currencies: currencies
+    };
 
     fetch(new Request('http://localhost:8080/api/exchanges/' + exchange + '/balance/' + currencies.join(","), {
         method: 'GET', 
@@ -50,35 +53,52 @@ export const fetchBalances = (exchange, currencies) => (dispatch, getState) => {
     });
 };
 
-export const initialState = Map({
-    [DEFAULT_KEY]: null
-});
+const zeroBalance = {
+    available: 0,
+    total: 0
+}
+
+export const initialState = {
+    [DEFAULT_KEY]: null,
+    balances: Map(),
+    get: function(exchange, currency) {
+        if (!this.balances)
+            return zeroBalance;
+        const forExchange = this.balances.get(exchange);
+        if (!forExchange)
+            return zeroBalance;
+        const balance = forExchange.get(currency);
+        if (!balance)
+            return zeroBalance;
+        return balance; 
+    }
+};
 
 export const reducer = (state = initialState, action) => {
 
     if (!action || !action.meta)
         return state;
 
-    const emptyResult = () => state.withMutations(to => {
-        to.set(DEFAULT_KEY, generateCacheTTL());
-        for (var currency in action.meta.currencies) {
-            to.setIn([action.meta.exchange, currency], { available: 0, total: 0 });
-        }  
+    const defaultResponse = () => ({
+        ...state,
+        [DEFAULT_KEY]: generateCacheTTL(),
     });
 
     switch (action.type) {
         case FETCH_BALANCE_SUCCESS:
             if (!action.payload)
-                return emptyResult(); 
-            const newState = state.withMutations(to => {
-                to.set(DEFAULT_KEY, generateCacheTTL());
-                action.meta.currencies.forEach(c => {
-                    to.setIn([action.meta.exchange, c], action.payload[c]);
-                }); 
-            });
-            return newState;
+                return defaultResponse();
+            return {
+                ...state,
+                [DEFAULT_KEY]: generateCacheTTL(),
+                balances: state.balances.withMutations(to => {
+                    action.meta.currencies.forEach(c => {
+                        to.setIn([action.meta.exchange, c], action.payload[c]);
+                    }); 
+                })
+            }
         case FETCH_BALANCE_FAILURE:
-            return emptyResult();
+            return defaultResponse();
         default:
             return state;
     }

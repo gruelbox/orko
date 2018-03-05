@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Icon, Input, Header, Select, Button, Form, Segment } from 'semantic-ui-react'
 import './App.css';
 import { connect } from 'react-redux';
-import { tickerName } from './redux/ticker';
+import PropTypes from 'prop-types';
 
 export const BUY = 'buy';
 export const SELL = 'sell';
@@ -15,32 +15,9 @@ class SimpleTrade extends Component {
     const description = this.props.direction === BUY ? 'Limit Buy' : 'Limit Sell';
     const buttonText = this.props.direction === BUY ? 'Buy' : 'Sell';
 
-    var baseBalance = {
-      available: 0,
-      total: 0
-    };
-    var counterBalance = {
-      available: 0,
-      total: 0
-    };
-
-    if (this.props.balances && this.props.balances.get(this.props.exchange)) {
-      const balances = this.props.balances.get(this.props.exchange);
-      if (balances) {
-        if (balances.get(this.props.base))
-          baseBalance = balances.get(this.props.base);
-        if (balances.get(this.props.counter))
-          counterBalance = balances.get(this.props.counter);
-      }
-    }
-
-    var ticker = this.props.tickers.get(tickerName(this.props));
-    if (!ticker) {
-      ticker = {
-        ask: 0,
-        bid: 0
-      };
-    }
+    var baseBalance = this.props.balances.get(this.props.exchange, this.props.base);
+    var counterBalance = this.props.balances.get(this.props.exchange, this.props.counter);
+    var ticker = this.props.tickers.get(this.props);
 
     const price = this.props.direction === BUY ? ticker.ask : ticker.bid;
     
@@ -76,9 +53,15 @@ class SimpleTrade extends Component {
   }
 }
 
+SimpleTrade.propTypes = {
+  direction: PropTypes.string.isRequired,
+  base: PropTypes.string.isRequired,
+  counter: PropTypes.string.isRequired
+};
+
 const mapStateToProps = state => ({
   balances: state.balances,
   tickers: state.tickers,
-})
+});
 
 export default connect(mapStateToProps) (SimpleTrade);

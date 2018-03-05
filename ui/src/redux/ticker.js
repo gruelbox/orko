@@ -45,40 +45,49 @@ export const fetchTicker = (exchange, counter, base) => (dispatch, getState) => 
             meta: meta,
             payload: error,
         });
-    });
+    }); 
 };
 
-export const initialState = Map({ [DEFAULT_KEY]: null });
+function tickerName(spec) {
+    return spec.exchange + "-" + spec.base + "-" + spec.counter
+}
+
+const defaultTicker = {
+    ask: 0,
+    bid: 0
+};
+
+export const initialState = {
+    [DEFAULT_KEY]: null,
+    tickers: Map(),
+    get: function(spec) {
+        const ticker = this.tickers ? this.tickers.get(tickerName(spec)) : defaultTicker;
+        return ticker ? ticker : defaultTicker;
+    }
+};
 
 export const reducer = (state = initialState, action) => {
 
     if (!action || !action.meta)
         return state;
 
-    const emptyResult = () => state.withMutations(to => {
-        to.set(DEFAULT_KEY, generateCacheTTL());
-        to.set(tickerName(action.meta), {
-            bid: 0,
-            ask: 0
-        });
+    const emptyResult = () => ({
+        ...state,
+        [DEFAULT_KEY]: generateCacheTTL()
     });
 
     switch (action.type) {
         case FETCH_TICKER_SUCCESS:
             if (!action.payload)
                 return emptyResult(); 
-            const newState = state.withMutations(to => {
-                to.set(DEFAULT_KEY, generateCacheTTL());
-                to.set(tickerName(action.meta), action.payload);
-            });
-            return newState;
+            return {
+                ...state,
+                [DEFAULT_KEY]: generateCacheTTL(),
+                tickers: state.tickers.set(tickerName(action.meta), action.payload)
+            }
         case FETCH_TICKER_FAILURE:
             return emptyResult();
         default:
             return state;
     }
-}
-
-export function tickerName(spec) {
-    return spec.exchange + "-" + spec.base + "-" + spec.counter
 }

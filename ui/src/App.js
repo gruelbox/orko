@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Segment } from 'semantic-ui-react'
 import SimpleTrade from './SimpleTrade';
+import { BUY, SELL } from './SimpleTrade';
 import './App.css';
 import { fetchBalances } from './redux/balance';
 import { fetchTicker } from './redux/ticker';
@@ -17,8 +18,8 @@ class App extends Component {
   render() {
     return (
       <Segment.Group horizontal>
-        <SimpleTrade direction="buy" exchange="binance" base="VEN" counter="BTC"/>
-        <SimpleTrade direction="sell" exchange="binance" base="VEN" counter="BTC"/>
+        <SimpleTrade direction={BUY} exchange="binance" base="VEN" counter="BTC"/>
+        <SimpleTrade direction={SELL} exchange="binance" base="VEN" counter="BTC"/>
       </Segment.Group>
     )
   }
