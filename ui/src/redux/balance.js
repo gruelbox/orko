@@ -12,26 +12,27 @@ export const fetchBalances = (exchange, currencies) => (dispatch, getState) => {
     }
 
     var isCacheValid = checkCacheValid(getState, "balances");
-	if (isCacheValid) { return null; }
+	if (isCacheValid) {
+        console.log("balance: cache hit");
+        return null;
+    }
+    console.log("balance: cache miss");
     
     const meta = {
         exchange: exchange,
         currencies: currencies
     };
 
-    const headers = getState().auth.headers();
-    console.log("balance: Fetching " + headers);
-
     fetch(new Request('http://localhost:8080/api/exchanges/' + exchange + '/balance/' + currencies.join(","), {
         method: 'GET', 
         mode: 'cors', 
         redirect: 'follow',
         credentials: 'include',
-        headers: headers
+        headers: getState().auth.headers()
     }))
     .then(response => response.json())
     .then(json => {
-        console.log("balance: got: " + json)
+        console.log("balance: got: ", json)
         dispatch({
             type: FETCH_BALANCE_SUCCESS,
             meta: meta,

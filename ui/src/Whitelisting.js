@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Segment, Header, Icon, Form, Input, Button, Modal, Image } from 'semantic-ui-react'
+import { Segment, Header, Icon, Form, Input, Button, Modal } from 'semantic-ui-react'
 
 import { whitelist } from './redux/auth';
 

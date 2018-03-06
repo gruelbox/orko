@@ -9,30 +9,26 @@ class Credentials extends Component {
 
   constructor(props) {
     super(props);
-    this.onChangeUser = this.onChangeUser.bind(this);
-    this.onChangePassword = this.onChangePassword.bind(this);
-    this.onSet = this.onSet.bind(this);
-    this.onReset = this.onReset.bind(this);
     this.state = {
       username: this.props.auth.userName,
       password: this.props.auth.password
     }
   }
 
-  onChangeUser(event) {
+  onChangeUser = (event) => {
     this.setState({ userName: event.target.value });
   }
 
-  onChangePassword(event) {
+  onChangePassword = (event) => {
     this.setState({ password: event.target.value });
   }
 
-  onSet() {
+  onSet = () => {
     this.props.setCredentials(this.state.userName, this.state.password)
       .then(() => this.props.onChange());
   }
 
-  onReset() {
+  onReset = () => {
     this.setState({ username: '', password: '' });
     this.props.clearCredentials()
     this.props.onChange();
@@ -42,9 +38,11 @@ class Credentials extends Component {
     if (this.props.visible === false)
       return false;
     if (this.props.auth.valid) {
-      return <Segment>
-        <Button type='submit' onClick={this.onReset}>Change credentials</Button>
-      </Segment>
+      return (
+        <Segment>
+          <Button type='submit' onClick={this.onReset}>Change credentials</Button>
+        </Segment>
+      )
     } else {
       return (
         <Segment>

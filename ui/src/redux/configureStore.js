@@ -11,7 +11,7 @@ export const configureStore = () => {
     initialState,
     compose(
       applyMiddleware(...middleware),
-		  cacheEnhancer({ log: true }),
+		  cacheEnhancer({ log: false }),
     )
   );
 }

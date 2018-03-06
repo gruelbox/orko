@@ -17,6 +17,21 @@ export const clearCredentials = () => (dispatch, getState) => {
     });
 };
 
+export const checkWhitelist = () => (dispatch, getState) => {
+    return fetch(new Request('http://localhost:8080/api/auth', {
+        method: 'GET', 
+        mode: 'cors', 
+        redirect: 'follow'
+    }))
+    .then(response => response.text())
+    .then(text => {
+        dispatch({
+            type: WHITELIST,
+            meta: { status: text }
+        });
+    });
+};
+
 export const whitelist = (token) => (dispatch, getState) => {
     return fetch(new Request('http://localhost:8080/api/auth?token=' + token, {
         method: 'PUT', 
@@ -26,7 +41,8 @@ export const whitelist = (token) => (dispatch, getState) => {
     .then(response => {
         if (response.status === 200) {
             dispatch({
-                type: WHITELIST
+                type: WHITELIST,
+                meta: { status: true }
             });
         }
     });
@@ -89,7 +105,7 @@ export const reducer = (state = initialState, action) => {
         case WHITELIST:
             return {
                 ...state,
-                whitelisted: true
+                whitelisted: action.meta.status
             }
         default:
             return state;
