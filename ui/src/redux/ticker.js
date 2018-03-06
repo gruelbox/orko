@@ -1,34 +1,32 @@
 import { DEFAULT_KEY, checkCacheValid, generateCacheTTL } from 'redux-cache';
 import { Map } from 'immutable';
 
-export const FETCH_TICKER_REQUEST = 'Ticker.FETCH_TICKER_REQUEST';
 export const FETCH_TICKER_SUCCESS = 'Ticker.FETCH_TICKER_SUCCESS';
 export const FETCH_TICKER_FAILURE = 'Ticker.FETCH_TICKER_FAILURE';
 
 export const fetchTicker = (exchange, counter, base) => (dispatch, getState) => {
 
-    var isCacheValid = checkCacheValid(getState, "ticker-" + exchange + "-" + counter + "-" + base);
+    if (!getState().auth.valid)
+        return null;
+
+    var isCacheValid = checkCacheValid(getState, "tickers");
 	if (isCacheValid) { return null; }
 
-	dispatch({
-		type: FETCH_TICKER_REQUEST
-    });
-    
     const meta = {
         exchange: exchange,
         counter: counter,
         base: base
     };
 
+    const headers = getState().auth.headers();
+    console.log("ticker: Fetching " + headers);
+
     fetch(new Request('http://localhost:8080/api/exchanges/' + exchange + '/markets/' + base + "-" + counter + "/ticker", {
         method: 'GET', 
         mode: 'cors', 
         redirect: 'follow',
         credentials: 'include',
-        headers: new Headers({
-            "Authorization": "Basic YnVsbHk6Ym95",
-            "Content-type": "application/json"
-        })
+        headers: headers
     }))
     .then(response => response.json())
     .then(json => {
@@ -68,25 +66,25 @@ export const initialState = {
 
 export const reducer = (state = initialState, action) => {
 
-    if (!action || !action.meta)
-        return state;
-
-    const emptyResult = () => ({
+    const defaultResponse = () => ({
         ...state,
         [DEFAULT_KEY]: generateCacheTTL()
     });
 
+    if (!action || !action.meta)
+        return defaultResponse();
+
     switch (action.type) {
         case FETCH_TICKER_SUCCESS:
             if (!action.payload)
-                return emptyResult(); 
+                return defaultResponse(); 
             return {
                 ...state,
                 [DEFAULT_KEY]: generateCacheTTL(),
                 tickers: state.tickers.set(tickerName(action.meta), action.payload)
             }
         case FETCH_TICKER_FAILURE:
-            return emptyResult();
+            return defaultResponse();
         default:
             return state;
     }

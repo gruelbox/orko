@@ -1,42 +1,37 @@
 import { DEFAULT_KEY, checkCacheValid, generateCacheTTL } from 'redux-cache';
 import { Map } from 'immutable';
 
-export const FETCH_BALANCE_REQUEST = 'Balance.FETCH_BALANCE_REQUEST';
 export const FETCH_BALANCE_SUCCESS = 'Balance.FETCH_BALANCE_SUCCESS';
 export const FETCH_BALANCE_FAILURE = 'Balance.FETCH_BALANCE_FAILURE';
 
 export const fetchBalances = (exchange, currencies) => (dispatch, getState) => {
 
-    var isCacheValid = true;
-    for (var currency in currencies) {
-        if (!checkCacheValid(getState, "balance-" + exchange + "-" + currency)) {
-            isCacheValid = false;
-            break;
-        }
+    if (!getState().auth.valid) {
+        console.log("balance: Not fetching, invalid auth")
+        return null;
     }
-	if (isCacheValid) { return null; }
 
-	dispatch({
-		type: FETCH_BALANCE_REQUEST
-    });
+    var isCacheValid = checkCacheValid(getState, "balances");
+	if (isCacheValid) { return null; }
     
     const meta = {
         exchange: exchange,
         currencies: currencies
     };
 
+    const headers = getState().auth.headers();
+    console.log("balance: Fetching " + headers);
+
     fetch(new Request('http://localhost:8080/api/exchanges/' + exchange + '/balance/' + currencies.join(","), {
         method: 'GET', 
         mode: 'cors', 
         redirect: 'follow',
         credentials: 'include',
-        headers: new Headers({
-            "Authorization": "Basic YnVsbHk6Ym95",
-            "Content-type": "application/json"
-        })
+        headers: headers
     }))
     .then(response => response.json())
     .then(json => {
+        console.log("balance: got: " + json)
         dispatch({
             type: FETCH_BALANCE_SUCCESS,
             meta: meta,
@@ -44,7 +39,7 @@ export const fetchBalances = (exchange, currencies) => (dispatch, getState) => {
         });
     })
     .catch((error) => {
-        console.log('error: ', error);
+        console.log('balance: error: ', error);
         dispatch({
             type: FETCH_BALANCE_FAILURE,
             meta: meta,
@@ -76,13 +71,13 @@ export const initialState = {
 
 export const reducer = (state = initialState, action) => {
 
-    if (!action || !action.meta)
-        return state;
-
     const defaultResponse = () => ({
         ...state,
         [DEFAULT_KEY]: generateCacheTTL(),
     });
+
+    if (!action || !action.meta)
+        return defaultResponse();
 
     switch (action.type) {
         case FETCH_BALANCE_SUCCESS:

@@ -22,7 +22,7 @@ class SimpleTrade extends Component {
     const price = this.props.direction === BUY ? ticker.ask : ticker.bid;
     
     return (
-      <Segment basic loading={price === 0}>
+      <Segment loading={price === 0} disabled={!this.props.auth.valid}>
         <Header as='h2'> 
           <Icon color={color} name='plus' />
           {description}
@@ -62,6 +62,7 @@ SimpleTrade.propTypes = {
 const mapStateToProps = state => ({
   balances: state.balances,
   tickers: state.tickers,
+  auth: state.auth,
 });
 
 export default connect(mapStateToProps) (SimpleTrade);

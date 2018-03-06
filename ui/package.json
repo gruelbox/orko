@@ -5,6 +5,7 @@
   "dependencies": {
     "fetch": "^1.1.0",
     "immutable": "^3.8.2",
+    "js-base64": "^2.4.3",
     "prop-types": "^15.6.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
