@@ -4,8 +4,6 @@ import './App.css';
 
 import { connect } from 'react-redux';
 
-import { fetchBalances } from './redux/balance';
-import { fetchTicker } from './redux/ticker';
 import { checkWhitelist } from './redux/auth';
 import { invalidateCache } from 'redux-cache';
 
@@ -28,8 +26,6 @@ class App extends Component {
   onReload() {
     console.log("App: reload");
     this.props.invalidateCache(["tickers", "balances"]);
-    this.props.fetchBalances("binance", ["VEN", "BTC"]);
-    this.props.fetchTicker("binance", "BTC", "VEN");
     console.log("App: reloaded");
   }
 
@@ -57,8 +53,6 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = {
-  fetchBalances: (exchange, currencies) => fetchBalances(exchange, currencies),
-  fetchTicker: (exchange, counter, base) => fetchTicker(exchange, counter, base),
   invalidateCache: (cacheKeys) => invalidateCache(cacheKeys),
   checkWhitelist: checkWhitelist
 };

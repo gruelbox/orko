@@ -3,6 +3,8 @@ import { Icon, Input, Header, Button, Form, Segment } from 'semantic-ui-react'
 import './App.css';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { fetchBalances } from './redux/balance';
+import { fetchTicker } from './redux/ticker';
 
 export const BUY = 'buy';
 export const SELL = 'sell';
@@ -50,6 +52,9 @@ class SimpleTrade extends Component {
 
   render() {
     console.log("SimpleTrade: render");
+
+    this.props.fetchBalances("binance", ["VEN", "BTC"]);
+    this.props.fetchTicker("binance", "BTC", "VEN");
 
     const color = this.props.direction === BUY ? 'green' : 'red';
     const description = this.props.direction === BUY ? 'Limit Buy' : 'Limit Sell';
@@ -106,4 +111,9 @@ const mapStateToProps = state => ({
   auth: state.auth,
 });
 
-export default connect(mapStateToProps) (SimpleTrade);
+const mapDispatchToProps = {
+  fetchBalances: (exchange, currencies) => fetchBalances(exchange, currencies),
+  fetchTicker: (exchange, counter, base) => fetchTicker(exchange, counter, base)
+};
+
+export default connect(mapStateToProps, mapDispatchToProps) (SimpleTrade);
