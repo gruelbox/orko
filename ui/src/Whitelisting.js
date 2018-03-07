@@ -1,15 +1,14 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-
 import { Segment, Header, Icon, Form, Input, Button, Modal } from 'semantic-ui-react'
-
 import { whitelist } from './redux/auth';
+import PropTypes from 'prop-types';
 
 class Whitelisting extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
+    this.state = {  
       token: '',
       showDialog: false
     }
@@ -49,6 +48,14 @@ class Whitelisting extends Component {
     )
   }
 }
+
+Whitelisting.propTypes = {
+  onChange: PropTypes.func
+};
+
+Whitelisting.defaultProps = {
+  onChange: () => {}
+};
 
 const mapStateToProps = state => ({
   auth: state.auth

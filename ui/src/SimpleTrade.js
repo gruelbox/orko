@@ -93,7 +93,11 @@ SimpleTrade.propTypes = {
   direction: PropTypes.string.isRequired,
   base: PropTypes.string.isRequired,
   counter: PropTypes.string.isRequired,
-  onChange: PropTypes.function
+  onChange: PropTypes.func
+};
+
+SimpleTrade.defaultProps = {
+  onChange: () => {}
 };
 
 const mapStateToProps = state => ({

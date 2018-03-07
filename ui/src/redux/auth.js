@@ -27,7 +27,7 @@ export const checkWhitelist = () => (dispatch, getState) => {
     .then(text => {
         dispatch({
             type: WHITELIST,
-            meta: { status: text }
+            meta: { status: text == 'true' }
         });
     });
 };

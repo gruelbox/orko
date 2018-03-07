@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-
 import { Segment, Header, Icon, Form, Input, Button } from 'semantic-ui-react'
-
 import { setCredentials, clearCredentials } from './redux/auth';
+import PropTypes from 'prop-types';
 
 class Credentials extends Component {
 
@@ -66,6 +65,16 @@ class Credentials extends Component {
     }
   }
 }
+
+Credentials.propTypes = {
+  visible: PropTypes.bool,
+  onChange: PropTypes.func
+};
+
+Credentials.defaultProps = {
+  visible: true,
+  onChange: () => {}
+};
 
 const mapStateToProps = state => ({
   auth: state.auth
