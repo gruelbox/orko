@@ -1,51 +1,76 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { Segment, Header, Icon, Form, Input, Button, Modal } from 'semantic-ui-react'
-import { whitelist } from './redux/auth';
+import { Segment, Header, Icon, Form, Input, Button, Loader } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
+import { AuthConsumer } from './context/AuthContext';
 
-class Whitelisting extends Component {
+const INACTIVE = 'INACTIVE';
+const PROCESSING = 'PROCESSING';
+const ERROR = 'ERROR';
+
+export default class Whitelisting extends Component {
 
   constructor(props) {
     super(props);
     this.state = {  
       token: '',
-      showDialog: false
+      processingState: INACTIVE,
+      endOfProcessingMessage: '',
+      errorText: '',
     }
   }
 
   onChangeValue = (event) => this.setState({ token: event.target.value });
 
-  onSubmit = () => this.props.whitelist(this.state.token)
+  onSubmit = (auth) => {
+    this.setState({ processingState: PROCESSING });
+    auth.whitelist(this.state.token)
       .then(() => {
+        this.setState({ endOfProcessingMessage: "Success" });
         this.props.onChange();
-        this.setState({ showDialog: true });
+        setTimeout(
+          () => this.setState({
+            processingState: INACTIVE,
+            errorText: '',
+            endOfProcessingMessage: ''
+          }),
+          1000
+        );
+      })
+      .catch(error => {
+        this.setState({ endOfProcessingMessage: error.message });
+        this.props.onChange();
+        setTimeout(
+          () => this.setState({
+            processingState: INACTIVE,
+            errorText: '',
+            endOfProcessingMessage: ''
+          }),
+          2000
+        );
       });
+  };
 
-  closeDialog = () => this.setState({ showDialog: false })
+  closeDialog = () => this.setState({ processingState: INACTIVE })
 
   render() {
     return (
-      <div>
-        <Segment>
-          <Header as='h2'>
-            <Icon name='lock' />
-            Whitelisting
-            </Header>
-          <Form>
-            <Form.Field>
-              <label>Token</label>
-              <Input type='text' placeholder='Enter token' value={this.state.token || ''} onChange={this.onChangeValue} />
-            </Form.Field>
-            <Button type='submit' onClick={this.onSubmit}>Authorise</Button>
-          </Form>
-        </Segment>
-        <Modal style={{position: "relative", top: 100}} size="tiny" dimmer="blurring" open={this.state.showDialog && !this.props.auth.whitelisted} onClose={this.closeDialog}>
-          <Modal.Content><p>Whitelisting failed</p></Modal.Content>
-          <Modal.Actions><Button color='black' onClick={this.closeDialog}>OK</Button></Modal.Actions>
-        </Modal>
-      </div>
-    )
+      <Segment>
+        <Loader active={this.state.processingState === PROCESSING || this.state.processingState === ERROR}>{this.state.endOfProcessingMessage}</Loader>
+        <Header as='h2'>
+          <Icon name='lock' />
+          Whitelisting
+          </Header>
+        <Form>
+          <Form.Field>
+            <label>Token</label>
+            <Input type='text' placeholder='Enter token' value={this.state.token || ''} onChange={this.onChangeValue} />
+          </Form.Field>
+          <AuthConsumer>{auth =>
+            <Button type='submit' onClick={event => this.onSubmit(auth)}>Authorise</Button>
+          }</AuthConsumer>
+        </Form>
+      </Segment>
+    );
   }
 }
 
@@ -56,13 +81,3 @@ Whitelisting.propTypes = {
 Whitelisting.defaultProps = {
   onChange: () => {}
 };
-
-const mapStateToProps = state => ({
-  auth: state.auth
-});
-
-const mapDispatchToProps = {
-  whitelist: whitelist
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Whitelisting);

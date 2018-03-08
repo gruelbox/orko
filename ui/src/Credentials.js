@@ -1,16 +1,22 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { Segment, Header, Icon, Form, Input, Button } from 'semantic-ui-react'
-import { setCredentials, clearCredentials } from './redux/auth';
+import { Segment, Header, Icon, Form, Input, Button, Loader } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
+import { AuthConsumer } from './context/AuthContext';
 
-class Credentials extends Component {
+const INACTIVE = 'INACTIVE';
+const PROCESSING = 'PROCESSING';
+const ERROR = 'ERROR';
+
+export default class Credentials extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      username: this.props.auth.userName,
-      password: this.props.auth.password
+    this.state = {  
+      userName: '',
+      password: '',
+      processingState: INACTIVE,
+      endOfProcessingMessage: '',
+      errorText: '',
     }
   }
 
@@ -22,47 +28,82 @@ class Credentials extends Component {
     this.setState({ password: event.target.value });
   }
 
-  onSet = () => {
-    this.props.setCredentials(this.state.userName, this.state.password)
-      .then(() => this.props.onChange());
-  }
+  onSet = (auth) => {
+    this.setState({ processingState: PROCESSING });
+    auth.setCredentials(this.state.userName, this.state.password)
+      .then(() => {
+        this.setState({ endOfProcessingMessage: "Success" });
+        this.props.onChange();
+        setTimeout(
+          () => this.setState({
+            processingState: INACTIVE,
+            errorText: '',
+            endOfProcessingMessage: ''
+          }),
+          1000
+        );
+      })
+      .catch(error => {
+        this.setState({ endOfProcessingMessage: error.message });
+        this.props.onChange();
+        setTimeout(
+          () => this.setState({
+            processingState: INACTIVE,
+            errorText: '',
+            endOfProcessingMessage: ''
+          }),
+          2000
+        );
+      });
+  };
 
-  onReset = () => {
+  onReset = (auth) => {
     this.setState({ username: '', password: '' });
-    this.props.clearCredentials()
+    auth.clearCredentials()
     this.props.onChange();
   }
 
   render() {
+    
     if (this.props.visible === false)
-      return false;
-    if (this.props.auth.valid) {
-      return (
-        <Segment>
-          <Button type='submit' onClick={this.onReset}>Change credentials</Button>
-        </Segment>
-      )
-    } else {
-      return (
-        <Segment>
-          <Header as='h2'>
-            <Icon name='lock' />
-            Credentials
-            </Header>
-          <Form>
-            <Form.Field>
-              <label>Username</label>
-              <Input type='text' placeholder='Enter user' value={this.state.userName || ''} onChange={this.onChangeUser} />
-            </Form.Field>
-            <Form.Field>
-              <label>Password</label>
-              <Input type="password" value={this.state.password || ''} onChange={this.onChangePassword} />
-            </Form.Field>
-            <Button type='submit' onClick={this.onSet}>Set</Button>
-          </Form>
-        </Segment>
-      )
-    }
+      return null;
+
+    const valid = (auth) => {
+      return <Segment>
+        <Button type='submit' onClick={() => this.onReset(auth)}>Change credentials</Button>
+      </Segment>;
+    };
+
+    const notValid = (auth) => {
+      return <Segment>
+        <Loader active={this.state.processingState === PROCESSING || this.state.processingState === ERROR}>{this.state.endOfProcessingMessage}</Loader>
+        <Header as='h2'>
+          <Icon name='lock' />
+          Credentials
+          </Header>
+        <Form>
+          <Form.Field>
+            <label>Username</label>
+            <Input type='text' placeholder='Enter user' value={this.state.userName || ''} onChange={this.onChangeUser} />
+          </Form.Field>
+          <Form.Field>
+            <label>Password</label>
+            <Input type="password" value={this.state.password || ''} onChange={this.onChangePassword} />
+          </Form.Field>
+          <Button type='submit' onClick={() => this.onSet(auth)}>Set</Button>
+        </Form>
+      </Segment>;
+    };
+
+    return (
+      <AuthConsumer>{auth => {
+        if (auth.valid && this.state.processingState === INACTIVE) {
+          return valid(auth);
+        } else {
+          return notValid(auth);
+        }
+      }}</AuthConsumer>
+    );
   }
 }
 
@@ -75,14 +116,3 @@ Credentials.defaultProps = {
   visible: true,
   onChange: () => {}
 };
-
-const mapStateToProps = state => ({
-  auth: state.auth
-});
-
-const mapDispatchToProps = {
-  setCredentials: setCredentials,
-  clearCredentials: clearCredentials,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Credentials);

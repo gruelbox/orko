@@ -1,34 +1,36 @@
 import React, { Component } from 'react';
-
+import { AuthProvider, AuthConsumer } from './context/AuthContext';
+import { TickerProvider } from './context/TickerContext';
+import Whitelisting from './Whitelisting';
+import Credentials from './Credentials';
+import TickerSelector from './TickerSelector';
 import './App.css';
 
-import { connect } from 'react-redux';
+//import SimpleTrade from './SimpleTrade';
+//import { BUY, SELL } from './SimpleTrade';
 
-import { checkWhitelist } from './redux/auth';
-import { invalidateCache } from 'redux-cache';
+export default class App extends Component {
 
-import SimpleTrade from './SimpleTrade';
-import { BUY, SELL } from './SimpleTrade';
-import Credentials from './Credentials';
-import Whitelisting from './Whitelisting';
+  render() {
+    return (
+      <AuthProvider>
 
-class App extends Component {
+        <Whitelisting/>
 
-  constructor(props) {
-    super(props);
-    this.onReload = this.onReload.bind(this);
+        <AuthConsumer>{auth =>
+          <div>
+            <Credentials visible={auth.whitelisted} onChange={this.onReload} />
+            <TickerProvider>
+              <TickerSelector visible={auth.whitelisted && auth.valid} />
+            </TickerProvider>
+          </div>
+        }</AuthConsumer>
+
+      </AuthProvider>
+    )
   }
 
-  componentDidMount() {
-    this.props.checkWhitelist();
-  }
-
-  onReload() {
-    console.log("App: reload");
-    this.props.invalidateCache(["tickers", "balances"]);
-    console.log("App: reloaded");
-  }
-
+  /*
   render() {
     const traders = this.props.auth.valid
     ?<div>
@@ -39,22 +41,9 @@ class App extends Component {
     return (
       <div>
         <Whitelisting onChange={this.onReload} />
-        <Credentials visible={this.props.auth.whitelisted} onChange={this.onReload} />
+        
         {traders}
       </div>
     )
-  }
+  } */
 }
-
-const mapStateToProps = state => {
-  return {
-    auth: state.auth
-  }
-}
-
-const mapDispatchToProps = {
-  invalidateCache: (cacheKeys) => invalidateCache(cacheKeys),
-  checkWhitelist: checkWhitelist
-};
-
-export default connect(mapStateToProps, mapDispatchToProps) (App);
