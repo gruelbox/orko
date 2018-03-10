@@ -414,7 +414,7 @@ public class TestSoftTrailingStopProcessor {
 
   private void verifyLimitSellAt(final Ticker ticker, BigDecimal price) throws IOException {
     verify(enqueuer).submitNew(
-      LimitSell.builder()
+      LimitOrderJob.builder()
         .tickTrigger(TickerSpec.builder()
             .exchange(EXCHANGE)
             .counter(COUNTER)

@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.service.trade.TradeService;
 import org.mockito.ArgumentCaptor;
@@ -24,11 +25,12 @@ import org.mockito.MockitoAnnotations;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
+import com.grahamcrockford.oco.core.jobs.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
-public class TestLimitSellProcessor {
+public class TestLimitOrderJobProcessor {
 
   private static final BigDecimal AMOUNT = new BigDecimal(1000);
   private static final BigDecimal PRICE = new BigDecimal(95);
@@ -67,17 +69,43 @@ public class TestLimitSellProcessor {
         .counter(COUNTER)
         .exchange(EXCHANGE)
         .build();
-    LimitSell job = LimitSell.builder()
+    LimitOrderJob job = LimitOrderJob.builder()
         .amount(AMOUNT)
         .limitPrice(PRICE)
         .tickTrigger(ex)
+        .direction(Direction.SELL)
         .build();
 
-    LimitSellProcessor processor = new LimitSellProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
     boolean result = processor.start();
     processor.stop();
 
     verifyLimitSell();
+    verifySubmitWatcher();
+    verifySentMessage();
+    verifyFinished(result);
+    verifyDidNothingElse();
+  }
+
+  @Test
+  public void testBuy() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(EXCHANGE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .build();
+
+    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    boolean result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
     verifySubmitWatcher();
     verifySentMessage();
     verifyFinished(result);
@@ -92,19 +120,47 @@ public class TestLimitSellProcessor {
         .counter(COUNTER)
         .exchange(EXCHANGE)
         .build();
-    LimitSell job = LimitSell.builder()
+    LimitOrderJob job = LimitOrderJob.builder()
         .amount(AMOUNT)
         .limitPrice(PRICE)
         .tickTrigger(ex)
+        .direction(Direction.SELL)
         .build();
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(IOError.class);
 
-    LimitSellProcessor processor = new LimitSellProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
     boolean result = processor.start();
     processor.stop();
 
     verifyLimitSell();
+    verifySentMessage();
+    verifyFinished(result);
+    verifyDidNothingElse();
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testBuyFailed() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(EXCHANGE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .build();
+
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(IOError.class);
+
+    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    boolean result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
     verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
@@ -127,6 +183,16 @@ public class TestLimitSellProcessor {
     Assert.assertEquals(PRICE, captor.getValue().getLimitPrice());
     Assert.assertEquals(AMOUNT, captor.getValue().getOriginalAmount());
     Assert.assertEquals(CURRENCY_PAIR, captor.getValue().getCurrencyPair());
+    Assert.assertEquals(Order.OrderType.ASK, captor.getValue().getType());
+  }
+
+  private void verifyLimitBuy() throws IOException {
+    ArgumentCaptor<LimitOrder> captor = ArgumentCaptor.forClass(LimitOrder.class);
+    verify(tradeService).placeLimitOrder(captor.capture());
+    Assert.assertEquals(PRICE, captor.getValue().getLimitPrice());
+    Assert.assertEquals(AMOUNT, captor.getValue().getOriginalAmount());
+    Assert.assertEquals(CURRENCY_PAIR, captor.getValue().getCurrencyPair());
+    Assert.assertEquals(Order.OrderType.BID, captor.getValue().getType());
   }
 
   private void verifySubmitWatcher() {

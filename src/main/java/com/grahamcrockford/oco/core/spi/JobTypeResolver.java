@@ -7,11 +7,11 @@ import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.grahamcrockford.oco.core.jobs.LimitSell;
+import com.grahamcrockford.oco.core.jobs.LimitOrderJob;
 
 final class JobTypeResolver implements TypeIdResolver {
 
-  private static final String COMMAND_PACKAGE = LimitSell.class.getPackage().getName();
+  private static final String COMMAND_PACKAGE = LimitOrderJob.class.getPackage().getName();
   private JavaType baseType;
 
   @Override

@@ -14,27 +14,28 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.api.TradeServiceFactory;
+import com.grahamcrockford.oco.core.jobs.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
-class LimitSellProcessor implements JobProcessor<LimitSell> {
+class LimitOrderJobProcessor implements JobProcessor<LimitOrderJob> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LimitSellProcessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LimitOrderJobProcessor.class);
 
   private final TelegramService telegramService;
   private final JobSubmitter jobSubmitter;
   private final TradeServiceFactory tradeServiceFactory;
 
-  private final LimitSell job;
+  private final LimitOrderJob job;
 
   private TradeService tradeService;
   private LimitOrder order;
 
 
   @AssistedInject
-  public LimitSellProcessor(@Assisted final LimitSell job,
+  public LimitOrderJobProcessor(@Assisted final LimitOrderJob job,
                             @Assisted final JobControl jobControl,
                             final TelegramService telegramService,
                             final TradeServiceFactory tradeServiceFactory,
@@ -51,7 +52,11 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
   @Override
   public boolean start() {
     this.tradeService = tradeServiceFactory.getForExchange(job.tickTrigger().exchange());
-    this.order = new LimitOrder(Order.OrderType.ASK, job.amount(), job.tickTrigger().currencyPair(), null, new Date(), job.limitPrice());
+    this.order = new LimitOrder(
+        job.direction() == Direction.SELL ? Order.OrderType.ASK : Order.OrderType.BID,
+        job.amount(), job.tickTrigger().currencyPair(),
+        null, new Date(), job.limitPrice()
+    );
     return false;
   }
 
@@ -80,7 +85,7 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
         .build());
   }
 
-  private void reportSuccess(final LimitSell job, String xChangeOrderId) {
+  private void reportSuccess(final LimitOrderJob job, String xChangeOrderId) {
     final TickerSpec ex = job.tickTrigger();
 
     LOGGER.info("| - Order [{}] placed.", xChangeOrderId);
@@ -95,7 +100,7 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
     ));
   }
 
-  private void reportFailed(final LimitSell job, Throwable e) {
+  private void reportFailed(final LimitOrderJob job, Throwable e) {
     final TickerSpec ex = job.tickTrigger();
 
     LOGGER.error("| - Order failed to be placed. Giving up.", e);
@@ -111,13 +116,13 @@ class LimitSellProcessor implements JobProcessor<LimitSell> {
   }
 
 
-  public interface Factory extends JobProcessor.Factory<LimitSell> {}
+  public interface Factory extends JobProcessor.Factory<LimitOrderJob> {}
 
   public static final class Module extends AbstractModule {
     @Override
     protected void configure() {
       install(new FactoryModuleBuilder()
-          .implement(new TypeLiteral<JobProcessor<LimitSell>>() {}, LimitSellProcessor.class)
+          .implement(new TypeLiteral<JobProcessor<LimitOrderJob>>() {}, LimitOrderJobProcessor.class)
           .build(Factory.class));
     }
   }

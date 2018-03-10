@@ -19,6 +19,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
+import com.grahamcrockford.oco.core.jobs.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
@@ -96,8 +97,9 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
     // If we've hit the stop price, we're done
     if (ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) <= 0) {
 
-      jobSubmitter.submitNew(LimitSell.builder()
+      jobSubmitter.submitNew(LimitOrderJob.builder()
           .tickTrigger(ex)
+          .direction(Direction.SELL)
           .amount(job.amount())
           .limitPrice(job.limitPrice())
           .build());

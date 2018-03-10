@@ -122,7 +122,8 @@ To perform an OCO trade, call `PUT /jobs` with a payload like this:
     "low": {
         "thresholdAsString": "0.00055",
         "job": {
-		    "jobType": "LimitSell",
+		    "jobType": "LimitOrderJob",
+		    "direction": "SELL",
 		    "tickTrigger": {
 		        "exchange": "binance",
 		        "counter": "BTC",

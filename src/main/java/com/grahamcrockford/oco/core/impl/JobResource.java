@@ -22,7 +22,8 @@ import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
-import com.grahamcrockford.oco.core.jobs.LimitSell;
+import com.grahamcrockford.oco.core.jobs.LimitOrderJob;
+import com.grahamcrockford.oco.core.jobs.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.core.jobs.OrderStateNotifier;
 import com.grahamcrockford.oco.core.jobs.PumpChecker;
 import com.grahamcrockford.oco.core.jobs.SoftTrailingStop;
@@ -137,25 +138,42 @@ public class JobResource implements WebResource {
   }
 
   @PUT
+  @Path("limitbuy")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public LimitOrderJob limitBuy(@QueryParam("exchange") String exchange,
+                                 @QueryParam("counter") String counter,
+                                 @QueryParam("base") String base,
+                                 @QueryParam("amount") BigDecimal amount,
+                                 @QueryParam("limit") BigDecimal limitPrice) throws IOException {
+    return limitOrder(exchange, counter, base, amount, limitPrice, Direction.BUY);
+  }
+
+  @PUT
   @Path("limitsell")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public LimitSell limitSell(@QueryParam("exchange") String exchange,
-                             @QueryParam("counter") String counter,
-                             @QueryParam("base") String base,
-                             @QueryParam("amount") BigDecimal amount,
-                             @QueryParam("limit") BigDecimal limitPrice) throws IOException {
+  public LimitOrderJob limitSell(@QueryParam("exchange") String exchange,
+                                 @QueryParam("counter") String counter,
+                                 @QueryParam("base") String base,
+                                 @QueryParam("amount") BigDecimal amount,
+                                 @QueryParam("limit") BigDecimal limitPrice) throws IOException {
+    return limitOrder(exchange, counter, base, amount, limitPrice, Direction.SELL);
+  }
 
+  private LimitOrderJob limitOrder(String exchange, String counter, String base, BigDecimal amount,
+      BigDecimal limitPrice, Direction direction) throws IOException {
     // Just check it's a valid ticker
     exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    return jobSubmitter.submitNew(LimitSell.builder()
+    return jobSubmitter.submitNew(LimitOrderJob.builder()
         .tickTrigger(TickerSpec.builder()
             .exchange(exchange)
             .base(base)
             .counter(counter)
             .build()
           )
+        .direction(direction)
         .amount(amount)
         .limitPrice(limitPrice)
         .build());
