@@ -62,32 +62,26 @@ public class ExchangeResource implements WebResource {
 
   @GET
   @Timed
-  @Path("{exchange}/counters")
+  @Path("{exchange}/pairs")
   @RolesAllowed(Roles.PUBLIC)
-  public Collection<String> counters(@PathParam("exchange") String exchange) {
+  public Collection<Pair> pairs(@PathParam("exchange") String exchange) {
     return exchanges.get(exchange)
         .getExchangeMetaData()
         .getCurrencyPairs()
         .keySet()
         .stream()
-        .map(currencyPair -> currencyPair.counter.getCurrencyCode())
+        .map(currencyPair -> {
+          Pair pair = new Pair();
+          pair.counter = currencyPair.counter.getCurrencyCode();
+          pair.base = currencyPair.base.getCurrencyCode();
+          return pair;
+        })
         .collect(Collectors.toSet());
   }
 
-  @GET
-  @Timed
-  @Path("{exchange}/counters/{counter}/bases")
-  @RolesAllowed(Roles.PUBLIC)
-  public Collection<String> bases(@PathParam("exchange") String exchange,
-                                  @PathParam("counter") String counter) {
-    return exchanges.get(exchange)
-        .getExchangeMetaData()
-        .getCurrencyPairs()
-        .keySet()
-        .stream()
-        .filter(currencyPair -> currencyPair.counter.getCurrencyCode().equals(counter))
-        .map(currencyPair -> currencyPair.base.getCurrencyCode())
-        .collect(Collectors.toSet());
+  public static class Pair {
+    @JsonProperty public String counter;
+    @JsonProperty public String base;
   }
 
   @GET

@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Segment, Header, Icon, Form, Input, Button, Loader } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
-import { AuthConsumer } from './context/AuthContext';
+import { Subscribe  } from 'unstated';
+import { AuthContainer  } from './context/AuthContainer';
 
 const INACTIVE = 'INACTIVE';
 const PROCESSING = 'PROCESSING';
@@ -96,23 +97,23 @@ export default class Credentials extends Component {
     };
 
     return (
-      <AuthConsumer>{auth => {
-        if (auth.valid && this.state.processingState === INACTIVE) {
-          return valid(auth);
-        } else {
-          return notValid(auth);
-        }
-      }}</AuthConsumer>
+      <Subscribe to={[AuthContainer]}>
+        {auth => {
+          if (auth.valid && this.state.processingState === INACTIVE) {
+            return valid(auth);
+          } else {
+            return notValid(auth);
+          }
+        }}
+      </Subscribe>
     );
   }
 }
 
 Credentials.propTypes = {
-  visible: PropTypes.bool,
   onChange: PropTypes.func
 };
 
 Credentials.defaultProps = {
-  visible: true,
   onChange: () => {}
 };

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Icon, Input, Header, Button, Form, Segment } from 'semantic-ui-react'
-import './App.css';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fetchBalances } from './redux/balance';

@@ -1,49 +1,29 @@
 import React, { Component } from 'react';
-import { AuthProvider, AuthConsumer } from './context/AuthContext';
-import { TickerProvider } from './context/TickerContext';
-import Whitelisting from './Whitelisting';
-import Credentials from './Credentials';
-import TickerSelector from './TickerSelector';
+import Authentication from './Authentication';
+import Header from './Header';
+import AddTicker from './AddTicker';
+import Ticker from './Ticker';
+import { Switch, Route, BrowserRouter } from 'react-router-dom';
+import { Provider  } from 'unstated';
 import './App.css';
 
-//import SimpleTrade from './SimpleTrade';
-//import { BUY, SELL } from './SimpleTrade';
-
 export default class App extends Component {
-
   render() {
     return (
-      <AuthProvider>
-
-        <Whitelisting/>
-
-        <AuthConsumer>{auth =>
+      <Provider>
+        <BrowserRouter>
           <div>
-            <Credentials visible={auth.whitelisted} onChange={this.onReload} />
-            <TickerProvider>
-              <TickerSelector visible={auth.whitelisted && auth.valid} />
-            </TickerProvider>
+            <Header/>
+            <div style={{ marginTop: '4em' }}>
+              <Switch>
+                <Route exact path='/' component={Authentication}/>
+                <Route exact path='/addticker' component={AddTicker}/>
+                <Route path='/ticker/:exchange/:counter/:base' component={Ticker}/>
+              </Switch>
+            </div>
           </div>
-        }</AuthConsumer>
-
-      </AuthProvider>
-    )
+        </BrowserRouter>
+      </Provider>
+    );
   }
-
-  /*
-  render() {
-    const traders = this.props.auth.valid
-    ?<div>
-      <SimpleTrade direction={BUY} exchange="binance" base="VEN" counter="BTC"/>
-      <SimpleTrade direction={SELL} exchange="binance" base="VEN" counter="BTC"/>
-    </div>
-    : null;
-    return (
-      <div>
-        <Whitelisting onChange={this.onReload} />
-        
-        {traders}
-      </div>
-    )
-  } */
 }

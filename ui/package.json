@@ -10,9 +10,11 @@
     "prop-types": "^15.6.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "react-router-dom": "^4.2.2",
     "react-tradingview-widget": "^1.2.2",
     "semantic-ui-css": "^2.3.0",
     "semantic-ui-react": "^0.78.3",
+    "unstated": "^1.0.3",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {

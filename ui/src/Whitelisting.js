@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Segment, Header, Icon, Form, Input, Button, Loader } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
-import { AuthConsumer } from './context/AuthContext';
+import { Subscribe  } from 'unstated';
+import { AuthContainer  } from './context/AuthContainer';
 
 const INACTIVE = 'INACTIVE';
 const PROCESSING = 'PROCESSING';
@@ -65,9 +66,11 @@ export default class Whitelisting extends Component {
             <label>Token</label>
             <Input type='text' placeholder='Enter token' value={this.state.token || ''} onChange={this.onChangeValue} />
           </Form.Field>
-          <AuthConsumer>{auth =>
-            <Button type='submit' onClick={event => this.onSubmit(auth)}>Authorise</Button>
-          }</AuthConsumer>
+          <Subscribe to={[AuthContainer]}>
+            {auth =>
+              <Button type='submit' onClick={event => this.onSubmit(auth)}>Authorise</Button>
+            }
+          </Subscribe>
         </Form>
       </Segment>
     );
