@@ -1,40 +1,40 @@
 import React, { Component } from 'react';
 import { Subscribe  } from 'unstated';
-import { TickerContainer } from './context/TickerContainer';
-import { Button, Header, Icon, Message, Divider, Segment } from 'semantic-ui-react';
-import { ticker } from './context/ticker';
+import { CoinContainer } from './context/CoinContainer';
+import { Button, Header, Icon, Message, Divider, Segment, Tab } from 'semantic-ui-react';
+import { coin } from './context/coin';
 import TradingViewWidget from 'react-tradingview-widget';
 
 
-export default class Ticker extends Component {
+export default class Coin extends Component {
 
-  onRemove = (tickerContainer) => {
-    var t = ticker(
+  onRemove = (coinContainer) => {
+    var t = coin(
       this.props.match.params.exchange,
       this.props.match.params.counter,
       this.props.match.params.base,
     );
-    tickerContainer.removeTicker(t);
+    coinContainer.removeCoin(t);
     this.props.history.push('/');
   };
 
   render() {
     return (
-      <Subscribe to={[TickerContainer]}>
-        {(tickerContainer) => {
+      <Subscribe to={[CoinContainer]}>
+        {(coinContainer) => {
 
-          var t = ticker(
+          var t = coin(
             this.props.match.params.exchange,
             this.props.match.params.counter,
             this.props.match.params.base,
           );
-          if (!tickerContainer.hasTicker(t)) {
+          if (!coinContainer.hasCoin(t)) {
             return (
               <Message>
                 <Message.Header>
-                  Unregistered ticker
+                  Unregistered coin
                 </Message.Header>
-                <p>Make sure you add the ticker first.</p>
+                <p>Make sure you add the coin first.</p>
               </Message>
             );
           }
@@ -44,7 +44,7 @@ export default class Ticker extends Component {
               <Icon name='bitcoin' />
               {t.name}
             </Header>
-            <Button onClick={() => this.onRemove(tickerContainer)}>Remove this ticker</Button>
+            <Button onClick={() => this.onRemove(coinContainer)}>Remove coin</Button>
             <Divider />
             <div style={{height: 500}}>
               <TradingViewWidget 
@@ -56,6 +56,18 @@ export default class Ticker extends Component {
                 studies={['RSI@tv-basicstudies']}
               />
             </div>
+            <Tab panes={[
+              { menuItem: 'Buy', render: () => 
+                <Tab.Pane>
+
+                </Tab.Pane>
+              },
+              { menuItem: 'Sell', render: () =>
+                <Tab.Pane>
+                  
+                </Tab.Pane>
+              },
+            ]} />
           </div>
         }}
       </Subscribe>

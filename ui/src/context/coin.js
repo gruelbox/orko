@@ -1,11 +1,11 @@
-export function ticker(exchange, counter, base) {
-  return augmentTicker({
+export function coin(exchange, counter, base) {
+  return augmentCoin({
     counter: counter,
     base: base
   }, exchange);
 }
 
-export function augmentTicker(p, exchange) {
+export function augmentCoin(p, exchange) {
   return {
     ...p,
     key: exchange + "/" + p.counter + "/" + p.base,

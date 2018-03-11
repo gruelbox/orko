@@ -36,10 +36,9 @@ export class ExchangeContainer extends Container {
   };
 
   getExchanges = (auth) => {
-    if (new Date().getTime() < this.state.ttl) {
-      return new Promise(() => (this.state.exchanges));
-    } else {
-      return this.fetch(auth);
+    if (new Date().getTime() > this.state.ttl) {
+      this.fetch(auth);
     }
+    return this.state.exchanges;
   };
 }

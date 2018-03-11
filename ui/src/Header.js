@@ -2,28 +2,28 @@ import React, { Component } from 'react';
 import { Menu, Dropdown, Container } from 'semantic-ui-react'
 import { Link } from 'react-router-dom';
 import { Subscribe  } from 'unstated';
-import { TickerContainer } from './context/TickerContainer';
+import { CoinContainer } from './context/CoinContainer';
 
 export default class App extends Component {
   render() {
     return (
-      <Subscribe to={[TickerContainer]}>
-        { tickerContainer => {
+      <Subscribe to={[CoinContainer]}>
+        { coinContainer => {
 
-          var tickers = [];
-          tickerContainer.getTickers().forEach(ticker => tickers.push(
-            <Dropdown.Item key={ticker.key}><Link to={ '/ticker/' + ticker.key }>{ticker.name}</Link></Dropdown.Item>       
+          var coins = [];
+          coinContainer.getCoins().forEach(coin => coins.push(
+            <Dropdown.Item inverted key={coin.key}><Link to={ '/coin/' + coin.key }>{coin.name}</Link></Dropdown.Item>       
           ));
 
           return (
             <Menu fixed='top'>
               <Container>
-                <Dropdown item simple text='Tickers'>
+                <Dropdown item simple text='Active coins'>
                   <Dropdown.Menu>
-                    {tickers}
+                    {coins}
                   </Dropdown.Menu>
                 </Dropdown>
-                <Menu.Item><Link to='/addticker'>Add ticker</Link></Menu.Item>
+                <Menu.Item><Link to='/addcoin'>Add coin</Link></Menu.Item>
               </Container>
               <Menu.Menu position='right'>
                 <Menu.Item><Link to='/'>Account</Link></Menu.Item>

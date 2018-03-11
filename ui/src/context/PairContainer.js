@@ -1,6 +1,6 @@
 import { get } from './fetchUtil';
 import { Container } from 'unstated';
-import { augmentTicker } from './ticker';
+import { augmentCoin } from './coin';
 
 export class PairContainer extends Container {
 
@@ -10,13 +10,14 @@ export class PairContainer extends Container {
   }
   
   fetch = (exchange, auth) => {
-    if (!auth.isValid())
-      return new Promise(() => (this.state.exchanges));
+    if (!auth.isValid()) {
+      return new Promise(() => []);
+    }
 
     return get('exchanges/' + exchange + '/pairs', auth.getUserName(), auth.getPassword())
       .then(response => response.json())
       .then(json => {
-        const mapped = json.map(p => augmentTicker(p, exchange));
+        const mapped = json.map(p => augmentCoin(p, exchange));
         this.setState({ 
           [exchange]: {
             pairs: mapped,
@@ -41,11 +42,17 @@ export class PairContainer extends Container {
   };
 
   getPairs = (exchange, auth) => {
-    const pairs = this.state[exchange];
-    if (pairs && new Date().getTime() < pairs.ttl) {
-      return new Promise(() => (pairs.pairs));
+    if (!exchange)
+      return [];
+    const result = this.state[exchange];
+    if (result) {
+      if (new Date().getTime() > result.ttl) {
+        this.fetch(exchange, auth);
+      }
+      return result.pairs;
     } else {
-      return this.fetch(exchange, auth);
+      this.fetch(exchange, auth);
+      return [];
     }
   };
 }
