@@ -12,7 +12,7 @@ export default class App extends Component {
 
           var coins = [];
           coinContainer.getCoins().forEach(coin => coins.push(
-            <Dropdown.Item inverted key={coin.key}><Link to={ '/coin/' + coin.key }>{coin.name}</Link></Dropdown.Item>       
+            <Dropdown.Item key={coin.key}><Link to={ '/coin/' + coin.key }>{coin.name}</Link></Dropdown.Item>       
           ));
 
           return (
