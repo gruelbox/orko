@@ -3,7 +3,7 @@ import { Container } from 'unstated';
 
 const DEFAULT_TICKER = { bid: 0, ask: 0 };
 
-export class TickerContainer extends Container {
+export default class TickerContainer extends Container {
 
   firstFetch = true;
 

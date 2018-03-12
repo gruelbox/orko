@@ -2,6 +2,11 @@ import React, { Component } from 'react';
 import TradingViewWidget from 'react-tradingview-widget';
 
 export default class App extends Component {
+
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    return false;
+  }
+
   render() {
     return (
       <div style={{height: 500}}>

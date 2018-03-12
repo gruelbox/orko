@@ -1,7 +1,7 @@
 import { put, get } from './fetchUtil';
 import { Container } from 'unstated';
 
-export class AuthContainer extends Container {
+export default class AuthContainer extends Container {
 
   state = {
     valid: true,

@@ -2,7 +2,7 @@ import { get } from './fetchUtil';
 import { Container } from 'unstated';
 import { augmentCoin } from './coin';
 
-export class PairContainer extends Container {
+export default class PairContainer extends Container {
 
   constructor() {
     super();

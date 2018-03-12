@@ -3,7 +3,7 @@ import { Set } from 'immutable';
 
 const LOCAL_STORAGE_KEY = 'CoinContainer.state';
 
-export class CoinContainer extends Container {
+export default class CoinContainer extends Container {
 
   constructor() {
     super();

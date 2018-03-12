@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Menu, Dropdown, Container } from 'semantic-ui-react'
 import { Link } from 'react-router-dom';
 import { Subscribe  } from 'unstated';
-import { CoinContainer } from './context/CoinContainer';
+import CoinContainer from './context/CoinContainer';
 
 export default class App extends Component {
   render() {

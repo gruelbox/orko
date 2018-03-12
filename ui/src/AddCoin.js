@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { Icon, Header, Button, Form, Dropdown, Loader, Dimmer, Segment } from 'semantic-ui-react'
 import { Subscribe  } from 'unstated';
-import { ExchangeContainer } from './context/ExchangeContainer';
-import { AuthContainer } from './context/AuthContainer';
-import { PairContainer } from './context/PairContainer';
-import { CoinContainer } from './context/CoinContainer';
+import ExchangeContainer from './context/ExchangeContainer';
+import AuthContainer from './context/AuthContainer';
+import PairContainer from './context/PairContainer';
+import CoinContainer from './context/CoinContainer';
 
 export default class AddCoin extends Component {
 

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Segment, Header, Icon, Form, Input, Button, Loader } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
-import { Subscribe  } from 'unstated';
-import { AuthContainer  } from './context/AuthContainer';
+import { Subscribe } from 'unstated';
+import AuthContainer from './context/AuthContainer';
 
 const INACTIVE = 'INACTIVE';
 const PROCESSING = 'PROCESSING';

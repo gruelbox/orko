@@ -1,7 +1,7 @@
 import { get } from './fetchUtil';
 import { Container } from 'unstated';
 
-export class ExchangeContainer extends Container {
+export default class ExchangeContainer extends Container {
 
   constructor() {
     super();
