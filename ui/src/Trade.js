@@ -3,7 +3,7 @@ import { Input, Button, Form, Message, Step, Divider } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
 import { Subscribe } from 'unstated';
 import AuthContainer from './context/AuthContainer';
-import { executeTrade, createLimitOrder, BUY, SELL } from './context/trade'
+import { executeTrade, createLimitOrder, BUY } from './context/trade'
 
 export default class Trade extends Component {
 
@@ -153,6 +153,6 @@ export default class Trade extends Component {
 Trade.propTypes = {
   direction: PropTypes.string.isRequired,
   coin: PropTypes.object.isRequired,
-  initialPrice: PropTypes.number.isRequired,
+  marketPrice: PropTypes.number.isRequired,
   initialAmount: PropTypes.number.isRequired,
 };

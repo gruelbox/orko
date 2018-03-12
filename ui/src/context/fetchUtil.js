@@ -10,6 +10,13 @@ export function put(url, userName, password, content) {
   return fetch(new Request("http://localhost:8080/api/" + url, action("PUT", userName, password, content)));
 }
 
+function baseUrl() {
+  const isDevServer = process.argv.find(v => v.includes('webpack-dev-server'));
+  return isDevServer
+    ? "http://localhost:8080/api/"
+    : location.protocol.concat("//").concat(window.location.hostname).concat("api");
+}
+
 function action(method, userName, password, content) {
   if (userName)
     return {
