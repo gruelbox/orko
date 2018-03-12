@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.auth;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -34,5 +35,11 @@ public class AuthResource implements WebResource {
       return Response.status(401).entity("Not authorised").type(MediaType.TEXT_PLAIN).build();
     }
     return Response.ok().entity("IP address has been whitelisted").type(MediaType.TEXT_PLAIN).build();
+  }
+
+  @GET
+  @Timed
+  public boolean check() {
+    return ipWhitelisting.authoriseIp();
   }
 }
