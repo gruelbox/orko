@@ -58,19 +58,19 @@ class ExchangeServiceImpl implements ExchangeService {
     }
 
     private Exchange publicApi(String name) {
-      LOGGER.warn("No API connection details.  Connecting to public API: " + name);
-      return ExchangeFactory.INSTANCE.createExchange(map(name));
+      try {
+        LOGGER.warn("No API connection details.  Connecting to public API: " + name);
+        final ExchangeSpecification exSpec = createExchangeSpecification(name);
+        return ExchangeFactory.INSTANCE.createExchange(exSpec);
+      } catch (InstantiationException | IllegalAccessException e) {
+        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
+      }
     }
 
     private Exchange privateApi(String name, final ExchangeConfiguration exchangeConfiguration) {
       try {
         LOGGER.info("Connecting to private API: " + name);
-        final ExchangeSpecification exSpec = map(name).newInstance().getDefaultExchangeSpecification();
-
-        if (name.toLowerCase().equals("gdax-sandbox")) {
-          exSpec.setSslUri("https://api-public.sandbox.gdax.com");
-          exSpec.setHost("api-public.sandbox.gdax.com");
-        }
+        final ExchangeSpecification exSpec = createExchangeSpecification(name);
 
         if (name.toLowerCase().equals("gdax-sandbox") || name.toLowerCase().equals("gdax")) {
           exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
@@ -84,6 +84,16 @@ class ExchangeServiceImpl implements ExchangeService {
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
+    }
+
+    private ExchangeSpecification createExchangeSpecification(String exchangeName) throws InstantiationException, IllegalAccessException {
+      final ExchangeSpecification exSpec = map(exchangeName).newInstance().getDefaultExchangeSpecification();
+      if (exchangeName.toLowerCase().equals("gdax-sandbox")) {
+        LOGGER.info("Using sandbox GDAX");
+        exSpec.setSslUri("https://api-public.sandbox.gdax.com");
+        exSpec.setHost("api-public.sandbox.gdax.com");
+      }
+      return exSpec;
     }
 
   });
