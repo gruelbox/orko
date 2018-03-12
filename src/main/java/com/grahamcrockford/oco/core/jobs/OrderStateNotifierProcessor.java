@@ -3,6 +3,8 @@ package com.grahamcrockford.oco.core.jobs;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
@@ -45,6 +47,8 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
   private final OrderStateNotifier job;
   private final JobControl jobControl;
 
+  private final AtomicBoolean couldNotFetchOrderData = new AtomicBoolean();
+
 
   @AssistedInject
   public OrderStateNotifierProcessor(@Assisted OrderStateNotifier job,
@@ -65,13 +69,15 @@ class OrderStateNotifierProcessor implements JobProcessor<OrderStateNotifier> {
       asyncEventBus.register(this);
       return true;
     } else {
+      couldNotFetchOrderData.set(true);
       return false;
     }
   }
 
   @Override
   public void stop() {
-    asyncEventBus.unregister(this);
+    if (!couldNotFetchOrderData.get())
+      asyncEventBus.unregister(this);
   }
 
   @Subscribe

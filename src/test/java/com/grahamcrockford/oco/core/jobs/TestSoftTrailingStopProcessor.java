@@ -26,6 +26,7 @@ import org.mockito.MockitoAnnotations;
 import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
+import com.grahamcrockford.oco.core.jobs.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
@@ -421,6 +422,7 @@ public class TestSoftTrailingStopProcessor {
             .base(BASE)
             .build()
         )
+        .direction(Direction.SELL)
         .amount(AMOUNT)
         .limitPrice(price)
         .build()
