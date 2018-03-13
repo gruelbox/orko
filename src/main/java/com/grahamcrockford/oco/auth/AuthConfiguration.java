@@ -17,6 +17,8 @@ public class AuthConfiguration extends Configuration {
 
   private Integer whitelistExpirySeconds;
 
+  private boolean cors = true;
+
   @NotNull
   private boolean proxied;
 
@@ -72,5 +74,15 @@ public class AuthConfiguration extends Configuration {
   @JsonProperty
   public void setWhitelistExpirySeconds(Integer whitelistExpirySeconds) {
     this.whitelistExpirySeconds = whitelistExpirySeconds;
+  }
+
+  @JsonProperty
+  public boolean isCors() {
+    return cors;
+  }
+
+  @JsonProperty
+  public void setCors(boolean cors) {
+    this.cors = cors;
   }
 }
