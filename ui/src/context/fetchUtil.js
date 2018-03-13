@@ -3,18 +3,15 @@ import { Base64 } from 'js-base64';
 const defaultSettings = { method: 'GET', mode: 'cors', redirect: 'follow' };
 
 export function get(url, userName, password) {
-  return fetch(new Request("http://localhost:8080/api/" + url, action("GET", userName, password)));
+  return fetch(new Request("/api/" + url, action("GET", userName, password)));
 }
 
 export function put(url, userName, password, content) {
-  return fetch(new Request("http://localhost:8080/api/" + url, action("PUT", userName, password, content)));
+  return fetch(new Request("/api/" + url, action("PUT", userName, password, content)));
 }
 
-function baseUrl() {
-  const isDevServer = process.argv.find(v => v.includes('webpack-dev-server'));
-  return isDevServer
-    ? "http://localhost:8080/api/"
-    : location.protocol.concat("//").concat(window.location.hostname).concat("api");
+export function del(url, userName, password) {
+  return fetch(new Request("/api/" + url, action("DELETE", userName, password)));
 }
 
 function action(method, userName, password, content) {

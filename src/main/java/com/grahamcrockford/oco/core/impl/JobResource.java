@@ -2,12 +2,14 @@ package com.grahamcrockford.oco.core.impl;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Collection;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -18,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.core.api.ExchangeService;
@@ -51,6 +54,14 @@ public class JobResource implements WebResource {
     this.jobSubmitter = jobSubmitter;
     this.exchanges = exchanges;
   }
+
+  @GET
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public Collection<Job> list() throws AuthenticationException {
+    return ImmutableList.copyOf(jobAccess.list());
+  }
+
 
   @PUT
   @Timed

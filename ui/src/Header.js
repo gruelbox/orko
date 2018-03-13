@@ -24,6 +24,7 @@ export default class App extends Component {
                   </Dropdown.Menu>
                 </Dropdown>
                 <Menu.Item><Link to='/addcoin'>Add coin</Link></Menu.Item>
+                <Menu.Item><Link to='/jobs'>Active jobs</Link></Menu.Item>
               </Container>
               <Menu.Menu position='right'>
                 <Menu.Item><Link to='/'>Account</Link></Menu.Item>
