@@ -12,18 +12,21 @@
     "react-dom": "^16.2.0",
     "react-router-dom": "^4.2.2",
     "react-tradingview-widget": "^1.2.2",
-    "semantic-ui-css": "^2.3.0",
     "semantic-ui-react": "^0.78.3",
     "unstated": "^1.0.3",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
-    "react-scripts": "1.1.1"
+    "react-scripts": "1.1.1",
+    "semantic-ui": "^2.3.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build-semantic": "cd src/semantic && gulp build-css build-assets",
+    "watch-semantic": "cd src/semantic && npm run build-semantic && gulp watch",
+    "start": "npm run build-semantic && react-scripts start",
+    "build": "npm run build-semantic && react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
-  }
+  },
+  "proxy": "http://localhost:8080"
 }
