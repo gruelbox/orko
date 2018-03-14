@@ -19,12 +19,6 @@ export default class Jobs extends Component {
 
   onKill = (job, auth) => {
     return del('jobs/' + job.id, auth.getUserName(), auth.getPassword())
-      .then(response => response.json())
-      .then(json => {
-        this.setState({
-          jobs: json
-        });
-      })
       .catch(error => {
         console.log("Failed to delete job ", job.id);
         this.setState(oldState => ({
@@ -95,9 +89,9 @@ export default class Jobs extends Component {
                         {this.state.failed[job.id] && 
                           <Message>
                             <Message.Header>
-                              No active jobs
+                              Failed
                             </Message.Header>
-                            <p>No active jobs found on the server</p>
+                            <p>An error was encountered deleting the job.</p>
                           </Message>
                         }
                       </Card.Content>

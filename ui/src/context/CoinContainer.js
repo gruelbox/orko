@@ -38,7 +38,7 @@ export default class CoinContainer extends Container {
     this.setState(newState);
   };
 
-  hasCoin = (coin) => this.state.coins.map(t => t.key).includes(coin.key);
+  hasCoin = (coin) => coin && this.state.coins.map(t => t.key).includes(coin.key);
 
   removeCoin = (coin) => {
     if (!this.hasCoin(coin)) {

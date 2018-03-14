@@ -14,6 +14,7 @@ import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 
 import io.dropwizard.Application;
+import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -42,6 +43,7 @@ public class OcoApplication extends Application<OcoConfiguration> {
 
   @Override
   public void initialize(final Bootstrap<OcoConfiguration> bootstrap) {
+    bootstrap.addBundle(new AssetsBundle("/assets/", "/", "index.html"));
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         bootstrap.getConfigurationSourceProvider(),
