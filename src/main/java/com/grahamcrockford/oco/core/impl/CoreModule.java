@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.core.impl;
 
 import java.util.concurrent.ExecutorService;
+
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.Service;
@@ -8,6 +9,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.grahamcrockford.oco.EnvironmentInitialiser;
 import com.grahamcrockford.oco.WebResource;
 import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.api.ExchangeService;
@@ -22,6 +24,8 @@ public class CoreModule extends AbstractModule {
 
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(JobResource.class);
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(ExchangeResource.class);
+
+    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(CoreEnvironment.class);
 
     Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(ExecutorServiceManager.class);
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(GuardianLoop.class);
