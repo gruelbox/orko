@@ -18,7 +18,7 @@ import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 
 @Singleton
-class ExchangeEventBus implements ExchangeEventRegistry{
+class ExchangeEventBus implements ExchangeEventRegistry {
 
   private final ExecutorService executorService;
   private final Multimap<TickerSpec, CallbackDef> listeners = MultimapBuilder.hashKeys().hashSetValues().build();

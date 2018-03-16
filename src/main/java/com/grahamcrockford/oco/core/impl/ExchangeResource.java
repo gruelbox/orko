@@ -53,6 +53,12 @@ public class ExchangeResource implements WebResource {
     this.exchanges = exchanges;
   }
 
+
+  /**
+   * Identifies the supported exchanges.
+   *
+   * @return List of exchanges.
+   */
   @GET
   @Timed
   @RolesAllowed(Roles.PUBLIC)
@@ -60,6 +66,13 @@ public class ExchangeResource implements WebResource {
     return exchanges.getExchanges();
   }
 
+
+  /**
+   * Lists all currency pairs on the specified exchange.
+   *
+   * @param exchange The exchange.
+   * @return The supported currency pairs.
+   */
   @GET
   @Timed
   @Path("{exchange}/pairs")
@@ -79,11 +92,21 @@ public class ExchangeResource implements WebResource {
         .collect(Collectors.toSet());
   }
 
+
   public static class Pair {
     @JsonProperty public String counter;
     @JsonProperty public String base;
   }
 
+
+  /**
+   * Fetches all open orders on the specified exchange. Often not supported.
+   * See {@link ExchangeResource#orders(String, String).
+   *
+   * @param exchange
+   * @return
+   * @throws IOException
+   */
   @GET
   @Path("{exchange}/orders")
   @Timed
@@ -94,6 +117,97 @@ public class ExchangeResource implements WebResource {
         .getOpenOrders();
   }
 
+
+  /**
+   * Fetches all open orders the the specified currency, on all pairs
+   * for that currency.  May take some time; lots of consecutive API
+   * calls are required for each pair.
+   *
+   * @param exchangeCode
+   * @param currency
+   * @return
+   * @throws IOException
+   */
+  @GET
+  @Path("{exchange}/currencies/{currency}/orders")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public List<Order> orders(@PathParam("exchange") String exchangeCode,
+                            @PathParam("currency") String currency) throws IOException {
+    LOGGER.info("Thorough orders search...");
+    Exchange exchange = exchanges.get(exchangeCode);
+    return exchange
+      .getExchangeMetaData()
+      .getCurrencyPairs()
+      .keySet()
+      .stream()
+      .filter(p -> p.base.getCurrencyCode().equals(currency) || p.counter.getCurrencyCode().equals(currency))
+      .peek(p -> LOGGER.info("Checking " + p))
+      .flatMap(p -> {
+        try {
+          Thread.sleep(200);
+          return exchange
+            .getTradeService()
+            .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(p))
+            .getOpenOrders()
+            .stream();
+        } catch (IOException | InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      })
+      .collect(Collectors.toList());
+  }
+
+
+  /**
+   * Fetches open orders for the specific currency pair.
+   *
+   * @param exchange
+   * @param counter
+   * @param base
+   * @return
+   * @throws IOException
+   */
+  @GET
+  @Path("{exchange}/markets/{base}-{counter}/orders")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public OpenOrders orders(@PathParam("exchange") String exchange,
+                           @PathParam("counter") String counter,
+                           @PathParam("base") String base) throws IOException {
+    return exchanges.get(exchange)
+        .getTradeService()
+        .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(new CurrencyPair(base, counter)));
+  }
+
+
+  /**
+   * Fetches the specified order.
+   *
+   * @param exchange
+   * @param id
+   * @return
+   * @throws IOException
+   */
+  @GET
+  @Path("{exchange}/orders/{id}")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public Collection<Order> order(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
+    return exchanges.get(exchange)
+        .getTradeService()
+        .getOrder(id);
+  }
+
+
+  /**
+   * Fetches the current balances for the specified exchange and currencies.
+   *
+   * @param exchange The exchange.
+   * @param currenciesAsString Comma-separated list of currencies.
+   * @return The balances, by currency.
+   * @throws IOException
+   */
   @GET
   @Path("{exchange}/balance/{currencies}")
   @Timed
@@ -131,58 +245,15 @@ public class ExchangeResource implements WebResource {
   }
 
 
-  @GET
-  @Path("{exchange}/currencies/{currency}/orders")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public List<Order> orders(@PathParam("exchange") String exchangeCode,
-                            @PathParam("currency") String currency) throws IOException {
-    LOGGER.info("Thorough orders search...");
-    Exchange exchange = exchanges.get(exchangeCode);
-    return exchange
-      .getExchangeMetaData()
-      .getCurrencyPairs()
-      .keySet()
-      .stream()
-      .filter(p -> p.base.getCurrencyCode().equals(currency) || p.counter.getCurrencyCode().equals(currency))
-      .peek(p -> LOGGER.info("Checking " + p))
-      .flatMap(p -> {
-        try {
-          Thread.sleep(200);
-          return exchange
-            .getTradeService()
-            .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(p))
-            .getOpenOrders()
-            .stream();
-        } catch (IOException | InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-      })
-      .collect(Collectors.toList());
-  }
-
-  @GET
-  @Path("{exchange}/markets/{base}-{counter}/orders")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public OpenOrders orders(@PathParam("exchange") String exchange,
-                           @PathParam("counter") String counter,
-                           @PathParam("base") String base) throws IOException {
-    return exchanges.get(exchange)
-        .getTradeService()
-        .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(new CurrencyPair(base, counter)));
-  }
-
-  @GET
-  @Path("{exchange}/orders/{id}")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public Collection<Order> order(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
-    return exchanges.get(exchange)
-        .getTradeService()
-        .getOrder(id);
-  }
-
+  /**
+   * Gets the current ticker for the specified exchange and pair.
+   *
+   * @param exchange
+   * @param counter
+   * @param base
+   * @return
+   * @throws IOException
+   */
   @GET
   @Path("{exchange}/markets/{base}-{counter}/ticker")
   @Timed
