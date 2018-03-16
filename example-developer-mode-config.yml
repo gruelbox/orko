@@ -1,0 +1,44 @@
+loopSeconds: 3
+auth:
+  userName: let # Basic authentication. Only safe over SSL.
+  password: mein
+#  secretKey: Generate this using com.grahamcrockford.oco.cli.GenerateSecretKey when you move to production
+  proxied: false #  Set this to true if you edploy to Heroku
+  whitelistExpirySeconds: 7200
+database:
+  mongoClientURI: mongodb://jsmith:some-initial-password@192.168.99.100:27017 # Your mongoDB connection details.
+  mongoDatabase: oco # MongoDB database name.
+  lockSeconds: 10
+#telegram:
+#  botToken: Generate this using the instructions in README.md if you want notifications 
+#  chatId: And this
+exchanges:
+#  gdax-sandbox:
+#    apiKey: 
+#    secretKey: 
+#    passphrase: 
+#  gdax:
+#    apiKey: 
+#    secretKey: 
+#    passphrase: 
+#  binance:
+#    apiKey:
+#    secretKey: 
+#  kucoin:
+#    apiKey: 
+#    secretKey:
+jerseyClient:
+  timeout: 5000ms
+  connectionTimeout: 5000ms
+  connectionRequestTimeout: 5000ms
+server:
+  type: simple
+  rootPath: /api/
+  applicationContextPath: /
+  connector:
+    type: http
+    port: 8080
+logging:
+#  level: TRACE
+# loggers:
+#   com.grahamcrockford.oco: DEBUG

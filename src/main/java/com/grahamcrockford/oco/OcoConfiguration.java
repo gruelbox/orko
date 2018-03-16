@@ -30,7 +30,6 @@ public class OcoConfiguration extends Configuration {
   @NotNull
   private DbConfiguration database;
 
-  @NotNull
   private TelegramConfiguration telegram;
 
   private MqConfiguration mq;
