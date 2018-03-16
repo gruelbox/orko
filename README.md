@@ -9,9 +9,7 @@ Back-end local setup and build
 
 How to start the back-end locally:
 ---
-1. Copy `example-developer-mode-config.yml` as `my-config.xml` and fill in the gaps.
-1. Note that you can omit the `secretKey` for running locally - the 2FA is a PITA if you don't need it.
-1. You can also omit the entire telegram section if you don't want your phone beeping.
+1. Copy `example-developer-mode-config.yml` as `my-config.xml` and fill in the gaps.  The commented-out lines can be ignored for now.
 1. Start application with `java -jar target/oco-0.0.1-SNAPSHOT.jar server my-config.yml`.
 
 You should now be able to call the API entry points. Try just navigating to http://localhost:8080/api/exchanges.
