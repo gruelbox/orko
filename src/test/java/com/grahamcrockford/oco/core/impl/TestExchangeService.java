@@ -25,6 +25,9 @@ public class TestExchangeService {
     Assert.assertTrue(exchangeService.getExchanges().contains("kucoin"));
     Assert.assertTrue(exchangeService.getExchanges().contains("gdax"));
     Assert.assertTrue(exchangeService.getExchanges().contains("gdax-sandbox"));
+    Assert.assertTrue(exchangeService.getExchanges().contains("cryptopia"));
+    Assert.assertTrue(exchangeService.getExchanges().contains("bitfinex"));
+    Assert.assertTrue(exchangeService.getExchanges().contains("bittrex"));
   }
 
   @Test
