@@ -93,6 +93,7 @@ public class JobResource implements WebResource {
   public SoftTrailingStop softTrailingStop(@QueryParam("exchange") String exchange,
                                            @QueryParam("counter") String counter,
                                            @QueryParam("base") String base,
+                                           @QueryParam("direction") Direction direction,
                                            @QueryParam("amount") BigDecimal amount,
                                            @QueryParam("stop") BigDecimal stopPrice,
                                            @QueryParam("limit") BigDecimal limitPrice) throws IOException {
@@ -106,6 +107,7 @@ public class JobResource implements WebResource {
           .counter(counter)
           .build()
         )
+        .direction(direction)
         .amount(amount)
         .startPrice(ticker.getBid())
         .stopPrice(stopPrice)

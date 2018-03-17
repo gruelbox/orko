@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.telegram;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
@@ -17,7 +18,7 @@ public class TelegramService {
   private final TelegramConfiguration configuration;
 
   @Inject
-  TelegramService(TelegramConfiguration configuration, Client client) {
+  TelegramService(@Nullable TelegramConfiguration configuration, Client client) {
     this.configuration = configuration;
     this.telegramTarget = configuration == null || StringUtils.isEmpty(configuration.getBotToken())
         ? null
