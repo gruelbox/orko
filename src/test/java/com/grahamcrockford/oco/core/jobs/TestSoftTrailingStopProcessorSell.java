@@ -31,7 +31,7 @@ import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
-public class TestSoftTrailingStopProcessor {
+public class TestSoftTrailingStopProcessorSell {
 
   private static final int PRICE_SCALE = 2;
   private static final BigDecimal HUNDRED = new BigDecimal(100);
@@ -449,6 +449,7 @@ public class TestSoftTrailingStopProcessor {
       .startPrice(ENTRY_PRICE)
       .stopPrice(STOP_PRICE)
       .limitPrice(LIMIT_PRICE)
+      .direction(Direction.SELL)
       .tickTrigger(ex);
   }
 }

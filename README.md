@@ -76,6 +76,7 @@ To perform an OCO trade, call `PUT /jobs` with a payload like this:
         "thresholdAsString": "0.00057",
         "job": {
 		    "jobType": "SoftTrailingStop",
+		    "direction": "SELL",
 		    "tickTrigger": {
 		        "exchange": "binance",
 		        "counter": "BTC",

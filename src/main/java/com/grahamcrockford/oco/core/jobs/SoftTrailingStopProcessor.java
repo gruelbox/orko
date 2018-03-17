@@ -95,11 +95,12 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
     logStatus(job, ticker, currencyPairMetaData);
 
     // If we've hit the stop price, we're done
-    if (ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) <= 0) {
+    if ((job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) <= 0) ||
+        (job.direction().equals(Direction.BUY) && ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) >= 0)) {
 
       jobSubmitter.submitNew(LimitOrderJob.builder()
           .tickTrigger(ex)
-          .direction(Direction.SELL)
+          .direction(job.direction())
           .amount(job.amount())
           .limitPrice(job.limitPrice())
           .build());
@@ -108,11 +109,20 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
       return;
     }
 
-    if (ticker.getBid().compareTo(job.lastSyncPrice()) > 0 ) {
+    if (job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(job.lastSyncPrice()) > 0) {
       jobControl.replace(
         job.toBuilder()
           .lastSyncPrice(ticker.getBid())
           .stopPrice(job.stopPrice().add(ticker.getBid()).subtract(job.lastSyncPrice()))
+          .build()
+      );
+    }
+
+    if (job.direction().equals(Direction.BUY) && ticker.getBid().compareTo(job.lastSyncPrice()) < 0 ) {
+      jobControl.replace(
+        job.toBuilder()
+          .lastSyncPrice(ticker.getBid())
+          .stopPrice(job.stopPrice().subtract(ticker.getBid()).add(job.lastSyncPrice()))
           .build()
       );
     }
@@ -124,7 +134,7 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
       trailingStop.id(),
       ex.exchange(),
       ex.pairName(),
-      "Trailing stop",
+      "Trailing " + trailingStop.direction(),
       trailingStop.startPrice().setScale(currencyPairMetaData.getPriceScale(), HALF_UP),
       stopPrice(trailingStop, currencyPairMetaData),
       ticker.getBid().setScale(currencyPairMetaData.getPriceScale(), HALF_UP),
