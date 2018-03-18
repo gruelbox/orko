@@ -19,7 +19,7 @@ import com.grahamcrockford.oco.core.spi.JobBuilder;
 public abstract class Alert implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_Alert.Builder();
+    return new AutoValue_Alert.Builder().message("Alert");
   }
 
   @AutoValue.Builder
@@ -44,7 +44,7 @@ public abstract class Alert implements Job {
   @Nullable
   public abstract String id();
 
-  @JsonIgnore
+  @JsonProperty
   public abstract String message();
 
   @JsonIgnore

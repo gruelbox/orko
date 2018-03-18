@@ -1,5 +1,8 @@
 package com.grahamcrockford.oco.core.jobs;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.Assisted;
@@ -10,6 +13,8 @@ import com.grahamcrockford.oco.core.spi.JobProcessor;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
 class AlertProcessor implements JobProcessor<Alert> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AlertProcessor.class);
 
   private final TelegramService telegramService;
   private final Alert job;
@@ -22,6 +27,7 @@ class AlertProcessor implements JobProcessor<Alert> {
 
   @Override
   public boolean start() {
+    LOGGER.info("Sending message: " + job.message());
     telegramService.sendMessage(job.message());
     return false;
   }
