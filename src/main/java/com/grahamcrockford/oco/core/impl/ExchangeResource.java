@@ -101,11 +101,11 @@ public class ExchangeResource implements WebResource {
 
   /**
    * Fetches all open orders on the specified exchange. Often not supported.
-   * See {@link ExchangeResource#orders(String, String).
+   * See {@link ExchangeResource#orders(String, String)}.
    *
-   * @param exchange
-   * @return
-   * @throws IOException
+   * @param exchange The exchange.
+   * @return The open orders.
+   * @throws IOException If thrown by exchange.
    */
   @GET
   @Path("{exchange}/orders")
@@ -123,10 +123,10 @@ public class ExchangeResource implements WebResource {
    * for that currency.  May take some time; lots of consecutive API
    * calls are required for each pair.
    *
-   * @param exchangeCode
-   * @param currency
-   * @return
-   * @throws IOException
+   * @param exchangeCode The exchange.
+   * @param currency The currency.
+   * @return The open orders.
+   * @throws IOException If thrown by exchange.
    */
   @GET
   @Path("{exchange}/currencies/{currency}/orders")
@@ -162,11 +162,11 @@ public class ExchangeResource implements WebResource {
   /**
    * Fetches open orders for the specific currency pair.
    *
-   * @param exchange
-   * @param counter
-   * @param base
-   * @return
-   * @throws IOException
+   * @param exchange The exchange.
+   * @param counter The countercurrency.
+   * @param base The base (traded) currency.
+   * @return The open orders.
+   * @throws IOException If thrown by exchange.
    */
   @GET
   @Path("{exchange}/markets/{base}-{counter}/orders")
@@ -184,10 +184,10 @@ public class ExchangeResource implements WebResource {
   /**
    * Fetches the specified order.
    *
-   * @param exchange
-   * @param id
-   * @return
-   * @throws IOException
+   * @param exchange The exchange.
+   * @param id The oirder id.
+   * @return The matching orders.
+   * @throws IOException If thrown by exchange.
    */
   @GET
   @Path("{exchange}/orders/{id}")
@@ -206,7 +206,7 @@ public class ExchangeResource implements WebResource {
    * @param exchange The exchange.
    * @param currenciesAsString Comma-separated list of currencies.
    * @return The balances, by currency.
-   * @throws IOException
+   * @throws IOException If thrown by exchange.
    */
   @GET
   @Path("{exchange}/balance/{currencies}")
@@ -248,11 +248,11 @@ public class ExchangeResource implements WebResource {
   /**
    * Gets the current ticker for the specified exchange and pair.
    *
-   * @param exchange
-   * @param counter
-   * @param base
-   * @return
-   * @throws IOException
+   * @param exchange The exchange.
+   * @param counter The countercurrency.
+   * @param base The base (traded) currency.
+   * @return The ticker.
+   * @throws IOException If thrown by exchange.
    */
   @GET
   @Path("{exchange}/markets/{base}-{counter}/ticker")
