@@ -96,7 +96,7 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
 
     // If we've hit the stop price, we're done
     if ((job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) <= 0) ||
-        (job.direction().equals(Direction.BUY) && ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) >= 0)) {
+        (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(stopPrice(job, currencyPairMetaData)) >= 0)) {
 
       jobSubmitter.submitNew(LimitOrderJob.builder()
           .tickTrigger(ex)
@@ -118,11 +118,11 @@ class SoftTrailingStopProcessor implements JobProcessor<SoftTrailingStop> {
       );
     }
 
-    if (job.direction().equals(Direction.BUY) && ticker.getBid().compareTo(job.lastSyncPrice()) < 0 ) {
+    if (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(job.lastSyncPrice()) < 0 ) {
       jobControl.replace(
         job.toBuilder()
-          .lastSyncPrice(ticker.getBid())
-          .stopPrice(job.stopPrice().subtract(ticker.getBid()).add(job.lastSyncPrice()))
+          .lastSyncPrice(ticker.getAsk())
+          .stopPrice(job.stopPrice().subtract(ticker.getAsk()).add(job.lastSyncPrice()))
           .build()
       );
     }

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +28,7 @@ import com.grahamcrockford.oco.core.api.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.api.ExchangeService;
 import com.grahamcrockford.oco.core.api.JobSubmitter;
 import com.grahamcrockford.oco.core.jobs.LimitOrderJob.Direction;
+import com.grahamcrockford.oco.core.jobs.SoftTrailingStop.Builder;
 import com.grahamcrockford.oco.core.spi.JobControl;
 import com.grahamcrockford.oco.core.spi.TickerSpec;
 import com.grahamcrockford.oco.telegram.TelegramService;
@@ -40,11 +42,11 @@ public class TestSoftTrailingStopProcessorBuy {
   private static final BigDecimal AMOUNT = new BigDecimal(1000);
 
   private static final BigDecimal ENTRY_PRICE = HUNDRED;
-  private static final BigDecimal STOP_PRICE = new BigDecimal(105);
-  private static final BigDecimal LIMIT_PRICE = new BigDecimal(110);
+  private static final BigDecimal STOP_PRICE = ENTRY_PRICE.add(new BigDecimal(RandomUtils.nextInt(2, 10)));
+  private static final BigDecimal LIMIT_PRICE = STOP_PRICE.add(new BigDecimal(RandomUtils.nextInt(2, 10)));
 
-  private static final BigDecimal LOWER_ENTRY_PRICE = new BigDecimal(50);
-  private static final BigDecimal LOWER_STOP_PRICE = new BigDecimal(55);
+  private static final BigDecimal LOWER_ENTRY_PRICE = ENTRY_PRICE.subtract(new BigDecimal(RandomUtils.nextInt(2, 50)));
+  private static final BigDecimal ADJUSTED_STOP_PRICE = STOP_PRICE.subtract(ENTRY_PRICE).add(LOWER_ENTRY_PRICE);
 
   private static final String BASE = "FOO";
   private static final String COUNTER = "USDT";
@@ -143,9 +145,9 @@ public class TestSoftTrailingStopProcessorBuy {
     start(job, processor);
 
     processor.tick(new Ticker.Builder()
-        .bid(STOP_PRICE.subtract(PENNY))
+        .bid(STOP_PRICE.subtract(PENNY).subtract(PENNY))
         .last(STOP_PRICE)
-        .ask(STOP_PRICE.subtract(PENNY).subtract(PENNY))
+        .ask(STOP_PRICE.subtract(PENNY))
         .timestamp(new Date()).build());
 
     verifyWillRepeatWithoutChange();
@@ -160,9 +162,9 @@ public class TestSoftTrailingStopProcessorBuy {
     start(job, processor);
 
     final Ticker ticker = new Ticker.Builder()
-        .bid(STOP_PRICE)
-        .last(STOP_PRICE.subtract(PENNY))
-        .ask(STOP_PRICE.subtract(PENNY))
+        .bid(STOP_PRICE.subtract(PENNY).subtract(PENNY))
+        .last(STOP_PRICE)
+        .ask(STOP_PRICE)
         .timestamp(new Date()).build();
     processor.tick(ticker);
 
@@ -173,29 +175,27 @@ public class TestSoftTrailingStopProcessorBuy {
 
   @Test
   public void testActiveStopFalseAdjusted1() throws Exception {
-    SoftTrailingStop job = baseJob().lastSyncPrice(LOWER_ENTRY_PRICE).build();
+    SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
 
-    final Ticker ticker = everythingAt(LOWER_STOP_PRICE.subtract(PENNY));
+    final Ticker ticker = everythingAt(ADJUSTED_STOP_PRICE.subtract(PENNY));
     processor.tick(ticker);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
 
+
   @Test
   public void testActiveStopTrueAdjusted1() throws Exception {
-    SoftTrailingStop job = baseJob()
-        .lastSyncPrice(LOWER_ENTRY_PRICE)
-        .stopPrice(STOP_PRICE.add(LOWER_ENTRY_PRICE).subtract(ENTRY_PRICE))
-        .build();
+    SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
 
-    final Ticker ticker = everythingAt(LOWER_STOP_PRICE);
+    final Ticker ticker = everythingAt(ADJUSTED_STOP_PRICE);
     processor.tick(ticker);
 
     verifyLimitBuyAtLimitPrice(ticker);
@@ -205,18 +205,15 @@ public class TestSoftTrailingStopProcessorBuy {
 
   @Test
   public void testActiveStopFalseAdjusted2() throws Exception {
-    SoftTrailingStop job = baseJob()
-        .lastSyncPrice(LOWER_ENTRY_PRICE)
-        .stopPrice(LOWER_STOP_PRICE)
-        .build();
+    SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
 
     final Ticker ticker = new Ticker.Builder()
-        .bid(LOWER_STOP_PRICE.subtract(PENNY))
-        .last(LOWER_STOP_PRICE)
-        .ask(LOWER_STOP_PRICE.subtract(PENNY).subtract(PENNY))
+        .bid(ADJUSTED_STOP_PRICE.subtract(PENNY).subtract(PENNY))
+        .last(ADJUSTED_STOP_PRICE)
+        .ask(ADJUSTED_STOP_PRICE.subtract(PENNY))
         .timestamp(new Date()).build();
     processor.tick(ticker);
 
@@ -226,18 +223,15 @@ public class TestSoftTrailingStopProcessorBuy {
 
   @Test
   public void testActiveStopTrueAdjusted2() throws Exception {
-    SoftTrailingStop job = baseJob()
-        .lastSyncPrice(LOWER_ENTRY_PRICE)
-        .stopPrice(LOWER_STOP_PRICE)
-        .build();
+    SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
 
     final Ticker ticker = new Ticker.Builder()
-        .bid(LOWER_STOP_PRICE)
-        .last(LOWER_STOP_PRICE.subtract(PENNY))
-        .ask(LOWER_STOP_PRICE.subtract(PENNY))
+        .bid(ADJUSTED_STOP_PRICE.subtract(PENNY).subtract(PENNY))
+        .last(ADJUSTED_STOP_PRICE)
+        .ask(ADJUSTED_STOP_PRICE)
         .timestamp(new Date()).build();
     processor.tick(ticker);
 
@@ -284,7 +278,7 @@ public class TestSoftTrailingStopProcessorBuy {
   /* -------------------------------------------------------------------------------------- */
 
   @Test
-  public void testActivePriceChangeFalseDefault() throws Exception {
+  public void testActiveAdjustNoChange() throws Exception {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
@@ -298,7 +292,7 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   @Test
-  public void testActivePriceChangeUpDefault() throws Exception {
+  public void testActiveAdjustPriceRise() throws Exception {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
     start(job, processor);
@@ -311,16 +305,16 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   @Test
-  public void testActivePriceChangeDownDefault() throws Exception {
+  public void testActiveAdjustPriceDrop() throws Exception {
     final SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
 
     final Ticker ticker = new Ticker.Builder()
-        .bid(ENTRY_PRICE.subtract(PENNY))
+        .bid(ENTRY_PRICE.subtract(PENNY).subtract(PENNY))
         .last(ENTRY_PRICE)
-        .ask(ENTRY_PRICE.subtract(PENNY).subtract(PENNY))
+        .ask(ENTRY_PRICE.subtract(PENNY))
         .timestamp(new Date()).build();
     processor.tick(ticker);
 
@@ -329,8 +323,8 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   @Test
-  public void testActivePriceChangeFalseAdjusted() throws Exception {
-    SoftTrailingStop job = baseJob().lastSyncPrice(LOWER_ENTRY_PRICE).build();
+  public void testActiveAdjustSecondTimeNoChange() throws Exception {
+    SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
@@ -343,8 +337,8 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   @Test
-  public void testActivePriceChangeUpAdjusted() throws Exception {
-    SoftTrailingStop job = baseJob().lastSyncPrice(LOWER_ENTRY_PRICE).build();
+  public void testActiveAdjustSecondTimePriceRise() throws Exception {
+    SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
@@ -357,19 +351,16 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   @Test
-  public void testActivePriceChangeDownAdjusted() throws Exception {
-    final SoftTrailingStop job = baseJob()
-        .lastSyncPrice(LOWER_ENTRY_PRICE)
-        .stopPrice(STOP_PRICE)
-        .build();
+  public void testActiveAdjustSecondTimePriceDrop() throws Exception {
+    final SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
 
     final Ticker ticker = new Ticker.Builder()
-        .bid(LOWER_ENTRY_PRICE.subtract(PENNY))
+        .bid(LOWER_ENTRY_PRICE.subtract(PENNY).subtract(PENNY))
         .last(LOWER_ENTRY_PRICE)
-        .ask(LOWER_ENTRY_PRICE.subtract(PENNY).subtract(PENNY))
+        .ask(LOWER_ENTRY_PRICE.subtract(PENNY))
         .timestamp(new Date()).build();
     processor.tick(ticker);
 
@@ -451,5 +442,9 @@ public class TestSoftTrailingStopProcessorBuy {
       .limitPrice(LIMIT_PRICE)
       .direction(Direction.BUY)
       .tickTrigger(ex);
+  }
+
+  private Builder jobAlreadyAdjusted() {
+    return baseJob().lastSyncPrice(LOWER_ENTRY_PRICE).stopPrice(ADJUSTED_STOP_PRICE);
   }
 }
