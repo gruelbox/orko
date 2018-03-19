@@ -18,7 +18,7 @@
 		<module>oco-web</module>
 	</modules>
 
-	<name>oco</name>
+	<name>OCO</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

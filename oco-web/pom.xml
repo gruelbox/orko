@@ -17,7 +17,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-	<name>oco</name>
+	<name>OCO Web API</name>
 
 	<dependencies>
 		<dependency>
@@ -40,34 +40,6 @@
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-gdax</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-binance</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-kucoin</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-cryptopia</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-bitfinex</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-bitmex</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-bittrex</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>
@@ -112,10 +84,6 @@
 		<dependency>
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-assistedinject</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.reflections</groupId>
-			<artifactId>reflections</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.warrenstrange</groupId>

@@ -25,3 +25,7 @@
 /oco-worker/.settings/org.eclipse.jdt.apt.core.prefs
 /oco-worker/.settings/org.eclipse.jdt.core.prefs
 /oco-worker/.settings/org.eclipse.m2e.core.prefs
+/oco-api/dependency-reduced-pom.xml
+/oco-web/dependency-reduced-pom.xml
+/oco-worker/dependency-reduced-pom.xml
+/target/oco-parent-0.0.1-SNAPSHOT-shaded.pom

@@ -4,7 +4,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.gdax.GDAXExchange;
-
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.exchange.ExchangeServiceImpl;
 
@@ -19,13 +18,8 @@ public class TestExchangeService {
 
   @Test
   public void testExchanges() {
-    Assert.assertTrue(exchangeService.getExchanges().contains("binance"));
-    Assert.assertTrue(exchangeService.getExchanges().contains("kucoin"));
     Assert.assertTrue(exchangeService.getExchanges().contains("gdax"));
     Assert.assertTrue(exchangeService.getExchanges().contains("gdax-sandbox"));
-    Assert.assertTrue(exchangeService.getExchanges().contains("cryptopia"));
-    Assert.assertTrue(exchangeService.getExchanges().contains("bitfinex"));
-    Assert.assertTrue(exchangeService.getExchanges().contains("bittrex"));
   }
 
   @Test

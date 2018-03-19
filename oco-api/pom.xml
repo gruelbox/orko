@@ -17,7 +17,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-	<name>oco</name>
+	<name>OCO API</name>
 
 	<dependencies>
 		<dependency>

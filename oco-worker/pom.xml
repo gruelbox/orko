@@ -17,7 +17,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-	<name>oco</name>
+	<name>OCO Core</name>
 
 	<dependencies>
 		<dependency>
@@ -28,10 +28,6 @@
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.dropwizard</groupId>
-			<artifactId>dropwizard-auth</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
@@ -108,14 +104,6 @@
 		<dependency>
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-assistedinject</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.reflections</groupId>
-			<artifactId>reflections</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.warrenstrange</groupId>
-			<artifactId>googleauth</artifactId>
 		</dependency>
 	</dependencies>
 </project>
