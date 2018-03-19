@@ -8,9 +8,15 @@
 	</prerequisites>
 
 	<groupId>com.grahamcrockford</groupId>
-	<artifactId>oco</artifactId>
+	<artifactId>oco-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>oco-worker</module>
+                <module>oco-api</module>
+		<module>oco-web</module>
+	</modules>
 
 	<name>oco</name>
 
@@ -40,23 +46,6 @@
 		<jacoco.version>0.8.0</jacoco.version>
 		<mockito.version>1.10.19</mockito.version>
 	</properties>
-
-	<!-- <repositories> -->
-	<!-- <repository> -->
-	<!-- <id>central</id> -->
-	<!-- <name>Maven Repository Switchboard</name> -->
-	<!-- <layout>default</layout> -->
-	<!-- <url>http://repo1.maven.org/maven2</url> -->
-	<!-- <snapshots> -->
-	<!-- <enabled>false</enabled> -->
-	<!-- </snapshots> -->
-	<!-- </repository> -->
-	<!-- <repository> -->
-	<!-- <id>sonatype-oss-snapshot</id> -->
-	<!-- <snapshots /> -->
-	<!-- <url>https://oss.sonatype.org/content/repositories/snapshots</url> -->
-	<!-- </repository> -->
-	<!-- </repositories> -->
 
 	<dependencyManagement>
 		<dependencies>
@@ -176,105 +165,6 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
-	<dependencies>
-		<dependency>
-			<groupId>io.dropwizard</groupId>
-			<artifactId>dropwizard-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.dropwizard</groupId>
-			<artifactId>dropwizard-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.dropwizard</groupId>
-			<artifactId>dropwizard-auth</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-gdax</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-binance</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-kucoin</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-cryptopia</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-bitfinex</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-bitmex</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-bittrex</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.inject</groupId>
-			<artifactId>guice</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-multibindings</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-servlet</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.auto.value</groupId>
-			<artifactId>auto-value</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>one.util</groupId>
-			<artifactId>streamex</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.rabbitmq</groupId>
-			<artifactId>amqp-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongo-java-driver</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mongojack</groupId>
-			<artifactId>mongojack</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-assistedinject</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.reflections</groupId>
-			<artifactId>reflections</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.warrenstrange</groupId>
-			<artifactId>googleauth</artifactId>
-		</dependency>
-	</dependencies>
 
 	<build>
 		<plugins>
