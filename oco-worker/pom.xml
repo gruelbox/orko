@@ -18,6 +18,10 @@
     </parent>
 
 	<name>OCO Core</name>
+	
+	<properties>
+		<mainClass>com.grahamcrockford.oco.core.WorkerApplication</mainClass>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -106,4 +110,64 @@
 			<artifactId>guice-assistedinject</artifactId>
 		</dependency>
 	</dependencies>
+	
+	<build>
+		<plugins>
+	<!-- 			<plugin> -->
+<!-- 				<groupId>com.spotify</groupId> -->
+<!-- 				<artifactId>dockerfile-maven-plugin</artifactId> -->
+<!-- 				<version>${dockerfile-maven-version}</version> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<id>default</id> -->
+<!-- 						<goals> -->
+<!-- 							<goal>build</goal> -->
+<!-- 							<goal>push</goal> -->
+<!-- 						</goals> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 				<configuration> -->
+<!-- 					<repository>spotify/foobar</repository> -->
+<!-- 					<tag>${project.version}</tag> -->
+<!-- 					<buildArgs> -->
+<!-- 						<JAR_FILE>${project.build.finalName}.jar</JAR_FILE> -->
+<!-- 					</buildArgs> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
+			<plugin>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven.shade.plugin.version}</version>
+				<configuration>
+					<createDependencyReducedPom>true</createDependencyReducedPom>
+					<transformers>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<mainClass>${mainClass}</mainClass>
+						</transformer>
+					</transformers>
+					<!-- exclude signed Manifests -->
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
+					</filters>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
