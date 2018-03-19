@@ -9,9 +9,6 @@ database:
   mongoClientURI: mongodb://jsmith:some-initial-password@192.168.99.100:27017 # Your mongoDB connection details.
   mongoDatabase: oco # MongoDB database name.
   lockSeconds: 10
-#telegram:
-#  botToken: Generate this using the instructions in README.md if you want notifications 
-#  chatId: And this
 exchanges:
 #  gdax-sandbox:
 #    apiKey: 

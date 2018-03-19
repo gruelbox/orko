@@ -9,9 +9,6 @@ database:
   mongoClientURI: ${MONGODB_URI}
   mongoDatabase: ${MONGO_DATABASE}
   lockSeconds: ${LOCK_SECONDS}
-telegram:
-  botToken: ${TELEGRAM_BOT_TOKEN}
-  chatId: ${TELEGRAM_CHAT_ID}
 exchanges:
   gdax-sandbox:
     apiKey: ${GDAX_SANDBOX_API_KEY}
