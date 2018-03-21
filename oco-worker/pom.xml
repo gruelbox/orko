@@ -112,61 +112,63 @@
 	</dependencies>
 	
 	<build>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
-	<!-- 			<plugin> -->
-<!-- 				<groupId>com.spotify</groupId> -->
-<!-- 				<artifactId>dockerfile-maven-plugin</artifactId> -->
-<!-- 				<version>${dockerfile-maven-version}</version> -->
-<!-- 				<executions> -->
-<!-- 					<execution> -->
-<!-- 						<id>default</id> -->
-<!-- 						<goals> -->
-<!-- 							<goal>build</goal> -->
-<!-- 							<goal>push</goal> -->
-<!-- 						</goals> -->
-<!-- 					</execution> -->
-<!-- 				</executions> -->
-<!-- 				<configuration> -->
-<!-- 					<repository>spotify/foobar</repository> -->
-<!-- 					<tag>${project.version}</tag> -->
-<!-- 					<buildArgs> -->
-<!-- 						<JAR_FILE>${project.build.finalName}.jar</JAR_FILE> -->
-<!-- 					</buildArgs> -->
-<!-- 				</configuration> -->
-<!-- 			</plugin> -->
 			<plugin>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven.shade.plugin.version}</version>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven.compiler.plugin.version}</version>
 				<configuration>
-					<createDependencyReducedPom>true</createDependencyReducedPom>
-					<transformers>
-						<transformer
-							implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-						<transformer
-							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-							<mainClass>${mainClass}</mainClass>
-						</transformer>
-					</transformers>
-					<!-- exclude signed Manifests -->
-					<filters>
-						<filter>
-							<artifact>*:*</artifact>
-							<excludes>
-								<exclude>META-INF/*.SF</exclude>
-								<exclude>META-INF/*.DSA</exclude>
-								<exclude>META-INF/*.RSA</exclude>
-							</excludes>
-						</filter>
-					</filters>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven.jar.plugin.version}</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>${mainClass}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin-version}</version>
 				<executions>
 					<execution>
-						<phase>package</phase>
+						<phase>initialize</phase>
 						<goals>
-							<goal>shade</goal>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<overWriteReleases>false</overWriteReleases>
+							<includeScope>runtime</includeScope>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+				<version>${dockerfile-maven-version}</version>
+				<executions>
+					<execution>
+						<id>default</id>
+						<goals>
+							<goal>build</goal>
+							<goal>push</goal>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<repository>llcoolg/${project.artifactId}</repository>
+					<tag>${project.version}</tag>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
