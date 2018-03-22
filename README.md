@@ -1,20 +1,55 @@
 # oco
 
-Back-end local setup and build
+Quick and easy run using Docker
 ---
+You can run it locally with little to no setup.
+
+1. Install Docker (https://docs.docker.com/install/#supported-platforms) and Docker Compose (https://docs.docker.com/compose/install/)
+1. In the root directory, run `docker-compose up`.
+1. The application should build and start.  It'll take a while.
+
+By default there are no exchange account details, so trading isn't enabled, and Telegram notifications are also disabled, but it lets you get an idea.  To remedy this, copy this into `docker-config.xml`:
+
+```
+telegram:
+  botToken: ${TELEGRAM_BOT_TOKEN}
+  chatId: ${TELEGRAM_CHAT_ID}
+exchanges:
+  gdax-sandbox:
+    apiKey: ${GDAX_SANDBOX_API_KEY}
+    secretKey: ${GDAX_SANDBOX_SECRET}
+    passphrase: ${GDAX_SANDBOX_PASSPHRASE}
+  gdax:
+    apiKey: ${GDAX_API_KEY}
+    secretKey: ${GDAX_SECRET}
+    passphrase: ${GDAX_PASSPHRASE}
+  binance:
+    apiKey: ${BINANCE_API_KEY}
+    secretKey: ${BINANCE_SECRET}
+  kucoin:
+    apiKey: ${KUCOIN_API_KEY}
+    secretKey: ${KUCOIN_SECRET}
+```
+
+And replace the variables with the telegram settings from "[Optional] Set up Telegram so you can get notifications." below and your exchange keys.  Then run `docker-compose build` to rebuild the docker images and `docker-compose up` to restart.
+
+Running directly locally
+---
+If you want to run the application directly without Docker:
+
 1. Install the Java JDK (`sudo apt-get install default-jdk`)
 1. Install Maven (`sudo apt-get install maven`)
 1. Run `mvn clean package` to build the application
 1. Spin up a mongodb instance on Docker using this image: https://hub.docker.com/r/library/mongo/.  You'll need to follow the instructions for creating an admin user.
 
-How to start the back-end locally:
+How to start the back-end locally
 ---
 1. Copy `example-developer-mode-config.yml` as `my-config.xml` and fill in the gaps.  The commented-out lines can be ignored for now.
 1. Start application with `java -jar target/oco-0.0.1-SNAPSHOT.jar server my-config.yml`.
 
 You should now be able to call the API entry points. Try just navigating to http://localhost:8080/api/exchanges.
 
-Entry points
+API Entry points
 ---
 All are prefixed with `/api` and require basic authentication using the username and password from the config file:
 
@@ -104,8 +139,10 @@ UI local setup and build
 ---
 The UI runs as a separate application.
 
-1. Clone the repository at https://bitbucket.org/badgerwithagun/oco-ui
-1. Follow the instructions in the README there. By default it will talk directly to a locally running API on port 8080, so make sure both are running.
+1. Install NPM (sudo apt-get install npm) then run npm start in the root folder to start a local dev server. You can access it at http://localhost:3000.
+1. Use npm run build to create a static deployable build you can drop on any static web server.
+1. I deploy it to Heroku using this buildpack (full instructions there): https://github.com/mars/create-react-app-buildpack
+1. When doing so, I ensure to set up API_URL to point to my API instance.
 
 [Optional] Set up Telegram so you can get notifications.
 ---
