@@ -14,9 +14,26 @@
 
 	<modules>
 		<module>oco-worker</module>
-                <module>oco-api</module>
+        <module>oco-api</module>
 		<module>oco-web</module>
 	</modules>
+
+	<profiles>
+    	<profile>
+			<id>web</id>
+          	<modules>
+				<module>oco-api</module>
+				<module>oco-web</module>
+          	</modules> 
+     	 </profile>
+		<profile>
+			<id>worker</id>
+          	<modules>
+			  	<module>oco-api</module>
+				<module>oco-worker</module>
+          	</modules> 
+     	</profile>
+  	</profiles>
 
 	<name>OCO</name>
 

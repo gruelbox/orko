@@ -1,0 +1,13 @@
+# build environment
+FROM maven:3.5.3-jdk-8 as builder
+WORKDIR /usr/src/myapp
+COPY . /usr/src/myapp
+RUN mvn -P web clean package -Dmaven.test.skip=true
+
+# production environment
+FROM openjdk:8
+COPY --from=builder /usr/src/myapp/oco-web/target/lib /usr/share/app/lib
+COPY --from=builder /usr/src/myapp/oco-web/target/oco-web.jar /usr/share/app/app.jar
+COPY --from=builder /usr/src/myapp/docker-config.yml /usr/share/app/config.yml
+CMD java -classpath "/usr/share/app/lib" -jar /usr/share/app/app.jar server /usr/share/app/config.yml
+EXPOSE 8080
