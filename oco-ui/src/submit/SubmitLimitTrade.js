@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { Input, Button, Form, Accordion } from 'semantic-ui-react'
+import { Input, Button, Form } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
 import SubmitJob from './SubmitJob';
-import RiskProfile from './RiskProfile';
 import { BUY } from '../context/trade'
 
 export default class SubmitLimitTrade extends Component {
