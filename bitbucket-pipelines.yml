@@ -13,6 +13,7 @@ pipelines:
       - step:
           script:
             - cd oco-ui
+            - npm install gulp
             - npm run build
       - step:
           caches:
