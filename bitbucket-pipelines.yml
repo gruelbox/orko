@@ -12,7 +12,7 @@ pipelines:
     - parallel:
       - step:
           script:
-            - npm build oco-ui
+            - npm run build oco-ui
       - step:
           caches:
             - maven
