@@ -11,7 +11,7 @@ export default class CoinInfo extends Component {
             <Grid>
               <Grid.Row divided columns={3}>
                 <Grid.Column>
-                  <Header as='h2'>
+                  <Header as='h3'>
                     <Icon name='bitcoin' />
                     {coin.name}
                   </Header>
@@ -26,7 +26,7 @@ export default class CoinInfo extends Component {
                   <Button onClick={this.props.onRemove}>Remove coin</Button>
                 </Grid.Column>
               </Grid.Row>
-              <Grid.Row divided columns={4}>
+              <Grid.Row divided columns={3}>
                 <Grid.Column>
                   {
                     (ticker.bid === 0)
@@ -53,9 +53,6 @@ export default class CoinInfo extends Component {
                   {'Open: ' + ticker.open}
                   <br/>
                   {'Low: ' + ticker.low}
-                </Grid.Column>
-                <Grid.Column>
-                  {'Vol: ' + ticker.volume}
                 </Grid.Column>
               </Grid.Row>
             </Grid>

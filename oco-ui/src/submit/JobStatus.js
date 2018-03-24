@@ -4,7 +4,7 @@ import {Step } from 'semantic-ui-react'
 export default class JobStatus extends Component {
   render() {
     return (
-      <Step.Group ordered unstackable size="tiny" attached='bottom'>
+      <Step.Group ordered size="tiny" attached='bottom'>
         <Step active completed={this.props.valid}>
           <Step.Content>
             <Step.Title>Preparing</Step.Title>

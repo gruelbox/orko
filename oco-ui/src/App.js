@@ -15,7 +15,7 @@ export default class App extends Component {
         <BrowserRouter>
           <div>
             <Header/>
-            <div style={{ marginTop: '4em' }}>
+            <div>
               <Switch>
                 <Route exact path='/' component={Authentication}/>
                 <Route exact path='/addCoin' component={AddCoin}/>

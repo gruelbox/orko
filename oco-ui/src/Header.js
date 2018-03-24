@@ -16,7 +16,7 @@ export default class App extends Component {
           ));
 
           return (
-            <Menu fixed='top'>
+            <Menu stackable>
               <Container>
                 <Dropdown item simple text='Active coins'>
                   <Dropdown.Menu>

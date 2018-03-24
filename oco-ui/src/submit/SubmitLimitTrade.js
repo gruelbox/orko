@@ -60,7 +60,7 @@ export default class SubmitLimitTrade extends Component {
         <Form.Group widths='equal'>
           <Form.Field required>
             <label>Limit price</label>
-            <Input type='text' placeholder="Enter limit price..." action error={!priceValid}>
+            <Input fluid type='text' placeholder="Enter limit price..." action error={!priceValid}>
               <input value={limitPrice} onChange={this.onChangePrice} />
               <Button color={color} onClick={() => this.props.setBidPrice(this.onSetPrice)}>Bid</Button>
               <Button color={color} onClick={() => this.props.setAskPrice(this.onSetPrice)}>Ask</Button>
@@ -68,6 +68,7 @@ export default class SubmitLimitTrade extends Component {
             </Input>
           </Form.Field> 
           <Form.Input
+            fluid
             required
             label="Amount"
             type='text'
