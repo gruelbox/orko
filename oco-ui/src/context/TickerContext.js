@@ -6,6 +6,8 @@ import AuthContainer from './AuthContainer';
 import PropTypes from 'prop-types';
 
 const DEFAULT_TICKER = { bid: 0, ask: 0 };
+
+// TODO hacky....
 const TICK_TIME = 5000;
 
 const TickerContext = createReactContext('ticker');
