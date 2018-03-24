@@ -57,11 +57,12 @@
 		<googleauth.version>1.1.5</googleauth.version>
 		<dockerfile-maven-version>1.4.0</dockerfile-maven-version>
 
-		<maven.shade.plugin.version>3.1.0</maven.shade.plugin.version>
+<!-- 		<frontend-maven-plugin-version>1.4</frontend-maven-plugin-version> -->
+<!-- 		<maven.shade.plugin.version>3.1.0</maven.shade.plugin.version> -->
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
-		<maven.source.plugin.version>3.0.1</maven.source.plugin.version>
-		<maven.javadoc.plugin.version>3.0.0</maven.javadoc.plugin.version>
+<!-- 		<maven.source.plugin.version>3.0.1</maven.source.plugin.version> -->
+<!-- 		<maven.javadoc.plugin.version>3.0.0</maven.javadoc.plugin.version> -->
 		<maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
 		<jacoco.version>0.8.0</jacoco.version>
 		<mockito.version>1.10.19</mockito.version>
@@ -216,8 +217,36 @@
 		</dependencies>
 	</dependencyManagement>
 	
-<!-- 	<build> -->
-<!-- 		<plugins> -->
+	<build>
+		<plugins>
+<!-- 			<plugin> -->
+<!-- 		        <groupId>com.github.eirslett</groupId> -->
+<!-- 		        <artifactId>frontend-maven-plugin</artifactId> -->
+<!-- 		        <version>${frontend-maven-plugin-version}</version> -->
+<!-- 		        <configuration> -->
+<!-- 			        <installDirectory>oco-ui</installDirectory> -->
+<!-- 			    </configuration> -->
+<!-- 			    <executions> -->
+<!-- 				    <execution> -->
+<!-- 					    <id>npm install</id> -->
+<!-- 					    <goals> -->
+<!-- 					        <goal>npm</goal> -->
+<!-- 					    </goals> -->
+<!-- 					    <configuration> -->
+<!-- 					        <arguments>install</arguments> -->
+<!-- 					    </configuration> -->
+<!-- 					</execution> -->
+<!-- 					<execution> -->
+<!-- 					    <id>npm run build</id> -->
+<!-- 					    <goals> -->
+<!-- 					        <goal>npm</goal> -->
+<!-- 					    </goals> -->
+<!-- 					    <configuration> -->
+<!-- 					        <arguments>run build</arguments> -->
+<!-- 					    </configuration> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 		    </plugin> -->
 <!-- 			<plugin> -->
 <!-- 				<groupId>org.jacoco</groupId> -->
 <!-- 				<artifactId>jacoco-maven-plugin</artifactId> -->
@@ -259,8 +288,8 @@
 <!-- 					</execution> -->
 <!-- 				</executions> -->
 <!-- 			</plugin> -->
-<!-- 		</plugins> -->
-<!-- 	</build> -->
+		</plugins>
+	</build>
 	
 <!--  	<reporting> -->
 <!-- 		<plugins> -->
