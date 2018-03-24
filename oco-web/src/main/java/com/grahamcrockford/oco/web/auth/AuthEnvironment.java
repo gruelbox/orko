@@ -1,8 +1,12 @@
 package com.grahamcrockford.oco.web.auth;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import javax.inject.Inject;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -47,6 +51,14 @@ class AuthEnvironment implements EnvironmentInitialiser {
 
     // Restrict admin access too
     environment.admin().setSecurityHandler(securityHandler);
+
+    // Suppress the authentication header so it doesn't interfere with the browser
+    environment.jersey().register(new ContainerResponseFilter() {
+      @Override
+      public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+        responseContext.getHeaders().remove("www-authenticate");
+      }
+    });
 
   }
 
