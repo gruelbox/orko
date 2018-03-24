@@ -87,6 +87,6 @@ export default class SubmitJob extends Component {
 }
 
 SubmitJob.propTypes = {
-  trade: PropTypes.object.isRequired,
+  job: PropTypes.object.isRequired,
   valid: PropTypes.bool.isRequired,
 };

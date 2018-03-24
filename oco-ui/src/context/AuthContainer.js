@@ -6,7 +6,7 @@ export default class AuthContainer extends Container {
   state = {
     valid: true,
     userName: 'bully',
-    password: 'boy',
+    password: 'boys',
     whitelisted: true,
   };
 

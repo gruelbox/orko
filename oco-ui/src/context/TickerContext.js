@@ -64,7 +64,7 @@ export class TickerProvider extends Component {
       .then(response => response.json())
       .catch(error => {
         console.log("Failed to fetch ticker", coin);
-        return undefined;
+        this.setState({ ticker: undefined });
       }).then(ticker => {
         if (!ticker)
           return;

@@ -28,10 +28,17 @@ export default class CoinInfo extends Component {
               </Grid.Row>
               <Grid.Row divided columns={4}>
                 <Grid.Column>
-                  <Statistic size="tiny">
-                    <Statistic.Value>{ticker.last}</Statistic.Value>
-                    <Statistic.Label>{coin.counter}</Statistic.Label>
-                  </Statistic>
+                  {
+                    (ticker.bid === 0)
+                    ? <div>
+                        <Icon name="warning sign" />
+                        Cannot connect to server
+                      </div>
+                    : <Statistic size="tiny">
+                        <Statistic.Value>{ticker.last}</Statistic.Value>
+                        <Statistic.Label>{coin.counter}</Statistic.Label>
+                      </Statistic>
+                  }
                 </Grid.Column>
                 <Grid.Column>
                   {'Bid: ' + ticker.bid}
