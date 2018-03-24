@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { TickerConsumer } from './context/TickerContext';
-import { Button, Header, Icon, Grid, Statistic } from 'semantic-ui-react';
+import { Button, Header, Icon, Grid } from 'semantic-ui-react';
 import { get } from './context/fetchUtil'
 import { Subscribe  } from 'unstated';
 import AuthContainer from './context/AuthContainer';
