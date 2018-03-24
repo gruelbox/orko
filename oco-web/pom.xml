@@ -70,6 +70,10 @@
 			<artifactId>xchange-bittrex</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-okcoin</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 		</dependency>

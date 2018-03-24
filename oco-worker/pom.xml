@@ -62,6 +62,26 @@
 			<artifactId>xchange-bittrex</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-okcoin</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-binance</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-bitfinex</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-okcoin</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-gdax</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 		</dependency>
@@ -92,14 +112,6 @@
 		<dependency>
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>info.bitrich.xchange-stream</groupId>
-		    <artifactId>xchange-binance</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>info.bitrich.xchange-stream</groupId>
-		    <artifactId>xchange-bitfinex</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>

@@ -102,6 +102,16 @@
 			    <version>${xchange.stream.version}</version>
 			</dependency>
 			<dependency>
+			    <groupId>info.bitrich.xchange-stream</groupId>
+			    <artifactId>xchange-okcoin</artifactId>
+			    <version>${xchange.stream.version}</version>
+			</dependency>
+			<dependency>
+			    <groupId>info.bitrich.xchange-stream</groupId>
+			    <artifactId>xchange-gdax</artifactId>
+			    <version>${xchange.stream.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.knowm.xchange</groupId>
 				<artifactId>xchange-binance</artifactId>
 				<version>${xchange.version}</version>
@@ -134,6 +144,11 @@
 			<dependency>
 				<groupId>org.knowm.xchange</groupId>
 				<artifactId>xchange-bitmex</artifactId>
+				<version>${xchange.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.knowm.xchange</groupId>
+				<artifactId>xchange-okcoin</artifactId>
 				<version>${xchange.version}</version>
 			</dependency>
 			<dependency>
