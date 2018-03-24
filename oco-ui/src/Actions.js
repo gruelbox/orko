@@ -43,11 +43,6 @@ export default class Actions extends Component {
                   <SubmitAlert coin={coin}/>
                 </Tab.Pane>
               }
-              ,
-              { menuItem: 'More to come...', render: () =>
-                <Tab.Pane>
-                </Tab.Pane>
-              }
             ]} />
           );
         }}
