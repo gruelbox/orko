@@ -19,5 +19,5 @@ pipelines:
           caches:
             - maven
           script:
-            - mvn -B package # verify code coverage is shit atm # -B batch mode makes Maven less verbose
+            - mvn -T 2 -B package # verify code coverage is shit atm # -B batch mode makes Maven less verbose
 #          - git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME_TEST.git HEAD
