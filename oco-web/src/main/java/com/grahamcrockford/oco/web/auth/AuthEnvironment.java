@@ -27,14 +27,16 @@ import io.dropwizard.setup.Environment;
 class AuthEnvironment implements EnvironmentInitialiser {
 
   private final SimpleAuthenticator authenticator;
-  private final AuthConfiguration configuration;
   private final AdminConstraintSecurityHandler securityHandler;
+  private final IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter;
 
   @Inject
-  AuthEnvironment(SimpleAuthenticator authenticator, AuthConfiguration configuration, AdminConstraintSecurityHandler securityHandler) {
+  AuthEnvironment(SimpleAuthenticator authenticator,
+                  AdminConstraintSecurityHandler securityHandler,
+                  IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter) {
     this.authenticator = authenticator;
-    this.configuration = configuration;
     this.securityHandler = securityHandler;
+    this.ipWhitelistContainerRequestFilter = ipWhitelistContainerRequestFilter;
   }
 
   @Override
@@ -59,6 +61,9 @@ class AuthEnvironment implements EnvironmentInitialiser {
         responseContext.getHeaders().remove("www-authenticate");
       }
     });
+
+    // Apply IP whitelisting outside the authentication stack so we can provide a different response
+    environment.jersey().register(ipWhitelistContainerRequestFilter);
 
   }
 

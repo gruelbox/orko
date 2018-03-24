@@ -22,13 +22,11 @@ class SimpleAuthenticator implements Authenticator<BasicCredentials, User>, Auth
   private static final Logger LOGGER = LoggerFactory.getLogger(SimpleAuthenticator.class);
 
   private final AuthDb authDb;
-  private final IpWhitelisting ipWhitelisting;
   private final Provider<HttpServletRequest> requestProvider;
 
   @Inject
-  SimpleAuthenticator(AuthDb authDb, IpWhitelisting ipWhitelisting, Provider<HttpServletRequest> requestProvider) {
+  SimpleAuthenticator(AuthDb authDb, Provider<HttpServletRequest> requestProvider) {
     this.authDb = authDb;
-    this.ipWhitelisting = ipWhitelisting;
     this.requestProvider = requestProvider;
   }
 
@@ -36,11 +34,6 @@ class SimpleAuthenticator implements Authenticator<BasicCredentials, User>, Auth
   public Optional<User> authenticate(BasicCredentials credentials) throws AuthenticationException {
 
     Optional<User> user = authDb.loadUser(credentials.getUsername());
-
-    if (!ipWhitelisting.authoriseIp()) {
-      LOGGER.error("Non-whitelisted access attempt from ip: " + requestProvider.get().getRemoteAddr());
-      return Optional.empty();
-    }
 
     if (!user.isPresent()) {
       LOGGER.error("No user provided for access attempt from: " + requestProvider.get().getRemoteAddr());
