@@ -28,16 +28,18 @@ public class TelegramService {
   }
 
   public void sendMessage(String message) {
-    if (telegramTarget != null) {
-      final Response response = telegramTarget
-        .path("sendMessage")
-        .queryParam("chat_id", configuration.getChatId())
-        .queryParam("text", message)
-        .request()
-        .get();
-      if (response.getStatus() != 200) {
-        LOGGER.error("Could not send telegram message: " + response.getEntity());
-      }
+    if (telegramTarget == null) {
+      LOGGER.warn("Telegram message suppressed. Not configured.");
+      return;
+    }
+    final Response response = telegramTarget
+      .path("sendMessage")
+      .queryParam("chat_id", configuration.getChatId())
+      .queryParam("text", message)
+      .request()
+      .get();
+    if (response.getStatus() != 200) {
+      LOGGER.error("Could not send telegram message: " + response.getEntity());
     }
   }
 }

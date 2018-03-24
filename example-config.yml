@@ -5,6 +5,9 @@ auth:
   secretKey: ${AUTH_TOKEN}
   proxied: ${PROXIED}
   whitelistExpirySeconds: 7200
+telegram:
+  botToken: ${TELEGRAM_BOT_TOKEN}
+  chatId: ${TELEGRAM_CHAT_ID}
 database:
   mongoClientURI: ${MONGODB_URI}
   mongoDatabase: ${MONGO_DATABASE}
