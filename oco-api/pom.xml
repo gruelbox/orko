@@ -17,12 +17,16 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-	<name>OCO API</name>
+	<name>OCO Internal Shared API</name>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-core</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-stream-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>

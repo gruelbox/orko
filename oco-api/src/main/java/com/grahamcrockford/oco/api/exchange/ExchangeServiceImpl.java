@@ -32,6 +32,9 @@ import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.util.CheckedExceptions;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
+import info.bitrich.xchangestream.core.StreamingExchange;
+import info.bitrich.xchangestream.core.StreamingExchangeFactory;
+
 /**
  * API-friendly name mapping for exchanges.
  */
@@ -42,6 +45,7 @@ class ExchangeServiceImpl implements ExchangeService {
 
   private final OcoConfiguration configuration;
   private final Supplier<List<Class<? extends Exchange>>> exchangeTypes;
+  private final Supplier<List<Class<? extends StreamingExchange>>> streamingExchangeTypes;
 
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
@@ -61,7 +65,11 @@ class ExchangeServiceImpl implements ExchangeService {
       try {
         LOGGER.warn("No API connection details.  Connecting to public API: " + name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name);
-        return ExchangeFactory.INSTANCE.createExchange(exSpec);
+        if (exSpec.getExchangeClassName().contains("Streaming")) {
+          return StreamingExchangeFactory.INSTANCE.createExchange(exSpec);
+        } else {
+          return ExchangeFactory.INSTANCE.createExchange(exSpec);
+        }
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
@@ -98,6 +106,7 @@ class ExchangeServiceImpl implements ExchangeService {
 
   });
 
+
   @Inject
   ExchangeServiceImpl(OcoConfiguration configuration) {
     this.configuration = configuration;
@@ -107,7 +116,13 @@ class ExchangeServiceImpl implements ExchangeService {
           .stream()
           .filter(c -> !c.equals(BaseExchange.class))
           .collect(Collectors.toList()));
+    this.streamingExchangeTypes = Suppliers.memoize(
+        () -> new Reflections("info.bitrich.xchangestream")
+          .getSubTypesOf(StreamingExchange.class)
+          .stream()
+          .collect(Collectors.toList()));
   }
+
 
   /**
    * @see com.grahamcrockford.oco.api.exchange.ExchangeService#getExchanges()
@@ -123,6 +138,7 @@ class ExchangeServiceImpl implements ExchangeService {
         .build();
   }
 
+
   /**
    * @see com.grahamcrockford.oco.api.exchange.ExchangeService#get(java.lang.String)
    */
@@ -130,6 +146,7 @@ class ExchangeServiceImpl implements ExchangeService {
   public Exchange get(String name) {
     return exchanges.getUnchecked(name);
   }
+
 
   /**
    * @see com.grahamcrockford.oco.api.exchange.ExchangeService#fetchTicker(com.grahamcrockford.oco.spi.TickerSpec)
@@ -142,6 +159,7 @@ class ExchangeServiceImpl implements ExchangeService {
       .getTicker(ex.currencyPair()));
   }
 
+
   /**
    * @see com.grahamcrockford.oco.api.exchange.ExchangeService#fetchCurrencyPairMetaData(com.grahamcrockford.oco.spi.TickerSpec)
    */
@@ -153,10 +171,22 @@ class ExchangeServiceImpl implements ExchangeService {
       .get(ex.currencyPair());
   }
 
+
   @VisibleForTesting
   Class<? extends Exchange> map(String friendlyName) {
     if (friendlyName.equals("gdax-sandbox"))
       return GDAXExchange.class;
+
+    // TODO bug in streaming implementation on binance https://github.com/bitrich-info/xchange-stream/issues/140
+    if (!"binance".equals(friendlyName)) {
+      Optional<Class<? extends StreamingExchange>> streamingResult = streamingExchangeTypes.get()
+          .stream()
+          .filter(c -> c.getSimpleName().replace("StreamingExchange", "").toLowerCase().equals(friendlyName))
+          .findFirst();
+      if (streamingResult.isPresent())
+        return streamingResult.get();
+    }
+
     Optional<Class<? extends Exchange>> result = exchangeTypes.get()
         .stream()
         .filter(c -> c.getSimpleName().replace("Exchange", "").toLowerCase().equals(friendlyName))

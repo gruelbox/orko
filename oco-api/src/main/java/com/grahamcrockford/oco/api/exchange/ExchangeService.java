@@ -1,7 +1,6 @@
 package com.grahamcrockford.oco.api.exchange;
 
 import java.util.Collection;
-
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;

@@ -17,7 +17,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-	<name>OCO Core</name>
+	<name>OCO Worker</name>
 	
 	<properties>
 		<mainClass>com.grahamcrockford.oco.core.WorkerApplication</mainClass>
@@ -32,10 +32,6 @@
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.knowm.xchange</groupId>
-			<artifactId>xchange-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
@@ -96,6 +92,14 @@
 		<dependency>
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-binance</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-bitfinex</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>
