@@ -1,17 +1,12 @@
 package com.grahamcrockford.oco.web.auth;
 
-import java.util.EnumSet;
 import java.util.Objects;
 
 import javax.inject.Inject;
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Password;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
@@ -40,17 +35,6 @@ class AuthEnvironment implements EnvironmentInitialiser {
 
   @Override
   public void init(Environment environment) {
-
-    // Allow CORS
-    // TODO needs to be more secure.
-    if (configuration.isCors()) {
-      final FilterRegistration.Dynamic cors =
-          environment.servlets().addFilter("CORS", CrossOriginFilter.class);
-      cors.setInitParameter("allowedOrigins", "*");
-      cors.setInitParameter("allowedHeaders", "X-Requested-With,Content-Type,Accept,Origin,Authorization");
-      cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
-      cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-    }
 
     // Auth
     environment.jersey().register(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<User>()
