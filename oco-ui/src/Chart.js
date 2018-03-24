@@ -8,12 +8,17 @@ export default class App extends Component {
   }
 
   render() {
+
+    // Sad but true
+    var exchange = this.props.coin.exchange.toUpperCase();
+    if (exchange === 'GDAX') {
+      exchange = "COINBASE";
+    }
+
     return (
       <div style={{height: 500}}>
         <TradingViewWidget 
-          symbol={this.props.coin.exchange.toUpperCase() +
-                  ":" +
-                  this.props.coin.base + this.props.coin.counter}
+          symbol={exchange + ":" + this.props.coin.base + this.props.coin.counter}
           hide_side_toolbar={false}
           autosize
           interval="240"
