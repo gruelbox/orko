@@ -40,7 +40,7 @@ export default class Actions extends Component {
               },
               { menuItem: 'Alert', render: () =>
                 <Tab.Pane>
-                  <SubmitAlert coin={coin}/>
+                  <SubmitAlert coin={coin} marketPrice={ticker.bid}/>
                 </Tab.Pane>
               }
             ]} />

@@ -10,12 +10,12 @@ export default class PairContainer extends Container {
   }
   
   fetch = (exchange, auth) => {
-    if (!auth.isValid()) {
+    if (!auth.valid) {
       return new Promise(() => []);
     }
 
-    return get('exchanges/' + exchange + '/pairs', auth.getUserName(), auth.getPassword())
-      .then(response => response.json())
+    return get('exchanges/' + exchange + '/pairs', auth.userName, auth.password)
+      .then(auth.parseToJson)
       .then(json => {
         const mapped = json.map(p => augmentCoin(p, exchange));
         this.setState({ 

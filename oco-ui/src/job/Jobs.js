@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { Card, Message, Button, List } from 'semantic-ui-react'
 import { get, del } from '../context/fetchUtil';
-import { Subscribe  } from 'unstated';
 import Job from './Job'
-import AuthContainer from '../context/AuthContainer';
+import { AuthConsumer } from '../context/AuthContext';
 
 export default class Jobs extends Component {
 
@@ -19,8 +18,15 @@ export default class Jobs extends Component {
   }
 
   onKill = (job, auth) => {
-    return del('jobs/' + job.id, auth.getUserName(), auth.getPassword())
-      .catch(error => {
+    return del('jobs/' + job.id, auth.userName, auth.password)
+      .then(response => {
+        if (response.ok) {
+          this.fetch(auth);
+        } else {
+          auth.parseResponse(response);
+          throw new Error(response.statusText);
+        }
+      }).catch(error => {
         console.log("Failed to delete job ", job.id);
         this.setState(oldState => ({
           failed: {
@@ -41,8 +47,8 @@ export default class Jobs extends Component {
   };
 
   fetch = (auth) => {
-    return get('jobs', auth.getUserName(), auth.getPassword())
-      .then(response => response.json())
+    return get('jobs', auth.userName, auth.password)
+      .then(auth.parseToJson)
       .then(json => {
         this.setState({
           jobs: json
@@ -55,8 +61,11 @@ export default class Jobs extends Component {
 
   render() {
     return (
-      <Subscribe to={[AuthContainer]}>
+      <AuthConsumer>
         {(auth) => {
+          if (!auth.valid || !auth.whitelisted)
+            return null;
+
           if (!this.interval) {
             this.fetch(auth);
             this.interval = setInterval(() => this.fetch(auth), 5000);
@@ -78,7 +87,7 @@ export default class Jobs extends Component {
             return (
               <Card.Group>
                 {this.state.jobs.map(job =>(
-                  <Card raised>
+                  <Card raised key={job.id}>
                     <Card.Content>
                       <Card.Header>Job</Card.Header>
                       <Card.Meta>{job.id}</Card.Meta>
@@ -108,7 +117,7 @@ export default class Jobs extends Component {
 
           }
         }}
-      </Subscribe>
+      </AuthConsumer>
     );
   }
 }

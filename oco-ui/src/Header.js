@@ -3,6 +3,8 @@ import { Menu, Dropdown, Container } from 'semantic-ui-react'
 import { Link } from 'react-router-dom';
 import { Subscribe  } from 'unstated';
 import CoinContainer from './context/CoinContainer';
+import { AuthConsumer } from './context/AuthContext';
+
 
 export default class App extends Component {
   render() {
@@ -25,10 +27,12 @@ export default class App extends Component {
                 </Dropdown>
                 <Menu.Item><Link to='/addcoin'>Add coin</Link></Menu.Item>
                 <Menu.Item><Link to='/jobs'>Active jobs</Link></Menu.Item>
+                <Menu.Item>
+                  <AuthConsumer>{auth => (
+                    <a onClick={auth.signout}>Sign out</a>
+                  )}</AuthConsumer>
+                </Menu.Item>
               </Container>
-              <Menu.Menu position='right'>
-                <Menu.Item><Link to='/'>Account</Link></Menu.Item>
-              </Menu.Menu>
             </Menu>
           );
         }}

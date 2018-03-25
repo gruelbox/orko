@@ -58,6 +58,10 @@ class IpWhitelistAccess {
     }
   }
 
+  public void delete(String sourceIp) {
+    collection.get().remove(new BasicDBObject().append("uid", SINGLETON_OBJECT_ID));
+  }
+
   public String getIp() {
     DBObject result = collection.get().findOne(new BasicDBObject().append("uid", SINGLETON_OBJECT_ID));
     if (result == null)

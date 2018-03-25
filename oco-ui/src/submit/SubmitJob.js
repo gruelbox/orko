@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import { Button, Message, List } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
-import { Subscribe } from 'unstated';
-import AuthContainer from '../context/AuthContainer';
+import { AuthConsumer } from '../context/AuthContext';
 import JobStatus from './JobStatus';
 import Job from '../job/Job';
 import { executeTrade } from '../context/trade'
@@ -41,17 +40,15 @@ export default class SubmitJob extends Component {
   render() {
     return (
       <div>
-        <Subscribe to={[AuthContainer]}>
-          {(auth) => 
-            <Button
-              primary
-              disabled={this.state.processing || !this.props.valid}
-              type='submit'
-              onClick={() => this.onSubmit(auth)}>
-              Submit
-            </Button>
-          }
-        </Subscribe>
+        <AuthConsumer>{auth => 
+          <Button
+            primary
+            disabled={this.state.processing || !this.props.valid}
+            type='submit'
+            onClick={() => this.onSubmit(auth)}>
+            Submit
+          </Button>
+        }</AuthConsumer>
 
         {this.state.error && 
           <Message>

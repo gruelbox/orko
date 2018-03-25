@@ -97,7 +97,6 @@ export default class SubmitAlert extends Component {
 }
 
 SubmitAlert.propTypes = {
-  direction: PropTypes.string.isRequired,
   coin: PropTypes.object.isRequired,
   marketPrice: PropTypes.number.isRequired
 };

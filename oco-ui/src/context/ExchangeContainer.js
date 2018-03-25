@@ -12,11 +12,11 @@ export default class ExchangeContainer extends Container {
   }
   
   fetch = (auth) => {
-    if (!auth.isValid())
+    if (!auth.valid)
       return new Promise(() => (this.state.exchanges));
 
-    return get('exchanges', auth.getUserName(), auth.getPassword())
-      .then(response => response.json())
+    return get('exchanges', auth.userName, auth.password)
+      .then(auth.parseToJson)
       .then(json => {
         this.setState({ 
           exchanges: json,

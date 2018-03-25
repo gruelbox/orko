@@ -42,6 +42,9 @@ class AuthEnvironment implements EnvironmentInitialiser {
   @Override
   public void init(Environment environment) {
 
+    // Apply IP whitelisting outside the authentication stack so we can provide a different response
+    environment.jersey().register(ipWhitelistContainerRequestFilter);
+
     // Auth
     environment.jersey().register(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<User>()
       .setAuthenticator(authenticator)
@@ -61,10 +64,6 @@ class AuthEnvironment implements EnvironmentInitialiser {
         responseContext.getHeaders().remove("www-authenticate");
       }
     });
-
-    // Apply IP whitelisting outside the authentication stack so we can provide a different response
-    environment.jersey().register(ipWhitelistContainerRequestFilter);
-
   }
 
 

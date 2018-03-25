@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import { get } from './fetchUtil';
 import createReactContext from 'create-react-context';
-import { Subscribe  } from 'unstated';
-import AuthContainer from './AuthContainer';
+import { AuthConsumer } from './AuthContext';
 import PropTypes from 'prop-types';
 
 const DEFAULT_TICKER = { bid: 0, ask: 0 };
@@ -44,26 +43,24 @@ export class TickerProvider extends Component {
 
   render() {
     return (
-      <Subscribe to={[AuthContainer]}>
-        {(auth) => (
-          <TickerContext.Provider value={this.getTicker(auth)}>
-            {this.props.children}
-          </TickerContext.Provider>
-        )}    
-      </Subscribe>      
+      <AuthConsumer>{(auth) => (
+        <TickerContext.Provider value={this.getTicker(auth)}>
+          {this.props.children}
+        </TickerContext.Provider>
+      )}</AuthConsumer>      
     );
   }
   
   tick = (auth) => {
 
-    if (!auth.isValid())
+    if (!auth.valid)
       return;
 
     const coin = this.props.coin;
 
     const res = 'exchanges/' + coin.exchange + "/markets/" + coin.base + "-" + coin.counter + "/ticker";
-    return get(res, auth.getUserName(), auth.getPassword())
-      .then(response => response.json())
+    return get(res, auth.userName, auth.password)
+      .then(auth.parseToJson)
       .catch(error => {
         console.log("Failed to fetch ticker", coin);
         this.setState({ ticker: undefined });

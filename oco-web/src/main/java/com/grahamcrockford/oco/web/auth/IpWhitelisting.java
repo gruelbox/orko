@@ -54,6 +54,13 @@ public class IpWhitelisting {
     return true;
   }
 
+  public boolean deWhitelistIp() {
+    if (!authoriseIp())
+      return false;
+    ipWhitelistAccess.delete(sourceIp());
+    return true;
+  }
+
   private String sourceIp() {
     HttpServletRequest req = request.get();
     if (configuration.isProxied()) {

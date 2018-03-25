@@ -1,6 +1,8 @@
 package com.grahamcrockford.oco.web.auth;
 
 import java.io.IOException;
+
+import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
@@ -9,6 +11,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
+@Priority(100)
 class IpWhitelistContainerRequestFilter implements ContainerRequestFilter {
 
   private final IpWhitelisting ipWhitelisting;
