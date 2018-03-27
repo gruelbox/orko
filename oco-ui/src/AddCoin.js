@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Icon, Header, Button, Form, Dropdown, Loader, Dimmer, Segment } from 'semantic-ui-react'
+import { Icon, Header, Button, Form, Dropdown, Segment } from 'semantic-ui-react'
 import { Subscribe  } from 'unstated';
 import ExchangeContainer from './context/ExchangeContainer';
 import { AuthConsumer } from './context/AuthContext';
@@ -31,13 +31,14 @@ export default class AddCoin extends Component {
   render() {
     return (
       <AuthConsumer>{auth => (
-        <Subscribe to={[ExchangeContainer, PairContainer, CoinContainer]}>{(exchangeContainer, pairContainer, coinContainer) => (
-          <Segment>
-            <Dimmer active={exchangeContainer.getExchanges(auth).length === 0}>
-              <Loader>
-                Can't contact server.
-              </Loader>
-            </Dimmer>
+        <Subscribe to={[ExchangeContainer, PairContainer, CoinContainer]}>{(exchangeContainer, pairContainer, coinContainer) => {
+          
+          var exchanges = exchangeContainer.getExchanges(auth);
+          if (!exchanges) exchanges = [];
+          var pairs = pairContainer.getPairs(this.state.exchange, auth);
+          if (!pairs) pairs = [];
+
+          return (<Segment>
             <Header as='h2'>
               <Icon name='bitcoin' />
               Add coin
@@ -48,9 +49,9 @@ export default class AddCoin extends Component {
                   placeholder='Select exchange'
                   fluid
                   selection
+                  loading={exchanges.length === 0}
                   value={this.state.exchange}
-                  options={exchangeContainer.getExchanges(auth)
-                    .map(exchange => ({key: exchange, text: exchange, value: exchange}))}
+                  options={exchanges.map(exchange => ({key: exchange, text: exchange, value: exchange}))}
                   onChange={(e, d) => this.onChangeExchange(e, d, auth, pairContainer)}
                 />
               </Form.Field>
@@ -59,16 +60,17 @@ export default class AddCoin extends Component {
                   placeholder='Select pair'
                   fluid
                   search
+                  loading={pairs.length === 0}
+                  disabled={pairs.length === 0}
                   selection
-                  options={pairContainer.getPairs(this.state.exchange, auth)
-                    .map(pair => ({key: pair.key, text: pair.shortName, value: pair.key}))}
+                  options={pairs.map(pair => ({key: pair.key, text: pair.shortName, value: pair.key}))}
                   onChange={(e, d) => this.onChangePair(e, d, auth, pairContainer)}
                 />
               </Form.Field>
               <Button primary disabled={!this.state.pair}>Add</Button>
             </Form>
-          </Segment>
-        )}</Subscribe>
+          </Segment>);
+        }}</Subscribe>
       )}</AuthConsumer>
     )
   }
