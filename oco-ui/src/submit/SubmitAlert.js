@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Form } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
 import SubmitJob from './SubmitJob';
+import Alert from './Alert';
 
 export default class SubmitAlert extends Component {
 
@@ -61,36 +62,12 @@ export default class SubmitAlert extends Component {
 
     return (
       <Form>
-
-        <Form.Input
-          error={!highPriceValid}
-          label="Price rises above"
-          type='text'
-          placeholder='Enter price...'
-          value={this.state.highPrice}
-          onChange={this.onChangeHighPrice}
-        />
-
-        <Form.Input
-          error={!lowPriceValid}
-          label="Price drops below"
-          type='text'
-          placeholder='Enter price...'
-          value={this.state.lowPrice}
-          onChange={this.onChangeLowPrice}
-        />
-
-        <Form.Input
-          error={this.state.message === ""}
-          label="Message"
-          type='text'
-          placeholder='Enter message...'
-          value={this.state.message}
-          onChange={this.onChangeMessage}
-        />
-      
+        <Alert
+          job={job}
+          onChangeHighPrice={this.onChangeHighPrice}
+          onChangeLowPrice={this.onChangeLowPrice}
+          onChangeMessage={this.onChangeMessage}/>
         <SubmitJob job={job} valid={valid}/>
-
       </Form> 
     );
   }
