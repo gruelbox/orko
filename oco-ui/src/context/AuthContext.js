@@ -13,23 +13,23 @@ export class AuthProvider extends Component {
 
   constructor(props) {
     super(props);
-    const self = this.state;
     this.state = {
+      self: this,
       loading: true,
       valid: false,
       userName: 'bully',
       password: 'boys',
       whitelisted: false,
       error: undefined,
-      parseToJson: (response) => {
+      parseToJson: function(response) {
         if (response.ok) {
           return response.json();
         } else {
-          self.parseResponse(response);
+          this.parseResponse(response);
           throw new Error(response.statusText);
         }
       },
-      parseResponse: (response) => {
+      parseResponse: function(response) {
         if (response.status === 403) {
           this.setState({
             valid: false,
@@ -49,7 +49,7 @@ export class AuthProvider extends Component {
         }
         return false;
       },
-      signout: () => {
+      signout: function() {
         del('auth');
         this.setState({
           userName: undefined,
@@ -66,7 +66,8 @@ export class AuthProvider extends Component {
   }
 
   componentDidMount() {
-    this.onLogin(this.state.userName, this.state.password);
+    if (!this.state.valid || !this.state.whitelisted)
+      this.onLogin(this.state.userName, this.state.password);
   }
 
   onWhitelist = (token) => {
