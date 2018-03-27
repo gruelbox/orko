@@ -1,6 +1,5 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import * as coinActions from '../store/coin/actions';
 import CoinInfoComponent from '../components/CoinInfoComponent';
 
 const CoinInfoContainer = props => (
