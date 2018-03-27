@@ -10,8 +10,12 @@
     "prop-types": "^15.6.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "react-redux": "^5.0.7",
     "react-router-dom": "^4.2.2",
     "react-tradingview-widget": "^1.2.2",
+    "redux": "^3.7.2",
+    "redux-thunk": "^2.2.0",
+    "seamless-immutable": "^7.1.3",
     "semantic-ui-react": "^0.78.3",
     "unstated": "^1.0.3",
     "whatwg-fetch": "^2.0.3"

@@ -1,0 +1,1 @@
+export const SET_COIN = 'coin.SET_COIN';
