@@ -28,16 +28,14 @@ export default class PairContainer extends Container {
       })
       .catch(error => {
         console.log("Failed to fetch pairs for exchange", exchange);
-        var old = this.state[exchange];
-        if (!old)
-          old = [];
+        const newState = {
+          pairs: [],
+          ttl: new Date().getTime() + 3000
+        };
         this.setState({
-          [exchange]: {
-            pairs: old,
-            ttl: new Date().getTime() + 3000
-          },
+          [exchange]: newState,
         });
-        return old;
+        return newState;
       })
   };
 
