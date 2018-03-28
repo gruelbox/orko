@@ -16,20 +16,18 @@
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0",
     "seamless-immutable": "^7.1.3",
+    "semantic-ui-css": "^2.3.1",
     "semantic-ui-react": "^0.78.3",
     "unstated": "^1.0.3",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
-    "react-scripts": "1.1.1",
-    "semantic-ui": "^2.3.0"
+    "react-scripts": "1.1.1"
   },
   "scripts": {
-    "build-semantic": "cd src/semantic && gulp build-css build-assets",
-    "watch-semantic": "cd src/semantic && npm run build-semantic && gulp watch",
-    "start": "npm run build-semantic && react-scripts start",
-    "build": "npm run build-semantic && react-scripts build",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
