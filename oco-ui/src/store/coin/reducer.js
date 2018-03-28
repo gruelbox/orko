@@ -3,28 +3,32 @@ import PropTypes from 'prop-types';
 import * as types from './actionTypes';
 
 const initialState = Immutable({
-  coin: coin("binance", "BTC", "VEN"),
-  balance: Immutable({
-    available: 1000,
-    total: 2000
-  }),
-  ticker: {
-    bid: 1,
-    ask: 2,
-    last: 3,
-    high: 4,
-    low: 5,
-    open: 6
-  }
+  coin: undefined,
+  balance: undefined,
+  ticker: undefined
 });
 
-export const shape = {
+export const coinShape = {
   counter: PropTypes.string.isRequired,
   base: PropTypes.string.isRequired,
   exchange: PropTypes.string.isRequired,
   key: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   shortName: PropTypes.string.isRequired
+};
+
+export const balanceShape = {
+  available: PropTypes.string.isRequired,
+  total: PropTypes.string.isRequired
+};
+
+export const tickerShape = {
+  bid: PropTypes.number.isRequired,
+  ask: PropTypes.number.isRequired,
+  last: PropTypes.number.isRequired,
+  high: PropTypes.number.isRequired,
+  low: PropTypes.number.isRequired,
+  open: PropTypes.number.isRequired
 };
 
 export function coin(exchange, counter, base) {
