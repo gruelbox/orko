@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.api.job;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -43,6 +44,9 @@ public abstract class LimitOrderJob implements Job {
     public abstract Builder limitPrice(BigDecimal value);
     public abstract Builder direction(Direction direction);
 
+    public abstract Builder onSuccess(Job job);
+    public abstract Builder onFailure(Job job);
+
     final Builder bigDecimals(Map<String, String> values) {
       amount(new BigDecimal(values.get("amount")));
       limitPrice(new BigDecimal(values.get("limitPrice")));
@@ -66,6 +70,12 @@ public abstract class LimitOrderJob implements Job {
   public abstract TickerSpec tickTrigger();
 
   @JsonProperty public abstract Direction direction();
+
+  @Override
+  @JsonProperty public abstract Optional<Job> onSuccess();
+
+  @Override
+  @JsonProperty public abstract Optional<Job> onFailure();
 
   @JsonIgnore public abstract BigDecimal amount();
   @JsonIgnore public abstract BigDecimal limitPrice();

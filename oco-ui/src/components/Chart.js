@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import TradingViewWidget from 'react-tradingview-widget';
 
-export default class App extends Component {
+export default class Chart extends Component {
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     return this.props.coin.key !== nextProps.coin.key;
@@ -16,16 +16,15 @@ export default class App extends Component {
     }
 
     return (
-      <div style={{height: 500}}>
-        <TradingViewWidget 
-          symbol={exchange + ":" + this.props.coin.base + this.props.coin.counter}
-          hide_side_toolbar={false}
-          autosize
-          interval="240"
-          allow_symbol_change={false}
-          studies={['RSI@tv-basicstudies']}
-        />
-      </div>
+      <TradingViewWidget 
+        symbol={exchange + ":" + this.props.coin.base + this.props.coin.counter}
+        hide_side_toolbar={false}
+        autosize
+        theme="dark"
+        interval="240"
+        allow_symbol_change={false}
+        studies={['RSI@tv-basicstudies']}
+      />
     );
   }
 }

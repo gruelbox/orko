@@ -8,7 +8,7 @@ import CredentialsComponent from '../components/CredentialsComponent';
 class AuthContainer extends Component {
 
   componentDidMount() {
-    this.props.dispatch(actions.checkWhiteList());
+    this.props.dispatch(actions.defaultLogin());
   }
 
   onWhitelist = (token) => {
@@ -22,21 +22,18 @@ class AuthContainer extends Component {
   render() {
     if (this.props.auth.loading) {
       return <Loader active={true}/>;
+    } else if (!this.props.auth.whitelisted) {
+      return <WhitelistingComponent
+        onApply={this.onWhitelist}
+        error={this.props.auth.error}
+      />;
+    } else if (!this.props.auth.loggedIn) {
+      return <CredentialsComponent
+        onApply={this.onLogin}
+        error={this.props.auth.error}
+      />;
     } else {
-      return (
-        <div>
-          <WhitelistingComponent
-            open={!this.props.auth.whitelisted}
-            onApply={this.onWhitelist}
-            error={this.props.auth.error}
-          />
-          <CredentialsComponent
-            open={!this.props.auth.loggedIn}
-            onApply={this.onLogin}
-            error={this.props.auth.error}
-          />
-        </div>
-      );
+      return null;
     }
   } 
 }

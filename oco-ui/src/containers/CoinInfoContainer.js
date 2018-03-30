@@ -1,9 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import CoinInfoComponent from '../components/CoinInfoComponent';
+import CoinInfo from '../components/CoinInfo';
 
 const CoinInfoContainer = props => (
-  <CoinInfoComponent
+  <CoinInfo
     coin={props.coin}
     balance={props.balance}
     ticker={props.ticker}

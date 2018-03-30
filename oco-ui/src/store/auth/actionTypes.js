@@ -1,1 +1,8 @@
-export const UPDATE = 'auth.UPDATE';
+export const SET_WHITELIST_STATUS = 'auth.SET_WHITELIST_STATUS';
+export const SET_WHITELIST_ERROR = 'auth.SET_WHITELIST_ERROR';
+export const SET_WHITELIST_EXPIRED = 'auth.SET_WHITELIST_EXPIRED';
+
+export const SET_LOGIN_SUCCESS = 'auth.SET_LOGIN_SUCCESS';
+export const SET_LOGIN_FAILED = 'auth.SET_LOGIN_FAILED';
+export const SET_LOGIN_ERROR = 'auth.SET_LOGIN_ERROR';
+export const SET_LOGGED_OUT = 'auth.SET_LOGGED_OUT';

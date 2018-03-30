@@ -31,7 +31,7 @@ export default class CredentialsComponent extends Component {
     };
 
     return (
-      <Modal open={this.props.open} style={inlineStyle.modal}>   
+      <Modal open={true} style={inlineStyle.modal}>   
         <Modal.Header><Icon name='lock' />Log in</Modal.Header>
         <Modal.Content>
           <Form error={!!this.props.error}>
@@ -56,7 +56,6 @@ export default class CredentialsComponent extends Component {
 
 CredentialsComponent.propTypes = {
   onApply: PropTypes.func,
-  open: PropTypes.bool,
   error: PropTypes.string
 };
 

@@ -5,8 +5,10 @@ import * as types from './actionTypes';
 const initialState = Immutable({
   whitelisted: false,
   loggedIn: false,
-  userName: '',
-  password: '',
+  token: {
+    userName: 'bully',
+    password: 'boys'
+  },
   error: null,
   loading: true
 });
@@ -14,16 +16,67 @@ const initialState = Immutable({
 export const shape = {
   whitelisted: PropTypes.bool.isRequired,
   loggedIn: PropTypes.bool.isRequired,
-  userName: PropTypes.string.isRequired,
-  password: PropTypes.string.isRequired
+  token: PropTypes.shape({
+    userName: PropTypes.string.isRequired,
+    password: PropTypes.string.isRequired
+  }),
+  error: PropTypes.string,
+  loading: PropTypes.bool
 };
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.UPDATE:
+    case types.SET_WHITELIST_STATUS:
       console.log(action);
       return Immutable.merge(state, {
-        ...action.payload,
+        whitelisted: action.payload,
+        error: null,
+        loading: false
+      });
+    case types.SET_WHITELIST_ERROR:
+      console.log(action);
+      return Immutable.merge(state, {
+        whitelisted: false,
+        error: action.payload,
+        loading: false
+      });
+    case types.SET_WHITELIST_EXPIRED:
+      console.log(action);
+      return Immutable.merge(state, {
+        whitelisted: false,
+        loggedIn: false,
+        error: "Whitelisting expired",
+        loading: false
+      });
+    case types.SET_LOGIN_FAILED:
+      console.log(action);
+      return Immutable.merge(state, {
+        whitelisted: true,
+        loggedIn: false,
+        error: state.loading ? null : "Invalid username/password",
+        loading: false
+      });
+    case types.SET_LOGGED_OUT:
+      console.log(action);
+      return Immutable.merge(state, {
+        loggedIn: false,
+        error: null
+      });
+    case types.SET_LOGIN_ERROR:
+      console.log(action);
+      return Immutable.merge(state, {
+        whitelisted: true,
+        loggedIn: false,
+        error: state.loading ? null : action.payload,
+        loading: false
+      });
+    case types.SET_LOGIN_SUCCESS:
+      console.log(action);
+      return Immutable.merge(state, {
+        whitelisted: true,
+        loggedIn: true,
+        error: null,
+        token: action.payload,
         loading: false
       });
     default:
