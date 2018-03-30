@@ -29,7 +29,7 @@ export default function reduce(state = initialState, action = {}) {
     case types.SET_WHITELIST_STATUS:
       console.log(action);
       return Immutable.merge(state, {
-        whitelisted: action.payload,
+        whitelisted: action.status,
         error: null,
         loading: false
       });
@@ -37,7 +37,7 @@ export default function reduce(state = initialState, action = {}) {
       console.log(action);
       return Immutable.merge(state, {
         whitelisted: false,
-        error: action.payload,
+        error: action.error,
         loading: false
       });
     case types.SET_WHITELIST_EXPIRED:
@@ -67,7 +67,7 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         whitelisted: true,
         loggedIn: false,
-        error: state.loading ? null : action.payload,
+        error: state.loading ? null : action.error,
         loading: false
       });
     case types.SET_LOGIN_SUCCESS:
@@ -76,7 +76,7 @@ export default function reduce(state = initialState, action = {}) {
         whitelisted: true,
         loggedIn: true,
         error: null,
-        token: action.payload,
+        token: action.token,
         loading: false
       });
     default:

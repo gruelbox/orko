@@ -5,9 +5,9 @@ export function checkWhiteList() {
   return async(dispatch, getState) => {
     try {
       const result = await authService.checkWhiteList();
-      dispatch({ type: types.SET_WHITELIST_STATUS, payload: Boolean(result) });
+      dispatch({ type: types.SET_WHITELIST_STATUS, status: Boolean(result) });
     } catch (error) {
-      dispatch({ type: types.SET_WHITELIST_ERROR, payload: error.message });
+      dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message });
     }
   };
 }
@@ -16,9 +16,9 @@ export function whitelist(token) {
   return async(dispatch, getState) => {
     try {
       await authService.whitelist(token);
-      dispatch({ type: types.SET_WHITELIST_STATUS, payload: true });
+      dispatch({ type: types.SET_WHITELIST_STATUS, status: true });
     } catch (error) {
-      dispatch({ type: types.SET_WHITELIST_ERROR, payload: error.message });
+      dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message });
     }
   };
 }
@@ -43,7 +43,7 @@ async function attemptLogin(userName, password, dispatch) {
   try {
     const response = await authService.login(userName, password);
     if (response.ok) {
-      dispatch({ type: types.SET_LOGIN_SUCCESS, payload: {
+      dispatch({ type: types.SET_LOGIN_SUCCESS, token: {
         userName: userName,
         password: password
       }});
@@ -53,11 +53,11 @@ async function attemptLogin(userName, password, dispatch) {
       } else if (response.status === 401) {
         dispatch({ type: types.SET_LOGIN_FAILED });
       } else {
-        dispatch({ type: types.SET_LOGIN_ERROR, payload: response.statusText });
+        dispatch({ type: types.SET_LOGIN_ERROR, error: response.statusText });
       }
     }
   } catch (error) {
-    dispatch({ type: types.SET_LOGIN_ERROR, payload: error.message });
+    dispatch({ type: types.SET_LOGIN_ERROR, error: error.message });
   }
 }
 
