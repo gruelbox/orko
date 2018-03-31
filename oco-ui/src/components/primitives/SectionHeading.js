@@ -14,7 +14,10 @@ const SectionHeading = styled.h3.attrs({
   ${fontWeights}
   ${space}
   border-bottom: 1px solid ${props => props.theme.colors.deemphasis};
-  text-transform: uppercase
+  text-transform: uppercase;
+  &:last-child {
+    margin-bottom: ${props => props.theme.space[2] + "px"};
+  }
 `;
 
 export default SectionHeading;

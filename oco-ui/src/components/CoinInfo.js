@@ -5,8 +5,6 @@ import PropTypes from 'prop-types';
 
 import { Flex, Box } from 'rebass';
 
-import Chart from './Chart';
-
 import SectionHeading from './primitives/SectionHeading';
 import Warning from './primitives/Warning';
 import PriceSet from './primitives/PriceSet';
@@ -57,11 +55,6 @@ export const CoinInfoComponent = props => {
                 <Price name="Low" onClick={props.onClickNumber}>{props.ticker.low}</Price>
               </PriceSet>
           }
-        </Box>
-        <Box width={[1, 1]}>
-          <div>
-            <Chart coin={coin}/>
-          </div>
         </Box>
       </Flex>
     );
