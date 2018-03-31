@@ -11,4 +11,4 @@ const Warning = props => (
   </ForeSpan>
 );
 
-export default ForeSpan;
+export default Warning;
