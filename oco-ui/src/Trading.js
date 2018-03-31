@@ -10,6 +10,9 @@ import MarketContainer from './containers/MarketContainer';
 import OpenOrdersContainer from './containers/OpenOrdersContainer';
 import JobsContainer from './containers/JobsContainer';
 
+import SectionHeading from './components/primitives/SectionHeading';
+import ForePara from './components/primitives/ForePara';
+
 import { coin } from './store/coin/reducer';
 
 import styled from 'styled-components';
@@ -41,18 +44,16 @@ const LightComponentBox = styled.div`
 
 export default class Trading extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.coin = coin(
+  render() {
+
+    const c = this.props.match.params.exchange ? coin(
       this.props.match.params.exchange,
       this.props.match.params.counter,
       this.props.match.params.base
-    );
-  }
+    ) : undefined;
 
-  render() {
     return (
-      <Flex flexWrap='wrap'>
+      <Flex flexWrap='wrap' h='calc(100%-66px)'>
         <Box width={[1, 170]} order={[1, 1]}>
           <LightComponentBox p={2}>
             <CoinsContainer/>
@@ -62,11 +63,19 @@ export default class Trading extends React.Component {
           </LightComponentBox>
         </Box>
         <Box flex="1" order={[3, 2]}>
-          <DarkComponentBox p={2}>
-            <CoinInfoContainer coin={this.coin} />
-            <div style={{height: '500px'}}><Chart coin={this.coin} /></div>
-            <TradeSelector />
-          </DarkComponentBox>
+          {c && (
+            <DarkComponentBox p={2}>
+              <CoinInfoContainer coin={c} />
+              <div style={{height: '500px'}}><Chart coin={c} /></div>
+              <TradeSelector />
+            </DarkComponentBox>
+          )}
+          {!c && (
+            <DarkComponentBox p={2}>
+              <SectionHeading>Trading</SectionHeading>
+              <ForePara>No coin selected</ForePara>
+            </DarkComponentBox>
+          )}
         </Box>
         <Box width={[1, 200]} order={[2, 3]}>
           <MidComponentBox p={2}>

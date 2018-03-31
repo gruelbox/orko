@@ -36,6 +36,7 @@ export default class Framework extends React.Component {
                 component={AddCoinContainer}/>
               <Route path='/coin/:exchange/:counter/:base'
                 component={Trading}/>
+              <Route component={Trading}/>
             </Switch>
           </BackgroundBox>
         </ThemeProvider>

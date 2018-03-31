@@ -30,7 +30,7 @@ class AddCoinContainer extends Component {
 
   onSubmit = (coinContainer) => {
     this.props.dispatch(coinsActions.add(this.state.pair));
-    this.props.history.push('/');
+    this.props.history.push('/coin/' + this.state.pair.key);
   };
 
   render() {
