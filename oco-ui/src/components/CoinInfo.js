@@ -1,33 +1,18 @@
 import React from 'react';
-import { Button, Header, Icon, Grid } from 'semantic-ui-react';
+import { Icon, Grid } from 'semantic-ui-react';
 import { coinShape, balanceShape, tickerShape } from '../store/coin/reducer';
 import PropTypes from 'prop-types';
 import CopyableNumber from './primitives/CopyableNumber';
 import Chart from './Chart';
+import SectionHeading from './primitives/SectionHeading';
 
 export const CoinInfoComponent = props => {
   const coin = props.coin;
   if (coin) {
     return (
       <div>
+        <SectionHeading>{coin.name}</SectionHeading>
         <Grid>
-          <Grid.Row divided columns={3}>
-            <Grid.Column>
-              <Header as='h3'>
-                <Icon name='bitcoin' />
-                {coin.name}
-              </Header>
-            </Grid.Column>
-            <Grid.Column>
-              <Button onClick={props.onToggleChart}>
-                <Icon name="line chart"/>
-                Show chart
-              </Button>
-            </Grid.Column>
-            <Grid.Column>
-              <Button onClick={props.onRemove}>Remove coin</Button>
-            </Grid.Column>
-          </Grid.Row>
           <Grid.Row divided columns={3}>
             <Grid.Column>
               {(!props.balance)

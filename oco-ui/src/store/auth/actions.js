@@ -63,15 +63,9 @@ async function attemptLogin(userName, password, dispatch) {
 
 export function handleHttpResponse(response) {
   if (response.status === 403) {
-    return {
-      whitelisted: false,
-      error: "Whitelisting expired"
-    };
+    return { type: types.SET_WHITELIST_EXPIRED };
   } else if (response.status === 401) {
-    return {
-      loggedIn: false,
-      error: "Invalid username/password"
-    };
+    return { type: types.SET_LOGIN_FAILED };
   }
   return null;
 }

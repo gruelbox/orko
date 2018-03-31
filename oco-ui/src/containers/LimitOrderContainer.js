@@ -3,10 +3,10 @@ import { connect } from 'react-redux';
 import { BUY } from '../store/limitOrder/reducer';
 import * as limitOrderActions from '../store/limitOrder/actions';
 import * as focusActions from '../store/focus/actions';
-import LimitOrderComponent from '../components/LimitOrderComponent';
+import LimitOrder from '../components/LimitOrder';
 
 const LimitOrderContainer = props => (
-  <LimitOrderComponent
+  <LimitOrder
     job={props.limitOrder}
     onChange={job => props.dispatch(limitOrderActions.update(job))}
     onFocus={focus => props.dispatch(focusActions.setUpdateAction(value => limitOrderActions.updateProperty(focus, value)))}

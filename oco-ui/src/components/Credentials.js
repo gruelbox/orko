@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { Modal, Icon, Form, Input, Button, Message } from 'semantic-ui-react'
 import PropTypes from 'prop-types';
+import FixedModal from './primitives/FixedModal';
 
-export default class CredentialsComponent extends Component {
+export default class Credentials extends Component {
 
   constructor(props) {
     super(props);
@@ -21,17 +22,8 @@ export default class CredentialsComponent extends Component {
   }
 
   render() {
-
-    const inlineStyle = {
-      modal : {
-        marginTop: '0px !important',
-        marginLeft: 'auto',
-        marginRight: 'auto'
-      }
-    };
-
     return (
-      <Modal open={true} style={inlineStyle.modal}>   
+      <FixedModal>   
         <Modal.Header><Icon name='lock' />Log in</Modal.Header>
         <Modal.Content>
           <Form error={!!this.props.error}>
@@ -49,16 +41,16 @@ export default class CredentialsComponent extends Component {
             <Button type='submit' onClick={() => this.props.onApply(this.state.userName, this.state.password)}>Authorise</Button>
           </Form>
         </Modal.Content>
-      </Modal>
+      </FixedModal>
     );
   }
 }
 
-CredentialsComponent.propTypes = {
+Credentials.propTypes = {
   onApply: PropTypes.func,
   error: PropTypes.string
 };
 
-CredentialsComponent.defaultProps = {
+Credentials.defaultProps = {
   onApply: () => {}
 };

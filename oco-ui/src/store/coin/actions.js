@@ -1,22 +1,23 @@
 import * as types from './actionTypes';
+import exchangesService from '../../services/exchanges';
+import * as authActions from '../auth/actions';
 
-export function setCoin(coin) {
-  return {
-    type: types.SET_COIN,
-    payload: coin
-  };
-}
-
-export function setBalance(balance) {
-  return {
-    type: types.SET_BALANCE,
-    payload: balance
-  };
-}
-
-export function setTicker(ticker) {
-  return {
-    type: types.SET_TICKER,
-    payload: ticker
+export function fetchTicker(coin) {
+  return async(dispatch, getState) => {
+    try {
+      const response = await exchangesService.fetchTicker(coin, getState().auth.token);
+      if (!response.ok) {
+        const authAction = authActions.handleHttpResponse(response);
+        if (authAction !== null) {
+          dispatch(authAction);
+        } else {
+          throw new Error(response.statusText);
+        }
+      }
+      const ticker = await response.json();
+      dispatch({ type: types.SET_TICKER, ticker });
+    } catch (error) {
+      dispatch({ type: types.SET_TICKER_FAILED, error: error.message });
+    }
   };
 }

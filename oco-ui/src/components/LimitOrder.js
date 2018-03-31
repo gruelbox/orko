@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Immutable from 'seamless-immutable';
 import { BUY, SELL } from '../store/limitOrder/reducer';
 
-const LimitOrderComponent = props => {
+const LimitOrder = props => {
 
   const isValidNumber = (val) => !isNaN(val) && val > 0 && val !== '';
 
@@ -67,7 +67,7 @@ const LimitOrderComponent = props => {
   );
 };
 
-export default LimitOrderComponent;
+export default LimitOrder;
 
 export const limitOrderShape = {
   direction: PropTypes.string.isRequired,
@@ -75,7 +75,7 @@ export const limitOrderShape = {
   amount: PropTypes.string.isRequired
 };
 
-LimitOrderComponent.propTypes = {
+LimitOrder.propTypes = {
   job: PropTypes.shape(limitOrderShape).isRequired,
   onChange: PropTypes.func,
   onSetBidPrice: PropTypes.func,

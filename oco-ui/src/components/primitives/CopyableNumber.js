@@ -1,15 +1,18 @@
 import React from 'react';
+import ForeSpan from './ForeSpan';
 
 const CopyableNumber = props => (
   <span>
-    {props.label && (props.label + ": ")}
-    <span
+    <ForeSpan color="heading">
+      {props.label && (props.label + ": ")}
+    </ForeSpan>
+    <ForeSpan
       style={{cursor: "copy"}}
       onClick={() => {
         if (props.onClick) props.onClick(props.number);
       }}>
         {props.number}
-    </span>
+    </ForeSpan>
   </span>
 );
 

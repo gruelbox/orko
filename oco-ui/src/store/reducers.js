@@ -1,15 +1,17 @@
+import auth from './auth/reducer';
+import exchanges from './exchanges/reducer';
+import coins from './coins/reducer';
+import coin from './coin/reducer';
 import alert from './alert/reducer';
 import focus from './focus/reducer';
-import coin from './coin/reducer';
-import coins from './coins/reducer';
 import limitOrder from './limitOrder/reducer';
-import auth from './auth/reducer';
 
 export {
-  alert,
-  focus,
+  auth,
+  exchanges,
   coin,
   coins,
-  limitOrder,
-  auth
+  alert,
+  focus,
+  limitOrder
 };

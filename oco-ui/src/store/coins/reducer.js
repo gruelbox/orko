@@ -1,23 +1,32 @@
 import Immutable from 'seamless-immutable';
-import PropTypes from 'prop-types';
 import * as types from './actionTypes';
 
-const LOCAL_STORAGE_KEY = 'CoinContainer.state';
+const LOCAL_STORAGE_KEY = 'CoinContainer.coins';
 const loaded = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-const initialState = loaded
-  ? Immutable(JSON.parse(loaded).coins)
-  : [];
+console.log("Loaded coins", loaded);
 
+const initialState = Immutable({
+  coins: (loaded)
+            ? Immutable(JSON.parse(loaded))
+            : Immutable([])
+});
+  
 export default function reduce(state = initialState, action = {}) {
+  var newCoins;
+  var newState;
   switch (action.type) {
     case types.ADD:
-      var newState = Immutable.concat(state, [action.coin]);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newState));
+      console.log(action);
+      newCoins = state.coins.concat([action.coin])
+      newState = Immutable({ coins: newCoins });
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins));
       return newState;
     case types.REMOVE:
-      var newState = Immutable.filter(state, c => c.key !== action.coin.key);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newState));
+      console.log(action);
+      newCoins = state.coins.filter(c => c.key !== action.coin.key);
+      newState = Immutable({ coins: newCoins });
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins));
       return newState;
     default:
       return state;

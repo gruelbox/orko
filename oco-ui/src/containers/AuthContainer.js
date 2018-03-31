@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import * as actions from '../store/auth/actions';
 import { Loader } from 'semantic-ui-react';
-import WhitelistingComponent from '../components/WhitelistingComponent';
-import CredentialsComponent from '../components/CredentialsComponent';
+import Whitelisting from '../components/Whitelisting';
+import Credentials from '../components/Credentials';
 
 class AuthContainer extends Component {
 
@@ -23,12 +23,12 @@ class AuthContainer extends Component {
     if (this.props.auth.loading) {
       return <Loader active={true}/>;
     } else if (!this.props.auth.whitelisted) {
-      return <WhitelistingComponent
+      return <Whitelisting
         onApply={this.onWhitelist}
         error={this.props.auth.error}
       />;
     } else if (!this.props.auth.loggedIn) {
-      return <CredentialsComponent
+      return <Credentials
         onApply={this.onLogin}
         error={this.props.auth.error}
       />;

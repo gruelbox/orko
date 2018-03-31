@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import * as types from './actionTypes';
 
 const initialState = Immutable({
-  coin: undefined,
   balance: undefined,
   ticker: undefined
 });
@@ -49,9 +48,18 @@ export function augmentCoin(p, exchange) {
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.SET_COIN:
+    case types.SET_BALANCE:
       console.log(action);
-      return Immutable.merge(state, { coin: action.payload });
+      return Immutable.merge(state, { balance: action.balance });
+    case types.SET_BALANCE_FAILED:
+      console.log(action);
+      return Immutable.merge(state, { balance: undefined });
+    case types.SET_TICKER:
+      console.log(action);
+      return Immutable.merge(state, { ticker: action.ticker });
+    case types.SET_TICKER_FAILED:
+      console.log(action);
+      return Immutable.merge(state, { ticker: undefined });
     default:
       return state;
   }

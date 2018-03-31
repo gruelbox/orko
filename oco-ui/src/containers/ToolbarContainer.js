@@ -9,7 +9,7 @@ import { Toolbar, NavLink } from 'rebass';
 import * as authActions from '../store/auth/actions';
 
 const ToolbarBox = styled.div`
-  background-color: ${props => props.theme.ocoToolbarBg}
+  background-color: ${props => props.theme.colors.toolbar}
   ${space}
 `;
 

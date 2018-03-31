@@ -1,2 +1,2 @@
-export const ADD = 'exchanges.ADD';
-export const REMOVE = 'exchanges.REMOVE';
+export const ADD = 'coins.ADD';
+export const REMOVE = 'coins.REMOVE';

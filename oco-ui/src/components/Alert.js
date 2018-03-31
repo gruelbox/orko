@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Immutable from 'seamless-immutable';
 import { shape } from '../store/alert/reducer';
 
-const AlertComponent = props => {
+const Alert = props => {
 
   const isValidNumber = (val) => !isNaN(val) && val !== '' && val > 0;
   const highPriceValid = props.job.highPrice && isValidNumber(props.job.highPrice);
@@ -52,9 +52,9 @@ const AlertComponent = props => {
   );
 }
 
-export default AlertComponent;
+export default Alert;
 
-AlertComponent.propTypes = {
+Alert.propTypes = {
   job: PropTypes.shape(shape).isRequired,
   onChange: PropTypes.func
 };

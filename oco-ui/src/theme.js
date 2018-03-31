@@ -1,15 +1,19 @@
 const theme = {
     breakpoints: ['48em'],
-    fontSizes: [12, 12],
+    fontSizes: [11, 12, 14, 16],
     colors: {
       black: '#000',
-      white: '#fff'
+      white: '#fff',
+      fore: '#aaa',
+      heading: '#fff',
+      page: '#49525B',
+      box1: '#29353D',
+      box2: '#3A444D',
+      box3: '#1E2B34',
+      toolbar: 'white',
+      boxBorder: '#15232C'
     },
     radii: [ 0, 0 ],
-    ocoBackground: '#1E2B34',
-    ocoComponentBg1: '#29353D',
-    ocoComponentBg2: '#3A444D',
-    ocoToolbarBg: 'white'
   };
 
 export default theme;

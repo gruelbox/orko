@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { Modal, Icon, Form, Input, Button, Message } from 'semantic-ui-react'
+import FixedModal from './primitives/FixedModal';
 import PropTypes from 'prop-types';
 
-export default class WhitelistingComponent extends Component {
+export default class Whitelisting extends Component {
 
   constructor(props) {
     super(props);
@@ -16,17 +17,8 @@ export default class WhitelistingComponent extends Component {
   }
 
   render() {
-
-    const inlineStyle = {
-      modal : {
-        marginTop: '0px !important',
-        marginLeft: 'auto',
-        marginRight: 'auto'
-      }
-    };
-
     return (
-      <Modal open={true} style={inlineStyle.modal}>   
+      <FixedModal>   
         <Modal.Header><Icon name='lock' />Challenge</Modal.Header>
         <Modal.Content>
           <Form error={this.props.error !== null}>
@@ -38,16 +30,16 @@ export default class WhitelistingComponent extends Component {
             <Button type='submit' onClick={() => this.props.onApply(this.state.response)}>Authorise</Button>
           </Form>
         </Modal.Content>
-      </Modal>
+      </FixedModal>
     );
   }
 }
 
-WhitelistingComponent.propTypes = {
+Whitelisting.propTypes = {
   onApply: PropTypes.func,
   error: PropTypes.string
 };
 
-WhitelistingComponent.defaultProps = {
+Whitelisting.defaultProps = {
   onApply: () => {}
 };
