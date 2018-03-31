@@ -58,13 +58,13 @@ export default class Framework extends React.Component {
                 <ToolbarContainer />
               </Box>
             </Flex>
-            <Flex flexWrap='wrap' style={{ height: 'calc(100% - 50px)'}}>
-              <Box width={[1, 3/16]} order={[1, 1]}>
+            <Flex flexWrap='wrap'>
+              <Box width={[1, 170]} order={[1, 1]}>
                 <LightComponentBox p={2}>
                   <CoinsContainer/>
                 </LightComponentBox>
               </Box>
-              <Box width={[1, 10/16]} order={[3, 2]}>
+              <Box flex="1" order={[3, 2]}>
                 <DarkComponentBox  p={2}>
                   <Switch>
                     <Route exact path='/addCoin'
@@ -74,7 +74,7 @@ export default class Framework extends React.Component {
                   </Switch>
                 </DarkComponentBox>
               </Box>
-              <Box width={[1, 3/16]} order={[2, 3]}>
+              <Box width={[1, 200]} order={[2, 3]}>
                 <MidComponentBox  p={2}>
                   <MarketContainer />
                 </MidComponentBox>

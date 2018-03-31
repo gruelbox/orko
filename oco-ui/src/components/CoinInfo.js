@@ -1,89 +1,69 @@
 import React from 'react';
-import { Icon, Grid } from 'semantic-ui-react';
+
 import { coinShape, balanceShape, tickerShape } from '../store/coin/reducer';
 import PropTypes from 'prop-types';
-import CopyableNumber from './primitives/CopyableNumber';
+
+import { Flex, Box } from 'rebass';
+
 import Chart from './Chart';
+
 import SectionHeading from './primitives/SectionHeading';
+import Warning from './primitives/Warning';
+import PriceSet from './primitives/PriceSet';
+import Price from './primitives/Price';
 
 export const CoinInfoComponent = props => {
   const coin = props.coin;
   if (coin) {
     return (
-      <div>
-        <SectionHeading>{coin.name}</SectionHeading>
-        <Grid>
-          <Grid.Row divided columns={3}>
-            <Grid.Column>
-              {(!props.balance)
-                ? <div>
-                    <Icon name="warning sign" />
-                    Cannot fetch balance
-                  </div>
-                : <div>
-                    <CopyableNumber label="Available"
-                      onClick={props.onClickNumber}
-                      number={props.balance.available}/>
-                    <br/>
-                    <CopyableNumber
-                      label="Total balance"
-                      onClick={props.onClickNumber}
-                      number={props.balance.total}/>
-                  </div>
-              }
-            </Grid.Column>
-            <Grid.Column>
-              {(!props.ticker)
-                ? <div>
-                    <Icon name="warning sign" />
-                    Cannot fetch ticker
-                  </div>
-                : <div>
-                    <CopyableNumber
-                      label="Bid"
-                      onClick={props.onClickNumber}
-                      number={props.ticker.bid} />
-                    <br/>
-                    <CopyableNumber
-                      label="Last"
-                      onClick={props.onClickNumber}
-                      number={props.ticker.last} />
-                    <br/>
-                    <CopyableNumber
-                      label="Ask"
-                      onClick={props.onClickNumber}
-                      number={props.ticker.ask} />
-                  </div>
-              }
-            </Grid.Column>
-            <Grid.Column>
-              {(!props.ticker)
-                ? <div>
-                    <Icon name="warning sign" />
-                    Cannot fetch ticker
-                  </div>
-                : <div>
-                    <CopyableNumber
-                      label="High"
-                      onClick={props.onClickNumber}
-                      number={props.ticker.high} />
-                    <br/>
-                    <CopyableNumber
-                      label="Open"
-                      onClick={props.onClickNumber}
-                      number={props.ticker.open} />
-                    <br/>
-                    <CopyableNumber
-                      label="Low"
-                      onClick={props.onClickNumber}
-                      number={props.ticker.low} />
-                  </div>
-              }
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
-        <Chart coin={coin}/>
-      </div>
+      <Flex flexWrap='wrap' justifyContent="space-between">
+        <Box width={[1, 1]}>
+          <SectionHeading>{coin.name}</SectionHeading>
+        </Box>
+        <Box width={[1/2, 1/4]}>
+          {(!props.balance)
+            ? <Warning>Cannot fetch balance</Warning>
+            : <PriceSet>
+                <Price name={coin.base + " total"} onClick={props.onClickNumber}>{props.balance[coin.base].total}</Price>
+                <Price name={coin.counter + " total"} onClick={props.onClickNumber}>{props.balance[coin.counter].total}</Price>
+              </PriceSet>
+          }
+        </Box>
+        <Box width={[1/2, 1/4]}>
+          {(!props.balance)
+            ? <Warning>Cannot fetch balance</Warning>
+            : <PriceSet>
+                <Price name={coin.base + " available"} onClick={props.onClickNumber}>{props.balance[coin.base].available}</Price>
+                <Price name={coin.counter + " available"} onClick={props.onClickNumber}>{props.balance[coin.counter].available}</Price>
+              </PriceSet>
+          }
+        </Box>
+        <Box width={[1/2, 1/4]}>
+          {(!props.ticker)
+            ? <Warning>Cannot fetch ticker</Warning>
+            : <PriceSet>
+                <Price name="Bid" onClick={props.onClickNumber}>{props.ticker.bid}</Price>
+                <Price name="Last" onClick={props.onClickNumber}>{props.ticker.last}</Price>
+                <Price name="Ask" onClick={props.onClickNumber}>{props.ticker.ask}</Price>
+              </PriceSet>
+          }
+        </Box>
+        <Box width={[1/2, 1/4]}>
+          {(!props.ticker)
+            ? <Warning>Cannot fetch ticker</Warning>
+            : <PriceSet>
+                <Price name="High" onClick={props.onClickNumber}>{props.ticker.high}</Price>
+                <Price name="Open" onClick={props.onClickNumber}>{props.ticker.open}</Price>
+                <Price name="Low" onClick={props.onClickNumber}>{props.ticker.low}</Price>
+              </PriceSet>
+          }
+        </Box>
+        <Box width={[1, 1]}>
+          <div>
+            <Chart coin={coin}/>
+          </div>
+        </Box>
+      </Flex>
     );
   } else {
     return <div>No coin selected</div>;

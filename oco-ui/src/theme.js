@@ -5,13 +5,16 @@ const theme = {
       black: '#000',
       white: '#fff',
       fore: '#aaa',
+      deemphasis: '#555',
       heading: '#fff',
       page: '#49525B',
       box1: '#29353D',
       box2: '#3A444D',
       box3: '#1E2B34',
       toolbar: 'white',
-      boxBorder: '#15232C'
+      boxBorder: '#15232C',
+      link: '#82B2E3',
+      alert: 'red'
     },
     radii: [ 0, 0 ],
   };

@@ -6,6 +6,9 @@ const ForeLink = styled(Link).attrs({
   fontSize: 1,
   color: "fore"
 })`
+  &:hover {
+    color: ${props => props.theme.colors.link};
+  }
   ${color}
   ${fontSize}
   ${fontWeights}

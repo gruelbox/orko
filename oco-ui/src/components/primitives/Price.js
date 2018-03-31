@@ -1,0 +1,55 @@
+import React from 'react';
+
+import styled from 'styled-components';
+import { fontSize, color, fontWeights, space } from 'styled-system';
+
+const PriceRow = styled.tr`
+  margin: 0,
+  padding: 0
+`;
+
+const PriceKey = styled.th.attrs({
+  fontSize: 1,
+  color: "heading",
+  fontWeight: "bold",
+  scope: "row",
+  pr: 2,
+  py: 0,
+  m: 0
+})`
+  text-align: right;
+  border-right: 1px solid ${props => props.theme.colors.deemphasis};
+  white-space:nowrap;
+  ${color}
+  ${fontSize}
+  ${fontWeights}
+  ${space}
+`;
+
+const PriceValue = styled.td.attrs({
+  fontSize: 1,
+  color: "fore",
+  py: 0,
+  pl: 1,
+  m: 0
+})`
+  cursor: copy;
+  &:hover {
+    color: ${props => props.theme.colors.link};
+  };
+  ${color}
+  ${fontSize}
+  ${fontWeights}
+  ${space}
+`;
+
+const Price = props => (
+  <PriceRow>
+    <PriceKey>{props.name}</PriceKey>
+    <PriceValue ref={this.ref} onClick={() => {
+        if (props.onClick) props.onClick(props.number);
+      }}>{props.children}</PriceValue>
+  </PriceRow>
+);
+
+export default Price;

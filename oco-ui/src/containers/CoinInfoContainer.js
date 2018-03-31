@@ -19,6 +19,7 @@ class CoinInfoContainer extends React.Component {
 
   tick = () => {
     this.props.dispatch(coinActions.fetchTicker(this.coin));
+    this.props.dispatch(coinActions.fetchBalance(this.coin));
   }
 
   componentDidMount() {

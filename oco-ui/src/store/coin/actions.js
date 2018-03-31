@@ -21,3 +21,23 @@ export function fetchTicker(coin) {
     }
   };
 }
+
+export function fetchBalance(coin) {
+  return async(dispatch, getState) => {
+    try {
+      const response = await exchangesService.fetchBalance(coin, getState().auth.token);
+      if (!response.ok) {
+        const authAction = authActions.handleHttpResponse(response);
+        if (authAction !== null) {
+          dispatch(authAction);
+        } else {
+          throw new Error(response.statusText);
+        }
+      }
+      const balance = await response.json();
+      dispatch({ type: types.SET_BALANCE, balance });
+    } catch (error) {
+      dispatch({ type: types.SET_BALANCE_FAILED, error: error.message });
+    }
+  };
+}
