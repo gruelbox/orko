@@ -1,13 +1,14 @@
-import React from 'react';
-
+import { lighten } from 'polished';
 import { Tab as RebassTab } from 'rebass';
 
-const Tab = props => {
-  if (props.selected) {
-    return <RebassTab color="emphasis" borderColor="emphasis">{props.children}</RebassTab>;
-  } else {
-    return <RebassTab color="fore">{props.children}</RebassTab>;
+const Tab = RebassTab.extend`
+  color: ${props => props.selected ? props.theme.colors.emphasis : props.theme.colors.fore};
+  border-color: ${props => props.selected ? props.theme.colors.emphasis : "none"};
+  &:hover {
+    cursor: ${props => props.selected ? "auto" : "pointer"};
+    color: ${props => props.selected ? props.theme.colors.emphasis : lighten(0.1, props.theme.colors.fore)};
+    border-color: ${props => props.selected ? props.theme.colors.emphasis : lighten(0.1, props.theme.colors.fore)};
   }
-};
+`;
 
 export default Tab;

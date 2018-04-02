@@ -1,8 +1,8 @@
 import * as types from './actionTypes';
 
-export function setUpdateAction(updateAction) {
+export function setUpdateAction(updateFunction) {
   return {
-    type: types.SET_UPDATE_ACTION,
-    payload: updateAction
+    type: types.SET_UPDATE_FUNCTION,
+    updateFunction
   }
 }

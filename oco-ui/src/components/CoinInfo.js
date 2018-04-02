@@ -1,8 +1,5 @@
 import React from 'react';
 
-import { coinShape, balanceShape, tickerShape } from '../store/coin/reducer';
-import PropTypes from 'prop-types';
-
 import { Flex, Box } from 'rebass';
 
 import SectionHeading from './primitives/SectionHeading';
@@ -10,7 +7,7 @@ import Warning from './primitives/Warning';
 import PriceSet from './primitives/PriceSet';
 import Price from './primitives/Price';
 
-export const CoinInfoComponent = props => {
+export const CoinInfo = props => {
 
   const coin = props.coin;
 
@@ -70,13 +67,4 @@ export const CoinInfoComponent = props => {
   }
 };
 
-export default CoinInfoComponent;
-
-CoinInfoComponent.propTypes = {
-  coin: PropTypes.shape(coinShape),
-  balance: PropTypes.shape(balanceShape),
-  ticker: PropTypes.shape(tickerShape),
-  onToggleChart: PropTypes.func,
-  onRemove: PropTypes.func,
-  onClickNumber: PropTypes.func
-};
+export default CoinInfo;

@@ -1,1 +1,1 @@
-export const SET_UPDATE_ACTION = 'focus.SET_UPDATE_ACTION';
+export const SET_UPDATE_FUNCTION = 'focus.SET_UPDATE_FUNCTION';

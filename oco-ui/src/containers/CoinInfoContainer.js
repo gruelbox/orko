@@ -27,7 +27,11 @@ class CoinInfoContainer extends React.Component {
         coin={this.props.coin}
         balance={this.props.balance}
         ticker={this.props.ticker}
-        onClickNumber={number => this.props.dispatch(this.props.updateFocusedField(String(number)))}
+        onClickNumber={number => {
+          if (this.props.updateFocusedField) {
+            this.props.updateFocusedField(number);
+          }
+        }}
       />
     );
   }
@@ -37,7 +41,7 @@ function mapStateToProps(state) {
   return {
     balance: state.coin.balance,
     ticker: state.coin.ticker,
-    updateFocusedField: state.focus.updateAction
+    updateFocusedField: state.focus.fn
   };
 }
 

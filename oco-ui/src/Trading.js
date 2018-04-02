@@ -76,7 +76,7 @@ export default class Trading extends React.Component {
                   <Chart coin={coin} />
                 </div>
               }
-              <TradeSelector />
+              <TradeSelector coin={coin}/>
             </DarkComponentBox>
           )}
           {!coin && (
