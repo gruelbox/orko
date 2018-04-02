@@ -46,9 +46,16 @@ const PriceValue = styled.td.attrs({
 const Price = props => (
   <PriceRow>
     <PriceKey>{props.name}</PriceKey>
-    <PriceValue ref={this.ref} onClick={() => {
-        if (props.onClick) props.onClick(props.number);
-      }}>{props.children}</PriceValue>
+    <PriceValue onClick={
+      () => {
+        if (props.onClick) {
+          console.log("Price clicked", props.name, props.children)
+          props.onClick(props.children);
+        }
+      }
+    }>
+      {props.children}
+    </PriceValue>
   </PriceRow>
 );
 

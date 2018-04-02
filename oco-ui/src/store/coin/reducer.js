@@ -49,16 +49,16 @@ export function augmentCoin(p, exchange) {
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_BALANCE:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, { balance: action.balance });
     case types.SET_BALANCE_FAILED:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, { balance: undefined });
     case types.SET_TICKER:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, { ticker: action.ticker });
     case types.SET_TICKER_FAILED:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, { ticker: undefined });
     default:
       return state;

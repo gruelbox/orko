@@ -17,13 +17,13 @@ export default function reduce(state = initialState, action = {}) {
   var newState;
   switch (action.type) {
     case types.ADD:
-      console.log(action);
+      console.log(action.type, action);
       newCoins = state.coins.concat([action.coin])
       newState = Immutable({ coins: newCoins });
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins));
       return newState;
     case types.REMOVE:
-      console.log(action);
+      console.log(action.type, action);
       newCoins = state.coins.filter(c => c.key !== action.coin.key);
       newState = Immutable({ coins: newCoins });
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins));

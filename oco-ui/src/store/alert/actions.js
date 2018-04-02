@@ -3,15 +3,14 @@ import * as types from './actionTypes';
 export function update(changes) {
   return {
     type: types.UPDATE,
-    payload: changes
+    changes
   };
 }
 
 export function updateProperty(name, value) {
   return {
-    type: types.UPDATE,
-    payload: {
-      [name]: value
-    }
+    type: types.UPDATE_PROPERTY,
+    name,
+    value
   };
 }

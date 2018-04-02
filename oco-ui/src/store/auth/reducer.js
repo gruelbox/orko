@@ -27,21 +27,21 @@ export const shape = {
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_WHITELIST_STATUS:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         whitelisted: action.status,
         error: null,
         loading: false
       });
     case types.SET_WHITELIST_ERROR:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         whitelisted: false,
         error: action.error,
         loading: false
       });
     case types.SET_WHITELIST_EXPIRED:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         whitelisted: false,
         loggedIn: false,
@@ -49,7 +49,7 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.SET_LOGIN_FAILED:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         whitelisted: true,
         loggedIn: false,
@@ -57,13 +57,13 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.SET_LOGGED_OUT:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         loggedIn: false,
         error: null
       });
     case types.SET_LOGIN_ERROR:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         whitelisted: true,
         loggedIn: false,
@@ -71,7 +71,7 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.SET_LOGIN_SUCCESS:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         whitelisted: true,
         loggedIn: true,

@@ -13,7 +13,7 @@ import JobsContainer from './containers/JobsContainer';
 import SectionHeading from './components/primitives/SectionHeading';
 import ForePara from './components/primitives/ForePara';
 
-import { coin } from './store/coin/reducer';
+import { coin as createCoin } from './store/coin/reducer';
 
 import styled from 'styled-components';
 import { space, padding } from 'styled-system'
@@ -46,7 +46,7 @@ export default class Trading extends React.Component {
 
   render() {
 
-    const c = this.props.match.params.exchange ? coin(
+    const coin = this.props.match.params.exchange ? createCoin(
       this.props.match.params.exchange,
       this.props.match.params.counter,
       this.props.match.params.base
@@ -63,14 +63,14 @@ export default class Trading extends React.Component {
           </LightComponentBox>
         </Box>
         <Box flex="1" order={[3, 2]}>
-          {c && (
+          {coin && (
             <DarkComponentBox p={2}>
-              <CoinInfoContainer coin={c} />
-              <div style={{height: '500px'}}><Chart coin={c} /></div>
+              <CoinInfoContainer coin={coin} />
+              <div style={{height: '500px'}}><Chart coin={coin} /></div>
               <TradeSelector />
             </DarkComponentBox>
           )}
-          {!c && (
+          {!coin && (
             <DarkComponentBox p={2}>
               <SectionHeading>Trading</SectionHeading>
               <ForePara>No coin selected</ForePara>

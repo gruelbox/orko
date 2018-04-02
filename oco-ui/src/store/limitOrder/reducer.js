@@ -22,7 +22,7 @@ export const shape = {
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.UPDATE:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, { job: action.payload }, {deep: true});
     default:
       return state;

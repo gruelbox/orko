@@ -8,13 +8,19 @@ const AlertContainer = props => (
   <Alert
     job={props.alert}
     onChange={job => props.dispatch(alertActions.update(job))}
-    onFocus={focus => props.dispatch(focusActions.setUpdateAction(value => alertActions.updateProperty(focus, value)))}
+    onFocus={focusedProperty =>
+      props.dispatch(
+        focusActions.setUpdateAction(value =>
+          alertActions.updateProperty(focusedProperty, value)
+        )
+      )
+    }
   />
 );
 
 function mapStateToProps(state) {
   return {
-    alert: state.alert.job
+    alert: state.alert
   };
 }
 

@@ -12,7 +12,7 @@ const initialState = Immutable({
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_UPDATE_ACTION:
-      console.log(action);
+      console.log(action.type, action);
       return Immutable.merge(state, { updateAction: action.payload });
     default:
       return state;

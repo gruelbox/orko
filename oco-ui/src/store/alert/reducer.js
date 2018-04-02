@@ -3,11 +3,9 @@ import PropTypes from 'prop-types';
 import * as types from './actionTypes';
 
 const initialState = Immutable({
-  job: {
-    highPrice: '',
-    lowPrice: '',
-    message: 'Alert'
-  }
+  highPrice: '',
+  lowPrice: '',
+  message: 'Alert'
 });
 
 export const shape = {
@@ -19,8 +17,11 @@ export const shape = {
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.UPDATE:
-      console.log(action);
-      return Immutable.merge(state, { job: action.payload }, {deep: true});
+      console.log(action.type, action);
+      return Immutable.merge(state, action.changes);
+    case types.UPDATE_PROPERTY:
+      console.log(action.type, action);
+      return Immutable.merge(state, { [action.name]: action.value });
     default:
       return state;
   }
