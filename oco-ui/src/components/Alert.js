@@ -1,5 +1,7 @@
 import React from 'react';
-import { Form } from 'semantic-ui-react'
+import Input from './primitives/Input.js';
+import Form from './primitives/Form';
+import Button from './primitives/Button';
 import PropTypes from 'prop-types';
 import Immutable from 'seamless-immutable';
 import { shape } from '../store/alert/reducer';
@@ -21,26 +23,26 @@ const Alert = props => {
   ) : () => {};
 
   return (
-    <div>
-      <Form.Input
+    <Form onSubmit={props.onSubmit}>
+      <Input
         error={!highPriceValid}
         label="Price rises above"
-        type='text'
+        type='number'
         placeholder='Enter price...'
         value={props.job.highPrice ? props.job.highPrice : ''}
         onChange={e => onChange("highPrice", e)}
         onFocus={e => props.onFocus("highPrice")}
       />
-      <Form.Input
+      <Input
         error={!lowPriceValid}
         label="Price drops below"
-        type='text'
+        type='number'
         placeholder='Enter price...'
         value={props.job.lowPrice ? props.job.lowPrice : ''}
         onChange={e => onChange("lowPrice", e)}
         onFocus={e => props.onFocus("lowPrice")}
       />
-      <Form.Input
+      <Input
         error={!messageValid}
         label="Message"
         type='text'
@@ -48,7 +50,8 @@ const Alert = props => {
         value={props.job.message}
         onChange={e => onChange("message", e)}
       />
-    </div> 
+      <Button>Submit</Button> 
+    </Form> 
   );
 }
 

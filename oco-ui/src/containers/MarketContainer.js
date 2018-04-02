@@ -4,21 +4,21 @@ import { connect } from 'react-redux';
 import { Tabs } from 'rebass';
 
 import SectionHeading from '../components/primitives/SectionHeading';
-import ForePara from '../components/primitives/ForePara';
-import ForeTab from '../components/primitives/ForeTab';
+import Para from '../components/primitives/Para';
+import Tab from '../components/primitives/Tab';
 
 const MarketContainer = props => (
   <div>
     <SectionHeading>Market</SectionHeading>
-    <Tabs>
-      <ForeTab selected>
-        Order book
-      </ForeTab>
-      <ForeTab>
+    <Tabs mb={3}>
+      <Tab selected>
+        Tab book
+      </Tab>
+      <Tab>
         Trade history
-      </ForeTab>
+      </Tab>
     </Tabs>
-    <ForePara>No market data</ForePara>
+    <Para>No market data</Para>
   </div>
 );
 

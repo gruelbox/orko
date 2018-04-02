@@ -2,12 +2,15 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import SectionHeading from '../components/primitives/SectionHeading';
-import ForePara from '../components/primitives/ForePara';
+import Para from '../components/primitives/Para';
+import Panel from '../components/primitives/Panel';
 
 const OpenOrdersContainer = props => (
   <div>
     <SectionHeading>Open Orders</SectionHeading>
-    <ForePara>No market data</ForePara>
+    <Panel>
+      <Para>No market data</Para>
+    </Panel>
   </div>
 );
 

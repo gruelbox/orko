@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { fontSize, color, fontWeights, space } from 'styled-system';
+import { fontSize, color, fontWeights, fontFamily, space } from 'styled-system';
 
 const SectionHeading = styled.h3.attrs({
   fontSize: 2,
@@ -11,6 +11,7 @@ const SectionHeading = styled.h3.attrs({
 })`
   ${color}
   ${fontSize}
+  ${fontFamily}
   ${fontWeights}
   ${space}
   border-bottom: 1px solid ${props => props.theme.colors.deemphasis};

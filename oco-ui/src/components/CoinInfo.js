@@ -11,7 +11,14 @@ import PriceSet from './primitives/PriceSet';
 import Price from './primitives/Price';
 
 export const CoinInfoComponent = props => {
+
   const coin = props.coin;
+
+  const noBalance = 
+      !props.balance
+      || !props.balance[coin.base]
+      || !props.balance[coin.counter];
+
   if (coin) {
     return (
       <Flex flexWrap='wrap' justifyContent="space-between">
@@ -19,7 +26,7 @@ export const CoinInfoComponent = props => {
           <SectionHeading>{coin.name}</SectionHeading>
         </Box>
         <Box width={[1/2, 1/4]}>
-          {(!props.balance)
+          {noBalance
             ? <Warning>Cannot fetch balance</Warning>
             : <PriceSet>
                 <Price name={coin.base + " total"} onClick={props.onClickNumber}>{props.balance[coin.base].total}</Price>
@@ -28,7 +35,7 @@ export const CoinInfoComponent = props => {
           }
         </Box>
         <Box width={[1/2, 1/4]}>
-          {(!props.balance)
+          {noBalance
             ? <Warning>Cannot fetch balance</Warning>
             : <PriceSet>
                 <Price name={coin.base + " available"} onClick={props.onClickNumber}>{props.balance[coin.base].available}</Price>

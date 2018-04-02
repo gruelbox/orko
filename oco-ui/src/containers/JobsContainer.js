@@ -2,12 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import SectionHeading from '../components/primitives/SectionHeading';
-import ForePara from '../components/primitives/ForePara';
+import Para from '../components/primitives/Para';
 
 const JobsContainer = props => (
   <div>
     <SectionHeading>Running Jobs</SectionHeading>
-    <ForePara>No data</ForePara>
+    <Para>No data</Para>
   </div>
 );
 

@@ -2,13 +2,13 @@ import React from 'react';
 
 import { Icon } from 'semantic-ui-react';
 
-import ForeSpan from './ForeSpan';
+import Span from './Span';
 
 const Warning = props => (
-  <ForeSpan>
+  <Span>
     <Icon name="warning sign" />
     <span>{props.children}</span>
-  </ForeSpan>
+  </Span>
 );
 
 export default Warning;

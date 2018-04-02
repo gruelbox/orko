@@ -1,17 +1,17 @@
 import React from 'react';
 import { Icon } from 'semantic-ui-react';
 
-import ForeHref from './primitives/ForeHref';
-import ForeLink from './primitives/ForeLink';
+import Href from './primitives/Href';
+import Link from './primitives/Link';
 
 const CoinLink = props => (
   <div>
-    <ForeHref onClick={props.onRemove}>
+    <Href onClick={props.onRemove}>
       <Icon name="close"/>
-    </ForeHref>
-    <ForeLink to={'/coin/' + props.coin.key}>
+    </Href>
+    <Link to={'/coin/' + props.coin.key}>
       {props.coin.name}
-    </ForeLink>
+    </Link>
   </div>
 );
 

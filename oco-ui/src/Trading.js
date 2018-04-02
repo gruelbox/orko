@@ -11,33 +11,36 @@ import OpenOrdersContainer from './containers/OpenOrdersContainer';
 import JobsContainer from './containers/JobsContainer';
 
 import SectionHeading from './components/primitives/SectionHeading';
-import ForePara from './components/primitives/ForePara';
+import Para from './components/primitives/Para';
 
 import { coin as createCoin } from './store/coin/reducer';
 
 import styled from 'styled-components';
 import { space, padding } from 'styled-system'
 
-const DarkComponentBox = styled.div`
-  background-color: ${props => props.theme.colors.box3};
+const DarkComponentBox = styled.div.attrs({
+  pb: 3
+})`
+  background-color: ${props => props.theme.colors.backgrounds[1]};
   border: 1px solid ${props => props.theme.colors.boxBorder};
-  height: 100%;
   ${space}
   ${padding}
 `;
 
-const MidComponentBox = styled.div`
-  background-color: ${props => props.theme.colors.box1};
+const MidComponentBox = styled.div.attrs({
+  pb: 3
+})`
+  background-color: ${props => props.theme.colors.backgrounds[2]};
   border: 1px solid ${props => props.theme.colors.boxBorder};
-  height: 50%;
   ${space}
   ${padding}
 `;
 
-const LightComponentBox = styled.div`
-  background-color: ${props => props.theme.colors.box2};
+const LightComponentBox = styled.div.attrs({
+  pb: 3
+})`
+  background-color: ${props => props.theme.colors.backgrounds[3]};
   border: 1px solid ${props => props.theme.colors.boxBorder};
-  height: 50%;
   ${space}
   ${padding}
 `;
@@ -52,28 +55,34 @@ export default class Trading extends React.Component {
       this.props.match.params.base
     ) : undefined;
 
+    const showChart = false;
+
     return (
       <Flex flexWrap='wrap' h='calc(100%-66px)'>
-        <Box width={[1, 170]} order={[1, 1]}>
+        <Box width={[1, 170]} order={[3, 1]}>
           <LightComponentBox p={2}>
             <CoinsContainer/>
           </LightComponentBox>
-          <LightComponentBox p={2}>
+          <MidComponentBox p={2}>
             <JobsContainer/>
-          </LightComponentBox>
+          </MidComponentBox>
         </Box>
-        <Box flex="1" order={[3, 2]}>
+        <Box flex="1" order={[1, 2]}>
           {coin && (
             <DarkComponentBox p={2}>
               <CoinInfoContainer coin={coin} />
-              <div style={{height: '500px'}}><Chart coin={coin} /></div>
+              {showChart &&
+                <div style={{height: '500px'}}>
+                  <Chart coin={coin} />
+                </div>
+              }
               <TradeSelector />
             </DarkComponentBox>
           )}
           {!coin && (
             <DarkComponentBox p={2}>
               <SectionHeading>Trading</SectionHeading>
-              <ForePara>No coin selected</ForePara>
+              <Para>No coin selected</Para>
             </DarkComponentBox>
           )}
         </Box>
@@ -81,9 +90,9 @@ export default class Trading extends React.Component {
           <MidComponentBox p={2}>
             <MarketContainer />
           </MidComponentBox>
-          <MidComponentBox p={2}>
+          <LightComponentBox p={2}>
             <OpenOrdersContainer />
-          </MidComponentBox>
+          </LightComponentBox>
         </Box>
       </Flex>
     );

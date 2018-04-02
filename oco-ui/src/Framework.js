@@ -15,7 +15,7 @@ import styled from 'styled-components';
 import { space } from 'styled-system'
 
 const BackgroundBox = styled.div`
-  background-color: ${props => props.theme.colors.page};
+  background-color: ${props => props.theme.colors.backgrounds[0]};
   height: 100vh;
   ${space}
 `;

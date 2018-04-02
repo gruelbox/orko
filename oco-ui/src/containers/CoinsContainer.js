@@ -7,7 +7,7 @@ import * as coinsActions from '../store/coins/actions';
 
 import CoinLink from '../components/CoinLink'
 import SectionHeading from '../components/primitives/SectionHeading';
-import ForeLink from '../components/primitives/ForeLink';
+import Link from '../components/primitives/Link';
 
 const CoinsCointainer = props => (
   <div>
@@ -19,7 +19,7 @@ const CoinsCointainer = props => (
         onRemove={() => props.dispatch(coinsActions.remove(coin))}
       />
     ))}
-    <ForeLink to="/addCoin"><Icon name="add"/>Add</ForeLink>
+    <Link to="/addCoin"><Icon name="add"/>Add</Link>
   </div>
 );
 
