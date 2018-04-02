@@ -5,7 +5,7 @@ import { Icon } from 'semantic-ui-react';
 import Span from './Span';
 
 const Warning = props => (
-  <Span>
+  <Span color="alert">
     <Icon name="warning sign" />
     <span>{props.children}</span>
   </Span>
