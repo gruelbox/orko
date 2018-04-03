@@ -3,23 +3,22 @@ import { connect } from 'react-redux';
 
 import { Tabs } from 'rebass';
 
-import SectionHeading from '../components/primitives/SectionHeading';
+import Section from '../components/primitives/Section';
 import Para from '../components/primitives/Para';
 import Tab from '../components/primitives/Tab';
 
 const MarketContainer = props => (
-  <div>
-    <SectionHeading>Market</SectionHeading>
+  <Section heading="Market">
     <Tabs mb={3}>
       <Tab selected>
-        Tab book
+        Order Book
       </Tab>
       <Tab>
-        Trade history
+        History
       </Tab>
     </Tabs>
     <Para>No market data</Para>
-  </div>
+  </Section>
 );
 
 function mapStateToProps(state) {

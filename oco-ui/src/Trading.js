@@ -10,7 +10,7 @@ import MarketContainer from './containers/MarketContainer';
 import OpenOrdersContainer from './containers/OpenOrdersContainer';
 import JobsContainer from './containers/JobsContainer';
 
-import SectionHeading from './components/primitives/SectionHeading';
+import Section from './components/primitives/Section';
 import Para from './components/primitives/Para';
 
 import { coin as createCoin } from './store/coin/reducer';
@@ -76,23 +76,26 @@ export default class Trading extends React.Component {
                   <Chart coin={coin} />
                 </div>
               }
-              <TradeSelector coin={coin}/>
             </DarkComponentBox>
           )}
-          {!coin && (
-            <DarkComponentBox p={2}>
-              <SectionHeading>Trading</SectionHeading>
-              <Para>No coin selected</Para>
-            </DarkComponentBox>
-          )}
+          <MidComponentBox p={2}>
+            <Section heading="Trading">
+              {!coin && (
+                <Para>No coin selected</Para>
+              )}
+              {coin && (
+                <TradeSelector coin={coin}/>
+              )}
+            </Section>
+          </MidComponentBox>
         </Box>
         <Box width={[1, 200]} order={[2, 3]}>
-          <MidComponentBox p={2}>
-            <MarketContainer />
-          </MidComponentBox>
           <LightComponentBox p={2}>
-            <OpenOrdersContainer />
+            <MarketContainer />
           </LightComponentBox>
+          <MidComponentBox p={2}>
+            <OpenOrdersContainer />
+          </MidComponentBox>
         </Box>
       </Flex>
     );

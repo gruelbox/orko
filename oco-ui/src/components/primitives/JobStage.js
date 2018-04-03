@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { fontSize, color, fontWeights } from 'styled-system';
+import { fontSize, color, fontWeight } from 'styled-system';
 
 const JobStage = styled.li.attrs({
   fontSize: 1,
@@ -7,7 +7,7 @@ const JobStage = styled.li.attrs({
 })`
   ${color}
   ${fontSize}
-  ${fontWeights}
+  ${fontWeight}
 `;
 
 export default JobStage;

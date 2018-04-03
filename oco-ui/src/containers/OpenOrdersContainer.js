@@ -1,17 +1,16 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import SectionHeading from '../components/primitives/SectionHeading';
+import Section from '../components/primitives/Section';
 import Para from '../components/primitives/Para';
 import Panel from '../components/primitives/Panel';
 
 const OpenOrdersContainer = props => (
-  <div>
-    <SectionHeading>Open Orders</SectionHeading>
+  <Section heading="Open Orders">
     <Panel>
       <Para>No market data</Para>
     </Panel>
-  </div>
+  </Section>
 );
 
 function mapStateToProps(state) {

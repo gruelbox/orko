@@ -6,12 +6,11 @@ import { Icon } from 'semantic-ui-react';
 import * as coinsActions from '../store/coins/actions';
 
 import CoinLink from '../components/CoinLink'
-import SectionHeading from '../components/primitives/SectionHeading';
+import Section from '../components/primitives/Section';
 import Link from '../components/primitives/Link';
 
 const CoinsCointainer = props => (
-  <div>
-    <SectionHeading>Coins</SectionHeading>
+  <Section heading="Coins">
     {props.coins.map(coin => (
       <CoinLink
         key={coin.key}
@@ -20,7 +19,7 @@ const CoinsCointainer = props => (
       />
     ))}
     <Link to="/addCoin"><Icon name="add"/>Add</Link>
-  </div>
+  </Section>
 );
 
 function mapStateToProps(state) {

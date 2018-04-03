@@ -1,7 +1,7 @@
 import React from 'react';
 
 import styled from 'styled-components';
-import { fontSize, color, fontWeights, space } from 'styled-system';
+import { fontSize, color, fontWeight, space } from 'styled-system';
 
 const PriceRow = styled.tr`
   margin: 0,
@@ -22,7 +22,7 @@ const PriceKey = styled.th.attrs({
   white-space:nowrap;
   ${color}
   ${fontSize}
-  ${fontWeights}
+  ${fontWeight}
   ${space}
 `;
 
@@ -39,7 +39,7 @@ const PriceValue = styled.td.attrs({
   };
   ${color}
   ${fontSize}
-  ${fontWeights}
+  ${fontWeight}
   ${space}
 `;
 
