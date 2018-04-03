@@ -14,6 +14,10 @@ class JobService {
     return await get('jobs', token);
   }
 
+  async fetchJob(jobId, token) {
+    return await get('jobs/' + jobId, token);
+  }
+
 }
 
 export default new JobService();

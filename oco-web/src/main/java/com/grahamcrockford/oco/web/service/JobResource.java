@@ -78,6 +78,13 @@ public class JobResource implements WebResource {
     jobAccess.delete();
   }
 
+  @GET
+  @Path("{id}")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public Job fetchJob(@PathParam("id") String id) {
+    return jobAccess.load(id);
+  }
 
   @DELETE
   @Path("{id}")
