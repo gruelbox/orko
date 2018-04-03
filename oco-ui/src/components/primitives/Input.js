@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { fontSize, color, fontWeight, space } from 'styled-system';
+import { fontSize, color, fontWeight, space, fontFamily } from 'styled-system';
 import { darken, mix } from 'polished'
 
 const RawInput = styled.input.attrs({
@@ -31,6 +31,7 @@ const RawInput = styled.input.attrs({
   ${color}
   ${fontSize}
   ${fontWeight}
+  ${fontFamily}
   ${space}
 `;
 
@@ -62,6 +63,7 @@ const Input = props => (
       <RawLabel for={props.id}>{props.label}</RawLabel>
     }
     <RawInput
+      fontFamily={props.type === "number" ? "mono" : "sans"}
       id={props.id}
       error={props.error}
       type={props.type}

@@ -1,7 +1,8 @@
 import React from 'react';
 
 import styled from 'styled-components';
-import { fontSize, color, fontWeight, space } from 'styled-system';
+import { keyframes } from 'styled-components';
+import { fontSize, color, fontWeight, fontFamily, space } from 'styled-system';
 
 const PriceRow = styled.tr`
   margin: 0,
@@ -31,32 +32,64 @@ const PriceValue = styled.td.attrs({
   color: "fore",
   py: 0,
   pl: 1,
-  m: 0
+  m: 0,
+  fontFamily: "mono"
 })`
   cursor: copy;
   &:hover {
     color: ${props => props.theme.colors.link};
   };
+  animation: ${props => props.movement === "up"
+    ? props.theme.keyFrames.flashGreen
+    : props.movement === "down"
+      ? props.theme.keyFrames.flashRed
+      : "none"} 0.5s linear;
   ${color}
   ${fontSize}
   ${fontWeight}
+  ${fontFamily}
   ${space}
 `;
 
-const Price = props => (
-  <PriceRow>
-    <PriceKey>{props.name}</PriceKey>
-    <PriceValue onClick={
-      () => {
-        if (props.onClick) {
-          console.log("Price clicked", props.name, props.children)
-          props.onClick(props.children);
-        }
-      }
-    }>
-      {props.children}
-    </PriceValue>
-  </PriceRow>
-);
+class Price extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {movement: null};
+  }
+
+  componentWillReceiveProps(nextProps) {
+    var movement = null;
+    if (Number(nextProps.children) > Number(this.props.children)) {
+      movement = "up";
+    } else if (Number(nextProps.children) < Number(this.props.children)) {
+      movement = "down";
+    }
+    if (movement) {
+      this.setState(
+        { movement: movement },
+        () => setTimeout(() => this.setState({ movement: null }), 600)
+      )
+    }
+  }
+
+  onClick = () => {
+    if (this.props.onClick) {
+      console.log("Price clicked", this.props.name, this.props.children)
+      this.props.onClick(this.props.children);
+    }
+  };
+
+  render() {
+    return (
+      <PriceRow>
+        <PriceKey>{this.props.name}</PriceKey>
+        <PriceValue movement={this.state.movement} onClick={this.onClick}>
+          {this.props.children}
+        </PriceValue>
+      </PriceRow>
+    );
+  }
+};
 
 export default Price;
