@@ -1,11 +1,21 @@
 import React from 'react';
 import { Icon } from 'semantic-ui-react';
+import styled from 'styled-components';
 
 import Href from './primitives/Href';
 import Link from './primitives/Link';
 
 const BUY = 'BUY';
 const SELL = 'SELL';
+
+const JobShortBox = styled.div`
+  padding-top: ${props => props.theme.space[1] + "px"};
+  padding-bottom: ${props => props.theme.space[1] + "px"};
+  border-bottom: 1px solid ${props => props.theme.colors.deemphasis};
+  &:last-child {
+    border: none;
+  }
+`;
 
 export default class JobShort extends React.Component {
 
@@ -15,9 +25,9 @@ export default class JobShort extends React.Component {
 
     if (job.jobType === 'OneCancelsOther') {
       return (
-        ticker(job.tickTrigger) + ": "
-        + (job.high ? " > " + job.high.thresholdAsString + " then " + this.describe(job.high.job) : "")
-        + (job.low ? " < " + job.low.thresholdAsString + " then " + this.describe(job.low.job) : "")
+        "On " + ticker(job.tickTrigger) + ": "
+        + (job.high ? " If > " + job.high.thresholdAsString + " then " + this.describe(job.high.job) + "." : "")
+        + (job.low ? " If < " + job.low.thresholdAsString + " then " + this.describe(job.low.job) + "." : "")
       );
     } else if (job.jobType === 'LimitOrderJob') {
       return (
@@ -50,14 +60,14 @@ export default class JobShort extends React.Component {
 
   render() {
     return (
-      <div>
+      <JobShortBox>
         <Href onClick={this.props.onRemove}>
           <Icon name="close"/>
         </Href>
         <Link to={'/job/' + this.props.job.id}>
           {this.describe(this.props.job)}
         </Link>
-      </div>
+      </JobShortBox>
     );
   }
 }

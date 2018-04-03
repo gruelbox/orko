@@ -23,13 +23,20 @@ class JobsContainer extends React.Component {
     clearInterval(this.interval);
   }
 
+  onRemove = (job) => {
+    this.props.dispatch(jobActions.deleteJob(job));
+  };
+
   render() {
+    const onRemove = this.onRemove;
 
     var jobs;
     if (this.props.jobs.length === 0) {
       jobs = <Para>No active jobs</Para>;
     } else {
-      jobs = this.props.jobs.map(job => <JobShort job={job} />);
+      jobs = this.props.jobs.map(job =>
+        <JobShort key={job.id} job={job} onRemove={() => onRemove(job)} />
+      );
     }
 
     return (

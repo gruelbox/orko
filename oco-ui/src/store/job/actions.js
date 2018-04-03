@@ -21,3 +21,22 @@ export function fetchJobs() {
     }
   };
 }
+
+export function deleteJob(job) {
+  return async(dispatch, getState) => {
+    try {
+      const response = await jobService.deleteJob(job, getState().auth.token);
+      if (!response.ok) {
+        const authAction = authActions.handleHttpResponse(response);
+        if (authAction !== null) {
+          dispatch(authAction);
+        } else {
+          throw new Error(response.statusText);
+        }
+      }
+      dispatch(fetchJobs());
+    } catch (error) {
+      dispatch({ type: types.DELETE_JOB_FAILED, error: error.message });
+    }
+  };
+}

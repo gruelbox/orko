@@ -1,7 +1,6 @@
 import React from 'react';
 
 import styled from 'styled-components';
-import { keyframes } from 'styled-components';
 import { fontSize, color, fontWeight, fontFamily, space } from 'styled-system';
 
 const PriceRow = styled.tr`

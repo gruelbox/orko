@@ -20,6 +20,11 @@ export default function reduce(state = initialState, action = {}) {
         jobs: Immutable([]),
         error: state.loading ? null : "Error fetching jobs: " + action.error,
       });
+    case types.DELETE_JOB_FAILED:
+      console.log(action.type, action);
+      return Immutable.merge(state, {
+        error: state.loading ? null : "Error deleting job: " + action.error,
+      });
     default:
       return state;
   }
