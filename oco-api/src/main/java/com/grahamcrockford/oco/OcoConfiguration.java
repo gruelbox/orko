@@ -33,6 +33,7 @@ public class OcoConfiguration extends Configuration {
 
   private TelegramConfiguration telegram;
 
+  @NotNull
   private MqConfiguration mq;
 
   @Valid

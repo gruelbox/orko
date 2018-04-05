@@ -9,6 +9,7 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.servlet.ServletModule;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.db.DbModule;
+import com.grahamcrockford.oco.api.mq.MqModule;
 import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
 import com.grahamcrockford.oco.core.jobs.JobsModule;
 import com.grahamcrockford.oco.core.telegram.TelegramModule;
@@ -46,5 +47,6 @@ class WorkerModule extends AbstractModule {
     install(new DbModule());
     install(new TelegramModule());
     install(new JobsModule());
+    install(new MqModule());
   }
 }

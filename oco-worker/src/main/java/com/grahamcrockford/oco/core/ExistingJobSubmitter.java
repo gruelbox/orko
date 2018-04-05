@@ -38,7 +38,6 @@ class ExistingJobSubmitter {
     this.uuid = UUID.randomUUID();
   }
 
-
   public boolean submitExisting(Job job) {
     if (jobLocker.attemptLock(job.id(), uuid)) {
       job = advancedOrderAccess.load(job.id());

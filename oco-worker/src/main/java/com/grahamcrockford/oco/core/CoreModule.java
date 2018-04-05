@@ -17,6 +17,7 @@ public class CoreModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(ExecutorServiceManager.class);
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(GuardianLoop.class);
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(TickerGenerator.class);
+    Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MqListener.class);
 
     bind(TradeServiceFactory.class).to(LiveTradeServiceFactory.class);
     bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);

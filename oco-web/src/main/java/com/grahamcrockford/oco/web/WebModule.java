@@ -9,6 +9,7 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.servlet.ServletModule;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.db.DbModule;
+import com.grahamcrockford.oco.api.mq.MqModule;
 import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
 import com.grahamcrockford.oco.web.auth.AuthModule;
 import com.grahamcrockford.oco.web.service.CoreModule;
@@ -45,5 +46,6 @@ class WebModule extends AbstractModule {
     install(new CoreModule());
     install(new DbModule());
     install(new AuthModule());
+    install(new MqModule());
   }
 }
