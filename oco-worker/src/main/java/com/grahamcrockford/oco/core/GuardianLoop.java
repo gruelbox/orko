@@ -18,13 +18,13 @@ class GuardianLoop extends AbstractExecutionThreadService {
   private static final Logger LOGGER = LoggerFactory.getLogger(GuardianLoop.class);
 
   private final JobAccess advancedOrderAccess;
-  private final ExistingJobSubmitter jobSubmitter;
+  private final JobRunner jobSubmitter;
   private final AsyncEventBus asyncEventBus;
   private final OcoConfiguration ocoConfiguration;
 
   @Inject
   GuardianLoop(JobAccess advancedOrderAccess,
-               ExistingJobSubmitter jobSubmitter,
+               JobRunner jobSubmitter,
                AsyncEventBus asyncEventBus,
                OcoConfiguration ocoConfiguration) {
     this.advancedOrderAccess = advancedOrderAccess;
@@ -65,7 +65,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
     for (Job job : advancedOrderAccess.list()) {
       foundJobs = true;
       try {
-        locksFailed = !jobSubmitter.submitExisting(job);
+        locksFailed = !jobSubmitter.runExisting(job);
       } catch (Throwable e) {
         LOGGER.error("Failed to start job [" + job + "]", e);
       }

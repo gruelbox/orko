@@ -16,19 +16,22 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
+
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.api.auth.Roles;
 import com.grahamcrockford.oco.api.exchange.ExchangeService;
 import com.grahamcrockford.oco.api.job.LimitOrderJob;
+import com.grahamcrockford.oco.api.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.api.job.OrderStateNotifier;
 import com.grahamcrockford.oco.api.job.PumpChecker;
 import com.grahamcrockford.oco.api.job.SoftTrailingStop;
-import com.grahamcrockford.oco.api.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.api.process.JobAccess;
+import com.grahamcrockford.oco.api.process.JobAccess.JobDoesNotExistException;
 import com.grahamcrockford.oco.api.process.JobSubmitter;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.TickerSpec;
@@ -82,8 +85,12 @@ public class JobResource implements WebResource {
   @Path("{id}")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public Job fetchJob(@PathParam("id") String id) {
-    return jobAccess.load(id);
+  public Response fetchJob(@PathParam("id") String id) {
+    try {
+      return Response.ok().entity(jobAccess.load(id)).build();
+    } catch (JobDoesNotExistException e) {
+      return Response.status(404).build();
+    }
   }
 
   @DELETE

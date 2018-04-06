@@ -27,7 +27,7 @@ import com.grahamcrockford.oco.api.process.JobAccess;
 import com.grahamcrockford.oco.api.process.JobLocker;
 import com.grahamcrockford.oco.api.util.Sleep;
 import com.grahamcrockford.oco.core.ExecutorServiceManager;
-import com.grahamcrockford.oco.core.ExistingJobSubmitter;
+import com.grahamcrockford.oco.core.JobRunner;
 import com.grahamcrockford.oco.core.GuardianLoop;
 import com.grahamcrockford.oco.core.StopEvent;
 import com.grahamcrockford.oco.core.TickerGenerator;
@@ -52,7 +52,7 @@ public class TestJobExecutionIntegration {
 
   private AsyncEventBus asyncEventBus;
   private EventBus eventBus;
-  private ExistingJobSubmitter jobSubmitter;
+  private JobRunner jobSubmitter;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
   private TickerGenerator tickerGenerator;
@@ -78,7 +78,7 @@ public class TestJobExecutionIntegration {
     executorServiceManager.start();
 
     asyncEventBus = new AsyncEventBus(executorServiceManager.executor());
-    jobSubmitter = new ExistingJobSubmitter(jobAccess, jobLocker, injector, asyncEventBus);
+    jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     tickerGenerator = new TickerGenerator(eventBus, exchangeService, new Sleep(config));

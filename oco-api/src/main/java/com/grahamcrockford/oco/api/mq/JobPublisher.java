@@ -21,13 +21,13 @@ public class JobPublisher {
     this.objectMapper = objectMapper;
   }
 
-  public void announceJob(Job job) {
+  public void publishJob(Job job) {
     try (Connection connection = connectionFactory.newConnection();
          Channel channel = connection.createChannel()) {
 
        byte[] message = objectMapper.writeValueAsBytes(job);
 
-       channel.queueDeclare(Queue.JOB, false, false, false, null);
+       channel.queueDeclare(Queue.JOB, true, false, false, null);
        channel.basicPublish("", Queue.JOB, null, message);
 
     } catch (IOException | TimeoutException e) {

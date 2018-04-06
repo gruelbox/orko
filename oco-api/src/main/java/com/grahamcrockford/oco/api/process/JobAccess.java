@@ -3,13 +3,14 @@ package com.grahamcrockford.oco.api.process;
 import org.bson.types.ObjectId;
 import org.mongojack.DBQuery;
 import org.mongojack.JacksonDBCollection;
-import org.mongojack.WriteResult;
 
+import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.db.DbConfiguration;
 import com.grahamcrockford.oco.spi.Job;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoClient;
 
 
@@ -31,31 +32,17 @@ public class JobAccess {
   }
 
   /**
-   * Enqueues the job for immediate action.
+   * Inserts the job.
    *
-   * @param <T> The job type.
    * @param job The job.
-   * @return The updated order with ID set.
+   * @throws JobAlreadyExistsException If the job has already been written
    */
-  @SuppressWarnings("unchecked")
-  public <T extends Job> T insert(T job) {
-    return insert(job, (Class<T>)job.getClass());
-  }
-
-  /**
-   * Enqueues the job for immediate action.
-   *
-   * @param <T> The job type.
-   * @param job The job.
-   * @param clazz Sets the job type.
-   * @return The updated order with ID set.
-   */
-  @SuppressWarnings("unchecked")
-  public <T extends Job> T insert(T job, Class<T> clazz) {
-    JacksonDBCollection<T, org.bson.types.ObjectId> coll = collection(clazz);
-    WriteResult<T, org.bson.types.ObjectId> result = coll.insert(job);
-    org.bson.types.ObjectId savedId = result.getSavedId();
-    return (T) job.toBuilder().id(savedId.toHexString()).build();
+  public void insert(Job job) throws JobAlreadyExistsException {
+    try {
+      collection(Envelope.class).insert(Envelope.live(job));
+    } catch (DuplicateKeyException e) {
+      throw new JobAlreadyExistsException(e);
+    }
   }
 
   /**
@@ -65,34 +52,56 @@ public class JobAccess {
    * @param job The job.
    * @param clazz Sets the job type.
    */
-  public <T extends Job> void update(T job, Class<T> clazz) {
-    JacksonDBCollection<T, org.bson.types.ObjectId> coll = collection(clazz);
-    coll.update(DBQuery.is("_id", job.id()), job);
+  public void update(Job job) {
+    collection(Envelope.class).update(DBQuery.is("_id", job.id()), Envelope.live(job));
   }
 
-  @SuppressWarnings("unchecked")
-  public <T extends Job> T load(String id) {
-    JacksonDBCollection<Job, org.bson.types.ObjectId> coll = collection(Job.class);
-    return (T) coll.findOneById(new ObjectId(id));
+  public Job load(String id) {
+    Job job = collection(Envelope.class).findOneById(new ObjectId(id)).job();
+    if (job == null)
+      throw new JobDoesNotExistException();
+    return job;
   }
 
   public Iterable<Job> list() {
-    JacksonDBCollection<Job, org.bson.types.ObjectId> coll = collection(Job.class);
-    return coll.find(new BasicDBObject());
+    return
+      FluentIterable.from(
+          collection(Envelope.class).find(DBQuery.is("processed", false))
+      ).transform(Envelope::job);
   }
 
-  public void delete(String orderId) {
-    collection(Job.class).removeById(new ObjectId(orderId));
-    jobLocker.releaseAnyLock(orderId);
+  public void delete(String jobId) {
+    collection(Envelope.class).update(DBQuery.is("_id", jobId), Envelope.dead(jobId));
   }
 
 
   public void delete() {
-    collection(Job.class).remove(new BasicDBObject());
+    collection(Envelope.class).update(
+      new BasicDBObject().append("processed", false),
+      new BasicDBObject().append("job", null).append("processed", true)
+    );
     jobLocker.releaseAllLocks();
   }
 
-  private <T extends Job> JacksonDBCollection<T, ObjectId> collection(Class<T> clazz) {
+  private <T> JacksonDBCollection<T, ObjectId> collection(Class<T> clazz) {
     return JacksonDBCollection.wrap(mongoClient.getDB(configuration.getMongoDatabase()).getCollection("job"), clazz, org.bson.types.ObjectId.class);
+  }
+
+  public static final class JobAlreadyExistsException extends Exception {
+
+    private static final long serialVersionUID = 6959971340282376242L;
+
+    JobAlreadyExistsException(Throwable cause) {
+      super(cause);
+    }
+  }
+
+  public static final class JobDoesNotExistException extends RuntimeException {
+
+    private static final long serialVersionUID = 9086830214079119838L;
+
+    JobDoesNotExistException() {
+      super();
+    }
   }
 }

@@ -11,12 +11,12 @@ import com.google.inject.Inject;
 import com.grahamcrockford.oco.api.mq.Queue;
 import com.grahamcrockford.oco.api.util.Sleep;
 import com.grahamcrockford.oco.spi.Job;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 
 class MqListener extends AbstractIdleService {
 
@@ -25,14 +25,14 @@ class MqListener extends AbstractIdleService {
   private final ConnectionFactory connectionFactory;
   private final Sleep sleep;
   private final ObjectMapper objectMapper;
-  private final ExistingJobSubmitter existingJobSubmitter;
+  private final JobRunner existingJobSubmitter;
 
   private Connection connection;
   private Channel channel;
 
 
   @Inject
-  MqListener(ConnectionFactory connectionFactory, Sleep sleep, ObjectMapper objectMapper, ExistingJobSubmitter existingJobSubmitter) {
+  MqListener(ConnectionFactory connectionFactory, Sleep sleep, ObjectMapper objectMapper, JobRunner existingJobSubmitter) {
     this.connectionFactory = connectionFactory;
     this.sleep = sleep;
     this.objectMapper = objectMapper;
@@ -49,16 +49,17 @@ class MqListener extends AbstractIdleService {
         LOGGER.info("Connecting to MQ...");
         connection = connectionFactory.newConnection();
         channel = connection.createChannel();
-        channel.queueDeclare(Queue.JOB, false, false, false, null);
+        channel.queueDeclare(Queue.JOB, true, false, false, null);
         com.rabbitmq.client.Consumer consumer = new DefaultConsumer(channel) {
           @Override
           public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
             LOGGER.info(this + " received new job. Handling");
             Job job = objectMapper.readValue(body, Job.class);
-            existingJobSubmitter.submitExisting(job);
+            existingJobSubmitter.runNew(job);
+            channel.basicAck(envelope.getDeliveryTag(), false);
           }
         };
-        channel.basicConsume(Queue.JOB, true, consumer);
+        channel.basicConsume(Queue.JOB, false, consumer);
         success = true;
       } catch (IOException e) {
         LOGGER.error(this + " failed to connect. Retrying...", e);

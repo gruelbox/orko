@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.process.JobAccess;
+import com.grahamcrockford.oco.api.process.JobAccess.JobAlreadyExistsException;
 import com.grahamcrockford.oco.api.process.JobLocker;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
@@ -19,32 +20,43 @@ import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
 
 @Singleton
-class ExistingJobSubmitter {
+class JobRunner {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExistingJobSubmitter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JobRunner.class);
 
-  private final JobAccess advancedOrderAccess;
+  private final JobAccess jobAccess;
   private final JobLocker jobLocker;
   private final UUID uuid;
   private final Injector injector;
   private final AsyncEventBus asyncEventBus;
 
   @Inject
-  ExistingJobSubmitter(JobAccess advancedOrderAccess, JobLocker jobLocker, Injector injector, AsyncEventBus asyncEventBus) {
-    this.advancedOrderAccess = advancedOrderAccess;
+  JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker, Injector injector, AsyncEventBus asyncEventBus) {
+    this.jobAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.injector = injector;
     this.asyncEventBus = asyncEventBus;
     this.uuid = UUID.randomUUID();
   }
 
-  public boolean submitExisting(Job job) {
+  public boolean runExisting(Job job) {
     if (jobLocker.attemptLock(job.id(), uuid)) {
-      job = advancedOrderAccess.load(job.id());
+      job = jobAccess.load(job.id());
       new JobLifetimeManager(job).start();
       return true;
     } else {
       return false;
+    }
+  }
+
+  public void runNew(Job job) {
+    if (jobLocker.attemptLock(job.id(), uuid)) {
+      try {
+        jobAccess.insert(job);
+      } catch (JobAlreadyExistsException e) {
+        LOGGER.info("Job " + job.id() + " already exists");
+      }
+      new JobLifetimeManager(job).start();
     }
   }
 
@@ -73,7 +85,7 @@ class ExistingJobSubmitter {
         throw new IllegalStateException("Job lifecycle status indicates re-use of lifetime manager: " + job);
       LOGGER.debug(job + " starting...");
       if (!processor.start()) {
-        advancedOrderAccess.delete(job.id());
+        jobAccess.delete(job.id());
         processor.stop();
         status.set(JobStatus.STOPPED);
         LOGGER.debug(job + " finished immediately");
@@ -107,14 +119,13 @@ class ExistingJobSubmitter {
     }
 
     @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void replace(Job newVersion) {
       LOGGER.debug(job + " replacing...");
       if (!stopAndUnregister()) {
         LOGGER.debug("Replacement of job which is already shutting down: " + job);
         return;
       }
-      advancedOrderAccess.update(newVersion, (Class) newVersion.getClass());
+      jobAccess.update(newVersion);
       new JobLifetimeManager(newVersion).start();
       LOGGER.debug(newVersion + " replaced");
     }
@@ -126,7 +137,7 @@ class ExistingJobSubmitter {
         LOGGER.debug("Finish of job which is already shutting down: " + job);
         return;
       }
-      advancedOrderAccess.delete(job.id());
+      jobAccess.delete(job.id());
       LOGGER.info(job + " finished");
     }
 
