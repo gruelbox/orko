@@ -9,7 +9,7 @@ database:
   mongoDatabase: oco
   lockSeconds: 30
 mq:
-  host: mq
+  clientURI: amqp://mq
 server:
   type: simple
   applicationContextPath: /

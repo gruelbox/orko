@@ -1,0 +1,20 @@
+version: "3"
+services:
+  db:
+    image: mongo
+    networks:
+      - webnet
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=jsmith
+      - MONGO_INITDB_ROOT_PASSWORD=some-initial-password
+      - MONGO_INITDB_DATABASE=oco
+    ports:
+      - '27017:27017'
+  mq:
+    image: rabbitmq
+    networks:
+      - webnet
+    ports:
+      - '5672:5672'
+networks:
+  webnet:

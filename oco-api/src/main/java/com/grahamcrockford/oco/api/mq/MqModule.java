@@ -1,5 +1,9 @@
 package com.grahamcrockford.oco.api.mq;
 
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +25,13 @@ public class MqModule extends AbstractModule {
   @Provides
   @Singleton
   ConnectionFactory connectionFactory(MqConfiguration configuration) {
-    LOGGER.info("Creating connection factory to " + configuration.getHost());
+    LOGGER.info("Creating connection factory to " + configuration.getClientURI());
     ConnectionFactory connectionFactory = new ConnectionFactory();
-    connectionFactory.setHost(configuration.getHost());
+    try {
+      connectionFactory.setUri(configuration.getClientURI());
+    } catch (KeyManagementException | NoSuchAlgorithmException | URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
     return connectionFactory;
   }
 }

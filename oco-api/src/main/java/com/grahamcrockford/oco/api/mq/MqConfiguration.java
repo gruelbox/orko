@@ -10,10 +10,10 @@ public class MqConfiguration extends Configuration {
 
   @NotEmpty
   @JsonProperty
-  private String host;
+  private String clientURI;
 
-  String getHost() {
-    return host;
+  String getClientURI() {
+    return clientURI;
   }
 
 }

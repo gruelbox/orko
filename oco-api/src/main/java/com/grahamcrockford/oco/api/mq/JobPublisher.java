@@ -10,13 +10,13 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-public class JobAnnouncer {
+public class JobPublisher {
 
   private final ConnectionFactory connectionFactory;
   private final ObjectMapper objectMapper;
 
   @Inject
-  JobAnnouncer(ConnectionFactory connectionFactory, ObjectMapper objectMapper) {
+  JobPublisher(ConnectionFactory connectionFactory, ObjectMapper objectMapper) {
     this.connectionFactory = connectionFactory;
     this.objectMapper = objectMapper;
   }

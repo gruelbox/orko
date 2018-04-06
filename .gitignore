@@ -29,3 +29,11 @@
 /oco-web/dependency-reduced-pom.xml
 /oco-worker/dependency-reduced-pom.xml
 /target/oco-parent-0.0.1-SNAPSHOT-shaded.pom
+/.classpath
+/.factorypath
+/.settings/org.eclipse.jdt.apt.core.prefs
+/.settings/org.eclipse.jdt.core.prefs
+/.settings/org.jboss.tools.maven.apt.prefs
+/oco-api/.settings/org.jboss.tools.maven.apt.prefs
+/oco-web/.settings/org.jboss.tools.maven.apt.prefs
+/oco-worker/.settings/org.jboss.tools.maven.apt.prefs
