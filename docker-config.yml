@@ -8,6 +8,8 @@ database:
   mongoClientURI: mongodb://jsmith:some-initial-password@db:27017
   mongoDatabase: oco
   lockSeconds: 30
+mq:
+  host: mq
 server:
   type: simple
   applicationContextPath: /

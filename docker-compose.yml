@@ -8,6 +8,10 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=jsmith
       - MONGO_INITDB_ROOT_PASSWORD=some-initial-password
       - MONGO_INITDB_DATABASE=oco
+  mq:
+    image: rabbitmq
+    networks:
+      - webnet
   web:
     build:
       context: .
