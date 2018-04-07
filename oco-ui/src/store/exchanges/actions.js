@@ -2,6 +2,7 @@ import * as types from './actionTypes';
 import * as authActions from '../auth/actions';
 import { augmentCoin }  from '../coin/reducer';
 import exchangesService from '../../services/exchanges';
+import * as errorActions from '../error/actions';
 
 export function fetchExchanges() {
   return async(dispatch, getState) => {
@@ -18,7 +19,7 @@ export function fetchExchanges() {
       const exchanges = await response.json();
       dispatch({ type: types.SET_EXCHANGES, exchanges });
     } catch (error) {
-      dispatch({ type: types.SET_EXCHANGES_FAILED, error: error.message });
+      dispatch(errorActions.setBackground("Could not fetch exchange list: " + error.message));
     }
   };
 }
@@ -39,7 +40,7 @@ export function fetchPairs(exchange) {
 
       dispatch({ type: types.SET_PAIRS, pairs });
     } catch (error) {
-      dispatch({ type: types.SET_PAIRS_FAILED, error: error.message });
+      dispatch(errorActions.setBackground("Could not fetch currency pairs: " + error.message));
     }
   };
 }

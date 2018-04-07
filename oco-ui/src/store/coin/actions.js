@@ -1,6 +1,7 @@
 import * as types from './actionTypes';
 import exchangesService from '../../services/exchanges';
 import * as authActions from '../auth/actions';
+import * as errorActions from '../error/actions';
 
 export function fetchTicker(coin) {
   return async(dispatch, getState) => {
@@ -17,7 +18,7 @@ export function fetchTicker(coin) {
       const ticker = await response.json();
       dispatch({ type: types.SET_TICKER, ticker });
     } catch (error) {
-      dispatch({ type: types.SET_TICKER_FAILED, error: error.message });
+      dispatch(errorActions.setBackground("Could not fetch ticker: " + error.message));
     }
   };
 }
@@ -37,7 +38,7 @@ export function fetchBalance(coin) {
       const balance = await response.json();
       dispatch({ type: types.SET_BALANCE, balance });
     } catch (error) {
-      dispatch({ type: types.SET_BALANCE_FAILED, error: error.message });
+      // This is fne. It's often not available.
     }
   };
 }

@@ -34,21 +34,19 @@ export const CoinInfo = props => {
       <Section heading={coin.name}>
         <Flex flexWrap='wrap' justifyContent="space-between">
           <Box width={[1/2, 1/4]}>
-            {noBalance
-              ? <Warning>Cannot fetch balance</Warning>
-              : <PriceSet>
-                  <Price name={coin.base + " total"} onClick={props.onClickNumber}>{props.balance[coin.base].total}</Price>
-                  <Price name={coin.counter + " total"} onClick={props.onClickNumber}>{props.balance[coin.counter].total}</Price>
-                </PriceSet>
+            {!noBalance &&
+              <PriceSet>
+                <Price name={coin.base + " total"} onClick={props.onClickNumber}>{props.balance[coin.base].total}</Price>
+                <Price name={coin.counter + " total"} onClick={props.onClickNumber}>{props.balance[coin.counter].total}</Price>
+              </PriceSet>
             }
           </Box>
           <Box width={[1/2, 1/4]}>
-            {noBalance
-              ? <Warning>Cannot fetch balance</Warning>
-              : <PriceSet>
-                  <Price name={coin.base + " available"} onClick={props.onClickNumber}>{props.balance[coin.base].available}</Price>
-                  <Price name={coin.counter + " available"} onClick={props.onClickNumber}>{props.balance[coin.counter].available}</Price>
-                </PriceSet>
+            {!noBalance &&
+              <PriceSet>
+                <Price name={coin.base + " available"} onClick={props.onClickNumber}>{props.balance[coin.base].available}</Price>
+                <Price name={coin.counter + " available"} onClick={props.onClickNumber}>{props.balance[coin.counter].available}</Price>
+              </PriceSet>
             }
           </Box>
           <Box width={[1/2, 1/4]}>

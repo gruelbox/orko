@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { fontSize, color, fontWeight } from 'styled-system';
+import { fontSize, color, fontWeight, space } from 'styled-system';
 import { Link as ReactLink } from 'react-router-dom';
 
 const Link = styled(ReactLink)`
@@ -12,6 +12,7 @@ const Link = styled(ReactLink)`
   ${color}
   ${fontSize}
   ${fontWeight}
+  ${space}
 `;
 
 export default Link;

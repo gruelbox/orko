@@ -17,7 +17,7 @@ export function submitJob(job) {
       }
       dispatch({ type: types.ADD_JOB, job });
     } catch (error) {
-      dispatch(errorActions.setError(error.message));
+      dispatch(errorActions.setForeground("Failed to submit job: " + error.message));
     }
   };
 }
@@ -37,7 +37,7 @@ export function fetchJobs() {
       const jobs = await response.json();
       dispatch({ type: types.SET_JOBS, jobs });
     } catch (error) {
-      dispatch(errorActions.setError(error.message));
+      dispatch(errorActions.setBackground("Failed to fetch jobs: " + error.message));
     }
   };
 }
@@ -56,7 +56,7 @@ export function deleteJob(job) {
       }
       dispatch(fetchJobs());
     } catch (error) {
-      dispatch(errorActions.setError(error.message));
+      dispatch(errorActions.setForeground("Failed to delete job: " + error.message));
     }
   };
 }

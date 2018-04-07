@@ -1,21 +1,21 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Button, Header, Icon, Modal } from 'semantic-ui-react'
+import { Button, Header, Modal } from 'semantic-ui-react'
 import FixedModal from '../components/primitives/FixedModal'
 
 import * as errorActions from '../store/error/actions';
 
 const ErrorContainer = props => {
-  if (props.error !== null) {
+  if (props.errorForeground !== null) {
     return (
       <FixedModal defaultOpen>
         <Header icon='warning' content='Error' />
         <Modal.Content>
-          <p>{props.error}</p>
+          <p>{props.errorForeground}</p>
         </Modal.Content>
         <Modal.Actions>
           <Button
-            onClick={() => props.dispatch(errorActions.clearError())}
+            onClick={() => props.dispatch(errorActions.clearForeground())}
           >
             OK
           </Button>
@@ -29,7 +29,7 @@ const ErrorContainer = props => {
 
 function mapStateToProps(state) {
   return {
-    error: state.error.error
+    errorForeground: state.error.errorForeground
   };
 }
 

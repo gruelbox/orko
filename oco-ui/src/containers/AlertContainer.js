@@ -7,7 +7,6 @@ import { Flex, Box } from 'rebass';
 import Alert from '../components/Alert';
 import Job from '../components/Job';
 
-import * as authActions from '../store/auth/actions';
 import * as focusActions from '../store/focus/actions';
 import * as jobActions from '../store/job/actions';
 
