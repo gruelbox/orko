@@ -12,6 +12,8 @@ database:
   mongoClientURI: ${MONGODB_URI}
   mongoDatabase: ${MONGO_DATABASE}
   lockSeconds: ${LOCK_SECONDS}
+mq:
+  clientURI: ${CLOUDAMQP_URL}
 exchanges:
   gdax-sandbox:
     apiKey: ${GDAX_SANDBOX_API_KEY}
