@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Resizable from 're-resizable';
+import styled from 'styled-components';
 
 const SCRIPT_ID = 'tradingview-widget-script';
 const CONTAINER_ID = 'tradingview-widget-container';
@@ -81,24 +82,38 @@ export default class Chart extends Component {
   }
 
   render() {
+
+    const ChartContainer = styled.div`
+      overflow: hidden;
+    `;
+
+    const ChartInner = styled.div`
+      margin-top: -1px;
+      margin-left: -10px;
+      margin-right: -10px;
+      margin-bottom: -10px;
+    `;
+
     return (
-      <div>
-        <Resizable
-          defaultSize={{width: "100%", height: 400}}
-          enable={{
-            top:false,
-            right:false,
-            bottom:true,
-            left:false,
-            topRight:false,
-            bottomRight:false,
-            bottomLeft:false,
-            topLeft:false
-          }}
-        >
-          <div style={{height: "100%"}} id={CONTAINER_ID}/>
-        </Resizable>
-      </div>
+      <ChartContainer>
+        <ChartInner>
+          <Resizable
+            defaultSize={{width: "100%", height: 400}}
+            enable={{
+              top:false,
+              right:false,
+              bottom:true,
+              left:false,
+              topRight:false,
+              bottomRight:false,
+              bottomLeft:false,
+              topLeft:false
+            }}
+          >
+            <div style={{height: "100%"}} id={CONTAINER_ID}/>
+          </Resizable>
+        </ChartInner>
+      </ChartContainer>
     );
   }
 }
