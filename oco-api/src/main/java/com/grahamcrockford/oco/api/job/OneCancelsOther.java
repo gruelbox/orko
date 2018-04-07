@@ -22,7 +22,7 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 public abstract class OneCancelsOther implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_OneCancelsOther.Builder();
+    return new AutoValue_OneCancelsOther.Builder().verbose(true);
   }
 
   @AutoValue.Builder
@@ -35,6 +35,7 @@ public abstract class OneCancelsOther implements Job {
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
     public abstract Builder low(ThresholdAndJob thresholdAndJob);
     public abstract Builder high(ThresholdAndJob thresholdAndJob);
+    public abstract Builder verbose(boolean verbose);
 
     @Override
     public abstract OneCancelsOther build();
@@ -60,6 +61,9 @@ public abstract class OneCancelsOther implements Job {
 
   @JsonProperty
   public abstract TickerSpec tickTrigger();
+
+  @JsonProperty
+  public abstract boolean verbose();
 
   @JsonIgnore
   @Override

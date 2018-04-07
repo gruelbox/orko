@@ -23,12 +23,12 @@ class GuardianLoop extends AbstractExecutionThreadService {
   private final OcoConfiguration ocoConfiguration;
 
   @Inject
-  GuardianLoop(JobAccess advancedOrderAccess,
-               JobRunner jobSubmitter,
+  GuardianLoop(JobAccess jobaccess,
+               JobRunner jobRunner,
                AsyncEventBus asyncEventBus,
                OcoConfiguration ocoConfiguration) {
-    this.advancedOrderAccess = advancedOrderAccess;
-    this.jobSubmitter = jobSubmitter;
+    this.advancedOrderAccess = jobaccess;
+    this.jobSubmitter = jobRunner;
     this.asyncEventBus = asyncEventBus;
     this.ocoConfiguration = ocoConfiguration;
   }

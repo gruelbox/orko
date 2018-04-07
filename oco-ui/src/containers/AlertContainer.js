@@ -62,6 +62,7 @@ class AlertContainer extends React.Component {
     return {
       jobType: "OneCancelsOther",
       tickTrigger: tickTrigger,
+      verbose: false,
       low: lowPriceValid ? {
           thresholdAsString: String(this.state.job.lowPrice),
           job: {

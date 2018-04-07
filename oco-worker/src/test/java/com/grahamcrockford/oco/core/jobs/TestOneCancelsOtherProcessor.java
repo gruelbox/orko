@@ -107,6 +107,29 @@ public class TestOneCancelsOtherProcessor {
   }
 
   @Test
+  public void testAtLowQuiet() throws Exception {
+    OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
+        .tickTrigger(TICKER_SPEC)
+        .low(ThresholdAndJob.create(LOW_PRICE, job1))
+        .high(ThresholdAndJob.create(HIGH_PRICE, job2))
+        .verbose(false)
+        .build();
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+        .bid(LOW_PRICE)
+        .build());
+
+    verify(enqueuer).submitNewUnchecked(job1);
+    verify(jobControl).finish();
+    verifyDidNothingElse();
+  }
+
+  @Test
   public void testAboveLow() throws Exception {
     OneCancelsOther job = OneCancelsOther.builder()
         .id(JOB_ID)
@@ -164,6 +187,29 @@ public class TestOneCancelsOtherProcessor {
         .build());
 
     verify(telegramService).sendMessage(Mockito.anyString());
+    verify(enqueuer).submitNewUnchecked(job2);
+    verify(jobControl).finish();
+    verifyDidNothingElse();
+  }
+
+  @Test
+  public void testAtHighQuiet() throws Exception {
+    OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
+        .tickTrigger(TICKER_SPEC)
+        .low(ThresholdAndJob.create(LOW_PRICE, job1))
+        .high(ThresholdAndJob.create(HIGH_PRICE, job2))
+        .verbose(false)
+        .build();
+
+    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    Assert.assertTrue(processor.start());
+    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
+
+    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+        .bid(HIGH_PRICE)
+        .build());
+
     verify(enqueuer).submitNewUnchecked(job2);
     verify(jobControl).finish();
     verifyDidNothingElse();
