@@ -89,9 +89,9 @@ export default class Chart extends Component {
 
     const ChartInner = styled.div`
       margin-top: -1px;
-      margin-left: -10px;
-      margin-right: -10px;
-      margin-bottom: -10px;
+      margin-left: -8px;
+      margin-right: -8px;
+      margin-bottom: -8px;
     `;
 
     return (
