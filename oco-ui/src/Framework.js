@@ -19,22 +19,12 @@ import Trading from './Trading';
 import Market from './Market';
 import JobView from './JobView';
 
-// TEMP
-import styled from 'styled-components';
-import { space } from 'styled-system'
-
-const BackgroundBox = styled.div`
-  background-color: ${props => props.theme.colors.backgrounds[0]};
-  height: 100vh;
-  ${space}
-`;
-
 export default class Framework extends React.Component {
   render() {
     return (
       <BrowserRouter>
         <ThemeProvider theme={theme}>
-          <BackgroundBox>
+          <div>
             <ToolbarContainer />
             <Flex flexWrap='wrap' h='calc(100%-66px)'>
               <Box width={[1, 170]} order={[3, 1]}>
@@ -59,7 +49,7 @@ export default class Framework extends React.Component {
                   component={Market}/>
               </Switch>
             </Flex>
-          </BackgroundBox>
+          </div>
         </ThemeProvider>
       </BrowserRouter>
     );

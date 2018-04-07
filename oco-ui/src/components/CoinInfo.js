@@ -8,6 +8,8 @@ import PriceSet from './primitives/PriceSet';
 import Price from './primitives/Price';
 import Para from './primitives/Para';
 
+import Chart from './Chart';
+
 export const CoinInfo = props => {
 
   const coin = props.coin;
@@ -70,6 +72,7 @@ export const CoinInfo = props => {
             }
           </Box>
         </Flex>
+        <Chart coin={coin}/>
       </Section>
     );
   } else {

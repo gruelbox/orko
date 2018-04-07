@@ -1,7 +1,5 @@
 import { keyframes } from 'styled-components';
 
-
-
 const theme = {
   breakpoints: ['59em'],
   fontSizes: [11, 12, 13, 16],
@@ -14,17 +12,17 @@ const theme = {
     white: '#fff',
     backgrounds: [
       '#131722',
-      '#1E2B34',
-      '#29353D',
-      '#3A444D'
+      '#282b38',
+      '#2F3241',
+      '#343747'
     ],
-    inputBg: '#3A444D',
+    inputBg: '#2F3241',
     fore: '#aaa',
     emphasis: '#26e0dd',
     deemphasis: '#555',
     heading: '#fff',
     toolbar: 'white',
-    boxBorder: '#15232C',
+    boxBorder: '#131722',
     link: '#26e0dd',
     alert: 'red',
     success: '#19ff00',
