@@ -3,7 +3,6 @@ package com.grahamcrockford.oco.web.service;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,12 +16,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.marketdata.Ticker;
-import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.grahamcrockford.oco.api.auth.Roles;
+import com.grahamcrockford.oco.api.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.api.exchange.ExchangeService;
+import com.grahamcrockford.oco.api.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.web.WebResource;
 
 /**
@@ -47,10 +47,14 @@ public class ExchangeResource implements WebResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeResource.class);
 
   private final ExchangeService exchanges;
+  private final TradeServiceFactory tradeServiceFactory;
+  private final AccountServiceFactory accountServiceFactory;
 
   @Inject
-  ExchangeResource(ExchangeService exchanges) {
+  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory) {
     this.exchanges = exchanges;
+    this.tradeServiceFactory = tradeServiceFactory;
+    this.accountServiceFactory = accountServiceFactory;
   }
 
 
@@ -111,10 +115,14 @@ public class ExchangeResource implements WebResource {
   @Path("{exchange}/orders")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public OpenOrders orders(@PathParam("exchange") String exchange) throws IOException {
-    return exchanges.get(exchange)
-        .getTradeService()
-        .getOpenOrders();
+  public Response orders(@PathParam("exchange") String exchange) throws IOException {
+    try {
+      return Response.ok()
+          .entity(tradeServiceFactory.getForExchange(exchange).getOpenOrders())
+          .build();
+    } catch (UnsupportedOperationException e) {
+      return Response.status(503).build();
+    }
   }
 
 
@@ -132,30 +140,39 @@ public class ExchangeResource implements WebResource {
   @Path("{exchange}/currencies/{currency}/orders")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public List<Order> orders(@PathParam("exchange") String exchangeCode,
+  public Response orders(@PathParam("exchange") String exchangeCode,
                             @PathParam("currency") String currency) throws IOException {
-    LOGGER.info("Thorough orders search...");
-    Exchange exchange = exchanges.get(exchangeCode);
-    return exchange
-      .getExchangeMetaData()
-      .getCurrencyPairs()
-      .keySet()
-      .stream()
-      .filter(p -> p.base.getCurrencyCode().equals(currency) || p.counter.getCurrencyCode().equals(currency))
-      .peek(p -> LOGGER.info("Checking " + p))
-      .flatMap(p -> {
-        try {
-          Thread.sleep(200);
-          return exchange
-            .getTradeService()
-            .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(p))
-            .getOpenOrders()
-            .stream();
-        } catch (IOException | InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-      })
-      .collect(Collectors.toList());
+
+    try {
+
+      LOGGER.info("Thorough orders search...");
+      Exchange exchange = exchanges.get(exchangeCode);
+      return Response.ok()
+        .entity(exchange
+          .getExchangeMetaData()
+          .getCurrencyPairs()
+          .keySet()
+          .stream()
+          .filter(p -> p.base.getCurrencyCode().equals(currency) || p.counter.getCurrencyCode().equals(currency))
+          .peek(p -> LOGGER.info("Checking " + p))
+          .flatMap(p -> {
+            try {
+              Thread.sleep(200);
+              return exchange
+                .getTradeService()
+                .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(p))
+                .getOpenOrders()
+                .stream();
+            } catch (IOException | InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+          })
+          .collect(Collectors.toList())
+        ).build();
+    } catch (UnsupportedOperationException e) {
+      return Response.status(503).build();
+    }
+
   }
 
 
@@ -172,12 +189,19 @@ public class ExchangeResource implements WebResource {
   @Path("{exchange}/markets/{base}-{counter}/orders")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public OpenOrders orders(@PathParam("exchange") String exchange,
+  public Response orders(@PathParam("exchange") String exchange,
                            @PathParam("counter") String counter,
                            @PathParam("base") String base) throws IOException {
-    return exchanges.get(exchange)
-        .getTradeService()
-        .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(new CurrencyPair(base, counter)));
+    try {
+      return Response.ok()
+          .entity(
+            tradeServiceFactory.getForExchange(exchange)
+              .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(new CurrencyPair(base, counter)))
+          )
+          .build();
+    } catch (UnsupportedOperationException e) {
+      return Response.status(503).build();
+    }
   }
 
 
@@ -193,10 +217,14 @@ public class ExchangeResource implements WebResource {
   @Path("{exchange}/orders/{id}")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public Collection<Order> order(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
-    return exchanges.get(exchange)
-        .getTradeService()
-        .getOrder(id);
+  public Response order(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
+    try {
+      return Response.ok()
+          .entity(tradeServiceFactory.getForExchange(exchange).getOrder(id))
+          .build();
+    } catch (UnsupportedOperationException e) {
+      return Response.status(503).build();
+    }
   }
 
 
@@ -212,30 +240,37 @@ public class ExchangeResource implements WebResource {
   @Path("{exchange}/balance/{currencies}")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public Map<String, Balance> balances(@PathParam("exchange") String exchange, @PathParam("currencies") String currenciesAsString) throws IOException {
+  public Response balances(@PathParam("exchange") String exchange, @PathParam("currencies") String currenciesAsString) throws IOException {
 
     Set<String> currencies = Stream.of(currenciesAsString.split(","))
         .collect(Collectors.toSet());
 
-    FluentIterable<Balance> balances = FluentIterable.from(
-        exchanges.get(exchange)
-          .getAccountService()
-          .getAccountInfo()
-          .getWallet()
-          .getBalances()
-          .entrySet()
-      )
-      .transform(Map.Entry::getValue)
-      .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()))
-      .transform(balance -> {
-        Balance result = new Balance();
-        result.currency = balance.getCurrency().getCurrencyCode();
-        result.total = balance.getTotal();
-        result.available = balance.getAvailable();
-        return result;
-      });
+    try {
 
-    return Maps.uniqueIndex(balances, balance -> balance.currency);
+      FluentIterable<Balance> balances = FluentIterable.from(
+          accountServiceFactory.getForExchange(exchange)
+            .getAccountInfo()
+            .getWallet()
+            .getBalances()
+            .entrySet()
+        )
+        .transform(Map.Entry::getValue)
+        .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()))
+        .transform(balance -> {
+          Balance result = new Balance();
+          result.currency = balance.getCurrency().getCurrencyCode();
+          result.total = balance.getTotal();
+          result.available = balance.getAvailable();
+          return result;
+        });
+
+      return Response.ok()
+          .entity(Maps.uniqueIndex(balances, balance -> balance.currency))
+          .build();
+
+    } catch (UnsupportedOperationException e) {
+      return Response.status(503).build();
+    }
   }
 
   public static final class Balance {

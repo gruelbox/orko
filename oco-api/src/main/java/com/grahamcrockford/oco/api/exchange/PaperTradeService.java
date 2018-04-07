@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.api.exchange;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -38,7 +38,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.api.exchange.ExchangeService;
 
 /**
  * Paper trading implementation.  Note: doesn't work between restarts. Probably not thread

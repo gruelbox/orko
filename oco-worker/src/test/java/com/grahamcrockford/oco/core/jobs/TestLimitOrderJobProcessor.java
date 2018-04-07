@@ -23,11 +23,11 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.grahamcrockford.oco.api.exchange.ExchangeService;
+import com.grahamcrockford.oco.api.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.api.job.LimitOrderJob;
 import com.grahamcrockford.oco.api.job.OrderStateNotifier;
 import com.grahamcrockford.oco.api.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.api.process.JobSubmitter;
-import com.grahamcrockford.oco.core.TradeServiceFactory;
 import com.grahamcrockford.oco.core.telegram.TelegramService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;

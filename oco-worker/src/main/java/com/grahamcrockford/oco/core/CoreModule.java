@@ -9,6 +9,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+
 import io.dropwizard.lifecycle.Managed;
 
 public class CoreModule extends AbstractModule {
@@ -19,7 +20,6 @@ public class CoreModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(TickerGenerator.class);
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MqListener.class);
 
-    bind(TradeServiceFactory.class).to(LiveTradeServiceFactory.class);
     bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);
   }
 
