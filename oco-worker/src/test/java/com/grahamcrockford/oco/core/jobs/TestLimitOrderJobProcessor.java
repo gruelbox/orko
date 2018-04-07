@@ -197,7 +197,7 @@ public class TestLimitOrderJobProcessor {
     Assert.assertEquals(Order.OrderType.BID, captor.getValue().getType());
   }
 
-  private void verifySubmitWatcher() {
+  private void verifySubmitWatcher() throws Exception {
     verify(enqueuer).submitNew(OrderStateNotifier.builder()
         .description("Stop")
         .orderId(lastTradeId())

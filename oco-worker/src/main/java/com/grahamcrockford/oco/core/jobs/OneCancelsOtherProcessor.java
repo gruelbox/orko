@@ -87,7 +87,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
         job.low().threshold()
       ));
 
-      jobSubmitter.submitNew(job.low().job());
+      // This may throw, in which case retry of the job should kick in
+      jobSubmitter.submitNewUnchecked(job.low().job());
       jobControl.finish();
       return;
 
@@ -104,7 +105,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
         job.high().threshold()
       ));
 
-      jobSubmitter.submitNew(job.high().job());
+      // This may throw, in which case retry of the job should kick in
+      jobSubmitter.submitNewUnchecked(job.high().job());
       jobControl.finish();
       return;
 

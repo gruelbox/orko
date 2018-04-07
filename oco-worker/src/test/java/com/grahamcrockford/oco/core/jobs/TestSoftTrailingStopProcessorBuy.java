@@ -402,11 +402,11 @@ public class TestSoftTrailingStopProcessorBuy {
     verify(telegramService).sendMessage(Mockito.anyString());
   }
 
-  private void verifyLimitBuyAtLimitPrice(final Ticker ticker) throws IOException {
+  private void verifyLimitBuyAtLimitPrice(final Ticker ticker) throws Exception {
     verifyLimitBuyAt(ticker, LIMIT_PRICE);
   }
 
-  private void verifyLimitBuyAt(final Ticker ticker, BigDecimal price) throws IOException {
+  private void verifyLimitBuyAt(final Ticker ticker, BigDecimal price) throws Exception {
     verify(enqueuer).submitNew(
       LimitOrderJob.builder()
         .tickTrigger(TickerSpec.builder()

@@ -99,7 +99,8 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     if ((job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice(job, currencyPairMetaData)) <= 0) ||
         (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(stopPrice(job, currencyPairMetaData)) >= 0)) {
 
-      jobSubmitter.submitNew(LimitOrderJob.builder()
+      // This may throw, in which case retry of the job should kick in
+      jobSubmitter.submitNewUnchecked(LimitOrderJob.builder()
           .tickTrigger(ex)
           .direction(job.direction())
           .amount(job.amount())

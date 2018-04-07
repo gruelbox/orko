@@ -78,11 +78,15 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     reportSuccess(job,  xChangeOrderId);
 
     // Spawn a new job to monitor the progress of the order
-    jobSubmitter.submitNew(OrderStateNotifier.builder()
-        .exchange(job.tickTrigger().exchange())
-        .description("Stop")
-        .orderId(xChangeOrderId)
-        .build());
+    try {
+      jobSubmitter.submitNew(OrderStateNotifier.builder()
+          .exchange(job.tickTrigger().exchange())
+          .description("Stop")
+          .orderId(xChangeOrderId)
+          .build());
+    } catch (Exception e) {
+      LOGGER.error("| - Failed to submit monitor job.  The trade was made successfully though.", e);
+    }
   }
 
   private void reportSuccess(final LimitOrderJob job, String xChangeOrderId) {

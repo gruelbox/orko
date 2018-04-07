@@ -71,7 +71,7 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public Job put(Job job) throws AuthenticationException {
-    return jobSubmitter.submitNew(job);
+    return jobSubmitter.submitNewUnchecked(job);
   }
 
   @DELETE
@@ -115,7 +115,7 @@ public class JobResource implements WebResource {
 
     final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-   return jobSubmitter.submitNew(SoftTrailingStop.builder()
+   return jobSubmitter.submitNewUnchecked(SoftTrailingStop.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
@@ -141,7 +141,7 @@ public class JobResource implements WebResource {
     // Just check it's a valid ticker
     exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    return jobSubmitter.submitNew(PumpChecker.builder()
+    return jobSubmitter.submitNewUnchecked(PumpChecker.builder()
         .tickTrigger(TickerSpec.builder()
           .exchange(exchange)
           .base(base)
@@ -158,7 +158,7 @@ public class JobResource implements WebResource {
   public OrderStateNotifier monitorOrder(@QueryParam("exchange") String exchange,
                                          @QueryParam("orderId") String orderId) {
 
-    return jobSubmitter.submitNew(OrderStateNotifier.builder()
+    return jobSubmitter.submitNewUnchecked(OrderStateNotifier.builder()
         .exchange(exchange)
         .description("Web request")
         .orderId(orderId)
@@ -194,7 +194,7 @@ public class JobResource implements WebResource {
     // Just check it's a valid ticker
     exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
 
-    return jobSubmitter.submitNew(LimitOrderJob.builder()
+    return jobSubmitter.submitNewUnchecked(LimitOrderJob.builder()
         .tickTrigger(TickerSpec.builder()
             .exchange(exchange)
             .base(base)

@@ -1,12 +1,14 @@
 package com.grahamcrockford.oco.api.mq;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.spi.Job;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
@@ -21,17 +23,51 @@ public class JobPublisher {
     this.objectMapper = objectMapper;
   }
 
-  public void publishJob(Job job) {
+  public void publishJob(Job job) throws PublishFailedException {
     try (Connection connection = connectionFactory.newConnection();
          Channel channel = connection.createChannel()) {
 
-       byte[] message = objectMapper.writeValueAsBytes(job);
+      CountDownLatch wait = new CountDownLatch(1);
+      AtomicBoolean success = new AtomicBoolean();
 
-       channel.queueDeclare(Queue.JOB, true, false, false, null);
-       channel.basicPublish("", Queue.JOB, null, message);
+      byte[] message = objectMapper.writeValueAsBytes(job);
 
-    } catch (IOException | TimeoutException e) {
-      throw new RuntimeException(e);
+      channel.queueDeclare(Queue.JOB, true, false, false, null);
+      channel.confirmSelect();
+      channel.addConfirmListener(new ConfirmListener() {
+        @Override
+        public void handleAck(long seqNo, boolean multiple) {
+          success.set(true);
+          wait.countDown();
+        }
+        @Override
+        public void handleNack(long seqNo, boolean multiple) {
+          wait.countDown();
+       }
+      });
+      channel.basicPublish("", Queue.JOB, null, message);
+
+      wait.await();
+      if (!success.get())
+        throw new PublishFailedException("Message not delivered");
+
+    } catch (IOException | TimeoutException | InterruptedException e) {
+      throw new PublishFailedException(e);
     }
+  }
+
+
+  public static final class PublishFailedException extends Exception {
+
+    private static final long serialVersionUID = 8392693668659024332L;
+
+    PublishFailedException(String message) {
+      super(message);
+    }
+
+    PublishFailedException(Throwable cause) {
+      super(cause);
+    }
+
   }
 }
