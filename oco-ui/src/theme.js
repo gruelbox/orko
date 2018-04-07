@@ -1,4 +1,5 @@
 import { keyframes } from 'styled-components';
+import { lighten } from 'polished';
 
 const theme = {
   breakpoints: ['59em'],
@@ -16,7 +17,7 @@ const theme = {
       '#2F3241',
       '#343747'
     ],
-    inputBg: '#2F3241',
+    inputBg: lighten(0.1,'#2F3241'),
     fore: '#aaa',
     emphasis: '#26e0dd',
     deemphasis: '#555',

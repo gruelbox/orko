@@ -9,7 +9,7 @@ import Job from '../components/Job';
 
 import * as authActions from '../store/auth/actions';
 import * as focusActions from '../store/focus/actions';
-import jobService from '../services/job';
+import * as jobActions from '../store/job/actions';
 
 class AlertContainer extends React.Component {
 
@@ -20,17 +20,13 @@ class AlertContainer extends React.Component {
         highPrice: '',
         lowPrice: '',
         message: 'Alert'
-      }),
-      error: null,
-      success: false
+      })
     }
   }
 
   onChange = job => {
     this.setState({
-      job: job,
-      error: null,
-      success: false
+      job: job
     })
   };
 
@@ -81,25 +77,7 @@ class AlertContainer extends React.Component {
   };
 
   onSubmit = async() => {
-
-    const job = this.createJob();
-
-    this.setState(
-      { error: null, success: false },
-      async() => {
-        const response = await jobService.submitJob(job, this.props.auth.token);
-        if (!response.ok) {
-          const authAction = authActions.handleHttpResponse(response);
-          if (authAction !== null) {
-            this.props.dispatch(authAction);
-          } else {
-            this.setState({ error: response.statusText });
-          }
-        } else {
-          this.setState({ success: true });
-        }
-      }
-    );
+    this.props.dispatch(jobActions.submitJob(this.createJob()));
   }
 
   render() {
@@ -120,8 +98,6 @@ class AlertContainer extends React.Component {
             highPriceValid={highPriceValid}
             lowPriceValid={lowPriceValid}
             messageValid={messageValid}
-            success={this.state.success}
-            error={this.state.error}
           />
         </Box>
         <Box width={2/3}>

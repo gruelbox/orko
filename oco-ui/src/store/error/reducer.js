@@ -2,20 +2,20 @@ import Immutable from 'seamless-immutable';
 import * as types from './actionTypes';
 
 const initialState = Immutable({
-  jobs: Immutable([]),
+  error: null
 });
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.ADD_JOB:
+    case types.CLEAR_ERROR:
       console.log(action.type, action);
       return Immutable.merge(state, {
-        jobs: state.jobs.concat([action.job]),
+        error: null,
       });
-    case types.SET_JOBS:
+    case types.SET_ERROR:
       console.log(action.type, action);
       return Immutable.merge(state, {
-        jobs: Immutable(action.jobs),
+        error: action.error,
       });
     default:
       return state;

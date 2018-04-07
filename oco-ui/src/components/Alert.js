@@ -4,7 +4,6 @@ import Immutable from 'seamless-immutable';
 import Input from './primitives/Input.js';
 import Form from './primitives/Form';
 import Button from './primitives/Button';
-import Status from './primitives/Status';
 
 const Alert = props => {
   
@@ -51,7 +50,6 @@ const Alert = props => {
         onChange={e => onChange("message", e)}
       />
       <Button disabled={!valid} onClick={props.onSubmit}>Submit</Button>
-      <Status success={props.success}>{props.error}</Status>
     </Form> 
   );
 }
