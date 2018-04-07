@@ -407,7 +407,7 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   private void verifyLimitBuyAt(final Ticker ticker, BigDecimal price) throws Exception {
-    verify(enqueuer).submitNew(
+    verify(enqueuer).submitNewUnchecked(
       LimitOrderJob.builder()
         .tickTrigger(TickerSpec.builder()
             .exchange(EXCHANGE)

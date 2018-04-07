@@ -101,7 +101,7 @@ public class TestOneCancelsOtherProcessor {
         .build());
 
     verify(telegramService).sendMessage(Mockito.anyString());
-    verify(enqueuer).submitNew(job1);
+    verify(enqueuer).submitNewUnchecked(job1);
     verify(jobControl).finish();
     verifyDidNothingElse();
   }
@@ -164,7 +164,7 @@ public class TestOneCancelsOtherProcessor {
         .build());
 
     verify(telegramService).sendMessage(Mockito.anyString());
-    verify(enqueuer).submitNew(job2);
+    verify(enqueuer).submitNewUnchecked(job2);
     verify(jobControl).finish();
     verifyDidNothingElse();
   }

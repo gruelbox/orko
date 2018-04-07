@@ -50,6 +50,8 @@ class JobRunner {
   }
 
   public void runNew(Job job) {
+    // TODO if the job is non-resident, just run it in line and
+    // throw (rolling back the message) if that fails.
     if (jobLocker.attemptLock(job.id(), uuid)) {
       try {
         jobAccess.insert(job);
