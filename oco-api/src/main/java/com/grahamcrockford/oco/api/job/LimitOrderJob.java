@@ -7,8 +7,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import org.mongojack.Id;
-import org.mongojack.ObjectId;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,7 +35,7 @@ public abstract class LimitOrderJob implements Job {
     @JsonCreator private static Builder create() { return LimitOrderJob.builder(); }
 
     @Override
-    @Id @ObjectId public abstract Builder id(String value);
+    @Id public abstract Builder id(String value);
 
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
     public abstract Builder amount(BigDecimal amount);
@@ -63,7 +61,7 @@ public abstract class LimitOrderJob implements Job {
   @Override
   @JsonProperty
   @Nullable
-  @Id @ObjectId
+  @Id
   public abstract String id();
 
   @JsonProperty

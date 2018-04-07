@@ -3,14 +3,21 @@ package com.grahamcrockford.oco.api.process;
 import javax.annotation.Nullable;
 
 import org.mongojack.Id;
-import org.mongojack.ObjectId;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.spi.Job;
 
 @AutoValue
 public abstract class Envelope {
+
+  @JsonCreator
+  public static final Envelope create(@JsonProperty("id") @Id String id,
+                                      @JsonProperty("job") Job job,
+                                      @JsonProperty("processed") boolean processed) {
+    return new AutoValue_Envelope(id, job, processed);
+  }
 
   public static final Envelope live(Job job) {
     return new AutoValue_Envelope(job.id(), job, false);
@@ -21,7 +28,7 @@ public abstract class Envelope {
   }
 
   @JsonProperty
-  @Id @ObjectId
+  @Id
   public abstract String id();
 
   @JsonProperty

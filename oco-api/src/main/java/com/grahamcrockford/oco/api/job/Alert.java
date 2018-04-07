@@ -3,8 +3,6 @@ package com.grahamcrockford.oco.api.job;
 import javax.annotation.Nullable;
 
 import org.mongojack.Id;
-import org.mongojack.ObjectId;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,7 +27,7 @@ public abstract class Alert implements Job {
   public static abstract class Builder implements JobBuilder<Alert> {
     @JsonCreator private static Builder create() { return Alert.builder(); }
     @Override
-    @Id @ObjectId
+    @Id
     public abstract Builder id(String value);
     public abstract Builder message(String message);
     @Override
@@ -42,7 +40,7 @@ public abstract class Alert implements Job {
 
   @Override
   @JsonProperty
-  @Id @ObjectId
+  @Id
   @Nullable
   public abstract String id();
 

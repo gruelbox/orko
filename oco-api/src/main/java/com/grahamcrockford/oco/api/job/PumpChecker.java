@@ -6,8 +6,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.mongojack.Id;
-import org.mongojack.ObjectId;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -36,7 +34,7 @@ public abstract class PumpChecker implements Job {
   public static abstract class Builder implements JobBuilder<PumpChecker> {
     @JsonCreator private static Builder create() { return PumpChecker.builder(); }
     @Override
-    @Id @ObjectId
+    @Id
     public abstract Builder id(String value);
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
     public abstract Builder priceHistory(List<BigDecimal> history);
@@ -56,7 +54,7 @@ public abstract class PumpChecker implements Job {
 
   @Override
   @JsonProperty
-  @Id @ObjectId
+  @Id
   @Nullable
   public abstract String id();
 

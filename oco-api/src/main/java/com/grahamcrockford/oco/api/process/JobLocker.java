@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,7 @@ public class JobLocker {
 
   public boolean attemptLock(String jobId, UUID uuid) {
     BasicDBObject doc = new BasicDBObject()
-        .append("_id", new ObjectId(jobId))
+        .append("_id", jobId)
         .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
         .append("aid", uuid.toString());
     try {
@@ -51,14 +50,14 @@ public class JobLocker {
 
   public void releaseLock(String jobId, UUID uuid) {
     BasicDBObject query = new BasicDBObject()
-        .append("_id", new ObjectId(jobId))
+        .append("_id", jobId)
         .append("aid", uuid.toString());
     lock.get().remove(query);
   }
 
   public void releaseAnyLock(String jobId) {
     BasicDBObject query = new BasicDBObject()
-        .append("_id", new ObjectId(jobId));
+        .append("_id", jobId);
     lock.get().remove(query);
   }
 
@@ -68,7 +67,7 @@ public class JobLocker {
 
   public boolean updateLock(String jobId, UUID uuid) {
     BasicDBObject query = new BasicDBObject()
-        .append("_id", new ObjectId(jobId))
+        .append("_id", jobId)
         .append("aid", uuid.toString());
     BasicDBObject update = new BasicDBObject()
         .append("$set", new BasicDBObject().append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC))));
