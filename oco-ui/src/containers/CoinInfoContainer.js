@@ -7,9 +7,22 @@ const TICK_TIME = 5000;
 
 class CoinInfoContainer extends React.Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {loading: true};
+  }
+
   tick = () => {
     this.props.dispatch(coinActions.fetchTicker(this.props.coin));
     this.props.dispatch(coinActions.fetchBalance(this.props.coin));
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.coin.key !== this.props.coin.key) {
+      this.setState({ loading: true }, () => this.tick());
+    } else {
+      this.setState({ loading: false });
+    }
   }
 
   componentDidMount() {
@@ -27,6 +40,7 @@ class CoinInfoContainer extends React.Component {
         coin={this.props.coin}
         balance={this.props.balance}
         ticker={this.props.ticker}
+        loading={this.state.loading}
         onClickNumber={number => {
           if (this.props.updateFocusedField) {
             this.props.updateFocusedField(number);

@@ -6,6 +6,7 @@ import Section from './primitives/Section';
 import Warning from './primitives/Warning';
 import PriceSet from './primitives/PriceSet';
 import Price from './primitives/Price';
+import Para from './primitives/Para';
 
 export const CoinInfo = props => {
 
@@ -15,6 +16,16 @@ export const CoinInfo = props => {
       !props.balance
       || !props.balance[coin.base]
       || !props.balance[coin.counter];
+
+  if (props.loading) {
+    return (
+      <Section heading={coin.name}>
+        <Para>
+          Fetching...
+        </Para>
+      </Section>
+    );
+  }
 
   if (coin) {
     return (
