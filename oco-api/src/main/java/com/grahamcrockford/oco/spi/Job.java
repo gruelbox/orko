@@ -9,18 +9,17 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 @JsonTypeIdResolver(JobTypeResolver.class)
 public interface Job {
 
-  public String id();
+  String id();
 
-  public JobBuilder<? extends Job> toBuilder();
+  JobBuilder<? extends Job> toBuilder();
 
-  public Class<? extends JobProcessor.Factory<? extends Job>> processorFactory();
+  Class<? extends JobProcessor.Factory<? extends Job>> processorFactory();
 
-  public default Optional<Job> onSuccess() {
+  default Optional<Job> onSuccess() {
     return Optional.empty();
   }
 
-  public default Optional<Job> onFailure() {
+  default Optional<Job> onFailure() {
     return Optional.empty();
   }
-
 }
