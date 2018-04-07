@@ -154,14 +154,7 @@ class TickerGenerator extends AbstractExecutionThreadService {
     LOGGER.info(this + " started");
     while (isRunning()) {
       try {
-        activePolling.forEach(spec -> {
-          try {
-            Ticker ticker = exchangeService.get(spec.exchange()).getMarketDataService().getTicker(spec.currencyPair());
-            onTicker(spec, ticker);
-          } catch (Throwable e) {
-            LOGGER.error("Failed fetching ticker: " + spec, e);
-          }
-        });
+        activePolling.forEach(this::fetchAndBroadcast);
       } catch (Throwable e) {
         LOGGER.error("Serious error. Trying to stay alive", e);
       }
@@ -172,5 +165,14 @@ class TickerGenerator extends AbstractExecutionThreadService {
       }
     }
     LOGGER.info(this + " stopped");
+  }
+
+  private void fetchAndBroadcast(TickerSpec spec) {
+    try {
+      Ticker ticker = exchangeService.get(spec.exchange()).getMarketDataService().getTicker(spec.currencyPair());
+      onTicker(spec, ticker);
+    } catch (Throwable e) {
+      LOGGER.error("Failed fetching ticker: " + spec, e);
+    }
   }
 }
