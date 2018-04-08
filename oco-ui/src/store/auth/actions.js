@@ -69,3 +69,27 @@ export function handleHttpResponse(response) {
   }
   return null;
 }
+
+export function wrappedRequest(apiRequest, jsonHandler, errorHandler, onSuccess) {
+  return async(dispatch, getState) => {
+    try {
+      const response = await apiRequest(getState().auth);
+      if (!response.ok) {
+        const authAction = handleHttpResponse(response);
+        if (authAction !== null) {
+          dispatch(authAction);
+        } else {
+          throw new Error(response.statusText);
+        }
+      } else {
+        if (onSuccess)
+          dispatch(onSuccess());
+        if (jsonHandler)
+          dispatch(jsonHandler(await response.json()));
+      }
+    } catch (error) {
+      if (errorHandler)
+        dispatch(errorHandler(error));
+    }
+  };
+}
