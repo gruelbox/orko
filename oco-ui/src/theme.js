@@ -2,7 +2,7 @@ import { keyframes } from 'styled-components';
 import { lighten } from 'polished';
 
 const theme = {
-  breakpoints: ['68em'],
+  breakpoints: ['62em'],
   fontSizes: [11, 12, 13, 16],
   fontWeights: {
     normal: 500,
@@ -25,16 +25,21 @@ const theme = {
     toolbar: 'white',
     boxBorder: '#131722',
     link: '#3BB3E4',
+
     alert: '#EB4D5C',
     success: '#53B987',
+
+    sell: '#EB4D5C',
+    buy: '#53B987',
+
     inputBorder: '#5C656C'
   },
   radii: [ 0, 2, 4 ],
   keyFrames: {
     flashGreen: props => keyframes`
       from {
-        text-shadow: 0 0 5px ${props.theme.colors.success};
-        color: ${props.theme.colors.success};
+        text-shadow: 0 0 5px ${props.theme.colors.buy};
+        color: ${props.theme.colors.buy};
       }
     
       to {
@@ -44,8 +49,8 @@ const theme = {
     `,
     flashRed: props => keyframes`
       from {
-        text-shadow: 0 0 5px ${props.theme.colors.alert};
-        color: ${props.theme.colors.alert};
+        text-shadow: 0 0 5px ${props.theme.colors.sell};
+        color: ${props.theme.colors.sell};
       }
     
       to {

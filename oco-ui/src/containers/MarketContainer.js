@@ -8,7 +8,7 @@ import Para from '../components/primitives/Para';
 import Tab from '../components/primitives/Tab';
 
 const MarketContainer = props => (
-  <Section id="marketData" heading="Market">
+  <Section id="marketData" heading="Market" bg="backgrounds.2">
     <Tabs mb={3}>
       <Tab selected>
         Order Book

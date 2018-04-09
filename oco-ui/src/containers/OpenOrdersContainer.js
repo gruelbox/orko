@@ -23,6 +23,12 @@ const NoData = props => (
   </Panel>
 )
 
+const NoOrders = props => (
+  <Panel>
+    <Para>No open orders</Para>
+  </Panel>
+)
+
 const Order = props => (
   <Row>
     <Cell>
@@ -30,10 +36,12 @@ const Order = props => (
         <Icon name="close"/>
       </Href>
     </Cell>
-    <Cell>{formatDate(props.order.timestamp)}</Cell>
-    <Cell>Unknown {props.order.type}</Cell>
-    <Cell number>{props.order.originalAmount}</Cell>
-    <Cell number>{props.order.cumulativeAmount}</Cell>
+    <Cell color={props.color}>{formatDate(props.order.timestamp)}</Cell>
+    <Cell color={props.color}>{props.order.type === 'BID' ? 'Buy' : 'Sell'}</Cell>
+    <Cell color={props.color} number>{props.order.limitPrice}</Cell>
+    <Cell color={props.color} number>{props.order.stopPrice ? props.order.stopPrice : '-'}</Cell>
+    <Cell color={props.color} number>{props.order.originalAmount}</Cell>
+    <Cell color={props.color} number>{props.order.cumulativeAmount}</Cell>
   </Row>
 )
 
@@ -45,21 +53,22 @@ const formatDate = (timestamp) => {
 const Orders = props => (
   <div>
     <Table>
-      <Row>
-        <HeaderCell>
-          <Icon name="close"/>
-        </HeaderCell>
-        <HeaderCell>Created</HeaderCell>
-        <HeaderCell>Type</HeaderCell>
-        <HeaderCell number>Amount</HeaderCell>
-        <HeaderCell number>Filled</HeaderCell>
-      </Row>
-      {props.orders.openOrders.map(o => (
-       <Order key={o.id} order={o} />
-      ))}
-      {props.orders.hiddenOrders.map(o => (
-       <Order key={o.id} order={o} />
-      ))}
+      <tbody>
+        <Row>
+          <HeaderCell>
+            <Icon name="close"/>
+          </HeaderCell>
+          <HeaderCell>Created</HeaderCell>
+          <HeaderCell>Direction</HeaderCell>
+          <HeaderCell number>Limit</HeaderCell>
+          <HeaderCell number>Trigger</HeaderCell>
+          <HeaderCell number>Amount</HeaderCell>
+          <HeaderCell number>Filled</HeaderCell>
+        </Row>
+        {props.orders.allOpenOrders.map(o => (
+        <Order key={o.id} order={o} color={o.type === 'BID' ? 'buy' : 'sell'}/>
+        ))}
+      </tbody>
     </Table>
   </div>
 )
@@ -100,10 +109,12 @@ class OpenOrdersContainer extends React.Component {
         ? <NoData coin={this.props.coin}/>
         : (!this.props.orders)
           ? <Loading/>
-          : <Orders orders={this.props.orders}/>
+          : this.props.orders.allOpenOrders.length === 0
+            ? <NoOrders/>
+            : <Orders orders={this.props.orders}/>
 
     return (
-      <Section id="orders" heading="Open Orders">
+      <Section id="orders" heading="Open Orders" bg="backgrounds.3">
         {component}
       </Section>
     );

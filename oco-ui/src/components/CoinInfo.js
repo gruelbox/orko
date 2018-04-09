@@ -8,8 +8,6 @@ import PriceSet from './primitives/PriceSet';
 import Price from './primitives/Price';
 import Loading from './primitives/Loading';
 
-import Chart from './Chart';
-
 export const CoinInfo = props => {
 
   const coin = props.coin;
@@ -69,9 +67,8 @@ export const CoinInfo = props => {
 
   if (coin) {
     return (
-      <Section id="coinInfo" heading={coin.name}>
+      <Section id="coinInfo" heading={coin.name} bg="backgrounds.2">
         {coinInfo}
-        <Chart coin={coin}/>
       </Section>
     );
   } else {

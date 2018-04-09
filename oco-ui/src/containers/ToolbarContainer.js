@@ -58,16 +58,20 @@ const InvalidateLink = props => (
   </Href>
 )
 
-const ToolbarContainer = props => (
-  <ToolbarBox>
-    <Toolbar>
-      <HomeLink/>
-      <BackgroundErrors errorBackground={props.errorBackground}/>
-      <SignOutLink userName={props.userName} onClick={() => props.dispatch(authActions.logout())}/>
-      <InvalidateLink onClick={() => props.dispatch(authActions.clearWhitelist()) } />
-    </Toolbar>
-  </ToolbarBox>
-);
+const ToolbarContainer = props => {
+  return (
+    <div>
+      <ToolbarBox>
+        <Toolbar>
+          <HomeLink/>
+          <BackgroundErrors errorBackground={props.errorBackground}/>
+          <SignOutLink userName={props.userName} onClick={() => props.dispatch(authActions.logout())}/>
+          <InvalidateLink onClick={() => props.dispatch(authActions.clearWhitelist()) } />
+        </Toolbar>
+      </ToolbarBox>
+    </div>
+  );
+};
 
 function mapStateToProps(state) {
   return {

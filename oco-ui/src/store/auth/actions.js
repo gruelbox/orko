@@ -68,13 +68,29 @@ export function handleHttpResponse(response) {
 export function wrappedRequest(apiRequest, jsonHandler, errorHandler, onSuccess) {
   return async(dispatch, getState) => {
     try {
+
+      // Don't dispatch API requests if we're not authenticated.
+      if (!getState().auth.whitelisted || !getState().auth.loggedIn) {
+        return;
+      }
+
+      // Dispatch the request
       const response = await apiRequest(getState().auth);
+
       if (!response.ok) {
+
+        // Check if the response is an authentication error
         const authAction = handleHttpResponse(response);
         if (authAction !== null) {
+
+          // If so, handle it accordingly
           dispatch(authAction);
+
         } else {
+
+          // Otherwise, it's an unexpected error
           throw new Error(response.statusText ? response.statusText : "Server error (" + response.status + ")");
+        
         }
       } else {
         if (onSuccess)

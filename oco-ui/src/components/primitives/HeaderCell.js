@@ -1,8 +1,8 @@
 import styled from 'styled-components';
 
 const HeaderCell = styled.th`
-    font-size: ${props => props.theme.fontSizes[0] + "px"};
-    color: ${props => props.theme.colors.heading};
+    font-size: ${props => props.theme.fontSizes[1] + "px"};
+    color: ${props => props.theme.colors.fore};
     border-bottom: 1px solid ${props => props.theme.colors.deemphasis};
     margin-top: "0px";
     margin-left: ${props => props.theme.space[1] + "px"};

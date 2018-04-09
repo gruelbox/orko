@@ -6,7 +6,7 @@ const PriceTable = styled.table`
   padding: 0;
   margin-left: auto;
   margin-right: 0;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 `;
 
 const PriceSet = props => (

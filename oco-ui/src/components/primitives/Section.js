@@ -1,25 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
-import { fontSize, color, fontWeight, fontFamily, space } from 'styled-system';
+import { color, space } from 'styled-system';
 import Href from './Href';
 import { Icon } from 'semantic-ui-react';
-
-const SectionHeadingText = styled.h3.attrs({
-  fontSize: 2,
-  fontWeight: 700,
-  color: "heading",
-  fontFamily: 'sans',
-  p: 0,
-  m: 0
-})`
-  ${color}
-  ${fontSize}
-  ${fontFamily}
-  ${fontWeight}
-  ${space}
-  text-transform: uppercase;
-  display: inline;
-`;
+import Heading from './Heading';
 
 const SectionHeadingBox = styled.div.attrs({
   pb: 1,
@@ -42,12 +26,12 @@ const Toggle = Href.extend.attrs({
   cursor: pointer;
 `;
 
-const SectionBox = styled.div.attrs({
-  pb: 0,
-  pt: 1,
-  mb: 0
-})`
+const SectionBox = styled.div`
   ${space}
+  ${color}
+  padding: ${props => props.theme.space[2] + "px"};
+  margin: 0;
+  border: 1px solid ${props => props.theme.colors.boxBorder};
 `;
 
 class Section extends React.Component {
@@ -63,14 +47,17 @@ class Section extends React.Component {
     console.log("Toggle expansion");
     this.setState(prev => ({
       expanded: !prev.expanded 
-    }), () => localStorage.setItem(this.storageKey, this.state.expanded));
+    }), () => {
+      localStorage.setItem(this.storageKey, this.state.expanded);
+      this.props.onToggleExpand(this.state.expanded);
+    });
   };
 
   render() {
     return (
-      <SectionBox>
+      <SectionBox bg={this.props.bg}>
         <SectionHeadingBox expanded={this.state.expanded}>
-          <SectionHeadingText>{this.props.heading}</SectionHeadingText>
+          <Heading p={0} m={0} color="heading">{this.props.heading}</Heading>
           <Toggle onClick={this.toggle}><Icon name={ this.state.expanded ? "angle up" : "angle down"}/></Toggle>
         </SectionHeadingBox>
         {this.state.expanded &&

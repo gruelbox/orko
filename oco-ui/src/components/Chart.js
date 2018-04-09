@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Resizable from 're-resizable';
 import styled from 'styled-components';
 
+import Section from './primitives/Section';
+
 const SCRIPT_ID = 'tradingview-widget-script';
 const CONTAINER_ID = 'tradingview-widget-container';
 
@@ -63,9 +65,9 @@ export default class Chart extends Component {
       "locale": "en",
       "toolbar_bg": "#f1f3f6",
       "enable_publishing": false,
-      "withdateranges": true,
+      "withdateranges": false,
       "hide_side_toolbar": false,
-      "save_image": false,
+      "save_image": true,
       "show_popup_button": true,
       "popup_width": "1000",
       "popup_height": "650",
@@ -95,25 +97,27 @@ export default class Chart extends Component {
     `;
 
     return (
-      <ChartContainer>
-        <ChartInner>
-          <Resizable
-            defaultSize={{width: "100%", height: 400}}
-            enable={{
-              top:false,
-              right:false,
-              bottom:true,
-              left:false,
-              topRight:false,
-              bottomRight:false,
-              bottomLeft:false,
-              topLeft:false
-            }}
-          >
-            <div style={{height: "100%"}} id={CONTAINER_ID}/>
-          </Resizable>
-        </ChartInner>
-      </ChartContainer>
+      <Section id="chart" heading="Chart" bg="backgrounds.1">
+        <ChartContainer>
+          <ChartInner>
+            <Resizable
+              defaultSize={{width: "100%", height: 400}}
+              enable={{
+                top:false,
+                right:false,
+                bottom:true,
+                left:false,
+                topRight:false,
+                bottomRight:false,
+                bottomLeft:false,
+                topLeft:false
+              }}
+            >
+              <div style={{height: "100%"}} id={CONTAINER_ID}/>
+            </Resizable>
+          </ChartInner>
+        </ChartContainer>
+      </Section>
     );
   }
 }

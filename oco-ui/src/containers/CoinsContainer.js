@@ -10,7 +10,7 @@ import Section from '../components/primitives/Section';
 import Link from '../components/primitives/Link';
 
 const CoinsCointainer = props => (
-  <Section id="coinList" heading="Coins">
+  <Section id="coinList" heading="Coins" bg="backgrounds.1">
     {props.coins.map(coin => (
       <CoinLink
         key={coin.key}
