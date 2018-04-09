@@ -19,7 +19,7 @@ const RawInput = styled.input.attrs({
     ? mix(0.8, props.theme.colors.inputBorder, '#FF0000')
     : props.theme.colors.inputBorder};
   background-color: ${props => props.error
-    ? mix(0.9, props.theme.colors.inputBg, '#FF0000')
+    ? mix(0.95, props.theme.colors.inputBg, '#FF0000')
     : props.theme.colors.inputBg};
   font-family: ${props => props.theme.fonts[0]};
   &:hover {

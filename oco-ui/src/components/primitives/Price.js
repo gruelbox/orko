@@ -42,7 +42,7 @@ const PriceValue = styled.td.attrs({
     ? props.theme.keyFrames.flashGreen
     : props.movement === "down"
       ? props.theme.keyFrames.flashRed
-      : "none"} 0.5s linear;
+      : "none"} 2s linear;
   ${color}
   ${fontSize}
   ${fontWeight}
@@ -67,7 +67,7 @@ class Price extends React.Component {
     if (movement) {
       this.setState(
         { movement: movement },
-        () => setTimeout(() => this.setState({ movement: null }), 600)
+        () => setTimeout(() => this.setState({ movement: null }), 2100)
       )
     }
   }

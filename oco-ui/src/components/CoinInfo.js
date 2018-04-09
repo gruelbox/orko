@@ -53,9 +53,9 @@ export const CoinInfo = props => {
             {(!props.ticker)
               ? <Warning>Cannot fetch ticker</Warning>
               : <PriceSet>
-                  <Price name="Bid" onClick={props.onClickNumber}>{props.ticker.bid}</Price>
-                  <Price name="Last" onClick={props.onClickNumber}>{props.ticker.last}</Price>
                   <Price name="Ask" onClick={props.onClickNumber}>{props.ticker.ask}</Price>
+                  <Price name="Last" onClick={props.onClickNumber}>{props.ticker.last}</Price>
+                  <Price name="Bid" onClick={props.onClickNumber}>{props.ticker.bid}</Price>
                 </PriceSet>
             }
           </Box>
