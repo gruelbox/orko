@@ -6,12 +6,13 @@ import Section from './primitives/Section';
 import Para from './primitives/Para';
 
 import AlertContainer from '../containers/AlertContainer';
+import LimitOrderContainer from '../containers/LimitOrderContainer';
 
 export default class TradeSelector extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { selected: "alert" };
+    this.state = { selected: "limit" };
   }
 
   render() {
@@ -21,6 +22,8 @@ export default class TradeSelector extends React.Component {
     var panel = null;
     if (this.state.selected === 'alert') {
       panel = <AlertContainer coin={coin}/>;
+    } else if (this.state.selected === 'limit') {
+      panel = <LimitOrderContainer coin={coin}/>;
     }
 
     return (

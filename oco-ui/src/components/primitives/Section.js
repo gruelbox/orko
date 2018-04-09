@@ -47,10 +47,7 @@ class Section extends React.Component {
     console.log("Toggle expansion");
     this.setState(prev => ({
       expanded: !prev.expanded 
-    }), () => {
-      localStorage.setItem(this.storageKey, this.state.expanded);
-      this.props.onToggleExpand(this.state.expanded);
-    });
+    }), () => localStorage.setItem(this.storageKey, this.state.expanded));
   };
 
   render() {

@@ -63,7 +63,6 @@ const Input = props => (
       <RawLabel for={props.id}>{props.label}</RawLabel>
     }
     <RawInput
-      fontFamily={props.type === "number" ? "mono" : "sans"}
       id={props.id}
       error={props.error}
       type={props.type}

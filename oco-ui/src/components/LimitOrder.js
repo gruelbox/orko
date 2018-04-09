@@ -1,84 +1,54 @@
 import React from 'react';
-import { Input, Button, Form, Radio } from 'semantic-ui-react'
-import PropTypes from 'prop-types';
 import Immutable from 'seamless-immutable';
-import { BUY, SELL } from '../store/limitOrder/reducer';
+
+import Input from './primitives/Input.js';
+import Form from './primitives/Form';
+import Button from './primitives/Button';
 
 const LimitOrder = props => {
+  
+  const valid = props.limitPriceValid && props.amountValid;
 
-  const isValidNumber = (val) => !isNaN(val) && val > 0 && val !== '';
-
-  const color = props.job.direction === "BUY" ? 'green' : 'red';
-  const priceValid = isValidNumber(props.job.price);
-  const amountValid = isValidNumber(props.job.amount);
-
-  const onChange = props.onChange
-    ? (prop, value) => props.onChange(
-      Immutable.merge(
-        props.job,
-        {
-          [prop]: value
-        }
-      )
+  const onChange = props.onChange ? (prop, e) => props.onChange(
+    Immutable.merge(
+      props.job,
+      {
+        [prop]: e.target.value
+      }
     )
-    : () => {};
+  ) : () => {};
 
   return (
-    <div>
-      <Form.Group grouped>
-        <label>Direction</label>
-        <Form.Field
-          control={Radio}
-          label='Buy'
-          value={BUY}
-          checked={props.job.direction === BUY}
-          onChange={e => onChange("direction", BUY)}
-        />
-        <Form.Field
-          control={Radio}
-          label='Sell'
-          value={SELL}
-          checked={props.job.direction === SELL}
-          onChange={e => onChange("direction", SELL)}
-        />
-      </Form.Group>
-      <Form.Group widths='equal'>
-        <Form.Field required>
-          <label>Limit price</label>
-          <Input fluid type='text' placeholder="Enter limit price..." action error={!priceValid}>
-            <input value={props.job.price} onChange={e => onChange("price", e.target.value)} />
-            <Button color={color} size="mini" onClick={props.setBidPrice}>B</Button>
-            <Button color={color} size="mini" onClick={props.setAskPrice}>A</Button>
-            <Button color={color} size="mini" onClick={props.onSetMarketPrice}>M</Button>
-          </Input>
-        </Form.Field> 
-        <Form.Input
-          fluid
-          required
-          label="Amount"
-          type='text'
-          placeholder='Enter amount...'
-          value={props.job.amount || ''}
-          onChange={e => onChange("amount", e.target.value)}
-          error={!amountValid}
-        />
-      </Form.Group>
-    </div>
+    <Form>
+      <Input
+        id="amount"
+        error={!props.amountValid}
+        label="Amount"
+        type='number'
+        placeholder='Enter amount...'
+        value={props.job.amount ? props.job.amount : ''}
+        onChange={e => onChange("amount", e)}
+        onFocus={e => props.onFocus("amount")}
+      />
+      <Input
+        id="limitPrice"
+        error={!props.limitPriceValid}
+        label="Limit price"
+        type='number'
+        placeholder='Enter price...'
+        value={props.job.limitPrice ? props.job.limitPrice : ''}
+        onChange={e => onChange("limitPrice", e)}
+        onFocus={e => props.onFocus("limitPrice")}
+      />
+      <Button
+        disabled={!valid}
+        onClick={props.onSubmit}
+        bg={props.job.direction === 'BUY' ? 'buy' : 'sell'}
+      >
+        Submit
+      </Button>
+    </Form> 
   );
-};
+}
 
 export default LimitOrder;
-
-export const limitOrderShape = {
-  direction: PropTypes.string.isRequired,
-  price: PropTypes.string.isRequired,
-  amount: PropTypes.string.isRequired
-};
-
-LimitOrder.propTypes = {
-  job: PropTypes.shape(limitOrderShape).isRequired,
-  onChange: PropTypes.func,
-  onSetBidPrice: PropTypes.func,
-  onSetAskPrice: PropTypes.func,
-  onSetMarketPrice: PropTypes.func,
-};
