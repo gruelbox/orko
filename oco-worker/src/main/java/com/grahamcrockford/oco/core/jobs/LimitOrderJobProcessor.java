@@ -62,7 +62,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
 
   /**
-   * We do the actual trade n the stop handler to make absolutely sure that
+   * We do the actual trade in the stop handler to make absolutely sure that
    * the code is never retried.
    */
   @Override
@@ -77,15 +77,17 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
     reportSuccess(job,  xChangeOrderId);
 
-    // Spawn a new job to monitor the progress of the order
-    try {
-      jobSubmitter.submitNew(OrderStateNotifier.builder()
-          .exchange(job.tickTrigger().exchange())
-          .description("Stop")
-          .orderId(xChangeOrderId)
-          .build());
-    } catch (Exception e) {
-      LOGGER.error("| - Failed to submit monitor job.  The trade was made successfully though.", e);
+    if (job.track()) {
+      // Spawn a new job to monitor the progress of the order
+      try {
+        jobSubmitter.submitNew(OrderStateNotifier.builder()
+            .exchange(job.tickTrigger().exchange())
+            .description("Stop")
+            .orderId(xChangeOrderId)
+            .build());
+      } catch (Exception e) {
+        LOGGER.error("| - Failed to submit monitor job.  The trade was made successfully though.", e);
+      }
     }
   }
 

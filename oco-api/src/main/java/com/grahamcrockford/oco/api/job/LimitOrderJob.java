@@ -2,8 +2,6 @@ package com.grahamcrockford.oco.api.job;
 
 import java.math.BigDecimal;
 import java.util.Map;
-import java.util.Optional;
-
 import javax.annotation.Nullable;
 
 import org.mongojack.Id;
@@ -25,7 +23,7 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 public abstract class LimitOrderJob implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_LimitOrderJob.Builder();
+    return new AutoValue_LimitOrderJob.Builder().track(true);
   }
 
   @AutoValue.Builder
@@ -41,9 +39,7 @@ public abstract class LimitOrderJob implements Job {
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder limitPrice(BigDecimal value);
     public abstract Builder direction(Direction direction);
-
-    public abstract Builder onSuccess(Job job);
-    public abstract Builder onFailure(Job job);
+    public abstract Builder track(boolean track);
 
     final Builder bigDecimals(Map<String, String> values) {
       amount(new BigDecimal(values.get("amount")));
@@ -68,12 +64,7 @@ public abstract class LimitOrderJob implements Job {
   public abstract TickerSpec tickTrigger();
 
   @JsonProperty public abstract Direction direction();
-
-  @Override
-  @JsonProperty public abstract Optional<Job> onSuccess();
-
-  @Override
-  @JsonProperty public abstract Optional<Job> onFailure();
+  @JsonProperty public abstract boolean track();
 
   @JsonIgnore public abstract BigDecimal amount();
   @JsonIgnore public abstract BigDecimal limitPrice();

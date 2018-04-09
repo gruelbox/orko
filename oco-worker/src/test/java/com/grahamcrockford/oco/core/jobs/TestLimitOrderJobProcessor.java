@@ -90,6 +90,32 @@ public class TestLimitOrderJobProcessor {
   }
 
   @Test
+  public void testSellNoTrack() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(EXCHANGE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.SELL)
+        .track(false)
+        .build();
+
+    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    boolean result = processor.start();
+    processor.stop();
+
+    verifyLimitSell();
+    verifySentMessage();
+    verifyFinished(result);
+    verifyDidNothingElse();
+  }
+
+
+  @Test
   public void testBuy() throws Exception {
     TickerSpec ex = TickerSpec.builder()
         .base(BASE)
@@ -109,6 +135,31 @@ public class TestLimitOrderJobProcessor {
 
     verifyLimitBuy();
     verifySubmitWatcher();
+    verifySentMessage();
+    verifyFinished(result);
+    verifyDidNothingElse();
+  }
+
+  @Test
+  public void testBuyNoTrack() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(EXCHANGE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .track(false)
+        .build();
+
+    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
+    boolean result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
     verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
