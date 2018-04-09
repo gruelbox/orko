@@ -63,6 +63,13 @@ export default function reduce(state = initialState, action = {}) {
         orders: Immutable(action.orders),
         ordersUnavailable: false
       });
+    case types.CANCEL_ORDER:
+      console.log(action.type, action);
+      return Immutable.merge(state, {
+        orders: {
+          allOpenOrders: state.orders.allOpenOrders.filter(o => o.id !== action.orderId)
+        }
+      }, {deep: true});
     case types.SET_ORDERS_UNAVAILABLE:
       console.log(action.type, action);
       return Immutable.merge(state, {

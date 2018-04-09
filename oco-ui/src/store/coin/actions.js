@@ -28,3 +28,12 @@ export function fetchOrders(coin) {
     error => ({ type: types.SET_ORDERS_UNAVAILABLE }),
   );
 }
+
+export function cancelOrder(coin, orderId) {
+  return authActions.wrappedRequest(
+    auth => exchangesService.cancelOrder(coin, orderId, auth.token),
+    null,
+    error => errorActions.setForeground("Could not cancel order: " + error.message),
+    () => ({ type: types.CANCEL_ORDER, orderId })
+  );
+}

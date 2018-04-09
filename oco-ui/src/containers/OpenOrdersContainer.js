@@ -32,7 +32,7 @@ const NoOrders = props => (
 const Order = props => (
   <Row>
     <Cell>
-      <Href onClick={props.onRemove}>
+      <Href onClick={props.onCancel}>
         <Icon name="close"/>
       </Href>
     </Cell>
@@ -66,7 +66,7 @@ const Orders = props => (
           <HeaderCell number>Filled</HeaderCell>
         </Row>
         {props.orders.allOpenOrders.map(o => (
-        <Order key={o.id} order={o} color={o.type === 'BID' ? 'buy' : 'sell'}/>
+          <Order key={o.id} onCancel={() => props.onCancel(o.id)} order={o} color={o.type === 'BID' ? 'buy' : 'sell'}/>
         ))}
       </tbody>
     </Table>
@@ -82,6 +82,10 @@ class OpenOrdersContainer extends React.Component {
 
   tick = () => {
     this.props.dispatch(coinActions.fetchOrders(this.props.coin));
+  }
+
+  onCancel = (id) => {
+    this.props.dispatch(coinActions.cancelOrder(this.props.coin, id));
   }
 
   componentDidMount() {
@@ -111,7 +115,7 @@ class OpenOrdersContainer extends React.Component {
           ? <Loading/>
           : this.props.orders.allOpenOrders.length === 0
             ? <NoOrders/>
-            : <Orders orders={this.props.orders}/>
+            : <Orders orders={this.props.orders} onCancel={this.onCancel}/>
 
     return (
       <Section id="orders" heading="Open Orders" bg="backgrounds.3">
