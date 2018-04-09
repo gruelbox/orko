@@ -48,7 +48,7 @@ export default class Chart extends Component {
   };
 
   componentDidUpdate = () => {
-    document.getElementById(this.containerId).innerHTML = '';
+    document.getElementById(CONTAINER_ID).innerHTML = '';
     this.initWidget();
   };
 
