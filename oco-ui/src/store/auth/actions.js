@@ -43,8 +43,7 @@ export function fetchOktaConfig() {
   return wrappedRequest(
     () => authService.config(),
     config => ({ type: types.SET_OKTA_CONFIG, config }),
-    error => errorActions.addBackground("Could not fetch authentication data " + error.message, "auth-config"),
-    () => errorActions.clearBackground("auth-config")
+    error => errorActions.setForeground("Could not fetch authentication data " + error.message, "auth-config")
   );
 }
 

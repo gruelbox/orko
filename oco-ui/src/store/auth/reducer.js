@@ -22,7 +22,9 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         whitelisted: action.status,
         error: null,
-        loading: false
+        loading: false,
+        loggedIn: true // Slightly tricksy. Triggers a round of API calls
+                       // which will invalidate the login if it's not working.
       });
     case types.SET_WHITELIST_ERROR:
       console.log(action.type, action);
