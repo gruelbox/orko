@@ -1,10 +1,13 @@
 loopSeconds: ${LOOP_SECONDS}
 auth:
-  userName: ${USER_NAME}
-  password: ${PASSWORD}
-  secretKey: ${AUTH_TOKEN}
+  adminUserName: ${USER_NAME}
+  adminPassword: ${PASSWORD}
   proxied: ${PROXIED}
-  whitelistExpirySeconds: 7200
+  whitelistExpirySeconds: 14400
+  okta:
+    baseUrl: ${OKTA_BASEURL}
+    issuer: ${OKTA_ISSUER}
+    clientId: ${OKTA_CLIENTID}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN}
   chatId: ${TELEGRAM_CHAT_ID}

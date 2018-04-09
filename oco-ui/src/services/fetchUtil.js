@@ -1,5 +1,3 @@
-import { Base64 } from 'js-base64';
-
 const defaultSettings = { method: 'GET', mode: 'cors', redirect: 'follow' };
 
 export function get(url, token) {
@@ -22,7 +20,7 @@ function action(method, token, content) {
       method: method,
       credentials: 'include',
       headers: new Headers({
-        "Authorization": "Basic " + Base64.encode(token.userName + ":" + token.password),
+        "Authorization": "Bearer " + token,
         "Content-type": "application/json"
       })
     }

@@ -1,11 +1,15 @@
 import * as types from './actionTypes';
 import authService from '../../services/auth';
+import * as errorActions from '../error/actions';
 
 export function checkWhiteList() {
   return async(dispatch, getState) => {
     try {
       const result = await authService.checkWhiteList();
       dispatch({ type: types.SET_WHITELIST_STATUS, status: Boolean(result) });
+      if (result) {
+        dispatch(fetchOktaConfig());
+      }
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message });
     }
@@ -17,55 +21,45 @@ export function whitelist(token) {
     try {
       await authService.whitelist(token);
       dispatch({ type: types.SET_WHITELIST_STATUS, status: true });
+      dispatch(fetchOktaConfig());
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message });
     }
   };
 }
 
-export function defaultLogin(userName, password) {
+export function clearWhitelist() {
   return async(dispatch, getState) => {
-    await attemptLogin(getState().auth.token.userName, getState().auth.token.password, dispatch);
+    try {
+      await authService.clearWhiteList();
+      dispatch({ type: types.SET_WHITELIST_STATUS, status: false });
+    } catch (error) {
+      dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message });
+    }
   };
 }
 
-export function login(userName, password) {
-  return async(dispatch, getState) => {
-    await attemptLogin(userName, password, dispatch);
-  };
+export function fetchOktaConfig() {
+  return wrappedRequest(
+    () => authService.config(),
+    config => ({ type: types.SET_OKTA_CONFIG, config }),
+    error => errorActions.setBackground("Could not fetch authentication data " + error.message)
+  );
 }
 
 export function logout() {
-  return { type: types.SET_LOGGED_OUT };
+  return ({ type: types.LOGOUT });
 }
 
-async function attemptLogin(userName, password, dispatch) {
-  try {
-    const response = await authService.login(userName, password);
-    if (response.ok) {
-      dispatch({ type: types.SET_LOGIN_SUCCESS, token: {
-        userName: userName,
-        password: password
-      }});
-    } else {
-      if (response.status === 403) {
-        dispatch({ type: types.SET_WHITELIST_EXPIRED });
-      } else if (response.status === 401) {
-        dispatch({ type: types.SET_LOGIN_FAILED });
-      } else {
-        dispatch({ type: types.SET_LOGIN_ERROR, error: response.statusText });
-      }
-    }
-  } catch (error) {
-    dispatch({ type: types.SET_LOGIN_ERROR, error: error.message });
-  }
+export function setToken(token, userName) {
+  return { type: types.SET_TOKEN, token, userName };
 }
 
 export function handleHttpResponse(response) {
   if (response.status === 403) {
     return { type: types.SET_WHITELIST_EXPIRED };
   } else if (response.status === 401) {
-    return { type: types.SET_LOGIN_FAILED };
+    return { type: types.INVALIDATE_LOGIN };
   }
   return null;
 }

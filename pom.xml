@@ -214,6 +214,11 @@
 				<artifactId>googleauth</artifactId>
 				<version>${googleauth.version}</version>
 			</dependency>
+			<dependency>
+			    <groupId>com.okta.jwt</groupId>
+			    <artifactId>okta-jwt-verifier</artifactId>
+			    <version>0.3.0</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	

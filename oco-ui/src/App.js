@@ -7,6 +7,7 @@ import { createStore, applyMiddleware, combineReducers } from 'redux';
 import thunk from 'redux-thunk';
 import * as reducers from './store/reducers';
 
+import ErrorContainer from './containers/ErrorContainer';
 import AuthContainer from './containers/AuthContainer';
 import Framework from './Framework';
 
@@ -17,8 +18,10 @@ export default class App extends Component {
     return (
       <ReduxProvider store={store}>
         <RebassProvider>
-          <AuthContainer/>
-          <Framework/>
+          <ErrorContainer/>
+          <AuthContainer>
+            <Framework/>
+          </AuthContainer>
         </RebassProvider>
       </ReduxProvider>
     );

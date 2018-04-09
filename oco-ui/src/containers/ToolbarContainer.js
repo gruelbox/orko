@@ -23,12 +23,18 @@ const ToolbarContainer = props => (
       <Link to="/" color="black" fontWeight="bold">
         Home
       </Link>
-      <Span to="/" color={ props.errorBackground === null ? "black" : "red" } ml={4} fontWeight="bold">
+      <Span color={ props.errorBackground === null ? "black" : "red" } ml={4} fontWeight="bold">
         <Icon name="wifi" color={ props.errorBackground === null ? "black" : "red" }/>
         { props.errorBackground === null ? "OK" : props.errorBackground }
       </Span>
-      <Href color='black' ml="auto" fontWeight="bold" onClick={() => props.dispatch(authActions.logout())}>
-        Sign out
+      <Span ml="auto" color="black">
+        <Href color='black' fontWeight="bold" onClick={() => props.dispatch(authActions.logout()) }>
+          Sign out
+        </Href>
+        &nbsp;({props.userName})
+      </Span>
+      <Href ml={4} color='black' fontWeight="bold" onClick={() => props.dispatch(authActions.clearWhitelist()) }>
+        Invalidate whitelist
       </Href>
     </Toolbar>
   </ToolbarBox>
@@ -36,7 +42,8 @@ const ToolbarContainer = props => (
 
 function mapStateToProps(state) {
   return {
-    errorBackground: state.error.errorBackground
+    errorBackground: state.error.errorBackground,
+    userName: state.auth.userName
   };
 }
 

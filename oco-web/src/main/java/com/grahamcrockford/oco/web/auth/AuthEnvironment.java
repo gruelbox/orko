@@ -1,42 +1,40 @@
 package com.grahamcrockford.oco.web.auth;
 
-import java.io.IOException;
 import java.util.Objects;
 
 import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Password;
-import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
-
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.auth.AuthConfiguration;
 import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
+import com.okta.jwt.JwtHelper;
+import com.okta.jwt.JwtVerifier;
 
 import io.dropwizard.auth.AuthDynamicFeature;
-import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
+import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 import io.dropwizard.setup.Environment;
 
 @Singleton
 class AuthEnvironment implements EnvironmentInitialiser {
 
-  private final SimpleAuthenticator authenticator;
   private final AdminConstraintSecurityHandler securityHandler;
   private final IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter;
+  private final AuthConfiguration configuration;
 
   @Inject
-  AuthEnvironment(SimpleAuthenticator authenticator,
-                  AdminConstraintSecurityHandler securityHandler,
+  AuthEnvironment(AdminConstraintSecurityHandler securityHandler,
+                  AuthConfiguration configuration,
                   IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter) {
-    this.authenticator = authenticator;
     this.securityHandler = securityHandler;
     this.ipWhitelistContainerRequestFilter = ipWhitelistContainerRequestFilter;
+    this.configuration = configuration;
   }
 
   @Override
@@ -45,25 +43,36 @@ class AuthEnvironment implements EnvironmentInitialiser {
     // Apply IP whitelisting outside the authentication stack so we can provide a different response
     environment.jersey().register(ipWhitelistContainerRequestFilter);
 
-    // Auth
-    environment.jersey().register(new AuthDynamicFeature(new BasicCredentialAuthFilter.Builder<User>()
-      .setAuthenticator(authenticator)
-      .setAuthorizer(authenticator)
-      .setRealm("SUPER SECRET STUFF")
-      .buildAuthFilter()
-    ));
-    environment.jersey().register(RolesAllowedDynamicFeature.class);
-
-    // Restrict admin access too
+    if (configuration.okta != null) {
+      configureOAuth(environment);
+    }
     environment.admin().setSecurityHandler(securityHandler);
+  }
 
-    // Suppress the authentication header so it doesn't interfere with the browser
-    environment.jersey().register(new ContainerResponseFilter() {
-      @Override
-      public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
-        responseContext.getHeaders().remove("www-authenticate");
+  private void configureOAuth(final Environment environment) {
+    try {
+      JwtHelper helper = new JwtHelper()
+        .setIssuerUrl(configuration.okta.issuer)
+        .setClientId(configuration.okta.clientId);
+
+      String audience = configuration.okta.audience;
+      if (StringUtils.isNotEmpty(audience)) {
+        helper.setAudience(audience);
       }
-    });
+      JwtVerifier jwtVerifier = helper.build();
+
+      OktaOAuthAuthenticator oktaOAuthAuthenticator = new OktaOAuthAuthenticator(jwtVerifier);
+      environment.jersey().register(new AuthDynamicFeature(
+        new OAuthCredentialAuthFilter.Builder<AccessTokenPrincipal>()
+          .setAuthenticator(oktaOAuthAuthenticator)
+          .setAuthorizer(oktaOAuthAuthenticator)
+          .setPrefix("Bearer")
+          .buildAuthFilter()));
+
+      environment.jersey().register(new AuthValueFactoryProvider.Binder<>(AccessTokenPrincipal.class));
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to configure JwtVerifier", e);
+    }
   }
 
 
@@ -87,7 +96,7 @@ class AuthEnvironment implements EnvironmentInitialiser {
       cm.setPathSpec("/*");
       setAuthenticator(new BasicAuthenticator());
       addConstraintMapping(cm);
-      setLoginService(new AdminLoginService(authConfiguration.getUserName(), authConfiguration.getPassword()));
+      setLoginService(new AdminLoginService(authConfiguration.adminUserName, authConfiguration.adminPassword));
     }
 
     public class AdminLoginService extends AbstractLoginService {

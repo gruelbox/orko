@@ -1,28 +1,19 @@
 import Immutable from 'seamless-immutable';
-import PropTypes from 'prop-types';
 import * as types from './actionTypes';
+
+const LOCAL_STORAGE_KEY = 'auth';
+
+const loaded = localStorage.getItem(LOCAL_STORAGE_KEY);
+const data = loaded ? JSON.parse(loaded) : null;
 
 const initialState = Immutable({
   whitelisted: false,
-  loggedIn: false,
-  token: {
-    userName: 'bully',
-    password: 'boys'
-  },
-  error: null,
+  loggedIn: !!data,
+  token: data ? data.token : null,
+  userName: data ? data.userName : null,
+  config: null,
   loading: true
 });
-
-export const shape = {
-  whitelisted: PropTypes.bool.isRequired,
-  loggedIn: PropTypes.bool.isRequired,
-  token: PropTypes.shape({
-    userName: PropTypes.string.isRequired,
-    password: PropTypes.string.isRequired
-  }),
-  error: PropTypes.string,
-  loading: PropTypes.bool
-};
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
@@ -48,35 +39,35 @@ export default function reduce(state = initialState, action = {}) {
         error: "Whitelisting expired",
         loading: false
       });
-    case types.SET_LOGIN_FAILED:
+    case types.SET_OKTA_CONFIG:
       console.log(action.type, action);
       return Immutable.merge(state, {
-        whitelisted: true,
-        loggedIn: false,
-        error: state.loading ? null : "Invalid username/password",
-        loading: false
+        config: action.config,
       });
-    case types.SET_LOGGED_OUT:
-      console.log(action.type, action);
+    case types.SET_TOKEN:
+      console.log(action.type);
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify({
+          token: action.token,
+          userName: action.userName,
+        })
+      );
       return Immutable.merge(state, {
-        loggedIn: false,
-        error: null
-      });
-    case types.SET_LOGIN_ERROR:
-      console.log(action.type, action);
-      return Immutable.merge(state, {
-        whitelisted: true,
-        loggedIn: false,
-        error: state.loading ? null : action.error,
-        loading: false
-      });
-    case types.SET_LOGIN_SUCCESS:
-      console.log(action.type, action);
-      return Immutable.merge(state, {
-        whitelisted: true,
         loggedIn: true,
         error: null,
         token: action.token,
+        userName: action.userName,
+        loading: false
+      });
+    case types.LOGOUT:
+      console.log(action.type);
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      return Immutable.merge(state, {
+        loggedIn: false,
+        error: null,
+        token: null,
+        userName: null,
         loading: false
       });
     default:

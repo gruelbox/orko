@@ -3,74 +3,20 @@ package com.grahamcrockford.oco.api.auth;
 import io.dropwizard.Configuration;
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class AuthConfiguration extends Configuration {
 
-  @NotNull
-  private String userName;
+  public OktaConfiguration okta;
 
   @NotNull
-  private String password;
-
-  private String secretKey;
-
-  private Integer whitelistExpirySeconds;
+  public String adminUserName;
 
   @NotNull
-  private boolean proxied;
+  public String adminPassword;
 
-  public AuthConfiguration() {
-    super();
-  }
+  public String secretKey;
 
-  @JsonProperty
-  public String getUserName() {
-    return userName;
-  }
+  public Integer whitelistExpirySeconds;
 
-  @JsonProperty
-  public void setUserName(String userName) {
-    this.userName = userName;
-  }
-
-  @JsonProperty
-  public String getPassword() {
-    return password;
-  }
-
-  @JsonProperty
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  @JsonProperty
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  @JsonProperty
-  public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
-  }
-
-  @JsonProperty
-  public boolean isProxied() {
-    return proxied;
-  }
-
-  @JsonProperty
-  public void setProxied(boolean proxied) {
-    this.proxied = proxied;
-  }
-
-  @JsonProperty
-  public Integer getWhitelistExpirySeconds() {
-    return whitelistExpirySeconds;
-  }
-
-  @JsonProperty
-  public void setWhitelistExpirySeconds(Integer whitelistExpirySeconds) {
-    this.whitelistExpirySeconds = whitelistExpirySeconds;
-  }
+  @NotNull
+  public boolean proxied;
 }

@@ -9,7 +9,6 @@ import theme from './theme';
 import CoinsContainer from './containers/CoinsContainer';
 import JobsContainer from './containers/JobsContainer';
 
-import ErrorContainer from './containers/ErrorContainer';
 import ToolbarContainer from './containers/ToolbarContainer';
 import AddCoinContainer from './containers/AddCoinContainer';
 
@@ -26,7 +25,6 @@ export default class Framework extends React.Component {
       <BrowserRouter>
         <ThemeProvider theme={theme}>
           <div>
-            <ErrorContainer />
             <ToolbarContainer />
             <Flex flexWrap='wrap' h='calc(100%-66px)'>
               <Box width={[1, 170]} order={[3, 1]}>

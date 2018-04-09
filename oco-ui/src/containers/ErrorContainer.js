@@ -14,9 +14,7 @@ const ErrorContainer = props => {
           <p>{props.errorForeground}</p>
         </Modal.Content>
         <Modal.Actions>
-          <Button
-            onClick={() => props.dispatch(errorActions.clearForeground())}
-          >
+          <Button onClick={() => props.dispatch(errorActions.clearForeground())}>
             OK
           </Button>
         </Modal.Actions>

@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@okta/okta-signin-widget": "^2.7.0",
     "create-react-context": "^0.2.1",
     "fetch": "^1.1.0",
     "immutable": "^3.8.2",
-    "js-base64": "^2.4.3",
     "polished": "^1.9.2",
     "prop-types": "^15.6.1",
     "re-resizable": "^4.4.8",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "gulp": "^3.9.1",
-    "react-scripts": "1.1.1"
+    "react-scripts": "1.1.4"
   },
   "scripts": {
     "start": "react-scripts start",

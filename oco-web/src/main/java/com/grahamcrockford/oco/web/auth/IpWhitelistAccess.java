@@ -88,7 +88,7 @@ class IpWhitelistAccess {
     BasicDBObject index = new BasicDBObject().append("ts", 1);
     BasicDBObject indexOpts = new BasicDBObject()
         .append("name", "ttl")
-        .append("expireAfterSeconds", MoreObjects.firstNonNull(authConfiguration.getWhitelistExpirySeconds(), 7200));
+        .append("expireAfterSeconds", MoreObjects.firstNonNull(authConfiguration.whitelistExpirySeconds, 7200));
     try {
       collection.createIndex(index, indexOpts);
     } catch (MongoException e) {

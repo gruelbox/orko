@@ -1,0 +1,12 @@
+{
+  "proxy": {
+    "/api": {
+      "target": "https://oco-testing.herokuapp.com",
+      "ws": true,
+      "pathRewrite": {
+        "^/api": ""
+      },
+      "changeOrigin": true
+    }
+  }
+}

@@ -117,6 +117,10 @@
 			<groupId>com.warrenstrange</groupId>
 			<artifactId>googleauth</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>com.okta.jwt</groupId>
+		    <artifactId>okta-jwt-verifier</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

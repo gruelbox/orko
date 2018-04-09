@@ -12,21 +12,22 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.codahale.metrics.annotation.Timed;
+import com.grahamcrockford.oco.api.auth.AuthConfiguration;
+import com.grahamcrockford.oco.api.auth.OktaConfiguration;
 import com.grahamcrockford.oco.web.WebResource;
 
-/**
- * Allows an IP to be whitelisted.
- */
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
 public class AuthResource implements WebResource {
 
   private final IpWhitelisting ipWhitelisting;
+  private final AuthConfiguration authConfiguration;
 
   @Inject
-  AuthResource(IpWhitelisting ipWhitelisting) {
+  AuthResource(IpWhitelisting ipWhitelisting, AuthConfiguration authConfiguration) {
     this.ipWhitelisting = ipWhitelisting;
+    this.authConfiguration = authConfiguration;
   }
 
   @DELETE
@@ -52,5 +53,12 @@ public class AuthResource implements WebResource {
   @Timed
   public boolean check() {
     return ipWhitelisting.authoriseIp();
+  }
+
+  @GET
+  @Path("/config")
+  @Timed
+  public OktaConfiguration getConfig() {
+      return authConfiguration.okta;
   }
 }

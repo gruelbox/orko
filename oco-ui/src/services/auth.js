@@ -26,8 +26,9 @@ class AuthService {
     }
   }
 
-  async login(userName, password) {
-    return await get('exchanges', { userName, password });
+
+  async config() {
+    return await get('auth/config');
   }
 }
 
