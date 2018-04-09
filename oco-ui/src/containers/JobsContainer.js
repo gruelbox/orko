@@ -4,11 +4,17 @@ import * as jobActions from '../store/job/actions';
 
 import Section from '../components/primitives/Section';
 import Para from '../components/primitives/Para';
+import Loading from '../components/primitives/Loading';
 import JobShort from '../components/JobShort';
 
 const TICK_TIME = 5000;
 
 class JobsContainer extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {loading: true};
+  }
 
   tick = () => {
     this.props.dispatch(jobActions.fetchJobs());
@@ -23,6 +29,11 @@ class JobsContainer extends React.Component {
     clearInterval(this.interval);
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.jobs)
+      this.setState({ loading: false });
+  }
+
   onRemove = (job) => {
     this.props.dispatch(jobActions.deleteJob(job));
   };
@@ -31,7 +42,9 @@ class JobsContainer extends React.Component {
     const onRemove = this.onRemove;
 
     var jobs;
-    if (this.props.jobs.length === 0) {
+    if (this.state.loading) {
+      jobs = <Loading/>;
+    } else if (this.props.jobs.length === 0) {
       jobs = <Para>No active jobs</Para>;
     } else {
       jobs = this.props.jobs.map(job =>

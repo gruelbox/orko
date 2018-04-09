@@ -13,9 +13,18 @@ export function fetchTicker(coin) {
 }
 
 export function fetchBalance(coin) {
-  // No error handling. Balances are often missing where there's no API key.
   return authActions.wrappedRequest(
     auth => exchangesService.fetchBalance(coin, auth.token),
-    balance => ({ type: types.SET_BALANCE, balance })
+    balance => ({ type: types.SET_BALANCE, balance }),
+    error => ({ type: types.SET_BALANCE_UNAVAILABLE }),
+  );
+}
+
+export function fetchOrders(coin) {
+  // No error handling. Order books are often missing where there's no API key.
+  return authActions.wrappedRequest(
+    auth => exchangesService.fetchOrders(coin, auth.token),
+    orders => ({ type: types.SET_ORDERS, orders }),
+    error => ({ type: types.SET_ORDERS_UNAVAILABLE }),
   );
 }

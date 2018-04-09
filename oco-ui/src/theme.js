@@ -2,7 +2,7 @@ import { keyframes } from 'styled-components';
 import { lighten } from 'polished';
 
 const theme = {
-  breakpoints: ['59em'],
+  breakpoints: ['68em'],
   fontSizes: [11, 12, 13, 16],
   fontWeights: {
     normal: 500,

@@ -18,6 +18,10 @@ class ExchangesService {
     return await get('exchanges/' + coin.exchange + '/balance/' + coin.base + "," + coin.counter, token);
   }
 
+  async fetchOrders(coin, token) {
+    return await get('exchanges/' + coin.exchange + '/markets/' + coin.base + "-" + coin.counter + "/orders", token);
+  }
+
 }
 
 export default new ExchangesService();

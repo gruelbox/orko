@@ -4,7 +4,10 @@ import * as types from './actionTypes';
 
 const initialState = Immutable({
   balance: undefined,
-  ticker: undefined
+  balanceUnavailable: false,
+  ticker: undefined,
+  orders: undefined,
+  ordersUnavailable: false
 });
 
 export const coinShape = {
@@ -51,15 +54,25 @@ export default function reduce(state = initialState, action = {}) {
     case types.SET_BALANCE:
       console.log(action.type, action);
       return Immutable.merge(state, { balance: action.balance });
-    case types.SET_BALANCE_FAILED:
-      console.log(action.type, action);
-      return Immutable.merge(state, { balance: undefined });
     case types.SET_TICKER:
       console.log(action.type, action);
       return Immutable.merge(state, { ticker: action.ticker });
-    case types.SET_TICKER_FAILED:
+    case types.SET_ORDERS:
       console.log(action.type, action);
-      return Immutable.merge(state, { ticker: undefined });
+      return Immutable.merge(state, {
+        orders: Immutable(action.orders),
+        ordersUnavailable: false
+      });
+    case types.SET_ORDERS_UNAVAILABLE:
+      console.log(action.type, action);
+      return Immutable.merge(state, {
+        ordersUnavailable: true
+      });
+    case types.SET_BALANCE_UNAVAILABLE:
+      console.log(action.type, action);
+      return Immutable.merge(state, {
+        balanceUnavailable: true
+      });
     default:
       return state;
   }

@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { fontSize, color, fontWeight } from 'styled-system';
+import { fontSize, color, space, fontWeight } from 'styled-system';
 
 const Para = styled.p.attrs({
   fontSize: 1,
@@ -8,6 +8,7 @@ const Para = styled.p.attrs({
   ${color}
   ${fontSize}
   ${fontWeight}
+  ${space}
 `;
 
 export default Para;

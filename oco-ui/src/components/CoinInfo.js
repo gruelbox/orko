@@ -6,7 +6,7 @@ import Section from './primitives/Section';
 import Warning from './primitives/Warning';
 import PriceSet from './primitives/PriceSet';
 import Price from './primitives/Price';
-import Para from './primitives/Para';
+import Loading from './primitives/Loading';
 
 import Chart from './Chart';
 
@@ -22,9 +22,7 @@ export const CoinInfo = props => {
   var coinInfo;
   if (props.loading) {
     coinInfo = (
-      <Para>
-        Fetching...
-      </Para>
+      <Loading/>
     );
   } else {
     coinInfo = (
