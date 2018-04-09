@@ -38,7 +38,7 @@ export default class Trading extends React.Component {
           </DarkComponentBox>
         )}
         <MidComponentBox p={2}>
-          <Section heading="Trading">
+          <Section id="trading" heading="Trading">
             {!coin && (
               <Para>No coin selected</Para>
             )}

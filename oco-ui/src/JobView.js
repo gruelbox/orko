@@ -17,7 +17,7 @@ class JobView extends React.Component {
     return (
       <Box flex="1" order={[1, 2]}>
         <MidComponentBox p={2}>
-          <Section heading={"Job " + this.props.match.params.jobId}>
+          <Section id="job" heading={"Job " + this.props.match.params.jobId}>
             {job && <Job job={job}/>}
             {!job && <Para>Job {this.props.match.params.jobId} not found</Para>}
           </Section>

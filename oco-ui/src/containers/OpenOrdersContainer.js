@@ -103,7 +103,7 @@ class OpenOrdersContainer extends React.Component {
           : <Orders orders={this.props.orders}/>
 
     return (
-      <Section heading="Open Orders">
+      <Section id="orders" heading="Open Orders">
         {component}
       </Section>
     );

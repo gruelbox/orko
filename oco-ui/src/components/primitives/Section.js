@@ -54,15 +54,17 @@ class Section extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { expanded: true };
+    this.storageKey = "section.expanded." + props.id;
+    const savedState = localStorage.getItem(this.storageKey);
+    this.state = { expanded: savedState !== "false" };
   }
 
   toggle = () => {
     console.log("Toggle expansion");
     this.setState(prev => ({
       expanded: !prev.expanded 
-    }));
-  }
+    }), () => localStorage.setItem(this.storageKey, this.state.expanded));
+  };
 
   render() {
     return (

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Icon } from 'semantic-ui-react';
 
-
 import JobStage from './primitives/JobStage';
 import JobStages from './primitives/JobStages';
 

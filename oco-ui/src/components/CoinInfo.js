@@ -69,7 +69,7 @@ export const CoinInfo = props => {
 
   if (coin) {
     return (
-      <Section heading={coin.name}>
+      <Section id="coinInfo" heading={coin.name}>
         {coinInfo}
         <Chart coin={coin}/>
       </Section>

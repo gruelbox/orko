@@ -53,7 +53,7 @@ class JobsContainer extends React.Component {
     }
 
     return (
-      <Section heading="Running Jobs">
+      <Section id="jobs" heading="Running Jobs">
         {jobs}
       </Section>
     );
