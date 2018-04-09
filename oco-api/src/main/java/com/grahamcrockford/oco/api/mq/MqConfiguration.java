@@ -4,9 +4,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.dropwizard.Configuration;
-
-public class MqConfiguration extends Configuration {
+public class MqConfiguration {
 
   @NotEmpty
   @JsonProperty

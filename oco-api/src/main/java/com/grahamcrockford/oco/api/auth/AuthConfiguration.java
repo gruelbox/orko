@@ -1,9 +1,8 @@
 package com.grahamcrockford.oco.api.auth;
 
-import io.dropwizard.Configuration;
 import javax.validation.constraints.NotNull;
 
-public class AuthConfiguration extends Configuration {
+public class AuthConfiguration {
 
   public OktaConfiguration okta;
 

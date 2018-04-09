@@ -1,13 +1,11 @@
 package com.grahamcrockford.oco.api.db;
 
-import io.dropwizard.Configuration;
-
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class DbConfiguration extends Configuration {
+public class DbConfiguration {
 
   @NotNull
   private String mongoClientURI;

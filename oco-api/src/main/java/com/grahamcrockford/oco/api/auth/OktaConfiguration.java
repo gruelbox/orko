@@ -1,9 +1,8 @@
 package com.grahamcrockford.oco.api.auth;
 
-import io.dropwizard.Configuration;
 import javax.validation.constraints.NotNull;
 
-public class OktaConfiguration extends Configuration {
+public class OktaConfiguration {
 
   @NotNull
   public String baseUrl;
