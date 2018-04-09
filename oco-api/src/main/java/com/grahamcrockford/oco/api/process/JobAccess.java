@@ -76,6 +76,7 @@ public class JobAccess {
 
   public void delete(String jobId) {
     collection.get().update(DBQuery.is("_id", jobId), Envelope.dead(jobId));
+    jobLocker.releaseAnyLock(jobId);
   }
 
   public void delete() {
