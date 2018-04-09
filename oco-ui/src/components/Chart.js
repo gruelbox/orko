@@ -7,7 +7,7 @@ import Section from './primitives/Section';
 const SCRIPT_ID = 'tradingview-widget-script';
 const CONTAINER_ID = 'tradingview-widget-container';
 
-export default class Chart extends Component {
+class ChartContent extends Component {
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     return this.props.coin.key !== nextProps.coin.key;
@@ -97,27 +97,33 @@ export default class Chart extends Component {
     `;
 
     return (
-      <Section id="chart" heading="Chart" bg="backgrounds.1">
-        <ChartContainer>
-          <ChartInner>
-            <Resizable
-              defaultSize={{width: "100%", height: 400}}
-              enable={{
-                top:false,
-                right:false,
-                bottom:true,
-                left:false,
-                topRight:false,
-                bottomRight:false,
-                bottomLeft:false,
-                topLeft:false
-              }}
-            >
-              <div style={{height: "100%"}} id={CONTAINER_ID}/>
-            </Resizable>
-          </ChartInner>
-        </ChartContainer>
-      </Section>
+      <ChartContainer>
+        <ChartInner>
+          <Resizable
+            defaultSize={{width: "100%", height: 400}}
+            enable={{
+              top:false,
+              right:false,
+              bottom:true,
+              left:false,
+              topRight:false,
+              bottomRight:false,
+              bottomLeft:false,
+              topLeft:false
+            }}
+          >
+            <div style={{height: "100%"}} id={CONTAINER_ID}/>
+          </Resizable>
+        </ChartInner>
+      </ChartContainer>
     );
   }
 }
+
+const Chart = props => (
+  <Section id="chart" heading="Chart" bg="backgrounds.1">
+    <ChartContent coin={props.coin}/>
+  </Section>
+)
+
+export default Chart;
