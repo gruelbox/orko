@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.binance.service.BinanceCancelOrderParams;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
@@ -206,6 +208,40 @@ public class ExchangeResource implements WebResource {
 
 
   /**
+   * Cancels an order for a specific currency pair.
+   *
+   * @param exchange The exchange.
+   * @param counter The countercurrency.
+   * @param base The base (traded) currency.
+   * @param id The order id.
+   * @throws IOException If thrown by exchange.
+   */
+  @DELETE
+  @Path("{exchange}/markets/{base}-{counter}/orders/{id}")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public Response cancelOrder(@PathParam("exchange") String exchange,
+                              @PathParam("counter") String counter,
+                              @PathParam("base") String base,
+                              @PathParam("id") String id) throws IOException {
+
+    if (!exchange.equals("binance"))
+      return cancelOrder(exchange, id);
+
+    try {
+      return Response.ok()
+          .entity(
+            tradeServiceFactory.getForExchange(exchange)
+              .cancelOrder(new BinanceCancelOrderParams(new CurrencyPair(base, counter), id))
+          )
+          .build();
+    } catch (UnsupportedOperationException e) {
+      return Response.status(503).build();
+    }
+  }
+
+
+  /**
    * Fetches the specified order.
    *
    * @param exchange The exchange.
@@ -221,6 +257,30 @@ public class ExchangeResource implements WebResource {
     try {
       return Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).getOrder(id))
+          .build();
+    } catch (UnsupportedOperationException e) {
+      return Response.status(503).build();
+    }
+  }
+
+
+  /**
+   * Cancels the specified order. Often not supported.
+   * See {@link ExchangeResource#cancelOrder(String, String, String, String)}.
+   *
+   * @param exchange The exchange.
+   * @param id The oirder id.
+   * @return The matching orders.
+   * @throws IOException If thrown by exchange.
+   */
+  @DELETE
+  @Path("{exchange}/orders/{id}")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  public Response cancelOrder(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
+    try {
+      return Response.ok()
+          .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(id))
           .build();
     } catch (UnsupportedOperationException e) {
       return Response.status(503).build();
