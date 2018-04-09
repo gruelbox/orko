@@ -10,6 +10,8 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Password;
+
+import com.google.common.cache.CacheBuilderSpec;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.auth.AuthConfiguration;
 import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
@@ -18,6 +20,7 @@ import com.okta.jwt.JwtVerifier;
 
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 import io.dropwizard.setup.Environment;
 
@@ -62,14 +65,19 @@ class AuthEnvironment implements EnvironmentInitialiser {
       JwtVerifier jwtVerifier = helper.build();
 
       OktaOAuthAuthenticator oktaOAuthAuthenticator = new OktaOAuthAuthenticator(jwtVerifier);
-      environment.jersey().register(new AuthDynamicFeature(
-        new OAuthCredentialAuthFilter.Builder<AccessTokenPrincipal>()
-          .setAuthenticator(oktaOAuthAuthenticator)
-          .setAuthorizer(oktaOAuthAuthenticator)
-          .setPrefix("Bearer")
-          .buildAuthFilter()));
 
+      CachingAuthenticator<String, AccessTokenPrincipal> cachingAuthenticator = new CachingAuthenticator<>(
+          environment.metrics(), oktaOAuthAuthenticator, CacheBuilderSpec.parse(configuration.authCachePolicy));
+
+      OAuthCredentialAuthFilter<AccessTokenPrincipal> oAuthCredentialAuthFilter = new OAuthCredentialAuthFilter.Builder<AccessTokenPrincipal>()
+        .setAuthenticator(cachingAuthenticator)
+        .setAuthorizer(oktaOAuthAuthenticator)
+        .setPrefix("Bearer")
+        .buildAuthFilter();
+
+      environment.jersey().register(new AuthDynamicFeature(oAuthCredentialAuthFilter));
       environment.jersey().register(new AuthValueFactoryProvider.Binder<>(AccessTokenPrincipal.class));
+
     } catch (Exception e) {
       throw new IllegalStateException("Failed to configure JwtVerifier", e);
     }

@@ -14,8 +14,10 @@ public class AuthConfiguration {
 
   public String secretKey;
 
-  public Integer whitelistExpirySeconds;
+  public Integer whitelistExpirySeconds = 28800;
 
   @NotNull
   public boolean proxied;
+
+  public String authCachePolicy = "maximumSize=10000, expireAfterAccess=10m";
 }
