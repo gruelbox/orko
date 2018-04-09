@@ -7,7 +7,8 @@ export function fetchTicker(coin) {
   return authActions.wrappedRequest(
     auth => exchangesService.fetchTicker(coin, auth.token),
     ticker => ({ type: types.SET_TICKER, ticker }),
-    error => errorActions.setBackground("Could not fetch ticker: " + error.message)
+    error => errorActions.addBackground("Could not fetch ticker: " + error.message, "ticker"),
+    () => errorActions.clearBackground("ticker")
   );
 }
 

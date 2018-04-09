@@ -3,7 +3,7 @@ import * as types from './actionTypes';
 
 const initialState = Immutable({
   errorForeground: null,
-  errorBackground: null
+  errorBackground: Immutable({})
 });
 
 export default function reduce(state = initialState, action = {}) {
@@ -16,18 +16,20 @@ export default function reduce(state = initialState, action = {}) {
     case types.CLEAR_BACKGROUND:
       console.log(action.type, action);
       return Immutable.merge(state, {
-        errorBackground: null,
+        errorBackground: state.errorBackground.without(action.key),
       });
     case types.SET_FOREGROUND:
       console.log(action.type, action);
       return Immutable.merge(state, {
         errorForeground: action.error,
       });
-    case types.SET_BACKGROUND:
+    case types.ADD_BACKGROUND:
       console.log(action.type, action);
       return Immutable.merge(state, {
-        errorBackground: action.error,
-      });
+        errorBackground: {
+          [action.key]: action.error
+        }
+      }, {deep: true});
     default:
       return state;
   }

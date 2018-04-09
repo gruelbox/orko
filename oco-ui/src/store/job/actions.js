@@ -7,7 +7,7 @@ export function submitJob(job) {
   return authActions.wrappedRequest(
     auth => jobService.submitJob(job, auth.token),
     null,
-    error => errorActions.setBackground("Could not submit job: " + error.message),
+    error => errorActions.setForeground("Could not submit job: " + error.message),
     () => ({ type: types.ADD_JOB, job })
   );
 }
@@ -16,7 +16,8 @@ export function fetchJobs() {
   return authActions.wrappedRequest(
     auth => jobService.fetchJobs(auth.token),
     jobs => ({ type: types.SET_JOBS, jobs }),
-    error => errorActions.setBackground("Could not fetch jobs: " + error.message)
+    error => errorActions.addBackground("Could not fetch jobs: " + error.message, "jobs"),
+    () => errorActions.clearBackground("jobs")
   );
 }
 

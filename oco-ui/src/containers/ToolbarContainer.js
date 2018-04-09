@@ -17,25 +17,54 @@ const ToolbarBox = styled.div`
   ${space}
 `;
 
+const BackgroundErrors = props => {
+  const errors = props.errorBackground;
+  const errorKeys = Object.keys(props.errorBackground);
+  const hasErrors = errorKeys.length !== 0;
+  const errorString = hasErrors ? errorKeys.map(k => errors[k]).join(", ") : null;
+  return (
+    <Span
+      color={ hasErrors ? "red" : "black" }
+      ml={4}
+      fontWeight="bold"
+    >
+      <Icon
+        name="wifi"
+        color={ hasErrors ? "red" : "black" }
+      />
+      { hasErrors ? errorString : "Connected" }
+    </Span>
+  );
+}
+
+const HomeLink = props => (
+  <Link to="/" color="black" fontWeight="bold">
+    Home
+  </Link>
+)
+
+const SignOutLink = props => (
+  <Span ml="auto" color="black">
+    <Href color='black' fontWeight="bold" onClick={props.onClick}>
+      Sign out
+    </Href>
+    &nbsp;({props.userName})
+  </Span>
+)
+
+const InvalidateLink = props => (
+  <Href ml={4} color='black' fontWeight="bold" onClick={props.onClick}>
+    Invalidate whitelist
+  </Href>
+)
+
 const ToolbarContainer = props => (
   <ToolbarBox>
     <Toolbar>
-      <Link to="/" color="black" fontWeight="bold">
-        Home
-      </Link>
-      <Span color={ props.errorBackground === null ? "black" : "red" } ml={4} fontWeight="bold">
-        <Icon name="wifi" color={ props.errorBackground === null ? "black" : "red" }/>
-        { props.errorBackground === null ? "OK" : props.errorBackground }
-      </Span>
-      <Span ml="auto" color="black">
-        <Href color='black' fontWeight="bold" onClick={() => props.dispatch(authActions.logout()) }>
-          Sign out
-        </Href>
-        &nbsp;({props.userName})
-      </Span>
-      <Href ml={4} color='black' fontWeight="bold" onClick={() => props.dispatch(authActions.clearWhitelist()) }>
-        Invalidate whitelist
-      </Href>
+      <HomeLink/>
+      <BackgroundErrors errorBackground={props.errorBackground}/>
+      <SignOutLink userName={props.userName} onClick={() => props.dispatch(authActions.logout())}/>
+      <InvalidateLink onClick={() => props.dispatch(authActions.clearWhitelist()) } />
     </Toolbar>
   </ToolbarBox>
 );

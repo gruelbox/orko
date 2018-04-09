@@ -60,6 +60,16 @@ export default function reduce(state = initialState, action = {}) {
         userName: action.userName,
         loading: false
       });
+    case types.INVALIDATE_LOGIN:
+      console.log(action.type);
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      return Immutable.merge(state, {
+        loggedIn: false,
+        error: "Not logged in or login expired",
+        token: null,
+        userName: null,
+        loading: false
+      });
     case types.LOGOUT:
       console.log(action.type);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
