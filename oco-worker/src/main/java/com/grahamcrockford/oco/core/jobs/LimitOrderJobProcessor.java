@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.core.jobs;
 
 import java.util.Date;
+
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.service.trade.TradeService;
@@ -13,8 +14,8 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.api.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.api.job.LimitOrderJob;
-import com.grahamcrockford.oco.api.job.OrderStateNotifier;
 import com.grahamcrockford.oco.api.job.LimitOrderJob.Direction;
+import com.grahamcrockford.oco.api.job.OrderStateNotifier;
 import com.grahamcrockford.oco.api.process.JobSubmitter;
 import com.grahamcrockford.oco.core.telegram.TelegramService;
 import com.grahamcrockford.oco.spi.JobControl;
@@ -36,10 +37,10 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
   @AssistedInject
   public LimitOrderJobProcessor(@Assisted final LimitOrderJob job,
-                            @Assisted final JobControl jobControl,
-                            final TelegramService telegramService,
-                            final TradeServiceFactory tradeServiceFactory,
-                            final JobSubmitter jobSubmitter) {
+                                @Assisted final JobControl jobControl,
+                                final TelegramService telegramService,
+                                final TradeServiceFactory tradeServiceFactory,
+                                final JobSubmitter jobSubmitter) {
     this.job = job;
     this.telegramService = telegramService;
     this.tradeServiceFactory = tradeServiceFactory;
@@ -94,31 +95,41 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
   private void reportSuccess(final LimitOrderJob job, String xChangeOrderId) {
     final TickerSpec ex = job.tickTrigger();
 
-    LOGGER.info("| - Order [{}] placed.", xChangeOrderId);
-    telegramService.sendMessage(String.format(
-      "Bot [%s] on [%s/%s/%s] placed limit sell [%s] at [%s]",
-      job.id(),
+    String string = String.format(
+      "[%s/%s/%s]: placed %s order id [%s] for [%s %s] at [%s %s]",
       ex.exchange(),
       ex.base(),
       ex.counter(),
+      job.direction(),
       xChangeOrderId,
-      job.limitPrice()
-    ));
+      job.amount(),
+      ex.base(),
+      job.limitPrice(),
+      ex.counter()
+    );
+
+    LOGGER.info("| - {}", string);
+    telegramService.sendMessage(string);
   }
 
   private void reportFailed(final LimitOrderJob job, Throwable e) {
     final TickerSpec ex = job.tickTrigger();
 
-    LOGGER.error("| - Order failed to be placed. Giving up.", e);
-    telegramService.sendMessage(String.format(
-      "Bot [%s] on [%s/%s/%s] FAILED to place limit sell at [%s]. Cannot continue - it might have worked: %s",
-      job.id(),
+    String string = String.format(
+      "ERROR [%s/%s/%s]: attempted %s order for [%s %s] at [%s %s]. But failed. It might have worked. Error detail: %s",
       ex.exchange(),
       ex.base(),
       ex.counter(),
+      job.direction(),
+      job.amount(),
+      ex.base(),
       job.limitPrice(),
+      ex.counter(),
       e.getMessage()
-    ));
+    );
+
+    LOGGER.info("| - {}", string);
+    telegramService.sendMessage(string);
   }
 
   public static final class Module extends AbstractModule {
