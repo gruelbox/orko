@@ -4,6 +4,7 @@ auth:
   adminPassword: ${PASSWORD}
   proxied: ${PROXIED}
   whitelistExpirySeconds: 14400
+  secretKey: ${AUTH_TOKEN}
   okta:
     baseUrl: ${OKTA_BASEURL}
     issuer: ${OKTA_ISSUER}
