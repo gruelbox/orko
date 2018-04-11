@@ -44,13 +44,11 @@ public class IpWhitelisting {
     String sourceIp = sourceIp();
     String whitelistedIp = ipWhitelistAccess.getIp();
 
-    if (sourceIp().equals(ipWhitelistAccess.getIp())) {
-      LOGGER.info("Access attempt from [{}] matched whitelist", sourceIp);
+    if (sourceIp().equals(ipWhitelistAccess.getIp()))
       return true;
-    } else {
-      LOGGER.error("Access attempt from [{}] did not match whitelist: [{}]", sourceIp, whitelistedIp);
-      return false;
-    }
+
+    LOGGER.error("Access attempt from [{}] did not match whitelist: [{}]", sourceIp, whitelistedIp);
+    return false;
 
   }
 
