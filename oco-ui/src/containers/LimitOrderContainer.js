@@ -19,7 +19,7 @@ class LimitOrderContainer extends React.Component {
         limitPrice: '',
         amount: '',
         direction: 'BUY',
-        track: false
+        track: true
       })
     }
   }
