@@ -37,7 +37,21 @@ public class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-    return StringUtils.isEmpty(configuration.secretKey) || sourceIp().equals(ipWhitelistAccess.getIp());
+
+    if (StringUtils.isEmpty(configuration.secretKey))
+      return true;
+
+    String sourceIp = sourceIp();
+    String whitelistedIp = ipWhitelistAccess.getIp();
+
+    if (sourceIp().equals(ipWhitelistAccess.getIp())) {
+      LOGGER.info("Access attempt from [{}] matched whitelist", sourceIp);
+      return true;
+    } else {
+      LOGGER.error("Access attempt from [{}] did not match whitelist: [{}]", sourceIp, whitelistedIp);
+      return false;
+    }
+
   }
 
   public boolean whiteListRequestIp(int token) {
