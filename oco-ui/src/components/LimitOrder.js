@@ -21,16 +21,6 @@ const LimitOrder = props => {
   return (
     <Form>
       <Input
-        id="amount"
-        error={!props.amountValid}
-        label="Amount"
-        type='number'
-        placeholder='Enter amount...'
-        value={props.job.amount ? props.job.amount : ''}
-        onChange={e => onChange("amount", e)}
-        onFocus={e => props.onFocus("amount")}
-      />
-      <Input
         id="limitPrice"
         error={!props.limitPriceValid}
         label="Limit price"
@@ -39,6 +29,16 @@ const LimitOrder = props => {
         value={props.job.limitPrice ? props.job.limitPrice : ''}
         onChange={e => onChange("limitPrice", e)}
         onFocus={e => props.onFocus("limitPrice")}
+      />
+      <Input
+        id="amount"
+        error={!props.amountValid}
+        label="Amount"
+        type='number'
+        placeholder='Enter amount...'
+        value={props.job.amount ? props.job.amount : ''}
+        onChange={e => onChange("amount", e)}
+        onFocus={e => props.onFocus("amount")}
       />
       <Button
         disabled={!valid}
