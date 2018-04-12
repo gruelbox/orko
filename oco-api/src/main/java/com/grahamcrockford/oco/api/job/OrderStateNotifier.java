@@ -31,7 +31,6 @@ public abstract class OrderStateNotifier implements Job {
     @Id
     public abstract Builder id(String value);
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
-    public abstract Builder description(String description);
     public abstract Builder orderId(String orderId);
     @Override
     public abstract OrderStateNotifier build();
@@ -49,9 +48,6 @@ public abstract class OrderStateNotifier implements Job {
 
   @JsonProperty
   public abstract TickerSpec tickTrigger();
-
-  @JsonProperty
-  public abstract String description();
 
   @JsonProperty
   public abstract String orderId();

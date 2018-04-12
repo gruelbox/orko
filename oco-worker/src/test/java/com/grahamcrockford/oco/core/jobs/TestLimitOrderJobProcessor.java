@@ -250,7 +250,6 @@ public class TestLimitOrderJobProcessor {
 
   private void verifySubmitWatcher() throws Exception {
     verify(enqueuer).submitNew(OrderStateNotifier.builder()
-        .description("Stop")
         .orderId(lastTradeId())
         .tickTrigger(TickerSpec.builder()
             .base(BASE)

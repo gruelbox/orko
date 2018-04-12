@@ -83,7 +83,6 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       try {
         jobSubmitter.submitNew(OrderStateNotifier.builder()
             .tickTrigger(job.tickTrigger())
-            .description("Stop")
             .orderId(xChangeOrderId)
             .build());
       } catch (Exception e) {

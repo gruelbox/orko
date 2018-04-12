@@ -166,7 +166,6 @@ public class JobResource implements WebResource {
           .base(base)
           .counter(counter)
           .build())
-        .description("Web request")
         .orderId(orderId)
         .build());
   }

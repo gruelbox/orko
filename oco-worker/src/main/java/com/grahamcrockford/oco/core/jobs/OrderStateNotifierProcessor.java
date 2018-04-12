@@ -39,8 +39,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
     LogColumn.builder().name("Order id").width(50).rightAligned(false),
     LogColumn.builder().name("Status").width(16).rightAligned(false),
     LogColumn.builder().name("Amount").width(13).rightAligned(true),
-    LogColumn.builder().name("Filled").width(13).rightAligned(true),
-    LogColumn.builder().name("Description").width(30).rightAligned(false)
+    LogColumn.builder().name("Filled").width(13).rightAligned(true)
   );
 
   private final TelegramService telegramService;
@@ -110,8 +109,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         job.orderId(),
         status,
         amount,
-        filled,
-        job.description()
+        filled
       );
 
       switch (order.getStatus()) {
@@ -122,8 +120,8 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         case REPLACED:
         case REJECTED:
           telegramService.sendMessage(String.format(
-            "Order [%s] (%s) on [%s/%s/%s] %s. Giving up.",
-            job.orderId(), job.description(),
+            "Order [%s] on [%s/%s/%s] %s. Giving up.",
+            job.orderId(),
             job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
             status
           ));
@@ -131,8 +129,8 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         case FILLED:
         case STOPPED:
           telegramService.sendMessage(String.format(
-            "Order [%s] (%s) on [%s/%s/%s] has %s. Average price [%s]",
-            job.orderId(), job.description(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
+            "Order [%s] on [%s/%s/%s] has %s. Average price [%s]",
+            job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
             status, order.getAveragePrice()
           ));
           return false;
@@ -143,8 +141,8 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
           return true;
         default:
           telegramService.sendMessage(String.format(
-            "Order [%s] (%s) on [%s/%s/%s] in unknown status %s. Giving up.",
-            job.orderId(), job.description(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
+            "Order [%s] on [%s/%s/%s] in unknown status %s. Giving up.",
+            job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
             status
           ));
           return false;

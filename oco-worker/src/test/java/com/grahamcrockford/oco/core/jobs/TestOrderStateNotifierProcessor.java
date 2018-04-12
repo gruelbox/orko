@@ -52,7 +52,6 @@ public class TestOrderStateNotifierProcessor {
   private static final String COUNTER = "USDT";
   private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair(BASE, COUNTER);
   private static final String EXCHANGE = "fooex";
-  private static final String DESCRIPTION = "OAIUHDFSDF";
   private static final String ORDER_ID = "65734-232131";
 
   private static final BigDecimal AMOUNT = new BigDecimal(1000);
@@ -211,7 +210,6 @@ public class TestOrderStateNotifierProcessor {
   private OrderStateNotifier.Builder baseJob() {
     return OrderStateNotifier.builder()
       .id(JOB_ID)
-      .description(DESCRIPTION)
       .orderId(ORDER_ID)
       .tickTrigger(TickerSpec.builder()
         .base(BASE)
