@@ -82,12 +82,12 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       // Spawn a new job to monitor the progress of the order
       try {
         jobSubmitter.submitNew(OrderStateNotifier.builder()
-            .exchange(job.tickTrigger().exchange())
+            .tickTrigger(job.tickTrigger())
             .description("Stop")
             .orderId(xChangeOrderId)
             .build());
       } catch (Exception e) {
-        LOGGER.error("| - Failed to submit monitor job.  The trade was made successfully though.", e);
+        LOGGER.error("Failed to submit monitor job.  The trade was made successfully though.", e);
       }
     }
   }
@@ -108,7 +108,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       ex.counter()
     );
 
-    LOGGER.info("| - {}", string);
+    LOGGER.info(string);
     telegramService.sendMessage(string);
   }
 
@@ -116,7 +116,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     final TickerSpec ex = job.tickTrigger();
 
     String string = String.format(
-      "ERROR [%s/%s/%s]: attempted %s order for [%s %s] at [%s %s]. But failed. It might have worked. Error detail: %s",
+      "ERROR [%s/%s/%s]: attempted %s order for [%s %s] at [%s %s], but failed. It might have worked. Error detail: %s",
       ex.exchange(),
       ex.base(),
       ex.counter(),
@@ -128,7 +128,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       e.getMessage()
     );
 
-    LOGGER.info("| - {}", string);
+    LOGGER.info(string);
     telegramService.sendMessage(string);
   }
 

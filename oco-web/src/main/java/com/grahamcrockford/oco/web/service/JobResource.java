@@ -156,10 +156,16 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public OrderStateNotifier monitorOrder(@QueryParam("exchange") String exchange,
+                                         @QueryParam("counter") String counter,
+                                         @QueryParam("base") String base,
                                          @QueryParam("orderId") String orderId) {
 
     return jobSubmitter.submitNewUnchecked(OrderStateNotifier.builder()
-        .exchange(exchange)
+        .tickTrigger(TickerSpec.builder()
+          .exchange(exchange)
+          .base(base)
+          .counter(counter)
+          .build())
         .description("Web request")
         .orderId(orderId)
         .build());

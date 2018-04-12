@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.knowm.xchange.binance.service.BinanceQueryOrderParams;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
@@ -33,6 +34,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private static final ColumnLogger COLUMN_LOGGER = new ColumnLogger(LOGGER,
     LogColumn.builder().name("#").width(24).rightAligned(false),
     LogColumn.builder().name("Exchange").width(12).rightAligned(false),
+    LogColumn.builder().name("Pair").width(10).rightAligned(false),
     LogColumn.builder().name("Operation").width(13).rightAligned(false),
     LogColumn.builder().name("Order id").width(50).rightAligned(false),
     LogColumn.builder().name("Status").width(16).rightAligned(false),
@@ -102,7 +104,8 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
 
       COLUMN_LOGGER.line(
         job.id(),
-        job.exchange(),
+        job.tickTrigger().exchange(),
+        job.tickTrigger().pairName(),
         "Monitor order",
         job.orderId(),
         status,
@@ -119,15 +122,18 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         case REPLACED:
         case REJECTED:
           telegramService.sendMessage(String.format(
-            "Order [%s] (%s) on [%s] " + status + ". Giving up.",
-            job.orderId(), job.description(), job.exchange()
+            "Order [%s] (%s) on [%s/%s/%s] %s. Giving up.",
+            job.orderId(), job.description(),
+            job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
+            status
           ));
           return false;
         case FILLED:
         case STOPPED:
           telegramService.sendMessage(String.format(
-            "Order [%s] (%s) on [%s] has " + status + ". Average price [%s]",
-            job.orderId(), job.description(), job.exchange(), order.getAveragePrice()
+            "Order [%s] (%s) on [%s/%s/%s] has %s. Average price [%s]",
+            job.orderId(), job.description(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
+            status, order.getAveragePrice()
           ));
           return false;
         case PENDING_NEW:
@@ -137,8 +143,9 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
           return true;
         default:
           telegramService.sendMessage(String.format(
-            "Order [%s] (%s) on [%s] in unknown status " + status + ". Giving up.",
-            job.orderId(), job.description(), job.exchange()
+            "Order [%s] (%s) on [%s/%s/%s] in unknown status %s. Giving up.",
+            job.orderId(), job.description(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
+            status
           ));
           return false;
       }
@@ -148,7 +155,8 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private Order getOrder(OrderStateNotifier job) {
     final Collection<Order> matchingOrders;
     try {
-      matchingOrders = tradeServiceFactory.getForExchange(job.exchange()).getOrder(job.orderId());
+      matchingOrders = tradeServiceFactory.getForExchange(job.tickTrigger().exchange())
+          .getOrder(new BinanceQueryOrderParams(job.tickTrigger().currencyPair(), job.orderId()));
     } catch (NotAvailableFromExchangeException e) {
       notSupportedMessage(job);
       return null;
@@ -177,8 +185,8 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
 
   private void gdaxBugMessage(OrderStateNotifier job) {
     String message = String.format(
-        "Order [%s] on [%s] can't be checked. There's a bug in the GDAX access library which prevents it. It'll be fixed soon.",
-        job.orderId(), job.exchange()
+        "Order [%s] on [%s/%s/%s] can't be checked. There's a bug in the GDAX access library which prevents it. It'll be fixed soon.",
+        job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
       );
       LOGGER.warn(message);
       telegramService.sendMessage(message);
@@ -188,7 +196,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private void notUniqueMessage(OrderStateNotifier job) {
     String message = String.format(
       "Order [%s] on [%s] was not unique on the exchange. Giving up.",
-      job.orderId(), job.exchange()
+      job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
     );
     LOGGER.error(message);
     telegramService.sendMessage(message);
@@ -197,7 +205,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private void notFoundMessage(OrderStateNotifier job) {
     String message = String.format(
         "Order [%s] on [%s] was not found on the exchange. It may have been cancelled. Giving up.",
-        job.orderId(), job.exchange()
+        job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
       );
     LOGGER.warn(message);
     telegramService.sendMessage(message);
@@ -206,7 +214,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private void notSupportedMessage(OrderStateNotifier job) {
     String message = String.format(
         "Order [%s] on [%s] can't be checked. The exchange doesn't support order status checks. Giving up.",
-        job.orderId(), job.exchange()
+        job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
       );
     LOGGER.warn(message);
     telegramService.sendMessage(message);

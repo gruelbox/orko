@@ -252,7 +252,11 @@ public class TestLimitOrderJobProcessor {
     verify(enqueuer).submitNew(OrderStateNotifier.builder()
         .description("Stop")
         .orderId(lastTradeId())
-        .exchange(EXCHANGE)
+        .tickTrigger(TickerSpec.builder()
+            .base(BASE)
+            .counter(COUNTER)
+            .exchange(EXCHANGE)
+            .build())
         .build());
   }
 

@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.core.jobs;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.function.Consumer;
@@ -22,11 +24,14 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.trade.TradeService;
+import org.knowm.xchange.service.trade.params.orders.OrderQueryParamCurrencyPair;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.OngoingStubbing;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -36,6 +41,7 @@ import com.grahamcrockford.oco.api.job.OrderStateNotifier;
 import com.grahamcrockford.oco.core.telegram.TelegramService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
+import com.grahamcrockford.oco.spi.TickerSpec;
 
 
 public class TestOrderStateNotifierProcessor {
@@ -73,11 +79,11 @@ public class TestOrderStateNotifierProcessor {
 
   @Test
   public void testNotSupportedByExchange() throws Exception {
-    when(tradeService.getOrder(ORDER_ID)).thenThrow(new NotAvailableFromExchangeException());
+    whenGetOrder().thenThrow(new NotAvailableFromExchangeException());
 
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     assertFalse(processor.start());
-    verify(tradeService).getOrder(ORDER_ID);
+    verifyGotOrder();
     verifySentMessage();
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
@@ -86,7 +92,7 @@ public class TestOrderStateNotifierProcessor {
   public void testNotFoundStartup1() throws Exception {
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     assertFalse(processor.start());
-    verify(tradeService).getOrder(ORDER_ID);
+    verifyGotOrder();
     verifySentMessage();
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
@@ -96,23 +102,24 @@ public class TestOrderStateNotifierProcessor {
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     returnOrder(Order.OrderStatus.NEW);
     assertTrue(processor.start());
-    verify(tradeService).getOrder(ORDER_ID);
+    verifyGotOrder();
     verify(asyncEventBus).register(processor);
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
 
-    when(tradeService.getOrder(ORDER_ID)).thenReturn(null);
+    whenGetOrder().thenReturn(null);
     processor.process(KeepAliveEvent.INSTANCE);
 
     verifySentMessage();
     verify(jobControl).finish();
   }
 
+
   @Test
   public void testNotFoundStartup2() throws Exception {
-    when(tradeService.getOrder(ORDER_ID)).thenReturn(Collections.emptyList());
+    whenGetOrder().thenReturn(Collections.emptyList());
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     assertFalse(processor.start());
-    verify(tradeService).getOrder(ORDER_ID);
+    verifyGotOrder();
     verifySentMessage();
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
@@ -122,11 +129,11 @@ public class TestOrderStateNotifierProcessor {
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     returnOrder(Order.OrderStatus.NEW);
     assertTrue(processor.start());
-    verify(tradeService).getOrder(ORDER_ID);
+    verifyGotOrder();
     verify(asyncEventBus).register(processor);
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
 
-    when(tradeService.getOrder(ORDER_ID)).thenReturn(Collections.emptyList());
+    whenGetOrder().thenReturn(Collections.emptyList());
     processor.process(KeepAliveEvent.INSTANCE);
 
     verifySentMessage();
@@ -135,10 +142,10 @@ public class TestOrderStateNotifierProcessor {
 
   @Test
   public void testNotUniqueStartup() throws Exception {
-    when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
+    whenGetOrder().thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     assertFalse(processor.start());
-    verify(tradeService).getOrder(ORDER_ID);
+    verifyGotOrder();
     verifySentMessage();
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
@@ -148,11 +155,11 @@ public class TestOrderStateNotifierProcessor {
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     returnOrder(Order.OrderStatus.NEW);
     assertTrue(processor.start());
-    verify(tradeService).getOrder(ORDER_ID);
+    verifyGotOrder();
     verify(asyncEventBus).register(processor);
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
 
-    when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
+    whenGetOrder().thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
     processor.process(KeepAliveEvent.INSTANCE);
 
     verifySentMessage();
@@ -168,12 +175,12 @@ public class TestOrderStateNotifierProcessor {
       boolean runningAsync = processor.start();
       if (ImmutableSet.of(Order.OrderStatus.PENDING_NEW, Order.OrderStatus.NEW, Order.OrderStatus.PARTIALLY_FILLED).contains(status)) {
         assertTrue(runningAsync);
-        verify(tradeService).getOrder(ORDER_ID);
+        verifyGotOrder();
         verify(asyncEventBus).register(processor);
         verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
       } else {
         assertFalse(runningAsync);
-        verify(tradeService).getOrder(ORDER_ID);
+        verifyGotOrder();
         verifySentMessage();
         verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
       }
@@ -181,10 +188,21 @@ public class TestOrderStateNotifierProcessor {
   }
 
   private void returnOrder(final Order.OrderStatus status) throws IOException {
-    when(tradeService.getOrder(ORDER_ID)).thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, BigDecimal.ZERO, status)));
+    whenGetOrder().thenReturn(ImmutableList.of(new LimitOrder(ASK, AMOUNT, CURRENCY_PAIR, ORDER_ID, new Date(), LIMIT_PRICE, AVERAGE_PRICE, FILLED, BigDecimal.ZERO, status)));
   }
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
+
+  private OngoingStubbing<Collection<Order>> whenGetOrder() throws IOException {
+    return when(tradeService.getOrder(Matchers.any(OrderQueryParamCurrencyPair.class)));
+  }
+
+  private void verifyGotOrder() throws IOException {
+    ArgumentCaptor<OrderQueryParamCurrencyPair> captor = ArgumentCaptor.forClass(OrderQueryParamCurrencyPair.class);
+    verify(tradeService).getOrder(captor.capture());
+    assertEquals(new CurrencyPair(BASE, COUNTER), captor.getValue().getCurrencyPair());
+    assertEquals(ORDER_ID, captor.getValue().getOrderId());
+  }
 
   private void verifySentMessage() {
     verify(telegramService).sendMessage(Mockito.anyString());
@@ -195,6 +213,11 @@ public class TestOrderStateNotifierProcessor {
       .id(JOB_ID)
       .description(DESCRIPTION)
       .orderId(ORDER_ID)
-      .exchange(EXCHANGE);
+      .tickTrigger(TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(EXCHANGE)
+        .build()
+      );
   }
 }
