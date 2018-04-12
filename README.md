@@ -41,6 +41,7 @@ If you want to run the application directly without Docker:
 1. Install Maven (`sudo apt-get install maven`)
 1. Run `mvn clean package` to build the application
 1. Spin up a mongodb instance on Docker using this image: https://hub.docker.com/r/library/mongo/.  You'll need to follow the instructions for creating an admin user.
+1. You also need a RabbitMQ instance. Again the standard Docker image is fine out of the box.
 
 How to start the back-end locally
 ---
