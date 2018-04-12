@@ -120,14 +120,14 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         case REJECTED:
           telegramService.sendMessage(String.format(
             "Order [%s] (%s) on [%s] " + status + ". Giving up.",
-            job.id(), job.description(), job.exchange()
+            job.orderId(), job.description(), job.exchange()
           ));
           return false;
         case FILLED:
         case STOPPED:
           telegramService.sendMessage(String.format(
             "Order [%s] (%s) on [%s] has " + status + ". Average price [%s]",
-            job.id(), job.description(), job.exchange(), order.getAveragePrice()
+            job.orderId(), job.description(), job.exchange(), order.getAveragePrice()
           ));
           return false;
         case PENDING_NEW:
@@ -138,7 +138,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         default:
           telegramService.sendMessage(String.format(
             "Order [%s] (%s) on [%s] in unknown status " + status + ". Giving up.",
-            job.id(), job.description(), job.exchange()
+            job.orderId(), job.description(), job.exchange()
           ));
           return false;
       }
@@ -178,7 +178,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private void gdaxBugMessage(OrderStateNotifier job) {
     String message = String.format(
         "Order [%s] on [%s] can't be checked. There's a bug in the GDAX access library which prevents it. It'll be fixed soon.",
-        job.id(), job.exchange()
+        job.orderId(), job.exchange()
       );
       LOGGER.warn(message);
       telegramService.sendMessage(message);
@@ -188,7 +188,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private void notUniqueMessage(OrderStateNotifier job) {
     String message = String.format(
       "Order [%s] on [%s] was not unique on the exchange. Giving up.",
-      job.id(), job.exchange()
+      job.orderId(), job.exchange()
     );
     LOGGER.error(message);
     telegramService.sendMessage(message);
@@ -197,7 +197,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private void notFoundMessage(OrderStateNotifier job) {
     String message = String.format(
         "Order [%s] on [%s] was not found on the exchange. It may have been cancelled. Giving up.",
-        job.id(), job.exchange()
+        job.orderId(), job.exchange()
       );
     LOGGER.warn(message);
     telegramService.sendMessage(message);
@@ -206,7 +206,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   private void notSupportedMessage(OrderStateNotifier job) {
     String message = String.format(
         "Order [%s] on [%s] can't be checked. The exchange doesn't support order status checks. Giving up.",
-        job.id(), job.exchange()
+        job.orderId(), job.exchange()
       );
     LOGGER.warn(message);
     telegramService.sendMessage(message);
