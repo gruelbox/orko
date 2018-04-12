@@ -12,7 +12,7 @@ class JobContainer extends React.Component {
     const job = this.props.jobs.find(j => j.id === this.props.match.params.jobId);
 
     return (
-      <Section id="job" heading={"Job " + this.props.match.params.jobId}>
+      <Section id="job" bg="backgrounds.2" heading={"Job " + this.props.match.params.jobId}>
         {job && <Job job={job}/>}
         {!job && <Para>Job {this.props.match.params.jobId} not found</Para>}
       </Section>

@@ -51,9 +51,13 @@ export default class JobShort extends React.Component {
       return (
         "Send alert"
       );
+    } else if (job.jobType === 'OrderStateNotifier') {
+      return (
+        "Watch order " + job.orderId + " on " + job.tickTrigger.base + "/" + job.tickTrigger.counter + " on " + job.tickTrigger.exchange
+      );
     } else {
       return (
-        "Complex"
+        "Complex (" + job.jobType  + ")"
       );
     }
   }

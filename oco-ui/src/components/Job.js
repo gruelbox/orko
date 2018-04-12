@@ -98,7 +98,18 @@ export default class Job extends Component {
     } else if (job.jobType === 'Alert') {
       return (
         <JobStages><JobStage>
-          <Icon name='computer' /><b>Alert</b>: '{job.message}'
+          <Icon name='computer' />Send a telegram message: '{job.message}'
+        </JobStage></JobStages>
+      );
+    } else if (job.jobType === 'OrderStateNotifier') {
+      return (
+        <JobStages><JobStage>
+          <Icon name='eye' /> Watch order {job.orderId} on {job.tickTrigger.base + "/" + job.tickTrigger.counter} on {job.tickTrigger.exchange}
+            <JobStages>
+              <JobStage>
+                <Icon name='spy' />If order changes status, send a telegram message
+              </JobStage>
+            </JobStages>
         </JobStage></JobStages>
       );
     } else {
