@@ -6,8 +6,7 @@ import Form from './primitives/Form';
 import Button from './primitives/Button';
 
 import styled from 'styled-components';
-import { fontSize, color, fontWeight, space, fontFamily } from 'styled-system';
-import { darken, mix } from 'polished'
+import { fontSize, color, fontWeight, space } from 'styled-system';
 
 const RadioLabel = styled.label.attrs({
   fontSize: 1,

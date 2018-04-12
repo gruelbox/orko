@@ -23,6 +23,7 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.binance.service.BinanceCancelOrderParams;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
+import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,12 +196,19 @@ public class ExchangeResource implements WebResource {
                            @PathParam("counter") String counter,
                            @PathParam("base") String base) throws IOException {
     try {
-      return Response.ok()
-          .entity(
-            tradeServiceFactory.getForExchange(exchange)
-              .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(new CurrencyPair(base, counter)))
-          )
-          .build();
+
+      CurrencyPair currencyPair = new CurrencyPair(base, counter);
+
+      OpenOrders unfiltered = tradeServiceFactory.getForExchange(exchange)
+          .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(currencyPair));
+
+      OpenOrders filtered = new OpenOrders(
+        unfiltered.getOpenOrders().stream().filter(o -> o.getCurrencyPair().equals(currencyPair)).collect(Collectors.toList()),
+        unfiltered.getHiddenOrders().stream().filter(o -> o.getCurrencyPair().equals(currencyPair)).collect(Collectors.toList())
+      );
+
+      return Response.ok().entity(filtered).build();
+
     } catch (UnsupportedOperationException e) {
       return Response.status(503).build();
     }
