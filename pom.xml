@@ -57,16 +57,20 @@
 		<googleauth.version>1.1.5</googleauth.version>
 		<dockerfile-maven-version>1.4.0</dockerfile-maven-version>
 		<okta-jwt-verifier-version>0.3.0</okta-jwt-verifier-version>
+		<dropwizard-websockets-version>1.2.2</dropwizard-websockets-version>
 
-<!-- 		<frontend-maven-plugin-version>1.4</frontend-maven-plugin-version> -->
-<!-- 		<maven.shade.plugin.version>3.1.0</maven.shade.plugin.version> -->
+
 		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
-<!-- 		<maven.source.plugin.version>3.0.1</maven.source.plugin.version> -->
-<!-- 		<maven.javadoc.plugin.version>3.0.0</maven.javadoc.plugin.version> -->
 		<maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
 		<jacoco.version>0.8.0</jacoco.version>
 		<mockito.version>1.10.19</mockito.version>
+		
+		<!-- 		<frontend-maven-plugin-version>1.4</frontend-maven-plugin-version> -->
+		<!-- 		<maven.shade.plugin.version>3.1.0</maven.shade.plugin.version> -->
+		<!-- 		<maven.source.plugin.version>3.0.1</maven.source.plugin.version> -->
+		<!-- 		<maven.javadoc.plugin.version>3.0.0</maven.javadoc.plugin.version> -->
+		
 	</properties>
 
 	<dependencyManagement>
@@ -219,6 +223,11 @@
 			    <groupId>com.okta.jwt</groupId>
 			    <artifactId>okta-jwt-verifier</artifactId>
 			    <version>${okta-jwt-verifier-version}</version>
+			</dependency>
+			<dependency>
+			    <groupId>com.liveperson</groupId>
+			    <artifactId>dropwizard-websockets</artifactId>
+			    <version>${dropwizard-websockets-version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -12,6 +12,13 @@ export function del(url, token) {
   return fetch(new Request("/api/" + url, action("DELETE", token)));
 }
 
+export function ws(url) {
+  console.log(window.location.protocol)
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  return new WebSocket('ws://localhost:8080/api/' + url)
+  return new WebSocket(protocol + "://" + window.location.host + '/api/' + url)
+}
+
 function action(method, token, content) {
   if (token)
     return {

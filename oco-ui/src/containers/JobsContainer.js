@@ -7,13 +7,15 @@ import Para from '../components/primitives/Para';
 import Loading from '../components/primitives/Loading';
 import JobShort from '../components/JobShort';
 
+import { ws } from '../services/fetchUtil'
+
 const TICK_TIME = 5000;
 
 class JobsContainer extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {loading: true};
+    this.state = {loading: true, fucks: []};
   }
 
   tick = () => {
@@ -23,6 +25,14 @@ class JobsContainer extends React.Component {
   componentDidMount() {
     this.tick();
     this.interval = setInterval(this.tick, TICK_TIME);
+
+    this.connection = ws("fuck");
+    this.connection.onmessage = evt => { 
+      console.log(evt.data);
+    	this.setState({
+      	fucks : this.state.fucks.concat([ evt.data ])
+      })
+    };
   }
 
   componentWillUnmount() {
@@ -55,6 +65,7 @@ class JobsContainer extends React.Component {
     return (
       <Section id="jobs" heading="Running Jobs" bg="backgrounds.2">
         {jobs}
+        {this.state.fucks}
       </Section>
     );
   }
