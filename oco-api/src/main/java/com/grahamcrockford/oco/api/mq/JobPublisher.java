@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.grahamcrockford.oco.api.mq.JobRouteFactory.Route;
 import com.grahamcrockford.oco.spi.Job;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;
@@ -16,11 +18,13 @@ public class JobPublisher {
 
   private final ConnectionFactory connectionFactory;
   private final ObjectMapper objectMapper;
+  private final JobRouteFactory jobRouteFactory;
 
   @Inject
-  JobPublisher(ConnectionFactory connectionFactory, ObjectMapper objectMapper) {
+  JobPublisher(ConnectionFactory connectionFactory, ObjectMapper objectMapper, JobRouteFactory jobRouteFactory) {
     this.connectionFactory = connectionFactory;
     this.objectMapper = objectMapper;
+    this.jobRouteFactory = jobRouteFactory;
   }
 
   public void publishJob(Job job) throws PublishFailedException {
@@ -30,9 +34,8 @@ public class JobPublisher {
       CountDownLatch wait = new CountDownLatch(1);
       AtomicBoolean success = new AtomicBoolean();
 
-      byte[] message = objectMapper.writeValueAsBytes(job);
+      Route route = jobRouteFactory.createOn(channel);
 
-      channel.queueDeclare(Queue.JOB, true, false, false, null);
       channel.confirmSelect();
       channel.addConfirmListener(new ConfirmListener() {
         @Override
@@ -45,7 +48,8 @@ public class JobPublisher {
           wait.countDown();
        }
       });
-      channel.basicPublish("", Queue.JOB, null, message);
+
+      route.send(objectMapper.writeValueAsBytes(job));
 
       wait.await();
       if (!success.get())

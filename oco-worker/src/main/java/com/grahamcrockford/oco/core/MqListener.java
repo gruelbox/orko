@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.api.mq.Queue;
+import com.grahamcrockford.oco.api.mq.JobRouteFactory;
 import com.grahamcrockford.oco.api.util.Sleep;
 import com.grahamcrockford.oco.core.telegram.TelegramService;
 import com.grahamcrockford.oco.spi.Job;
@@ -28,6 +28,7 @@ class MqListener extends AbstractIdleService {
   private final ObjectMapper objectMapper;
   private final JobRunner existingJobSubmitter;
   private final TelegramService telegramService;
+  private final JobRouteFactory jobRouteFactory;
 
   private Connection connection;
   private Channel channel;
@@ -36,12 +37,14 @@ class MqListener extends AbstractIdleService {
   @Inject
   MqListener(ConnectionFactory connectionFactory, Sleep sleep,
              ObjectMapper objectMapper, JobRunner existingJobSubmitter,
-             TelegramService telegramService) {
+             TelegramService telegramService,
+             JobRouteFactory jobRouteFactory) {
     this.connectionFactory = connectionFactory;
     this.sleep = sleep;
     this.objectMapper = objectMapper;
     this.existingJobSubmitter = existingJobSubmitter;
     this.telegramService = telegramService;
+    this.jobRouteFactory = jobRouteFactory;
   }
 
 
@@ -58,8 +61,7 @@ class MqListener extends AbstractIdleService {
         connection = connectionFactory.newConnection();
         channel = connection.createChannel();
         channel.basicQos(10);
-        channel.queueDeclare(Queue.JOB, true, false, false, null);
-        channel.basicConsume(Queue.JOB, false, new DefaultConsumer(channel) {
+        jobRouteFactory.createOn(channel).consume(new DefaultConsumer(channel) {
           @Override
           public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
             handle(envelope, body);
