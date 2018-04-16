@@ -55,7 +55,7 @@ const LimitOrder = props => {
             name="direction"
             value="BUY"
             checked={props.job.direction === "BUY"}
-            onClick={() => onChange("direction", "BUY")}
+            onChange={() => onChange("direction", "BUY")}
           />
           <RadioLabel color="buy" ml={2} for="BUY">
             Buy
@@ -67,7 +67,7 @@ const LimitOrder = props => {
             name="direction"
             value="BUY"
             checked={props.job.direction === "SELL"}
-            onClick={() => onChange("direction", "SELL")}
+            onChange={() => onChange("direction", "SELL")}
           />
           <RadioLabel color="sell" ml={2} for="SELL">
             Sell
