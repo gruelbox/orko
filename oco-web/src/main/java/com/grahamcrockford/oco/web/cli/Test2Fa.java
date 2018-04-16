@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import com.google.inject.Guice;
-import com.grahamcrockford.oco.web.auth.AuthModule;
+import com.grahamcrockford.oco.auth.AuthModule;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 
 public class Test2Fa {

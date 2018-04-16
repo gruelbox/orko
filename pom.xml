@@ -14,7 +14,7 @@
 
 	<modules>
 		<module>oco-worker</module>
-        <module>oco-api</module>
+        <module>oco-common</module>
 		<module>oco-web</module>
 	</modules>
 
