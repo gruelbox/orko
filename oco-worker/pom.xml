@@ -29,10 +29,6 @@
 			<artifactId>oco-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-servlet</artifactId>
-		</dependency>
 	</dependencies>
 	
 	<build>

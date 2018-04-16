@@ -4,10 +4,9 @@ import javax.ws.rs.client.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
-import com.google.inject.servlet.ServletModule;
+import com.grahamcrockford.oco.OcoApplicationModule;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.guardian.GuardianModule;
-import com.grahamcrockford.oco.job.JobsModule;
 import com.grahamcrockford.oco.telegram.TelegramModule;
 
 /**
@@ -15,26 +14,16 @@ import com.grahamcrockford.oco.telegram.TelegramModule;
  */
 class WorkerModule extends AbstractModule {
 
-  private final ObjectMapper objectMapper;
-  private final OcoConfiguration configuration;
-  private final Client jerseyClient;
+  private final OcoApplicationModule appModule;
 
   public WorkerModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client) {
-    this.configuration = configuration;
-    this.objectMapper = objectMapper;
-    this.jerseyClient = client;
+    this.appModule = new OcoApplicationModule(configuration, objectMapper, client);
   }
 
   @Override
   protected void configure() {
-    install(new ServletModule());
-
-    bind(ObjectMapper.class).toInstance(objectMapper);
-    bind(OcoConfiguration.class).toInstance(configuration);
-    bind(Client.class).toInstance(jerseyClient);
-
-    install(new GuardianModule());
+    install(appModule);
     install(new TelegramModule());
-    install(new JobsModule());
+    install(new GuardianModule());
   }
 }

@@ -37,7 +37,7 @@ export const CoinInfo = props => {
           {!noBalance &&
             <PriceSet>
               <Price name={coin.base + " available"} onClick={props.onClickNumber}>{props.balance[coin.base].available}</Price>
-              <Price name={coin.base + " affordable"} onClick={props.onClickNumber}>{( props.balance[coin.counter].available / ticker.ask )}</Price>
+              <Price name={coin.base + " affordable"} onClick={props.onClickNumber}>{( props.balance[coin.counter].available / this.props.ticker.ask )}</Price>
               <Price name={coin.counter + " available"} onClick={props.onClickNumber}>{props.balance[coin.counter].available}</Price>
             </PriceSet>
           }

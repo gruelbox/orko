@@ -5,8 +5,8 @@ import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.db.DbModule;
+import com.grahamcrockford.oco.job.JobsModule;
 import com.grahamcrockford.oco.mq.MqModule;
-import com.grahamcrockford.oco.telegram.TelegramModule;
 import com.grahamcrockford.oco.ticker.TickerModule;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import com.grahamcrockford.oco.wiring.WiringModule;
@@ -25,6 +25,6 @@ public class CommonModule extends AbstractModule {
     install(new DbModule());
     install(new MqModule());
     install(new TickerModule());
-    install(new TelegramModule());
+    install(new JobsModule());
   }
 }
