@@ -1,13 +1,13 @@
-import React from "react";
-import Immutable from "seamless-immutable";
+import React from "react"
+import Immutable from "seamless-immutable"
 
-import Input from "./primitives/Input.js";
-import Form from "./primitives/Form";
-import Button from "./primitives/Button";
+import Input from "./primitives/Input.js"
+import Form from "./primitives/Form"
+import Button from "./primitives/Button"
 
 const Alert = props => {
   const valid =
-    (props.highPriceValid || props.lowPriceValid) && props.messageValid;
+    (props.highPriceValid || props.lowPriceValid) && props.messageValid
 
   const onChange = props.onChange
     ? (prop, e) =>
@@ -16,7 +16,7 @@ const Alert = props => {
             [prop]: e.target.value
           })
         )
-    : () => {};
+    : () => {}
 
   return (
     <Form>
@@ -53,7 +53,7 @@ const Alert = props => {
         Submit
       </Button>
     </Form>
-  );
-};
+  )
+}
 
-export default Alert;
+export default Alert

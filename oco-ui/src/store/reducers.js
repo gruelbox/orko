@@ -5,6 +5,7 @@ import coin from './coin/reducer';
 import focus from './focus/reducer';
 import job from './job/reducer';
 import error from './error/reducer';
+import ticker from './ticker/reducer';
 
 export {
   auth,
@@ -13,5 +14,6 @@ export {
   coins,
   focus,
   job,
-  error
+  error,
+  ticker
 };

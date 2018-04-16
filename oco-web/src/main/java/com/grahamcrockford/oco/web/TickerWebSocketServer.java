@@ -43,8 +43,8 @@ public final class TickerWebSocketServer {
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
+    LOGGER.info("Opening socket");
     injectMembers(session);
-    session.getAsyncRemote().sendText("HELLO");
   }
 
   @OnMessage

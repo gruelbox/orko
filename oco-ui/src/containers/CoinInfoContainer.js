@@ -1,9 +1,7 @@
 import React from "react"
 import { connect } from "react-redux"
 import CoinInfo from "../components/CoinInfo"
-import * as coinActions from "../store/coin/actions"
-
-const TICK_TIME = 5000
+import * as tickerActions from "../store/ticker/actions"
 
 class CoinInfoContainer extends React.Component {
   constructor(props) {
@@ -11,26 +9,27 @@ class CoinInfoContainer extends React.Component {
     this.state = { loading: true }
   }
 
-  tick = () => {
-    this.props.dispatch(coinActions.fetchTicker(this.props.coin))
-    this.props.dispatch(coinActions.fetchBalance(this.props.coin))
-  }
-
   componentWillReceiveProps(nextProps) {
     if (nextProps.coin.key !== this.props.coin.key) {
-      this.setState({ loading: true }, () => this.tick())
+      if (this.props.coin) {
+        this.props.dispatch(tickerActions.stopTicker(this.props.coin))
+      }
+      this.setState({ loading: true }, () => this.props.dispatch(tickerActions.startTicker(nextProps.coin)))
     } else {
       this.setState({ loading: false })
     }
   }
 
-  componentDidMount() {
-    this.tick()
-    this.interval = setInterval(this.tick, TICK_TIME)
+  componentWillMount() {
+    if (this.props.coin) {
+      this.props.dispatch(tickerActions.startTicker(this.props.coin))
+    }
   }
 
   componentWillUnmount() {
-    clearInterval(this.interval)
+    if (this.props.coin) {
+      this.props.dispatch(tickerActions.stopTicker(this.props.coin))
+    }
   }
 
   render() {
@@ -53,7 +52,7 @@ class CoinInfoContainer extends React.Component {
 function mapStateToProps(state) {
   return {
     balance: state.coin.balance,
-    ticker: state.coin.ticker,
+    ticker: state.ticker.ticker,
     updateFocusedField: state.focus.fn
   }
 }

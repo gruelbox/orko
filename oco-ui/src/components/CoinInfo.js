@@ -44,12 +44,15 @@ export const CoinInfo = props => {
               >
                 {props.balance[coin.base].available}
               </Price>
-              <Price
-                name={coin.base + " affordable"}
-                onClick={props.onClickNumber}
-              >
-                {props.balance[coin.counter].available / this.props.ticker.ask}
-              </Price>
+              {props.ticker && (
+                <Price
+                  name={coin.base + " affordable"}
+                  onClick={props.onClickNumber}
+                >
+                  {props.balance[coin.counter].available /
+                    props.ticker.ask}
+                </Price>
+              )}
               <Price
                 name={coin.counter + " available"}
                 onClick={props.onClickNumber}
