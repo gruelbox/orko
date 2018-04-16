@@ -14,8 +14,7 @@ import com.grahamcrockford.oco.wiring.WiringModule;
 
 import io.dropwizard.lifecycle.Managed;
 
-public class CommonModule extends AbstractModule {
-
+class CommonModule extends AbstractModule {
   @Override
   protected void configure() {
     Multibinder.newSetBinder(binder(), Service.class);

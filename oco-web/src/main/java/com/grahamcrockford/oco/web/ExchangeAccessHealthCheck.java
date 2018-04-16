@@ -1,12 +1,12 @@
 package com.grahamcrockford.oco.web;
 
-import java.io.IOException;
-
 import org.knowm.xchange.dto.marketdata.Ticker;
 
 import com.codahale.metrics.health.HealthCheck;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.oco.web.ExchangeResource.Pair;
 
 /**
  * Just attempts to access binance.
@@ -25,13 +25,29 @@ class ExchangeAccessHealthCheck extends HealthCheck {
 
   @Override
   protected Result check() throws Exception {
-    try {
-      Ticker ticker = exchangeResource.ticker("binance", "USDT", "BTC");
-      if (ticker.getLast() == null)
-        return Result.unhealthy("No price returned");
-    } catch (IOException e) {
-      return Result.unhealthy(e);
-    }
-    return Result.healthy();
+    ResultBuilder result = Result.builder().healthy();
+
+    exchangeResource.list().stream().filter(ex -> !"gdax-sandbox".equals(ex)).forEach(exchange -> {
+      try {
+        Pair pair = Iterables.getFirst(exchangeResource.pairs(exchange), null);
+        if (pair == null) {
+          result.withDetail(exchange, "No pairs");
+          result.unhealthy();
+        } else {
+          Ticker ticker = exchangeResource.ticker(exchange, pair.counter, pair.base);
+          if (ticker.getLast() == null) {
+            result.withDetail(exchange + "/" + pair.counter + "/" + pair.base, "Nothing returned");
+            result.unhealthy();
+          } else {
+            result.withDetail(exchange + "/" + pair.counter + "/" + pair.base, "Last price: " + ticker.getLast());
+          }
+        }
+      } catch (Exception e) {
+        result.withDetail(exchange, "Exception: " + e.getMessage());
+        result.unhealthy(e);
+      }
+    });
+
+    return result.build();
   }
 }

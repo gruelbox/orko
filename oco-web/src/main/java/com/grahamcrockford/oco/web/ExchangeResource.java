@@ -144,7 +144,7 @@ public class ExchangeResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public Response orders(@PathParam("exchange") String exchangeCode,
-                            @PathParam("currency") String currency) throws IOException {
+                         @PathParam("currency") String currency) throws IOException {
 
     try {
 

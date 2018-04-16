@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.web;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.codahale.metrics.health.HealthCheck;
@@ -19,26 +20,47 @@ public class TickerWebsocketHealthCheck extends HealthCheck {
 
   @Override
   protected Result check() throws Exception {
-    ResultBuilder result = Result.builder();
+    ResultBuilder result = Result.builder().healthy();
     try {
 
       URI uri = new URI("ws://localhost:8080/api/ticker-ws");
 
       result.withDetail("uri", uri);
 
-      AtomicInteger tickersReceived = new AtomicInteger();
+      AtomicInteger bitfinexTickersReceived = new AtomicInteger();
+      AtomicInteger gdaxTickersReceived = new AtomicInteger();
+      AtomicInteger binanceTickersReceived = new AtomicInteger();
+      AtomicInteger unknownTickersReceived = new AtomicInteger();
 
       try (TickerWebsocketClient clientEndPoint = new TickerWebsocketClient(uri, objectMapper, event -> {
-        System.out.println(event);
-        tickersReceived.incrementAndGet();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> spec = (Map<String, Object>) event.get("spec");
+        switch ((String)spec.get("exchange")) {
+          case "binance":
+            binanceTickersReceived.incrementAndGet();
+            break;
+          case "gdax":
+            gdaxTickersReceived.incrementAndGet();
+            break;
+          case "bitfinex":
+            bitfinexTickersReceived.incrementAndGet();
+            break;
+          default:
+            unknownTickersReceived.incrementAndGet();
+            break;
+        }
       })) {
         clientEndPoint.addTicker(TickerSpec.builder().exchange("bitfinex").counter("USD").base("BTC").build());
-//        clientEndPoint.addTicker(TickerSpec.builder().exchange("gdax").counter("USD").base("EUR").build());
-//        clientEndPoint.addTicker(TickerSpec.builder().exchange("binance").counter("USDT").base("BTC").build());
+        clientEndPoint.addTicker(TickerSpec.builder().exchange("gdax").counter("USD").base("BTC").build());
+        clientEndPoint.addTicker(TickerSpec.builder().exchange("binance").counter("USDT").base("BTC").build());
         Thread.sleep(30000);
       }
 
-      return result.withDetail("tickersReceived", tickersReceived.get()).healthy().build();
+      return result
+          .withDetail("bitfinexTickersReceived", bitfinexTickersReceived.get())
+          .withDetail("gdaxTickersReceived", gdaxTickersReceived.get())
+          .withDetail("binanceTickersReceived", binanceTickersReceived.get())
+          .build();
 
     } catch (Throwable ex) {
       return result.unhealthy(ex).build();
