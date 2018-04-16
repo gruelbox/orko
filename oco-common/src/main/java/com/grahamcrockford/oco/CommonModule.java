@@ -9,6 +9,7 @@ import com.grahamcrockford.oco.job.JobsModule;
 import com.grahamcrockford.oco.mq.MqModule;
 import com.grahamcrockford.oco.ticker.TickerModule;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.WebResource;
 import com.grahamcrockford.oco.wiring.WiringModule;
 
 import io.dropwizard.lifecycle.Managed;
@@ -21,6 +22,7 @@ public class CommonModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), Managed.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class);
     Multibinder.newSetBinder(binder(), HealthCheck.class);
+    Multibinder.newSetBinder(binder(), WebResource.class);
     install(new WiringModule());
     install(new DbModule());
     install(new MqModule());
