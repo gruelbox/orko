@@ -14,7 +14,7 @@ import javax.ws.rs.core.Response;
 import com.codahale.metrics.annotation.Timed;
 import com.grahamcrockford.oco.api.auth.AuthConfiguration;
 import com.grahamcrockford.oco.api.auth.OktaConfiguration;
-import com.grahamcrockford.oco.web.WebResource;
+import com.grahamcrockford.oco.wiring.WebResource;
 
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)

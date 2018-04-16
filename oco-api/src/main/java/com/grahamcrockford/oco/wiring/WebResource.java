@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.wiring;
 
 /**
  * Marker interface for JAX-RS resources.

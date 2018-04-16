@@ -30,7 +30,7 @@ import com.grahamcrockford.oco.api.job.SoftTrailingStop;
 import com.grahamcrockford.oco.api.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.api.job.SoftTrailingStop.Builder;
 import com.grahamcrockford.oco.api.process.JobSubmitter;
-import com.grahamcrockford.oco.core.ExchangeEventRegistry;
+import com.grahamcrockford.oco.api.ticker.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.telegram.TelegramService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;

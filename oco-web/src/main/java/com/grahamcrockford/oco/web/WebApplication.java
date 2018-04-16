@@ -1,31 +1,24 @@
 package com.grahamcrockford.oco.web;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
-import javax.websocket.CloseReason;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.client.Client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.annotation.ExceptionMetered;
-import com.codahale.metrics.annotation.Metered;
-import com.codahale.metrics.annotation.Timed;
-import com.google.common.collect.ImmutableSet;
+import com.codahale.metrics.health.HealthCheck;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
+import com.grahamcrockford.oco.web.service.TickerWebSocketServer;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.ManagedServiceTask;
+import com.grahamcrockford.oco.wiring.WebResource;
 
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
@@ -44,49 +37,18 @@ public class WebApplication extends Application<OcoConfiguration> {
     new WebApplication().run(args);
   }
 
+  @Inject private Set<Service> services;
   @Inject private Set<EnvironmentInitialiser> environmentInitialisers;
   @Inject private Set<WebResource> webResources;
   @Inject private Set<Managed> managedTasks;
+  @Inject private Set<HealthCheck> healthChecks;
+
+  private WebsocketBundle websocketBundle;
 
 
   @Override
   public String getName() {
     return "Background Trade Control: Web API";
-  }
-
-  @Metered
-  @Timed
-  @ExceptionMetered
-  @ServerEndpoint("/api/fuck")
-  public static final class FuckServer {
-
-    private final AtomicBoolean closed = new AtomicBoolean();
-
-    @OnOpen
-    public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
-      try {
-        session.getBasicRemote().sendText("Fucking welcome.");
-        while (session.isOpen()) {
-          session.getBasicRemote().sendText("Fuck.");
-          Thread.sleep(1000);
-        }
-      } catch (Throwable e) {
-        session.close();
-      }
-    }
-
-    @OnMessage
-    public void myOnMsg(final javax.websocket.Session session, String message) {
-    }
-
-    @OnClose
-    public void myOnClose(final javax.websocket.Session session, CloseReason cr) {
-    }
-
-    @OnError
-    public void onError(Throwable error) {
-    }
-
   }
 
   @Override
@@ -97,17 +59,20 @@ public class WebApplication extends Application<OcoConfiguration> {
         new EnvironmentVariableSubstitutor()
       )
     );
-    bootstrap.addBundle(new WebsocketBundle(null, ImmutableSet.of(FuckServer.class), Collections.emptyList()));
+    websocketBundle = new WebsocketBundle(new Class[] {});
+    bootstrap.addBundle(websocketBundle);
   }
 
   @Override
   public void run(final OcoConfiguration configuration, final Environment environment) {
 
     // Jersey client
-    final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
+    final Client jerseyClient = new JerseyClientBuilder(environment)
+        .using(configuration.getJerseyClientConfiguration()).build(getName());
 
     // Injector
-    final Injector injector = Guice.createInjector(new WebModule(configuration, environment.getObjectMapper(), jerseyClient));
+    Injector injector = Guice.createInjector(
+        new WebModule(configuration, environment.getObjectMapper(), jerseyClient));
     injector.injectMembers(this);
 
     environment.servlets().addFilter("GuiceFilter", GuiceFilter.class)
@@ -115,8 +80,7 @@ public class WebApplication extends Application<OcoConfiguration> {
 
     // Any environment initialisation
     environmentInitialisers.stream()
-
-    .peek(t -> LOGGER.info("Initialising environment for {}", t))
+      .peek(t -> LOGGER.info("Initialising environment for {}", t))
       .forEach(t -> t.init(environment));
 
     // Any managed tasks
@@ -124,9 +88,24 @@ public class WebApplication extends Application<OcoConfiguration> {
       .peek(t -> LOGGER.info("Starting managed task {}", t))
       .forEach(environment.lifecycle()::manage);
 
+    // And any bound services
+    services.stream()
+      .peek(t -> LOGGER.info("Starting managed task {}", t))
+      .map(ManagedServiceTask::new)
+      .forEach(environment.lifecycle()::manage);
+
     // And any REST resources
     webResources.stream()
       .peek(t -> LOGGER.info("Registering resource {}", t))
       .forEach(environment.jersey()::register);
+
+    // And health checks
+    healthChecks.stream()
+      .peek(t -> LOGGER.info("Registering resource {}", t))
+      .forEach(t -> environment.healthChecks().register(t.getClass().getSimpleName(), t));
+
+    final ServerEndpointConfig config = ServerEndpointConfig.Builder.create(TickerWebSocketServer.class, "/api/ticker-ws").build();
+    config.getUserProperties().put(Injector.class.getName(), injector);
+    websocketBundle.addEndpoint(config);
   }
 }

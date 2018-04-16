@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.wiring;
 
 import com.google.common.util.concurrent.Service;
 
@@ -7,11 +7,11 @@ import io.dropwizard.lifecycle.Managed;
 /**
  * Allows a {@link Service} to be managed by DropWizard lifecycle.
  */
-final class ManagedServiceTask implements Managed {
+public final class ManagedServiceTask implements Managed {
 
   private final Service task;
 
-  ManagedServiceTask(Service task) {
+  public ManagedServiceTask(Service task) {
     this.task = task;
   }
 

@@ -35,7 +35,7 @@ import com.grahamcrockford.oco.api.process.JobAccess.JobDoesNotExistException;
 import com.grahamcrockford.oco.api.process.JobSubmitter;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.web.WebResource;
+import com.grahamcrockford.oco.wiring.WebResource;
 
 import io.dropwizard.auth.AuthenticationException;
 

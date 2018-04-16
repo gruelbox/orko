@@ -2,7 +2,7 @@ package com.grahamcrockford.oco.api.db;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
 

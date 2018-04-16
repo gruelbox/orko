@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.wiring;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

@@ -33,6 +33,50 @@
 			<artifactId>xchange-gdax</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-binance</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-kucoin</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-cryptopia</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-bitfinex</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-bitmex</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-bittrex</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.knowm.xchange</groupId>
+			<artifactId>xchange-okcoin</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-binance</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-bitfinex</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-okcoin</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>info.bitrich.xchange-stream</groupId>
+		    <artifactId>xchange-gdax</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-client</artifactId>
 		</dependency>

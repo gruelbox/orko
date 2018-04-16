@@ -2,7 +2,7 @@ package com.grahamcrockford.oco.web.service;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
 
@@ -18,6 +18,6 @@ class CoreEnvironment implements EnvironmentInitialiser {
 
   @Override
   public void init(Environment environment) {
-    environment.healthChecks().register("core", coreHealthCheck);
+//    environment.healthChecks().register("core", coreHealthCheck);
   }
 }

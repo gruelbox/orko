@@ -14,7 +14,7 @@ import org.eclipse.jetty.util.security.Password;
 import com.google.common.cache.CacheBuilderSpec;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.api.auth.AuthConfiguration;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import com.okta.jwt.JwtHelper;
 import com.okta.jwt.JwtVerifier;
 

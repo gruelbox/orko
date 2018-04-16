@@ -12,7 +12,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.api.job.PumpChecker;
-import com.grahamcrockford.oco.core.ExchangeEventRegistry;
+import com.grahamcrockford.oco.api.ticker.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.telegram.TelegramService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;

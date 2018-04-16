@@ -1,14 +1,16 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.api.ticker;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.eventbus.EventBus;
@@ -26,7 +28,8 @@ import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.disposables.Disposable;
 
 @Singleton
-class TickerGenerator extends AbstractExecutionThreadService {
+@VisibleForTesting
+public class TickerGenerator extends AbstractExecutionThreadService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TickerGenerator.class);
 
@@ -40,7 +43,8 @@ class TickerGenerator extends AbstractExecutionThreadService {
 
 
   @Inject
-  TickerGenerator(EventBus eventBus, ExchangeService exchangeService, Sleep sleep) {
+  @VisibleForTesting
+  public TickerGenerator(EventBus eventBus, ExchangeService exchangeService, Sleep sleep) {
     this.exchangeService = exchangeService;
     this.eventBus = eventBus;
     this.sleep = sleep;
@@ -145,6 +149,7 @@ class TickerGenerator extends AbstractExecutionThreadService {
   }
 
   private void onTicker(TickerSpec spec, Ticker ticker) {
+    LOGGER.debug("Got ticker {} on {}", ticker, spec);
     eventBus.post(TickerEvent.create(spec, ticker));
   }
 

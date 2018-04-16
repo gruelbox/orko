@@ -10,7 +10,7 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.util.CheckedExceptions;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import com.mongodb.MongoClient;
 import io.dropwizard.lifecycle.Managed;
 

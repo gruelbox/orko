@@ -22,7 +22,7 @@ import org.mockito.MockitoAnnotations;
 import com.grahamcrockford.oco.api.job.OneCancelsOther;
 import com.grahamcrockford.oco.api.job.OneCancelsOther.ThresholdAndJob;
 import com.grahamcrockford.oco.api.process.JobSubmitter;
-import com.grahamcrockford.oco.core.ExchangeEventRegistry;
+import com.grahamcrockford.oco.api.ticker.ExchangeEventRegistry;
 import com.grahamcrockford.oco.core.telegram.TelegramService;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;

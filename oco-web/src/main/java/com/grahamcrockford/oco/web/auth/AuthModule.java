@@ -5,8 +5,8 @@ import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.auth.AuthConfiguration;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
-import com.grahamcrockford.oco.web.WebResource;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.WebResource;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 

@@ -25,15 +25,15 @@ import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.api.exchange.ExchangeService;
 import com.grahamcrockford.oco.api.process.JobAccess;
 import com.grahamcrockford.oco.api.process.JobLocker;
+import com.grahamcrockford.oco.api.ticker.TickerGenerator;
 import com.grahamcrockford.oco.api.util.Sleep;
-import com.grahamcrockford.oco.core.ExecutorServiceManager;
 import com.grahamcrockford.oco.core.JobRunner;
 import com.grahamcrockford.oco.core.GuardianLoop;
 import com.grahamcrockford.oco.core.StopEvent;
-import com.grahamcrockford.oco.core.TickerGenerator;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
+import com.grahamcrockford.oco.wiring.ExecutorServiceManager;
 
 public class TestJobExecutionIntegration {
 

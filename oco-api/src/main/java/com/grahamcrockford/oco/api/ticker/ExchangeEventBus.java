@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.api.ticker;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
@@ -7,6 +7,8 @@ import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
@@ -18,6 +20,8 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 
 @Singleton
 class ExchangeEventBus implements ExchangeEventRegistry {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeEventBus.class);
 
   private final ExecutorService executorService;
   private final Multimap<TickerSpec, CallbackDef> listeners = MultimapBuilder.hashKeys().hashSetValues().build();
@@ -57,6 +61,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
   @Subscribe
   public void tickerEvent(TickerEvent tickerEvent) {
+    LOGGER.debug("Ticker event: {}", tickerEvent);
     long stamp = rwLock.readLock();
     try {
       listeners.get(tickerEvent.spec()).forEach(c -> executorService.execute(() -> c.process(tickerEvent.ticker())));

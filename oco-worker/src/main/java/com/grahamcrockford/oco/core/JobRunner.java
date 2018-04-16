@@ -55,6 +55,7 @@ class JobRunner {
         jobAccess.insert(job);
       } catch (JobAlreadyExistsException e) {
         LOGGER.info("Job " + job.id() + " already exists");
+
       }
       new JobLifetimeManager(job).start();
     }

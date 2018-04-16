@@ -37,7 +37,7 @@ import com.grahamcrockford.oco.api.auth.Roles;
 import com.grahamcrockford.oco.api.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.api.exchange.ExchangeService;
 import com.grahamcrockford.oco.api.exchange.TradeServiceFactory;
-import com.grahamcrockford.oco.web.WebResource;
+import com.grahamcrockford.oco.wiring.WebResource;
 
 /**
  * Access to exchange information.

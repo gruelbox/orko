@@ -13,7 +13,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
+import com.grahamcrockford.oco.wiring.ManagedServiceTask;
 
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;

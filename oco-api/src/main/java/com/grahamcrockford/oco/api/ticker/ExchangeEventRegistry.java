@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.core;
+package com.grahamcrockford.oco.api.ticker;
 
 import java.util.function.Consumer;
 

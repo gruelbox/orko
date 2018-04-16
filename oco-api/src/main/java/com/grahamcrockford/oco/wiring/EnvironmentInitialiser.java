@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.api.util;
+package com.grahamcrockford.oco.wiring;
 
 import io.dropwizard.setup.Environment;
 
