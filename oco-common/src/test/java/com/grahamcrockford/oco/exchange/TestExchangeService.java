@@ -3,7 +3,6 @@ package com.grahamcrockford.oco.exchange;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.knowm.xchange.bitmex.BitmexExchange;
 import org.knowm.xchange.bittrex.BittrexExchange;
 import org.knowm.xchange.kucoin.KucoinExchange;
 
@@ -28,7 +27,6 @@ public class TestExchangeService {
     Assert.assertTrue(exchangeService.getExchanges().contains("gdax-sandbox"));
     Assert.assertTrue(exchangeService.getExchanges().contains("binance"));
     Assert.assertTrue(exchangeService.getExchanges().contains("bitfinex"));
-    Assert.assertTrue(exchangeService.getExchanges().contains("bitmex"));
     Assert.assertTrue(exchangeService.getExchanges().contains("kucoin"));
   }
 
@@ -46,11 +44,6 @@ public class TestExchangeService {
   @Test
   public void testBitfinex() {
     Assert.assertEquals(BitfinexStreamingExchange.class, exchangeService.map("bitfinex"));
-  }
-
-  @Test
-  public void testBitmex() {
-    Assert.assertEquals(BitmexExchange.class, exchangeService.map("bitmex"));
   }
 
   @Test
