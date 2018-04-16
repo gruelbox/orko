@@ -33,23 +33,23 @@ const theme = {
   keyFrames: {
     flashGreen: props => keyframes`
       from {
-        text-shadow: 0 0 5px ${props.theme.colors.buy};
-        color: ${props.theme.colors.buy};
+        background-color: ${props.theme.colors.buy};
+        color: black;
       }
     
       to {
-        text-shadow: none;
+        background-color: none;
         color: ${props.theme.colors.fore};
       }
     `,
     flashRed: props => keyframes`
       from {
-        text-shadow: 0 0 5px ${props.theme.colors.sell};
-        color: ${props.theme.colors.sell};
+        background-color ${props.theme.colors.sell};
+        color: black;
       }
     
       to {
-        text-shadow: none;
+        background-color: none;
         color: ${props.theme.colors.fore};
       }
     `
