@@ -11,13 +11,13 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.api.process.JobAccess;
-import com.grahamcrockford.oco.api.process.JobAccess.JobAlreadyExistsException;
-import com.grahamcrockford.oco.api.process.JobLocker;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
+import com.grahamcrockford.oco.submit.JobAccess;
+import com.grahamcrockford.oco.submit.JobLocker;
+import com.grahamcrockford.oco.submit.JobAccess.JobAlreadyExistsException;
 
 @Singleton
 class JobRunner {

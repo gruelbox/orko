@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.api.process;
+package com.grahamcrockford.oco.submit;
 
 import java.util.UUID;
 
@@ -20,7 +20,7 @@ class JobSubmitterImpl implements JobSubmitter {
 
   /**
    * @throws PublishFailedException
-   * @see com.grahamcrockford.oco.api.process.JobSubmitter#submitNew(T)
+   * @see com.grahamcrockford.oco.submit.JobSubmitter#submitNew(T)
    */
   @Override
   @SuppressWarnings({ "unchecked" })

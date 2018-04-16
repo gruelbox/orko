@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.api.process;
+package com.grahamcrockford.oco.submit;
 
 import com.google.inject.ImplementedBy;
 import com.grahamcrockford.oco.spi.Job;

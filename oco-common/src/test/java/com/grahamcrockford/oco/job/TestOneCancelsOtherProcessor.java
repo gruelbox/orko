@@ -20,11 +20,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.grahamcrockford.oco.api.process.JobSubmitter;
 import com.grahamcrockford.oco.job.OneCancelsOther.ThresholdAndJob;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.submit.JobSubmitter;
 import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 

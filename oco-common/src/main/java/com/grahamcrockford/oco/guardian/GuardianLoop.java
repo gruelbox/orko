@@ -8,9 +8,9 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.process.JobAccess;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
+import com.grahamcrockford.oco.submit.JobAccess;
 
 @Singleton
 class GuardianLoop extends AbstractExecutionThreadService {

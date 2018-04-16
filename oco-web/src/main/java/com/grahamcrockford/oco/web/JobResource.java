@@ -23,8 +23,6 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
-import com.grahamcrockford.oco.api.process.JobAccess;
-import com.grahamcrockford.oco.api.process.JobAccess.JobDoesNotExistException;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.LimitOrderJob;
@@ -32,9 +30,11 @@ import com.grahamcrockford.oco.job.OrderStateNotifier;
 import com.grahamcrockford.oco.job.PumpChecker;
 import com.grahamcrockford.oco.job.SoftTrailingStop;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
-import com.grahamcrockford.oco.api.process.JobSubmitter;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.submit.JobAccess;
+import com.grahamcrockford.oco.submit.JobSubmitter;
+import com.grahamcrockford.oco.submit.JobAccess.JobDoesNotExistException;
 import com.grahamcrockford.oco.wiring.WebResource;
 
 import io.dropwizard.auth.AuthenticationException;

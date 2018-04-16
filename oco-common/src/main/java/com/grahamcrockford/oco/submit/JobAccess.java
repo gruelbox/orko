@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.api.process;
+package com.grahamcrockford.oco.submit;
 
 import java.util.function.Supplier;
 
@@ -18,7 +18,7 @@ import com.mongodb.MongoClient;
 
 
 /**
- * Simple wrapper for sending orders to the queue.
+ * Direct access to the data store.
  */
 @Singleton
 public class JobAccess {

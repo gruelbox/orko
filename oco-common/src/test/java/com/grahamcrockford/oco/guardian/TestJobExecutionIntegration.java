@@ -24,8 +24,6 @@ import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.process.JobAccess;
-import com.grahamcrockford.oco.api.process.JobLocker;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.guardian.GuardianLoop;
 import com.grahamcrockford.oco.guardian.JobRunner;
@@ -33,6 +31,8 @@ import com.grahamcrockford.oco.guardian.StopEvent;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
+import com.grahamcrockford.oco.submit.JobAccess;
+import com.grahamcrockford.oco.submit.JobLocker;
 import com.grahamcrockford.oco.ticker.TickerGenerator;
 import com.grahamcrockford.oco.util.Sleep;
 

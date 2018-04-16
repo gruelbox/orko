@@ -22,12 +22,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.grahamcrockford.oco.api.process.JobSubmitter;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.submit.JobSubmitter;
 import com.grahamcrockford.oco.telegram.TelegramService;
 
 public class TestLimitOrderJobProcessor {
