@@ -15,9 +15,8 @@ export function del(url, token) {
 }
 
 export function ws(url) {
-  //const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  return new ReconnectingWebSocket('ws://localhost:8080/api/' + url)
-  //return new WebSocket(protocol + "://" + window.location.host + '/api/' + url)
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  return new ReconnectingWebSocket(protocol + "://" + window.location.host + '/api/' + url)
 }
 
 function action(method, token, content) {

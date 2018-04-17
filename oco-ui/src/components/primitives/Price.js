@@ -30,6 +30,7 @@ const PriceValue = styled.td.attrs({
   fontSize: 1,
   py: 0,
   pl: 1,
+  pr: 1,
   m: 0,
   fontFamily: "mono"
 })`
