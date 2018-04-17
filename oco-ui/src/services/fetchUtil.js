@@ -1,3 +1,5 @@
+import ReconnectingWebSocket from 'reconnecting-websocket'
+
 const defaultSettings = { method: 'GET', mode: 'cors', redirect: 'follow' };
 
 export function get(url, token) {
@@ -14,7 +16,7 @@ export function del(url, token) {
 
 export function ws(url) {
   //const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  return new WebSocket('ws://localhost:8080/api/' + url)
+  return new ReconnectingWebSocket('ws://localhost:8080/api/' + url)
   //return new WebSocket(protocol + "://" + window.location.host + '/api/' + url)
 }
 

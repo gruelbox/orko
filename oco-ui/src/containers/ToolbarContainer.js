@@ -16,9 +16,17 @@ const ToolbarBox = styled.div`
   background-color: ${props => props.theme.colors.toolbar} ${space};
 `
 
-const BackgroundErrors = props => {
-  const errors = props.errorBackground
-  const errorKeys = Object.keys(props.errorBackground)
+const TickerSocketState = ({ connected }) => {
+  return (
+    <Span color={connected ? "black" : "red"} ml={4} fontWeight="bold">
+      <Icon name="wifi" color={connected ? "black" : "red"} />
+      {connected ? "Socket connected" : "Socket down"}
+    </Span>
+  )
+}
+
+const BackgroundErrors = ({ errors }) => {
+  const errorKeys = Object.keys(errors)
   const hasErrors = errorKeys.length !== 0
   const errorString = hasErrors
     ? errorKeys.map(k => errors[k]).join(", ")
@@ -31,23 +39,23 @@ const BackgroundErrors = props => {
   )
 }
 
-const HomeLink = props => (
+const HomeLink = () => (
   <Link to="/" color="black" fontWeight="bold">
     Home
   </Link>
 )
 
-const SignOutLink = props => (
+const SignOutLink = ({ onClick, userName }) => (
   <Span ml="auto" color="black">
-    <Href color="black" fontWeight="bold" onClick={props.onClick}>
+    <Href color="black" fontWeight="bold" onClick={onClick}>
       Sign out
     </Href>
-    &nbsp;({props.userName})
+    &nbsp;({userName})
   </Span>
 )
 
-const InvalidateLink = props => (
-  <Href ml={4} color="black" fontWeight="bold" onClick={props.onClick}>
+const InvalidateLink = ({ onClick }) => (
+  <Href ml={4} color="black" fontWeight="bold" onClick={onClick}>
     Invalidate whitelist
   </Href>
 )
@@ -58,7 +66,8 @@ const ToolbarContainer = props => {
       <ToolbarBox>
         <Toolbar>
           <HomeLink />
-          <BackgroundErrors errorBackground={props.errorBackground} />
+          <TickerSocketState connected={props.connected} />
+          <BackgroundErrors errors={props.errors} />
           <SignOutLink
             userName={props.userName}
             onClick={() => props.dispatch(authActions.logout())}
@@ -74,8 +83,9 @@ const ToolbarContainer = props => {
 
 function mapStateToProps(state) {
   return {
-    errorBackground: state.error.errorBackground,
-    userName: state.auth.userName
+    errors: state.error.errorBackground,
+    userName: state.auth.userName,
+    connected: state.ticker.connected
   }
 }
 

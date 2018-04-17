@@ -1,28 +1,30 @@
 package com.grahamcrockford.oco.web;
 
+import static com.grahamcrockford.oco.web.TickerWebSocketRequest.Command.START;
+import static com.grahamcrockford.oco.web.TickerWebSocketRequest.Command.STOP;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.web.TickerWebSocketRequest.Command;
 
 @ClientEndpoint
 public class TickerWebsocketClient implements AutoCloseable {
 
-  private final CountDownLatch ready = new CountDownLatch(1);
   private final Consumer<Map<String, Object>> consumer;
   private final ObjectMapper objectMapper;
 
@@ -36,31 +38,38 @@ public class TickerWebsocketClient implements AutoCloseable {
     try {
       WebSocketContainer container = ContainerProvider.getWebSocketContainer();
       container.connectToServer(this, endpointURI);
-      if (!ready.await(10, TimeUnit.SECONDS)) {
-        throw new TimeoutException("Failed to receive handshake within timeout");
-      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
+  @OnOpen
+  public void onOpen(Session session) {
+    this.session = session;
+  }
+
   @SuppressWarnings({ "unchecked" })
   @OnMessage
   public void onMessage(String message, Session session) throws JsonParseException, JsonMappingException, IOException {
-    if ("HELLO".equals(message)) {
-      this.session = session;
-      ready.countDown();
-    } else {
-      consumer.accept(objectMapper.readValue(message, Map.class));
-    }
+    consumer.accept(objectMapper.readValue(message, Map.class));
   }
 
   public void addTicker(TickerSpec spec) {
-    this.session.getAsyncRemote().sendText("START/" + spec.exchange() + "/" + spec.counter() + "/" + spec.base());
+    sendCommand(START, spec);
   }
 
   public void removeTicker(TickerSpec spec) {
-    this.session.getAsyncRemote().sendText("STOP/" + spec.exchange() + "/" + spec.counter() + "/" + spec.base());
+    sendCommand(STOP, spec);
+  }
+
+  private void sendCommand(Command command, TickerSpec spec) {
+    try {
+      TickerWebSocketRequest request = TickerWebSocketRequest.create(command, spec);
+      String message = objectMapper.writeValueAsString(request);
+      this.session.getAsyncRemote().sendText(message);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

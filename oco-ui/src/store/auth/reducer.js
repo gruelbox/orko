@@ -18,7 +18,7 @@ const initialState = Immutable({
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_WHITELIST_STATUS:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         whitelisted: action.status,
         error: null,
@@ -27,14 +27,14 @@ export default function reduce(state = initialState, action = {}) {
                        // which will invalidate the login if it's not working.
       });
     case types.SET_WHITELIST_ERROR:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         whitelisted: false,
         error: action.error,
         loading: false
       });
     case types.SET_WHITELIST_EXPIRED:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         whitelisted: false,
         loggedIn: false,
@@ -42,12 +42,12 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.SET_OKTA_CONFIG:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         config: action.config,
       });
     case types.SET_TOKEN:
-      console.log(action.type);
+      console.debug(action.type);
       localStorage.setItem(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
@@ -63,7 +63,7 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.INVALIDATE_LOGIN:
-      console.log(action.type);
+      console.debug(action.type);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       return Immutable.merge(state, {
         loggedIn: false,
@@ -73,7 +73,7 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.LOGOUT:
-      console.log(action.type);
+      console.debug(action.type);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       return Immutable.merge(state, {
         loggedIn: false,

@@ -4,12 +4,17 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.codahale.metrics.health.HealthCheck;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
 public class TickerWebsocketHealthCheck extends HealthCheck {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TickerWebsocketHealthCheck.class);
 
   private final ObjectMapper objectMapper;
 
@@ -63,7 +68,8 @@ public class TickerWebsocketHealthCheck extends HealthCheck {
           .build();
 
     } catch (Throwable ex) {
-      return result.unhealthy(ex).build();
+      LOGGER.error("Error in healthcheck", ex);
+      return result.withDetail("errorDescription", ex.getClass().getSimpleName() + ": " + ex.getMessage()).unhealthy(ex).build();
     }
   }
 }

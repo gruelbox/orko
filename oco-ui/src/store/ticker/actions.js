@@ -1,22 +1,9 @@
 import * as types from './actionTypes';
-import exchangesService from '../../services/exchanges';
-import * as authActions from '../auth/actions';
-import * as errorActions from '../error/actions';
-import { take, call, put, select, race, all } from 'redux-saga/effects'
+import { take, call, put, race, all, select } from 'redux-saga/effects'
 import { ws } from "../../services/fetchUtil"
 import { eventChannel } from 'redux-saga'
-
-export function* watchTicker(action) {
-  const auth = select((state) => state.auth)
-  yield authActions.dispatchWrappedRequest(
-    auth,
-    put,
-    auth => call(exchangesService, action.coin, auth),
-    ticker => ({ type: types.SET_TICKER, ticker }),
-    error => errorActions.addBackground("Could not fetch ticker: " + error.message, "ticker"),
-    () => errorActions.clearBackground("ticker")
-  )
-}
+import { coin as createCoin } from '../coin/reducer'
+import { coinFromKey } from '../coin/reducer'
 
 export function startTicker(coin) {
   return { type: types.START_TICKER, coin }
@@ -30,36 +17,65 @@ function tickerChannel(socket) {
   return eventChannel(emit => {
     socket.onmessage = evt => {
       try {
-        const data = JSON.parse(evt.data);
-        emit(data.ticker)
+        emit(JSON.parse(evt.data))
       } catch (e) {
         console.log("Invalid ticker data", evt.data)
       }
     }
+    socket.onopen = () => emit("OPEN")
+    socket.onclose = () => emit("CLOSE")
     return socket.close
   })
 }
 
 function* tickerListener(socketChannel) {
   while (true) {
-    const ticker = yield take(socketChannel);
-    yield put({ type: types.SET_TICKER, ticker })
+    const message = yield take(socketChannel);
+    if (message === "OPEN") {
+      const state = yield select();
+      const keys = Object.keys(state.ticker.coins);
+      for (var i = 0 ; i < keys.length ; i++) {
+        var coinKey = keys[i]
+        yield put({ type: types.START_TICKER, coin: coinFromKey(coinKey) })
+      }
+      yield put({ type: types.SET_CONNECTION_STATE, connected: true })
+    } else if (message === "CLOSE") {
+      yield put({ type: types.SET_CONNECTION_STATE, connected: false })
+    } else {
+      yield put({
+        type: types.SET_TICKER,
+        coin: createCoin(message.spec.exchange, message.spec.counter, message.spec.base),
+        ticker: message.ticker
+      })
+    }
   }
 }
 
 function* startListener(socket) {
   while (true) {
     const { coin } = yield take(types.START_TICKER)
-    console.log("-> START/", coin.key)
-    socket.send("START/" + coin.key);
+    socket.send(JSON.stringify({
+      command: "START",
+      ticker: {
+        exchange: coin.exchange,
+        counter: coin.counter,
+        base: coin.base
+      }
+    }));
   }
 }
 
 function* stopListener(socket) {
   while (true) {
     const { coin } = yield take(types.STOP_TICKER);
-    console.log("-> STOP", coin.key)
-    socket.send("STOP/" + coin.key);
+    socket.send(JSON.stringify({
+      command: "STOP",
+      ticker: {
+        exchange: coin.exchange,
+        counter: coin.counter,
+        base: coin.base
+      }
+    }));
   }
 }
 
@@ -67,6 +83,7 @@ export function* watcher() {
   while (true) {
     const socket = yield call(ws, "ticker-ws")
     const socketChannel = yield call(tickerChannel, socket)
+    yield put({ type: types.SET_CONNECTION_STATE, connected: socket.readyState === 1 })
     yield race({
       task: all([
         call(tickerListener, socketChannel),

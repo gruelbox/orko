@@ -4,8 +4,6 @@ import * as types from './actionTypes';
 const LOCAL_STORAGE_KEY = 'CoinContainer.coins';
 const loaded = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-console.log("Loaded coins", loaded);
-
 const initialState = Immutable({
   coins: (loaded)
             ? Immutable(JSON.parse(loaded))
@@ -17,13 +15,13 @@ export default function reduce(state = initialState, action = {}) {
   var newState;
   switch (action.type) {
     case types.ADD:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       newCoins = state.coins.concat([action.coin])
       newState = Immutable({ coins: newCoins });
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins));
       return newState;
     case types.REMOVE:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       newCoins = state.coins.filter(c => c.key !== action.coin.key);
       newState = Immutable({ coins: newCoins });
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins));

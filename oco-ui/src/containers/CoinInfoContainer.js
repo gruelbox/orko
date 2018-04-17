@@ -37,7 +37,7 @@ class CoinInfoContainer extends React.Component {
       <CoinInfo
         coin={this.props.coin}
         balance={this.props.balance}
-        ticker={this.props.ticker}
+        ticker={this.props.tickers[this.props.coin.key]}
         loading={this.state.loading}
         onClickNumber={number => {
           if (this.props.updateFocusedField) {
@@ -52,7 +52,7 @@ class CoinInfoContainer extends React.Component {
 function mapStateToProps(state) {
   return {
     balance: state.coin.balance,
-    ticker: state.ticker.ticker,
+    tickers: state.ticker.coins,
     updateFocusedField: state.focus.fn
   }
 }

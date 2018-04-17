@@ -49,22 +49,24 @@ public final class TickerWebSocketServer {
 
   @OnMessage
   public void myOnMsg(final javax.websocket.Session session, String message) {
-    String[] split = message.split("/");
-    if (split.length != 4)
-      throw new IllegalArgumentException("Invalid instruction: " + message);
+    TickerWebSocketRequest request;
+    try {
+      request = objectMapper.readValue(message, TickerWebSocketRequest.class);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid request", e);
+    }
 
-    TickerSpec spec = TickerSpec.builder().exchange(split[1]).counter(split[2]).base(split[3]).build();
-
-    if (split[0].equals("START")) {
-      if (registeredTickers.putIfAbsent(spec, false) == null) {
-        exchangeEventRegistry.registerTicker(spec, uuid, ticker -> tick(session, spec, ticker));
+    if (request.command().equals(TickerWebSocketRequest.Command.START)) {
+      if (registeredTickers.putIfAbsent(request.ticker(), false) == null) {
+        exchangeEventRegistry.registerTicker(request.ticker(), uuid, ticker -> tick(session, request.ticker(), ticker));
       }
-    } else if (split[0].equals("STOP")) {
-      if (registeredTickers.remove(spec) != null) {
-        exchangeEventRegistry.unregisterTicker(spec, uuid);
+    } else if (request.command().equals(TickerWebSocketRequest.Command.STOP)) {
+      if (registeredTickers.remove(request.ticker()) != null) {
+        exchangeEventRegistry.unregisterTicker(request.ticker(), uuid);
       }
     } else {
-      throw new IllegalArgumentException("Invalid verb: " + split[0]);
+      // Jackson should stop this happening in the try block above, but just for completeness
+      throw new IllegalArgumentException("Invalid command: " + request.command());
     }
   }
 
