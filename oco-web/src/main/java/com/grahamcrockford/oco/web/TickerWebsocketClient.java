@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.web.TickerWebSocketRequest.Command;
 
-@ClientEndpoint
+@ClientEndpoint(configurator = TickerWebsocketClientConfigurator.class)
 public class TickerWebsocketClient implements AutoCloseable {
 
   private final Consumer<Map<String, Object>> consumer;

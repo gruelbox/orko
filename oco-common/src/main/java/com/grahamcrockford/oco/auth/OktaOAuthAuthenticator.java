@@ -10,10 +10,8 @@ import com.okta.jwt.Jwt;
 import com.okta.jwt.JwtVerifier;
 
 import io.dropwizard.auth.AuthenticationException;
-import io.dropwizard.auth.Authenticator;
-import io.dropwizard.auth.Authorizer;
 
-class OktaOAuthAuthenticator implements Authenticator<String, AccessTokenPrincipal>, Authorizer<AccessTokenPrincipal> {
+class OktaOAuthAuthenticator implements AuthenticatorAuthoriser {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OktaOAuthAuthenticator.class);
 

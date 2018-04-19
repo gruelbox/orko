@@ -37,10 +37,6 @@
 			<groupId>com.google.auto.value</groupId>
 			<artifactId>auto-value</artifactId>
 		</dependency>
-		<dependency>
-		    <groupId>com.liveperson</groupId>
-		    <artifactId>dropwizard-websockets</artifactId>
-		</dependency>
 	</dependencies>
 
 	<build>

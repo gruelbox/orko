@@ -68,7 +68,7 @@ public class ExchangeResource implements WebResource {
    */
   @GET
   @Timed
-  @RolesAllowed(Roles.PUBLIC)
+  @RolesAllowed(Roles.TRADER)
   public Collection<String> list() {
     return exchanges.getExchanges();
   }
@@ -83,7 +83,7 @@ public class ExchangeResource implements WebResource {
   @GET
   @Timed
   @Path("{exchange}/pairs")
-  @RolesAllowed(Roles.PUBLIC)
+  @RolesAllowed(Roles.TRADER)
   public Collection<Pair> pairs(@PathParam("exchange") String exchange) {
     return exchanges.get(exchange)
         .getExchangeMetaData()

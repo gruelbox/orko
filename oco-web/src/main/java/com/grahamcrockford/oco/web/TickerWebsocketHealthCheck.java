@@ -28,7 +28,7 @@ public class TickerWebsocketHealthCheck extends HealthCheck {
     ResultBuilder result = Result.builder().healthy();
     try {
 
-      URI uri = new URI("ws://localhost:8080/api/ticker-ws");
+      URI uri = new URI("ws://localhost:8080/api/ticker-ws"); // TODO
 
       result.withDetail("uri", uri);
 

@@ -3,7 +3,6 @@ package com.grahamcrockford.oco.auth;
 import java.util.Objects;
 
 import javax.inject.Inject;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.security.AbstractLoginService;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -14,9 +13,6 @@ import org.eclipse.jetty.util.security.Password;
 import com.google.common.cache.CacheBuilderSpec;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
-import com.okta.jwt.JwtHelper;
-import com.okta.jwt.JwtVerifier;
-
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.auth.CachingAuthenticator;
@@ -29,14 +25,17 @@ class AuthEnvironment implements EnvironmentInitialiser {
   private final AdminConstraintSecurityHandler securityHandler;
   private final IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter;
   private final AuthConfiguration configuration;
+  private final AuthenticatorAuthoriser authenticatorAuthoriser;
 
   @Inject
   AuthEnvironment(AdminConstraintSecurityHandler securityHandler,
                   AuthConfiguration configuration,
-                  IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter) {
+                  IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter,
+                  AuthenticatorAuthoriser authenticatorAuthoriser) {
     this.securityHandler = securityHandler;
     this.ipWhitelistContainerRequestFilter = ipWhitelistContainerRequestFilter;
     this.configuration = configuration;
+    this.authenticatorAuthoriser = authenticatorAuthoriser;
   }
 
   @Override
@@ -53,24 +52,12 @@ class AuthEnvironment implements EnvironmentInitialiser {
 
   private void configureOAuth(final Environment environment) {
     try {
-      JwtHelper helper = new JwtHelper()
-        .setIssuerUrl(configuration.okta.issuer)
-        .setClientId(configuration.okta.clientId);
-
-      String audience = configuration.okta.audience;
-      if (StringUtils.isNotEmpty(audience)) {
-        helper.setAudience(audience);
-      }
-      JwtVerifier jwtVerifier = helper.build();
-
-      OktaOAuthAuthenticator oktaOAuthAuthenticator = new OktaOAuthAuthenticator(jwtVerifier);
-
       CachingAuthenticator<String, AccessTokenPrincipal> cachingAuthenticator = new CachingAuthenticator<>(
-          environment.metrics(), oktaOAuthAuthenticator, CacheBuilderSpec.parse(configuration.authCachePolicy));
+          environment.metrics(), authenticatorAuthoriser, CacheBuilderSpec.parse(configuration.authCachePolicy));
 
       OAuthCredentialAuthFilter<AccessTokenPrincipal> oAuthCredentialAuthFilter = new OAuthCredentialAuthFilter.Builder<AccessTokenPrincipal>()
         .setAuthenticator(cachingAuthenticator)
-        .setAuthorizer(oktaOAuthAuthenticator)
+        .setAuthorizer(authenticatorAuthoriser)
         .setPrefix("Bearer")
         .buildAuthFilter();
 

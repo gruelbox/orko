@@ -1,10 +1,13 @@
 package com.grahamcrockford.oco.web;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.security.RolesAllowed;
 import javax.websocket.CloseReason;
+import javax.websocket.CloseReason.CloseCodes;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -23,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 import com.grahamcrockford.oco.ticker.TickerEvent;
@@ -31,6 +35,7 @@ import com.grahamcrockford.oco.ticker.TickerEvent;
 @Timed
 @ExceptionMetered
 @ServerEndpoint("/api/ticker-ws")
+@RolesAllowed(Roles.TRADER)
 public final class TickerWebSocketServer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TickerWebSocketServer.class);
@@ -44,6 +49,10 @@ public final class TickerWebSocketServer {
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
     LOGGER.info("Opening socket");
+    Principal principal = (Principal)session.getUserProperties().get("user");
+    if (principal == null) {
+      session.close(new CloseReason(CloseCodes.VIOLATED_POLICY, "Authentication violation"));
+    }
     injectMembers(session);
   }
 
