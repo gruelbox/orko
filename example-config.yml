@@ -40,8 +40,8 @@ server:
     type: http
     port: 8080
 jerseyClient:
-  timeout: 5000ms
-  connectionTimeout: 5000ms
-  connectionRequestTimeout: 5000ms
+  timeout: 15000ms
+  connectionTimeout: 15000ms
+  connectionRequestTimeout: 15000ms
 #logging:
 #  level: TRACE
