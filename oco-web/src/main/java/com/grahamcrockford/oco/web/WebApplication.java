@@ -75,8 +75,8 @@ public class WebApplication extends Application<OcoConfiguration> {
       .forEach(t -> t.init(environment));
 
     final ServerEndpointConfig config = ServerEndpointConfig.Builder
-        .create(TickerWebSocketServer.class, "/api/ticker-ws")
-        .configurator(authenticatedEndpointConfigurator)
+        .create(OcoWebSocketServer.class, "/api/ws")
+//        .configurator(authenticatedEndpointConfigurator)
         .build();
     config.getUserProperties().put(Injector.class.getName(), injector);
     websocketBundle.addEndpoint(config);

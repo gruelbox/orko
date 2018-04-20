@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.auth;
 
+import java.util.EnumSet;
 import java.util.Objects;
 
 import javax.inject.Inject;
@@ -23,17 +24,17 @@ import io.dropwizard.setup.Environment;
 class AuthEnvironment implements EnvironmentInitialiser {
 
   private final AdminConstraintSecurityHandler securityHandler;
-  private final IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter;
+  private final IpWhitelistServletFilter ipWhitelistServletFilter;
   private final AuthConfiguration configuration;
   private final AuthenticatorAuthoriser authenticatorAuthoriser;
 
   @Inject
   AuthEnvironment(AdminConstraintSecurityHandler securityHandler,
                   AuthConfiguration configuration,
-                  IpWhitelistContainerRequestFilter ipWhitelistContainerRequestFilter,
+                  IpWhitelistServletFilter ipWhitelistServletFilter,
                   AuthenticatorAuthoriser authenticatorAuthoriser) {
     this.securityHandler = securityHandler;
-    this.ipWhitelistContainerRequestFilter = ipWhitelistContainerRequestFilter;
+    this.ipWhitelistServletFilter = ipWhitelistServletFilter;
     this.configuration = configuration;
     this.authenticatorAuthoriser = authenticatorAuthoriser;
   }
@@ -42,7 +43,8 @@ class AuthEnvironment implements EnvironmentInitialiser {
   public void init(Environment environment) {
 
     // Apply IP whitelisting outside the authentication stack so we can provide a different response
-    environment.jersey().register(ipWhitelistContainerRequestFilter);
+    environment.servlets().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter)
+      .addMappingForUrlPatterns(EnumSet.allOf(javax.servlet.DispatcherType.class), true, "/*");
 
     if (configuration.okta != null) {
       configureOAuth(environment);

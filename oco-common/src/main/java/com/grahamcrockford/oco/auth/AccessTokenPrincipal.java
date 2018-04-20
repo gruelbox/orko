@@ -4,7 +4,7 @@ import java.security.Principal;
 
 import com.okta.jwt.Jwt;
 
-class AccessTokenPrincipal implements Principal {
+public class AccessTokenPrincipal implements Principal {
 
   private final Jwt accessToken;
 

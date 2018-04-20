@@ -29,6 +29,6 @@ class WebModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(JobResource.class);
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(ExchangeResource.class);
     Multibinder.newSetBinder(binder(), HealthCheck.class).addBinding().to(ExchangeAccessHealthCheck.class);
-    Multibinder.newSetBinder(binder(), HealthCheck.class).addBinding().to(TickerWebsocketHealthCheck.class);
+    Multibinder.newSetBinder(binder(), HealthCheck.class).addBinding().to(OcoWebsocketHealthCheck.class);
   }
 }

@@ -1,6 +1,7 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
 import * as errorActions from "../error/actions"
+import * as tickerActions from "../ticker/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState) => {
@@ -22,6 +23,7 @@ export function whitelist(token) {
       await authService.whitelist(token)
       dispatch({ type: types.SET_WHITELIST_STATUS, status: true })
       dispatch(fetchOktaConfig())
+      dispatch(tickerActions.resubscribe())
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
     }
@@ -57,14 +59,21 @@ export function logout() {
 }
 
 export function setToken(token, userName) {
-  return { type: types.SET_TOKEN, token, userName }
+  return async (dispatch, getState) => {
+    dispatch(tickerActions.resubscribe())
+    dispatch({ type: types.SET_TOKEN, token, userName })
+  }
+}
+
+export function invalidateLogin() {
+  return { type: types.INVALIDATE_LOGIN }
 }
 
 export function handleHttpResponse(response) {
   if (response.status === 403) {
     return { type: types.SET_WHITELIST_EXPIRED }
   } else if (response.status === 401) {
-    return { type: types.INVALIDATE_LOGIN }
+    return invalidateLogin()
   }
   return null
 }

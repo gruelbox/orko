@@ -4,23 +4,28 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
-public class TickerWebsocketHealthCheck extends HealthCheck {
+public class OcoWebsocketHealthCheck extends HealthCheck {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TickerWebsocketHealthCheck.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OcoWebsocketHealthCheck.class);
 
   private final ObjectMapper objectMapper;
+  private final Provider<HttpServletRequest> request;
 
   @Inject
-  TickerWebsocketHealthCheck(ObjectMapper objectMapper) {
+  OcoWebsocketHealthCheck(ObjectMapper objectMapper, Provider<HttpServletRequest> request) {
     this.objectMapper = objectMapper;
+    this.request = request;
   }
 
   @Override
@@ -28,16 +33,26 @@ public class TickerWebsocketHealthCheck extends HealthCheck {
     ResultBuilder result = Result.builder().healthy();
     try {
 
-      URI uri = new URI("ws://localhost:8080/api/ticker-ws"); // TODO
+      URI uri = new URI("ws://" +
+                        request.get().getServerName() +
+                        "." +
+                        request.get().getServerPort() +
+                        request.get().getContextPath() +
+                        "/ws");
 
       result.withDetail("uri", uri);
+
+      String header = request.get().getHeader("authorization");
+      if (header == null || !header.startsWith("Bearer ")) {
+        return result.withMessage("Requires access token").unhealthy().build();
+      }
 
       AtomicInteger bitfinexTickersReceived = new AtomicInteger();
       AtomicInteger gdaxTickersReceived = new AtomicInteger();
       AtomicInteger binanceTickersReceived = new AtomicInteger();
       AtomicInteger unknownTickersReceived = new AtomicInteger();
 
-      try (TickerWebsocketClient clientEndPoint = new TickerWebsocketClient(uri, objectMapper, event -> {
+      try (OcoWebsocketClient clientEndPoint = new OcoWebsocketClient(uri, objectMapper, event -> {
         @SuppressWarnings("unchecked")
         Map<String, Object> spec = (Map<String, Object>) event.get("spec");
         switch ((String)spec.get("exchange")) {

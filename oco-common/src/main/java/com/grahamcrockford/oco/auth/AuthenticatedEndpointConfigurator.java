@@ -23,10 +23,15 @@ public class AuthenticatedEndpointConfigurator extends ServerEndpointConfig.Conf
 
   private final AuthenticatorAuthoriser authenticator;
 
+
+  private final IpWhitelisting ipWhitelisting;
+
   @Inject
-  AuthenticatedEndpointConfigurator(AuthenticatorAuthoriser authenticator) {
+  AuthenticatedEndpointConfigurator(AuthenticatorAuthoriser authenticator, IpWhitelisting ipWhitelisting) {
     this.authenticator = authenticator;
+    this.ipWhitelisting = ipWhitelisting;
   }
+
 
   @Override
   public void modifyHandshake(final ServerEndpointConfig sec, final HandshakeRequest request, final HandshakeResponse response) {

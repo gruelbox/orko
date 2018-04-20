@@ -1,11 +1,12 @@
 package com.grahamcrockford.oco.web;
 
-import static com.grahamcrockford.oco.web.TickerWebSocketRequest.Command.START;
-import static com.grahamcrockford.oco.web.TickerWebSocketRequest.Command.STOP;
+import static com.grahamcrockford.oco.web.OcoWebSocketIncomingMessage.Command.START_TICKER;
+import static com.grahamcrockford.oco.web.OcoWebSocketIncomingMessage.Command.STOP_TICKER;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import javax.websocket.ClientEndpoint;
@@ -20,19 +21,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.web.TickerWebSocketRequest.Command;
+import com.grahamcrockford.oco.web.OcoWebSocketIncomingMessage.Command;
 
-@ClientEndpoint(configurator = TickerWebsocketClientConfigurator.class)
-public class TickerWebsocketClient implements AutoCloseable {
+@ClientEndpoint
+public class OcoWebsocketClient implements AutoCloseable {
 
   private final Consumer<Map<String, Object>> consumer;
   private final ObjectMapper objectMapper;
 
   private Session session;
 
-  public TickerWebsocketClient(URI endpointURI,
-                               ObjectMapper objectMapper,
-                               Consumer<Map<String, Object>> consumer) {
+  public OcoWebsocketClient(URI endpointURI,
+                            ObjectMapper objectMapper,
+                            Consumer<Map<String, Object>> consumer) {
     this.objectMapper = objectMapper;
     this.consumer = consumer;
     try {
@@ -55,16 +56,16 @@ public class TickerWebsocketClient implements AutoCloseable {
   }
 
   public void addTicker(TickerSpec spec) {
-    sendCommand(START, spec);
+    sendCommand(START_TICKER, spec);
   }
 
   public void removeTicker(TickerSpec spec) {
-    sendCommand(STOP, spec);
+    sendCommand(STOP_TICKER, spec);
   }
 
   private void sendCommand(Command command, TickerSpec spec) {
     try {
-      TickerWebSocketRequest request = TickerWebSocketRequest.create(command, spec);
+      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, "NOTOKEN", UUID.randomUUID().toString(), spec);
       String message = objectMapper.writeValueAsString(request);
       this.session.getAsyncRemote().sendText(message);
     } catch (JsonProcessingException e) {
