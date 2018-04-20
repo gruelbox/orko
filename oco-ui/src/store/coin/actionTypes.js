@@ -1,5 +1,4 @@
 export const SET_BALANCE = 'coin.SET_BALANCE';
-export const SET_TICKER = 'coin.SET_TICKER';
 export const SET_ORDERS = 'coin.SET_ORDERS';
 
 export const CANCEL_ORDER = 'coin.CANCEL_ORDER';

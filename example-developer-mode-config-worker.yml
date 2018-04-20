@@ -6,11 +6,11 @@ auth:
   proxied: false #  Set this to true if you edploy to Heroku
   whitelistExpirySeconds: 14400
 database:
-  mongoClientURI: mongodb://jsmith:some-initial-password@172.18.0.2:27017 # Your mongoDB connection details.
+  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017 # Your mongoDB connection details.
   mongoDatabase: oco # MongoDB database name.
   lockSeconds: 10
 mq:
-  clientURI: amqp://172.18.0.3
+  clientURI: amqp://localhost
 exchanges:
 #  gdax-sandbox:
 #    apiKey: 

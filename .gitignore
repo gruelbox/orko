@@ -37,3 +37,10 @@
 /oco-api/.settings/org.jboss.tools.maven.apt.prefs
 /oco-web/.settings/org.jboss.tools.maven.apt.prefs
 /oco-worker/.settings/org.jboss.tools.maven.apt.prefs
+/oco-common/.classpath
+/oco-common/.factorypath
+/oco-common/.project
+/oco-common/.settings/org.eclipse.core.resources.prefs
+/oco-common/.settings/org.eclipse.jdt.apt.core.prefs
+/oco-common/.settings/org.eclipse.jdt.core.prefs
+/oco-common/.settings/org.eclipse.m2e.core.prefs

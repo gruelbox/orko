@@ -1,67 +1,82 @@
-import React from 'react';
-import Tab from './primitives/Tab';
-import Tabs from './primitives/Tabs';
-import Panel from './primitives/Panel';
-import Section from './primitives/Section';
-import Para from './primitives/Para';
+import React from "react"
+import Tab from "./primitives/Tab"
+import Tabs from "./primitives/Tabs"
+import Panel from "./primitives/Panel"
+import Section from "./primitives/Section"
+import Para from "./primitives/Para"
 
-import AlertContainer from '../containers/AlertContainer';
-import LimitOrderContainer from '../containers/LimitOrderContainer';
+import AlertContainer from "../containers/AlertContainer"
+import LimitOrderContainer from "../containers/LimitOrderContainer"
 
 export default class TradeSelector extends React.Component {
-
   constructor(props) {
-    super(props);
-    this.state = { selected: "limit" };
+    super(props)
+    this.state = { selected: "limit" }
   }
 
   render() {
+    const coin = this.props.coin
 
-    const coin = this.props.coin;
-    
-    var panel = null;
-    if (this.state.selected === 'alert') {
-      panel = <AlertContainer coin={coin}/>;
-    } else if (this.state.selected === 'limit') {
-      panel = <LimitOrderContainer coin={coin}/>;
+    var panel = null
+    if (this.state.selected === "alert") {
+      panel = <AlertContainer coin={coin} />
+    } else if (this.state.selected === "limit") {
+      panel = <LimitOrderContainer coin={coin} />
     }
 
     return (
       <Section id="trading" heading="Trading" bg="backgrounds.1">
-        {!coin && (
-          <Para>No coin selected</Para>
-        )}
+        {!coin && <Para>No coin selected</Para>}
         {coin && (
           <div>
             <Tabs mb={3}>
-              <Tab selected={this.state.selected === "limit"} onClick={() => this.setState({selected: "limit"})}>
+              <Tab
+                selected={this.state.selected === "limit"}
+                onClick={() => this.setState({ selected: "limit" })}
+              >
                 Limit
               </Tab>
-              <Tab selected={this.state.selected === "market"} onClick={() => this.setState({selected: "market"})}>
+              <Tab
+                selected={this.state.selected === "market"}
+                onClick={() => this.setState({ selected: "market" })}
+              >
                 Market
               </Tab>
-              <Tab selected={this.state.selected === "hardstop"} onClick={() => this.setState({selected: "hardstop"})}>
+              <Tab
+                selected={this.state.selected === "hardstop"}
+                onClick={() => this.setState({ selected: "hardstop" })}
+              >
                 Hard Stop
               </Tab>
-              <Tab selected={this.state.selected === "softstop"} onClick={() => this.setState({selected: "softstop"})}>
+              <Tab
+                selected={this.state.selected === "softstop"}
+                onClick={() => this.setState({ selected: "softstop" })}
+              >
                 Soft Stop
               </Tab>
-              <Tab selected={this.state.selected === "oco"} onClick={() => this.setState({selected: "oco"})}>
+              <Tab
+                selected={this.state.selected === "oco"}
+                onClick={() => this.setState({ selected: "oco" })}
+              >
                 Stop/Take Profit
               </Tab>
-              <Tab selected={this.state.selected === "alert"} onClick={() => this.setState({selected: "alert"})}>
+              <Tab
+                selected={this.state.selected === "alert"}
+                onClick={() => this.setState({ selected: "alert" })}
+              >
                 Alert
               </Tab>
-              <Tab selected={this.state.selected === "complex"} onClick={() => this.setState({selected: "complex"})}>
+              <Tab
+                selected={this.state.selected === "complex"}
+                onClick={() => this.setState({ selected: "complex" })}
+              >
                 Complex
               </Tab>
             </Tabs>
-            <Panel>
-              {panel}
-            </Panel>
+            <Panel>{panel}</Panel>
           </div>
         )}
       </Section>
-    );
+    )
   }
 }

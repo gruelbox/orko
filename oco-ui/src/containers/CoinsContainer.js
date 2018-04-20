@@ -1,13 +1,13 @@
-import React from 'react';
-import { connect } from 'react-redux';
+import React from "react"
+import { connect } from "react-redux"
 
-import { Icon } from 'semantic-ui-react';
+import { Icon } from "semantic-ui-react"
 
-import * as coinsActions from '../store/coins/actions';
+import * as coinsActions from "../store/coins/actions"
 
-import CoinLink from '../components/CoinLink'
-import Section from '../components/primitives/Section';
-import Link from '../components/primitives/Link';
+import CoinLink from "../components/CoinLink"
+import Section from "../components/primitives/Section"
+import Link from "../components/primitives/Link"
 
 const CoinsCointainer = props => (
   <Section id="coinList" heading="Coins" bg="backgrounds.1">
@@ -18,14 +18,16 @@ const CoinsCointainer = props => (
         onRemove={() => props.dispatch(coinsActions.remove(coin))}
       />
     ))}
-    <Link to="/addCoin"><Icon name="add"/>Add</Link>
+    <Link to="/addCoin">
+      <Icon name="add" />Add
+    </Link>
   </Section>
-);
+)
 
 function mapStateToProps(state) {
   return {
     coins: state.coins.coins
-  };
+  }
 }
 
-export default connect(mapStateToProps)(CoinsCointainer);
+export default connect(mapStateToProps)(CoinsCointainer)

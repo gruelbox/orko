@@ -28,9 +28,9 @@ const PriceKey = styled.th.attrs({
 
 const PriceValue = styled.td.attrs({
   fontSize: 1,
-  color: "fore",
   py: 0,
   pl: 1,
+  pr: 1,
   m: 0,
   fontFamily: "mono"
 })`
@@ -38,11 +38,16 @@ const PriceValue = styled.td.attrs({
   &:hover {
     color: ${props => props.theme.colors.link};
   };
-  animation: ${props => props.movement === "up"
-    ? props.theme.keyFrames.flashGreen
+  background-color: ${props => props.movement === "up"
+  ? props.theme.colors.buy
+  : props.movement === "down"
+    ? props.theme.colors.sell
+    : "none"};
+  color: ${props => props.movement === "up"
+    ? props.theme.colors.black
     : props.movement === "down"
-      ? props.theme.keyFrames.flashRed
-      : "none"} 2s linear;
+      ? props.theme.colors.black
+      : props.theme.colors.fore};
   ${color}
   ${fontSize}
   ${fontWeight}

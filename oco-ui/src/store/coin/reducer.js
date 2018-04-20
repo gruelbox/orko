@@ -40,6 +40,14 @@ export function coin(exchange, counter, base) {
   }, exchange);
 }
 
+export function coinFromKey(key) {
+  const split = key.split('/')
+  return augmentCoin({
+    counter: split[1],
+    base: split[2]
+  }, split[0]);
+}
+
 export function augmentCoin(p, exchange) {
   return Immutable.merge(p, {
     exchange: exchange,
@@ -52,31 +60,28 @@ export function augmentCoin(p, exchange) {
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_BALANCE:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, { balance: action.balance });
-    case types.SET_TICKER:
-      console.log(action.type, action);
-      return Immutable.merge(state, { ticker: action.ticker });
     case types.SET_ORDERS:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         orders: Immutable(action.orders),
         ordersUnavailable: false
       });
     case types.CANCEL_ORDER:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         orders: {
           allOpenOrders: state.orders.allOpenOrders.filter(o => o.id !== action.orderId)
         }
       }, {deep: true});
     case types.SET_ORDERS_UNAVAILABLE:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         ordersUnavailable: true
       });
     case types.SET_BALANCE_UNAVAILABLE:
-      console.log(action.type, action);
+      console.debug(action.type, action);
       return Immutable.merge(state, {
         balanceUnavailable: true
       });

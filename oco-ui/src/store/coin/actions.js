@@ -3,15 +3,6 @@ import exchangesService from '../../services/exchanges';
 import * as authActions from '../auth/actions';
 import * as errorActions from '../error/actions';
 
-export function fetchTicker(coin) {
-  return authActions.wrappedRequest(
-    auth => exchangesService.fetchTicker(coin, auth.token),
-    ticker => ({ type: types.SET_TICKER, ticker }),
-    error => errorActions.addBackground("Could not fetch ticker: " + error.message, "ticker"),
-    () => errorActions.clearBackground("ticker")
-  );
-}
-
 export function fetchBalance(coin) {
   return authActions.wrappedRequest(
     auth => exchangesService.fetchBalance(coin, auth.token),

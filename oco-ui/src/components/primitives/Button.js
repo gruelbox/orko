@@ -1,12 +1,9 @@
-import styled from 'styled-components';
-import { fontSize, color, fontFamily, space } from 'styled-system';
-import { darken, lighten } from 'polished';
+import styled from "styled-components"
+import { fontSize, color, fontFamily, space } from "styled-system"
+import { darken, lighten } from "polished"
 
-const buttonColor = (props) => (
-  props.bg
-    ? props.theme.colors[props.bg]
-    : props.theme.colors.link
-)
+const buttonColor = props =>
+  props.bg ? props.theme.colors[props.bg] : props.theme.colors.link
 
 const Button = styled.button.attrs({
   fontSize: 2,
@@ -35,12 +32,12 @@ const Button = styled.button.attrs({
     cursor: auto;
     color: ${props => props.theme.colors.fore};
     background-color: ${props => props.theme.colors.inputBg};
-    border: 1px solid ${props =>  props.theme.colors.inputBg};
+    border: 1px solid ${props => props.theme.colors.inputBg};
   };
   ${color}
   ${fontSize}
   ${space}
   ${fontFamily}
-`;
+`
 
-export default Button;
+export default Button

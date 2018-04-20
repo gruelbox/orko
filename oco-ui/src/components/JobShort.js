@@ -1,12 +1,12 @@
-import React from 'react';
-import { Icon } from 'semantic-ui-react';
-import styled from 'styled-components';
+import React from "react"
+import { Icon } from "semantic-ui-react"
+import styled from "styled-components"
 
-import Href from './primitives/Href';
-import Link from './primitives/Link';
+import Href from "./primitives/Href"
+import Link from "./primitives/Link"
 
-const BUY = 'BUY';
-const SELL = 'SELL';
+const BUY = "BUY"
+const SELL = "SELL"
 
 const JobShortBox = styled.div`
   padding-top: ${props => props.theme.space[1] + "px"};
@@ -15,50 +15,76 @@ const JobShortBox = styled.div`
   &:last-child {
     border: none;
   }
-`;
+`
 
 export default class JobShort extends React.Component {
+  describe = job => {
+    const ticker = t => t.exchange + ": " + t.base + "-" + t.counter
 
-  describe = (job) => {
-
-    const ticker = (t) => (t.exchange + ": " + t.base + "-" + t.counter);
-
-    if (job.jobType === 'OneCancelsOther') {
+    if (job.jobType === "OneCancelsOther") {
       return (
-        "On " + ticker(job.tickTrigger) + ": "
-        + (job.high ? " If > " + job.high.thresholdAsString + " then " + this.describe(job.high.job) + "." : "")
-        + (job.low ? " If < " + job.low.thresholdAsString + " then " + this.describe(job.low.job) + "." : "")
-      );
-    } else if (job.jobType === 'LimitOrderJob') {
+        "On " +
+        ticker(job.tickTrigger) +
+        ": " +
+        (job.high
+          ? " If > " +
+            job.high.thresholdAsString +
+            " then " +
+            this.describe(job.high.job) +
+            "."
+          : "") +
+        (job.low
+          ? " If < " +
+            job.low.thresholdAsString +
+            " then " +
+            this.describe(job.low.job) +
+            "."
+          : "")
+      )
+    } else if (job.jobType === "LimitOrderJob") {
       return (
-        "On " + ticker(job.tickTrigger) + " " + job.direction + " " + job.bigDecimals.amount
-      );
-    } else if (job.jobType === 'SoftTrailingStop' && job.direction === SELL) {
+        "On " +
+        ticker(job.tickTrigger) +
+        " " +
+        job.direction +
+        " " +
+        job.bigDecimals.amount
+      )
+    } else if (job.jobType === "SoftTrailingStop" && job.direction === SELL) {
       return (
-        "When "
-        + ticker(job.tickTrigger) 
-        + "> " + job.bigDecimals.stopPrice + " then sell at " + job.bigDecimals.limitPrice
-        + " trailing"
-      );
-    } else if (job.jobType === 'SoftTrailingStop' && job.direction === BUY) {
+        "When " +
+        ticker(job.tickTrigger) +
+        "> " +
+        job.bigDecimals.stopPrice +
+        " then sell at " +
+        job.bigDecimals.limitPrice +
+        " trailing"
+      )
+    } else if (job.jobType === "SoftTrailingStop" && job.direction === BUY) {
       return (
-        "When "
-        + ticker(job.tickTrigger) 
-        + "< " + job.bigDecimals.stopPrice + " then buy at " + job.bigDecimals.limitPrice
-        + " trailing"
-      );
-    } else if (job.jobType === 'Alert') {
+        "When " +
+        ticker(job.tickTrigger) +
+        "< " +
+        job.bigDecimals.stopPrice +
+        " then buy at " +
+        job.bigDecimals.limitPrice +
+        " trailing"
+      )
+    } else if (job.jobType === "Alert") {
+      return "Send alert"
+    } else if (job.jobType === "OrderStateNotifier") {
       return (
-        "Send alert"
-      );
-    } else if (job.jobType === 'OrderStateNotifier') {
-      return (
-        "Watch order " + job.orderId + " on " + job.tickTrigger.base + "/" + job.tickTrigger.counter + " on " + job.tickTrigger.exchange
-      );
+        "Watch order " +
+        job.orderId +
+        " on " +
+        job.tickTrigger.base +
+        "/" +
+        job.tickTrigger.counter +
+        " on " +
+        job.tickTrigger.exchange
+      )
     } else {
-      return (
-        "Complex (" + job.jobType  + ")"
-      );
+      return "Complex (" + job.jobType + ")"
     }
   }
 
@@ -66,12 +92,12 @@ export default class JobShort extends React.Component {
     return (
       <JobShortBox>
         <Href onClick={this.props.onRemove}>
-          <Icon name="close"/>
+          <Icon name="close" />
         </Href>
-        <Link to={'/job/' + this.props.job.id}>
+        <Link to={"/job/" + this.props.job.id}>
           {this.describe(this.props.job)}
         </Link>
       </JobShortBox>
-    );
+    )
   }
 }

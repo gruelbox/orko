@@ -3,6 +3,7 @@ package com.grahamcrockford.oco.web;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.client.Client;
 
 import org.slf4j.Logger;
@@ -12,15 +13,15 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.api.util.EnvironmentInitialiser;
-
+import com.grahamcrockford.oco.auth.AuthenticatedEndpointConfigurator;
+import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
-import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.websockets.WebsocketBundle;
 
 public class WebApplication extends Application<OcoConfiguration> {
 
@@ -31,8 +32,9 @@ public class WebApplication extends Application<OcoConfiguration> {
   }
 
   @Inject private Set<EnvironmentInitialiser> environmentInitialisers;
-  @Inject private Set<WebResource> webResources;
-  @Inject private Set<Managed> managedTasks;
+  @Inject private AuthenticatedEndpointConfigurator authenticatedEndpointConfigurator;
+
+  private WebsocketBundle websocketBundle;
 
 
   @Override
@@ -48,16 +50,20 @@ public class WebApplication extends Application<OcoConfiguration> {
         new EnvironmentVariableSubstitutor()
       )
     );
+    websocketBundle = new WebsocketBundle(new Class[] {});
+    bootstrap.addBundle(websocketBundle);
   }
 
   @Override
   public void run(final OcoConfiguration configuration, final Environment environment) {
 
     // Jersey client
-    final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
+    final Client jerseyClient = new JerseyClientBuilder(environment)
+        .using(configuration.getJerseyClientConfiguration()).build(getName());
 
     // Injector
-    final Injector injector = Guice.createInjector(new WebModule(configuration, environment.getObjectMapper(), jerseyClient));
+    Injector injector = Guice.createInjector(
+        new WebModule(configuration, environment.getObjectMapper(), jerseyClient));
     injector.injectMembers(this);
 
     environment.servlets().addFilter("GuiceFilter", GuiceFilter.class)
@@ -68,14 +74,11 @@ public class WebApplication extends Application<OcoConfiguration> {
       .peek(t -> LOGGER.info("Initialising environment for {}", t))
       .forEach(t -> t.init(environment));
 
-    // Any managed tasks
-    managedTasks.stream()
-      .peek(t -> LOGGER.info("Starting managed task {}", t))
-      .forEach(environment.lifecycle()::manage);
-
-    // And any REST resources
-    webResources.stream()
-      .peek(t -> LOGGER.info("Registering resource {}", t))
-      .forEach(environment.jersey()::register);
+    final ServerEndpointConfig config = ServerEndpointConfig.Builder
+        .create(OcoWebSocketServer.class, "/api/ws")
+//        .configurator(authenticatedEndpointConfigurator)
+        .build();
+    config.getUserProperties().put(Injector.class.getName(), injector);
+    websocketBundle.addEndpoint(config);
   }
 }
