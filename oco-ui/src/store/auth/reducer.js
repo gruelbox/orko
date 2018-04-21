@@ -34,7 +34,7 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.SET_WHITELIST_EXPIRED:
-      console.debug(action.type, action);
+      console.log(action.type, action);
       return Immutable.merge(state, {
         whitelisted: false,
         loggedIn: false,
@@ -63,7 +63,7 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       });
     case types.INVALIDATE_LOGIN:
-      console.debug(action.type);
+      console.log(action.type);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       return Immutable.merge(state, {
         loggedIn: false,

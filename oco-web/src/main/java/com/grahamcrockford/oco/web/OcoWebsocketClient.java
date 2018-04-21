@@ -31,6 +31,7 @@ public class OcoWebsocketClient implements AutoCloseable {
 
   private Session session;
 
+
   public OcoWebsocketClient(URI endpointURI,
                             ObjectMapper objectMapper,
                             Consumer<Map<String, Object>> consumer) {
@@ -65,7 +66,7 @@ public class OcoWebsocketClient implements AutoCloseable {
 
   private void sendCommand(Command command, TickerSpec spec) {
     try {
-      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, "NOTOKEN", UUID.randomUUID().toString(), spec);
+      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, UUID.randomUUID().toString(), spec);
       String message = objectMapper.writeValueAsString(request);
       this.session.getAsyncRemote().sendText(message);
     } catch (JsonProcessingException e) {

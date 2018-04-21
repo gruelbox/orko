@@ -13,7 +13,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 import com.grahamcrockford.oco.OcoConfiguration;
-import com.grahamcrockford.oco.auth.AuthenticatedEndpointConfigurator;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
@@ -32,7 +31,6 @@ public class WebApplication extends Application<OcoConfiguration> {
   }
 
   @Inject private Set<EnvironmentInitialiser> environmentInitialisers;
-  @Inject private AuthenticatedEndpointConfigurator authenticatedEndpointConfigurator;
 
   private WebsocketBundle websocketBundle;
 
@@ -62,12 +60,12 @@ public class WebApplication extends Application<OcoConfiguration> {
         .using(configuration.getJerseyClientConfiguration()).build(getName());
 
     // Injector
-    Injector injector = Guice.createInjector(
-        new WebModule(configuration, environment.getObjectMapper(), jerseyClient));
+    Injector injector = Guice.createInjector(new WebModule(configuration, environment.getObjectMapper(), jerseyClient, environment));
     injector.injectMembers(this);
 
-    environment.servlets().addFilter("GuiceFilter", GuiceFilter.class)
-      .addMappingForUrlPatterns(java.util.EnumSet.allOf(javax.servlet.DispatcherType.class), true, "/*");
+    GuiceFilter guiceFilter = injector.getInstance(GuiceFilter.class);
+    environment.servlets().addFilter("GuiceFilter", guiceFilter).addMappingForUrlPatterns(null, false, "/*");
+    environment.admin().addFilter("GuiceFilter", guiceFilter).addMappingForUrlPatterns(null, false, "/*");
 
     // Any environment initialisation
     environmentInitialisers.stream()
@@ -76,7 +74,6 @@ public class WebApplication extends Application<OcoConfiguration> {
 
     final ServerEndpointConfig config = ServerEndpointConfig.Builder
         .create(OcoWebSocketServer.class, "/api/ws")
-//        .configurator(authenticatedEndpointConfigurator)
         .build();
     config.getUserProperties().put(Injector.class.getName(), injector);
     websocketBundle.addEndpoint(config);

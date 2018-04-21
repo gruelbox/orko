@@ -14,10 +14,16 @@ const channelMessages = {
 const serverMessages = {
   TICKER: 'TICKER',
   ERROR: 'ERROR',
-  INVALID_AUTH: 'INVALID_AUTH',
   START_TICKER: 'START_TICKER',
   STOP_TICKER:'STOP_TICKER',
 }
+
+export const getAuthToken = (state) => {
+  console.log("state", state)
+  return state.auth.token
+}
+export const getSubscribedCoins = (state) => state.ticker.coins
+export const getConnected = (state) => state.ticker.connected
 
 /** 
  * Attempts to reset the subscriptions after an event such as
@@ -57,7 +63,7 @@ function socketMessageChannel(socket) {
       }
     }
     socket.onopen = () => emit(channelMessages.OPEN)
-    socket.onclose = () => emit(channelMessages.CLOSE)
+    socket.onclose = (e) => emit(channelMessages.CLOSE)
     return socket.close
   })
 }
@@ -77,11 +83,6 @@ function* socketMessageListener(socketChannel) {
 
         // Mark the socket closed
         yield put({ type: types.SET_CONNECTION_STATE, connected: false })
-
-      } else if (message.nature === serverMessages.INVALID_AUTH) {
-
-        // Error
-        yield put(errorActions.addBackground("Authentication failing on socket", "ws"))
 
       } else if (message.nature === serverMessages.ERROR) {
 
@@ -113,9 +114,8 @@ function* socketMessageListener(socketChannel) {
 function* resubscribeListener() {
   while (true) {
     yield take(types.RESUBSCRIBE)
-
-    const state = yield select();
-    const keys = Object.keys(state.ticker.coins);
+    const coins = yield select(getSubscribedCoins)
+    const keys = Object.keys(coins)
     for (var i = 0 ; i < keys.length ; i++) {
       var coinKey = keys[i]
       yield put({ type: types.START_TICKER, coin: coinFromKey(coinKey) })
@@ -129,17 +129,18 @@ function* resubscribeListener() {
 function* tickerStartListener(socket) {
   while (true) {
     const { coin } = yield take(types.START_TICKER)
-    const state = yield select();
-    socket.send(JSON.stringify({
-      command: serverMessages.START_TICKER,
-      accessToken: state.auth.token,
-      correlationId: "START/" + coin.key,
-      ticker: {
-        exchange: coin.exchange,
-        counter: coin.counter,
-        base: coin.base
-      }
-    }));
+    const connected = yield select(getConnected)
+    if (connected) {
+      socket.send(JSON.stringify({
+        command: serverMessages.START_TICKER,
+        correlationId: "START/" + coin.key,
+        ticker: {
+          exchange: coin.exchange,
+          counter: coin.counter,
+          base: coin.base
+        }
+      }));
+    }
   }
 }
 
@@ -148,18 +149,19 @@ function* tickerStartListener(socket) {
  */
 function* tickerStopListener(socket) {
   while (true) {
-    const { coin } = yield take(types.STOP_TICKER);
-    const state = yield select();
-    socket.send(JSON.stringify({
-      command: serverMessages.STOP_TICKER,
-      accessToken: state.auth.token,
-      correlationId: "STOP/" + coin.key,
-      ticker: {
-        exchange: coin.exchange,
-        counter: coin.counter,
-        base: coin.base
-      }
-    }));
+    const { coin } = yield take(types.STOP_TICKER)
+    const connected = yield select(getConnected)
+    if (connected) {
+      socket.send(JSON.stringify({
+        command: serverMessages.STOP_TICKER,
+        correlationId: "STOP/" + coin.key,
+        ticker: {
+          exchange: coin.exchange,
+          counter: coin.counter,
+          base: coin.base
+        }
+      }))
+    }
   }
 }
 
@@ -167,10 +169,11 @@ function* tickerStopListener(socket) {
  * The saga. Connects a reconnecting websocket and starts the listeners
  * for messages on the channel and outoing messages from redux dispatch.
  */
-export function* watcher() {
+export function* watcher(dispatch, getState) {
   while (true) {
-    const socket = yield call(ws, "ws")
+    const socket = yield call(ws, "ws", () => getState().auth.token)
     const socketChannel = yield call(socketMessageChannel, socket)
+    console.log("Connected to socket")
     yield put({ type: types.SET_CONNECTION_STATE, connected: socket.readyState === 1 })
     yield race({
       task: all([
@@ -180,5 +183,6 @@ export function* watcher() {
         call(resubscribeListener)
       ])
     })
+    console.log("Started listeners")
   }
 }

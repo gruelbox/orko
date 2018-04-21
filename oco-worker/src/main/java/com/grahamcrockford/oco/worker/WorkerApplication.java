@@ -52,11 +52,12 @@ public class WorkerApplication extends Application<OcoConfiguration> {
     final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
 
     // Injector
-    final Injector injector = Guice.createInjector(new WorkerModule(configuration, environment.getObjectMapper(), jerseyClient));
+    final Injector injector = Guice.createInjector(new WorkerModule(configuration, environment.getObjectMapper(), jerseyClient, environment));
     injector.injectMembers(this);
 
-    environment.servlets().addFilter("GuiceFilter", GuiceFilter.class)
-      .addMappingForUrlPatterns(java.util.EnumSet.allOf(javax.servlet.DispatcherType.class), true, "/*");
+    GuiceFilter guiceFilter = injector.getInstance(GuiceFilter.class);
+    environment.servlets().addFilter("GuiceFilter", guiceFilter).addMappingForUrlPatterns(null, false, "/*");
+    environment.admin().addFilter("GuiceFilter", guiceFilter).addMappingForUrlPatterns(null, false, "/*");
 
     // Any environment initialisation
     environmentInitialisers.stream()

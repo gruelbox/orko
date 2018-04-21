@@ -30,7 +30,6 @@ abstract class OcoWebSocketOutgoingMessage {
 
   enum Nature {
     ERROR,
-    INVALID_AUTH,
     TICKER,
   }
 }

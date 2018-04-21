@@ -1,22 +1,28 @@
-import ReconnectingWebSocket from 'reconnecting-websocket'
+import ReconnectingWebSocket from "reconnecting-websocket"
 
-const defaultSettings = { method: 'GET', mode: 'cors', redirect: 'follow' };
+const defaultSettings = { method: "GET", mode: "cors", redirect: "follow" }
 
 export function get(url, token) {
-  return fetch(new Request("/api/" + url, action("GET", token)));
+  return fetch(new Request("/api/" + url, action("GET", token)))
 }
 
 export function put(url, token, content) {
-  return fetch(new Request("/api/" + url, action("PUT", token, content)));
+  return fetch(new Request("/api/" + url, action("PUT", token, content)))
 }
 
 export function del(url, token) {
-  return fetch(new Request("/api/" + url, action("DELETE", token)));
+  return fetch(new Request("/api/" + url, action("DELETE", token)))
 }
 
-export function ws(url) {
-  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  return new ReconnectingWebSocket(protocol + "://" + window.location.host + '/api/' + url)
+export function ws(url, tokenFn) {
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws"
+  const urlFn = () =>
+    protocol +
+    "://" +
+    window.location.host +
+    "/api/" +
+    url
+  return new ReconnectingWebSocket(urlFn, ["auth", tokenFn()])
 }
 
 function action(method, token, content) {
@@ -25,9 +31,9 @@ function action(method, token, content) {
       ...defaultSettings,
       body: content,
       method: method,
-      credentials: 'include',
+      credentials: "include",
       headers: new Headers({
-        "Authorization": "Bearer " + token,
+        Authorization: "Bearer " + token,
         "Content-type": "application/json"
       })
     }
@@ -35,5 +41,5 @@ function action(method, token, content) {
     return {
       ...defaultSettings,
       method: method
-    };
+    }
 }

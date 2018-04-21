@@ -14,18 +14,13 @@ abstract class OcoWebSocketIncomingMessage {
 
   @JsonCreator
   static OcoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
-                                            @JsonProperty("accessToken") String accessToken,
                                             @JsonProperty("correlationId") String correlationId,
                                             @JsonProperty("ticker") TickerSpec ticker) {
-    return new AutoValue_OcoWebSocketIncomingMessage(command, accessToken, correlationId, ticker);
+    return new AutoValue_OcoWebSocketIncomingMessage(command, correlationId, ticker);
   }
 
   @JsonProperty
   abstract Command command();
-
-  @JsonProperty
-  @Nullable // Not really, but we want that detected by the authenticator, not here
-  abstract String accessToken();
 
   @JsonProperty
   @Nullable

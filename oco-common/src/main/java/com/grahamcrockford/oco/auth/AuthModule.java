@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.auth;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.cache.CacheBuilderSpec;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -14,7 +15,11 @@ import com.okta.jwt.JwtVerifier;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 
+import io.dropwizard.auth.CachingAuthenticator;
+import io.dropwizard.setup.Environment;
+
 public class AuthModule extends AbstractModule {
+
   @Override
   protected void configure() {
     bind(GoogleAuthenticator.class).toInstance(
@@ -33,7 +38,9 @@ public class AuthModule extends AbstractModule {
 
   @Provides
   @Singleton
-  AuthenticatorAuthoriser authBase(AuthConfiguration configuration) {
+  OcoAuthenticator authenticator(AuthConfiguration configuration, Environment environment) {
+
+    OcoAuthenticator uncached;
     try {
       JwtHelper helper = new JwtHelper()
         .setIssuerUrl(configuration.okta.issuer)
@@ -45,9 +52,24 @@ public class AuthModule extends AbstractModule {
       }
       JwtVerifier jwtVerifier = helper.build();
 
-      return new OktaOAuthAuthenticator(jwtVerifier);
+      uncached = new OktaOAuthAuthenticator(jwtVerifier);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to configure JwtVerifier", e);
     }
+
+    CachingAuthenticator<String, AccessTokenPrincipal> cached = new CachingAuthenticator<String, AccessTokenPrincipal>(
+      environment.metrics(),
+      uncached,
+      CacheBuilderSpec.parse(configuration.authCachePolicy)
+    );
+
+    return credentials -> cached.authenticate(credentials);
+  }
+
+
+  @Provides
+  @Singleton
+  OcoAuthorizer authorizer() {
+    return (principal, role) -> true;
   }
 }

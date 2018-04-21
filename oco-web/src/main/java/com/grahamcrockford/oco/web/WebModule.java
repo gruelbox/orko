@@ -11,6 +11,8 @@ import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.auth.AuthModule;
 import com.grahamcrockford.oco.wiring.WebResource;
 
+import io.dropwizard.setup.Environment;
+
 /**
  * Top level bindings.
  */
@@ -18,8 +20,8 @@ class WebModule extends AbstractModule {
 
   private final OcoApplicationModule appModule;
 
-  public WebModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client) {
-    this.appModule = new OcoApplicationModule(configuration, objectMapper, client);
+  public WebModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
+    this.appModule = new OcoApplicationModule(configuration, objectMapper, client, environment);
   }
 
   @Override

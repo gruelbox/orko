@@ -9,6 +9,8 @@ import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.guardian.GuardianModule;
 import com.grahamcrockford.oco.telegram.TelegramModule;
 
+import io.dropwizard.setup.Environment;
+
 /**
  * Top level bindings.
  */
@@ -16,8 +18,8 @@ class WorkerModule extends AbstractModule {
 
   private final OcoApplicationModule appModule;
 
-  public WorkerModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client) {
-    this.appModule = new OcoApplicationModule(configuration, objectMapper, client);
+  public WorkerModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
+    this.appModule = new OcoApplicationModule(configuration, objectMapper, client, environment);
   }
 
   @Override

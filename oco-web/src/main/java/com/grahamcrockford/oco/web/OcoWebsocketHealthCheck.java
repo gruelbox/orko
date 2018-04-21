@@ -33,7 +33,13 @@ public class OcoWebsocketHealthCheck extends HealthCheck {
     ResultBuilder result = Result.builder().healthy();
     try {
 
-      URI uri = new URI("ws://" +
+      String header = request.get().getHeader("authorization");
+      if (header == null || !header.startsWith("Bearer ") || header.length() <= 7) {
+        return result.withMessage("Requires access token").unhealthy().build();
+      }
+      String accessToken = header.substring(7);
+
+      URI uri = new URI("ws://X-Bearer:" + accessToken + "@" +
                         request.get().getServerName() +
                         "." +
                         request.get().getServerPort() +
@@ -41,11 +47,6 @@ public class OcoWebsocketHealthCheck extends HealthCheck {
                         "/ws");
 
       result.withDetail("uri", uri);
-
-      String header = request.get().getHeader("authorization");
-      if (header == null || !header.startsWith("Bearer ")) {
-        return result.withMessage("Requires access token").unhealthy().build();
-      }
 
       AtomicInteger bitfinexTickersReceived = new AtomicInteger();
       AtomicInteger gdaxTickersReceived = new AtomicInteger();

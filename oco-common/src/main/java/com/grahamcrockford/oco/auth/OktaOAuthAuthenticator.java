@@ -11,7 +11,7 @@ import com.okta.jwt.JwtVerifier;
 
 import io.dropwizard.auth.AuthenticationException;
 
-class OktaOAuthAuthenticator implements AuthenticatorAuthoriser {
+class OktaOAuthAuthenticator implements OcoAuthenticator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OktaOAuthAuthenticator.class);
 
@@ -33,11 +33,5 @@ class OktaOAuthAuthenticator implements AuthenticatorAuthoriser {
     } catch (Exception e) {
       throw new AuthenticationException(e);
     }
-  }
-
-  @Override
-  public boolean authorize(AccessTokenPrincipal principal, String role) {
-    // TODO consider whether to use roles later
-    return true;
   }
 }

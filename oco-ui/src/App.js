@@ -22,7 +22,7 @@ const store = createStore(
   applyMiddleware(thunk),
   applyMiddleware(sagaMiddleware)
 )
-sagaMiddleware.run(rootSaga)
+sagaMiddleware.run(rootSaga, store.dispatch, store.getState)
 
 export default class App extends Component {
   render() {

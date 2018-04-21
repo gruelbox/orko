@@ -1,7 +1,6 @@
 package com.grahamcrockford.oco.web;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
@@ -25,15 +24,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.grahamcrockford.oco.auth.AccessTokenPrincipal;
-import com.grahamcrockford.oco.auth.AuthenticatorAuthoriser;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 import com.grahamcrockford.oco.ticker.TickerEvent;
 import com.grahamcrockford.oco.web.OcoWebSocketOutgoingMessage.Nature;
-
-import io.dropwizard.auth.AuthenticationException;
 
 @Metered
 @Timed
@@ -49,7 +44,6 @@ public final class OcoWebSocketServer {
 
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
-  @Inject private AuthenticatorAuthoriser authenticatorAuthoriser;
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
@@ -63,10 +57,6 @@ public final class OcoWebSocketServer {
     try {
 
       request = decodeRequest(message);
-
-      if (!authenticate(session, request)) {
-        return;
-      }
 
       switch (request.command()) {
         case START_TICKER:
@@ -112,26 +102,6 @@ public final class OcoWebSocketServer {
     return request;
   }
 
-  private boolean authenticate(Session session, OcoWebSocketIncomingMessage request) {
-    try {
-      Optional<AccessTokenPrincipal> principal = authenticatorAuthoriser.authenticate(request.accessToken());
-      if (!principal.isPresent()) {
-        LOGGER.warn("Unauthorised login attempt");
-        session.getAsyncRemote().sendText(message(Nature.INVALID_AUTH, request.correlationId(), "No user found"));
-        return false;
-      }
-      if (!authenticatorAuthoriser.authorize(principal.get(), Roles.TRADER)) {
-        LOGGER.warn("User [{}] not authorised", principal.get().getName());
-        session.getAsyncRemote().sendText(message(Nature.INVALID_AUTH, request.correlationId(), "User not authorised"));
-        return false;
-      }
-    } catch (AuthenticationException e) {
-      LOGGER.error("Invalid token", e);
-      session.getAsyncRemote().sendText(message(Nature.INVALID_AUTH, request.correlationId(), "Invalid token"));
-      return false;
-    }
-    return true;
-  }
 
   private void startTicker(TickerSpec spec, Session session) {
     if (registeredTickers.putIfAbsent(spec, false) == null) {

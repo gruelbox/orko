@@ -6,12 +6,6 @@ public class AuthConfiguration {
 
   public OktaConfiguration okta;
 
-  @NotNull
-  public String adminUserName;
-
-  @NotNull
-  public String adminPassword;
-
   public String secretKey;
 
   public Integer whitelistExpirySeconds = 28800;

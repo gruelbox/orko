@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -40,21 +41,25 @@ class IpWhitelistAccess {
   }
 
   public void setIp(String ip) {
+    Preconditions.checkNotNull(ip);
     try {
-      BasicDBObject doc = new BasicDBObject()
-          .append("uid", SINGLETON_OBJECT_ID)
-          .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-          .append("ip", ip);
-      collection.get().insert(doc);
+      update(ip);
     } catch (DuplicateKeyException e) {
-      collection.get().update(
-        new BasicDBObject()
-          .append("uid", SINGLETON_OBJECT_ID),
-        new BasicDBObject()
-          .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-          .append("ip", ip)
-      );
+      // Known bug https://stackoverflow.com/questions/30404513/mongodb-update-with-upsert-and-unique-index-atomicity-when-document-is-not-in-th
+      update(ip);
     }
+  }
+
+  private void update(String ip) {
+    collection.get().update(
+      new BasicDBObject()
+        .append("uid", SINGLETON_OBJECT_ID),
+       new BasicDBObject("$set", new BasicDBObject()
+           .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
+           .append("ip", ip)),
+      true,
+      false
+    );
   }
 
   public void delete(String sourceIp) {

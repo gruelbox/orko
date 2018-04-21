@@ -1,7 +1,5 @@
 loopSeconds: 3
 auth:
-  adminUserName: let # Basic authentication. Only safe over SSL.
-  adminPassword: mein
 #  secretKey: Generate this using com.grahamcrockford.oco.cli.GenerateSecretKey when you move to production
   proxied: false #  Set this to true if you deploy to Heroku
   whitelistExpirySeconds: 14400
