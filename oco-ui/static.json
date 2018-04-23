@@ -8,8 +8,7 @@
   },
   "proxies": {
     "/api/": {
-      "origin": "${API_URL}",
-      "ws": true
+      "origin": "${API_URL}"
     }
   },
   "routes": {
