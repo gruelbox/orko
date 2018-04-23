@@ -39,6 +39,8 @@ server:
   connector:
     type: http
     port: 8080
+  requestLog:
+    appenders: []
 jerseyClient:
   timeout: 15000ms
   connectionTimeout: 15000ms
