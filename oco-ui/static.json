@@ -7,12 +7,16 @@
     }
   },
   "proxies": {
-    "/api/": {
+    "/ws": {
       "origin": "${API_URL}",
       "ws": true
+    },
+    "/api/": {
+      "origin": "${API_URL}"
     }
   },
   "routes": {
-    "/**": "index.html"
+    "/coin/**": "index.html",
+    "/job/**": "index.html"
   }
 }
