@@ -41,9 +41,11 @@ class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
   @Override
   protected boolean filterHttpRequest(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
+    String fullPath = request.getContextPath() + request.getServletPath() + request.getPathInfo();
+
     String authorization = request.getHeader(AUTHORIZATION);
     if (authorization == null || !authorization.startsWith("Bearer ") || authorization.length() <= 7) {
-      LOGGER.error(request.getPathInfo() + ": invalid auth header: " + authorization + " on " + request.getContextPath() + request.getServletPath());
+      LOGGER.error(fullPath + ": invalid auth header: " + authorization);
       response.sendError(401);
       return false;
     }
@@ -53,17 +55,17 @@ class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
     try {
       Optional<AccessTokenPrincipal> principal = authenticator.authenticate(accessToken);
       if (!principal.isPresent()) {
-        LOGGER.error(request.getPathInfo() + ": Unauthorised login attempt");
+        LOGGER.error(fullPath + ": Unauthorised login attempt");
         response.sendError(401);
         return false;
       }
       if (!authorizer.authorize(principal.get(), Roles.TRADER)) {
-        LOGGER.error(request.getPathInfo() + ": user [{}] not authorised", principal.get().getName());
+        LOGGER.error(fullPath + ": user [" + principal.get().getName() + "] not authorised");
         response.sendError(401);
         return false;
       }
     } catch (AuthenticationException e) {
-      LOGGER.error(request.getPathInfo() + ": invalid token", e);
+      LOGGER.error(fullPath + ": invalid token", e);
       response.sendError(401);
       return false;
     }
