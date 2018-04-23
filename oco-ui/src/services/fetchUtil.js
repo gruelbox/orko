@@ -18,8 +18,8 @@ export function del(url, token) {
 export function ws(url, token) {
   const env = runtimeEnv()
   var fullUrl
-  if (env.WS_URL) {
-    fullUrl = env.WS_URL + "/" + url
+  if (env.REACT_APP_WS_URL) {
+    fullUrl = env.REACT_APP_WS_URL + "/" + url
   } else {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
     fullUrl = protocol + "//" + window.location.host + "/" + url
