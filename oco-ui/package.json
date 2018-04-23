@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mars/heroku-js-runtime-env": "^3.0.2",
     "@okta/okta-signin-widget": "^2.7.0",
     "create-react-context": "^0.2.1",
     "fetch": "^1.1.0",
