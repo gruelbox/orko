@@ -25,21 +25,25 @@ class ColumnLogger {
   }
 
   private void header() {
-    final Object[] empties = FluentIterable.from(columns).transform(c -> "").toArray(String.class);
-    final Object[] names = FluentIterable.from(columns).transform(LogColumn::name).toArray(String.class);
-    logger.info(String.format(logFormat, empties));
-    logger.info(String.format(logFormat, names));
-    logger.info(String.format(logFormat, empties));
+    if (logger.isDebugEnabled()) {
+      final Object[] empties = FluentIterable.from(columns).transform(c -> "").toArray(String.class);
+      final Object[] names = FluentIterable.from(columns).transform(LogColumn::name).toArray(String.class);
+      logger.info(String.format(logFormat, empties));
+      logger.info(String.format(logFormat, names));
+      logger.info(String.format(logFormat, empties));
+    }
   }
 
   void line(Object... values) {
-    final int rowCount = logRowCount.getAndIncrement();
-    if (rowCount == 0) {
-      header();
+    if (logger.isDebugEnabled()) {
+      final int rowCount = logRowCount.getAndIncrement();
+      if (rowCount == 0) {
+        header();
+      }
+      if (rowCount == 25) {
+        logRowCount.set(0);
+      }
+      logger.debug(String.format(logFormat, values));
     }
-    if (rowCount == 25) {
-      logRowCount.set(0);
-    }
-    logger.info(String.format(logFormat, values));
   }
 }
