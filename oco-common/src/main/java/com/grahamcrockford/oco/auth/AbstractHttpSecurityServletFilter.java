@@ -35,6 +35,7 @@ abstract class AbstractHttpSecurityServletFilter implements Filter {
     LOGGER.info("Request to {} : {} : {}", httpRequest.getContextPath(), httpRequest.getServletPath(), httpRequest.getPathInfo());
 
     if ("/favicon.ico".equals(httpRequest.getServletPath()) ||
+        "/favicon.ico".equals(httpRequest.getPathInfo()) ||
         "/auth".equals(httpRequest.getPathInfo()) ||
         "/auth/config".equals(httpRequest.getPathInfo())) {
       chain.doFilter(request, response);
