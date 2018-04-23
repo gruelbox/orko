@@ -39,7 +39,7 @@ class ProtocolToBearerTranslationFilter extends AbstractHttpSecurityServletFilte
 
     if (accessToken != null) {
 
-      LOGGER.info(request.getPathInfo() + ": rewriting Sec-WebSocket-Protocol header as Bearer");
+      LOGGER.debug("{}: rewriting Sec-WebSocket-Protocol header as Bearer", request.getPathInfo());
       response.addHeader("Sec-WebSocket-Protocol", "auth");
       chain.doFilter(
         new HttpServletRequestWrapper(request) {
