@@ -32,7 +32,7 @@ import com.grahamcrockford.oco.web.OcoWebSocketOutgoingMessage.Nature;
 @Metered
 @Timed
 @ExceptionMetered
-@ServerEndpoint("/api/ws")
+@ServerEndpoint("/ws")
 @RolesAllowed(Roles.TRADER)
 public final class OcoWebSocketServer {
 

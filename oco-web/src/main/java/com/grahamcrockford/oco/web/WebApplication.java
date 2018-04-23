@@ -73,7 +73,7 @@ public class WebApplication extends Application<OcoConfiguration> {
       .forEach(t -> t.init(environment));
 
     final ServerEndpointConfig config = ServerEndpointConfig.Builder
-        .create(OcoWebSocketServer.class, "/api/ws")
+        .create(OcoWebSocketServer.class, "/ws")
         .build();
     config.getUserProperties().put(Injector.class.getName(), injector);
     websocketBundle.addEndpoint(config);
