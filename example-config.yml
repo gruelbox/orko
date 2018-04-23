@@ -1,7 +1,5 @@
 loopSeconds: ${LOOP_SECONDS}
 auth:
-  adminUserName: ${USER_NAME}
-  adminPassword: ${PASSWORD}
   proxied: ${PROXIED}
   whitelistExpirySeconds: 14400
   secretKey: ${AUTH_TOKEN}
