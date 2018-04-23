@@ -1,9 +1,8 @@
 package com.grahamcrockford.oco.web;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
-
 import javax.annotation.security.RolesAllowed;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
@@ -21,7 +20,7 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
@@ -40,7 +39,6 @@ public final class OcoWebSocketServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(OcoWebSocketServer.class);
 
   private final String uuid = UUID.randomUUID().toString();
-  private final ConcurrentMap<TickerSpec, Boolean> registeredTickers = Maps.newConcurrentMap();
 
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
@@ -59,11 +57,8 @@ public final class OcoWebSocketServer {
       request = decodeRequest(message);
 
       switch (request.command()) {
-        case START_TICKER:
-          startTicker(request.ticker(), session);
-          break;
-        case STOP_TICKER:
-          stopTicker(request.ticker());
+        case CHANGE_TICKERS:
+          changeTickers(request.tickers(), session);
           break;
         default:
           // Jackson should stop this happening in the try block above, but just for completeness
@@ -80,7 +75,7 @@ public final class OcoWebSocketServer {
   @OnClose
   public void myOnClose(final javax.websocket.Session session, CloseReason cr) {
     LOGGER.info("Closing socket ({})", cr.toString());
-    registeredTickers.keySet().forEach(spec -> exchangeEventRegistry.unregisterTicker(spec, uuid));
+    exchangeEventRegistry.changeTickers(ImmutableList.of(), uuid, null);
   }
 
   @OnError
@@ -102,21 +97,13 @@ public final class OcoWebSocketServer {
     return request;
   }
 
-
-  private void startTicker(TickerSpec spec, Session session) {
-    if (registeredTickers.putIfAbsent(spec, false) == null) {
-      exchangeEventRegistry.registerTicker(spec, uuid, t -> {
-        LOGGER.debug("Tick: {}", t);
-        session.getAsyncRemote().sendText(message(Nature.TICKER, null, TickerEvent.create(spec, t)));
-      });
-    }
+  private synchronized void changeTickers(Collection<TickerSpec> specs, Session session) {
+    exchangeEventRegistry.changeTickers(specs, uuid, (spec, t) -> {
+      LOGGER.debug("Tick: {}", t);
+      session.getAsyncRemote().sendText(message(Nature.TICKER, null, TickerEvent.create(spec, t)));
+    });
   }
 
-  private void stopTicker(TickerSpec spec) {
-    if (registeredTickers.remove(spec) != null) {
-      exchangeEventRegistry.unregisterTicker(spec, uuid);
-    }
-  }
 
   private String message(Nature nature, String correlationId, Object data) {
     try {

@@ -51,50 +51,43 @@ public class TickerGenerator extends AbstractExecutionThreadService {
   }
 
   /**
-   * Starts handling for a ticker specification.
+   * Updates the subscriptions for the specified exchanges.
    *
-   * @param spec The specification for the ticker.
+   * @param byExchange The exchanges and subscriptions for each.
    */
-  public void start(TickerSpec spec) {
-    Exchange exchange = exchangeService.get(spec.exchange());
-    boolean streaming = exchange instanceof StreamingExchange;
-    if (streaming) {
-      subscribe(spec, exchange);
-    } else {
-      activePolling.add(spec);
-      LOGGER.info("Subscribing to ticker poll: " + spec);
-    }
+  public void updateSubscriptions(Multimap<String, TickerSpec> byExchange) {
+    LOGGER.info("Updating subscriptions to: " + byExchange);
+    byExchange.asMap().entrySet().forEach(entry -> {
+      Exchange exchange = exchangeService.get(entry.getKey());
+      Collection<TickerSpec> specsForExchange = entry.getValue();
+      boolean streaming = exchange instanceof StreamingExchange;
+      if (streaming) {
+        subscribe(specsForExchange, exchange);
+      } else {
+        activePolling.addAll(specsForExchange);
+        LOGGER.info("Subscribing to ticker poll: " + specsForExchange);
+      }
+    });
   }
 
-  /**
-   * If this is the last listening client for the ticker, stops the listener.
-   *
-   * @param spec The specification for the ticker.
-   */
-  public void stop(TickerSpec spec) {
-    Exchange exchange = exchangeService.get(spec.exchange());
-    boolean streaming = exchange instanceof StreamingExchange;
-    if (streaming) {
-      unsubscribe(spec);
-    } else {
-      activePolling.remove(spec);
-      LOGGER.info("Unsubscribing from ticker poll: " + spec);
-    }
-  }
+  private synchronized void subscribe(Collection<TickerSpec> specsForExchange, Exchange exchange) {
 
-  private synchronized void subscribe(TickerSpec spec, Exchange exchange) {
-    LOGGER.info("Subscribing to ticker stream: " + spec);
+    if (specsForExchange.isEmpty())
+      return;
+
+    LOGGER.info("Subscribing to ticker streams: " + specsForExchange);
 
     StreamingExchange streamingExchange = (StreamingExchange)exchange;
+    String exchangeName = specsForExchange.iterator().next().exchange();
 
     // Remove all the old subscriptions and disconnect
-    unsubscribeAll(streamingExchange, spec.exchange());
+    unsubscribeAll(streamingExchange, exchangeName);
 
     // Add our new ticker
-    tickersPerExchange.put(spec.exchange(), spec);
+    tickersPerExchange.putAll(exchangeName, specsForExchange);
 
-    resubscribeAll(streamingExchange, tickersPerExchange.get(spec.exchange()));
-    LOGGER.info("Subscribed to ticker stream: " + spec);
+    resubscribeAll(streamingExchange, tickersPerExchange.get(exchangeName));
+    LOGGER.info("Subscribed to ticker stream: " + specsForExchange);
   }
 
   private void unsubscribeAll(StreamingExchange streamingExchange, String exchange) {
@@ -130,22 +123,6 @@ public class TickerGenerator extends AbstractExecutionThreadService {
           );
       subsPerExchange.put(s.exchange(), subscription);
     }
-  }
-
-  private synchronized void unsubscribe(TickerSpec spec) {
-    LOGGER.info("Unsubscribing from ticker stream: " + spec);
-
-    Exchange exchange = exchangeService.get(spec.exchange());
-    StreamingExchange streamingExchange = (StreamingExchange)exchange;
-
-    // Remove all the old subscriptions and disconnect
-    unsubscribeAll(streamingExchange, spec.exchange());
-
-    // Remove our  ticker
-    tickersPerExchange.remove(spec.exchange(), spec);
-
-    resubscribeAll(streamingExchange, tickersPerExchange.get(spec.exchange()));
-    LOGGER.info("Unsubscribed from ticker stream: " + spec);
   }
 
   private void onTicker(TickerSpec spec, Ticker ticker) {

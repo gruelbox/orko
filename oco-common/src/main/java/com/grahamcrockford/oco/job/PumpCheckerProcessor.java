@@ -58,7 +58,7 @@ class PumpCheckerProcessor implements PumpChecker.Processor {
     exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
   }
 
-  private void tick(Ticker ticker) {
+  private void tick(TickerSpec spec, Ticker ticker) {
     final TickerSpec ex = job.tickTrigger();
 
     BigDecimal asPercentage = BigDecimal.ZERO;

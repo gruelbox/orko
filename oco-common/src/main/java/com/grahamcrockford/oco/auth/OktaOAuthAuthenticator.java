@@ -28,7 +28,7 @@ class OktaOAuthAuthenticator implements OcoAuthenticator {
       // if we made it this far we have a valid jwt
       return Optional.of(new AccessTokenPrincipal(jwt));
     } catch (JoseException e) {
-      LOGGER.error("JWT invalid", e);
+      LOGGER.error("JWT [" + accessToken + "] invalid (" + e.getMessage() + ")");
       return Optional.empty();
     } catch (Exception e) {
       throw new AuthenticationException(e);

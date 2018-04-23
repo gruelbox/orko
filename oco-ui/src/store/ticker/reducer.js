@@ -3,8 +3,7 @@ import PropTypes from 'prop-types';
 import * as types from './actionTypes';
 
 const initialState = Immutable({
-  coins: Immutable({
-  }),
+  coins: Immutable({}),
   connected: false
 });
 
@@ -19,17 +18,10 @@ export const tickerShape = {
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.START_TICKER:
+    case types.RESUBSCRIBE:
       console.debug(action.type, action);
       return Immutable.merge(state, { 
-        coins: {
-          [action.coin.key]: undefined
-        } 
-      }, {deep: true});
-    case types.STOP_TICKER:
-      console.debug(action.type, action);
-      return Immutable.merge(state, {
-        coins: state.coins.without(action.coin.key)
+        coins: Immutable({})
       });
     case types.SET_TICKER:
       console.debug(action.type, action);

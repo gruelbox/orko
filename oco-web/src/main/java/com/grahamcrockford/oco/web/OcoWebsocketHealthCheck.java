@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.grahamcrockford.oco.spi.TickerSpec;
@@ -71,9 +72,13 @@ public class OcoWebsocketHealthCheck extends HealthCheck {
             break;
         }
       })) {
-        clientEndPoint.addTicker(TickerSpec.builder().exchange("bitfinex").counter("USD").base("BTC").build());
-        clientEndPoint.addTicker(TickerSpec.builder().exchange("gdax").counter("USD").base("BTC").build());
-        clientEndPoint.addTicker(TickerSpec.builder().exchange("binance").counter("USDT").base("BTC").build());
+        clientEndPoint.changeTickers(
+          ImmutableList.of(
+            TickerSpec.builder().exchange("bitfinex").counter("USD").base("BTC").build(),
+            TickerSpec.builder().exchange("gdax").counter("USD").base("BTC").build(),
+            TickerSpec.builder().exchange("binance").counter("USDT").base("BTC").build()
+          )
+        );
         Thread.sleep(30000);
       }
 

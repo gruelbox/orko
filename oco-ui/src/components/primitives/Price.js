@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react"
 
-import styled from 'styled-components';
-import { fontSize, color, fontWeight, fontFamily, space } from 'styled-system';
+import styled from "styled-components"
+import { fontSize, color, fontWeight, fontFamily, space } from "styled-system"
 
 const PriceRow = styled.tr`
   margin: 0,
   padding: 0
-`;
+`
 
 const PriceKey = styled.th.attrs({
   fontSize: 1,
@@ -18,13 +18,12 @@ const PriceKey = styled.th.attrs({
   m: 0
 })`
   text-align: right;
-  border-right: 1px solid ${props => props.theme.colors.deemphasis};
   white-space:nowrap;
   ${color}
   ${fontSize}
   ${fontWeight}
   ${space}
-`;
+`
 
 const PriceValue = styled.td.attrs({
   fontSize: 1,
@@ -38,41 +37,72 @@ const PriceValue = styled.td.attrs({
   &:hover {
     color: ${props => props.theme.colors.link};
   };
-  background-color: ${props => props.movement === "up"
-  ? props.theme.colors.buy
-  : props.movement === "down"
-    ? props.theme.colors.sell
-    : "none"};
-  color: ${props => props.movement === "up"
-    ? props.theme.colors.black
-    : props.movement === "down"
+  background-color: ${props =>
+    props.movement === "up"
+      ? props.theme.colors.buy
+      : props.movement === "down"
+        ? props.theme.colors.sell
+        : "none"};
+  color: ${props =>
+    props.movement === "up"
       ? props.theme.colors.black
-      : props.theme.colors.fore};
+      : props.movement === "down"
+        ? props.theme.colors.black
+        : props.theme.colors.fore};
   ${color}
   ${fontSize}
   ${fontWeight}
   ${fontFamily}
   ${space}
-`;
+`
+
+const BarePriceValue = styled.span.attrs({
+  fontSize: 1,
+  py: 0,
+  pl: 1,
+  pr: 1,
+  m: 0,
+  fontFamily: "mono"
+})`
+  cursor: copy;
+  &:hover {
+    color: ${props => props.theme.colors.link};
+  };
+  background-color: ${props =>
+    props.movement === "up"
+      ? props.theme.colors.buy
+      : props.movement === "down"
+        ? props.theme.colors.sell
+        : "none"};
+  color: ${props =>
+    props.movement === "up"
+      ? props.theme.colors.black
+      : props.movement === "down"
+        ? props.theme.colors.black
+        : props.theme.colors.fore};
+  ${color}
+  ${fontSize}
+  ${fontWeight}
+  ${fontFamily}
+  ${space}
+`
 
 class Price extends React.Component {
-
   constructor(props) {
-    super(props);
-    this.state = {movement: null};
+    super(props)
+    this.state = { movement: null }
   }
 
   componentWillReceiveProps(nextProps) {
-    var movement = null;
+    var movement = null
     if (Number(nextProps.children) > Number(this.props.children)) {
-      movement = "up";
+      movement = "up"
     } else if (Number(nextProps.children) < Number(this.props.children)) {
-      movement = "down";
+      movement = "down"
     }
     if (movement) {
-      this.setState(
-        { movement: movement },
-        () => setTimeout(() => this.setState({ movement: null }), 2100)
+      this.setState({ movement: movement }, () =>
+        setTimeout(() => this.setState({ movement: null }), 2100)
       )
     }
   }
@@ -80,20 +110,28 @@ class Price extends React.Component {
   onClick = () => {
     if (this.props.onClick) {
       console.log("Price clicked", this.props.name, this.props.children)
-      this.props.onClick(this.props.children);
+      this.props.onClick(this.props.children)
     }
-  };
+  }
 
   render() {
-    return (
-      <PriceRow>
-        <PriceKey>{this.props.name}</PriceKey>
-        <PriceValue movement={this.state.movement} onClick={this.onClick}>
+    if (this.props.bare) {
+      return (
+        <BarePriceValue movement={this.state.movement} onClick={this.onClick}>
           {this.props.children}
-        </PriceValue>
-      </PriceRow>
-    );
+        </BarePriceValue>
+      )
+    } else {
+      return (
+        <PriceRow>
+          <PriceKey>{this.props.name}</PriceKey>
+          <PriceValue movement={this.state.movement} onClick={this.onClick}>
+            {this.props.children}
+          </PriceValue>
+        </PriceRow>
+      )
+    }
   }
-};
+}
 
-export default Price;
+export default Price

@@ -39,6 +39,8 @@ class AuthContainer extends Component {
           }
         />
       )
+    } else if (!this.props.auth.loggedIn && !this.props.auth.config) {
+      return <Loader active={true} />
     } else {
       return this.props.children
     }

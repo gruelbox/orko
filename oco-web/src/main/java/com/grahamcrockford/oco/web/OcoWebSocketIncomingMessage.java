@@ -1,5 +1,7 @@
 package com.grahamcrockford.oco.web;
 
+import java.util.Collection;
+
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -15,8 +17,8 @@ abstract class OcoWebSocketIncomingMessage {
   @JsonCreator
   static OcoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
                                             @JsonProperty("correlationId") String correlationId,
-                                            @JsonProperty("ticker") TickerSpec ticker) {
-    return new AutoValue_OcoWebSocketIncomingMessage(command, correlationId, ticker);
+                                            @JsonProperty("tickers") Collection<TickerSpec> tickers) {
+    return new AutoValue_OcoWebSocketIncomingMessage(command, correlationId, tickers);
   }
 
   @JsonProperty
@@ -27,10 +29,9 @@ abstract class OcoWebSocketIncomingMessage {
   abstract String correlationId();
 
   @JsonProperty
-  abstract TickerSpec ticker();
+  abstract Collection<TickerSpec> tickers();
 
   enum Command {
-    START_TICKER,
-    STOP_TICKER
+    CHANGE_TICKERS
   }
 }

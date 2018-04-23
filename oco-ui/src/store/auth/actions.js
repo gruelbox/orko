@@ -60,7 +60,6 @@ export function logout() {
 
 export function setToken(token, userName) {
   return async (dispatch, getState) => {
-    dispatch(tickerActions.resubscribe())
     dispatch({ type: types.SET_TOKEN, token, userName })
   }
 }

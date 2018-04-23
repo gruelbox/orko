@@ -1,10 +1,8 @@
 package com.grahamcrockford.oco.web;
 
-import static com.grahamcrockford.oco.web.OcoWebSocketIncomingMessage.Command.START_TICKER;
-import static com.grahamcrockford.oco.web.OcoWebSocketIncomingMessage.Command.STOP_TICKER;
-
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -56,17 +54,13 @@ public class OcoWebsocketClient implements AutoCloseable {
     consumer.accept(objectMapper.readValue(message, Map.class));
   }
 
-  public void addTicker(TickerSpec spec) {
-    sendCommand(START_TICKER, spec);
+  public void changeTickers(Collection<TickerSpec> specs) {
+    sendCommand(Command.CHANGE_TICKERS, specs);
   }
 
-  public void removeTicker(TickerSpec spec) {
-    sendCommand(STOP_TICKER, spec);
-  }
-
-  private void sendCommand(Command command, TickerSpec spec) {
+  private void sendCommand(Command command, Collection<TickerSpec> specs) {
     try {
-      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, UUID.randomUUID().toString(), spec);
+      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, UUID.randomUUID().toString(), specs);
       String message = objectMapper.writeValueAsString(request);
       this.session.getAsyncRemote().sendText(message);
     } catch (JsonProcessingException e) {

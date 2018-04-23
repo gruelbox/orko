@@ -74,7 +74,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   }
 
   @VisibleForTesting
-  void tick(Ticker ticker) {
+  void tick(TickerSpec spec, Ticker ticker) {
 
     final TickerSpec ex = job.tickTrigger();
 

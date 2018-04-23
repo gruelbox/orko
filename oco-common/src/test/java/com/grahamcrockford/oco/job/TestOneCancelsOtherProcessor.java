@@ -6,8 +6,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.function.Consumer;
-
+import java.util.function.BiConsumer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +53,7 @@ public class TestOneCancelsOtherProcessor {
   @Mock private Job job1;
   @Mock private Job job2;
 
-  @Captor private ArgumentCaptor<Consumer<Ticker>> tickerConsumerCaptor;
+  @Captor private ArgumentCaptor<BiConsumer<TickerSpec, Ticker>> tickerConsumerCaptor;
 
   @Before
   public void before() throws IOException {
@@ -75,7 +74,7 @@ public class TestOneCancelsOtherProcessor {
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(LOW_PRICE)
         .build());
 
@@ -96,7 +95,7 @@ public class TestOneCancelsOtherProcessor {
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(LOW_PRICE)
         .build());
 
@@ -120,7 +119,7 @@ public class TestOneCancelsOtherProcessor {
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(LOW_PRICE)
         .build());
 
@@ -142,7 +141,7 @@ public class TestOneCancelsOtherProcessor {
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(LOW_PRICE.add(BigDecimal.ONE))
         .build());
 
@@ -162,7 +161,7 @@ public class TestOneCancelsOtherProcessor {
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(HIGH_PRICE.subtract(BigDecimal.ONE))
         .build());
 
@@ -182,7 +181,7 @@ public class TestOneCancelsOtherProcessor {
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(HIGH_PRICE)
         .build());
 
@@ -206,7 +205,7 @@ public class TestOneCancelsOtherProcessor {
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(HIGH_PRICE)
         .build());
 
@@ -229,7 +228,7 @@ public class TestOneCancelsOtherProcessor {
 
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
-    tickerConsumerCaptor.getValue().accept(new Ticker.Builder()
+    tickerConsumerCaptor.getValue().accept(job.tickTrigger(), new Ticker.Builder()
         .bid(HIGH_PRICE)
         .build());
 
