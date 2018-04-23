@@ -6,6 +6,7 @@
       "Strict-Transport-Security": "max-age=7776000"
     }
   },
+  "debug": true,
   "proxies": {
     "/ws/": {
       "origin": "${API_URL}/ws",
