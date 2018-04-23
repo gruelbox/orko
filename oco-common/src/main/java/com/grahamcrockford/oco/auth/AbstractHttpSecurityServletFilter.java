@@ -10,7 +10,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 abstract class AbstractHttpSecurityServletFilter implements Filter {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHttpSecurityServletFilter.class);
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -26,6 +31,8 @@ abstract class AbstractHttpSecurityServletFilter implements Filter {
 
     HttpServletRequest httpRequest = ((HttpServletRequest)request);
     HttpServletResponse httpResponse = ((HttpServletResponse)response);
+
+    LOGGER.info("Request to {} : {} : {}", httpRequest.getContextPath(), httpRequest.getServletPath(), httpRequest.getPathInfo());
 
     if ("/favicon.ico".equals(httpRequest.getServletPath()) ||
         "/auth".equals(httpRequest.getPathInfo()) ||
