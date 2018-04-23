@@ -1,22 +1,31 @@
-import * as types from './actionTypes';
-import { take, call, put, race, all, select } from 'redux-saga/effects'
+import * as types from "./actionTypes"
+import {
+  take,
+  call,
+  put,
+  race,
+  all,
+  select,
+  fork,
+  join
+} from "redux-saga/effects"
 import { ws } from "../../services/fetchUtil"
-import { eventChannel } from 'redux-saga'
-import { coin as createCoin } from '../coin/reducer'
-import * as errorActions from '../error/actions'
+import { eventChannel } from "redux-saga"
+import { coin as createCoin } from "../coin/reducer"
+import * as errorActions from "../error/actions"
 
 const channelMessages = {
-  OPEN: 'OPEN',
-  CLOSE: 'CLOSE',
+  OPEN: "OPEN",
+  CLOSE: "CLOSE"
 }
 
 const serverMessages = {
-  TICKER: 'TICKER',
-  ERROR: 'ERROR',
-  CHANGE_TICKERS: 'CHANGE_TICKERS',
+  TICKER: "TICKER",
+  ERROR: "ERROR",
+  CHANGE_TICKERS: "CHANGE_TICKERS"
 }
 
-export const getAuthToken = state => state.auth.token
+export const getAuth = state => state.auth
 export const getSubscribedCoins = state => state.coins.coins
 export const getConnected = state => state.ticker.connected
 
@@ -35,96 +44,104 @@ function socketMessageChannel(socket) {
       }
     }
     socket.onopen = () => emit(channelMessages.OPEN)
-    socket.onclose = (e) => emit(channelMessages.CLOSE)
-    return socket.close
+    socket.onclose = () => emit(channelMessages.CLOSE)
+    return () => socket.close(undefined, "Shutdown", { keepClosed: true })
   })
 }
 
-function* socketMessageListener(socketChannel, getState) {
+function* socketLoop(socketChannel) {
+  const message = yield take(socketChannel)
+  if (message === channelMessages.OPEN) {
+    console.log("Socket (re)connected")
+    yield put.resolve({ type: types.SET_CONNECTION_STATE, connected: true })
+    yield put({ type: types.RESUBSCRIBE })
+  } else if (message && message === channelMessages.CLOSE) {
+    console.log("Socket connection temporarily lost")
+    yield put({ type: types.SET_CONNECTION_STATE, connected: false })
+  } else if (message && message.nature === serverMessages.ERROR) {
+    console.log("Error from socket")
+    yield put(errorActions.addBackground(message.data, "ws"))
+  } else if (message && message.nature === serverMessages.TICKER) {
+    yield put(errorActions.clearBackground("ws"))
+    const coin = createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base)
+    yield put({
+      type: types.SET_TICKER,
+      coin,
+      ticker: message.data.ticker
+    })
+  } else {
+    yield put(
+      errorActions.addBackground(
+        "Unknown message from server: " + JSON.stringify(message),
+        "ws"
+      )
+    )
+  }
+}
+
+function* actionLoop() {
+  return yield take([
+    types.DISCONNECT,
+    types.RESUBSCRIBE
+  ])
+}
+
+function* socketManager() {
   while (true) {
-    try {
-      const message = yield take(socketChannel);
-      if (message === channelMessages.OPEN) {
-        console.log("Socket (re)connected")
+    const auth = yield select(getAuth)
+    if (!auth.token || !auth.whitelisted || !auth.loggedIn) {
+      console.log("Saga waiting for connect request...")
+      yield take(types.CONNECT)
+    }
 
-        // Socket (re)opened so resubscribe to all the tickers we were listening to,
-        // and mark the socket open
-        yield put({ type: types.SET_CONNECTION_STATE, connected: true })
-        yield put({ type: types.RESUBSCRIBE })
+    console.log("Connecting to socket...")
+    const token = (yield select(getAuth)).token
+    const socket = yield call(ws, "ws", token)
+    const socketChannel = yield call(socketMessageChannel, socket)
 
-      } else if (message === channelMessages.CLOSE) {
-        console.log("Socket connection lost")
+    while (true) {
 
-        // Mark the socket closed
-        yield put({ type: types.SET_CONNECTION_STATE, connected: false })
+      const socketTask = yield fork(socketLoop, socketChannel)
+      const actionTask = yield fork(actionLoop)
 
-      } else if (message.nature === serverMessages.ERROR) {
-        console.log("Error from socket")
+      const { action } = yield race({
+        socketLoopOutcome: join(socketTask),
+        action: join(actionTask)
+      })
 
-        // Error
-        yield put(errorActions.addBackground(message.data, "ws"))
+      if (!action) continue
 
-      } else if (message.nature === serverMessages.TICKER) {
-
-        const coin = createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base)
-        const ticker = message.data.ticker
-
-        yield put(errorActions.clearBackground("ws"))
-        yield put({ type: types.SET_TICKER, coin, ticker })
-
-      } else {
-
-        yield put(errorActions.addBackground("Unknown message from server: " + JSON.stringify(message), "ws"))
-
+      if (action.type === types.DISCONNECT) {
+        console.log("Disconnecting socket")
+        socketChannel.close()
+        break
+      } else if (action.type === types.RESUBSCRIBE) {
+        const coins = yield select(getSubscribedCoins)
+        console.log("Subscribing to tickers", coins)
+        yield socket.send(
+          JSON.stringify({
+            command: serverMessages.CHANGE_TICKERS,
+            correlationId: "CHANGE",
+            tickers: coins.map(coin => ({
+              exchange: coin.exchange,
+              counter: coin.counter,
+              base: coin.base
+            }))
+          })
+        )
       }
-    } catch (ex) {
-      yield put(errorActions.addBackground("Unknown error in socker handler: " + ex.message, "ws"))
     }
   }
-}
-
-/**
- * Listens for requests to update the list of subscribed tickers
- * and forwards these requests to the socket.
- */
-function* resubscribeListener(socket) {
-  while (true) {
-    yield take(types.RESUBSCRIBE)
-    const connected = yield select(getConnected)
-    const coins = yield select(getSubscribedCoins)
-    if (connected) {
-      console.log("Subscribing to tickers", coins)
-      socket.send(JSON.stringify({
-        command: serverMessages.CHANGE_TICKERS,
-        correlationId: "CHANGE",
-        tickers: coins.map(coin => ({
-          exchange: coin.exchange,
-          counter: coin.counter,
-          base: coin.base
-        }))
-      }));
-    }
-  }
-}
-
-function openSocket(getState) {
-  console.log("Connecting to socket...")
-  return ws("ws", () => getState().auth.token)
 }
 
 /**
  * The saga. Connects a reconnecting websocket and starts the listeners
  * for messages on the channel and outoing messages from redux dispatch.
  */
-export function* watcher(dispatch, getState) {
+export function* watcher() {
   while (true) {
-    const socket = yield call(openSocket, getState)
-    const socketChannel = yield call(socketMessageChannel, socket)
     yield race({
-      task: all([
-        call(socketMessageListener, socketChannel, getState),
-        call(resubscribeListener, socket)
-      ])
+      task: all([call(socketManager)])
     })
     console.log("Started listeners")
   }

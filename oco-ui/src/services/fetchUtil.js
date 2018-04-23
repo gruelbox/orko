@@ -14,7 +14,7 @@ export function del(url, token) {
   return fetch(new Request("/api/" + url, action("DELETE", token)))
 }
 
-export function ws(url, tokenFn) {
+export function ws(url, token) {
   const protocol = window.location.protocol === "https:" ? "wss" : "ws"
   const urlFn = () =>
     protocol +
@@ -22,7 +22,7 @@ export function ws(url, tokenFn) {
     window.location.host +
     "/api/" +
     url
-  return new ReconnectingWebSocket(urlFn, ["auth", tokenFn()])
+  return new ReconnectingWebSocket(urlFn, ["auth", token])
 }
 
 function action(method, token, content) {

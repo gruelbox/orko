@@ -10,6 +10,11 @@ export function checkWhiteList() {
       dispatch({ type: types.SET_WHITELIST_STATUS, status: Boolean(result) })
       if (result) {
         dispatch(fetchOktaConfig())
+        if (getState().auth.loggedIn && !getState().ticker.connected) {
+          dispatch(tickerActions.connect())
+        }
+      } else {
+        dispatch(tickerActions.disconnect())
       }
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
@@ -23,7 +28,6 @@ export function whitelist(token) {
       await authService.whitelist(token)
       dispatch({ type: types.SET_WHITELIST_STATUS, status: true })
       dispatch(fetchOktaConfig())
-      dispatch(tickerActions.resubscribe())
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
     }
@@ -35,6 +39,7 @@ export function clearWhitelist() {
     try {
       await authService.clearWhiteList()
       dispatch({ type: types.SET_WHITELIST_STATUS, status: false })
+      dispatch(tickerActions.disconnect())
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
     }
@@ -55,17 +60,24 @@ export function fetchOktaConfig() {
 }
 
 export function logout() {
-  return { type: types.LOGOUT }
+  return (dispatch, getState) => {
+    dispatch({ type: types.LOGOUT })
+    dispatch(tickerActions.disconnect())
+  }
 }
 
 export function setToken(token, userName) {
-  return async (dispatch, getState) => {
+  return (dispatch, getState) => {
     dispatch({ type: types.SET_TOKEN, token, userName })
+    dispatch(tickerActions.connect())
   }
 }
 
 export function invalidateLogin() {
-  return { type: types.INVALIDATE_LOGIN }
+  return (dispatch, getState) => {
+    dispatch({ type: types.INVALIDATE_LOGIN })
+    dispatch(tickerActions.disconnect())
+  }
 }
 
 export function handleHttpResponse(response) {

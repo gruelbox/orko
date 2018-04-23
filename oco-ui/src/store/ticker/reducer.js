@@ -18,11 +18,6 @@ export const tickerShape = {
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.RESUBSCRIBE:
-      console.debug(action.type, action);
-      return Immutable.merge(state, { 
-        coins: Immutable({})
-      });
     case types.SET_TICKER:
       console.debug(action.type, action);
       return Immutable.merge(state, {
