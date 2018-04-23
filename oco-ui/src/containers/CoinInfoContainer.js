@@ -1,7 +1,6 @@
 import React from "react"
 import { connect } from "react-redux"
 import CoinInfo from "../components/CoinInfo"
-import * as tickerActions from "../store/ticker/actions"
 
 class CoinInfoContainer extends React.Component {
   render() {

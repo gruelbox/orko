@@ -4,7 +4,6 @@ import { connect } from "react-redux"
 import { Icon } from "semantic-ui-react"
 
 import * as coinsActions from "../store/coins/actions"
-import * as tickerActions from "../store/ticker/actions"
 
 import CoinLink from "../components/CoinLink"
 import Section from "../components/primitives/Section"

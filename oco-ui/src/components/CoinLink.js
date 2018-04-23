@@ -4,9 +4,7 @@ import { Icon } from "semantic-ui-react"
 import Href from "./primitives/Href"
 import Link from "./primitives/Link"
 
-import Table from "../components/primitives/Table"
 import Cell from "../components/primitives/Cell"
-import HeaderCell from "../components/primitives/HeaderCell"
 import Row from "../components/primitives/Row"
 import Price from "./primitives/Price"
 
