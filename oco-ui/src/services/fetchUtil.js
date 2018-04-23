@@ -15,14 +15,14 @@ export function del(url, token) {
 }
 
 export function ws(url, token) {
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws"
-  const urlFn = () =>
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+  const fullUrl =
     protocol +
-    "://" +
+    "//" +
     window.location.host +
-    "/api/" +
+    "/" +
     url
-  return new ReconnectingWebSocket(urlFn, ["auth", token])
+  return new ReconnectingWebSocket(fullUrl, ["auth", token])
 }
 
 function action(method, token, content) {
