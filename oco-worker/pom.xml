@@ -20,7 +20,7 @@
 	<name>OCO Worker</name>
 	
 	<properties>
-		<mainClass>com.grahamcrockford.oco.core.WorkerApplication</mainClass>
+		<mainClass>com.grahamcrockford.oco.worker.WorkerApplication</mainClass>
 	</properties>
 
 	<dependencies>
