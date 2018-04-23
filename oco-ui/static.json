@@ -7,7 +7,7 @@
     }
   },
   "proxies": {
-    "/ws": {
+    "/ws/": {
       "origin": "${API_URL}/ws",
       "ws": true
     },
