@@ -45,8 +45,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   @Override
   public void registerTicker(TickerSpec spec, String jobId, BiConsumer<TickerSpec, Ticker> callback) {
     withWriteLock(() -> {
+      listeners.put(spec, new CallbackDef(jobId, callback));
       if (byExchange.put(spec.exchange(), spec)) {
-        listeners.put(spec, new CallbackDef(jobId, callback));
         tickerGenerator.updateSubscriptions(byExchange);
       }
     });
@@ -86,8 +86,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
       // And add the new ones
       ImmutableListMultimap<String, TickerSpec> targetByExchange = Multimaps.index(targetTickers, TickerSpec::exchange);
+      targetTickers.forEach(spec -> listeners.put(spec, callbackDef));
       if (byExchange.putAll(targetByExchange)) {
-        targetTickers.forEach(spec -> listeners.put(spec, callbackDef));
         updated = true;
       }
 
