@@ -43,7 +43,7 @@ class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
     String authorization = request.getHeader(AUTHORIZATION);
     if (authorization == null || !authorization.startsWith("Bearer ") || authorization.length() <= 7) {
-      LOGGER.warn(request.getPathInfo() + ": invalid auth header: " + authorization + " on " + request.getClass());
+      LOGGER.warn(request.getPathInfo() + ": invalid auth header: " + authorization + " on " + request.getContextPath() + request.getServletPath());
       response.sendError(401);
       return false;
     }
