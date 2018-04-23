@@ -55,55 +55,56 @@ public class TickerGenerator extends AbstractExecutionThreadService {
    *
    * @param byExchange The exchanges and subscriptions for each.
    */
-  public void updateSubscriptions(Multimap<String, TickerSpec> byExchange) {
+  public synchronized void updateSubscriptions(Multimap<String, TickerSpec> byExchange) {
     LOGGER.info("Updating subscriptions to: " + byExchange);
+    unsubscribeAll();
+    subscribe(byExchange);
+  }
+
+  private void unsubscribeAll() {
+    activePolling.clear();
+    subsPerExchange.asMap().entrySet().forEach(entry -> {
+      StreamingExchange streamingExchange = (StreamingExchange) exchangeService.get(entry.getKey());
+      unsubscribeExchange(streamingExchange, entry.getKey(), entry.getValue());
+    });
+    subsPerExchange.clear();
+    tickersPerExchange.clear();
+  }
+
+  private void unsubscribeExchange(StreamingExchange streamingExchange, String exchange, Collection<Disposable> oldSubs) {
+    if (!oldSubs.isEmpty()) {
+      LOGGER.info("Disconnecting from exchange: " + exchange);
+      streamingExchange.disconnect().blockingAwait(); // Seems odd but this avoids an NPE when unsubscribing
+      if (!oldSubs.isEmpty()) {
+        oldSubs.forEach(Disposable::dispose);
+      }
+    }
+  }
+
+  private void subscribe(Multimap<String, TickerSpec> byExchange) {
     byExchange.asMap().entrySet().forEach(entry -> {
       Exchange exchange = exchangeService.get(entry.getKey());
       Collection<TickerSpec> specsForExchange = entry.getValue();
       boolean streaming = exchange instanceof StreamingExchange;
       if (streaming) {
-        subscribe(specsForExchange, exchange);
+        subscribeExchange((StreamingExchange)exchange, specsForExchange, exchange, entry.getKey());
       } else {
         activePolling.addAll(specsForExchange);
-        LOGGER.info("Subscribing to ticker poll: " + specsForExchange);
+        LOGGER.info("Subscribing to ticker polls: " + specsForExchange);
       }
     });
   }
 
-  private synchronized void subscribe(Collection<TickerSpec> specsForExchange, Exchange exchange) {
-
+  private void subscribeExchange(StreamingExchange streamingExchange, Collection<TickerSpec> specsForExchange, Exchange exchange, String exchangeName) {
     if (specsForExchange.isEmpty())
       return;
-
     LOGGER.info("Subscribing to ticker streams: " + specsForExchange);
-
-    StreamingExchange streamingExchange = (StreamingExchange)exchange;
-    String exchangeName = specsForExchange.iterator().next().exchange();
-
-    // Remove all the old subscriptions and disconnect
-    unsubscribeAll(streamingExchange, exchangeName);
-
-    // Add our new ticker
     tickersPerExchange.putAll(exchangeName, specsForExchange);
-
-    resubscribeAll(streamingExchange, tickersPerExchange.get(exchangeName));
-    LOGGER.info("Subscribed to ticker stream: " + specsForExchange);
+    openConnections(streamingExchange, specsForExchange);
+    LOGGER.info("Subscribed to ticker streams: " + specsForExchange);
   }
 
-  private void unsubscribeAll(StreamingExchange streamingExchange, String exchange) {
-    Collection<Disposable> oldSubs = subsPerExchange.get(exchange);
-    if (!oldSubs.isEmpty()) {
-      LOGGER.info("Disconnecting from exchange: " + exchange);
-      streamingExchange.disconnect().blockingAwait(); // Seems odd but this avoids an NPE when unsubscribing
-
-      if (!oldSubs.isEmpty()) {
-        oldSubs.forEach(Disposable::dispose);
-      }
-      subsPerExchange.removeAll(exchange);
-    }
-  }
-
-  private void resubscribeAll(StreamingExchange streamingExchange, Collection<TickerSpec> tickers) {
+  private void openConnections(StreamingExchange streamingExchange, Collection<TickerSpec> tickers) {
     if (tickers.isEmpty())
       return;
 
