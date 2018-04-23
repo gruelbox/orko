@@ -6,7 +6,7 @@ import { ThemeProvider } from "styled-components"
 import theme from "./theme"
 
 import { Provider as ReduxProvider } from "react-redux"
-import { createStore, applyMiddleware, combineReducers } from "redux"
+import { compose, createStore, applyMiddleware, combineReducers } from "redux"
 import createSagaMiddleware from "redux-saga"
 import thunk from "redux-thunk"
 import * as reducers from "./store/reducers"
@@ -19,8 +19,10 @@ import Framework from "./Framework"
 const sagaMiddleware = createSagaMiddleware()
 const store = createStore(
   combineReducers(reducers),
-  applyMiddleware(thunk),
-  applyMiddleware(sagaMiddleware)
+  compose(
+    applyMiddleware(thunk),
+    applyMiddleware(sagaMiddleware)
+  )
 )
 sagaMiddleware.run(rootSaga, store.dispatch, store.getState)
 

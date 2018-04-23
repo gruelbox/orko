@@ -1,16 +1,16 @@
 import * as types from './actionTypes';
-import * as tickerTypes from '../ticker/actionTypes';
+import * as tickerActions from '../ticker/actions';
 
 export function add(coin) {
-  return async (dispatch, getState) => {
+  return (dispatch, getState) => {
     dispatch({ type: types.ADD, coin })
-    dispatch({ type: tickerTypes.RESUBSCRIBE })
+    dispatch(tickerActions.resubscribe())
   }
 }
 
 export function remove(coin) {
-  return async (dispatch, getState) => {
+  return (dispatch, getState) => {
     dispatch({ type: types.REMOVE, coin })
-    dispatch({ type: tickerTypes.RESUBSCRIBE })
+    dispatch(tickerActions.resubscribe())
   }
 }
