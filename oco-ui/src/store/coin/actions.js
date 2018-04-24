@@ -20,9 +20,9 @@ export function fetchOrders(coin) {
   );
 }
 
-export function cancelOrder(coin, orderId) {
+export function cancelOrder(coin, orderId, orderType) {
   return authActions.wrappedRequest(
-    auth => exchangesService.cancelOrder(coin, orderId, auth.token),
+    auth => exchangesService.cancelOrder(coin, orderId, orderType, auth.token),
     null,
     error => errorActions.setForeground("Could not cancel order: " + error.message),
     () => ({ type: types.CANCEL_ORDER, orderId })

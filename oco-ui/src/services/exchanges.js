@@ -22,8 +22,8 @@ class ExchangesService {
     return await get('exchanges/' + coin.exchange + '/markets/' + coin.base + "-" + coin.counter + "/orders", token);
   }
 
-  async cancelOrder(coin, id, token) {
-    return await del('exchanges/' + coin.exchange + '/markets/' + coin.base + "-" + coin.counter + "/orders/" + id, token);
+  async cancelOrder(coin, id, orderType, token) {
+    return await del('exchanges/' + coin.exchange + '/markets/' + coin.base + "-" + coin.counter + "/orders/" + id + "?orderType=" +  orderType, token);
   }
 }
 

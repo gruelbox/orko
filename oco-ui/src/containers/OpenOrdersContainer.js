@@ -78,7 +78,7 @@ const Orders = props => (
         {props.orders.allOpenOrders.map(o => (
           <Order
             key={o.id}
-            onCancel={() => props.onCancel(o.id)}
+            onCancel={() => props.onCancel(o.id, o.type)}
             order={o}
             color={o.type === "BID" ? "buy" : "sell"}
           />
@@ -98,8 +98,8 @@ class OpenOrdersContainer extends React.Component {
     this.props.dispatch(coinActions.fetchOrders(this.props.coin))
   }
 
-  onCancel = id => {
-    this.props.dispatch(coinActions.cancelOrder(this.props.coin, id))
+  onCancel = (id, orderType) => {
+    this.props.dispatch(coinActions.cancelOrder(this.props.coin, id, orderType))
   }
 
   componentDidMount() {

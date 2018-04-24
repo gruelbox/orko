@@ -16,14 +16,15 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.binance.service.BinanceCancelOrderParams;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.trade.OpenOrders;
+import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -222,6 +223,7 @@ public class ExchangeResource implements WebResource {
    * @param counter The countercurrency.
    * @param base The base (traded) currency.
    * @param id The order id.
+   * @param orderType The order type, sadly required by KuCoin.
    * @throws IOException If thrown by exchange.
    */
   @DELETE
@@ -231,16 +233,14 @@ public class ExchangeResource implements WebResource {
   public Response cancelOrder(@PathParam("exchange") String exchange,
                               @PathParam("counter") String counter,
                               @PathParam("base") String base,
-                              @PathParam("id") String id) throws IOException {
-
-    if (!exchange.equals("binance"))
-      return cancelOrder(exchange, id);
-
+                              @PathParam("id") String id,
+                              @QueryParam("orderType") org.knowm.xchange.dto.Order.OrderType orderType) throws IOException {
     try {
+      // KucoinCancelOrderParams is the superset - pair, id and order type. Should work with pretty much any exchange.
       return Response.ok()
           .entity(
             tradeServiceFactory.getForExchange(exchange)
-              .cancelOrder(new BinanceCancelOrderParams(new CurrencyPair(base, counter), id))
+              .cancelOrder(new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType))
           )
           .build();
     } catch (UnsupportedOperationException e) {
