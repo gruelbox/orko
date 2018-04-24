@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.ticker;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Multimap;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
@@ -35,7 +38,7 @@ public class TickerGenerator extends AbstractExecutionThreadService {
 
   private final Set<TickerSpec> activePolling = Collections.newSetFromMap(new ConcurrentHashMap<TickerSpec, Boolean>());
   private final Multimap<String, Disposable> subsPerExchange = HashMultimap.create();
-  private final Multimap<String, TickerSpec> tickersPerExchange = HashMultimap.create();
+  private final Multimap<String, TickerSpec> subscribedTickersPerExchange = HashMultimap.create();
 
   private final EventBus eventBus;
   private final ExchangeService exchangeService;
@@ -57,51 +60,82 @@ public class TickerGenerator extends AbstractExecutionThreadService {
    */
   public synchronized void updateSubscriptions(Multimap<String, TickerSpec> byExchange) {
     LOGGER.info("Updating subscriptions to: " + byExchange);
-    unsubscribeAll();
-    subscribe(byExchange);
+
+    // Disconnect any streaming exchanges where the tickers currently
+    // subscribed mismatch the ones we want.
+    Set<String> unchanged = disconnectChangedExchanges(byExchange);
+
+    // Add new subscriptions
+    subscribe(byExchange, unchanged);
+
+    // Remove any active polling tickers we're not interested in anymore
+    activePolling.removeIf(spec -> !byExchange.values().contains(spec));
   }
 
-  private void unsubscribeAll() {
-    activePolling.clear();
-    subsPerExchange.asMap().entrySet().forEach(entry -> {
-      StreamingExchange streamingExchange = (StreamingExchange) exchangeService.get(entry.getKey());
-      unsubscribeExchange(streamingExchange, entry.getKey(), entry.getValue());
-    });
-    subsPerExchange.clear();
-    tickersPerExchange.clear();
+  private Set<String> disconnectChangedExchanges(Multimap<String, TickerSpec> byExchange) {
+    Builder<String> unchanged = ImmutableSet.builder();
+
+    for (Entry<String, Collection<TickerSpec>> entry : subscribedTickersPerExchange.asMap().entrySet()) {
+
+      String exchangeName = entry.getKey();
+      Collection<TickerSpec> tickers = entry.getValue();
+      Collection<TickerSpec> target = byExchange.get(exchangeName);
+
+      LOGGER.info("Exchange {} has {}, wants {}", exchangeName, tickers, target);
+
+      if (tickers.equals(target)) {
+        unchanged.add(exchangeName);
+        continue;
+      }
+
+      LOGGER.info("... disconnecting");
+
+      disconnectExchange(exchangeName);
+
+      subsPerExchange.removeAll(exchangeName);
+      subscribedTickersPerExchange.removeAll(exchangeName);
+    }
+
+    return unchanged.build();
   }
 
-  private void unsubscribeExchange(StreamingExchange streamingExchange, String exchange, Collection<Disposable> oldSubs) {
+  private void disconnectExchange(String exchangeName) {
+    Collection<Disposable> oldSubs = subsPerExchange.get(exchangeName);
     if (!oldSubs.isEmpty()) {
-      LOGGER.info("Disconnecting from exchange: " + exchange);
-      streamingExchange.disconnect().blockingAwait(); // Seems odd but this avoids an NPE when unsubscribing
+      LOGGER.info("Disconnecting from exchange: " + exchangeName);
+      StreamingExchange exchange = (StreamingExchange) exchangeService.get(exchangeName);
+      exchange.disconnect().blockingAwait(); // Seems odd but this avoids an NPE when unsubscribing
       if (!oldSubs.isEmpty()) {
         oldSubs.forEach(Disposable::dispose);
       }
+      LOGGER.info("Disconnected from exchange: " + exchangeName);
     }
   }
 
-  private void subscribe(Multimap<String, TickerSpec> byExchange) {
-    byExchange.asMap().entrySet().forEach(entry -> {
-      Exchange exchange = exchangeService.get(entry.getKey());
-      Collection<TickerSpec> specsForExchange = entry.getValue();
-      boolean streaming = exchange instanceof StreamingExchange;
-      if (streaming) {
-        subscribeExchange((StreamingExchange)exchange, specsForExchange, exchange, entry.getKey());
-      } else {
-        activePolling.addAll(specsForExchange);
-        LOGGER.info("Subscribing to ticker polls: " + specsForExchange);
-      }
-    });
+  private void subscribe(Multimap<String, TickerSpec> byExchange, Set<String> unchanged) {
+    byExchange.asMap()
+      .entrySet()
+      .stream()
+      .filter(entry -> !unchanged.contains(entry.getKey()))
+      .forEach(entry -> {
+        Exchange exchange = exchangeService.get(entry.getKey());
+        Collection<TickerSpec> tickersForExchange = entry.getValue();
+        boolean streaming = exchange instanceof StreamingExchange;
+        if (streaming) {
+          subscribedTickersPerExchange.putAll(entry.getKey(), tickersForExchange);
+          subscribeExchange((StreamingExchange)exchange, tickersForExchange, entry.getKey());
+        } else {
+          pollExchange(tickersForExchange);
+        }
+      });
   }
 
-  private void subscribeExchange(StreamingExchange streamingExchange, Collection<TickerSpec> specsForExchange, Exchange exchange, String exchangeName) {
-    if (specsForExchange.isEmpty())
+  private void subscribeExchange(StreamingExchange streamingExchange, Collection<TickerSpec> tickers, String exchangeName) {
+    if (tickers.isEmpty())
       return;
-    LOGGER.info("Subscribing to ticker streams: " + specsForExchange);
-    tickersPerExchange.putAll(exchangeName, specsForExchange);
-    openConnections(streamingExchange, specsForExchange);
-    LOGGER.info("Subscribed to ticker streams: " + specsForExchange);
+    LOGGER.info("Connecting to exchange: " + exchangeName);
+    openConnections(streamingExchange, tickers);
+    LOGGER.info("Connected to exchange: " + exchangeName);
   }
 
   private void openConnections(StreamingExchange streamingExchange, Collection<TickerSpec> tickers) {
@@ -124,6 +158,11 @@ public class TickerGenerator extends AbstractExecutionThreadService {
           );
       subsPerExchange.put(s.exchange(), subscription);
     }
+  }
+
+  private void pollExchange(Collection<TickerSpec> specs) {
+    LOGGER.info("Subscribing to ticker polls: " + specs);
+    activePolling.addAll(specs);
   }
 
   private void onTicker(TickerSpec spec, Ticker ticker) {
