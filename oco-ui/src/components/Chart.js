@@ -3,6 +3,7 @@ import Resizable from "re-resizable"
 import styled from "styled-components"
 
 import Section from "./primitives/Section"
+import Para from "./primitives/Para"
 
 const SCRIPT_ID = "tradingview-widget-script"
 const CONTAINER_ID = "tradingview-widget-container"
@@ -12,7 +13,9 @@ class ChartContent extends Component {
     return this.props.coin.key !== nextProps.coin.key
   }
 
-  componentDidMount = () => this.appendScript(this.initWidget)
+  componentDidMount = () => {
+    this.appendScript(this.initWidget)
+  }
 
   appendScript = onload => {
     if (this.scriptExists()) {
@@ -116,10 +119,20 @@ class ChartContent extends Component {
   }
 }
 
-const Chart = props => (
-  <Section id="chart" heading="Chart" bg="backgrounds.1">
-    <ChartContent coin={props.coin} />
-  </Section>
-)
+const Chart = props => {
+  if (props.coin && props.coin.exchange !== "kucoin") {
+    return (
+      <Section id="chart" heading="Chart" bg="backgrounds.1">
+        <ChartContent coin={props.coin} />
+      </Section>
+    )
+  } else {
+    return (
+      <Section id="chart" heading="Chart" bg="backgrounds.1">
+        <Para>TradingView does not support charts for this exchange.</Para>
+      </Section>
+    )
+  }
+}
 
 export default Chart
