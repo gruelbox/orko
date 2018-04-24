@@ -28,9 +28,9 @@ class ColumnLogger {
     if (logger.isDebugEnabled()) {
       final Object[] empties = FluentIterable.from(columns).transform(c -> "").toArray(String.class);
       final Object[] names = FluentIterable.from(columns).transform(LogColumn::name).toArray(String.class);
-      logger.info(String.format(logFormat, empties));
-      logger.info(String.format(logFormat, names));
-      logger.info(String.format(logFormat, empties));
+      logger.debug(String.format(logFormat, empties));
+      logger.debug(String.format(logFormat, names));
+      logger.debug(String.format(logFormat, empties));
     }
   }
 

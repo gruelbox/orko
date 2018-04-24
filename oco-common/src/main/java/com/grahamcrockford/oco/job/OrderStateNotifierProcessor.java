@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.knowm.xchange.binance.service.BinanceQueryOrderParams;
 import org.knowm.xchange.dto.Order;
+import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
+import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,8 +158,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
       matchingOrders = tradeServiceFactory.getForExchange(job.tickTrigger().exchange())
           .getOrder(new BinanceQueryOrderParams(job.tickTrigger().currencyPair(), job.orderId()));
     } catch (NotAvailableFromExchangeException e) {
-      notSupportedMessage(job);
-      return null;
+      return getOrders(job);
     } catch (ArithmeticException e) {
       gdaxBugMessage(job);
       return null;
@@ -170,6 +172,40 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
     }
 
     if (matchingOrders == null || matchingOrders.isEmpty()) {
+      notFoundMessage(job);
+      return null;
+    } else if (matchingOrders.size() != 1) {
+      notUniqueMessage(job);
+      return null;
+    }
+
+    return Iterables.getOnlyElement(matchingOrders);
+  }
+
+  private Order getOrders(OrderStateNotifier job2) {
+    final Collection<Order> matchingOrders;
+    try {
+      OpenOrders openOrders = tradeServiceFactory
+        .getForExchange(job.tickTrigger().exchange())
+        .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(job.tickTrigger().currencyPair()));
+      matchingOrders = openOrders
+        .getAllOpenOrders()
+        .stream()
+        .filter(o -> o.getId().equals(job.orderId()))
+        .collect(Collectors.toList());
+    } catch (NotAvailableFromExchangeException e) {
+      notSupportedMessage(job);
+      return null;
+    } catch (ExchangeException | IOException e) {
+      if (e.getCause() instanceof HttpStatusExceptionSupport && ((HttpStatusExceptionSupport)e.getCause()).getHttpStatusCode() == 404) {
+        notFoundMessage(job);
+        return null;
+      } else {
+        throw new RuntimeException(e);
+      }
+    }
+
+    if (matchingOrders.isEmpty()) {
       notFoundMessage(job);
       return null;
     } else if (matchingOrders.size() != 1) {

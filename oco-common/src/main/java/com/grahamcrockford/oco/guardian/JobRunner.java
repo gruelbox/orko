@@ -84,7 +84,7 @@ class JobRunner {
     public void start() {
       if (!status.compareAndSet(JobStatus.CREATED, JobStatus.STARTING))
         throw new IllegalStateException("Job lifecycle status indicates re-use of lifetime manager: " + job);
-      LOGGER.debug(job + " starting...");
+      LOGGER.info(job + " starting...");
       if (!processor.start()) {
         jobAccess.delete(job.id());
         processor.stop();
