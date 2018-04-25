@@ -56,26 +56,27 @@ Backend setup:
     1. Run the worker application by using Run As > Java Application and entering `server ../my-config-worker.yml` as command line parameters.
     1. Run the web application by using Run As > Java Application and entering `server ../my-config-web.yml` as command line parameters.
 
-You should now be able to call the API entry points. Try just navigating to http://localhost:8080/api/exchanges.
+You should now be able to call the API entry points. Try just navigating to https://localhost:8080/api/exchanges.
 
-UI local setup and build
----
-The UI runs as a separate application.
+The UI runs as a separate application.  It is an unejected [create-react-app](https://github.com/facebook/create-react-app) application.  Everything about it is basically the default:
 
-1. Install NPM (sudo apt-get install npm) then run npm start in the root folder to start a local dev server. You can access it at http://localhost:3000.
-1. Use npm run build to create a static deployable build you can drop on any static web server.
+1. Install NPM (`sudo apt-get install npm`) then run `HTTPS=true npm start` in the root folder to start a local dev server. You can access it at http://localhost:3000.  When running in Webpack Dev Server, it assumes the backend is at https://localhost:8080.
+
+Alternatively:
+
+1. Use `npm run build` to create a static deployable build you can drop on any static web server.
 1. I deploy it to Heroku using this buildpack (full instructions there): https://github.com/mars/create-react-app-buildpack
 1. When doing so, I ensure to set up API_URL to point to my API instance.
 
 [Optional] Set up Telegram so you can get notifications.
 ---
-1. Create a Telegram bot using the BotFather: https://core.telegram.org/bots. Note down the API token.
+1. Create a Telegram bot using the [BotFather](https://core.telegram.org/bots). Note down the API token.
 1. Create a new channel from the Telegram app, and make it public (we'll make it private shortly).
 1. Add your bot as a member of the channel, so it can post to it.
 1. Use the following URL to get the ID of your channel: https://api.telegram.org/YOURBOTID:YOURTOKEN/getChat?chat_id=@YourChannelName
 1. Once you've noted down the channel ID, make your channel private from the app so no-one else can access it (you can't use the above API to ge the IP of a private channel).
 
-Once you have the connection details, you can set the appropriate section in your local config:#
+Once you have the connection details, you can set the appropriate section in your local config:
 
 ```
 #telegram:
@@ -95,7 +96,8 @@ First though, let's be secret squirrel and create a 2FA key:
 1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
 1. Store that somewhere safe and enter it into Google Authenticator on your phone.
 
-Now you need an Okta account to handle the JWT authentication:
+Now you need a
+n Okta account to handle the JWT authentication:
 
 1. TODO
 1. TODO
