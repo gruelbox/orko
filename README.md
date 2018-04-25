@@ -89,44 +89,27 @@ The application will now use this bot to send you notifications on your private 
 How to deploy to Heroku
 ---
 
-Once you've got it working locally, you probably want to deploy it somewhere it's not going to fall over. I like Heroku. The Hobby account is cheap at $7/pm if running constantly, SSL is provided out of the box and continuous deployment is sexy as fuck.
-
-First though, let's be secret squirrel and create a 2FA key:
-
-1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
-1. Store that somewhere safe and enter it into Google Authenticator on your phone.
-
-Now you need a
-n Okta account to handle the JWT authentication:
-
-1. TODO
-1. TODO
-1. TODO
-
-Now set up Heroku:
-
-TODO this needs updating to reflect the two-tier worker/dyno stuff
+Once you've got it working locally, you probably want to deploy it somewhere it's not going to fall over. I like Heroku. The Hobby account is cheap at $7/pm per server if running constantly, SSL is provided out of the box and continuous deployment is sexy as fuck.
 
 1. Create a Heroku account
-1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, add the application (TODO expand this to actually be full instructions, preferably just an automated bash script)
-1. Add the mLab MongoDB addon (required)
-1. Add the CloudAMQP RabbitMQ addon (required)
-1. Add the Papertrail addon (optional, but by far the easiest way to handle logs)
-1. Upgrade to a Hobby Dyno or the application will shut down when you're not sending web requests to it.  It's free until you pass a certain number of minutes running per month.
-1. Set up the environment variables:
+1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, and create two applications, one for the backend and one for the frontend (TODO expand this to actually be full instructions, preferably just an automated bash script)
+1. You can leave the frontend as the Free Tier, but you'll need Hobby Tier for the backend, which means a credit card.  It's free until you pass a certain number of minutes running per month.  If you want to be a skinflint, just take it down when you're not using it.
+1. On the back-end, add the mLab MongoDB addon (required)
+1. On the back-end, add the CloudAMQP RabbitMQ addon (required)
+1. On the front-end, set the buildpack to `https://github.com/badgerwithagun/create-react-app-buildpack.git`.
+1. On both, add the Papertrail addon (optional, but by far the easiest way to handle logs)
+
+On the backend,set up the environment variables in addition to those already configured by the add-ons you've provisioned:
 
 | Variable                  | Set to                 | 
 | ------------------------- | ---------------------- |
-| `LOOP_SECONDS`            | Between 3 and 10. 5 is good. Note that at the moment, a game loop is used, but I'll be phasing this out in favour of a continuous event stream from exchanges' web socket APIs where they are supported. Beware if you set this low and have a lot of running jobs on a single exchange, you may end up spamming the exchange API and get banned. You'll get Telegram alerts when this happens but you'll need to shut down the app quick-smart or the ban could be lengthly.  |
-| `LOCK_SECONDS`            | At least 2 times `loopSeconds`.  Longer just means cluster nodes will take longer to notice a job isn't running and take over.  Shorter is dangerous as jobs may lose locks while running, so err on the long side.  I normally go for 30. This isn't perfect and I'm looking at alternatives like ZooKeeper in the longer term. |
-| `USER_NAME`               | The username for HTTP authentication.  You must deploy the application over SSL (HTTPS) to make this secure (his is the default on Heroku).|
-| `PASSWORD`                | The password for HTTP authentication. You must deploy the application over SSL (HTTPS) to make this secure (this is the default on Heroku).|
-| `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`).  Can be left blank (in which case 2FA is disabled) but must be defined.|
+| `LOOP_SECONDS`            | 15 |
+| `LOCK_SECONDS`            | 45 |
 | `PROXIED`                | Set to `true` on Heroku so it uses the `X-Forwarded-For` header to determine the source IP.  This MUST be `false` if you're not hosted behind a trusted proxy where you can 100% believe the `X-Forwarded-For` header, or someone could easily spoof their IP and bypass your 2FA. |
 | `MONGODB_URI`             | Should already have been set up for you by the add-on. |
 | `MONGO_DATABASE`          | The bit at the end of `MONGODB_URI` after the last slash.  I should really just extract it from the URL. To do. |
-| `TELEGRAM_BOT_TOKEN`      | The bot API token. Can be left blank, in which case Telegram notifications won't be used, but must be defined. |
-| `TELEGRAM_CHAT_ID`        | The chat ID. Must be defined but may be blank if `TELEGRAM_BOT_TOKEN`  is. |
+| `TELEGRAM_BOT_TOKEN`      | The bot API token. Can be left blank, in which case Telegram notifications won't be used, but must be defined. Note that at the moment, there are no other notifications (even on-screen) so it's a bit of a nightmare to use without phone notifiations.  Turn them on. |
+| `TELEGRAM_CHAT_ID`        | The chat ID. Must be defined but may be blank if `TELEGRAM_BOT_TOKEN` is. |
 | `GDAX_SANDBOX_API_KEY`    | Your API key from the GDAX sandbox (https://public.sandbox.gdax.com). If left blank, paper trading will be used. |
 | `GDAX_SANDBOX_SECRET`     | Your secret from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading. |
 | `GDAX_SANDBOX_PASSPHRASE` | Your passphrase from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading. |
@@ -137,34 +120,77 @@ TODO this needs updating to reflect the two-tier worker/dyno stuff
 | `BINANCE_SECRET`          | Your Binance secret. May be left blank for paper trading. |
 | `KUCOIN_API_KEY`          | Your Kucoin API key. May be left blank for paper trading. | 
 | `KUCOIN_SECRET`           | Your Kucoin secret. May be left blank for paper trading. |
+| `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`) - more on this below.  Can be left blank (in which case 2FA whitelisting is disabled) but must be defined.  Strongly recommended to be enabled.|
+| `OKTA_BASEURL`           | Will be provided during Okta setup (see below) |
+| `OKTA_CLIENTID`           | Will be provided during Okta setup (see below) |
+| `OKTA_ISSUER`           |  Will be provided during Okta setup (see below) |
 
-1. Deploy and scale.  Multiple instances will compete for the work and can be stopped/started freely. State is persistent.
+On the front end, set up as follows:
 
-Using 2FA
+| `API_URL`           | The address of your backend server. |
+| `NODE_ENV`           |  `production` |
+| `NPM_CONFIG_PRODUCTION`           | `true` |
+| `REACT_APP_WS_URL`           | The address of your backend server, but replace `https` with `wss`. |
+
+We now need to worry about security.
+
+On Heroku, we will deploy oco-worker as a worker dyno, which is never visible to the outside world. So far so good.  oco-ui is a static Javascript application, therefore security is meaningless - everything is in the open anyway.  We just have to make sure there are no secrets stored in either the JS or, to be super-safe, on the nginx server it's hosted on.  Therefore, all our security is focused on the Web API application, oco-web.
+
+oco-web hosts REST endpoints and a single web socket.  Both are protected at the servlet container level; they will return HTTP status 401 if a suitable authorization header isn't included.  This takes one of two forms.
+
+For the HTTP endpoints, the fairly standard:
+
+```
+authorization: Bearer MYJSONWEBTOKEN
+```
+
+For the Websockets, the entirely nonstandard:
+
+```
+Sec-WebSocket-Protocol: auth, MYJSONWEBTOKEBN
+```
+
+This latter is due to the fact that it's the only way to pass a JWT in the standard Javascript `WebSocket` constructor:
+
+```
+new WebSocket('wss://localhost:8080/ws', ['auth', 'MYJSONWEBTOKEBN'])
+```
+
+Call me paranoid, but I didn't like the idea of an attacker being able to open a websocket at all without authentication (which is a protocol I have complete control over and which means I need to trust my own state management code to be sure an attacker can't do stuff) - I preferred the idea of stopping them at the level of a much more restrictive protocol where I can just trust Java servlet filters to do their job.
+
+Mostly you don't need to worry about this, because it's delegated to Okta - more on this in a moment.
+
+The other element is that we will return 402 if the origin IP address isn't on a whitelist.  To avoid this being too restrictive, we provide a single REST entry point (`/auth`) which you can use to whitelist your IP address at any time, by passing a valid Google authenticator code.  Only a single IP address can be whitelisted at any one time and whitelisting expires.
+
+So, first, let's create a 2FA key:
+
+1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
+1. Store that somewhere safe and enter it into Google Authenticator on your phone.
+1. If you don't want to set up a Java environment, give me a shout and I'll generate a keypair for you.
+1. Set the `AUTH_TOKEN` environment variable accordingly.
+
+Now you need an Okta account to handle the JWT authentication:
+
+1. Create a basic (free) account at https://www.okta.com/
+1. Create new application of type Single Page App (SPA), allowing both ID token and Access Token
+1. Set your Login redirect URI and Initiate login URI to the address of your front-end server.
+1. Note down the client ID and set it in your backend app's environment variables.
+1. Go to the Sign On tab and note the Issuer. Set the `OKTA_BASEURL` and `OKTA_ISSUER` variables to this.  For the `OKTA_ISSUER` variable, append it with `/oauth2/default`.
+
+Now you're ready to deploy.  You should have already installed Heroku.
+
+
+API Entry points
 ---
+All are prefixed with `/api` and require JWT authentication.
 
-The 2FA is a bit clunky.  I bodged something together quickly to make things a bit more secure but it's not great.  It works as follows:
+IP whitelisting may also be needed if you've configured it (see Deploying To Heroku, below), in qhich case:
 
 1. Call `PUT /auth?token=YourGoogleAuthenticatorCode` to authorise your originating IP.  Only a single IP address is allowed at any one time.  By default the whitelisting expires after 10 minutes and you need to authorise again.
 2. Then call any other of the entry points (listed below) using basic authentication and the configured username/password.
 
 Best way to work is to catch 401 any time you call an entry point, and if you get one, call `auth` then retry.
 
-The plan is to change the `auth` entry point to return back a session token which expires after a certain period.  Dunno.  Welcome to hear your thoughts.  I know 2FA is a pain with something like this, but this thing is deployed publicly and can do unspeakable things.
-
-All this should secure enough over SSL or on a private box.
-
-API Entry points
----
-All are prefixed with `/api` and require basic authentication using the username and password from the config file:
-
-```
-auth:
-  userName: let # Basic authentication. Only safe over SSL.
-  password: mein
-```
-
-IP whitelisting may also be needed if you've configured it (see Deploying To Heroku, below).
 
 | Verb   | URI                                                   | Action | Parameters | Payload | Example |
 | ------ | ----------------------------------------------------- | ---------- |---------- | ------- | ------- |
