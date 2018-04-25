@@ -166,7 +166,7 @@ The other element is that we will return 402 if the origin IP address isn't on a
 
 So, first, let's create a 2FA key:
 
-1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
+1. Generate a new 2FA secret using `java -cp oco-web/target/oco-web.jar com.grahamcrockford.oco.web.cli.GenerateSecretKey`
 1. Store that somewhere safe and enter it into Google Authenticator on your phone.
 1. If you don't want to set up a Java environment, give me a shout and I'll generate a keypair for you.
 1. Set the `AUTH_TOKEN` environment variable accordingly.
@@ -174,6 +174,7 @@ So, first, let's create a 2FA key:
 Now you need an Okta account to handle the JWT authentication:
 
 1. Create a basic (free) account at https://www.okta.com/
+1. Add any 2FA or whatever you feel appropriate to this account.
 1. Create new application of type Single Page App (SPA), allowing both ID token and Access Token
 1. Set your Login redirect URI and Initiate login URI to the address of your front-end server.
 1. Note down the client ID and set it in your backend app's environment variables.
