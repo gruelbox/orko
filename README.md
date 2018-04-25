@@ -99,7 +99,7 @@ Once you've got it working locally, you probably want to deploy it somewhere it'
 1. On the front-end, set the buildpack to `https://github.com/badgerwithagun/create-react-app-buildpack.git`.
 1. On both, add the Papertrail addon (optional, but by far the easiest way to handle logs)
 
-On the backend,set up the environment variables in addition to those already configured by the add-ons you've provisioned:
+On the backend, set up the environment variables in addition to those already configured by the add-ons you've provisioned:
 
 | Variable                  | Set to                 | 
 | ------------------------- | ---------------------- |
@@ -127,6 +127,8 @@ On the backend,set up the environment variables in addition to those already con
 
 On the front end, set up as follows:
 
+| Variable                  | Set to                 | 
+| ------------------------- | ---------------------- |
 | `API_URL`           | The address of your backend server. |
 | `NODE_ENV`           |  `production` |
 | `NPM_CONFIG_PRODUCTION`           | `true` |
@@ -177,7 +179,20 @@ Now you need an Okta account to handle the JWT authentication:
 1. Note down the client ID and set it in your backend app's environment variables.
 1. Go to the Sign On tab and note the Issuer. Set the `OKTA_BASEURL` and `OKTA_ISSUER` variables to this.  For the `OKTA_ISSUER` variable, append it with `/oauth2/default`.
 
-Now you're ready to deploy.  You should have already installed Heroku.
+Now you're ready to deploy.
+
+1. You should have already installed Heroku CLI.
+1. From a clean checkout of this code, add the two heroku remotes:
+```
+git remote add heroku-frontend git@heroku.com:your-frontend-app-name.git
+git remote add heroku git@heroku.com:your-backend-app-name.git
+```
+1. Then simply:
+```
+./push-to-heroku.sh
+```
+
+That's it!
 
 
 API Entry points
