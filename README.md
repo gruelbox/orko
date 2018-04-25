@@ -173,11 +173,20 @@ First though, let's be secret squirrel and create a 2FA key:
 1. Generate a new 2FA secret using `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`
 1. Store that somewhere safe and enter it into Google Authenticator on your phone.
 
+Now you need an Okta account to handle the JWT authentication:
+
+1. TODO
+1. TODO
+1. TODO
+
 Now set up Heroku:
 
+TODO this needs updating to reflect the two-tier worker/dyno stuff
+
 1. Create a Heroku account
-1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, add the application.
+1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, add the application (TODO expand this to actually be full instructions, preferably just an automated bash script)
 1. Add the mLab MongoDB addon (required)
+1. Add the CloudAMQP RabbitMQ addon (required)
 1. Add the Papertrail addon (optional, but by far the easiest way to handle logs)
 1. Upgrade to a Hobby Dyno or the application will shut down when you're not sending web requests to it.  It's free until you pass a certain number of minutes running per month.
 1. Set up the environment variables:
