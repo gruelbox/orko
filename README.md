@@ -2,7 +2,7 @@
 
 Quick and easy run using Docker
 ---
-You can run it locally with little to no setup.
+You can run it locally with little to no setup, provided you have either a linux machine (pretty much just works) or a Windows/Mac machine with enough memory for the VMs the Mac/Win Docker implementations require (8GB or more).
 
 1. Install Docker (https://docs.docker.com/install/#supported-platforms) and Docker Compose (https://docs.docker.com/compose/install/)
 1. In the root directory, run `docker-compose up`.
@@ -33,108 +33,30 @@ exchanges:
 
 And replace the variables with the telegram settings from "[Optional] Set up Telegram so you can get notifications." below and your exchange keys.  Then run `docker-compose build` to rebuild the docker images and `docker-compose up` to restart.
 
-Running directly locally
+Local development environment
 ---
-If you want to run the application directly without Docker:
+Backend setup:
 
-1. Install the Java JDK (`sudo apt-get install default-jdk`)
-1. Install Maven (`sudo apt-get install maven`)
-1. Run `mvn clean package` to build the application
 1. Spin up a mongodb instance on Docker using this image: https://hub.docker.com/r/library/mongo/.  You'll need to follow the instructions for creating an admin user.
-1. You also need a RabbitMQ instance. Again the standard Docker image is fine out of the box.
-
-How to start the back-end locally
----
-1. Copy `example-developer-mode-config.yml` as `my-config.xml` and fill in the gaps.  The commented-out lines can be ignored for now.
-1. Start application with `java -jar target/oco-0.0.1-SNAPSHOT.jar server my-config.yml`.
+1. You also need a RabbitMQ instance. Again the standard Docker image is fine out of the box: https://hub.docker.com/_/rabbitmq/
+1. Copy `example-developer-mode-worker-config.yml` as `my-config-worker.xml` and fill in the gaps.  The commented-out lines can be ignored for now
+1. Copy `example-developer-mode-worker-web.yml` as `my-config-web.xml` and fill in the gaps.  The commented-out lines can be ignored for now
+1. Install the Java JDK (`sudo apt-get install default-jdk`)
+1. Either:
+    1. Install Maven (`sudo apt-get install maven`)
+    1. Run `mvn clean package` to build the application
+    1. Start the worker application with `java -jar oco-worker/target/oco-worker.jar server ../my-config-worker.yml`.
+    1. Start the web application with `java -jar oco-web/target/oco-web.jar server ../my-config-web.yml`.
+1. Or:
+    1. Install Eclipse
+    1. Install the m2e-apt plugin from the marketplace
+    1. In Preferences, under Maven > Annotation Processing, set to Automatic
+    1. In Preferences, under Maven, enable Automatically Hide Nested Projects.
+    1. Import the root directory as a Maven project
+    1. Run the worker application by using Run As > Java Application and entering `server ../my-config-worker.yml` as command line parameters.
+    1. Run the web application by using Run As > Java Application and entering `server ../my-config-web.yml` as command line parameters.
 
 You should now be able to call the API entry points. Try just navigating to http://localhost:8080/api/exchanges.
-
-API Entry points
----
-All are prefixed with `/api` and require basic authentication using the username and password from the config file:
-
-```
-auth:
-  userName: let # Basic authentication. Only safe over SSL.
-  password: mein
-```
-
-IP whitelisting may also be needed if you've configured it (see Deploying To Heroku, below).
-
-| Verb   | URI                                                   | Action | Parameters | Payload | Example |
-| ------ | ----------------------------------------------------- | ---------- |---------- | ------- | ------- |
-| PUT    | /auth                                                 | Whitelists your IP | `token` = the response from Google Authenticator. | None | PUT /auth?token=623432 |
-| PUT    | /jobs                                                 | Adds a fully specified job | None       | JSON | See below |
-| PUT    | /jobs/pumpchecker                                     | Shortcut to add a pump checker | exchange, counter, base | None | PUT /jobs/pumpchecker?exchange=binance&counter=BTC&base=ICX |
-| PUT    | /jobs/softtrailingstop                                | Shortcut to add a soft trailing stop | exchange, counter, base, amount, stop, limit, direction| None | PUT /jobs/softtrailingstop?exchange=binance&counter=BTC&base=VEN&direction=SELL&amount=0.5&stop=0.000555&limit=0.0005 |
-| PUT    | /jobs/limitsell                                       | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitsell?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
-| PUT    | /jobs/limitbuy                                        | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitbuy?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
-| DELETE | /jobs                                                 | Deletes all active jobs | None | None | DELETE /jobs |
-| DELETE | /jobs/{id}                                            | Deletes the specified job | None | None | DELETE /jobs/512EDA231BFEA23 |
-| GET    | /exchanges                                            | Gets the list of supported exchanges | None | None | GET /exchanges |
-| GET    | /exchanges/{exchange}/counters                        | Gets the list of supported countercurrencies on the exchange (e.g. USDT, BTC) | None | None | GET /exchanges/binance/counters |
-| GET    | /exchanges/{exchange}/counters/{counter}/bases        | Gets the list of currencies which can be traded against the specified countercurrency. | None | None | GET /exchanges/binance/counters/BTC/bases |
-| GET    | /exchanges/{exchange}/markets/{base}-{counter}/ticker | Gets the current ticker | None | None | GET /exchanges/gdax/markets/BTC-EUR/ticker |
-| GET    | /exchanges/{exchange}/markets/{base}-{counter}/orders | Gets your open orders on the specified ticker. | None | None | GET /exchanges/kucoin/markets/DRGN-BTC/orders |
-| GET    | /exchanges/{exchange}/orders                          | Gets your open orders on the specified exchange. Not supported on many exchanges. | None | None | GET /exchanges/gdax/orders |
-| GET    | /exchanges/{exchange}/orders/{id}                     | Gets a specific order. | None | None | GET /exchanges/binance/orders/DRGN-BTC/orders/5a9098f1d038110f1c4b7b0e |
-
-Advanced examples
----
-
-To perform an OCO trade, call `PUT /jobs` with a payload like this:
-
-```
-{
-    "jobType": "OneCancelsOther",
-    "tickTrigger": {
-        "exchange": "binance",
-        "counter": "BTC",
-        "base": "VEN"
-    },
-    "low": {
-        "thresholdAsString": "0.00055",
-        "job": {
-		    "jobType": "LimitOrderJob",
-		    "direction": "SELL",
-		    "tickTrigger": {
-		        "exchange": "binance",
-		        "counter": "BTC",
-		        "base": "VEN"
-		    },
-		    "bigDecimals": {
-		        "amount": "0.5",
-		        "limitPrice": "0.00054"
-		    }
-		}
-    },
-    "high": {
-        "thresholdAsString": "0.00057",
-        "job": {
-		    "jobType": "SoftTrailingStop",
-		    "direction": "SELL",
-		    "tickTrigger": {
-		        "exchange": "binance",
-		        "counter": "BTC",
-		        "base": "VEN"
-		    },
-		    "bigDecimals": {
-		        "amount": "0.5",
-		        "startPrice": "0.00057",
-		        "lastSyncPrice": "0.000576",
-		        "stopPrice": "0.000565",
-		        "limitPrice": "0.00055"
-		    }
-		}
-    }
-}
-```
-
-This adds an OCO order where:
-
-* if the price drops below 0.00055, we will sell at the bid price
-* If the price rises above 0.00057, we will start a trailing stop where the stop price trails the bid price by 0.000005.
 
 UI local setup and build
 ---
@@ -229,3 +151,89 @@ Best way to work is to catch 401 any time you call an entry point, and if you ge
 The plan is to change the `auth` entry point to return back a session token which expires after a certain period.  Dunno.  Welcome to hear your thoughts.  I know 2FA is a pain with something like this, but this thing is deployed publicly and can do unspeakable things.
 
 All this should secure enough over SSL or on a private box.
+
+API Entry points
+---
+All are prefixed with `/api` and require basic authentication using the username and password from the config file:
+
+```
+auth:
+  userName: let # Basic authentication. Only safe over SSL.
+  password: mein
+```
+
+IP whitelisting may also be needed if you've configured it (see Deploying To Heroku, below).
+
+| Verb   | URI                                                   | Action | Parameters | Payload | Example |
+| ------ | ----------------------------------------------------- | ---------- |---------- | ------- | ------- |
+| PUT    | /auth                                                 | Whitelists your IP | `token` = the response from Google Authenticator. | None | PUT /auth?token=623432 |
+| PUT    | /jobs                                                 | Adds a fully specified job | None       | JSON | See below |
+| PUT    | /jobs/pumpchecker                                     | Shortcut to add a pump checker | exchange, counter, base | None | PUT /jobs/pumpchecker?exchange=binance&counter=BTC&base=ICX |
+| PUT    | /jobs/softtrailingstop                                | Shortcut to add a soft trailing stop | exchange, counter, base, amount, stop, limit, direction| None | PUT /jobs/softtrailingstop?exchange=binance&counter=BTC&base=VEN&direction=SELL&amount=0.5&stop=0.000555&limit=0.0005 |
+| PUT    | /jobs/limitsell                                       | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitsell?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
+| PUT    | /jobs/limitbuy                                        | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitbuy?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
+| DELETE | /jobs                                                 | Deletes all active jobs | None | None | DELETE /jobs |
+| DELETE | /jobs/{id}                                            | Deletes the specified job | None | None | DELETE /jobs/512EDA231BFEA23 |
+| GET    | /exchanges                                            | Gets the list of supported exchanges | None | None | GET /exchanges |
+| GET    | /exchanges/{exchange}/counters                        | Gets the list of supported countercurrencies on the exchange (e.g. USDT, BTC) | None | None | GET /exchanges/binance/counters |
+| GET    | /exchanges/{exchange}/counters/{counter}/bases        | Gets the list of currencies which can be traded against the specified countercurrency. | None | None | GET /exchanges/binance/counters/BTC/bases |
+| GET    | /exchanges/{exchange}/markets/{base}-{counter}/ticker | Gets the current ticker | None | None | GET /exchanges/gdax/markets/BTC-EUR/ticker |
+| GET    | /exchanges/{exchange}/markets/{base}-{counter}/orders | Gets your open orders on the specified ticker. | None | None | GET /exchanges/kucoin/markets/DRGN-BTC/orders |
+| GET    | /exchanges/{exchange}/orders                          | Gets your open orders on the specified exchange. Not supported on many exchanges. | None | None | GET /exchanges/gdax/orders |
+| GET    | /exchanges/{exchange}/orders/{id}                     | Gets a specific order. | None | None | GET /exchanges/binance/orders/DRGN-BTC/orders/5a9098f1d038110f1c4b7b0e |
+
+Advanced examples
+---
+
+To perform an OCO trade, call `PUT /jobs` with a payload like this:
+
+```
+{
+    "jobType": "OneCancelsOther",
+    "tickTrigger": {
+        "exchange": "binance",
+        "counter": "BTC",
+        "base": "VEN"
+    },
+    "low": {
+        "thresholdAsString": "0.00055",
+        "job": {
+		    "jobType": "LimitOrderJob",
+		    "direction": "SELL",
+		    "tickTrigger": {
+		        "exchange": "binance",
+		        "counter": "BTC",
+		        "base": "VEN"
+		    },
+		    "bigDecimals": {
+		        "amount": "0.5",
+		        "limitPrice": "0.00054"
+		    }
+		}
+    },
+    "high": {
+        "thresholdAsString": "0.00057",
+        "job": {
+		    "jobType": "SoftTrailingStop",
+		    "direction": "SELL",
+		    "tickTrigger": {
+		        "exchange": "binance",
+		        "counter": "BTC",
+		        "base": "VEN"
+		    },
+		    "bigDecimals": {
+		        "amount": "0.5",
+		        "startPrice": "0.00057",
+		        "lastSyncPrice": "0.000576",
+		        "stopPrice": "0.000565",
+		        "limitPrice": "0.00055"
+		    }
+		}
+    }
+}
+```
+
+This adds an OCO order where:
+
+* if the price drops below 0.00055, we will sell at the bid price
+* If the price rises above 0.00057, we will start a trailing stop where the stop price trails the bid price by 0.000005.
