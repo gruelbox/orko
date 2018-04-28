@@ -17,7 +17,7 @@ import Row from "../components/primitives/Row"
 class CoinsCointainer extends React.Component {
   render() {
     return (
-      <Section id="coinList" heading="Coins" bg="backgrounds.1">
+      <Section id="coinList" heading="Coins">
         <Table>
           <tbody>
             <Row>

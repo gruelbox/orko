@@ -25,7 +25,7 @@ export default class TradeSelector extends React.Component {
     }
 
     return (
-      <Section id="trading" heading="Trading" bg="backgrounds.1">
+      <Section id="trading" heading="Trading">
         {!coin && <Para>No coin selected</Para>}
         {coin && (
           <div>

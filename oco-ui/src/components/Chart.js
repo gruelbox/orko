@@ -1,5 +1,4 @@
 import React, { Component } from "react"
-import Resizable from "re-resizable"
 import styled from "styled-components"
 
 import Section from "./primitives/Section"
@@ -66,7 +65,6 @@ class ChartContent extends Component {
       toolbar_bg: "#f1f3f6",
       enable_publishing: false,
       withdateranges: false,
-      hide_side_toolbar: false,
       save_image: true,
       show_popup_button: true,
       popup_width: "1000",
@@ -86,6 +84,7 @@ class ChartContent extends Component {
   render() {
     const ChartContainer = styled.div`
       overflow: hidden;
+      height: 100%;
     `
 
     const ChartInner = styled.div`
@@ -93,27 +92,12 @@ class ChartContent extends Component {
       margin-left: -8px;
       margin-right: -8px;
       margin-bottom: -8px;
+      height: calc(100% - 36px);
     `
 
     return (
       <ChartContainer>
-        <ChartInner>
-          <Resizable
-            defaultSize={{ width: "100%", height: 400 }}
-            enable={{
-              top: false,
-              right: false,
-              bottom: true,
-              left: false,
-              topRight: false,
-              bottomRight: false,
-              bottomLeft: false,
-              topLeft: false
-            }}
-          >
-            <div style={{ height: "100%" }} id={CONTAINER_ID} />
-          </Resizable>
-        </ChartInner>
+        <ChartInner id={CONTAINER_ID} />
       </ChartContainer>
     )
   }
@@ -122,13 +106,13 @@ class ChartContent extends Component {
 const Chart = props => {
   if (props.coin && props.coin.exchange !== "kucoin") {
     return (
-      <Section id="chart" heading="Chart" bg="backgrounds.1">
+      <Section id="chart" heading="Chart" expand>
         <ChartContent coin={props.coin} />
       </Section>
     )
   } else {
     return (
-      <Section id="chart" heading="Chart" bg="backgrounds.1">
+      <Section id="chart" heading="Chart">
         <Para>TradingView does not support charts for this exchange.</Para>
       </Section>
     )

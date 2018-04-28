@@ -133,7 +133,7 @@ class OpenOrdersContainer extends React.Component {
     )
 
     return (
-      <Section id="orders" heading="Open Orders" bg="backgrounds.3">
+      <Section id="orders" heading="Open Orders">
         {component}
       </Section>
     )

@@ -51,7 +51,7 @@ class JobsContainer extends React.Component {
     }
 
     return (
-      <Section id="jobs" heading="Running Jobs" bg="backgrounds.2">
+      <Section id="jobs" heading="Running Jobs">
         {jobs}
         {this.state.fucks}
       </Section>

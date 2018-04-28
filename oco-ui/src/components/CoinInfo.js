@@ -75,7 +75,7 @@ export const CoinInfo = props => {
 
   if (coin) {
     return (
-      <Section id="coinInfo" heading={coin.name} bg="backgrounds.2">
+      <Section id="coinInfo" heading={coin.name}>
         {coinInfo}
       </Section>
     )
