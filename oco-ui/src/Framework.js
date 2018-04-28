@@ -51,8 +51,8 @@ const LayoutBox = styled.div`
 
 const originalLayouts = getFromLS("layouts") || {
   lg: [
-    { i: "coins",         x: 0, y: 0, w: 5, h: 15, minH: 5, minW: 6 },
-    { i: "jobs",          x: 0, y: 100, w: 5, h: 15, minH: 5, minW: 6 },
+    { i: "coins",         x: 0, y: 0, w: 5, h: 15, minH: 5, minW: 5 },
+    { i: "jobs",          x: 0, y: 100, w: 5, h: 15, minH: 5, minW: 5 },
     { i: "coinInfo",      x: 5, y: 0, w: 10, h: 5, minH: 5, minW: 10 },
     { i: "chart",         x: 5, y: 100, w: 10, h: 20, minH: 4 },
     { i: "tradeSelector", x: 5, y: 200, w: 10, h: 13, minH: 13, maxH: 13 },
