@@ -118,6 +118,7 @@ export default class Framework extends React.Component {
             }
             margin={[0, 0]}
             containerPadding={[0, 0]}
+            draggableHandle=".dragMe"
           >
             <LayoutBox key="coinInfo" bg="backgrounds.2">
               <Switch>

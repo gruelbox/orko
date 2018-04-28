@@ -59,6 +59,7 @@ class Section extends React.Component {
       <SectionBox expand={this.props.expand}>
         <SectionHeadingBox expanded={this.state.expanded}>
           <Heading p={0} m={0} color="heading">
+            <Icon className="dragMe" name="content"/>
             {this.props.heading}
           </Heading>
           <Toggle onClick={this.toggle}>
