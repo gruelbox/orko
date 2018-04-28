@@ -1,5 +1,6 @@
 import React, { Component } from "react"
 import styled from "styled-components"
+import Button from "./primitives/Button"
 
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
@@ -103,20 +104,30 @@ class ChartContent extends Component {
   }
 }
 
-const Chart = props => {
-  if (props.coin && props.coin.exchange !== "kucoin") {
-    return (
-      <Section id="chart" heading="Chart" expand>
-        <ChartContent coin={props.coin} />
-      </Section>
-    )
-  } else {
+const Chart = ({coin}) => {
+
+  if (!coin) {
     return (
       <Section id="chart" heading="Chart">
-        <Para>TradingView does not support charts for this exchange.</Para>
+        <Para>No coin selected.</Para>
       </Section>
     )
   }
+
+  if (coin.exchange === "kucoin") {
+    return (
+      <Section id="chart" heading="Chart">
+        <Para>TradingView does not support charts for this exchange.</Para>
+        <Para><a target="_blank" href={"https://www.kucoin.com/#/trade.pro/" + coin.base + "-" + coin.counter}>Open in {coin.exchange}</a></Para>
+      </Section>
+    )
+  }
+
+  return (
+    <Section id="chart" heading="Chart" expand>
+      <ChartContent coin={coin} />
+    </Section>
+  )
 }
 
 export default Chart
