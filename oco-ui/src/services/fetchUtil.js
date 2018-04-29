@@ -24,7 +24,11 @@ export function ws(url, token) {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
     fullUrl = protocol + "//" + window.location.host + "/" + url
   }
-  return new ReconnectingWebSocket(fullUrl, ["auth", token])
+  if (token) {
+    return new ReconnectingWebSocket(fullUrl, ["auth", token])
+  } else {
+    return new ReconnectingWebSocket(fullUrl)
+  }
 }
 
 function action(method, token, content) {
