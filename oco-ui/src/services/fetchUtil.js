@@ -46,6 +46,10 @@ function action(method, token, content) {
   else
     return {
       ...defaultSettings,
-      method: method
+      body: content,
+      method: method,
+      headers: new Headers({
+        "Content-type": "application/json"
+      })
     }
 }

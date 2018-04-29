@@ -1,6 +1,5 @@
 import React, { Component } from "react"
 import styled from "styled-components"
-import Button from "./primitives/Button"
 
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
@@ -93,7 +92,7 @@ class ChartContent extends Component {
       margin-left: -8px;
       margin-right: -8px;
       margin-bottom: -8px;
-      height: calc(100% - 36px);
+      height: calc(100% - 24px);
     `
 
     return (
@@ -116,7 +115,7 @@ const Chart = ({coin}) => {
 
   if (coin.exchange === "kucoin") {
     return (
-      <Section id="chart" heading="Chart">
+      <Section id="chart" heading="Chart" expand>
         <Para>TradingView does not support charts for this exchange.</Para>
         <Para><a target="_blank" href={"https://www.kucoin.com/#/trade.pro/" + coin.base + "-" + coin.counter}>Open in {coin.exchange}</a></Para>
       </Section>

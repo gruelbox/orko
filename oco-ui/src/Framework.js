@@ -38,63 +38,66 @@ const ChartProvider = props => (
 
 const LayoutBox = styled.div`
   ${color}
+  position: relative;
   border: 1px solid ${props => props.theme.colors.boxBorder};
-  overflow: ${props => props.scroll ? "scroll" : "hidden"};
+  overflow:  ${props => props.expand ? "hidden" : "auto"}
   ::-webkit-scrollbar-corner {
     background: ${props => props.theme.colors.boxBorder};
   }
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
-  } 
+  }
+  ::-webkit-scrollbar-thumb {
+    background: ${props => props.theme.colors.deemphasis};
+  }
 `
 
 const originalLayouts = getFromLS("layouts") || {
   lg: [
-    { i: "coins",         x: 0, y: 0, w: 5, h: 15, minH: 5, minW: 5 },
-    { i: "jobs",          x: 0, y: 100, w: 5, h: 15, minH: 5, minW: 5 },
-    { i: "coinInfo",      x: 5, y: 0, w: 10, h: 5, minH: 5, minW: 10 },
-    { i: "chart",         x: 5, y: 100, w: 10, h: 20, minH: 4 },
+    { i: "coins", x: 0, y: 0, w: 5, h: 15, minH: 5, minW: 5 },
+    { i: "jobs", x: 0, y: 100, w: 5, h: 15, minH: 5, minW: 5 },
+    { i: "coinInfo", x: 5, y: 0, w: 10, h: 5, minH: 5, minW: 10 },
+    { i: "chart", x: 5, y: 100, w: 10, h: 18, minH: 4 },
     { i: "tradeSelector", x: 5, y: 200, w: 10, h: 13, minH: 13, maxH: 13 },
-    { i: "openOrders",    x: 15, y: 0, w: 5, h: 10, minH: 4, minW: 5 },
-    { i: "marketData",    x: 15, y: 100, w: 5, h: 10, minH: 6, minW: 5  },
+    { i: "openOrders", x: 15, y: 0, w: 5, h: 10, minH: 4, minW: 5 },
+    { i: "marketData", x: 15, y: 100, w: 5, h: 10, minH: 6, minW: 5 }
   ],
   md: [
-    { i: "coinInfo",      x: 0, y: 0, w: 5, h: 5, minH: 5, minW: 5, maxH: 8},
-    { i: "chart",         x: 0, y: 100, w: 5, h: 16, minH: 4 },
+    { i: "coinInfo", x: 0, y: 0, w: 5, h: 5, minH: 5, minW: 5, maxH: 8 },
+    { i: "chart", x: 0, y: 100, w: 5, h: 16, minH: 4 },
     { i: "tradeSelector", x: 0, y: 200, w: 5, h: 13, minH: 13, maxH: 13 },
-    { i: "coins",         x: 5, y: 0, w: 3, h: 12, minH: 5, minW: 3},
-    { i: "openOrders",    x: 5, y: 100, w: 3, h: 8, minH: 4, minW: 3 },
-    { i: "jobs",          x: 5, y: 200, w: 3, h: 8, minH: 4, minW: 3 },
-    { i: "marketData",    x: 5, y: 300, w: 3, h: 6, minH: 6, minW: 3 },
+    { i: "coins", x: 5, y: 0, w: 3, h: 12, minH: 5, minW: 3 },
+    { i: "openOrders", x: 5, y: 100, w: 3, h: 8, minH: 4, minW: 3 },
+    { i: "jobs", x: 5, y: 200, w: 3, h: 8, minH: 4, minW: 3 },
+    { i: "marketData", x: 5, y: 300, w: 3, h: 6, minH: 6, minW: 3 }
   ],
   sm: [
-    { i: "coinInfo",      x: 0, y: 0, w: 2, h: 8 },
-    { i: "chart",         x: 0, y: 100, w: 2, h: 16 },
+    { i: "coinInfo", x: 0, y: 0, w: 2, h: 8 },
+    { i: "chart", x: 0, y: 100, w: 2, h: 16 },
     { i: "tradeSelector", x: 0, y: 200, w: 2, h: 13 },
-    { i: "coins",         x: 0, y: 300, w: 2, h: 12 },
-    { i: "openOrders",    x: 0, y: 400, w: 2, h: 8 },
-    { i: "jobs",          x: 0, y: 500, w: 2, h: 8 },
-    { i: "marketData",    x: 0, y: 600, w: 2, h: 6 },
+    { i: "coins", x: 0, y: 300, w: 2, h: 12 },
+    { i: "openOrders", x: 0, y: 400, w: 2, h: 8 },
+    { i: "jobs", x: 0, y: 500, w: 2, h: 8 },
+    { i: "marketData", x: 0, y: 600, w: 2, h: 6 }
   ]
-};
+}
 
 export default class Framework extends React.Component {
-
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       layouts: JSON.parse(JSON.stringify(originalLayouts))
-    };
+    }
   }
 
   resetLayout() {
-    this.setState({ layouts: {} });
+    this.setState({ layouts: {} })
   }
 
   onLayoutChange(layout, layouts) {
-    saveToLS("layouts", layouts);
-    this.setState({ layouts });
+    saveToLS("layouts", layouts)
+    this.setState({ layouts })
   }
 
   render() {
@@ -108,7 +111,7 @@ export default class Framework extends React.Component {
             />
             <Route component={ToolbarContainer} />
           </Switch>
-          <ResponsiveReactGridLayout 
+          <ResponsiveReactGridLayout
             breakpoints={{ lg: 1400, md: 850, sm: 0 }}
             cols={{ lg: 20, md: 8, sm: 2 }}
             rowHeight={24}
@@ -120,7 +123,7 @@ export default class Framework extends React.Component {
             containerPadding={[0, 0]}
             draggableHandle=".dragMe"
           >
-            <LayoutBox key="coinInfo" bg="backgrounds.2">
+            <LayoutBox key="coinInfo" bg="backgrounds.2" expand>
               <Switch>
                 <Route exact path="/addCoin" component={AddCoinContainer} />
                 <Route
@@ -130,7 +133,7 @@ export default class Framework extends React.Component {
                 <Route path="/job/:jobId" component={JobContainer} />
               </Switch>
             </LayoutBox>
-            <LayoutBox key="chart" bg="backgrounds.1">
+            <LayoutBox key="chart" bg="backgrounds.1" expand>
               <Switch>
                 <Route
                   path="/coin/:exchange/:counter/:base"
@@ -138,7 +141,7 @@ export default class Framework extends React.Component {
                 />
               </Switch>
             </LayoutBox>
-            <LayoutBox key="tradeSelector" bg="backgrounds.1">
+            <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
               <Switch>
                 <Route
                   path="/coin/:exchange/:counter/:base"
@@ -146,10 +149,10 @@ export default class Framework extends React.Component {
                 />
               </Switch>
             </LayoutBox>
-            <LayoutBox key="coins" scroll bg="backgrounds.1">
+            <LayoutBox key="coins" bg="backgrounds.1">
               <CoinsContainer />
             </LayoutBox>
-            <LayoutBox key="marketData" scroll bg="backgrounds.2">
+            <LayoutBox key="marketData" bg="backgrounds.2">
               <Switch>
                 <Route
                   path="/coin/:exchange/:counter/:base"
@@ -157,7 +160,7 @@ export default class Framework extends React.Component {
                 />
               </Switch>
             </LayoutBox>
-            <LayoutBox key="openOrders" scroll bg="backgrounds.3">
+            <LayoutBox key="openOrders" bg="backgrounds.3">
               <Switch>
                 <Route
                   path="/coin/:exchange/:counter/:base"
@@ -165,7 +168,7 @@ export default class Framework extends React.Component {
                 />
               </Switch>
             </LayoutBox>
-            <LayoutBox key="jobs" scroll bg="backgrounds.2">
+            <LayoutBox key="jobs" bg="backgrounds.2">
               <JobsContainer />
             </LayoutBox>
           </ResponsiveReactGridLayout>
@@ -176,19 +179,19 @@ export default class Framework extends React.Component {
 }
 
 function getFromLS(key) {
-  let ls = null;
+  let ls = null
   if (global.localStorage) {
     try {
-      ls = JSON.parse(global.localStorage.getItem(key)) || null;
+      ls = JSON.parse(global.localStorage.getItem(key)) || null
     } catch (e) {
       /*Ignore*/
     }
   }
-  return ls;
+  return ls
 }
 
 function saveToLS(key, value) {
   if (global.localStorage) {
-    global.localStorage.setItem(key, JSON.stringify(value));
+    global.localStorage.setItem(key, JSON.stringify(value))
   }
 }

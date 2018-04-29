@@ -12,7 +12,7 @@ const TICK_TIME = 5000
 class JobsContainer extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { loading: true, fucks: [] }
+    this.state = { loading: true }
   }
 
   tick = () => {
@@ -53,7 +53,6 @@ class JobsContainer extends React.Component {
     return (
       <Section id="jobs" heading="Running Jobs">
         {jobs}
-        {this.state.fucks}
       </Section>
     )
   }
