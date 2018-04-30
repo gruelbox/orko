@@ -118,7 +118,7 @@ class Price extends React.Component {
       )
     } else {
       return (
-        <Container my={2}>
+        <Container m={2}>
           <PriceKey color="fore" fontSize={1}>{this.props.name}</PriceKey>
           <PriceValue color="heading" fontSize={3} movement={this.state.movement} onClick={this.onClick}>
             {isNaN(this.props.children) ? this.props.children : round(this.props.children, 8)}

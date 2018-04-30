@@ -5,8 +5,8 @@ import { space, padding, fontSize, color, fontWeight, fontFamily } from 'styled-
 const Tab = styled.button`
   border-radius: 2px;
   color: ${props => props.selected ? "black" : props.theme.colors.fore};
-  background: ${props => props.selected ? props.theme.colors.emphasis : "none"};
-  border: ${props => props.selected ? "2px solid " + props.theme.colors.emphasis : "none"};
+  background: ${props => props.selected ? props.theme.colors.white : "none"};
+  border: ${props => props.selected ? "2px solid " + props.theme.colors.white : "none"};
   padding: 0 ${props => props.theme.space[1] + "px"} 0 ${props => props.theme.space[1] + "px"};
   font-size: ${props => props.theme.fontSizes[1] + "px"}
   margin: 0 0 0 ${props => props.theme.space[2] + "px"};

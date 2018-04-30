@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { fontSize, color, fontWeight, space, fontFamily } from 'styled-system';
-import { darken, mix } from 'polished'
+import { fontSize, padding, color, fontWeight, space, fontFamily } from 'styled-system';
+import { lighten } from 'polished'
 
 const RawInput = styled.input.attrs({
   fontSize: 2,
@@ -15,18 +15,14 @@ const RawInput = styled.input.attrs({
   box-shadow: none;
   outline: none;
   display: block;
-  border: 1px solid ${props => props.error
-    ? mix(0.8, props.theme.colors.inputBorder, '#FF0000')
-    : props.theme.colors.inputBorder};
-  background-color: ${props => props.error
-    ? mix(0.95, props.theme.colors.inputBg, '#FF0000')
-    : props.theme.colors.inputBg};
+  border: 1px solid ${props => props.theme.colors.inputBorder};
+  box-shadow: ${props => props.error
+    ? "0 0 4px red"
+    : "none"};
+  background-color: ${props => props.theme.colors.inputBg};
   font-family: ${props => props.theme.fonts[0]};
-  &:hover {
-    background-color: ${props => darken(0.05, props.theme.colors.inputBg)};
-  }
   &:focus {
-    background-color: ${props => darken(0.1, props.theme.colors.inputBg)};
+    border: 1px solid ${props => lighten(0.2, props.theme.colors.inputBorder)};
   }
   ${color}
   ${fontSize}
@@ -36,24 +32,27 @@ const RawInput = styled.input.attrs({
 `;
 
 const RawLabel = styled.label.attrs({
-  fontSize: 1,
+  fontSize: 2,
   color: "fore",
   mt: 0,
   mb: 1,
   p: 0
 })`
+  display: block;
   ${color}
   ${fontSize}
   ${fontWeight}
   ${space}
+  ${padding}
 `;
 
 const RawFieldSet = styled.fieldset`
+  display: inline;
   border: none;
   margin-top: ${props => props.theme.space[2] + "px"};
   margin-bottom: ${props => props.theme.space[2] + "px"};
   margin-left: 0;
-  margin-right: 0;
+  margin-right: ${props => props.theme.space[2] + "px"};
   padding: 0;
 `;
 
