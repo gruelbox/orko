@@ -30,8 +30,7 @@ const PriceValue = styled.td.attrs({
   py: 0,
   pl: 1,
   pr: 1,
-  m: 0,
-  fontFamily: "mono"
+  m: 0
 })`
   cursor: copy;
   &:hover {
@@ -61,8 +60,7 @@ const BarePriceValue = styled.span.attrs({
   py: 0,
   pl: 1,
   pr: 1,
-  m: 0,
-  fontFamily: "mono"
+  m: 0
 })`
   cursor: copy;
   &:hover {

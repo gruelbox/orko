@@ -39,7 +39,6 @@ const ChartProvider = props => (
 const LayoutBox = styled.div`
   ${color}
   position: relative;
-  border: 1px solid ${props => props.theme.colors.boxBorder};
   overflow:  ${props => props.expand ? "hidden" : "auto"}
   ::-webkit-scrollbar-corner {
     background: ${props => props.theme.colors.boxBorder};
@@ -87,9 +86,18 @@ export default class Framework extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      width: window.innerWidth,
       layouts: JSON.parse(JSON.stringify(originalLayouts))
     }
   }
+
+  componentWillMount() {
+    window.addEventListener('resize', this.handleWindowSizeChange);
+  }
+
+  handleWindowSizeChange = () => {
+    this.setState({ width: window.innerWidth });
+  };
 
   resetLayout() {
     this.setState({ layouts: {} })
@@ -119,11 +127,11 @@ export default class Framework extends React.Component {
             onLayoutChange={(layout, layouts) =>
               this.onLayoutChange(layout, layouts)
             }
-            margin={[0, 0]}
-            containerPadding={[0, 0]}
+            margin={[2, 2]}
+            containerPadding={[2, 2]}
             draggableHandle=".dragMe"
           >
-            <LayoutBox key="coinInfo" bg="backgrounds.2" expand>
+            <LayoutBox key="coinInfo" bg="backgrounds.1" expand>
               <Switch>
                 <Route exact path="/addCoin" component={AddCoinContainer} />
                 <Route
@@ -152,7 +160,7 @@ export default class Framework extends React.Component {
             <LayoutBox key="coins" bg="backgrounds.1">
               <CoinsContainer />
             </LayoutBox>
-            <LayoutBox key="marketData" bg="backgrounds.2">
+            <LayoutBox key="marketData" bg="backgrounds.1">
               <Switch>
                 <Route
                   path="/coin/:exchange/:counter/:base"
@@ -160,7 +168,7 @@ export default class Framework extends React.Component {
                 />
               </Switch>
             </LayoutBox>
-            <LayoutBox key="openOrders" bg="backgrounds.3">
+            <LayoutBox key="openOrders" bg="backgrounds.1">
               <Switch>
                 <Route
                   path="/coin/:exchange/:counter/:base"
@@ -168,7 +176,7 @@ export default class Framework extends React.Component {
                 />
               </Switch>
             </LayoutBox>
-            <LayoutBox key="jobs" bg="backgrounds.2">
+            <LayoutBox key="jobs" bg="backgrounds.1">
               <JobsContainer />
             </LayoutBox>
           </ResponsiveReactGridLayout>

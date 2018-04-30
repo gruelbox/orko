@@ -2,64 +2,89 @@ import React from "react"
 import { connect } from "react-redux"
 
 import { Icon } from "semantic-ui-react"
+import ReactTable from "react-table";
 
 import * as coinsActions from "../store/coins/actions"
 
 import CoinLink from "../components/CoinLink"
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
+import Href from "../components/primitives/Href"
 
 import Table from "../components/primitives/Table"
 import Cell from "../components/primitives/Cell"
 import HeaderCell from "../components/primitives/HeaderCell"
 import Row from "../components/primitives/Row"
+import Span from "../components/primitives/Span"
+import Price from "../components/primitives/Price"
+import theme from "../theme"
 
-class CoinsCointainer extends React.Component {
-  render() {
-    return (
-      <Section id="coinList" heading="Coins">
-        <Table>
-          <tbody>
-            <Row>
-              <HeaderCell>
-                <Icon name="close" />
-              </HeaderCell>
-              <HeaderCell>Pair</HeaderCell>
-              <HeaderCell number px={1}>Price</HeaderCell>
-              <HeaderCell number px={1}>Balance</HeaderCell>
-              <HeaderCell number px={1}>Value</HeaderCell>
-            </Row>
-            {this.props.coins.map(coin => {
-              const ticker = this.props.tickers[coin.key]
-              return <CoinLink
-                key={coin.key}
-                coin={coin}
-                onRemove={() => this.props.dispatch(coinsActions.remove(coin))}
-                price={ticker ? ticker.last : null}
-              />
-            })}
-            <Row>
-              <Cell />
-              <Cell>
-                <Link to="/addCoin">
-                  <Icon name="add" />Add coin
-                </Link>
-              </Cell>
-              <Cell number />
-              <Cell number />
-              <Cell number />
-            </Row>
-          </tbody>
-        </Table>
-      </Section>
-    )
-  }
+const textStyle = {
+  textAlign: "left",
 }
+
+const numberStyle = {
+  textAlign: "right",
+}
+
+const CoinsCointainer = ({data, dispatch}) => (
+  <Section id="coinList" heading="Coins" nopadding buttons={() => (
+    <Link to="/addCoin" color="heading">
+      <Icon name="add" />
+    </Link>
+  )}>
+    <ReactTable
+      data={data}
+      columns={[
+        {
+          id: "close",
+          Header: () => <Icon name="close" />,
+          Cell: ({original}) => (
+            <Href onClick={() => dispatch(coinsActions.remove(original))}>
+              <Icon name="close" />
+            </Href>
+          ),
+          headerStyle: textStyle,
+          style: textStyle,
+          width: 36
+        },
+        {
+          id: "name",
+          Header: "Name",
+          Cell: ({original}) => (
+            <Link to={"/coin/" + original.key}>{original.name}</Link>
+          ),
+          headerStyle: textStyle,
+          style: textStyle,
+          resizable: true
+        },
+        {
+          id: "price",
+          Header: "Price",
+          Cell: ({original}) => (
+            <Price bare>
+              {original.ticker ? original.ticker.last : null}
+            </Price>
+          ),
+          headerStyle: numberStyle,
+          style: numberStyle,
+          resizable: true
+        }
+      ]}
+      showPagination={false}
+      resizable={false}
+      className="-striped"
+      minRows={0}
+    />
+  </Section>
+)
 
 function mapStateToProps(state) {
   return {
-    coins: state.coins.coins,
-    tickers: state.ticker.coins
+    data: state.coins.coins.map(coin => ({
+      ...coin,
+      ticker: state.ticker.coins[coin.key]
+    }))
   }
 }
 

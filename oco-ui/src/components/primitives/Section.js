@@ -12,20 +12,23 @@ const SectionBox = styled.section`
 `
 
 const SectionHeadingBox = styled.div`
+  background-color: ${props => props.theme.colors.backgrounds[3]};
   position: sticky;
   left: 0;
   top: 0;
   padding: ${props => props.theme.space[2] + "px"};
-  border-bottom: 1px solid ${props => props.theme.colors.deemphasis}
   display: flex;
   justify-content: space-between;
+  z-index: 1;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 15px 0 rgba(0, 0, 0, 0.15);
 `
 
 const SectionInner = styled.section`
-  padding-top: 12px;
-  padding-bottom: ${props => props.theme.space[2] + "px"};
-  padding-left: ${props => props.theme.space[2] + "px"};
-  padding-right: ${props => props.theme.space[2] + "px"};
+  padding-top: ${props => props.nopadding ? 0 : "10px"};
+  padding-bottom: ${props => props.nopadding ? 0 :props.theme.space[2] + "px"};
+  padding-left: ${props => props.nopadding ? 0 :props.theme.space[2] + "px"};
+  padding-right: ${props => props.nopadding ? 0 :props.theme.space[2] + "px"};
   height: ${props => props.expand ? "100%" : "auto"}
 `
 
@@ -33,13 +36,16 @@ class Section extends React.Component {
   render() {
     return (
       <SectionBox>
-        <SectionHeadingBox>
+        <SectionHeadingBox className="dragMe">
           <Heading p={0} m={0} color="heading">
-            <Icon className="dragMe" name="content"/>
+            <Icon name="content"/>
             {this.props.heading}
           </Heading>
+          <div>
+            {this.props.buttons && this.props.buttons()}
+          </div>
         </SectionHeadingBox>
-        <SectionInner expand={this.props.expand}>
+        <SectionInner expand={this.props.expand} nopadding={this.props.nopadding}>
           {this.props.children}
         </SectionInner>
       </SectionBox>

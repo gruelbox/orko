@@ -4,6 +4,19 @@ import { lighten } from "polished"
 const theme = {
   breakpoints: ["62em"],
   fontSizes: [11, 12, 13, 16],
+  fonts: {
+    sans: 'system-ui, sans-serif',
+    mono: 'Menlo, monospace',
+  },
+  space: [
+    0,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+  ],
   fontWeights: {
     normal: 500,
     bold: 700
@@ -11,7 +24,7 @@ const theme = {
   colors: {
     black: "#000",
     white: "#fff",
-    backgrounds: ["#131722", "#282b38", "#2F3241", "#343747"],
+    backgrounds: ["#131722", "#282b38", "#2F3241", "#343747", lighten(0.1, "#343747")],
     inputBg: lighten(0.1, "#2F3241"),
     fore: "#aaa",
     emphasis: "#3BB3E4",
