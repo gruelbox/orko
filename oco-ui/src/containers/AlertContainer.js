@@ -2,10 +2,8 @@ import React from "react"
 import { connect } from "react-redux"
 
 import Immutable from "seamless-immutable"
-import { Flex, Box } from "rebass"
 
 import Alert from "../components/Alert"
-import Job from "../components/Job"
 
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
@@ -104,22 +102,15 @@ class AlertContainer extends React.Component {
     const messageValid = this.state.job.message !== ""
 
     return (
-      <Flex flexWrap="wrap">
-        <Box width={1 / 3}>
-          <Alert
-            job={this.state.job}
-            onChange={this.onChange}
-            onFocus={this.onFocus}
-            onSubmit={this.onSubmit}
-            highPriceValid={highPriceValid}
-            lowPriceValid={lowPriceValid}
-            messageValid={messageValid}
-          />
-        </Box>
-        <Box width={2 / 3}>
-          <Job job={this.createJob()} />
-        </Box>
-      </Flex>
+      <Alert
+        job={this.state.job}
+        onChange={this.onChange}
+        onFocus={this.onFocus}
+        onSubmit={this.onSubmit}
+        highPriceValid={highPriceValid}
+        lowPriceValid={lowPriceValid}
+        messageValid={messageValid}
+      />
     )
   }
 }

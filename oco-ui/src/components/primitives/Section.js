@@ -14,6 +14,7 @@ const SectionBox = styled.section`
 const SectionHeadingBox = styled.div`
   background-color: ${props => props.theme.colors.backgrounds[3]};
   position: sticky;
+  vertical-align: middle;
   left: 0;
   top: 0;
   padding: ${props => props.theme.space[2] + "px"};
@@ -36,9 +37,9 @@ class Section extends React.Component {
   render() {
     return (
       <SectionBox>
-        <SectionHeadingBox className="dragMe">
+        <SectionHeadingBox>
           <Heading p={0} m={0} color="heading">
-            <Icon name="content"/>
+            <Icon name="content" className="dragMe"/>
             {this.props.heading}
           </Heading>
           <div>

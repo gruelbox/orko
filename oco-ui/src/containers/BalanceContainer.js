@@ -1,11 +1,12 @@
 import React from "react"
 import { connect } from "react-redux"
-import CoinInfo from "../components/CoinInfo"
+import Balance from "../components/Balance"
+
 import * as coinActions from "../store/coin/actions"
 
 const TICK_TIME = 5000;
 
-class CoinInfoContainer extends React.Component {
+class BalanceContainer extends React.Component {
 
   tick = () => {
     this.props.dispatch(coinActions.fetchBalance(this.props.coin));
@@ -28,10 +29,10 @@ class CoinInfoContainer extends React.Component {
       document.title = "No coin"
     }
     return (
-      <CoinInfo
+      <Balance
         coin={this.props.coin}
         balance={this.props.balance}
-        ticker={this.props.tickers[this.props.coin.key]}
+        ticker={ticker}
         onClickNumber={number => {
           if (this.props.updateFocusedField) {
             this.props.updateFocusedField(number)
@@ -50,4 +51,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(CoinInfoContainer)
+export default connect(mapStateToProps)(BalanceContainer)

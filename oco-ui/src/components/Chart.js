@@ -63,7 +63,7 @@ class ChartContent extends Component {
       style: "1",
       locale: "en",
       toolbar_bg: "#f1f3f6",
-      enable_publishing: false,
+      enable_publishing: true,
       withdateranges: false,
       save_image: true,
       show_popup_button: true,
@@ -115,7 +115,7 @@ const Chart = ({coin}) => {
 
   if (coin.exchange === "kucoin") {
     return (
-      <Section id="chart" heading={coin.name + " Chart"} expand>
+      <Section id="chart" heading="Chart" expand>
         <Para>TradingView does not support charts for this exchange.</Para>
         <Para><a target="_blank" href={"https://www.kucoin.com/#/trade.pro/" + coin.base + "-" + coin.counter}>Open in {coin.exchange}</a></Para>
       </Section>
@@ -123,7 +123,7 @@ const Chart = ({coin}) => {
   }
 
   return (
-    <Section id="chart" heading={coin.name + " Chart"} expand>
+    <Section id="chart" heading="Chart" expand>
       <ChartContent coin={coin} />
     </Section>
   )

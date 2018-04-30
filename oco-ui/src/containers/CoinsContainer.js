@@ -2,22 +2,15 @@ import React from "react"
 import { connect } from "react-redux"
 
 import { Icon } from "semantic-ui-react"
-import ReactTable from "react-table";
+import ReactTable from "react-table"
 
 import * as coinsActions from "../store/coins/actions"
 
-import CoinLink from "../components/CoinLink"
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
 import Href from "../components/primitives/Href"
 
-import Table from "../components/primitives/Table"
-import Cell from "../components/primitives/Cell"
-import HeaderCell from "../components/primitives/HeaderCell"
-import Row from "../components/primitives/Row"
-import Span from "../components/primitives/Span"
 import Price from "../components/primitives/Price"
-import theme from "../theme"
 
 const textStyle = {
   textAlign: "left",
