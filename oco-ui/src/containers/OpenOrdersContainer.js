@@ -2,6 +2,7 @@ import React from "react"
 import { connect } from "react-redux"
 
 import { Icon } from "semantic-ui-react"
+import ReactTable from "react-table"
 
 import Section from "../components/primitives/Section"
 import Para from "../components/primitives/Para"
@@ -18,41 +19,15 @@ import * as coinActions from "../store/coin/actions"
 const TICK_TIME = 10000
 
 const NoData = props => (
-  <Panel>
+  <Panel p={2}>
     <Para>No market data for {props.coin.name}</Para>
   </Panel>
 )
 
 const NoOrders = props => (
-  <Panel>
+  <Panel p={2}>
     <Para>No open orders</Para>
   </Panel>
-)
-
-const Order = props => (
-  <Row>
-    <Cell>
-      <Href onClick={props.onCancel}>
-        <Icon name="close" />
-      </Href>
-    </Cell>
-    <Cell color={props.color}>{formatDate(props.order.timestamp)}</Cell>
-    <Cell color={props.color}>
-      {props.order.type === "BID" ? "Buy" : "Sell"}
-    </Cell>
-    <Cell color={props.color} number>
-      {props.order.limitPrice}
-    </Cell>
-    <Cell color={props.color} number>
-      {props.order.stopPrice ? props.order.stopPrice : "-"}
-    </Cell>
-    <Cell color={props.color} number>
-      {props.order.originalAmount}
-    </Cell>
-    <Cell color={props.color} number>
-      {props.order.cumulativeAmount}
-    </Cell>
-  </Row>
 )
 
 const formatDate = timestamp => {
@@ -60,32 +35,82 @@ const formatDate = timestamp => {
   return d.toLocaleDateString() + " " + d.toLocaleTimeString()
 }
 
+const textStyle = {
+  textAlign: "left",
+}
+
+const numberStyle = {
+  textAlign: "right",
+}
+
 const Orders = props => (
-  <div>
-    <Table>
-      <tbody>
-        <Row>
-          <HeaderCell>
+  <ReactTable
+    data={props.orders.allOpenOrders}
+    columns={[
+      {
+        id: "close",
+        Header: () => <Icon name="close" />,
+        Cell: ({original}) => (
+          <Href onClick={() => props.onCancel(original.id, original.type)}>
             <Icon name="close" />
-          </HeaderCell>
-          <HeaderCell>Created</HeaderCell>
-          <HeaderCell>Direction</HeaderCell>
-          <HeaderCell number>Limit</HeaderCell>
-          <HeaderCell number>Trigger</HeaderCell>
-          <HeaderCell number>Amount</HeaderCell>
-          <HeaderCell number>Filled</HeaderCell>
-        </Row>
-        {props.orders.allOpenOrders.map(o => (
-          <Order
-            key={o.id}
-            onCancel={() => props.onCancel(o.id, o.type)}
-            order={o}
-            color={o.type === "BID" ? "buy" : "sell"}
-          />
-        ))}
-      </tbody>
-    </Table>
-  </div>
+          </Href>
+        ),
+        headerStyle: textStyle,
+        style: textStyle,
+        width: 36
+      },
+      {
+        id: "createdDate",
+        Header: "Created",
+        Cell: ({original}) => formatDate(original.timestamp),
+        headerStyle: textStyle,
+        style: textStyle,
+        resizable: true
+      },
+      {
+        id: "orderType",
+        Header: "Direction",
+        Cell: ({original}) => original.type === "BID" ? "Buy" : "Sell",
+        headerStyle: textStyle,
+        style: textStyle,
+        resizable: true
+      },
+      {
+        Header: "Limit",
+        accessor: "limitPrice",
+        headerStyle: numberStyle,
+        style: numberStyle,
+        resizable: true
+      },
+      {
+        id: "stopPrice",
+        Header: "Trigger",
+        Cell: ({original}) => original.stopPrice ? original.stopPrice : "-",
+        headerStyle: numberStyle,
+        style: numberStyle,
+        resizable: true
+      },
+      {
+        Header: "Amount",
+        accessor: "originalAmount",
+        headerStyle: numberStyle,
+        style: numberStyle,
+        resizable: true
+      },
+      {
+        Header: "Filled",
+        accessor: "cumulativeAmount",
+        headerStyle: numberStyle,
+        style: numberStyle,
+        resizable: true
+      },
+    ]}
+    showPagination={false}
+    resizable={false}
+    className="-striped"
+    minRows={0}
+    noDataText="No open orders"
+  />
 )
 
 class OpenOrdersContainer extends React.Component {
@@ -121,7 +146,7 @@ class OpenOrdersContainer extends React.Component {
 
   render() {
     var component = this.state.loading ? (
-      <Loading />
+      <Loading p={2}/>
     ) : this.props.ordersUnavailable ? (
       <NoData coin={this.props.coin} />
     ) : !this.props.orders ? (
@@ -133,7 +158,7 @@ class OpenOrdersContainer extends React.Component {
     )
 
     return (
-      <Section id="orders" heading="Open Orders">
+      <Section nopadding id="orders" heading="Open Orders">
         {component}
       </Section>
     )

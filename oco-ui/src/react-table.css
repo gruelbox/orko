@@ -362,17 +362,11 @@
 }
 .ReactTable .rt-noData {
   display: block;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.8);
   transition: all 0.3s ease;
   z-index: 1;
   pointer-events: none;
-  padding: 20px;
-  color: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  color: #aaaaaa;
 }
 .ReactTable .-loading {
   display: block;

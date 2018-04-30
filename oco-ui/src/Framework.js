@@ -54,31 +54,31 @@ const LayoutBox = styled.div`
 
 const originalLayouts = getFromLS("layouts") || {
   lg: [
-    { i: "coins", x: 0, y: 0, w: 5, h: 15, minH: 5, minW: 5 },
-    { i: "jobs", x: 0, y: 100, w: 5, h: 15, minH: 5, minW: 5 },
-    { i: "coinInfo", x: 5, y: 0, w: 10, h: 5, minH: 5, minW: 10 },
-    { i: "chart", x: 5, y: 100, w: 10, h: 18, minH: 4 },
-    { i: "tradeSelector", x: 5, y: 200, w: 10, h: 13, minH: 13, maxH: 13 },
-    { i: "openOrders", x: 15, y: 0, w: 5, h: 10, minH: 4, minW: 5 },
-    { i: "marketData", x: 15, y: 100, w: 5, h: 10, minH: 6, minW: 5 }
+    { i: "coins", x: 0, y: 0, w: 5, h: 15 },
+    { i: "jobs", x: 0, y: 100, w: 5, h: 15 },
+    { i: "chart", x: 5, y: 100, w: 10, h: 14 },
+    { i: "openOrders", x: 5, y: 200, w: 10, h: 6 },
+    { i: "tradeSelector", x: 5, y: 300, w: 10, h: 13},
+    { i: "coinInfo", x: 15, y: 0, w: 5, h: 5 },
+    { i: "marketData", x: 15, y: 100, w: 5, h: 10 }
   ],
   md: [
-    { i: "coinInfo", x: 0, y: 0, w: 5, h: 5, minH: 5, minW: 5, maxH: 8 },
-    { i: "chart", x: 0, y: 100, w: 5, h: 16, minH: 4 },
-    { i: "tradeSelector", x: 0, y: 200, w: 5, h: 13, minH: 13, maxH: 13 },
-    { i: "coins", x: 5, y: 0, w: 3, h: 12, minH: 5, minW: 3 },
-    { i: "openOrders", x: 5, y: 100, w: 3, h: 8, minH: 4, minW: 3 },
-    { i: "jobs", x: 5, y: 200, w: 3, h: 8, minH: 4, minW: 3 },
-    { i: "marketData", x: 5, y: 300, w: 3, h: 6, minH: 6, minW: 3 }
+    { i: "coinInfo", x: 0, y: 0, w: 5, h: 5 },
+    { i: "chart", x: 0, y: 100, w: 5, h: 14 },
+    { i: "openOrders", x: 0, y: 200, w: 5, h: 5 },
+    { i: "tradeSelector", x: 0, y: 300, w: 5, h: 13 },
+    { i: "coins", x: 5, y: 0, w: 3, h: 12 },
+    { i: "jobs", x: 5, y: 200, w: 3, h: 12 },
+    { i: "marketData", x: 5, y: 300, w: 3, h: 6 }
   ],
   sm: [
-    { i: "coinInfo", x: 0, y: 0, w: 2, h: 8 },
-    { i: "chart", x: 0, y: 100, w: 2, h: 16 },
-    { i: "tradeSelector", x: 0, y: 200, w: 2, h: 13 },
-    { i: "coins", x: 0, y: 300, w: 2, h: 12 },
-    { i: "openOrders", x: 0, y: 400, w: 2, h: 8 },
-    { i: "jobs", x: 0, y: 500, w: 2, h: 8 },
-    { i: "marketData", x: 0, y: 600, w: 2, h: 6 }
+    { i: "chart", x: 0, y: 100, w: 2, h: 12 },
+    { i: "openOrders", x: 0, y: 200, w: 2, h: 4 },
+    { i: "coinInfo", x: 0, y: 300, w: 2, h: 7 },
+    { i: "tradeSelector", x: 0, y: 400, w: 2, h: 12 },
+    { i: "coins", x: 0, y: 500, w: 2, h: 6 },
+    { i: "jobs", x: 0, y: 600, w: 2, h: 6 },
+    { i: "marketData", x: 0, y: 700, w: 2, h: 6 }
   ]
 }
 
