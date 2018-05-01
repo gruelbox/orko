@@ -1,6 +1,7 @@
 import React from "react"
 
 import styled from "styled-components"
+import { Icon } from 'semantic-ui-react';
 import { fontSize, color, fontWeight, fontFamily, space } from "styled-system"
 
 /**
@@ -119,7 +120,7 @@ class Price extends React.Component {
     } else {
       return (
         <Container m={2}>
-          <PriceKey color="fore" fontSize={1}>{this.props.name}</PriceKey>
+          <PriceKey color="fore" fontSize={1}>{this.props.name} {this.props.icon ? <Icon name={this.props.icon}/> : ""}</PriceKey>
           <PriceValue color="heading" fontSize={3} movement={this.state.movement} onClick={this.onClick}>
             {isNaN(this.props.children) ? this.props.children : round(this.props.children, 8)}
           </PriceValue>

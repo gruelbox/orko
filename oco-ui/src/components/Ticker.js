@@ -17,13 +17,13 @@ export const Ticker = props => {
   if (coin) {
     return (
       <Container>
-        <Price name="Bid" onClick={props.onClickNumber}>
+        <Price name="Bid" icon="chevron up" onClick={props.onClickNumber}>
           {props.ticker ? props.ticker.bid : EMPTY}
         </Price>
-        <Price name="Last" onClick={props.onClickNumber}>
+        <Price name="Last" icon="circle outline" onClick={props.onClickNumber}>
           {props.ticker ? props.ticker.last : EMPTY}
         </Price>
-        <Price name="Ask" onClick={props.onClickNumber}>
+        <Price name="Ask" icon="chevron down" onClick={props.onClickNumber}>
           {props.ticker ? props.ticker.ask : EMPTY}
         </Price>
         <Price name="Open" onClick={props.onClickNumber}>

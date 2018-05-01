@@ -24,7 +24,7 @@ const TickerSocketState = ({ connected }) => {
     <Span
       title={connected ? "Socket connected" : "Socket down"}
       color={connected ? "white" : "heading"}
-      ml={2}
+      mx={2}
       fontWeight="bold"
     >
       <Icon name="wifi"/>
@@ -42,7 +42,7 @@ const BackgroundErrors = ({ errors }) => {
     <Span
       title={hasErrors ? errorString : "Connected"}
       color={hasErrors ? "red" : "white"}
-      ml={2}
+      mx={2}
       fontWeight="bold"
     >
       <Icon name="wifi" />
@@ -51,7 +51,7 @@ const BackgroundErrors = ({ errors }) => {
 }
 
 const HomeLink = () => (
-  <Link color="heading" title="Home" fontSize={3} to="/" fontWeight="bold">
+  <Link mr={2} color="heading" title="Home" fontSize={3} to="/" fontWeight="bold">
     <Icon name="home" />
   </Link>
 )
@@ -107,7 +107,7 @@ const CoinExchange = styled.h2`
 `
 
 const Coin = ({coin}) => (
-  <CoinContainer mx={2}>
+  <CoinContainer px={3}>
     <CoinTicker>{coin ? coin.base + "/" + coin.counter : ""}</CoinTicker>
     <CoinExchange>{coin ? coin.exchange : ""}</CoinExchange>
   </CoinContainer>
