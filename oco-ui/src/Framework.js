@@ -37,7 +37,7 @@ const LayoutBox = styled.div`
   }
 `
 
-const originalLayouts = getFromLS("layouts") || {
+const baseLayouts = {
   lg: [
     { i: "ticker", x: 0, y: 0, w: 20, h: 3 },
     { i: "coins", x: 0, y: 0, w: 5, h: 15 },
@@ -45,7 +45,7 @@ const originalLayouts = getFromLS("layouts") || {
     { i: "chart", x: 5, y: 100, w: 10, h: 14 },
     { i: "openOrders", x: 5, y: 200, w: 10, h: 5 },
     { i: "balance", x: 5, y: 300, w: 10, h: 5 },
-    { i: "tradeSelector", x: 5, y: 400, w: 10, h: 10},
+    { i: "tradeSelector", x: 5, y: 400, w: 10, h: 8},
     { i: "marketData", x: 15, y: 200, w: 5, h: 10 }
   ],
   md: [
@@ -53,7 +53,7 @@ const originalLayouts = getFromLS("layouts") || {
     { i: "chart", x: 0, y: 100, w: 5, h: 14 },
     { i: "openOrders", x: 0, y: 200, w: 5, h: 5 },
     { i: "balance", x: 0, y: 300, w: 5, h: 5 },
-    { i: "tradeSelector", x: 0, y: 400, w: 5, h: 10 },
+    { i: "tradeSelector", x: 0, y: 400, w: 5, h: 8 },
     { i: "coins", x: 5, y: 100, w: 3, h: 12 },
     { i: "jobs", x: 5, y: 200, w: 3, h: 9 },
     { i: "marketData", x: 5, y: 300, w: 3, h: 5 }
@@ -63,12 +63,14 @@ const originalLayouts = getFromLS("layouts") || {
     { i: "chart", x: 0, y: 100, w: 2, h: 12 },
     { i: "openOrders", x: 0, y: 200, w: 2, h: 4 },
     { i: "balance", x: 0, y: 300, w: 2, h: 5 },
-    { i: "tradeSelector", x: 0, y: 400, w: 2, h: 10 },
+    { i: "tradeSelector", x: 0, y: 400, w: 2, h: 8 },
     { i: "coins", x: 0, y: 500, w: 2, h: 6 },
     { i: "jobs", x: 0, y: 600, w: 2, h: 6 },
     { i: "marketData", x: 0, y: 700, w: 2, h: 6 }
   ]
 }
+
+const originalLayouts = getFromLS("layouts") || baseLayouts
 
 export default class Framework extends React.Component {
   constructor(props) {
@@ -87,8 +89,9 @@ export default class Framework extends React.Component {
     this.setState({ width: window.innerWidth });
   };
 
-  resetLayout() {
-    this.setState({ layouts: {} })
+  resetLayout = () => {
+    saveToLS("layouts", baseLayouts)
+    this.setState({ layouts: baseLayouts })
   }
 
   onLayoutChange(layout, layouts) {
@@ -100,8 +103,10 @@ export default class Framework extends React.Component {
     const { width } = this.state
     const isMobile = width <= 500
 
+    const Tools = ({coin}) => <ToolbarContainer coin={coin} onResetLayout={this.resetLayout}/>
+
     const header = [
-      <WithCoinParameter key="toolbar" component={ToolbarContainer}/>,
+      <WithCoinParameter key="toolbar" component={Tools}/>,
       <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
       <Route key="job" path="/job/:jobId" component={JobContainer} />
     ]
