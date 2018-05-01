@@ -4,7 +4,6 @@ import styled from "styled-components"
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
 
-const SCRIPT_ID = "tradingview-widget-script"
 const CONTAINER_ID = "tradingview-widget-container"
 
 class ChartContent extends Component {
@@ -13,48 +12,21 @@ class ChartContent extends Component {
   }
 
   componentDidMount = () => {
-    this.appendScript(this.initWidget)
-  }
-
-  appendScript = onload => {
-    if (this.scriptExists()) {
-      /* global TradingView */
-      if (typeof TradingView === "undefined") {
-        this.updateOnloadListener(onload)
-        return
-      }
-      onload()
-      return
-    }
-    const script = document.createElement("script")
-    script.id = SCRIPT_ID
-    script.type = "text/javascript"
-    script.async = true
-    script.src = "https://s3.tradingview.com/tv.js"
-    script.onload = onload
-    document.getElementsByTagName("head")[0].appendChild(script)
-  }
-
-  getScriptElement = () => document.getElementById(SCRIPT_ID)
-
-  scriptExists = () => this.getScriptElement() !== null
-
-  updateOnloadListener = onload => {
-    const script = this.getScriptElement()
-    const oldOnload = script.onload
-    return (script.onload = () => {
-      oldOnload()
-      onload()
-    })
+    this.reLoad()
   }
 
   componentDidUpdate = () => {
+    this.reLoad()
+  }
+
+  reLoad = () => {
     document.getElementById(CONTAINER_ID).innerHTML = ""
     this.initWidget()
   }
 
   initWidget = () => {
-    new TradingView.widget({
+    console.log("iw")
+    new window.TradingView.widget({
       autosize: true,
       symbol: this.symbol(),
       interval: "240",
@@ -63,7 +35,7 @@ class ChartContent extends Component {
       style: "1",
       locale: "en",
       toolbar_bg: "#f1f3f6",
-      enable_publishing: true,
+      enable_publishing: false,
       withdateranges: false,
       save_image: true,
       show_popup_button: true,
@@ -82,23 +54,23 @@ class ChartContent extends Component {
   }
 
   render() {
-    const ChartContainer = styled.div`
+    const ChartOuter = styled.div`
       overflow: hidden;
-      height: 100%;
+      height: calc(100% - 34px);
     `
 
     const ChartInner = styled.div`
       margin-top: -1px;
       margin-left: -8px;
       margin-right: -8px;
-      margin-bottom: -8px;
-      height: calc(100% - 24px);
+      margin-bottom: 0;
+      height: calc(100% + 8px);
     `
 
     return (
-      <ChartContainer>
+      <ChartOuter>
         <ChartInner id={CONTAINER_ID} />
-      </ChartContainer>
+      </ChartOuter>
     )
   }
 }
@@ -108,7 +80,7 @@ const Chart = ({coin}) => {
   if (!coin) {
     return (
       <Section id="chart" heading="Chart">
-        <Para>No coin selected.</Para>
+        <Para>No coin selected</Para>
       </Section>
     )
   }

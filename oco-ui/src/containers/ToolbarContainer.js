@@ -114,41 +114,39 @@ const Coin = ({coin}) => (
 )
 
 const ToolbarContainer = props => {
-  const ticker = props.tickers[props.coin.key]
+  const ticker = (props.tickers && props.coin) ? props.tickers[props.coin.key] : null
   if (ticker && props.coin) {
     document.title = ticker.last + " " + props.coin.base + "/" + props.coin.counter 
   } else {
     document.title = "No coin"
   }
   return (
-    <div>
-      <ToolbarBox p={0}>
-        <Toolbar p={0} m={0}>
-          <HomeLink />
-          <TickerSocketState connected={props.connected} />
-          <BackgroundErrors errors={props.errors} />
-          <Coin coin={props.coin}/>
-          <RemainingSpace mx={2}>
-            <Ticker
-              coin={props.coin}
-              ticker={props.coin ? props.tickers[props.coin.key] : null}
-              onClickNumber={number => {
-                if (props.updateFocusedField) {
-                  props.updateFocusedField(number)
-                }
-              }}
-            />
-          </RemainingSpace>
-          <SignOutLink
-            userName={props.userName}
-            onClick={() => props.dispatch(authActions.logout())}
+    <ToolbarBox p={0}>
+      <Toolbar p={0} m={0}>
+        <HomeLink />
+        <TickerSocketState connected={props.connected} />
+        <BackgroundErrors errors={props.errors} />
+        <Coin coin={props.coin}/>
+        <RemainingSpace mx={2}>
+          <Ticker
+            coin={props.coin}
+            ticker={props.coin ? props.tickers[props.coin.key] : null}
+            onClickNumber={number => {
+              if (props.updateFocusedField) {
+                props.updateFocusedField(number)
+              }
+            }}
           />
-          <InvalidateLink
-            onClick={() => props.dispatch(authActions.clearWhitelist())}
-          />
-        </Toolbar>
-      </ToolbarBox>
-    </div>
+        </RemainingSpace>
+        <SignOutLink
+          userName={props.userName}
+          onClick={() => props.dispatch(authActions.logout())}
+        />
+        <InvalidateLink
+          onClick={() => props.dispatch(authActions.clearWhitelist())}
+        />
+      </Toolbar>
+    </ToolbarBox>
   )
 }
 

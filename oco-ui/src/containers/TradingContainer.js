@@ -22,7 +22,7 @@ class TradingContainer extends React.Component {
   }
 
   render() {
-    const ticker = this.props.tickers[this.props.coin.key]
+    const ticker = (this.props.tickers && this.props.coin) ? this.props.tickers[this.props.coin.key] : null
     if (ticker && this.props.coin) {
       document.title = ticker.last + " " + this.props.coin.base + "/" + this.props.coin.counter 
     } else {
@@ -32,7 +32,7 @@ class TradingContainer extends React.Component {
       <TradeSelector
         coin={this.props.coin}
         balance={this.props.balance}
-        ticker={this.props.tickers[this.props.coin.key]}
+        ticker={ticker}
         onClickNumber={number => {
           if (this.props.updateFocusedField) {
             this.props.updateFocusedField(number)

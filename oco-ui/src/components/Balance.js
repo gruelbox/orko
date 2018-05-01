@@ -3,6 +3,7 @@ import React from "react"
 import styled from "styled-components"
 import Price from "./primitives/Price"
 import Section from "./primitives/Section"
+import Para from "./primitives/Para"
 
 const EMPTY = "--"
 
@@ -15,7 +16,7 @@ export const Balance = props => {
   const coin = props.coin
 
   const noBalance =
-    !props.balance || !props.balance[coin.base] || !props.balance[coin.counter]
+    !props.balance || !props.coin || !props.balance[coin.base] || !props.balance[coin.counter]
   var content = null
   if (coin) {
     content = (
@@ -48,7 +49,7 @@ export const Balance = props => {
       </Container>
     )
   } else {
-    content = <div>No coin selected</div>
+    content = <Para>No coin selected</Para>
   }
   return (
     <Section id="balance" heading="Balances">

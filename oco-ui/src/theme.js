@@ -1,4 +1,4 @@
-import { keyframes } from "styled-components"
+import { keyframes, css } from "styled-components"
 import { lighten } from "polished"
 
 const theme = {
@@ -64,6 +64,13 @@ const theme = {
       to {
         background-color: none;
         color: ${props.theme.colors.fore};
+      }
+    `
+  },
+  media: {
+    handheld: (...args) => css`
+      @media (max-width: 420px) {
+        ${ css(...args) }
       }
     `
   }

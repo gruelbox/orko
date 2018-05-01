@@ -22,12 +22,7 @@ class BalanceContainer extends React.Component {
   }
 
   render() {
-    const ticker = this.props.tickers[this.props.coin.key]
-    if (ticker && this.props.coin) {
-      document.title = ticker.last + " " + this.props.coin.base + "/" + this.props.coin.counter 
-    } else {
-      document.title = "No coin"
-    }
+    const ticker = (this.props.tickers && this.props.coin) ? this.props.tickers[this.props.coin.key] : null
     return (
       <Balance
         coin={this.props.coin}

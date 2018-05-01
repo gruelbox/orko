@@ -1,6 +1,6 @@
 import React from "react"
 
-import { Switch, Route, BrowserRouter } from "react-router-dom"
+import { Route, BrowserRouter } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
 import styled from "styled-components"
 import { color } from "styled-system"
@@ -101,11 +101,9 @@ export default class Framework extends React.Component {
     const isMobile = width <= 500
 
     const header = [
-      <WithCoinParameter component={ToolbarContainer}/>,
-      <Switch>
-        <Route exact path="/addCoin" component={AddCoinContainer} />
-        <Route path="/job/:jobId" component={JobContainer} />
-      </Switch>
+      <WithCoinParameter key="toolbar" component={ToolbarContainer}/>,
+      <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
+      <Route key="job" path="/job/:jobId" component={JobContainer} />
     ]
 
     const content = [
@@ -113,7 +111,7 @@ export default class Framework extends React.Component {
         <WithCoinParameter component={Chart}/>
       </LayoutBox>,
       <LayoutBox key="openOrders" bg="backgrounds.1">
-        <WithCoinParameter component={OpenOrdersContainer}/>>
+        <WithCoinParameter component={OpenOrdersContainer}/>
       </LayoutBox>,
       <LayoutBox key="balance" bg="backgrounds.1">
         <WithCoinParameter component={BalanceContainer}/>

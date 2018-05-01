@@ -14,6 +14,12 @@ import * as coinActions from "../store/coin/actions"
 
 const TICK_TIME = 10000
 
+const NoCoin = props => (
+  <Panel p={2}>
+    <Para>No coin selected</Para>
+  </Panel>
+)
+
 const NoData = props => (
   <Panel p={2}>
     <Para>No market data for {props.coin.name}</Para>
@@ -133,7 +139,9 @@ class OpenOrdersContainer extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.coin.key !== this.props.coin.key) {
+    const nextKey = nextProps.coin ? nextProps.coin.key : null
+    const thisKey = this.props.coin ? this.props.coin.key : null
+    if (nextKey!== thisKey) {
       this.setState({ loading: true }, () => this.tick())
     } else {
       this.setState({ loading: false })
@@ -143,6 +151,8 @@ class OpenOrdersContainer extends React.Component {
   render() {
     var component = this.state.loading ? (
       <Loading p={2}/>
+    ) : !this.props.coin ? (
+      <NoCoin />
     ) : this.props.ordersUnavailable ? (
       <NoData coin={this.props.coin} />
     ) : !this.props.orders ? (

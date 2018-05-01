@@ -11,25 +11,21 @@ class ExtractCoin extends React.Component {
           this.props.match.params.base
         )
       : undefined
-
     const ChildComponent = this.props.component
-
     return <ChildComponent coin={coin} />
   }
 }
 
-export default class WithCoinParameter extends React.Component {
-  render() {
-    const Provider = props => (
-      <ExtractCoin {...props} component={this.props.component} />
-    )
-    return (
-      <Switch>
-        <Route
-          path="/coin/:exchange/:counter/:base"
-          component={Provider}
-        />
-      </Switch>
-    )
-  }
-}
+const WithCoinParameter = props => (
+  <Switch>
+    <Route
+      path="/coin/:exchange/:counter/:base"
+      render={routeProps => <ExtractCoin {...routeProps} component={props.component} />}
+    />
+    <Route
+      render={routeProps => <props.component />}
+    />
+  </Switch>
+)
+
+export default WithCoinParameter
