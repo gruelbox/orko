@@ -22,16 +22,16 @@
     	<profile>
 			<id>web</id>
           	<modules>
-				<module>oco-api</module>
+				<module>oco-common</module>
 				<module>oco-web</module>
           	</modules> 
      	 </profile>
 		<profile>
 			<id>worker</id>
           	<modules>
-			  	<module>oco-api</module>
+			  	<module>oco-common</module>
 				<module>oco-worker</module>
-          	</modules> 
+          	</modules>
      	</profile>
   	</profiles>
 
@@ -43,10 +43,10 @@
 
 		<dropwizard.version>1.2.4</dropwizard.version>
 		<activemq.version>5.14.1</activemq.version>
-		
+
 		<xchange.version>4.3.5</xchange.version>
 		<xchange.stream.version>4.3.2</xchange.stream.version>
-		
+
 		<streamex.version>0.6.6</streamex.version>
 		<guice.version>4.2.0</guice.version>
 		<autovalue.version>1.5.4</autovalue.version>
@@ -65,12 +65,12 @@
 		<maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
 		<jacoco.version>0.8.0</jacoco.version>
 		<mockito.version>1.10.19</mockito.version>
-		
+
 		<!-- 		<frontend-maven-plugin-version>1.4</frontend-maven-plugin-version> -->
 		<!-- 		<maven.shade.plugin.version>3.1.0</maven.shade.plugin.version> -->
 		<!-- 		<maven.source.plugin.version>3.0.1</maven.source.plugin.version> -->
 		<!-- 		<maven.javadoc.plugin.version>3.0.0</maven.javadoc.plugin.version> -->
-		
+
 	</properties>
 
 	<dependencyManagement>
@@ -231,7 +231,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	
+
 	<build>
 		<plugins>
 <!-- 			<plugin> -->
@@ -305,7 +305,7 @@
 <!-- 			</plugin> -->
 		</plugins>
 	</build>
-	
+
 <!--  	<reporting> -->
 <!-- 		<plugins> -->
 <!-- 			<plugin> -->

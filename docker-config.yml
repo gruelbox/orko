@@ -1,7 +1,5 @@
 loopSeconds: 10
 auth:
-  userName: bully
-  password: boy
   proxied: false
   whitelistExpirySeconds: 7200
 database:
