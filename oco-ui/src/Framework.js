@@ -20,29 +20,11 @@ import WithCoinParameter from "./WithCoinParameter"
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
-const ToolbarContainerProvider = props => (
-  <WithCoinParameter {...props} component={ToolbarContainer} />
-)
-const MarketContainerProvider = props => (
-  <WithCoinParameter {...props} component={MarketContainer} />
-)
-const OpenOrdersContainerProvider = props => (
-  <WithCoinParameter {...props} component={OpenOrdersContainer} />
-)
-const TradingContainerProvider = props => (
-  <WithCoinParameter {...props} component={TradingContainer} />
-)
-const BalanceContainerProvider = props => (
-  <WithCoinParameter {...props} component={BalanceContainer} />
-)
-const ChartProvider = props => (
-  <WithCoinParameter {...props} component={Chart} />
-)
-
 const LayoutBox = styled.div`
   ${color}
+  height: ${props => props.height ? props.height + "px" : "auto"}
   position: relative;
-  overflow:  ${props => props.expand ? "hidden" : "auto"}
+  overflow: ${props => props.expand ? "hidden" : "auto"}
   ::-webkit-scrollbar-corner {
     background: ${props => props.theme.colors.boxBorder};
   }
@@ -115,84 +97,73 @@ export default class Framework extends React.Component {
   }
 
   render() {
-    return (
-      <BrowserRouter>
-        <div>
-          <Switch>
-            <Route
-              path="/coin/:exchange/:counter/:base"
-              component={ToolbarContainerProvider}
-            />
-            <Route component={ToolbarContainer} />
-          </Switch>
-          <Switch>
-            <Route exact path="/addCoin" component={AddCoinContainer} />
-            <Route path="/job/:jobId" component={JobContainer} />
-          </Switch>
-          <ResponsiveReactGridLayout
-            breakpoints={{ lg: 1400, md: 850, sm: 0 }}
-            cols={{ lg: 20, md: 8, sm: 2 }}
-            rowHeight={24}
-            layouts={this.state.layouts}
-            onLayoutChange={(layout, layouts) =>
-              this.onLayoutChange(layout, layouts)
-            }
-            margin={[2, 2]}
-            containerPadding={[2, 2]}
-            draggableHandle=".dragMe"
-          >
-            <LayoutBox key="chart" bg="backgrounds.1" expand>
-              <Switch>
-                <Route
-                  path="/coin/:exchange/:counter/:base"
-                  component={ChartProvider}
-                />
-                <Route exact path="/addCoin" component={AddCoinContainer} />
-                <Route path="/job/:jobId" component={JobContainer} />
-              </Switch>
-            </LayoutBox>
-            <LayoutBox key="balance" bg="backgrounds.1">
-              <Switch>
-                <Route
-                  path="/coin/:exchange/:counter/:base"
-                  component={BalanceContainerProvider}
-                />
-              </Switch>
-            </LayoutBox>
-            <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-              <Switch>
-                <Route
-                  path="/coin/:exchange/:counter/:base"
-                  component={TradingContainerProvider}
-                />
-              </Switch>
-            </LayoutBox>
-            <LayoutBox key="coins" bg="backgrounds.1">
-              <CoinsContainer />
-            </LayoutBox>
-            <LayoutBox key="marketData" bg="backgrounds.1">
-              <Switch>
-                <Route
-                  path="/coin/:exchange/:counter/:base"
-                  component={MarketContainerProvider}
-                />
-              </Switch>
-            </LayoutBox>
-            <LayoutBox key="openOrders" bg="backgrounds.1">
-              <Switch>
-                <Route
-                  path="/coin/:exchange/:counter/:base"
-                  component={OpenOrdersContainerProvider}
-                />
-              </Switch>
-            </LayoutBox>
-            <LayoutBox key="jobs" bg="backgrounds.1">
-              <JobsContainer />
-            </LayoutBox>
-          </ResponsiveReactGridLayout>
-        </div>
-      </BrowserRouter>
-    )
+    const { width } = this.state
+    const isMobile = width <= 500
+
+    const header = [
+      <WithCoinParameter component={ToolbarContainer}/>,
+      <Switch>
+        <Route exact path="/addCoin" component={AddCoinContainer} />
+        <Route path="/job/:jobId" component={JobContainer} />
+      </Switch>
+    ]
+
+    const content = [
+      <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
+        <WithCoinParameter component={Chart}/>
+      </LayoutBox>,
+      <LayoutBox key="openOrders" bg="backgrounds.1">
+        <WithCoinParameter component={OpenOrdersContainer}/>>
+      </LayoutBox>,
+      <LayoutBox key="balance" bg="backgrounds.1">
+        <WithCoinParameter component={BalanceContainer}/>
+      </LayoutBox>,
+      <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
+        <WithCoinParameter component={TradingContainer}/>
+      </LayoutBox>,
+      <LayoutBox key="coins" bg="backgrounds.1">
+        <CoinsContainer />
+      </LayoutBox>,
+      <LayoutBox key="jobs" bg="backgrounds.1">
+        <JobsContainer />
+      </LayoutBox>,
+      <LayoutBox key="marketData" bg="backgrounds.1">
+        <WithCoinParameter component={MarketContainer}/>
+      </LayoutBox>
+    ]
+
+    if (isMobile) {
+      return (
+        <BrowserRouter>
+          <div>
+            {header}
+            {content}
+          </div>
+        </BrowserRouter>
+      )
+    } else {
+      return (
+        <BrowserRouter>
+          <div>
+            {header}
+            <ResponsiveReactGridLayout
+              breakpoints={{ lg: 1400, md: 850, sm: 0 }}
+              cols={{ lg: 20, md: 8, sm: 2 }}
+              rowHeight={24}
+              layouts={this.state.layouts}
+              onLayoutChange={(layout, layouts) =>
+                this.onLayoutChange(layout, layouts)
+              }
+              margin={[2, 2]}
+              containerPadding={[2, 2]}
+              draggableHandle=".dragMe"
+            >
+              {content}
+            </ResponsiveReactGridLayout>
+          </div>
+        </BrowserRouter>
+      )
+    }
   }
 }
 
