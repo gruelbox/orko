@@ -9,8 +9,7 @@ const Button = styled.button.attrs({
   fontSize: 2,
   color: "white",
   my: 2,
-  px: 3,
-  py: 2,
+  p: 2,
   type: "button"
 })`
   font-family: ${props => props.theme.fonts[0]};
@@ -34,6 +33,7 @@ const Button = styled.button.attrs({
     background-color: ${props => props.theme.colors.inputBg};
     border: 1px solid ${props => props.theme.colors.inputBg};
   };
+  width: ${props => props.width ? props.width + "px" : "auto"};
   ${color}
   ${fontSize}
   ${space}

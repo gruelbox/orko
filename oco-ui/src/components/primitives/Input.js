@@ -24,6 +24,7 @@ const RawInput = styled.input.attrs({
   &:focus {
     border: 1px solid ${props => lighten(0.2, props.theme.colors.inputBorder)};
   }
+  width: 120px;
   ${color}
   ${fontSize}
   ${fontWeight}

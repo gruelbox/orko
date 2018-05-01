@@ -23,8 +23,9 @@ const RadioInput = Button.extend`
 
 const RadioGroup = styled.div``
 
-const LimitOrder = props => {
-  const valid = props.limitPriceValid && props.amountValid
+const StopTakeProfit = props => {
+  const valid = props.limitPriceValid && props.amountValid &&
+    (props.highPriceValid || props.lowPriceValid)
 
   const onChange = props.onChange
     ? (prop, value) =>
@@ -63,6 +64,26 @@ const LimitOrder = props => {
       </RadioGroup>
       <div>
         <Input
+          id="highPrice"
+          error={!props.limitPriceValid}
+          label="High price"
+          type="number"
+          placeholder="Enter price..."
+          value={props.job.highPrice ? props.job.highPrice : ""}
+          onChange={e => onChange("highPrice", e.target.value)}
+          onFocus={e => props.onFocus("highPrice")}
+        />
+        <Input
+          id="lowPrice"
+          error={!props.limitPriceValid}
+          label="Low price"
+          type="number"
+          placeholder="Enter price..."
+          value={props.job.lowPrice ? props.job.lowPrice : ""}
+          onChange={e => onChange("lowPrice", e.target.value)}
+          onFocus={e => props.onFocus("lowPrice")}
+        />
+        <Input
           id="limitPrice"
           error={!props.limitPriceValid}
           label="Limit price"
@@ -95,4 +116,4 @@ const LimitOrder = props => {
   )
 }
 
-export default LimitOrder
+export default StopTakeProfit

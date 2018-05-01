@@ -5,6 +5,7 @@ import Para from "./primitives/Para"
 import Section from "../components/primitives/Section"
 import AlertContainer from "../containers/AlertContainer"
 import LimitOrderContainer from "../containers/LimitOrderContainer"
+import StopTakeProfitContainer from "../containers/StopTakeProfitContainer"
 
 export default class TradeSelector extends React.Component {
   constructor(props) {
@@ -72,6 +73,8 @@ export default class TradeSelector extends React.Component {
         panel = <AlertContainer coin={coin} />
       } else if (this.state.selected === "limit") {
         panel = <LimitOrderContainer coin={coin} />
+      } else if (this.state.selected === "oco") {
+        panel = <StopTakeProfitContainer coin={coin} />
       }
       content = <Panel mr={3}>{panel}</Panel>
     }
