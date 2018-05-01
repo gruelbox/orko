@@ -6,7 +6,6 @@ import Form from "./primitives/Form"
 import Button from "./primitives/Button"
 
 import styled from "styled-components"
-import { fontSize, color, fontWeight, space } from "styled-system"
 
 const RadioInput = Button.extend`
   margin:
@@ -23,10 +22,6 @@ const RadioInput = Button.extend`
 `
 
 const RadioGroup = styled.div``
-
-const RadioItem = styled.span`
-  ${space};
-`
 
 const LimitOrder = props => {
   const valid = props.limitPriceValid && props.amountValid
