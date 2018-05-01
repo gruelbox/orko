@@ -106,7 +106,11 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     );
 
     LOGGER.info(string);
-    telegramService.sendMessage(string);
+    try {
+      telegramService.sendMessage(string);
+    } catch (Throwable t) {
+      // Nothing we can do
+    }
   }
 
   private void reportFailed(final LimitOrderJob job, Throwable e) {
@@ -125,8 +129,12 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       e.getMessage()
     );
 
-    LOGGER.info(string);
-    telegramService.sendMessage(string);
+    LOGGER.error(string);
+    try {
+      telegramService.sendMessage(string);
+    } catch (Throwable t) {
+      // Nothing we can do
+    }
   }
 
   public static final class Module extends AbstractModule {

@@ -91,7 +91,11 @@ class MqListener extends AbstractIdleService {
       channel.basicAck(envelope.getDeliveryTag(), false);
     } catch (Throwable t) {
       LOGGER.error(this + " job failed: " + job.id(), t);
-      telegramService.sendMessage(this + " job failed: " + job.id());
+      try {
+        telegramService.sendMessage(this + " job failed: " + job.id());
+      } catch (Throwable t2) {
+        // Can't do anything about this
+      }
       channel.basicReject(envelope.getDeliveryTag(), true);
     }
   }
