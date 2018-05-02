@@ -66,7 +66,7 @@ const StopTakeProfit = props => {
         <Input
           id="highPrice"
           error={!props.limitPriceValid}
-          label="High threshold"
+          label={(props.job.direction === "BUY" ? "Ask" : "Bid") + " high threshold"}
           type="number"
           placeholder="Enter price..."
           value={props.job.highPrice ? props.job.highPrice : ""}
@@ -76,7 +76,7 @@ const StopTakeProfit = props => {
         <Input
           id="lowPrice"
           error={!props.limitPriceValid}
-          label="Low threshold"
+          label={(props.job.direction === "BUY" ? "Ask" : "Bid") + " low threshold"}
           type="number"
           placeholder="Enter price..."
           value={props.job.lowPrice ? props.job.lowPrice : ""}

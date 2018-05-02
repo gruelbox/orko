@@ -3,12 +3,16 @@ package com.grahamcrockford.oco.telegram;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 public class TelegramService {
 
@@ -25,6 +29,14 @@ public class TelegramService {
         : client.target("https://api.telegram.org/bot" + configuration.getBotToken());
   }
 
+  public void safeSendMessage(String message) {
+    try {
+      sendMessage(message);
+    } catch (Throwable t) {
+      LOGGER.error(this + " failed to send Telegram message", t);
+    }
+  }
+
   public void sendMessage(String message) {
     if (telegramTarget == null) {
       LOGGER.warn("Telegram message suppressed. Not configured.");
@@ -32,10 +44,16 @@ public class TelegramService {
     }
     final Response response = telegramTarget
       .path("sendMessage")
-      .queryParam("chat_id", configuration.getChatId())
-      .queryParam("text", message)
       .request()
-      .get();
+      .post(
+        Entity.entity(
+          ImmutableMap.of(
+              "chat_id", configuration.getChatId(),
+              "text", message
+          ),
+          MediaType.APPLICATION_JSON
+        )
+      );
     if (response.getStatus() != 200) {
       LOGGER.error("Could not send telegram message: " + response.getEntity());
     }

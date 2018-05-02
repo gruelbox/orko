@@ -106,18 +106,14 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     );
 
     LOGGER.info(string);
-    try {
-      telegramService.sendMessage(string);
-    } catch (Throwable t) {
-      // Nothing we can do
-    }
+    telegramService.safeSendMessage(string);
   }
 
   private void reportFailed(final LimitOrderJob job, Throwable e) {
     final TickerSpec ex = job.tickTrigger();
 
     String string = String.format(
-      "ERROR [%s/%s/%s]: attempted %s order for [%s %s] at [%s %s], but failed. It might have worked. Error detail: %s",
+      "ERROR [%s/%s/%s]: attempted %s order for [%s %s] at [%s %s] but failed. It might have worked. Error detail: %s",
       ex.exchange(),
       ex.base(),
       ex.counter(),
@@ -130,11 +126,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     );
 
     LOGGER.error(string);
-    try {
-      telegramService.sendMessage(string);
-    } catch (Throwable t) {
-      // Nothing we can do
-    }
+    telegramService.safeSendMessage(string);
   }
 
   public static final class Module extends AbstractModule {

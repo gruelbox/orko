@@ -39,6 +39,16 @@ class JobRunner {
     this.uuid = UUID.randomUUID();
   }
 
+  /**
+   * Attempts to run a job that already exists.  Used by the poll loop.
+   *
+   * <p>Note that if the lock is successful, the job is only unlocked
+   * on success or, if the job fails, due to the TTL removing it.
+   * This creates an automatic delay on retries.</p>
+   *
+   * @param job The job.
+   * @return True if the job could be locked and run successfully.
+   */
   public boolean runExisting(Job job) {
     if (jobLocker.attemptLock(job.id(), uuid)) {
       job = jobAccess.load(job.id());
@@ -49,16 +59,57 @@ class JobRunner {
     }
   }
 
-  public void runNew(Job job) {
-    if (jobLocker.attemptLock(job.id(), uuid)) {
+  /**
+   * Attempts to insert and run a new job.
+   *
+   * <p>Given that inserting into the database guarantees that it will run at
+   * some point, provides the ability to acknowledge this with a callback before
+   * actually starting. This can be used to acknowledge the upstream
+   * request.</p>
+   *
+   * <p>The request is ignored (and the callback called) if the job has already
+   * been created, to avoid double-calling.</p>
+   *
+   * <p>Note that if the lock is successful, the job is only unlocked
+   * on success or, if the job fails, due to the TTL removing it.
+   * This creates an automatic delay on retries.</p>
+   *
+   * @param job The job.
+   * @param ack The insertion callback.
+   * @param reject If insertion failed
+   * @throws Exception
+   */
+  public void runNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+    boolean locked;
+    try {
+      locked = jobLocker.attemptLock(job.id(), uuid);
+    } catch (Throwable t) {
+      reject.run();
+      LOGGER.info("Job " + job.id() + " could not be locked. Request rejected.");
+      return;
+    }
+    if (locked) {
       try {
         jobAccess.insert(job);
       } catch (JobAlreadyExistsException e) {
-        LOGGER.info("Job " + job.id() + " already exists");
-
+        ack.run();
+        LOGGER.info("Job " + job.id() + " already exists. Request ignored.");
+        jobLocker.releaseLock(job.id(), uuid);
+        return;
+      } catch (Throwable t) {
+        reject.run();
+        LOGGER.info("Job " + job.id() + " could not be inserted into database. Request rejected.");
+        jobLocker.releaseLock(job.id(), uuid);
+        return;
       }
+      ack.run();
       new JobLifetimeManager(job).start();
     }
+  }
+
+
+  public interface ExceptionThrowingRunnable {
+    public void run() throws Exception;
   }
 
   private enum JobStatus {

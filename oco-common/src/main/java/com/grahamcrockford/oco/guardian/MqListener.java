@@ -50,7 +50,7 @@ class MqListener extends AbstractIdleService {
 
   @Override
   protected void startUp() throws Exception {
-    // TODO nned to spend a lot of time thinking about this logic, compare to
+    // TODO need to spend a lot of time thinking about this logic, compare to
     // best practice etc. Probably need to implement a DQL and redelivery TTL
     // etc.
     LOGGER.info("{} starting...", this);
@@ -87,16 +87,14 @@ class MqListener extends AbstractIdleService {
     }
     LOGGER.info("{} processing job {}", MqListener.this, job.id());
     try {
-      existingJobSubmitter.runNew(job);
-      channel.basicAck(envelope.getDeliveryTag(), false);
+      existingJobSubmitter.runNew(
+        job,
+        () -> channel.basicAck(envelope.getDeliveryTag(), false),
+        () -> channel.basicReject(envelope.getDeliveryTag(), true)
+      );
     } catch (Throwable t) {
       LOGGER.error(this + " job failed: " + job.id(), t);
-      try {
-        telegramService.sendMessage(this + " job failed: " + job.id());
-      } catch (Throwable t2) {
-        // Can't do anything about this
-      }
-      channel.basicReject(envelope.getDeliveryTag(), true);
+      telegramService.safeSendMessage(this + " job failed: " + job.id());
     }
   }
 
