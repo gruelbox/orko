@@ -1,52 +1,130 @@
 # oco
-
-Quick and easy run using Docker
+Just let me try it out
 ---
-You can run it locally with little to no setup, provided you have either a linux machine (pretty much just works) or a Windows/Mac machine with enough memory for the VMs the Mac/Win Docker implementations require (8GB or more).
+```
+// Build the server
+sudo apt-get install maven
+mvn clean package
+
+// Run the single-app server
+java -jar oco-worker/target/oco-all-in-one.jar server ../example-developer-mode-config-allinone.yml
+
+// Build the UI
+cd oco-ui
+sudo apt-get install npm
+npm install
+
+// Run the UI
+HTTPS=true npm start
+
+```
+
+This should start the application in a local web browser.  If it doesn't, navigate to https://localhost:3000.
+
+Note that:
+
+- Since it uses self-sign certificate, you may need to accept some browser warnings.
+- This uses in-memory storage only. Any jobs you create will not be saved so will be lost on restart.  To enable persistent storage, you need a MongoDB database (more on this below).
+- It has none of your exchange details, so no balance or trade history information is available, and all trading is paper-trading.
+- Telegram notifications, without which the application is pretty hard to use, aren't enabled by default so it may be hard to tell what's going on. In-UI notifications are on the way, but in the meantime I advise enabling them using the instructions below.
+
+Set up Telegram so you can get notifications.
+---
+1. Create a Telegram bot using the [BotFather](https://core.telegram.org/bots). Note down the API token.
+1. Create a new channel from the Telegram app, and make it public (we'll make it private shortly).
+1. Add your bot as a member of the channel, so it can post to it.
+1. Use the following URL to get the ID of your channel: https://api.telegram.org/YOURBOTID:YOURTOKEN/getChat?chat_id=@YourChannelName
+1. Once you've noted down the channel ID, make your channel private from the app so no-one else can access it (you can't use the above API to ge the IP of a private channel).
+
+Once you have the connection details, you can set the appropriate section in your local config. Copy `example-developer-mode-config-allinone.yml` to a new file (e.g. `my-config.yml`) and uncomment (remove the # symbols) from the following lines, replacing the values with the token and chat id you noted down.
+
+```
+# telegram:
+#   botToken: YOU
+#   chatId: REALLYWANTTHIS
+```
+
+Then run the backend pointing to this config file instead:
+
+```
+java -jar oco-worker/target/oco-all-in-one.jar server ../my-config.yml
+```
+
+The application will now use this bot to send you notifications on your private channel.  You can add more people to the channel if you like.
+
+Add your exchange account details
+---
+Let's do this properly, shall we?
+
+By default there are no exchange account details, so trading isn't enabled. To remedy this, copy this into your `my-config.xml`:
+
+```
+exchanges:
+  gdax-sandbox:
+    apiKey: 
+    secretKey:
+    passphrase:
+  gdax:
+    apiKey:
+    secretKey:
+    passphrase: 
+  binance:
+    apiKey:
+    secretKey: ${BINANCE_SECRET}
+  kucoin:
+    apiKey: 
+    secretKey: 
+```
+
+Remove the exchanges you don't use, and populate the fields with your exchange API keys.
+
+Then restart.
+
+Enable persistent storage
+---
+In order to be able to shut down and start up the application, or run multiple instances of the application for fault tolerance, you need a real database.
+
+TODO TO FLESH OUT WITH INSTALLATION INSTRUCTIONS 
+
+Install MongoDB, set up an admin user, then uncomment this section in the config file, replacing the details accordingly.
+
+```
+#database:
+#  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017 # Your mongoDB connection details.
+#  mongoDatabase: oco # MongoDB database name.
+#  lockSeconds: 10
+```
+
+Single-line setup using Docker
+---
+You can run everything locally, including database, multi-app backend and MQ, with little to no setup, provided you have either a linux machine (pretty much just works) or a Windows/Mac machine with enough memory for the VMs the Mac/Win Docker implementations require (8GB or more).
 
 1. Install Docker (https://docs.docker.com/install/#supported-platforms) and Docker Compose (https://docs.docker.com/compose/install/)
 1. In the root directory, run `docker-compose up`.
 1. The application should build and start.  It'll take a while.
 
-By default there are no exchange account details, so trading isn't enabled, and Telegram notifications are also disabled, but it lets you get an idea.  To remedy this, copy this into `docker-config.xml`:
-
-```
-telegram:
-  botToken: ${TELEGRAM_BOT_TOKEN}
-  chatId: ${TELEGRAM_CHAT_ID}
-exchanges:
-  gdax-sandbox:
-    apiKey: ${GDAX_SANDBOX_API_KEY}
-    secretKey: ${GDAX_SANDBOX_SECRET}
-    passphrase: ${GDAX_SANDBOX_PASSPHRASE}
-  gdax:
-    apiKey: ${GDAX_API_KEY}
-    secretKey: ${GDAX_SECRET}
-    passphrase: ${GDAX_PASSPHRASE}
-  binance:
-    apiKey: ${BINANCE_API_KEY}
-    secretKey: ${BINANCE_SECRET}
-  kucoin:
-    apiKey: ${KUCOIN_API_KEY}
-    secretKey: ${KUCOIN_SECRET}
-```
-
-And replace the variables with the telegram settings from "[Optional] Set up Telegram so you can get notifications." below and your exchange keys.  Then run `docker-compose build` to rebuild the docker images and `docker-compose up` to restart.
+This uses a persistent database by default, so you just need to add Telegram and exchange API details to have a fully working setup.  Edit `docker-config.yml` according to the two sections above, and then run `docker-compose build` to rebuild, then `docker-compose up` to restart.
 
 Local development environment
 ---
 Backend setup:
 
 1. Spin up a mongodb instance on Docker using this image: https://hub.docker.com/r/library/mongo/.  You'll need to follow the instructions for creating an admin user.
-1. You also need a RabbitMQ instance. Again the standard Docker image is fine out of the box: https://hub.docker.com/_/rabbitmq/
-1. Copy `example-developer-mode-worker-config.yml` as `my-config-worker.xml` and fill in the gaps.  The commented-out lines can be ignored for now
-1. Copy `example-developer-mode-worker-web.yml` as `my-config-web.xml` and fill in the gaps.  The commented-out lines can be ignored for now
+1. Next:
+    - EITHER Copy `example-developer-mode-worker-web.yml` as `my-config-all-in-one.xml` and fill in the gaps.  The commented-out lines can be ignored for now
+    - OR   
+        1. Install RabbitMQ. Again the standard Docker image is fine out of the box: https://hub.docker.com/_/rabbitmq/
+        1. Copy `example-developer-mode-worker-config.yml` as `my-config-worker.xml` and fill in the gaps.
+        1. Copy `example-developer-mode-worker-web.yml` as `my-config-web.xml` and fill in the gaps.
 1. Install the Java JDK (`sudo apt-get install default-jdk`)
 1. Either:
     1. Install Maven (`sudo apt-get install maven`)
     1. Run `mvn clean package` to build the application
-    1. Start the worker application with `java -jar oco-worker/target/oco-worker.jar server ../my-config-worker.yml`.
-    1. Start the web application with `java -jar oco-web/target/oco-web.jar server ../my-config-web.yml`.
+    1. Next:
+        1. EITHER Start the all-in-one application with `java -jar oco-worker/target/oco-all-in-one.jar server ../my-config-all-in-one.yml`.
+        1. OR:
+            1. Start the worker application with `java -jar oco-worker/target/oco-worker.jar server ../my-config-worker.yml`.
+            1. Start the web application with `java -jar oco-web/target/oco-web.jar server ../my-config-web.yml`.
 1. Or:
     1. Install Eclipse
     1. Install the m2e-apt plugin from the marketplace
@@ -67,24 +145,6 @@ Alternatively:
 1. Use `npm run build` to create a static deployable build you can drop on any static web server.
 1. I deploy it to Heroku using this buildpack (full instructions there): https://github.com/mars/create-react-app-buildpack
 1. When doing so, I ensure to set up API_URL to point to my API instance.
-
-[Optional] Set up Telegram so you can get notifications.
----
-1. Create a Telegram bot using the [BotFather](https://core.telegram.org/bots). Note down the API token.
-1. Create a new channel from the Telegram app, and make it public (we'll make it private shortly).
-1. Add your bot as a member of the channel, so it can post to it.
-1. Use the following URL to get the ID of your channel: https://api.telegram.org/YOURBOTID:YOURTOKEN/getChat?chat_id=@YourChannelName
-1. Once you've noted down the channel ID, make your channel private from the app so no-one else can access it (you can't use the above API to ge the IP of a private channel).
-
-Once you have the connection details, you can set the appropriate section in your local config:
-
-```
-#telegram:
-#  botToken: Generate this using the instructions in README.md if you want notifications 
-#  chatId: And this
-```
-
-The application will now use this bot to send you notifications on your private channel.  You can add more people to the channel if you like.
 
 How to deploy to Heroku
 ---
