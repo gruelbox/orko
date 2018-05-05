@@ -11,11 +11,18 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.submit.JobSubmitter;
 import com.rabbitmq.client.ConnectionFactory;
 
 public class MqModule extends AbstractModule {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MqModule.class);
+
+  @Override
+  protected void configure() {
+    super.configure();
+    bind(JobSubmitter.class).to(MqJobSubmitter.class);
+  }
 
   @Provides
   MqConfiguration config(OcoConfiguration config) {

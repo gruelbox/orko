@@ -1,33 +1,54 @@
 package com.grahamcrockford.oco.mq;
 
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.grahamcrockford.oco.mq.JobRouteFactory.Route;
 import com.grahamcrockford.oco.spi.Job;
+import com.grahamcrockford.oco.submit.JobSubmitter;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-public class JobPublisher {
+/**
+ * Submits job requests to a remote RabbitMQ queue.
+ */
+@Singleton
+class MqJobSubmitter implements JobSubmitter {
 
   private final ConnectionFactory connectionFactory;
   private final ObjectMapper objectMapper;
   private final JobRouteFactory jobRouteFactory;
 
   @Inject
-  JobPublisher(ConnectionFactory connectionFactory, ObjectMapper objectMapper, JobRouteFactory jobRouteFactory) {
+  MqJobSubmitter(ConnectionFactory connectionFactory, ObjectMapper objectMapper, JobRouteFactory jobRouteFactory) {
     this.connectionFactory = connectionFactory;
     this.objectMapper = objectMapper;
     this.jobRouteFactory = jobRouteFactory;
   }
 
-  public void publishJob(Job job) throws PublishFailedException {
+
+  /**
+   * @throws PublishFailedException
+   * @see com.grahamcrockford.oco.submit.JobSubmitter#submitNew(T)
+   */
+  @Override
+  @SuppressWarnings({ "unchecked" })
+  public <T extends Job> T submitNew(T job) throws PublishFailedException {
+    T result = (T) job.toBuilder().id(UUID.randomUUID().toString()).build();
+    publishJob(result);
+    return result;
+  }
+
+
+  private void publishJob(Job job) throws PublishFailedException {
     try (Connection connection = connectionFactory.newConnection();
          Channel channel = connection.createChannel()) {
 
@@ -61,7 +82,7 @@ public class JobPublisher {
   }
 
 
-  public static final class PublishFailedException extends Exception {
+  private final class PublishFailedException extends Exception {
 
     private static final long serialVersionUID = 8392693668659024332L;
 
@@ -72,6 +93,5 @@ public class JobPublisher {
     PublishFailedException(Throwable cause) {
       super(cause);
     }
-
   }
 }
