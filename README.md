@@ -26,10 +26,11 @@ Note that:
 - Since it uses self-sign certificate, you may need to accept some browser warnings.
 - This uses in-memory storage only. Any jobs you create will not be saved so will be lost on restart.  To enable persistent storage, you need a MongoDB database (more on this below).
 - It has none of your exchange details, so no balance or trade history information is available, and all trading is paper-trading.
-- Telegram notifications, without which the application is pretty hard to use, aren't enabled by default so it may be hard to tell what's going on. In-UI notifications are on the way, but in the meantime I advise enabling them using the instructions below.
 
-Set up Telegram so you can get notifications.
+Set up Telegram so you can get notifications on your phone
 ---
+While notifications are shown in the UI, it's handy to get them away from your screen.
+
 1. Create a Telegram bot using the [BotFather](https://core.telegram.org/bots). Note down the API token.
 1. Create a new channel from the Telegram app, and make it public (we'll make it private shortly).
 1. Add your bot as a member of the channel, so it can post to it.
