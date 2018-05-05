@@ -7,7 +7,7 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 
 public interface ExchangeEventRegistry {
 
-  public void registerTicker(TickerSpec spec, String jobId ,BiConsumer<TickerSpec, Ticker> callback);
+  public void registerTicker(TickerSpec spec, String jobId, BiConsumer<TickerSpec, Ticker> callback);
 
   public void unregisterTicker(TickerSpec spec, String jobId);
 

@@ -5,6 +5,8 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +36,7 @@ class IpWhitelistAccess {
   private final AuthConfiguration authConfiguration;
 
   @Inject
-  IpWhitelistAccess(MongoClient mongoClient, DbConfiguration configuration, AuthConfiguration authConfiguration) {
+  IpWhitelistAccess(@Nullable MongoClient mongoClient, @Nullable DbConfiguration configuration, AuthConfiguration authConfiguration) {
     this.mongoClient = mongoClient;
     this.configuration = configuration;
     this.authConfiguration = authConfiguration;
@@ -42,6 +44,7 @@ class IpWhitelistAccess {
 
   public void setIp(String ip) {
     Preconditions.checkNotNull(ip);
+    checkHaveDb();
     try {
       update(ip);
     } catch (DuplicateKeyException e) {
@@ -63,10 +66,12 @@ class IpWhitelistAccess {
   }
 
   public void delete(String sourceIp) {
+    checkHaveDb();
     collection.get().remove(new BasicDBObject().append("uid", SINGLETON_OBJECT_ID));
   }
 
   public String getIp() {
+    checkHaveDb();
     DBObject result = collection.get().findOne(new BasicDBObject().append("uid", SINGLETON_OBJECT_ID));
     if (result == null)
       return null;
@@ -110,6 +115,12 @@ class IpWhitelistAccess {
       LOGGER.info("Dropped {} index", indexName);
     } catch (MongoException e) {
       LOGGER.info("Failed to drop {} index ({})", indexName, e.getMessage());
+    }
+  }
+
+  private void checkHaveDb() {
+    if (mongoClient == null) {
+      throw new IllegalStateException("IP whitelisting support only available when a database is provided");
     }
   }
 }

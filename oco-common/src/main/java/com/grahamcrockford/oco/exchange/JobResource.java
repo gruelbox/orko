@@ -25,15 +25,15 @@ import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.job.LimitOrderJob;
+import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.job.OrderStateNotifier;
 import com.grahamcrockford.oco.job.PumpChecker;
 import com.grahamcrockford.oco.job.SoftTrailingStop;
-import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobAccess;
-import com.grahamcrockford.oco.submit.JobSubmitter;
 import com.grahamcrockford.oco.submit.JobAccess.JobDoesNotExistException;
+import com.grahamcrockford.oco.submit.JobSubmitter;
 import com.grahamcrockford.oco.wiring.WebResource;
 
 import io.dropwizard.auth.AuthenticationException;
@@ -76,7 +76,7 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public void deleteAllJobs() throws AuthenticationException {
-    jobAccess.delete();
+    jobAccess.deleteAll();
   }
 
   @GET

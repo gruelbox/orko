@@ -1,14 +1,19 @@
 package com.grahamcrockford.oco.db;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.submit.JobAccess;
+import com.grahamcrockford.oco.submit.JobLocker;
 import com.grahamcrockford.oco.util.CheckedExceptions;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import com.mongodb.MongoClient;
@@ -31,13 +36,16 @@ public class DbModule extends AbstractModule {
 
   @Provides
   @Singleton
-  MongoClientTask mongoClientTask(DbConfiguration configuration, ObjectMapper objectMapper) {
+  MongoClientTask mongoClientTask(@Nullable DbConfiguration configuration, ObjectMapper objectMapper) {
     return new MongoClientTask(configuration, objectMapper);
   }
 
   @Provides
   @Singleton
-  MongoClient mongoClient(MongoClientTask mongoClientTask) {
+  MongoClient mongoClient(@Nullable DbConfiguration configuration, MongoClientTask mongoClientTask) {
+    if (configuration == null)  {
+      return null;
+    }
     MongoClient mongoClient = null;
     while (mongoClient == null) {
       try {
@@ -48,5 +56,24 @@ public class DbModule extends AbstractModule {
       }
     }
     return mongoClient;
+  }
+
+  @Provides
+  @Singleton
+  JobAccess jobAccess(@Nullable DbConfiguration configuration, Provider<DbJobAccess> dbJobAccess, Provider<InMemoryJobAccess> inMemoryJobAccess) {
+    if (configuration == null) {
+      LOGGER.warn("Falling back to in-memory storage as no database is configured");
+      return inMemoryJobAccess.get();
+    }
+    return dbJobAccess.get();
+  }
+
+  @Provides
+  @Singleton
+  JobLocker jobLocker(@Nullable DbConfiguration configuration, Provider<DbJobLocker> dbJobLocker, Provider<InMemoryJobAccess> inMemoryJobAccess) {
+    if (configuration == null) {
+      return inMemoryJobAccess.get();
+    }
+    return dbJobLocker.get();
   }
 }

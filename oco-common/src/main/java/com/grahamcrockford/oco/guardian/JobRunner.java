@@ -16,8 +16,8 @@ import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
 import com.grahamcrockford.oco.submit.JobAccess;
-import com.grahamcrockford.oco.submit.JobLocker;
 import com.grahamcrockford.oco.submit.JobAccess.JobAlreadyExistsException;
+import com.grahamcrockford.oco.submit.JobLocker;
 
 @Singleton
 class JobRunner {

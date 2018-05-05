@@ -7,14 +7,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DbConfiguration {
 
+  /**
+   * Mongo client URI.
+   */
   @NotNull
   private String mongoClientURI;
 
+  /**
+   * The name of the mongo database.
+   */
   @NotNull
   private String mongoDatabase;
 
+  /**
+   * How long database locks should persist for, in seconds.  Too short and
+   * you'll end up workers fighting over the same jobs.  Too long
+   * and if instances go down, it'll take ages for other instances to pick
+   * up their jobs.
+   */
   @NotNull
-  @Min(1L)
+  @Min(10L)
   private int lockSeconds;
 
   public DbConfiguration() {

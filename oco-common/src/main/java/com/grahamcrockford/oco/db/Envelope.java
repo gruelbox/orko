@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.submit;
+package com.grahamcrockford.oco.db;
 
 import javax.annotation.Nullable;
 
@@ -9,6 +9,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.spi.Job;
 
+/**
+ * Envelope used for storage of jobs in database, allowing us to remember previously submitted jobs
+ * and status.
+ */
 @AutoValue
 abstract class Envelope {
 

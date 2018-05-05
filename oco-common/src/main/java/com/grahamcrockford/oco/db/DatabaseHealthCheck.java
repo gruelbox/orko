@@ -1,5 +1,7 @@
 package com.grahamcrockford.oco.db;
 
+import javax.annotation.Nullable;
+
 import org.bson.Document;
 
 import com.codahale.metrics.health.HealthCheck;
@@ -21,7 +23,7 @@ class DatabaseHealthCheck extends HealthCheck {
 
 
   @Inject
-  DatabaseHealthCheck(MongoClient mongoClient, DbConfiguration dbConfiguration) {
+  DatabaseHealthCheck(@Nullable MongoClient mongoClient, @Nullable DbConfiguration dbConfiguration) {
     this.mongoClient = mongoClient;
     this.dbConfiguration = dbConfiguration;
   }
@@ -29,6 +31,9 @@ class DatabaseHealthCheck extends HealthCheck {
 
   @Override
   protected Result check() throws Exception {
+    if (mongoClient == null) {
+      return Result.unhealthy("Using in-memory database");
+    }
     MongoCollection<Document> collection = mongoClient.getDatabase(dbConfiguration.getMongoDatabase()).getCollection("healthCheck");
     collection.count();
     return Result.healthy();

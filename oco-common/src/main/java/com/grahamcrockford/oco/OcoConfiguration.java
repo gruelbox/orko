@@ -21,18 +21,37 @@ import com.grahamcrockford.oco.telegram.TelegramConfiguration;
  */
 public class OcoConfiguration extends Configuration {
 
+  /**
+   * Some operations require polling (exchanges with no websocket support,
+   * cache timeouts etc).  This is the loop time.
+   */
   @NotNull
   @Min(1L)
   private int loopSeconds;
 
+  /**
+   * Authentication configuration
+   */
   @NotNull
   private AuthConfiguration auth;
 
-  @NotNull
+  /**
+   * Database configuration. If not provided, the application will use
+   * volatile in-memory storage, which is obviously fine for trying things
+   * out but quickly becomes useless in real life.
+   */
   private DbConfiguration database;
 
+  /**
+   * Telegram configuration. Currently required for notifications.  Can
+   * be left out but then you have no idea what the application is doing.
+   */
   private TelegramConfiguration telegram;
 
+  /**
+   * MQ configuration. Required for communication when running separate
+   * worker and web applications.
+   */
   private MqConfiguration mq;
 
   @Valid

@@ -1,126 +1,61 @@
 package com.grahamcrockford.oco.submit;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.UUID;
-import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+/**
+ * Allows exclusive access to jobs to be obtained and released, allowing
+ * multiple threads or JVMs to compete for the available work without
+ * double processing.
+ */
+public interface JobLocker {
 
-import com.google.common.base.Suppliers;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.grahamcrockford.oco.db.DbConfiguration;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DuplicateKeyException;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-import com.mongodb.WriteResult;
+  /**
+   * Attempts to lock the job.  This lock will expire after a
+   * configured period (depending on implementation) so must be
+   * periodically refreshed using {@link #updateLock(String, UUID)}
+   * as long as it is required.
+   *
+   * @param jobId The job ID.
+   * @param uuid A client ID identifying the caller.  Needs to be used
+   *             later to release the lock.
+   * @return true if the job was successfully locked.  If false, this
+   *         should be treated gracefully; it probably just means
+   *         someone else got in first.
+   */
+  boolean attemptLock(String jobId, UUID uuid);
 
-@Singleton
-public class JobLocker {
+  /**
+   * Updates a previously obtained lock, resetting the timeout.
+   *
+   * @param jobId The job id.
+   * @param uuid The caller UUID.
+   * @return true if the lock was successfully refreshed.  If
+   *              false, this is a signal to stop processing.
+   *              The client has lost the lock, probably due
+   *              to the job being deleted, or the lock
+   *              expired and has been taken by someone else.
+   */
+  boolean updateLock(String jobId, UUID uuid);
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JobLocker.class);
+  /**
+   * Releases a previously obtained lock.
+   *
+   * @param jobId The job id.
+   * @param uuid The caller UUID.
+   */
+  void releaseLock(String jobId, UUID uuid);
 
-  private final Supplier<DBCollection> lock = Suppliers.memoize(this::createLockCollection);
-  private final MongoClient mongoClient;
-  private final DbConfiguration configuration;
+  /**
+   * Releases all locks against the specified job. Use generally
+   * when the job is finished or deleted.
+   *
+   * @param jobId The job id.
+   */
+  void releaseAnyLock(String jobId);
 
-  @Inject
-  JobLocker(MongoClient mongoClient, DbConfiguration configuration) {
-    this.mongoClient = mongoClient;
-    this.configuration = configuration;
-  }
+  /**
+   * Release all locks against all jobs.
+   */
+  void releaseAllLocks();
 
-  public boolean attemptLock(String jobId, UUID uuid) {
-    BasicDBObject doc = new BasicDBObject()
-        .append("_id", jobId)
-        .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-        .append("aid", uuid.toString());
-    try {
-      lock.get().insert(doc);
-      return true;
-    } catch (DuplicateKeyException e) {
-      return false;
-    }
-  }
-
-  public void releaseLock(String jobId, UUID uuid) {
-    BasicDBObject query = new BasicDBObject()
-        .append("_id", jobId)
-        .append("aid", uuid.toString());
-    lock.get().remove(query);
-  }
-
-  public void releaseAnyLock(String jobId) {
-    BasicDBObject query = new BasicDBObject()
-        .append("_id", jobId);
-    lock.get().remove(query);
-  }
-
-  public void releaseAllLocks() {
-    lock.get().remove(new BasicDBObject());
-  }
-
-  public boolean updateLock(String jobId, UUID uuid) {
-    BasicDBObject query = new BasicDBObject()
-        .append("_id", jobId)
-        .append("aid", uuid.toString());
-    BasicDBObject update = new BasicDBObject()
-        .append("$set", new BasicDBObject().append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC))));
-    try {
-      WriteResult result = lock.get().update(query, update);
-      if (result.getN() != 1) {
-        LOGGER.info("Job id " + jobId + " lost lock.");
-        return false;
-      }
-      return true;
-    } catch (Exception e) {
-      LOGGER.error("Job id " + jobId + " lost lock.", e);
-      return false;
-    }
-  }
-
-  private DBCollection createLockCollection() {
-    DBCollection exclusiveLock = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("job").getCollection("lock");
-    createTtlIndex(exclusiveLock);
-    createAidIndex(exclusiveLock);
-    return exclusiveLock;
-  }
-
-  private void createAidIndex(DBCollection exclusiveLock) {
-    BasicDBObject index = new BasicDBObject();
-    index.put("aid", 1);
-    BasicDBObject indexOpts = new BasicDBObject();
-    indexOpts.put("unique", false);
-    exclusiveLock.createIndex(index, indexOpts);
-  }
-
-  private void createTtlIndex(DBCollection exclusiveLock) {
-    BasicDBObject index = new BasicDBObject().append("ts", 1);
-    BasicDBObject indexOpts = new BasicDBObject()
-        .append("name", "ttl")
-        .append("expireAfterSeconds", configuration.getLockSeconds());
-    try {
-      exclusiveLock.createIndex(index, indexOpts);
-    } catch (MongoException e) {
-      LOGGER.warn("TTL index failed to be created ({}). Dropping existing TTL indexes", e.getMessage());
-      safeDropIndex(exclusiveLock, "ts_1");
-      safeDropIndex(exclusiveLock, "ttl");
-      exclusiveLock.createIndex(index, indexOpts);
-      LOGGER.info("TTL index recreated successfully");
-    }
-  }
-
-  private void safeDropIndex(DBCollection coll, String indexName) {
-    try {
-      coll.dropIndex(indexName);
-      LOGGER.info("Dropped {} index", indexName);
-    } catch (MongoException e) {
-      LOGGER.info("Failed to drop {} index ({})", indexName, e.getMessage());
-    }
-  }
 }
