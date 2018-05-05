@@ -29,7 +29,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   );
 
   private final JobSubmitter jobSubmitter;
-  private final NotificationService telegramService;
+  private final NotificationService notificationService;
   private final ExchangeEventRegistry exchangeEventRegistry;
 
   private final OneCancelsOther job;
@@ -39,12 +39,12 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
                            @Assisted JobControl jobControl,
                            JobSubmitter jobSubmitter,
-                           NotificationService telegramService,
+                           NotificationService notificationService,
                            ExchangeEventRegistry exchangeEventRegistry) {
     this.job = job;
     this.jobControl = jobControl;
     this.jobSubmitter = jobSubmitter;
-    this.telegramService = telegramService;
+    this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
   }
 
@@ -75,10 +75,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
     if (job.low() != null && ticker.getBid().compareTo(job.low().threshold()) <= 0) {
 
-      LOGGER.info("| - Bid price ({}) hit low threshold ({}). Triggering low action ({}).", ticker.getBid(), job.low().threshold(), job.low().job().getClass().getSimpleName());
-
       if (job.verbose()) {
-        telegramService.safeSendMessage(String.format(
+        notificationService.info(String.format(
           "Job [%s] on [%s/%s/%s]: bid price (%s) hit low threshold (%s). Triggering low action.",
           job.id(),
           ex.exchange(),
@@ -96,10 +94,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
-      LOGGER.info("| - Bid price ({}) hit high threshold ({}). Triggering high action ({}).", ticker.getBid(), job.high().threshold(), job.high().job().getClass().getSimpleName());
-
       if (job.verbose()) {
-        telegramService.safeSendMessage(String.format(
+        notificationService.info(String.format(
           "Job [%s] on [%s/%s/%s]: bid price (%s) hit high threshold (%s). Triggering high action.",
           job.id(),
           ex.exchange(),

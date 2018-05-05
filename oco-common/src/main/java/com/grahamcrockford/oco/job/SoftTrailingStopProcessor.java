@@ -39,7 +39,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
       LogColumn.builder().name("Ask").width(13).rightAligned(true)
   );
 
-  private final NotificationService telegramService;
+  private final NotificationService notificationService;
   private final ExchangeService exchangeService;
   private final JobSubmitter jobSubmitter;
   private final SoftTrailingStop job;
@@ -50,13 +50,13 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   @Inject
   public SoftTrailingStopProcessor(@Assisted SoftTrailingStop job,
                                    @Assisted JobControl jobControl,
-                                   final NotificationService telegramService,
+                                   final NotificationService notificationService,
                                    final ExchangeService exchangeService,
                                    final JobSubmitter jobSubmitter,
                                    final ExchangeEventRegistry exchangeEventRegistry) {
     this.job = job;
     this.jobControl = jobControl;
-    this.telegramService = telegramService;
+    this.notificationService = notificationService;
     this.exchangeService = exchangeService;
     this.jobSubmitter = jobSubmitter;
     this.exchangeEventRegistry = exchangeEventRegistry;
@@ -79,13 +79,11 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     final TickerSpec ex = job.tickTrigger();
 
     if (ticker.getAsk() == null) {
-      LOGGER.warn("Market {}/{}/{} has no sellers!", ex.exchange(), ex.base(), ex.counter());
-      telegramService.sendMessage(String.format("Market %s/%s/%s has no sellers!", ex.exchange(), ex.base(), ex.counter()));
+      notificationService.info(String.format("Market %s/%s/%s has no sellers!", ex.exchange(), ex.base(), ex.counter()));
       return;
     }
     if (ticker.getBid() == null) {
-      LOGGER.warn("Market {}/{}/{} has no buyers!", ex.exchange(), ex.base(), ex.counter());
-      telegramService.sendMessage(String.format("Market %s/%s/%s has no buyers!", ex.exchange(), ex.base(), ex.counter()));
+      notificationService.info(String.format("Market %s/%s/%s has no buyers!", ex.exchange(), ex.base(), ex.counter()));
       return;
     }
 

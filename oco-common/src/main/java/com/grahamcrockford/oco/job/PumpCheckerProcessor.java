@@ -31,7 +31,7 @@ class PumpCheckerProcessor implements PumpChecker.Processor {
     LogColumn.builder().name("3 tick Mvmt %").width(13).rightAligned(true)
   );
 
-  private final NotificationService telegramService;
+  private final NotificationService notificationService;
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final PumpChecker job;
   private final JobControl jobControl;
@@ -39,11 +39,11 @@ class PumpCheckerProcessor implements PumpChecker.Processor {
   @AssistedInject
   public PumpCheckerProcessor(@Assisted PumpChecker job,
                               @Assisted JobControl jobControl,
-                              NotificationService telegramService,
+                              NotificationService notificationService,
                               ExchangeEventRegistry exchangeEventRegistry) {
     this.job = job;
     this.jobControl = jobControl;
-    this.telegramService = telegramService;
+    this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
   }
 
@@ -90,8 +90,7 @@ class PumpCheckerProcessor implements PumpChecker.Processor {
               ex.counter(),
               asPercentage
             );
-          LOGGER.info(message);
-          telegramService.sendMessage(message);
+          notificationService.info(message);
           linkedList.clear();
         };
       } else if (asPercentage.compareTo(TARGET.negate()) < 0) {
@@ -106,8 +105,7 @@ class PumpCheckerProcessor implements PumpChecker.Processor {
               ex.counter(),
               asPercentage
             );
-          LOGGER.info(message);
-          telegramService.sendMessage(message);
+          notificationService.info(message);
           linkedList.clear();
         };
       }

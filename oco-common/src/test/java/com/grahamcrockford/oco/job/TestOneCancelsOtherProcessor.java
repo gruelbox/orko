@@ -100,7 +100,7 @@ public class TestOneCancelsOtherProcessor {
         .bid(LOW_PRICE)
         .build());
 
-    verify(telegramService).safeSendMessage(Mockito.anyString());
+    verify(telegramService).info(Mockito.anyString());
     verify(enqueuer).submitNewUnchecked(job1);
     verify(jobControl).finish();
     verifyDidNothingElse();
@@ -186,7 +186,7 @@ public class TestOneCancelsOtherProcessor {
         .bid(HIGH_PRICE)
         .build());
 
-    verify(telegramService).safeSendMessage(Mockito.anyString());
+    verify(telegramService).info(Mockito.anyString());
     verify(enqueuer).submitNewUnchecked(job2);
     verify(jobControl).finish();
     verifyDidNothingElse();

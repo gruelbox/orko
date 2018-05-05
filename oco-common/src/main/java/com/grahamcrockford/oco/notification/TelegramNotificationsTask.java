@@ -1,6 +1,6 @@
 package com.grahamcrockford.oco.notification;
 
-import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -10,10 +10,10 @@ import io.dropwizard.lifecycle.Managed;
 final class TelegramNotificationsTask implements Managed {
 
   private final TelegramService telegramService;
-  private final EventBus eventBus;
+  private final AsyncEventBus eventBus;
 
   @Inject
-  TelegramNotificationsTask(TelegramService telegramService, EventBus eventBus) {
+  TelegramNotificationsTask(TelegramService telegramService, AsyncEventBus eventBus) {
     this.telegramService = telegramService;
     this.eventBus = eventBus;
   }

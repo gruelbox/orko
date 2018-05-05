@@ -23,7 +23,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -47,7 +47,7 @@ public final class OcoWebSocketServer {
 
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
-  @Inject private EventBus eventBus;
+  @Inject private AsyncEventBus eventBus;
   private Session session;
 
   @OnOpen

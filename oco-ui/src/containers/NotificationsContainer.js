@@ -14,6 +14,15 @@ const NotificationsContainer = ({notifications, dispatch}) => (
       data={notifications}
       columns={[
         {
+          id: "type",
+          Header: "Type",
+          accessor: "notificationType",
+          headerStyle: textStyle,
+          style: textStyle,
+          resizable: true,
+          width: 100
+        },
+        {
           id: "message",
           Header: "Message",
           accessor: "message",

@@ -44,7 +44,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
     LogColumn.builder().name("Filled").width(13).rightAligned(true)
   );
 
-  private final NotificationService telegramService;
+  private final NotificationService notificationService;
   private final TradeServiceFactory tradeServiceFactory;
   private final AsyncEventBus asyncEventBus;
   private final OrderStateNotifier job;
@@ -56,12 +56,12 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   @AssistedInject
   public OrderStateNotifierProcessor(@Assisted OrderStateNotifier job,
                                      @Assisted JobControl jobControl,
-                                     final NotificationService telegramService,
+                                     final NotificationService notificationService,
                                      final TradeServiceFactory tradeServiceFactory,
                                      final AsyncEventBus asyncEventBus) {
     this.job = job;
     this.jobControl = jobControl;
-    this.telegramService = telegramService;
+    this.notificationService = notificationService;
     this.tradeServiceFactory = tradeServiceFactory;
     this.asyncEventBus = asyncEventBus;
   }
@@ -121,7 +121,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         case PENDING_REPLACE:
         case REPLACED:
         case REJECTED:
-          telegramService.sendMessage(String.format(
+          notificationService.info(String.format(
             "Order [%s] on [%s/%s/%s] %s. Giving up.",
             job.orderId(),
             job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
@@ -130,7 +130,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
           return false;
         case FILLED:
         case STOPPED:
-          telegramService.sendMessage(String.format(
+          notificationService.info(String.format(
             "Order [%s] on [%s/%s/%s] has %s. Average price [%s]",
             job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
             status, order.getAveragePrice()
@@ -142,7 +142,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
           // In progress so ignore
           return true;
         default:
-          telegramService.sendMessage(String.format(
+          notificationService.info(String.format(
             "Order [%s] on [%s/%s/%s] in unknown status %s. Giving up.",
             job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
             status
@@ -221,8 +221,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         "Order [%s] on [%s/%s/%s] can't be checked. There's a bug in the GDAX access library which prevents it. It'll be fixed soon.",
         job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
       );
-      LOGGER.warn(message);
-      telegramService.sendMessage(message);
+    notificationService.error(message);
   }
 
 
@@ -231,8 +230,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
       "Order [%s] on [%s] was not unique on the exchange. Giving up.",
       job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
     );
-    LOGGER.error(message);
-    telegramService.sendMessage(message);
+    notificationService.error(message);
   }
 
   private void notFoundMessage(OrderStateNotifier job) {
@@ -240,8 +238,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         "Order [%s] on [%s] was not found on the exchange. It may have been cancelled. Giving up.",
         job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
       );
-    LOGGER.warn(message);
-    telegramService.sendMessage(message);
+    notificationService.info(message);
   }
 
   private void notSupportedMessage(OrderStateNotifier job) {
@@ -249,8 +246,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         "Order [%s] on [%s] can't be checked. The exchange doesn't support order status checks. Giving up.",
         job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
       );
-    LOGGER.warn(message);
-    telegramService.sendMessage(message);
+    notificationService.error(message);
   }
 
   public static final class Module extends AbstractModule {

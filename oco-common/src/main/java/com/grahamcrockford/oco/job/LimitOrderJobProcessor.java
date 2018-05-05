@@ -23,7 +23,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LimitOrderJobProcessor.class);
 
-  private final NotificationService telegramService;
+  private final NotificationService notificationService;
   private final JobSubmitter jobSubmitter;
   private final TradeServiceFactory tradeServiceFactory;
 
@@ -36,11 +36,11 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
   @AssistedInject
   public LimitOrderJobProcessor(@Assisted final LimitOrderJob job,
                                 @Assisted final JobControl jobControl,
-                                final NotificationService telegramService,
+                                final NotificationService notificationService,
                                 final TradeServiceFactory tradeServiceFactory,
                                 final JobSubmitter jobSubmitter) {
     this.job = job;
-    this.telegramService = telegramService;
+    this.notificationService = notificationService;
     this.tradeServiceFactory = tradeServiceFactory;
     this.jobSubmitter = jobSubmitter;
   }
@@ -105,15 +105,14 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       ex.counter()
     );
 
-    LOGGER.info(string);
-    telegramService.safeSendMessage(string);
+    notificationService.info(string);
   }
 
   private void reportFailed(final LimitOrderJob job, Throwable e) {
     final TickerSpec ex = job.tickTrigger();
 
     String string = String.format(
-      "ERROR [%s/%s/%s]: attempted %s order for [%s %s] at [%s %s] but failed. It might have worked. Error detail: %s",
+      "[%s/%s/%s]: attempted %s order for [%s %s] at [%s %s] but failed. It might have worked. Error detail: %s",
       ex.exchange(),
       ex.base(),
       ex.counter(),
@@ -125,8 +124,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       e.getMessage()
     );
 
-    LOGGER.error(string);
-    telegramService.safeSendMessage(string);
+    notificationService.error(string);
   }
 
   public static final class Module extends AbstractModule {

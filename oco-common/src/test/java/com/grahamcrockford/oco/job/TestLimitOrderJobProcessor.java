@@ -185,7 +185,7 @@ public class TestLimitOrderJobProcessor {
     processor.stop();
 
     verifyLimitSell();
-    verifySentMessage();
+    verifySentError();
     verifyFinished(result);
     verifyDidNothingElse();
   }
@@ -212,7 +212,7 @@ public class TestLimitOrderJobProcessor {
     processor.stop();
 
     verifyLimitBuy();
-    verifySentMessage();
+    verifySentError();
     verifyFinished(result);
     verifyDidNothingElse();
   }
@@ -224,8 +224,12 @@ public class TestLimitOrderJobProcessor {
     verifyNoMoreInteractions(telegramService, tradeService, enqueuer, jobControl);
   }
 
+  private void verifySentError() {
+    verify(telegramService).error(Mockito.anyString());
+  }
+
   private void verifySentMessage() {
-    verify(telegramService).safeSendMessage(Mockito.anyString());
+    verify(telegramService).info(Mockito.anyString());
   }
 
   private void verifyLimitSell() throws IOException {

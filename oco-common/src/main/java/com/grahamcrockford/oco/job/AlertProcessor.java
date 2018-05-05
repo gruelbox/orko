@@ -1,8 +1,5 @@
 package com.grahamcrockford.oco.job;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -12,21 +9,18 @@ import com.grahamcrockford.oco.spi.JobControl;
 
 class AlertProcessor implements Alert.Processor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AlertProcessor.class);
-
-  private final NotificationService telegramService;
+  private final NotificationService notificationService;
   private final Alert job;
 
   @AssistedInject
-  public AlertProcessor(@Assisted Alert job, @Assisted JobControl jobControl, NotificationService telegramService) {
+  public AlertProcessor(@Assisted Alert job, @Assisted JobControl jobControl, NotificationService notificationService) {
     this.job = job;
-    this.telegramService = telegramService;
+    this.notificationService = notificationService;
   }
 
   @Override
   public boolean start() {
-    LOGGER.info("Sending message: " + job.message());
-    telegramService.sendMessage(job.message());
+    notificationService.info(job.message());
     return false;
   }
 

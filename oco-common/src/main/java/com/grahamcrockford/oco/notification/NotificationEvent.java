@@ -13,10 +13,18 @@ import com.google.auto.value.AutoValue;
 public abstract class NotificationEvent {
 
   @JsonCreator
-  public static NotificationEvent create(String message) {
-    return new AutoValue_NotificationEvent(message);
+  public static NotificationEvent create(String message, NotificationType notificationType) {
+    return new AutoValue_NotificationEvent(message, notificationType);
   }
 
   @JsonProperty
   public abstract String message();
+
+  @JsonProperty
+  public abstract NotificationType notificationType();
+
+  public enum NotificationType {
+    INFO,
+    ERROR
+  }
 }

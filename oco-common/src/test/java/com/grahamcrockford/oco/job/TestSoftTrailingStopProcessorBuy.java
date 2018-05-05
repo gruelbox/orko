@@ -398,7 +398,7 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   private void verifySentMessage() {
-    verify(telegramService).sendMessage(Mockito.anyString());
+    verify(telegramService).info(Mockito.anyString());
   }
 
   private void verifyLimitBuyAtLimitPrice(final Ticker ticker) throws Exception {

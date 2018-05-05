@@ -27,7 +27,7 @@ class MqListener extends AbstractIdleService {
   private final Sleep sleep;
   private final ObjectMapper objectMapper;
   private final JobRunner jobRunner;
-  private final NotificationService telegramService;
+  private final NotificationService notificationService;
   private final JobRouteFactory jobRouteFactory;
 
   private Connection connection;
@@ -37,13 +37,13 @@ class MqListener extends AbstractIdleService {
   @Inject
   MqListener(ConnectionFactory connectionFactory, Sleep sleep,
              ObjectMapper objectMapper, JobRunner jobRunner,
-             NotificationService telegramService,
+             NotificationService notificationService,
              JobRouteFactory jobRouteFactory) {
     this.connectionFactory = connectionFactory;
     this.sleep = sleep;
     this.objectMapper = objectMapper;
     this.jobRunner = jobRunner;
-    this.telegramService = telegramService;
+    this.notificationService = notificationService;
     this.jobRouteFactory = jobRouteFactory;
   }
 
@@ -82,7 +82,7 @@ class MqListener extends AbstractIdleService {
     try {
       job = objectMapper.readValue(body, Job.class);
     } catch (Exception e)  {
-      telegramService.sendMessage("Job serialisation error");
+      notificationService.error("Job serialisation error", e);
       throw new RuntimeException("Failed to parse message body: " + body);
     }
     LOGGER.info("{} processing job {}", MqListener.this, job.id());
@@ -93,8 +93,7 @@ class MqListener extends AbstractIdleService {
         () -> channel.basicReject(envelope.getDeliveryTag(), true)
       );
     } catch (Throwable t) {
-      LOGGER.error(this + " job failed: " + job.id(), t);
-      telegramService.safeSendMessage(this + " job failed: " + job.id());
+      notificationService.error("Job failed: " + job.id(), t);
     }
   }
 

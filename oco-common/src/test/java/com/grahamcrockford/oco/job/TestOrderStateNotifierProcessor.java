@@ -87,7 +87,7 @@ public class TestOrderStateNotifierProcessor {
     assertFalse(processor.start());
     verifyGotOrder();
     verifyGotOrders();
-    verifySentMessage();
+    verifySentError();
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
 
@@ -178,7 +178,7 @@ public class TestOrderStateNotifierProcessor {
     OrderStateNotifierProcessor processor = new OrderStateNotifierProcessor(baseJob().build(), jobControl, telegramService, tradeServiceFactory, asyncEventBus);
     assertFalse(processor.start());
     verifyGotOrder();
-    verifySentMessage();
+    verifySentError();
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
 
@@ -198,7 +198,7 @@ public class TestOrderStateNotifierProcessor {
     assertFalse(processor.start());
     verifyGotOrder();
     verifyGotOrders();
-    verifySentMessage();
+    verifySentError();
     verifyNoMoreInteractions(jobControl, telegramService, tradeService, asyncEventBus);
   }
 
@@ -214,7 +214,7 @@ public class TestOrderStateNotifierProcessor {
     whenGetOrder().thenReturn(ImmutableList.of(mock(Order.class), mock(Order.class)));
     processor.process(KeepAliveEvent.INSTANCE);
 
-    verifySentMessage();
+    verifySentError();
     verify(jobControl).finish();
   }
 
@@ -297,8 +297,12 @@ public class TestOrderStateNotifierProcessor {
     assertEquals(new CurrencyPair(BASE, COUNTER), captor.getValue().getCurrencyPair());
   }
 
+  private void verifySentError() {
+    verify(telegramService).error(Mockito.anyString());
+  }
+
   private void verifySentMessage() {
-    verify(telegramService).sendMessage(Mockito.anyString());
+    verify(telegramService).info(Mockito.anyString());
   }
 
   private OrderStateNotifier.Builder baseJob() {

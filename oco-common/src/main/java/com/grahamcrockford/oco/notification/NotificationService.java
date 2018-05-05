@@ -3,23 +3,31 @@ package com.grahamcrockford.oco.notification;
 import com.google.inject.ImplementedBy;
 
 /**
- * Service for notifying the user of an important event.
+ * Service for notifying the user of an important event. Asynchronous.
  */
 @ImplementedBy(NotificationServiceImpl.class)
 public interface NotificationService {
 
   /**
-   * Sends a notification message.
+   * Sends a notification message asynchronously.
    *
    * @param message the message.
    */
-  void sendMessage(String message);
+  void info(String message);
 
   /**
-   * Sends the message without throwing if there are issues with dispatch.
+   * Sends a notification message asynchronously.
    *
-   * @param message The message
+   * @param message the message.
    */
-  void safeSendMessage(String message);
+  void error(String message);
+
+  /**
+   * Sends a notification message asynchronously.
+   *
+   * @param message the message.
+   * @param cause the cause
+   */
+  void error(String message, Throwable cause);
 
 }
