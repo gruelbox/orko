@@ -19,12 +19,12 @@ export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.ADD:
       console.debug(action.type, action)
-      notify("Server event", action.notification.message)
-      var newArr = state.notifications.concat(action.notification)
+      notify("Server message", action.notification.message)
+      var newArr = state.notifications.concat([action.notification])
       if (state.notifications.length > MAX_ITEMS) {
         newArr = newArr.slice(1)
       }
-      return Immutable({ notifications: newArr })
+      return Immutable.merge(state, { notifications: newArr })
     default:
       return state
   }
@@ -32,10 +32,10 @@ export default function reduce(state = initialState, action = {}) {
 
 function notify(title, message) {
   if (Notification.permission !== "granted")
-    Notification.requestPermission();
+    Notification.requestPermission()
   else {
-    new Notification(title, {
-      body: message,
-    });
+    var n = new Notification(title, { body: message })
+    setTimeout(n.close.bind(n), 5000);
+    n.onclick = () => n.close()
   }
 }
