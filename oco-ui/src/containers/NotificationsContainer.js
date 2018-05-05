@@ -3,6 +3,8 @@ import { connect } from "react-redux"
 
 import ReactTable from "react-table"
 import Section from "../components/primitives/Section"
+import FlashEntry from "../components/primitives/FlashEntry"
+import { Icon } from "semantic-ui-react"
 
 const textStyle = {
   textAlign: "left",
@@ -16,16 +18,23 @@ const NotificationsContainer = ({notifications, dispatch}) => (
         {
           id: "type",
           Header: "Type",
-          accessor: "notificationType",
+          Cell: ({original}) => (
+            <FlashEntry>
+              <span>
+                {original.notificationType === "ERROR" ? <Icon name="warning sign"/> : <Icon name="info"/>}
+                {original.notificationType}
+              </span>
+            </FlashEntry>
+          ),
           headerStyle: textStyle,
           style: textStyle,
           resizable: true,
-          width: 100
+          width: 75
         },
         {
           id: "message",
           Header: "Message",
-          accessor: "message",
+          Cell: ({original}) => <FlashEntry content={original.message} />,
           headerStyle: textStyle,
           style: textStyle,
           resizable: true

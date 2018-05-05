@@ -9,6 +9,7 @@ import Para from "../components/primitives/Para"
 import Panel from "../components/primitives/Panel"
 import Href from "../components/primitives/Href"
 import Loading from "../components/primitives/Loading"
+import FlashEntry from "../components/primitives/FlashEntry"
 
 import * as coinActions from "../store/coin/actions"
 
@@ -53,9 +54,11 @@ const Orders = props => (
         id: "close",
         Header: () => <Icon name="close" />,
         Cell: ({original}) => (
-          <Href onClick={() => props.onCancel(original.id, original.type)}>
-            <Icon name="close" />
-          </Href>
+          <FlashEntry>
+            <Href onClick={() => props.onCancel(original.id, original.type)}>
+              <Icon name="close" />
+            </Href>
+          </FlashEntry>
         ),
         headerStyle: textStyle,
         style: textStyle,
@@ -64,7 +67,7 @@ const Orders = props => (
       {
         id: "createdDate",
         Header: "Created",
-        Cell: ({original}) => formatDate(original.timestamp),
+        Cell: ({original}) => <FlashEntry content={formatDate(original.timestamp)}/>,
         headerStyle: textStyle,
         style: textStyle,
         resizable: true
@@ -72,14 +75,14 @@ const Orders = props => (
       {
         id: "orderType",
         Header: "Direction",
-        Cell: ({original}) => original.type === "BID" ? "Buy" : "Sell",
+        Cell: ({original}) => <FlashEntry content={original.type === "BID" ? "Buy" : "Sell"} />,
         headerStyle: textStyle,
         style: textStyle,
         resizable: true
       },
       {
         Header: "Limit",
-        accessor: "limitPrice",
+        Cell: ({original}) => <FlashEntry content={original.limitPrice} />,
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true
@@ -87,21 +90,21 @@ const Orders = props => (
       {
         id: "stopPrice",
         Header: "Trigger",
-        Cell: ({original}) => original.stopPrice ? original.stopPrice : "-",
+        Cell: ({original}) => <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />,
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true
       },
       {
         Header: "Amount",
-        accessor: "originalAmount",
+        Cell: ({original}) => <FlashEntry content={original.originalAmount} />,
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true
       },
       {
         Header: "Filled",
-        accessor: "cumulativeAmount",
+        Cell: ({original}) => <FlashEntry content={original.cumulativeAmount} />,
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true
