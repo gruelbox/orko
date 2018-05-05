@@ -10,8 +10,6 @@ database:
 # telegram:
 #   botToken: YOU
 #   chatId: REALLYWANTTHIS
-mq:
-  clientURI: amqp://localhost
 exchanges:
 #  gdax-sandbox:
 #    apiKey: 

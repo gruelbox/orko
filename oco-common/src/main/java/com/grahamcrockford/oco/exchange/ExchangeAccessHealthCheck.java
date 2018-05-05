@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.exchange;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
 
@@ -6,7 +6,7 @@ import com.codahale.metrics.health.HealthCheck;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.web.ExchangeResource.Pair;
+import com.grahamcrockford.oco.exchange.ExchangeResource.Pair;
 
 /**
  * Just attempts to access binance.

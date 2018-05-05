@@ -2,14 +2,14 @@ package com.grahamcrockford.oco.web;
 
 import javax.ws.rs.client.Client;
 
-import com.codahale.metrics.health.HealthCheck;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
-import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.OcoApplicationModule;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.auth.AuthModule;
-import com.grahamcrockford.oco.wiring.WebResource;
+import com.grahamcrockford.oco.exchange.ExchangeResourceModule;
+import com.grahamcrockford.oco.mq.MqModule;
+import com.grahamcrockford.oco.websocket.WebSocketModule;
 
 import io.dropwizard.setup.Environment;
 
@@ -27,10 +27,9 @@ class WebModule extends AbstractModule {
   @Override
   protected void configure() {
     install(appModule);
+    install(new MqModule());
     install(new AuthModule());
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(JobResource.class);
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(ExchangeResource.class);
-    Multibinder.newSetBinder(binder(), HealthCheck.class).addBinding().to(ExchangeAccessHealthCheck.class);
-    Multibinder.newSetBinder(binder(), HealthCheck.class).addBinding().to(OcoWebsocketHealthCheck.class);
+    install(new WebSocketModule());
+    install(new ExchangeResourceModule());
   }
 }

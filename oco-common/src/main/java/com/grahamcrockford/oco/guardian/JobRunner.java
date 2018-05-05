@@ -79,32 +79,36 @@ class JobRunner {
    * @param reject If insertion failed
    * @throws Exception
    */
-  public void runNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+  public boolean runNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+
     boolean locked;
     try {
       locked = jobLocker.attemptLock(job.id(), uuid);
     } catch (Throwable t) {
       reject.run();
-      LOGGER.info("Job " + job.id() + " could not be locked. Request rejected.");
-      return;
+      LOGGER.warn("Job " + job.id() + " could not be locked. Request rejected.");
+      throw t;
     }
-    if (locked) {
-      try {
-        jobAccess.insert(job);
-      } catch (JobAlreadyExistsException e) {
-        ack.run();
-        LOGGER.info("Job " + job.id() + " already exists. Request ignored.");
-        jobLocker.releaseLock(job.id(), uuid);
-        return;
-      } catch (Throwable t) {
-        reject.run();
-        LOGGER.info("Job " + job.id() + " could not be inserted into database. Request rejected.");
-        jobLocker.releaseLock(job.id(), uuid);
-        return;
-      }
+
+    if (!locked) {
+      return false;
+    }
+
+    try {
+      jobAccess.insert(job);
+    } catch (JobAlreadyExistsException e) {
+      LOGGER.info("Job " + job.id() + " already exists. Request ignored.");
       ack.run();
-      new JobLifetimeManager(job).start();
+      jobLocker.releaseLock(job.id(), uuid);
+      return false;
+    } catch (Throwable t) {
+      reject.run();
+      jobLocker.releaseLock(job.id(), uuid);
+      throw t;
     }
+    ack.run();
+    new JobLifetimeManager(job).start();
+    return true;
   }
 
 

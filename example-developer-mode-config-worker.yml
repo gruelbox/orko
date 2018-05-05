@@ -7,6 +7,9 @@ database:
   mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017 # Your mongoDB connection details.
   mongoDatabase: oco # MongoDB database name.
   lockSeconds: 10
+# telegram:
+#   botToken: YOU
+#   chatId: REALLYWANTTHIS
 mq:
   clientURI: amqp://localhost
 exchanges:

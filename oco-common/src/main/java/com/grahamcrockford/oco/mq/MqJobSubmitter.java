@@ -40,9 +40,8 @@ class MqJobSubmitter implements JobSubmitter {
    * @see com.grahamcrockford.oco.submit.JobSubmitter#submitNew(T)
    */
   @Override
-  @SuppressWarnings({ "unchecked" })
-  public <T extends Job> T submitNew(T job) throws PublishFailedException {
-    T result = (T) job.toBuilder().id(UUID.randomUUID().toString()).build();
+  public Job submitNew(Job job) throws PublishFailedException {
+    Job result = job.toBuilder().id(UUID.randomUUID().toString()).build();
     publishJob(result);
     return result;
   }

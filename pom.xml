@@ -16,6 +16,7 @@
 		<module>oco-worker</module>
         <module>oco-common</module>
 		<module>oco-web</module>
+		<module>oco-all-in-one</module>
 	</modules>
 
 	<profiles>
@@ -31,6 +32,13 @@
           	<modules>
 			  	<module>oco-common</module>
 				<module>oco-worker</module>
+          	</modules>
+     	</profile>
+		<profile>
+			<id>all-in-one</id>
+          	<modules>
+			  	<module>oco-common</module>
+				<module>oco-all-in-one</module>
           	</modules>
      	</profile>
   	</profiles>

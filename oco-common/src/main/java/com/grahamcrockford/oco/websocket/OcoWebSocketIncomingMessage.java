@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.websocket;
 
 import java.util.Collection;
 
@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.websocket.AutoValue_OcoWebSocketIncomingMessage;
 import com.google.auto.value.AutoValue;
 
 @AutoValue

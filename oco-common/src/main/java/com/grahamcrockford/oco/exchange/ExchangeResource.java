@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.exchange;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -35,9 +35,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.grahamcrockford.oco.auth.Roles;
-import com.grahamcrockford.oco.exchange.AccountServiceFactory;
-import com.grahamcrockford.oco.exchange.ExchangeService;
-import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.wiring.WebResource;
 
 /**

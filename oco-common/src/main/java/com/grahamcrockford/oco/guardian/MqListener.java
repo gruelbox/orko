@@ -26,7 +26,7 @@ class MqListener extends AbstractIdleService {
   private final ConnectionFactory connectionFactory;
   private final Sleep sleep;
   private final ObjectMapper objectMapper;
-  private final JobRunner existingJobSubmitter;
+  private final JobRunner jobRunner;
   private final TelegramService telegramService;
   private final JobRouteFactory jobRouteFactory;
 
@@ -36,13 +36,13 @@ class MqListener extends AbstractIdleService {
 
   @Inject
   MqListener(ConnectionFactory connectionFactory, Sleep sleep,
-             ObjectMapper objectMapper, JobRunner existingJobSubmitter,
+             ObjectMapper objectMapper, JobRunner jobRunner,
              TelegramService telegramService,
              JobRouteFactory jobRouteFactory) {
     this.connectionFactory = connectionFactory;
     this.sleep = sleep;
     this.objectMapper = objectMapper;
-    this.existingJobSubmitter = existingJobSubmitter;
+    this.jobRunner = jobRunner;
     this.telegramService = telegramService;
     this.jobRouteFactory = jobRouteFactory;
   }
@@ -87,7 +87,7 @@ class MqListener extends AbstractIdleService {
     }
     LOGGER.info("{} processing job {}", MqListener.this, job.id());
     try {
-      existingJobSubmitter.runNew(
+      jobRunner.runNew(
         job,
         () -> channel.basicAck(envelope.getDeliveryTag(), false),
         () -> channel.basicReject(envelope.getDeliveryTag(), true)

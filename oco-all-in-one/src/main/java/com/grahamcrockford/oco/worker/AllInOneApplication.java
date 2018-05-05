@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.worker;
 
 import java.util.Set;
 
@@ -14,7 +14,6 @@ import com.google.inject.servlet.GuiceFilter;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.websocket.WebSocketBundleInit;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
-
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -23,12 +22,12 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 
-public class WebApplication extends Application<OcoConfiguration> {
+public class AllInOneApplication extends Application<OcoConfiguration> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(WebApplication.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AllInOneApplication.class);
 
   public static void main(final String[] args) throws Exception {
-    new WebApplication().run(args);
+    new AllInOneApplication().run(args);
   }
 
   @Inject private Set<EnvironmentInitialiser> environmentInitialisers;
@@ -39,7 +38,7 @@ public class WebApplication extends Application<OcoConfiguration> {
 
   @Override
   public String getName() {
-    return "Background Trade Control: Web API";
+    return "Background Trade Control";
   }
 
   @Override
@@ -58,11 +57,10 @@ public class WebApplication extends Application<OcoConfiguration> {
   public void run(final OcoConfiguration configuration, final Environment environment) {
 
     // Jersey client
-    final Client jerseyClient = new JerseyClientBuilder(environment)
-        .using(configuration.getJerseyClientConfiguration()).build(getName());
+    final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
 
     // Injector
-    Injector injector = Guice.createInjector(new WebModule(configuration, environment.getObjectMapper(), jerseyClient, environment));
+    final Injector injector = Guice.createInjector(new AllInOneModule(configuration, environment.getObjectMapper(), jerseyClient, environment));
     injector.injectMembers(this);
 
     GuiceFilter guiceFilter = injector.getInstance(GuiceFilter.class);

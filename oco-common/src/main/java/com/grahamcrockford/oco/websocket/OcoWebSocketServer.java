@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.websocket;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -27,7 +27,7 @@ import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 import com.grahamcrockford.oco.ticker.TickerEvent;
-import com.grahamcrockford.oco.web.OcoWebSocketOutgoingMessage.Nature;
+import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
 
 @Metered
 @Timed

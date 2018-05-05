@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.exchange;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -24,7 +24,6 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.auth.Roles;
-import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.LimitOrderJob;
 import com.grahamcrockford.oco.job.OrderStateNotifier;
 import com.grahamcrockford.oco.job.PumpChecker;
@@ -66,7 +65,6 @@ public class JobResource implements WebResource {
     return ImmutableList.copyOf(jobAccess.list());
   }
 
-
   @PUT
   @Timed
   @RolesAllowed(Roles.TRADER)
@@ -105,7 +103,7 @@ public class JobResource implements WebResource {
   @Path("softtrailingstop")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public SoftTrailingStop softTrailingStop(@QueryParam("exchange") String exchange,
+  public Job softTrailingStop(@QueryParam("exchange") String exchange,
                                            @QueryParam("counter") String counter,
                                            @QueryParam("base") String base,
                                            @QueryParam("direction") Direction direction,
@@ -134,7 +132,7 @@ public class JobResource implements WebResource {
   @Path("pumpchecker")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public PumpChecker pumpChecker(@QueryParam("exchange") String exchange,
+  public Job pumpChecker(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base) throws IOException {
 
@@ -155,7 +153,7 @@ public class JobResource implements WebResource {
   @Path("monitororder")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public OrderStateNotifier monitorOrder(@QueryParam("exchange") String exchange,
+  public Job monitorOrder(@QueryParam("exchange") String exchange,
                                          @QueryParam("counter") String counter,
                                          @QueryParam("base") String base,
                                          @QueryParam("orderId") String orderId) {
@@ -174,7 +172,7 @@ public class JobResource implements WebResource {
   @Path("limitbuy")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public LimitOrderJob limitBuy(@QueryParam("exchange") String exchange,
+  public Job limitBuy(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base,
                                  @QueryParam("amount") BigDecimal amount,
@@ -186,7 +184,7 @@ public class JobResource implements WebResource {
   @Path("limitsell")
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public LimitOrderJob limitSell(@QueryParam("exchange") String exchange,
+  public Job limitSell(@QueryParam("exchange") String exchange,
                                  @QueryParam("counter") String counter,
                                  @QueryParam("base") String base,
                                  @QueryParam("amount") BigDecimal amount,
@@ -194,7 +192,7 @@ public class JobResource implements WebResource {
     return limitOrder(exchange, counter, base, amount, limitPrice, Direction.SELL);
   }
 
-  private LimitOrderJob limitOrder(String exchange, String counter, String base, BigDecimal amount,
+  private Job limitOrder(String exchange, String counter, String base, BigDecimal amount,
       BigDecimal limitPrice, Direction direction) throws IOException {
     // Just check it's a valid ticker
     exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));

@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.websocket;
 
 import java.net.URI;
 import java.util.Map;
@@ -16,7 +16,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
-public class OcoWebsocketHealthCheck extends HealthCheck {
+class OcoWebsocketHealthCheck extends HealthCheck {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OcoWebsocketHealthCheck.class);
 

@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.web;
+package com.grahamcrockford.oco.websocket;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,10 +19,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.web.OcoWebSocketIncomingMessage.Command;
+import com.grahamcrockford.oco.websocket.OcoWebSocketIncomingMessage.Command;
 
 @ClientEndpoint
-public class OcoWebsocketClient implements AutoCloseable {
+class OcoWebsocketClient implements AutoCloseable {
 
   private final Consumer<Map<String, Object>> consumer;
   private final ObjectMapper objectMapper;
