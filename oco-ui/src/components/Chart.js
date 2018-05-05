@@ -25,7 +25,6 @@ class ChartContent extends Component {
   }
 
   initWidget = () => {
-    console.log("iw")
     new window.TradingView.widget({
       autosize: true,
       symbol: this.symbol(),
