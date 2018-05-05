@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.telegram;
+package com.grahamcrockford.oco.notification;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
-public class TelegramService {
+class TelegramService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
@@ -27,14 +27,6 @@ public class TelegramService {
     this.telegramTarget = configuration == null || StringUtils.isEmpty(configuration.getBotToken())
         ? null
         : client.target("https://api.telegram.org/bot" + configuration.getBotToken());
-  }
-
-  public void safeSendMessage(String message) {
-    try {
-      sendMessage(message);
-    } catch (Throwable t) {
-      LOGGER.error(this + " failed to send Telegram message", t);
-    }
   }
 
   public void sendMessage(String message) {

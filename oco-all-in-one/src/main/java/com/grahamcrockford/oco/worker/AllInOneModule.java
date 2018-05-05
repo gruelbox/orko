@@ -10,8 +10,8 @@ import com.grahamcrockford.oco.auth.AuthModule;
 import com.grahamcrockford.oco.exchange.ExchangeResourceModule;
 import com.grahamcrockford.oco.guardian.GuardianModule;
 import com.grahamcrockford.oco.guardian.InProcessJobSubmitter;
+import com.grahamcrockford.oco.notification.TelegramModule;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.telegram.TelegramModule;
 import com.grahamcrockford.oco.websocket.WebSocketModule;
 
 import io.dropwizard.setup.Environment;

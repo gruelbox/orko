@@ -7,18 +7,18 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
-import com.grahamcrockford.oco.telegram.TelegramService;
 
 class AlertProcessor implements Alert.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AlertProcessor.class);
 
-  private final TelegramService telegramService;
+  private final NotificationService telegramService;
   private final Alert job;
 
   @AssistedInject
-  public AlertProcessor(@Assisted Alert job, @Assisted JobControl jobControl, TelegramService telegramService) {
+  public AlertProcessor(@Assisted Alert job, @Assisted JobControl jobControl, NotificationService telegramService) {
     this.job = job;
     this.telegramService = telegramService;
   }

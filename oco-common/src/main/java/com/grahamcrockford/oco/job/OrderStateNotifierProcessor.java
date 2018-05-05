@@ -24,9 +24,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
-import com.grahamcrockford.oco.telegram.TelegramService;
 
 import si.mazi.rescu.HttpStatusExceptionSupport;
 
@@ -44,7 +44,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
     LogColumn.builder().name("Filled").width(13).rightAligned(true)
   );
 
-  private final TelegramService telegramService;
+  private final NotificationService telegramService;
   private final TradeServiceFactory tradeServiceFactory;
   private final AsyncEventBus asyncEventBus;
   private final OrderStateNotifier job;
@@ -56,7 +56,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   @AssistedInject
   public OrderStateNotifierProcessor(@Assisted OrderStateNotifier job,
                                      @Assisted JobControl jobControl,
-                                     final TelegramService telegramService,
+                                     final NotificationService telegramService,
                                      final TradeServiceFactory tradeServiceFactory,
                                      final AsyncEventBus asyncEventBus) {
     this.job = job;

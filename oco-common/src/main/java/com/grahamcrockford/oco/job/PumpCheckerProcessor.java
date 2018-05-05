@@ -12,9 +12,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 import one.util.streamex.StreamEx;
@@ -31,7 +31,7 @@ class PumpCheckerProcessor implements PumpChecker.Processor {
     LogColumn.builder().name("3 tick Mvmt %").width(13).rightAligned(true)
   );
 
-  private final TelegramService telegramService;
+  private final NotificationService telegramService;
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final PumpChecker job;
   private final JobControl jobControl;
@@ -39,7 +39,7 @@ class PumpCheckerProcessor implements PumpChecker.Processor {
   @AssistedInject
   public PumpCheckerProcessor(@Assisted PumpChecker job,
                               @Assisted JobControl jobControl,
-                              TelegramService telegramService,
+                              NotificationService telegramService,
                               ExchangeEventRegistry exchangeEventRegistry) {
     this.job = job;
     this.jobControl = jobControl;

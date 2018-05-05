@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.telegram;
+package com.grahamcrockford.oco.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

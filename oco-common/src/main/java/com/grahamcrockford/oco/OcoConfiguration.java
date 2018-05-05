@@ -14,7 +14,7 @@ import com.grahamcrockford.oco.auth.AuthConfiguration;
 import com.grahamcrockford.oco.db.DbConfiguration;
 import com.grahamcrockford.oco.exchange.ExchangeConfiguration;
 import com.grahamcrockford.oco.mq.MqConfiguration;
-import com.grahamcrockford.oco.telegram.TelegramConfiguration;
+import com.grahamcrockford.oco.notification.TelegramConfiguration;
 
 /**
  * Runtime config. Should really be broken up.

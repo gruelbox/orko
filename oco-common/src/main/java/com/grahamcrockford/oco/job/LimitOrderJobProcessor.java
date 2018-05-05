@@ -14,16 +14,16 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.telegram.TelegramService;
 
 class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LimitOrderJobProcessor.class);
 
-  private final TelegramService telegramService;
+  private final NotificationService telegramService;
   private final JobSubmitter jobSubmitter;
   private final TradeServiceFactory tradeServiceFactory;
 
@@ -36,7 +36,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
   @AssistedInject
   public LimitOrderJobProcessor(@Assisted final LimitOrderJob job,
                                 @Assisted final JobControl jobControl,
-                                final TelegramService telegramService,
+                                final NotificationService telegramService,
                                 final TradeServiceFactory tradeServiceFactory,
                                 final JobSubmitter jobSubmitter) {
     this.job = job;

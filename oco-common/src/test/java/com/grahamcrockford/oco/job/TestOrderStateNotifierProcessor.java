@@ -40,10 +40,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.AsyncEventBus;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.telegram.TelegramService;
 
 
 public class TestOrderStateNotifierProcessor {
@@ -61,7 +61,7 @@ public class TestOrderStateNotifierProcessor {
   private static final BigDecimal LIMIT_PRICE = new BigDecimal(90);
   private static final BigDecimal FILLED = new BigDecimal(999);
 
-  @Mock private TelegramService telegramService;
+  @Mock private NotificationService telegramService;
 
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private TradeService tradeService;

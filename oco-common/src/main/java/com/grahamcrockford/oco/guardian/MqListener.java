@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.mq.JobRouteFactory;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.Job;
-import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.util.Sleep;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -27,7 +27,7 @@ class MqListener extends AbstractIdleService {
   private final Sleep sleep;
   private final ObjectMapper objectMapper;
   private final JobRunner jobRunner;
-  private final TelegramService telegramService;
+  private final NotificationService telegramService;
   private final JobRouteFactory jobRouteFactory;
 
   private Connection connection;
@@ -37,7 +37,7 @@ class MqListener extends AbstractIdleService {
   @Inject
   MqListener(ConnectionFactory connectionFactory, Sleep sleep,
              ObjectMapper objectMapper, JobRunner jobRunner,
-             TelegramService telegramService,
+             NotificationService telegramService,
              JobRouteFactory jobRouteFactory) {
     this.connectionFactory = connectionFactory;
     this.sleep = sleep;

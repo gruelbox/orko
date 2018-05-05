@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.function.BiConsumer;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,11 +21,11 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.grahamcrockford.oco.job.OneCancelsOther.ThresholdAndJob;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 public class TestOneCancelsOtherProcessor {
@@ -43,7 +44,7 @@ public class TestOneCancelsOtherProcessor {
       .build();
 
   @Mock private JobSubmitter enqueuer;
-  @Mock private TelegramService telegramService;
+  @Mock private NotificationService telegramService;
 
   @Mock private Exchange exchange;
   @Mock private MarketDataService marketDataService;

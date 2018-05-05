@@ -8,10 +8,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
@@ -29,7 +29,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   );
 
   private final JobSubmitter jobSubmitter;
-  private final TelegramService telegramService;
+  private final NotificationService telegramService;
   private final ExchangeEventRegistry exchangeEventRegistry;
 
   private final OneCancelsOther job;
@@ -39,7 +39,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
                            @Assisted JobControl jobControl,
                            JobSubmitter jobSubmitter,
-                           TelegramService telegramService,
+                           NotificationService telegramService,
                            ExchangeEventRegistry exchangeEventRegistry) {
     this.job = job;
     this.jobControl = jobControl;

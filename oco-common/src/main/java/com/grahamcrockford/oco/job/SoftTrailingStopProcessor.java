@@ -18,10 +18,10 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.telegram.TelegramService;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
@@ -39,7 +39,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
       LogColumn.builder().name("Ask").width(13).rightAligned(true)
   );
 
-  private final TelegramService telegramService;
+  private final NotificationService telegramService;
   private final ExchangeService exchangeService;
   private final JobSubmitter jobSubmitter;
   private final SoftTrailingStop job;
@@ -50,7 +50,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   @Inject
   public SoftTrailingStopProcessor(@Assisted SoftTrailingStop job,
                                    @Assisted JobControl jobControl,
-                                   final TelegramService telegramService,
+                                   final NotificationService telegramService,
                                    final ExchangeService exchangeService,
                                    final JobSubmitter jobSubmitter,
                                    final ExchangeEventRegistry exchangeEventRegistry) {

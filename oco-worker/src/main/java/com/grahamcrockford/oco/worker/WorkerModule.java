@@ -8,7 +8,7 @@ import com.grahamcrockford.oco.OcoApplicationModule;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.guardian.GuardianModule;
 import com.grahamcrockford.oco.mq.MqModule;
-import com.grahamcrockford.oco.telegram.TelegramModule;
+import com.grahamcrockford.oco.notification.TelegramModule;
 
 import io.dropwizard.setup.Environment;
 
