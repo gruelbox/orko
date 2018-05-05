@@ -8,8 +8,6 @@ import com.grahamcrockford.oco.OcoApplicationModule;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.guardian.GuardianModule;
 import com.grahamcrockford.oco.mq.MqModule;
-import com.grahamcrockford.oco.notification.TelegramModule;
-
 import io.dropwizard.setup.Environment;
 
 /**
@@ -27,7 +25,6 @@ class WorkerModule extends AbstractModule {
   protected void configure() {
     install(appModule);
     install(new MqModule());
-    install(new TelegramModule());
     install(new GuardianModule(true));
   }
 }
