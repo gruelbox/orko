@@ -3,10 +3,10 @@ auth:
 #  secretKey: Generate this using com.grahamcrockford.oco.cli.GenerateSecretKey when you move to production
   proxied: false #  Set this to true if you deploy to Heroku
   whitelistExpirySeconds: 14400
-database:
-  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017 # Your mongoDB connection details.
-  mongoDatabase: oco # MongoDB database name.
-  lockSeconds: 10
+#database:
+#  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017 # Your mongoDB connection details.
+#  mongoDatabase: oco # MongoDB database name.
+#  lockSeconds: 10
 # telegram:
 #   botToken: YOU
 #   chatId: REALLYWANTTHIS
