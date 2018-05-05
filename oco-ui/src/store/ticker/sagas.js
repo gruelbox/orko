@@ -22,7 +22,8 @@ const channelMessages = {
 const serverMessages = {
   TICKER: "TICKER",
   ERROR: "ERROR",
-  CHANGE_TICKERS: "CHANGE_TICKERS"
+  CHANGE_TICKERS: "CHANGE_TICKERS",
+  NOTIFICATION: "NOTIFICATION"
 }
 
 export const getAuth = state => state.auth
@@ -69,6 +70,8 @@ function* socketLoop(socketChannel) {
       coin,
       ticker: message.data.ticker
     })
+  } else if (message && message.nature === serverMessages.NOTIFICATION) {
+    yield console.log("Server notification", message.data.message)
   } else {
     yield put(
       errorActions.addBackground(

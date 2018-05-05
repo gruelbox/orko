@@ -1,5 +1,7 @@
 package com.grahamcrockford.oco.websocket;
 
+import static com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature.NOTIFICATION;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
@@ -21,9 +23,12 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
+import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 import com.grahamcrockford.oco.ticker.TickerEvent;
@@ -42,11 +47,20 @@ public final class OcoWebSocketServer {
 
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
+  @Inject private EventBus eventBus;
+  private Session session;
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
     LOGGER.info("Opening socket");
     injectMembers(session);
+    this.session = session;
+    eventBus.register(this);
+  }
+
+  @Subscribe
+  void notify(NotificationEvent notificationEvent) {
+    session.getAsyncRemote().sendText(message(NOTIFICATION, null, notificationEvent));
   }
 
   @OnMessage
@@ -75,7 +89,16 @@ public final class OcoWebSocketServer {
   @OnClose
   public void myOnClose(final javax.websocket.Session session, CloseReason cr) {
     LOGGER.info("Closing socket ({})", cr.toString());
-    exchangeEventRegistry.changeTickers(ImmutableList.of(), uuid, null);
+    try {
+      eventBus.unregister(this);
+    } catch (Throwable t) {
+      LOGGER.error("Error unregistering socket from notification", t);
+    }
+    try {
+      exchangeEventRegistry.changeTickers(ImmutableList.of(), uuid, null);
+    } catch (Throwable t) {
+      LOGGER.error("Error unregistering socket from ticker", t);
+    }
   }
 
   @OnError

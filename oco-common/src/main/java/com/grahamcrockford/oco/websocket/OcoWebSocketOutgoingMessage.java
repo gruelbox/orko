@@ -31,5 +31,6 @@ abstract class OcoWebSocketOutgoingMessage {
   enum Nature {
     ERROR,
     TICKER,
+    NOTIFICATION
   }
 }
