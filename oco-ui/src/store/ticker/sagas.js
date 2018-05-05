@@ -13,6 +13,7 @@ import { ws } from "../../services/fetchUtil"
 import { eventChannel } from "redux-saga"
 import { coin as createCoin } from "../coin/reducer"
 import * as errorActions from "../error/actions"
+import * as notificationActions from "../notifications/actions"
 
 const channelMessages = {
   OPEN: "OPEN",
@@ -71,7 +72,7 @@ function* socketLoop(socketChannel) {
       ticker: message.data.ticker
     })
   } else if (message && message.nature === serverMessages.NOTIFICATION) {
-    yield console.log("Server notification", message.data.message)
+    yield put(notificationActions.add(message.data))
   } else {
     yield put(
       errorActions.addBackground(

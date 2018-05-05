@@ -6,6 +6,7 @@ import focus from './focus/reducer';
 import job from './job/reducer';
 import error from './error/reducer';
 import ticker from './ticker/reducer';
+import notifications from './notifications/reducer';
 
 export {
   auth,
@@ -15,5 +16,6 @@ export {
   focus,
   job,
   error,
-  ticker
+  ticker,
+  notifications
 };

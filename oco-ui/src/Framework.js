@@ -14,6 +14,7 @@ import MarketContainer from "./containers/MarketContainer"
 import OpenOrdersContainer from "./containers/OpenOrdersContainer"
 import TradingContainer from "./containers/TradingContainer"
 import BalanceContainer from "./containers/BalanceContainer"
+import NotificationsContainer from "./containers/NotificationsContainer"
 import Chart from "./components/Chart"
 
 import WithCoinParameter from "./WithCoinParameter"
@@ -46,7 +47,8 @@ const baseLayouts = {
     { i: "openOrders", x: 5, y: 200, w: 10, h: 5 },
     { i: "balance", x: 5, y: 300, w: 10, h: 5 },
     { i: "tradeSelector", x: 5, y: 400, w: 10, h: 8},
-    { i: "marketData", x: 15, y: 200, w: 5, h: 10 }
+    { i: "marketData", x: 15, y: 200, w: 5, h: 10 },
+    { i: "notifications", x: 15, y: 300, w: 5, h: 10 }
   ],
   md: [
     { i: "ticker", x: 0, y: 0, w: 8, h: 3 },
@@ -56,7 +58,8 @@ const baseLayouts = {
     { i: "tradeSelector", x: 0, y: 400, w: 5, h: 8 },
     { i: "coins", x: 5, y: 100, w: 3, h: 12 },
     { i: "jobs", x: 5, y: 200, w: 3, h: 9 },
-    { i: "marketData", x: 5, y: 300, w: 3, h: 5 }
+    { i: "marketData", x: 5, y: 300, w: 3, h: 4 },
+    { i: "notifications", x: 5, y: 400, w: 3, h: 7 }
   ],
   sm: [
     { i: "ticker", x: 0, y: 0, w: 2, h: 3 },
@@ -66,7 +69,8 @@ const baseLayouts = {
     { i: "tradeSelector", x: 0, y: 400, w: 2, h: 8 },
     { i: "coins", x: 0, y: 500, w: 2, h: 6 },
     { i: "jobs", x: 0, y: 600, w: 2, h: 6 },
-    { i: "marketData", x: 0, y: 700, w: 2, h: 6 }
+    { i: "marketData", x: 0, y: 700, w: 2, h: 6 },
+    { i: "notifications", x: 0, y: 800, w: 2, h: 6 }
   ]
 }
 
@@ -132,6 +136,9 @@ export default class Framework extends React.Component {
       </LayoutBox>,
       <LayoutBox key="marketData" bg="backgrounds.1">
         <WithCoinParameter component={MarketContainer}/>
+      </LayoutBox>,
+      <LayoutBox key="notifications" bg="backgrounds.1">
+        <NotificationsContainer/>
       </LayoutBox>
     ]
 
