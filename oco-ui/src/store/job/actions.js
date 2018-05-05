@@ -8,7 +8,7 @@ export function submitJob(job) {
     auth => jobService.submitJob(job, auth.token),
     null,
     error => errorActions.setForeground("Could not submit job: " + error.message),
-    () => ({ type: types.ADD_JOB, job })
+    () => fetchJobs()
   );
 }
 

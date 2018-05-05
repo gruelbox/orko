@@ -122,7 +122,11 @@ class Price extends React.Component {
         <Container m={2}>
           <PriceKey color="fore" fontSize={1}>{this.props.name} {this.props.icon ? <Icon name={this.props.icon}/> : ""}</PriceKey>
           <PriceValue color="heading" fontSize={3} movement={this.state.movement} onClick={this.onClick}>
-            {isNaN(this.props.children) ? this.props.children : round(this.props.children, 8)}
+            {this.props.children 
+              ? isNaN(this.props.children)
+                ? this.props.children
+                : round(this.props.children, 8)
+              : ""}
           </PriceValue>
         </Container>
       )
