@@ -1,2 +1,1 @@
-web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -classpath "/usr/share/app/lib" -jar oco-web/target/oco-web.jar server example-config.yml
-worker: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -classpath "/usr/share/app/lib" -jar oco-worker/target/oco-worker.jar server example-config.yml
+web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -classpath "/usr/share/app/lib" -jar oco-web/target/oco-all-in-one.jar server example-config.yml
