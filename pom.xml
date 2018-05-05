@@ -41,6 +41,44 @@
 				<module>oco-all-in-one</module>
           	</modules>
      	</profile>
+     	 <profile>
+		     <id>only-eclipse</id>
+		     <activation>
+		        <property>
+		         <name>m2e.version</name>
+		        </property>
+		     </activation>
+		     <build>
+		      <pluginManagement>
+		       <plugins>
+		         <plugin>
+		            <groupId>org.eclipse.m2e</groupId>
+		            <artifactId>lifecycle-mapping</artifactId>
+		            <version>1.0.0</version>
+		            <configuration>
+		                <lifecycleMappingMetadata>
+		                    <pluginExecutions>
+		                        <pluginExecution>
+		                            <pluginExecutionFilter>
+		                               <groupId>org.apache.maven.plugins</groupId>
+		                               <artifactId>maven-dependency-plugin</artifactId>
+		                               <versionRange>${maven-dependency-plugin.version}</versionRange>
+		                               <goals>
+		                                   <goal>copy-dependencies</goal>
+		                               </goals>
+		                            </pluginExecutionFilter>
+		                            <action>
+		                              <ignore />
+		                            </action>
+		                        </pluginExecution>
+		                    </pluginExecutions>
+		                </lifecycleMappingMetadata>
+		            </configuration>
+		        </plugin>
+		       </plugins>
+		      </pluginManagement>
+		     </build>
+		 </profile>
   	</profiles>
 
 	<name>OCO</name>
