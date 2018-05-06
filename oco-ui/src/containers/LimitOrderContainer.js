@@ -6,6 +6,7 @@ import LimitOrder from "../components/LimitOrder"
 
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
+import * as jobTypes from '../services/jobTypes'
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -47,7 +48,7 @@ class LimitOrderContainer extends React.Component {
     }
 
     return {
-      jobType: "LimitOrderJob",
+      jobType: jobTypes.LIMIT_ORDER,
       tickTrigger: tickTrigger,
       bigDecimals: {
         amount: this.state.job.amount,

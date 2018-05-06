@@ -5,7 +5,7 @@ import styled from "styled-components"
 import Href from "./primitives/Href"
 import Link from "./primitives/Link"
 import FlashEntry from "./primitives/FlashEntry"
-import * as jobTypes from '../services/jobTypes'
+import * as jobTypes from "../services/jobTypes"
 
 const BUY = "BUY"
 const SELL = "SELL"
@@ -23,7 +23,7 @@ export default class JobShort extends React.Component {
   describe = job => {
     const ticker = t => t.exchange + ": " + t.base + "-" + t.counter
 
-    if (job.jobType === "OneCancelsOther") {
+    if (job.jobType === jobTypes.OCO) {
       return (
         "On " +
         ticker(job.tickTrigger) +
@@ -43,7 +43,7 @@ export default class JobShort extends React.Component {
             "."
           : "")
       )
-    } else if (job.jobType === "LimitOrderJob") {
+    } else if (job.jobType === jobTypes.LIMIT_ORDER) {
       return (
         "On " +
         ticker(job.tickTrigger) +
@@ -52,7 +52,10 @@ export default class JobShort extends React.Component {
         " " +
         job.bigDecimals.amount
       )
-    } else if (job.jobType === "SoftTrailingStop" && job.direction === SELL) {
+    } else if (
+      job.jobType === jobTypes.SOFT_TRAILING_STOP &&
+      job.direction === SELL
+    ) {
       return (
         "When " +
         ticker(job.tickTrigger) +
@@ -62,7 +65,10 @@ export default class JobShort extends React.Component {
         job.bigDecimals.limitPrice +
         " trailing"
       )
-    } else if (job.jobType === "SoftTrailingStop" && job.direction === BUY) {
+    } else if (
+      job.jobType === jobTypes.SOFT_TRAILING_STOP &&
+      job.direction === BUY
+    ) {
       return (
         "When " +
         ticker(job.tickTrigger) +
@@ -72,7 +78,7 @@ export default class JobShort extends React.Component {
         job.bigDecimals.limitPrice +
         " trailing"
       )
-    } else if (job.jobType === "Alert") {
+    } else if (job.jobType === jobTypes.ALERT) {
       return "Send alert"
     } else if (job.jobType === jobTypes.WATCH_JOB) {
       return (

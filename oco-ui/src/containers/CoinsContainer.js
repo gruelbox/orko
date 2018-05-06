@@ -5,11 +5,11 @@ import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 
 import * as coinsActions from "../store/coins/actions"
+import * as jobTypes from '../services/jobTypes'
 
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
 import Href from "../components/primitives/Href"
-
 import Price from "../components/primitives/Price"
 
 const textStyle = {
@@ -37,7 +37,7 @@ const CoinsCointainer = ({data, dispatch}) => (
       columns={[
         {
           id: "close",
-          Header: () => <Icon name="close" />,
+          Header: null,
           Cell: ({original}) => (
             <Href title="Remove coin" onClick={() => dispatch(coinsActions.remove(original))}>
               <Icon fitted name="close" />
@@ -83,7 +83,19 @@ const CoinsCointainer = ({data, dispatch}) => (
           style: numberStyle,
           resizable: true,
           minWidth: 50
-        }
+        },
+        {
+          id: "alert",
+          Header: <Icon fitted name="bell outline" />,
+          Cell: ({original}) => (
+            <Icon color={original.hasAlert ? "red" : undefined} fitted name={original.hasAlert ? "bell" : "bell outline"} />
+          ),
+          headerStyle: textStyle,
+          style: textStyle,
+          width: 32,
+          sortable: false,
+          resizable: false
+        },
       ]}
       showPagination={false}
       resizable={false}
@@ -94,10 +106,19 @@ const CoinsCointainer = ({data, dispatch}) => (
 )
 
 function mapStateToProps(state) {
+  const alertJobs =
+    state.job.jobs
+      ? state.job.jobs.filter(
+          job =>
+            job.jobType === jobTypes.OCO &&
+            (job.high.job.jobType === jobTypes.ALERT || job.low.job.jobType === jobTypes.ALERT)
+        )
+      : []
   return {
     data: state.coins.coins.map(coin => ({
       ...coin,
-      ticker: state.ticker.coins[coin.key]
+      ticker: state.ticker.coins[coin.key],
+      hasAlert: !!alertJobs.find(job => job.tickTrigger.exchange === coin.exchange && job.tickTrigger.base === coin.base && job.tickTrigger.counter === coin.counter)
     }))
   }
 }

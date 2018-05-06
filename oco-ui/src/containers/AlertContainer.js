@@ -7,6 +7,7 @@ import Alert from "../components/Alert"
 
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
+import * as jobTypes from "../services/jobTypes"
 
 class AlertContainer extends React.Component {
   constructor(props) {
@@ -53,14 +54,14 @@ class AlertContainer extends React.Component {
     }
 
     return {
-      jobType: "OneCancelsOther",
+      jobType: jobTypes.OCO,
       tickTrigger: tickTrigger,
       verbose: false,
       low: lowPriceValid
         ? {
             thresholdAsString: String(this.state.job.lowPrice),
             job: {
-              jobType: "Alert",
+              jobType: jobTypes.ALERT,
               message:
                 "Price of " +
                 this.props.coin.name +

@@ -72,7 +72,7 @@ const Orders = props => (
       },
       {
         id: "watch",
-        Header: () => null,
+        Header: <Icon fitted name="eye" />,
         Cell: ({ original }) => (
           <FlashEntry>
             <Href onClick={() => props.onWatch(original.id, original.watchJob)} title={original.watchJob ? "Watched" : "Not watched"}>

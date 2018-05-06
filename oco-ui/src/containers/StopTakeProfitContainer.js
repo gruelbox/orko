@@ -6,6 +6,7 @@ import StopTakeProfit from "../components/StopTakeProfit"
 
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
+import * as jobTypes from '../services/jobTypes'
 
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {
@@ -48,12 +49,12 @@ class StopTakeProfitContainer extends React.Component {
       base: this.props.coin.base
     }
     return {
-      jobType: "OneCancelsOther",
+      jobType: jobTypes.OCO,
       tickTrigger: tickTrigger,
       low: this.state.job.lowPrice ? {
         thresholdAsString: this.state.job.lowPrice,
         job: {
-          jobType: "LimitOrderJob",
+          jobType: jobTypes.LIMIT_ORDER,
           direction: this.state.job.direction,
           track: this.state.job.track,
           tickTrigger: tickTrigger,
@@ -66,7 +67,7 @@ class StopTakeProfitContainer extends React.Component {
       high: this.state.job.highPrice ? {
         thresholdAsString: this.state.job.highPrice,
         job: {
-          jobType: "LimitOrderJob",
+          jobType: jobTypes.LIMIT_ORDER,
           direction: this.state.job.direction,
           track: this.state.job.track,
           tickTrigger: tickTrigger,

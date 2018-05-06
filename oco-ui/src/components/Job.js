@@ -11,7 +11,7 @@ const SELL = "SELL"
 export default class Job extends Component {
   render() {
     const job = this.props.job
-    if (job.jobType === "OneCancelsOther") {
+    if (job.jobType === jobTypes.OCO) {
       return (
         <JobStages>
           <JobStage>
@@ -37,7 +37,7 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === "LimitOrderJob") {
+    } else if (job.jobType === jobTypes.LIMIT_ORDER) {
       return (
         <JobStages>
           <JobStage>
@@ -49,7 +49,7 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === "SoftTrailingStop" && job.direction === SELL) {
+    } else if (job.jobType === jobTypes.SOFT_TRAILING_STOP && job.direction === SELL) {
       return (
         <JobStages>
           <JobStage>
@@ -83,7 +83,7 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === "SoftTrailingStop" && job.direction === BUY) {
+    } else if (job.jobType === jobTypes.SOFT_TRAILING_STOP && job.direction === BUY) {
       return (
         <JobStages>
           <JobStage>
@@ -116,7 +116,7 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === "Alert") {
+    } else if (job.jobType === jobTypes.ALERT) {
       return (
         <JobStages>
           <JobStage>
