@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.job.LimitOrderJob;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.job.OrderStateNotifier;
 import com.grahamcrockford.oco.job.PumpChecker;
 import com.grahamcrockford.oco.job.SoftTrailingStop;
@@ -50,12 +51,14 @@ public class JobResource implements WebResource {
   private final ExchangeService exchanges;
   private final JobSubmitter jobSubmitter;
   private final JobAccess jobAccess;
+  private final NotificationService notificationService;
 
   @Inject
-  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter, ExchangeService exchanges) {
+  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter, ExchangeService exchanges, NotificationService notificationService) {
     this.jobAccess = jobAccess;
     this.jobSubmitter = jobSubmitter;
     this.exchanges = exchanges;
+    this.notificationService = notificationService;
   }
 
   @GET
@@ -69,7 +72,9 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public Job put(Job job) throws AuthenticationException {
-    return jobSubmitter.submitNewUnchecked(job);
+    Job created = jobSubmitter.submitNewUnchecked(job);
+    notificationService.info("Created job " + created.id());
+    return created;
   }
 
   @DELETE
@@ -97,6 +102,7 @@ public class JobResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
     jobAccess.delete(id);
+    notificationService.info("Deleted job " + id);
   }
 
   @PUT

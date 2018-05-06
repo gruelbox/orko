@@ -1,6 +1,7 @@
 import React, { Component } from "react"
 import { Icon } from "semantic-ui-react"
 
+import * as jobTypes from '../services/jobTypes'
 import JobStage from "./primitives/JobStage"
 import JobStages from "./primitives/JobStages"
 
@@ -123,7 +124,7 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === "OrderStateNotifier") {
+    } else if (job.jobType === jobTypes.WATCH_JOB) {
       return (
         <JobStages>
           <JobStage>

@@ -12,6 +12,8 @@ import Loading from "../components/primitives/Loading"
 import FlashEntry from "../components/primitives/FlashEntry"
 
 import * as coinActions from "../store/coin/actions"
+import * as jobActions from "../store/job/actions"
+import * as jobTypes from '../services/jobTypes'
 
 const TICK_TIME = 10000
 
@@ -55,26 +57,28 @@ const Orders = props => (
         Header: () => null,
         Cell: ({ original }) => (
           <FlashEntry>
-            <Href onClick={() => props.onCancel(original.id, original.type)}>
-              <Icon name="close" />
+            <Href onClick={() => props.onCancel(original.id, original.type)} title="Cancel order">
+              <Icon fitted name="close" />
             </Href>
           </FlashEntry>
         ),
         headerStyle: textStyle,
         style: textStyle,
-        width: 35
+        width: 32
       },
       {
         id: "watch",
         Header: () => null,
         Cell: ({ original }) => (
           <FlashEntry>
-            {original.watched ? <Icon name="eye" /> : null}
+            <Href onClick={() => props.onWatch(original.id, original.watchJob)} title={original.watchJob ? "Watched" : "Not watched"}>
+              <Icon fitted name={original.watchJob ? "eye" : "circle outline"} />
+            </Href>
           </FlashEntry>
         ),
         headerStyle: textStyle,
         style: textStyle,
-        width: 35
+        width: 32
       },
       {
         id: "runningAt",
@@ -169,6 +173,14 @@ class OpenOrdersContainer extends React.Component {
     this.props.dispatch(coinActions.cancelOrder(this.props.coin, id, orderType))
   }
 
+  onWatch = (id, watchJob) => {
+    if (watchJob) {
+      this.props.dispatch(jobActions.deleteJob(watchJob))
+    } else {
+      this.props.dispatch(jobActions.submitWatchJob(this.props.coin, id))
+    }
+  }
+
   componentDidMount() {
     this.tick()
     this.interval = setInterval(this.tick, TICK_TIME)
@@ -200,7 +212,7 @@ class OpenOrdersContainer extends React.Component {
     ) : this.props.orders.length === 0 ? (
       <NoOrders />
     ) : (
-      <Orders orders={this.props.orders} onCancel={this.onCancel} />
+      <Orders orders={this.props.orders} onCancel={this.onCancel} onWatch={this.onWatch} />
     )
 
     return (
@@ -216,7 +228,7 @@ function mapStateToProps(state, props) {
     state.job.jobs && props.coin
       ? state.job.jobs.filter(
           job =>
-            job.jobType === "OrderStateNotifier" &&
+            job.jobType === jobTypes.WATCH_JOB &&
             job.tickTrigger.exchange === props.coin.exchange &&
             job.tickTrigger.base === props.coin.base &&
             job.tickTrigger.counter === props.coin.counter
@@ -225,8 +237,9 @@ function mapStateToProps(state, props) {
   return {
     orders: state.coin.orders
       ? state.coin.orders.allOpenOrders.map(order => {
-          if (notifierJobs.find(job => job.orderId === order.id)) {
-            return { ...order, watched: true }
+          const watchJob = notifierJobs.find(job => job.orderId === order.id)
+          if (watchJob) {
+            return { ...order, watchJob }
           } else {
             return order
           }

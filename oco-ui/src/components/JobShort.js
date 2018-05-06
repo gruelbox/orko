@@ -5,6 +5,7 @@ import styled from "styled-components"
 import Href from "./primitives/Href"
 import Link from "./primitives/Link"
 import FlashEntry from "./primitives/FlashEntry"
+import * as jobTypes from '../services/jobTypes'
 
 const BUY = "BUY"
 const SELL = "SELL"
@@ -73,7 +74,7 @@ export default class JobShort extends React.Component {
       )
     } else if (job.jobType === "Alert") {
       return "Send alert"
-    } else if (job.jobType === "OrderStateNotifier") {
+    } else if (job.jobType === jobTypes.WATCH_JOB) {
       return (
         "Watch order " +
         job.orderId +
