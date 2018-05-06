@@ -66,7 +66,9 @@ const Orders = props => (
         ),
         headerStyle: textStyle,
         style: textStyle,
-        width: 32
+        width: 32,
+        sortable: false,
+        resizable: false
       },
       {
         id: "watch",
@@ -80,7 +82,9 @@ const Orders = props => (
         ),
         headerStyle: textStyle,
         style: textStyle,
-        width: 32
+        width: 32,
+        sortable: false,
+        resizable: false
       },
       {
         id: "runningAt",
@@ -100,7 +104,8 @@ const Orders = props => (
         headerStyle: textStyle,
         style: textStyle,
         resizable: true,
-        width: 130
+        width: 130,
+        minWidth: 50
       },
       {
         id: "orderType",
@@ -119,7 +124,8 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80
+        width: 80,
+        minWidth: 50
       },
       {
         id: "stopPrice",
@@ -130,7 +136,8 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80
+        width: 80,
+        minWidth: 50
       },
       {
         Header: "Amount",
@@ -140,7 +147,8 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80
+        width: 80,
+        minWidth: 50
       },
       {
         Header: "Filled",
@@ -150,7 +158,8 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80
+        width: 80,
+        minWidth: 50
       }
     ]}
     showPagination={false}

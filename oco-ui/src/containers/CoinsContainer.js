@@ -40,22 +40,25 @@ const CoinsCointainer = ({data, dispatch}) => (
           Header: () => <Icon name="close" />,
           Cell: ({original}) => (
             <Href title="Remove coin" onClick={() => dispatch(coinsActions.remove(original))}>
-              <Icon name="close" />
+              <Icon fitted name="close" />
             </Href>
           ),
           headerStyle: textStyle,
           style: textStyle,
-          width: 36
+          width: 32,
+          sortable: false,
+          resizable: false
         },
         {
-          id: "exxhange",
+          id: "exchange",
           Header: "Exchange",
           Cell: ({original}) => (
             <Link to={"/coin/" + original.key}>{original.exchange}</Link>
           ),
           headerStyle: textStyle,
           style: textStyle,
-          resizable: true
+          resizable: true,
+          minWidth: 50
         },
         {
           id: "name",
@@ -65,7 +68,8 @@ const CoinsCointainer = ({data, dispatch}) => (
           ),
           headerStyle: textStyle,
           style: textStyle,
-          resizable: true
+          resizable: true,
+          minWidth: 50
         },
         {
           id: "price",
@@ -77,7 +81,8 @@ const CoinsCointainer = ({data, dispatch}) => (
           ),
           headerStyle: numberStyle,
           style: numberStyle,
-          resizable: true
+          resizable: true,
+          minWidth: 50
         }
       ]}
       showPagination={false}

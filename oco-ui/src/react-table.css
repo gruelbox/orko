@@ -28,9 +28,9 @@
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
   align-items: stretch;
-  width: 100%;
   border-collapse: collapse;
-  overflow: auto;
+  width: 100%;
+  overflow: visible;
 }
 .ReactTable .rt-thead {
   -webkit-box-flex: 1;
