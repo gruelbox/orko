@@ -5,7 +5,7 @@ import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 
 import * as coinsActions from "../store/coins/actions"
-import * as jobTypes from '../services/jobTypes'
+import * as jobTypes from "../services/jobTypes"
 
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
@@ -13,19 +13,24 @@ import Href from "../components/primitives/Href"
 import Price from "../components/primitives/Price"
 
 const textStyle = {
-  textAlign: "left",
+  textAlign: "left"
 }
 
 const numberStyle = {
-  textAlign: "right",
+  textAlign: "right"
 }
 
-const CoinsCointainer = ({data, dispatch}) => (
-  <Section id="coinList" heading="Coins" nopadding buttons={() => (
-    <Link to="/addCoin" color="heading">
-      <Icon name="add" />
-    </Link>
-  )}>
+const CoinsCointainer = ({ data, dispatch }) => (
+  <Section
+    id="coinList"
+    heading="Coins"
+    nopadding
+    buttons={() => (
+      <Link to="/addCoin" color="heading">
+        <Icon name="add" />
+      </Link>
+    )}
+  >
     <ReactTable
       data={data.asMutable()}
       defaultSorted={[
@@ -38,8 +43,11 @@ const CoinsCointainer = ({data, dispatch}) => (
         {
           id: "close",
           Header: null,
-          Cell: ({original}) => (
-            <Href title="Remove coin" onClick={() => dispatch(coinsActions.remove(original))}>
+          Cell: ({ original }) => (
+            <Href
+              title="Remove coin"
+              onClick={() => dispatch(coinsActions.remove(original))}
+            >
               <Icon fitted name="close" />
             </Href>
           ),
@@ -52,7 +60,7 @@ const CoinsCointainer = ({data, dispatch}) => (
         {
           id: "exchange",
           Header: "Exchange",
-          Cell: ({original}) => (
+          Cell: ({ original }) => (
             <Link to={"/coin/" + original.key}>{original.exchange}</Link>
           ),
           headerStyle: textStyle,
@@ -63,8 +71,10 @@ const CoinsCointainer = ({data, dispatch}) => (
         {
           id: "name",
           Header: "Name",
-          Cell: ({original}) => (
-            <Link to={"/coin/" + original.key}>{original.base + '/' + original.counter}</Link>
+          Cell: ({ original }) => (
+            <Link to={"/coin/" + original.key}>
+              {original.base + "/" + original.counter}
+            </Link>
           ),
           headerStyle: textStyle,
           style: textStyle,
@@ -74,10 +84,8 @@ const CoinsCointainer = ({data, dispatch}) => (
         {
           id: "price",
           Header: "Price",
-          Cell: ({original}) => (
-            <Price bare>
-              {original.ticker ? original.ticker.last : null}
-            </Price>
+          Cell: ({ original }) => (
+            <Price bare>{original.ticker ? original.ticker.last : null}</Price>
           ),
           headerStyle: numberStyle,
           style: numberStyle,
@@ -87,15 +95,19 @@ const CoinsCointainer = ({data, dispatch}) => (
         {
           id: "alert",
           Header: <Icon fitted name="bell outline" />,
-          Cell: ({original}) => (
-            <Icon color={original.hasAlert ? "red" : undefined} fitted name={original.hasAlert ? "bell" : "bell outline"} />
+          Cell: ({ original }) => (
+            <Icon
+              color={original.hasAlert ? "red" : undefined}
+              fitted
+              name={original.hasAlert ? "bell" : "bell outline"}
+            />
           ),
           headerStyle: textStyle,
           style: textStyle,
           width: 32,
           sortable: false,
           resizable: false
-        },
+        }
       ]}
       showPagination={false}
       resizable={false}
@@ -107,18 +119,24 @@ const CoinsCointainer = ({data, dispatch}) => (
 
 function mapStateToProps(state) {
   const alertJobs =
-    state.job.jobs
+    state.job && state.job.jobs
       ? state.job.jobs.filter(
           job =>
             job.jobType === jobTypes.OCO &&
-            (job.high.job.jobType === jobTypes.ALERT || job.low.job.jobType === jobTypes.ALERT)
+            ((job.high && job.high.job.jobType === jobTypes.ALERT) ||
+              (job.low && job.low.job.jobType === jobTypes.ALERT))
         )
       : []
   return {
     data: state.coins.coins.map(coin => ({
       ...coin,
       ticker: state.ticker.coins[coin.key],
-      hasAlert: !!alertJobs.find(job => job.tickTrigger.exchange === coin.exchange && job.tickTrigger.base === coin.base && job.tickTrigger.counter === coin.counter)
+      hasAlert: !!alertJobs.find(
+        job =>
+          job.tickTrigger.exchange === coin.exchange &&
+          job.tickTrigger.base === coin.base &&
+          job.tickTrigger.counter === coin.counter
+      )
     }))
   }
 }
