@@ -39,7 +39,7 @@ const CoinsCointainer = ({data, dispatch}) => (
           id: "close",
           Header: () => <Icon name="close" />,
           Cell: ({original}) => (
-            <Href onClick={() => dispatch(coinsActions.remove(original))}>
+            <Href title="Remove coin" onClick={() => dispatch(coinsActions.remove(original))}>
               <Icon name="close" />
             </Href>
           ),
@@ -48,10 +48,20 @@ const CoinsCointainer = ({data, dispatch}) => (
           width: 36
         },
         {
+          id: "exxhange",
+          Header: "Exchange",
+          Cell: ({original}) => (
+            <Link to={"/coin/" + original.key}>{original.exchange}</Link>
+          ),
+          headerStyle: textStyle,
+          style: textStyle,
+          resizable: true
+        },
+        {
           id: "name",
           Header: "Name",
           Cell: ({original}) => (
-            <Link to={"/coin/" + original.key}>{original.name}</Link>
+            <Link to={"/coin/" + original.key}>{original.base + '/' + original.counter}</Link>
           ),
           headerStyle: textStyle,
           style: textStyle,

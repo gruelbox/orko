@@ -94,7 +94,7 @@ export default class JobShort extends React.Component {
     return (
       <FlashEntry>
         <JobShortBox>
-          <Href onClick={this.props.onRemove}>
+          <Href title="Delete job" onClick={this.props.onRemove}>
             <Icon name="close" />
           </Href>
           <Link to={"/job/" + this.props.job.id}>
