@@ -93,7 +93,7 @@ const Orders = props => (
         headerStyle: textStyle,
         style: textStyle,
         resizable: true,
-        width: 70
+        minWidth: 50
       },
       {
         id: "createdDate",
@@ -104,8 +104,7 @@ const Orders = props => (
         headerStyle: textStyle,
         style: textStyle,
         resizable: true,
-        width: 130,
-        minWidth: 50
+        minWidth: 80
       },
       {
         id: "orderType",
@@ -116,7 +115,7 @@ const Orders = props => (
         headerStyle: textStyle,
         style: textStyle,
         resizable: true,
-        width: 50
+        minWidth: 50
       },
       {
         Header: "Limit",
@@ -124,7 +123,6 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80,
         minWidth: 50
       },
       {
@@ -136,7 +134,6 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80,
         minWidth: 50
       },
       {
@@ -147,7 +144,6 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80,
         minWidth: 50
       },
       {
@@ -158,7 +154,6 @@ const Orders = props => (
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
-        width: 80,
         minWidth: 50
       }
     ]}
