@@ -25,25 +25,22 @@ const NotificationsContainer = ({notifications, dispatch}) => (
       ]}
       columns={[
         {
-          id: "type",
-          Header: "Type",
+          id: "icon",
+          Header: null,
           Cell: ({original}) => (
             <FlashEntry>
-              <span>
-                {original.notificationType === "ERROR" ? <Icon name="warning sign"/> : <Icon name="info"/>}
-                {original.notificationType}
-              </span>
+              {original.notificationType === "ERROR" ? <Icon fitted name="warning sign"/> : <Icon fitted name="info"/>}
             </FlashEntry>
           ),
           headerStyle: textStyle,
           style: textStyle,
           resizable: true,
-          width: 75
+          width: 30
         },
         {
           id: "dateTime",
           Header: "Time",
-          Cell: ({original}) => (dateUtils.formatDate(original.dateTime)),
+          Cell: ({original}) => <FlashEntry content={dateUtils.formatDate(original.dateTime)} />,
           headerStyle: textStyle,
           style: textStyle,
           resizable: true,
