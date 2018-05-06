@@ -39,21 +39,21 @@ const formatDate = timestamp => {
 }
 
 const textStyle = {
-  textAlign: "left",
+  textAlign: "left"
 }
 
 const numberStyle = {
-  textAlign: "right",
+  textAlign: "right"
 }
 
 const Orders = props => (
   <ReactTable
-    data={props.orders.allOpenOrders}
+    data={props.orders}
     columns={[
       {
         id: "close",
-        Header: () => <Icon name="close" />,
-        Cell: ({original}) => (
+        Header: () => null,
+        Cell: ({ original }) => (
           <FlashEntry>
             <Href onClick={() => props.onCancel(original.id, original.type)}>
               <Icon name="close" />
@@ -62,53 +62,90 @@ const Orders = props => (
         ),
         headerStyle: textStyle,
         style: textStyle,
-        width: 36
+        width: 35
+      },
+      {
+        id: "watch",
+        Header: () => null,
+        Cell: ({ original }) => (
+          <FlashEntry>
+            {original.watched ? <Icon name="eye" /> : null}
+          </FlashEntry>
+        ),
+        headerStyle: textStyle,
+        style: textStyle,
+        width: 35
+      },
+      {
+        id: "runningAt",
+        Header: "Running",
+        Cell: ({ original }) => <FlashEntry content="Exchange" />,
+        headerStyle: textStyle,
+        style: textStyle,
+        resizable: true,
+        width: 70
       },
       {
         id: "createdDate",
         Header: "Created",
-        Cell: ({original}) => <FlashEntry content={formatDate(original.timestamp)}/>,
+        Cell: ({ original }) => (
+          <FlashEntry content={formatDate(original.timestamp)} />
+        ),
         headerStyle: textStyle,
         style: textStyle,
-        resizable: true
+        resizable: true,
+        width: 130
       },
       {
         id: "orderType",
-        Header: "Direction",
-        Cell: ({original}) => <FlashEntry content={original.type === "BID" ? "Buy" : "Sell"} />,
+        Header: "Type",
+        Cell: ({ original }) => (
+          <FlashEntry content={original.type === "BID" ? "Buy" : "Sell"} />
+        ),
         headerStyle: textStyle,
         style: textStyle,
-        resizable: true
+        resizable: true,
+        width: 50
       },
       {
         Header: "Limit",
-        Cell: ({original}) => <FlashEntry content={original.limitPrice} />,
+        Cell: ({ original }) => <FlashEntry content={original.limitPrice} />,
         headerStyle: numberStyle,
         style: numberStyle,
-        resizable: true
+        resizable: true,
+        width: 80
       },
       {
         id: "stopPrice",
         Header: "Trigger",
-        Cell: ({original}) => <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />,
+        Cell: ({ original }) => (
+          <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />
+        ),
         headerStyle: numberStyle,
         style: numberStyle,
-        resizable: true
+        resizable: true,
+        width: 80
       },
       {
         Header: "Amount",
-        Cell: ({original}) => <FlashEntry content={original.originalAmount} />,
+        Cell: ({ original }) => (
+          <FlashEntry content={original.originalAmount} />
+        ),
         headerStyle: numberStyle,
         style: numberStyle,
-        resizable: true
+        resizable: true,
+        width: 80
       },
       {
         Header: "Filled",
-        Cell: ({original}) => <FlashEntry content={original.cumulativeAmount} />,
+        Cell: ({ original }) => (
+          <FlashEntry content={original.cumulativeAmount} />
+        ),
         headerStyle: numberStyle,
         style: numberStyle,
-        resizable: true
-      },
+        resizable: true,
+        width: 80
+      }
     ]}
     showPagination={false}
     resizable={false}
@@ -144,7 +181,7 @@ class OpenOrdersContainer extends React.Component {
   componentWillReceiveProps(nextProps) {
     const nextKey = nextProps.coin ? nextProps.coin.key : null
     const thisKey = this.props.coin ? this.props.coin.key : null
-    if (nextKey!== thisKey) {
+    if (nextKey !== thisKey) {
       this.setState({ loading: true }, () => this.tick())
     } else {
       this.setState({ loading: false })
@@ -153,14 +190,14 @@ class OpenOrdersContainer extends React.Component {
 
   render() {
     var component = this.state.loading ? (
-      <Loading p={2}/>
+      <Loading p={2} />
     ) : !this.props.coin ? (
       <NoCoin />
     ) : this.props.ordersUnavailable ? (
       <NoData coin={this.props.coin} />
     ) : !this.props.orders ? (
       <Loading />
-    ) : this.props.orders.allOpenOrders.length === 0 ? (
+    ) : this.props.orders.length === 0 ? (
       <NoOrders />
     ) : (
       <Orders orders={this.props.orders} onCancel={this.onCancel} />
@@ -174,9 +211,27 @@ class OpenOrdersContainer extends React.Component {
   }
 }
 
-function mapStateToProps(state) {
+function mapStateToProps(state, props) {
+  const notifierJobs =
+    state.job.jobs && props.coin
+      ? state.job.jobs.filter(
+          job =>
+            job.jobType === "OrderStateNotifier" &&
+            job.tickTrigger.exchange === props.coin.exchange &&
+            job.tickTrigger.base === props.coin.base &&
+            job.tickTrigger.counter === props.coin.counter
+        )
+      : []
   return {
-    orders: state.coin.orders,
+    orders: state.coin.orders
+      ? state.coin.orders.allOpenOrders.map(order => {
+          if (notifierJobs.find(job => job.orderId === order.id)) {
+            return { ...order, watched: true }
+          } else {
+            return order
+          }
+        })
+      : null,
     ordersUnavailable: state.coin.ordersUnavailable
   }
 }
