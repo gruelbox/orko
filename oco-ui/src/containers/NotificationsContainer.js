@@ -1,5 +1,8 @@
 import React from "react"
 import { connect } from "react-redux"
+import Immutable from 'seamless-immutable'
+
+import * as dateUtils from '../util/dateUtils'
 
 import ReactTable from "react-table"
 import Section from "../components/primitives/Section"
@@ -13,7 +16,13 @@ const textStyle = {
 const NotificationsContainer = ({notifications, dispatch}) => (
   <Section id="notifications" heading="Notifications" nopadding>
     <ReactTable
-      data={notifications}
+      data={Immutable.asMutable(notifications)}
+      defaultSorted={[
+        {
+          id: "dateTime",
+          desc: false
+        }
+      ]}
       columns={[
         {
           id: "type",
@@ -30,6 +39,15 @@ const NotificationsContainer = ({notifications, dispatch}) => (
           style: textStyle,
           resizable: true,
           width: 75
+        },
+        {
+          id: "dateTime",
+          Header: "Time",
+          Cell: ({original}) => (dateUtils.formatDate(original.dateTime)),
+          headerStyle: textStyle,
+          style: textStyle,
+          resizable: true,
+          width: 130
         },
         {
           id: "message",
@@ -50,7 +68,7 @@ const NotificationsContainer = ({notifications, dispatch}) => (
 
 function mapStateToProps(state) {
   return {
-    notifications: state.notifications.notifications.asMutable().reverse()
+    notifications: state.notifications.notifications
   }
 }
 

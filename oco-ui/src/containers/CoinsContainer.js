@@ -27,7 +27,13 @@ const CoinsCointainer = ({data, dispatch}) => (
     </Link>
   )}>
     <ReactTable
-      data={data}
+      data={data.asMutable()}
+      defaultSorted={[
+        {
+          id: "name",
+          desc: false
+        }
+      ]}
       columns={[
         {
           id: "close",

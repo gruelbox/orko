@@ -14,6 +14,7 @@ import FlashEntry from "../components/primitives/FlashEntry"
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from '../services/jobTypes'
+import * as dateUtils from '../util/dateUtils'
 
 const TICK_TIME = 10000
 
@@ -35,11 +36,6 @@ const NoOrders = props => (
   </Panel>
 )
 
-const formatDate = timestamp => {
-  var d = new Date(timestamp)
-  return d.toLocaleDateString() + " " + d.toLocaleTimeString()
-}
-
 const textStyle = {
   textAlign: "left"
 }
@@ -50,7 +46,13 @@ const numberStyle = {
 
 const Orders = props => (
   <ReactTable
-    data={props.orders}
+    data={props.orders.asMutable()}
+    defaultSorted={[
+      {
+        id: "createdDate",
+        desc: false
+      }
+    ]}
     columns={[
       {
         id: "close",
@@ -93,7 +95,7 @@ const Orders = props => (
         id: "createdDate",
         Header: "Created",
         Cell: ({ original }) => (
-          <FlashEntry content={formatDate(original.timestamp)} />
+          <FlashEntry content={dateUtils.formatDate(original.timestamp)} />
         ),
         headerStyle: textStyle,
         style: textStyle,

@@ -20,7 +20,8 @@ export default function reduce(state = initialState, action = {}) {
     case types.ADD:
       console.debug(action.type, action)
       notify("Server message", action.notification.message)
-      var newArr = state.notifications.concat([action.notification])
+      const notification = Immutable.set(Immutable(action.notification), "dateTime", new Date())
+      var newArr = state.notifications.concat([notification])
       if (state.notifications.length > MAX_ITEMS) {
         newArr = newArr.slice(1)
       }
