@@ -76,6 +76,10 @@ const theme = {
 }
 
 const globalCss = `
+    body {
+      color: ${theme.colors.fore};
+    }
+
     i {
       color: inherit !important;
     }
@@ -130,7 +134,6 @@ const globalCss = `
     }
     .ReactTable * {
       box-sizing: border-box;
-      color: #aaa;
       font-size: 12px;
     }
     .ReactTable .rt-table {

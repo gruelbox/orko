@@ -8,6 +8,7 @@ import ReactTable from "react-table"
 import Section from "../components/primitives/Section"
 import FlashEntry from "../components/primitives/FlashEntry"
 import { Icon } from "semantic-ui-react"
+import theme from "../theme"
 
 const textStyle = {
   textAlign: "left",
@@ -23,6 +24,11 @@ const NotificationsContainer = ({notifications, dispatch}) => (
           desc: false
         }
       ]}
+      getTrProps={(state, rowInfo, column) => ({
+        style: {
+          color: rowInfo.original.notificationType === "ERROR" ? theme.colors.alert : undefined
+        }
+      })}
       columns={[
         {
           id: "icon",
@@ -35,7 +41,7 @@ const NotificationsContainer = ({notifications, dispatch}) => (
           headerStyle: textStyle,
           style: textStyle,
           resizable: true,
-          width: 30
+          width: 32
         },
         {
           id: "dateTime",

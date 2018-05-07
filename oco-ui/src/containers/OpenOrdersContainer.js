@@ -10,12 +10,13 @@ import Panel from "../components/primitives/Panel"
 import Href from "../components/primitives/Href"
 import Loading from "../components/primitives/Loading"
 import FlashEntry from "../components/primitives/FlashEntry"
-import Span from "../components/primitives/Span"
 
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import * as dateUtils from "../util/dateUtils"
+
+import theme from "../theme"
 
 const TICK_TIME = 10000
 
@@ -37,10 +38,6 @@ const NoOrders = props => (
   </Panel>
 )
 
-const Directional = ({direction, children}) => <Span color={direction === "BID" ? "buy" : "sell"}>{children}</Span>
-
-const DirectionalFlash = ({direction, content, children}) => <FlashEntry><Directional direction={direction}>{children}{content}</Directional></FlashEntry>
-
 const textStyle = {
   textAlign: "left"
 }
@@ -60,6 +57,11 @@ const Orders = props => (
         desc: false
       }
     ]}
+    getTrProps={(state, rowInfo, column) => ({
+      style: {
+        color: rowInfo.original.type === "BID" ? theme.colors.buy : theme.colors.sell
+      }
+    })}
     columns={[
       {
         id: "close",
@@ -82,18 +84,10 @@ const Orders = props => (
       },
       {
         id: "orderType",
-        Header: null,
+        Header: <Icon fitted name="sort" title="Direction"/>,
         Cell: ({ original }) => (
           <FlashEntry>
-            {original.type === "BID" ? (
-              <Span color="buy" title="Buy">
-                <Icon fitted name="arrow up" />
-              </Span>
-            ) : (
-              <Span color="sell" title="Sell">
-                <Icon fitted name="arrow down" />
-              </Span>
-            )}
+            <Icon fitted name={original.type === "BID" ? "arrow up" : "arrow down"} title={original.type === "BID" ? "Buy" : "Sell"}/>
           </FlashEntry>
         ),
         headerStyle: textStyle,
@@ -103,18 +97,22 @@ const Orders = props => (
       },
       {
         id: "runningAt",
-        Header: "Running",
-        Cell: ({ original }) => <DirectionalFlash direction={original.type} content="Exchange" />,
+        Header: "At",
+        Cell: ({ original }) => (
+          <FlashEntry>
+            <Icon fitted name="server" title="On exchange. Will execute immediately but locks up the balance."/>
+          </FlashEntry>
+        ),
         headerStyle: textStyle,
         style: textStyle,
         resizable: true,
-        minWidth: 50
+        width: 32
       },
       {
         id: "createdDate",
         Header: "Created",
         Cell: ({ original }) => (
-          <DirectionalFlash direction={original.type} content={dateUtils.formatDate(original.timestamp)} />
+          <FlashEntry content={dateUtils.formatDate(original.timestamp)} />
         ),
         headerStyle: textStyle,
         style: textStyle,
@@ -123,7 +121,7 @@ const Orders = props => (
       },
       {
         Header: "Limit",
-        Cell: ({ original }) => <DirectionalFlash direction={original.type} content={original.limitPrice} />,
+        Cell: ({ original }) => <FlashEntry content={original.limitPrice} />,
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
@@ -133,7 +131,7 @@ const Orders = props => (
         id: "stopPrice",
         Header: "Trigger",
         Cell: ({ original }) => (
-          <DirectionalFlash direction={original.type} content={original.stopPrice ? original.stopPrice : "-"} />
+          <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />
         ),
         headerStyle: numberStyle,
         style: numberStyle,
@@ -143,7 +141,7 @@ const Orders = props => (
       {
         Header: "Amount",
         Cell: ({ original }) => (
-          <DirectionalFlash direction={original.type} content={original.originalAmount} />
+          <FlashEntry content={original.originalAmount} />
         ),
         headerStyle: numberStyle,
         style: numberStyle,
@@ -153,7 +151,7 @@ const Orders = props => (
       {
         Header: "Filled",
         Cell: ({ original }) => (
-          <DirectionalFlash direction={original.type} content={original.cumulativeAmount} />
+          <FlashEntry content={original.cumulativeAmount} />
         ),
         headerStyle: numberStyle,
         style: numberStyle,
