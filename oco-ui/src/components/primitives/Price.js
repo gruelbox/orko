@@ -128,7 +128,7 @@ class Price extends React.Component {
       return (
         <Container m={2}>
           <PriceKey
-            color={this.props.nameColor ? this.props.nameColor : undefined}
+            color={this.props.nameColor ? this.props.nameColor : "fore"}
             fontSize={1}
           >
             {this.props.name}{" "}
