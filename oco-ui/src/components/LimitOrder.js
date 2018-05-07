@@ -14,10 +14,10 @@ const RadioInput = Button.extend`
     0
     ${props => props.right ? "2px" : "0"};
   border-radius:
-    ${props => props.left ? "3px" : "0"}
-    ${props => props.right ? "3px" : "0"}
-    ${props => props.right ? "3px" : "0"}
-    ${props => props.left ? "3px" : "0"};
+    ${props => props.left ? props.theme.radii[2] + "px" : "0"}
+    ${props => props.right ? props.theme.radii[2] + "px" : "0"}
+    ${props => props.right ? props.theme.radii[2] + "px" : "0"}
+    ${props => props.left ? props.theme.radii[2] + "px" : "0"};
   width: 58px;
 `
 

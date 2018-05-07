@@ -3,6 +3,10 @@ import styled from "styled-components"
 
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
+import Tab from "./primitives/Tab"
+import Span from "./primitives/Span"
+
+const CHART_INTERVAL_KEY = "Chart.interval"
 
 const CONTAINER_ID = "tradingview-widget-container"
 
@@ -21,7 +25,7 @@ const ChartInner = styled.div`
 
 class ChartContent extends Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
-    return this.props.coin.key !== nextProps.coin.key
+    return this.props.coin.key !== nextProps.coin.key || this.props.interval !== nextProps.interval
   }
 
   componentDidMount = () => {
@@ -41,7 +45,7 @@ class ChartContent extends Component {
     new window.TradingView.widget({
       autosize: true,
       symbol: this.symbol(),
-      interval: "240",
+      interval: this.props.interval,
       timezone: "UTC",
       theme: "Dark",
       style: "1",
@@ -75,41 +79,80 @@ class ChartContent extends Component {
   }
 }
 
-const Chart = ({ coin }) => {
-  if (!coin) {
+class Chart extends React.Component {
+  constructor(props) {
+    super(props)
+    var interval = localStorage.getItem(CHART_INTERVAL_KEY)
+    if (!interval) {
+      interval = "240"
+    }
+    this.state = { interval }
+  }
+
+  render() {
+    const coin = this.props.coin
+
+    if (!coin) {
+      return (
+        <Section id="chart" heading="Chart">
+          <Para>No coin selected</Para>
+        </Section>
+      )
+    }
+
+    if (coin.exchange === "kucoin") {
+      return (
+        <Section id="chart" heading="Chart">
+          <Para>TradingView does not support charts for this exchange.</Para>
+          <Para>
+            <a
+              target="_blank"
+              href={
+                "https://www.kucoin.com/#/trade.pro/" +
+                coin.base +
+                "-" +
+                coin.counter
+              }
+            >
+              Open in {coin.exchange}
+            </a>
+          </Para>
+        </Section>
+      )
+    }
+
+    const Interval = ({ name, code }) => (
+      <Tab
+        selected={this.state.interval === code}
+        onClick={() => {
+          localStorage.setItem(CHART_INTERVAL_KEY, code)
+          this.setState({ interval: code })
+        }}
+      >
+        {name}
+      </Tab>
+    )
+
     return (
-      <Section id="chart" heading="Chart">
-        <Para>No coin selected</Para>
+      <Section
+        id="chart"
+        heading="Chart"
+        expand
+        buttons={() => (
+          <span>
+            <Span>Default interval</Span>
+            <Interval code="W" name="W" />
+            <Interval code="D" name="D" />
+            <Interval code="240" name="4h" />
+            <Interval code="60" name="1h" />
+            <Interval code="15" name="15m" />
+          </span>
+        )}
+      >
+        <ChartContent coin={coin} interval={this.state.interval} />
       </Section>
     )
   }
-
-  if (coin.exchange === "kucoin") {
-    return (
-      <Section id="chart" heading="Chart">
-        <Para>TradingView does not support charts for this exchange.</Para>
-        <Para>
-          <a
-            target="_blank"
-            href={
-              "https://www.kucoin.com/#/trade.pro/" +
-              coin.base +
-              "-" +
-              coin.counter
-            }
-          >
-            Open in {coin.exchange}
-          </a>
-        </Para>
-      </Section>
-    )
-  }
-
-  return (
-    <Section id="chart" heading="Chart" expand>
-      <ChartContent coin={coin} />
-    </Section>
-  )
 }
 
 export default Chart

@@ -16,6 +16,7 @@ const RawInput = styled.input.attrs({
   outline: none;
   display: block;
   border: 1px solid ${props => props.theme.colors.inputBorder};
+  border-radius: ${props => props.theme.radii[1] + "px"};
   box-shadow: ${props => props.error
     ? "0 0 4px red"
     : "none"};

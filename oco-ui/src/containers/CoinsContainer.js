@@ -98,6 +98,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
           Cell: ({ original }) => (
             <Icon
               fitted
+              title={original.hasAlert ? "Alerts exist for this coin" : "No alerts exist for this coin"}
               name={original.hasAlert ? "bell" : "bell outline"}
             />
           ),

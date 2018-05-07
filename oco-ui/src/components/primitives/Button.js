@@ -16,7 +16,7 @@ const Button = styled.button.attrs({
   text-transform: uppercase;
   font-weight: bold;
   border: 1px solid ${buttonColor};
-  border-radius: ${props => props.theme.radii[1] + "px"};
+  border-radius: ${props => props.theme.radii[2] + "px"};
   background-color: ${buttonColor};
   &:hover {
     cursor: pointer;

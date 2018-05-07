@@ -41,7 +41,7 @@ const theme = {
 
     inputBorder: "#5C656C"
   },
-  radii: [0, 2, 4],
+  radii: [0, 1, 4],
   keyFrames: {
     flashGreen: props => keyframes`
       from {
@@ -76,6 +76,15 @@ const theme = {
 }
 
 const globalCss = `
+    a {
+      color: ${theme.colors.fore};
+      &:hover {
+        color: ${theme.colors.link};
+      }
+      > * {
+        color: inherit !important;
+      }
+    }
     body {
       color: ${theme.colors.fore};
     }
