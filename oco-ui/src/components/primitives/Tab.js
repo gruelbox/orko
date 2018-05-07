@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { space, padding, fontSize, color, fontWeight, fontFamily } from 'styled-system'
+import { space, padding, fontSize, color, fontWeight } from 'styled-system'
 
 
 const Tab = styled.button`
@@ -20,7 +20,6 @@ const Tab = styled.button`
   ${color}
   ${padding}
   ${fontSize}
-  ${fontFamily}
   ${fontWeight}
   ${space}
 `;

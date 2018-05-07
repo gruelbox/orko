@@ -1,7 +1,7 @@
 import React from "react"
 import { Icon } from "semantic-ui-react"
 import styled from "styled-components"
-import { fontSize, color, fontWeight, fontFamily, space } from "styled-system"
+import { fontSize, color, fontWeight, space } from "styled-system"
 import { isValidNumber } from "../../util/numberUtils"
 import Loading from "./Loading"
 
@@ -48,7 +48,6 @@ const PriceValue = styled.div`
   ${color}
   ${fontSize}
   ${fontWeight}
-  ${fontFamily}
   ${space}
 `
 
@@ -78,7 +77,6 @@ const BarePriceValue = styled.span.attrs({
   ${color}
   ${fontSize}
   ${fontWeight}
-  ${fontFamily}
   ${space}
 `
 

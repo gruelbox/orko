@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { fontSize, color, fontFamily, space } from "styled-system"
+import { fontSize, color, space } from "styled-system"
 import { darken, lighten } from "polished"
 
 const buttonColor = props =>
@@ -12,7 +12,6 @@ const Button = styled.button.attrs({
   p: 2,
   type: "button"
 })`
-  font-family: ${props => props.theme.fonts[0]};
   text-transform: uppercase;
   font-weight: bold;
   border: 1px solid ${buttonColor};
@@ -37,7 +36,6 @@ const Button = styled.button.attrs({
   ${color}
   ${fontSize}
   ${space}
-  ${fontFamily}
 `
 
 export default Button

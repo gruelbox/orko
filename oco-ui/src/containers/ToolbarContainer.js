@@ -4,7 +4,6 @@ import { connect } from "react-redux"
 import styled from "styled-components"
 import { space } from "styled-system"
 
-import { Toolbar } from "rebass"
 import { Icon } from "semantic-ui-react"
 import Link from "../components/primitives/Link"
 import Href from "../components/primitives/Href"
@@ -16,6 +15,10 @@ import * as authActions from "../store/auth/actions"
 
 const ToolbarBox = styled.div`
   background-color: ${props => props.theme.colors.backgrounds[2]};
+  display: flex;
+  padding: 0;
+  align-items: center;
+  height: 56px;
   ${space};
 `
 
@@ -52,7 +55,7 @@ const BackgroundErrors = ({ errors }) => {
 
 const HomeLink = () => (
   <Link
-    mr={2}
+    mx={2}
     color="heading"
     title="Home"
     fontSize={3}
@@ -94,7 +97,7 @@ const InvalidateLink = ({ onClick }) => (
     color="heading"
     fontSize={3}
     title="Invalidate whitelist"
-    ml={2}
+    mx={2}
     fontWeight="bold"
     onClick={onClick}
   >
@@ -143,31 +146,29 @@ const ToolbarContainer = props => {
   }
   return (
     <ToolbarBox p={0}>
-      <Toolbar p={0} m={0}>
-        <HomeLink />
-        <TickerSocketState connected={props.connected} />
-        <BackgroundErrors errors={props.errors} />
-        <Coin coin={props.coin} />
-        <RemainingSpace mx={2}>
-          <Ticker
-            coin={props.coin}
-            ticker={props.coin ? props.tickers[props.coin.key] : null}
-            onClickNumber={number => {
-              if (props.updateFocusedField) {
-                props.updateFocusedField(number)
-              }
-            }}
-          />
-        </RemainingSpace>
-        <ResetLayout onClick={props.onResetLayout} />
-        <SignOutLink
-          userName={props.userName}
-          onClick={() => props.dispatch(authActions.logout())}
+      <HomeLink />
+      <TickerSocketState connected={props.connected} />
+      <BackgroundErrors errors={props.errors} />
+      <Coin coin={props.coin} />
+      <RemainingSpace mx={2}>
+        <Ticker
+          coin={props.coin}
+          ticker={props.coin ? props.tickers[props.coin.key] : null}
+          onClickNumber={number => {
+            if (props.updateFocusedField) {
+              props.updateFocusedField(number)
+            }
+          }}
         />
-        <InvalidateLink
-          onClick={() => props.dispatch(authActions.clearWhitelist())}
-        />
-      </Toolbar>
+      </RemainingSpace>
+      <ResetLayout onClick={props.onResetLayout} />
+      <SignOutLink
+        userName={props.userName}
+        onClick={() => props.dispatch(authActions.logout())}
+      />
+      <InvalidateLink
+        onClick={() => props.dispatch(authActions.clearWhitelist())}
+      />
     </ToolbarBox>
   )
 }

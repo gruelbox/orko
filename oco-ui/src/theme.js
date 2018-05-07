@@ -87,6 +87,7 @@ const globalCss = `
     }
     body {
       color: ${theme.colors.fore};
+      font-family: ${theme.fonts.sans}
     }
 
     i {

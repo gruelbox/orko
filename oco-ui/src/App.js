@@ -1,7 +1,5 @@
 import React, { Component } from "react"
 
-import { Provider as RebassProvider } from "rebass"
-
 import { ThemeProvider } from "styled-components"
 import theme from "./theme"
 
@@ -30,14 +28,14 @@ export default class App extends Component {
   render() {
     return (
       <ReduxProvider store={store}>
-        <RebassProvider>
+        <div>
           <ErrorContainer />
           <AuthContainer>
             <ThemeProvider theme={theme}>
               <Framework />
             </ThemeProvider>
           </AuthContainer>
-        </RebassProvider>
+        </div>
       </ReduxProvider>
     )
   }

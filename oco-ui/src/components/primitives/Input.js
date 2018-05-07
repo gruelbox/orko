@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { fontSize, padding, color, fontWeight, space, fontFamily } from 'styled-system';
+import { fontSize, padding, color, fontWeight, space } from 'styled-system';
 import { lighten } from 'polished'
 
 const RawInput = styled.input.attrs({
@@ -21,7 +21,6 @@ const RawInput = styled.input.attrs({
     ? "0 0 4px red"
     : "none"};
   background-color: ${props => props.theme.colors.inputBg};
-  font-family: ${props => props.theme.fonts[0]};
   &:focus {
     border: 1px solid ${props => lighten(0.2, props.theme.colors.inputBorder)};
   }
@@ -29,7 +28,6 @@ const RawInput = styled.input.attrs({
   ${color}
   ${fontSize}
   ${fontWeight}
-  ${fontFamily}
   ${space}
 `;
 
