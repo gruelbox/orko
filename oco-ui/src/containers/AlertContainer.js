@@ -8,6 +8,7 @@ import Alert from "../components/Alert"
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
+import { isValidNumber } from "../util/numberUtils"
 
 class AlertContainer extends React.Component {
   constructor(props) {
@@ -41,11 +42,10 @@ class AlertContainer extends React.Component {
   }
 
   createJob = () => {
-    const isValidNumber = val => !isNaN(val) && val !== "" && val > 0
     const highPriceValid =
-      this.state.job.highPrice && isValidNumber(this.state.job.highPrice)
+      this.state.job.highPrice && isValidNumber(this.state.job.highPrice) && this.state.job.highPrice > 0
     const lowPriceValid =
-      this.state.job.lowPrice && isValidNumber(this.state.job.lowPrice)
+      this.state.job.lowPrice && isValidNumber(this.state.job.lowPrice) && this.state.job.lowPrice > 0
 
     const tickTrigger = {
       exchange: this.props.coin.exchange,

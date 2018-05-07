@@ -3,8 +3,6 @@ import React from "react"
 import styled from "styled-components"
 import Price from "./primitives/Price"
 
-const EMPTY = "--"
-
 const Container = styled.div`
   display: flex;
   > div {
@@ -17,23 +15,23 @@ export const Ticker = props => {
   if (coin) {
     return (
       <Container>
-        <Price name="Bid" icon="chevron up" onClick={props.onClickNumber}>
-          {props.ticker ? props.ticker.bid : EMPTY}
+        <Price counter={coin.counter} name="Bid" nameColor="buy" icon="chevron up" onClick={props.onClickNumber}>
+          {props.ticker ? props.ticker.bid : undefined}
         </Price>
-        <Price name="Last" icon="circle outline" onClick={props.onClickNumber}>
-          {props.ticker ? props.ticker.last : EMPTY}
+        <Price counter={coin.counter} name="Last" icon="circle outline" onClick={props.onClickNumber}>
+          {props.ticker ? props.ticker.last : undefined}
         </Price>
-        <Price name="Ask" icon="chevron down" onClick={props.onClickNumber}>
-          {props.ticker ? props.ticker.ask : EMPTY}
+        <Price counter={coin.counter} name="Ask" nameColor="sell" icon="chevron down" onClick={props.onClickNumber}>
+          {props.ticker ? props.ticker.ask : undefined}
         </Price>
-        <Price name="Open" onClick={props.onClickNumber}>
-          {props.ticker ? props.ticker.open : EMPTY}
+        <Price counter={coin.counter} name="Open" onClick={props.onClickNumber}>
+          {props.ticker ? props.ticker.open : undefined}
         </Price>
-        <Price name="24h Low" onClick={props.onClickNumber}>
-          {props.ticker ? props.ticker.low : EMPTY}
+        <Price counter={coin.counter} name="24h Low" onClick={props.onClickNumber}>
+          {props.ticker ? props.ticker.low : undefined}
         </Price>
-        <Price name="24h High" onClick={props.onClickNumber}>
-          {props.ticker ? props.ticker.high : EMPTY}
+        <Price counter={coin.counter} name="24h High" onClick={props.onClickNumber}>
+          {props.ticker ? props.ticker.high : undefined}
         </Price>
       </Container>
     )

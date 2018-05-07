@@ -1,22 +1,25 @@
 import React from "react"
-
+import { Icon } from "semantic-ui-react"
 import styled from "styled-components"
-import { Icon } from 'semantic-ui-react';
 import { fontSize, color, fontWeight, fontFamily, space } from "styled-system"
+import { isValidNumber } from "../../util/numberUtils"
+import Loading from "./Loading"
 
 /**
- * Rounds a number to a specified number of decimals.
- * 
- * @param {*} value 
- * @param {*} decimals 
+ * Formatters for amounts in specific counter currencies.
  */
-function round(value, decimals) {
-  return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+const formatters = {
+  "BTC": x => (isValidNumber(x) ? Number(x).toFixed(8) : <Loading fitted />),
+  "ETH": x => (isValidNumber(x) ? Number(x).toFixed(7) : <Loading fitted />),
+  "USDT": x => (isValidNumber(x) ? Number(x).toFixed(2) : <Loading fitted />),
+  "USD": x => (isValidNumber(x) ? Number(x).toFixed(2) : <Loading fitted />),
+  "EUR": x => (isValidNumber(x) ? Number(x).toFixed(2) : <Loading fitted />),
+  "XXX": x => (isValidNumber(x) ? x : <Loading fitted />)
 }
 
 const PriceKey = styled.div.attrs({
   py: 0,
-  px: 1,
+  px: 1
 })`
   ${color}
   ${fontSize}
@@ -80,7 +83,7 @@ const BarePriceValue = styled.span.attrs({
 `
 
 const Container = styled.div`
-  ${space}
+  ${space};
 `
 
 class Price extends React.Component {
@@ -111,22 +114,33 @@ class Price extends React.Component {
   }
 
   render() {
+    var formatter = formatters[this.props.counter]
+      if (!formatter) {
+        formatter = formatters["XXX"]
+      }
     if (this.props.bare) {
       return (
         <BarePriceValue movement={this.state.movement} onClick={this.onClick}>
-          {this.props.children}
+          {formatter(this.props.children)}
         </BarePriceValue>
       )
     } else {
       return (
         <Container m={2}>
-          <PriceKey color="fore" fontSize={1}>{this.props.name} {this.props.icon ? <Icon name={this.props.icon}/> : ""}</PriceKey>
-          <PriceValue color="heading" fontSize={3} movement={this.state.movement} onClick={this.onClick}>
-            {this.props.children 
-              ? isNaN(this.props.children)
-                ? this.props.children
-                : round(this.props.children, 8)
-              : ""}
+          <PriceKey
+            color={this.props.nameColor ? this.props.nameColor : undefined}
+            fontSize={1}
+          >
+            {this.props.name}{" "}
+            {this.props.icon ? <Icon name={this.props.icon} /> : ""}
+          </PriceKey>
+          <PriceValue
+            color="heading"
+            fontSize={3}
+            movement={this.state.movement}
+            onClick={this.onClick}
+          >
+            {formatter(this.props.children)}
           </PriceValue>
         </Container>
       )

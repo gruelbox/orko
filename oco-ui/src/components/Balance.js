@@ -5,8 +5,6 @@ import Price from "./primitives/Price"
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
 
-const EMPTY = "--"
-
 const Container = styled.div`
   display: flex;
   justify-content: space-between;
@@ -17,33 +15,35 @@ export const Balance = props => {
 
   const noBalance =
     !props.balance || !props.coin || !props.balance[coin.base] || !props.balance[coin.counter]
-  var content = null
+  var content = undefined
   if (coin) {
     content = (
       <Container>
         <Price fontSize={1} name="Total" onClick={props.onClickNumber}>
-          {noBalance ? EMPTY : props.balance[coin.base].total}
+          {noBalance ? undefined : props.balance[coin.base].total}
         </Price>
         <Price fontSize={1} name="Available" onClick={props.onClickNumber}>
-          {noBalance ? EMPTY : props.balance[coin.base].available}
+          {noBalance ? undefined : props.balance[coin.base].available}
         </Price>
         <Price
           fontSize={1}
+          counter={coin.counter}
           name={coin.counter + " total"}
           onClick={props.onClickNumber}
         >
-          {noBalance ? EMPTY : props.balance[coin.counter].total}
+          {noBalance ? undefined : props.balance[coin.counter].total}
         </Price>
         <Price
           fontSize={1}
+          counter={coin.counter}
           name={coin.counter + " available"}
           onClick={props.onClickNumber}
         >
-          {noBalance ? EMPTY : props.balance[coin.counter].available}
+          {noBalance ? undefined : props.balance[coin.counter].available}
         </Price>
         <Price fontSize={1} name="Can buy" onClick={props.onClickNumber}>
           {noBalance || !props.ticker
-            ? EMPTY
+            ? undefined
             : props.balance[coin.counter].available / props.ticker.ask}
         </Price>
       </Container>

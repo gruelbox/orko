@@ -6,7 +6,8 @@ import LimitOrder from "../components/LimitOrder"
 
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
-import * as jobTypes from '../services/jobTypes'
+import * as jobTypes from "../services/jobTypes"
+import { isValidNumber } from "../util/numberUtils"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -64,11 +65,10 @@ class LimitOrderContainer extends React.Component {
   }
 
   render() {
-    const isValidNumber = val => !isNaN(val) && val !== "" && val > 0
     const limitPriceValid =
-      this.state.job.limitPrice && isValidNumber(this.state.job.limitPrice)
+      this.state.job.limitPrice && isValidNumber(this.state.job.limitPrice) && this.state.job.limitPrice > 0
     const amountValid =
-      this.state.job.amount && isValidNumber(this.state.job.amount)
+      this.state.job.amount && isValidNumber(this.state.job.amount) && this.state.job.amount > 0
 
     return (
       <LimitOrder

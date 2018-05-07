@@ -85,7 +85,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
           id: "price",
           Header: "Price",
           Cell: ({ original }) => (
-            <Price bare>{original.ticker ? original.ticker.last : null}</Price>
+            <Price counter={original.counter} bare>{original.ticker ? original.ticker.last : undefined}</Price>
           ),
           headerStyle: numberStyle,
           style: numberStyle,

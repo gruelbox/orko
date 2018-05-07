@@ -16,8 +16,6 @@ import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import * as dateUtils from "../util/dateUtils"
 
-import theme from "../theme"
-
 const TICK_TIME = 10000
 
 const NoCoin = props => (
@@ -48,7 +46,6 @@ const numberStyle = {
 
 const Orders = props => (
 
-
   <ReactTable
     data={props.orders.asMutable()}
     defaultSorted={[
@@ -58,9 +55,7 @@ const Orders = props => (
       }
     ]}
     getTrProps={(state, rowInfo, column) => ({
-      style: {
-        color: rowInfo.original.type === "BID" ? theme.colors.buy : theme.colors.sell
-      }
+      className: rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell"
     })}
     columns={[
       {
