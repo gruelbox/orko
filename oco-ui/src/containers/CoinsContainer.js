@@ -5,7 +5,8 @@ import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 
 import * as coinsActions from "../store/coins/actions"
-import * as jobTypes from "../services/jobTypes"
+import * as uiActions from "../store/ui/actions"
+import { isAlert } from "../util/jobUtils"
 
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
@@ -61,7 +62,9 @@ const CoinsCointainer = ({ data, dispatch }) => (
           id: "exchange",
           Header: "Exchange",
           Cell: ({ original }) => (
-            <Link to={"/coin/" + original.key} title="Open coin">{original.exchange}</Link>
+            <Link to={"/coin/" + original.key} title="Open coin">
+              {original.exchange}
+            </Link>
           ),
           headerStyle: textStyle,
           style: textStyle,
@@ -85,7 +88,9 @@ const CoinsCointainer = ({ data, dispatch }) => (
           id: "price",
           Header: "Price",
           Cell: ({ original }) => (
-            <Price counter={original.counter} bare>{original.ticker ? original.ticker.last : undefined}</Price>
+            <Price counter={original.counter} bare>
+              {original.ticker ? original.ticker.last : undefined}
+            </Price>
           ),
           headerStyle: numberStyle,
           style: numberStyle,
@@ -96,11 +101,15 @@ const CoinsCointainer = ({ data, dispatch }) => (
           id: "alert",
           Header: <Icon fitted name="bell outline" />,
           Cell: ({ original }) => (
-            <Icon
-              fitted
-              title={original.hasAlert ? "Alerts exist for this coin" : "No alerts exist for this coin"}
-              name={original.hasAlert ? "bell" : "bell outline"}
-            />
+            <Href
+              title="Manage alerts"
+              onClick={() => dispatch(uiActions.openAlerts(original))}
+            >
+              <Icon
+                fitted
+                name={original.hasAlert ? "bell" : "bell outline"}
+              />
+            </Href>
           ),
           headerStyle: textStyle,
           style: textStyle,
@@ -113,6 +122,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
       resizable={false}
       className="-striped"
       minRows={0}
+      noDataText="Add a coin by clicking +, above"
     />
   </Section>
 )
@@ -120,12 +130,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
 function mapStateToProps(state) {
   const alertJobs =
     state.job && state.job.jobs
-      ? state.job.jobs.filter(
-          job =>
-            job.jobType === jobTypes.OCO &&
-            ((job.high && job.high.job.jobType === jobTypes.ALERT) ||
-              (job.low && job.low.job.jobType === jobTypes.ALERT))
-        )
+      ? state.job.jobs.filter(job => isAlert(job))
       : []
   return {
     data: state.coins.coins.map(coin => ({

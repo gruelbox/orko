@@ -15,6 +15,7 @@ import OpenOrdersContainer from "./containers/OpenOrdersContainer"
 import TradingContainer from "./containers/TradingContainer"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
+import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import Chart from "./components/Chart"
 
 import WithCoinParameter from "./WithCoinParameter"
@@ -112,7 +113,7 @@ export default class Framework extends React.Component {
     const header = [
       <WithCoinParameter key="toolbar" component={Tools}/>,
       <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
-      <Route key="job" path="/job/:jobId" component={JobContainer} />
+      <Route key="job" path="/job/:jobId" component={JobContainer} />,
     ]
 
     const content = [
@@ -170,6 +171,7 @@ export default class Framework extends React.Component {
             >
               {content}
             </ResponsiveReactGridLayout>
+            <WithCoinParameter key="managealerts" component={ManageAlertsContainer}/>
           </div>
         </BrowserRouter>
       )

@@ -1,7 +1,8 @@
 import React from "react"
 import { connect } from "react-redux"
 import * as jobActions from "../store/job/actions"
-import * as jobTypes from '../services/jobTypes'
+import * as jobTypes from "../services/jobTypes"
+import * as jobUtils from "../util/jobUtils"
 
 import Section from "../components/primitives/Section"
 import Para from "../components/primitives/Para"
@@ -41,7 +42,7 @@ class JobsContainer extends React.Component {
   render() {
     const onRemove = this.onRemove
     const complexOnly = this.state.selected === "onlycomplex"
-    const show = job => !complexOnly || job.jobType !== jobTypes.WATCH_JOB
+    const show = job => !complexOnly || (job.jobType !== jobTypes.WATCH_JOB && !jobUtils.isAlert(job))
     const rawJobs = this.props.jobs.filter(job => show(job))
     var jobs
     if (this.state.loading) {

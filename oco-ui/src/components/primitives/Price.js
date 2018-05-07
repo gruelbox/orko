@@ -119,7 +119,7 @@ class Price extends React.Component {
     if (this.props.bare) {
       return (
         <BarePriceValue movement={this.state.movement} onClick={this.onClick}>
-          {formatter(this.props.children)}
+          {this.props.children === "--" ? "--" : formatter(this.props.children)}
         </BarePriceValue>
       )
     } else {
@@ -138,7 +138,7 @@ class Price extends React.Component {
             movement={this.state.movement}
             onClick={this.onClick}
           >
-            {formatter(this.props.children)}
+            {this.props.children === "--" ? "--" : formatter(this.props.children)}
           </PriceValue>
         </Container>
       )

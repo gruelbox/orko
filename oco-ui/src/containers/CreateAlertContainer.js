@@ -10,7 +10,8 @@ import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import { isValidNumber } from "../util/numberUtils"
 
-class AlertContainer extends React.Component {
+class CreateAlertContainer extends React.Component {
+
   constructor(props) {
     super(props)
     this.state = {
@@ -122,4 +123,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(AlertContainer)
+export default connect(mapStateToProps)(CreateAlertContainer)

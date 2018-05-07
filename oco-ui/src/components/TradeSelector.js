@@ -3,7 +3,7 @@ import Tab from "./primitives/Tab"
 import Panel from "./primitives/Panel"
 import Para from "./primitives/Para"
 import Section from "../components/primitives/Section"
-import AlertContainer from "../containers/AlertContainer"
+import CreateAlertContainer from "../containers/CreateAlertContainer"
 import LimitOrderContainer from "../containers/LimitOrderContainer"
 import StopTakeProfitContainer from "../containers/StopTakeProfitContainer"
 
@@ -70,7 +70,7 @@ export default class TradeSelector extends React.Component {
     } else {
       var panel = null
       if (this.state.selected === "alert") {
-        panel = <AlertContainer coin={coin} />
+        panel = <CreateAlertContainer coin={coin} />
       } else if (this.state.selected === "limit") {
         panel = <LimitOrderContainer coin={coin} />
       } else if (this.state.selected === "oco") {

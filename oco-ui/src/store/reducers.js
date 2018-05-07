@@ -7,6 +7,7 @@ import job from './job/reducer';
 import error from './error/reducer';
 import ticker from './ticker/reducer';
 import notifications from './notifications/reducer';
+import ui from './ui/reducer';
 
 export {
   auth,
@@ -17,5 +18,6 @@ export {
   job,
   error,
   ticker,
-  notifications
+  notifications,
+  ui
 };

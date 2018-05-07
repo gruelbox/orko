@@ -50,7 +50,7 @@ const Alert = props => {
         onChange={e => onChange("message", e)}
       />
       <Button disabled={!valid} onClick={props.onSubmit}>
-        Submit
+        Create Alert
       </Button>
     </Form>
   )
