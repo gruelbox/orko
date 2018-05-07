@@ -17,6 +17,9 @@ const initialState = Immutable({
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
+    case types.CLEAR:
+      console.debug(action.type, action)
+      return Immutable.merge(state, { notifications: [] })
     case types.ADD:
       console.debug(action.type, action)
       notify("Server message", action.notification.message)

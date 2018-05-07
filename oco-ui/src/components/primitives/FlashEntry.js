@@ -5,7 +5,7 @@ const FlashEntry = ({children, content}) => (
     <ReactCSSTransitionGroup
         transitionName="flashEntry"
         transitionAppear={true}
-        transitionAppearTimeout={1000}
+        transitionAppearTimeout={2000}
         transitionEnter={false}
         transitionLeave={false}>
         {content ? <span>{content}</span> : children}

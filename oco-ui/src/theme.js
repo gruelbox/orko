@@ -90,7 +90,7 @@ const globalCss = `
     }
       
     .flashEntry-appear.flashEntry-appear-active {
-        color: #aaa;
+        color: inherit;
         text-shadow: none;
         transition: color 2s, text-shadow 2s;
     }

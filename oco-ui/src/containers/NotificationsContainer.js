@@ -3,9 +3,11 @@ import { connect } from "react-redux"
 import Immutable from 'seamless-immutable'
 
 import * as dateUtils from '../util/dateUtils'
+import * as notificationActions from '../store/notifications/actions'
 
 import ReactTable from "react-table"
 import Section from "../components/primitives/Section"
+import Href from "../components/primitives/Href"
 import FlashEntry from "../components/primitives/FlashEntry"
 import { Icon } from "semantic-ui-react"
 import theme from "../theme"
@@ -15,7 +17,13 @@ const textStyle = {
 }
 
 const NotificationsContainer = ({notifications, dispatch}) => (
-  <Section id="notifications" heading="Notifications" nopadding>
+  <Section id="notifications" heading="Server Notifications" nopadding buttons={
+    () => (
+      <span>
+        <Href title="Clear notifications" onClick={() => dispatch(notificationActions.clear())}><Icon color="white" name="close"/></Href>
+      </span>
+    )
+  }>
     <ReactTable
       data={Immutable.asMutable(notifications)}
       defaultSorted={[
@@ -65,6 +73,7 @@ const NotificationsContainer = ({notifications, dispatch}) => (
       resizable={false}
       className="-striped"
       minRows={0}
+      noDataText="No new notifications"
     />
   </Section>
 )
