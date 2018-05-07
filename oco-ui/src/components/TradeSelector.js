@@ -3,7 +3,6 @@ import Tab from "./primitives/Tab"
 import Panel from "./primitives/Panel"
 import Para from "./primitives/Para"
 import Section from "../components/primitives/Section"
-import CreateAlertContainer from "../containers/CreateAlertContainer"
 import LimitOrderContainer from "../containers/LimitOrderContainer"
 import StopTakeProfitContainer from "../containers/StopTakeProfitContainer"
 
@@ -49,12 +48,6 @@ export default class TradeSelector extends React.Component {
           Stop/Take Profit
         </Tab>
         <Tab
-          selected={this.state.selected === "alert"}
-          onClick={() => this.setState({ selected: "alert" })}
-        >
-          Alert
-        </Tab>
-        <Tab
           selected={this.state.selected === "complex"}
           onClick={() => this.setState({ selected: "complex" })}
         >
@@ -69,9 +62,7 @@ export default class TradeSelector extends React.Component {
       content = <Para>No coin selected</Para>
     } else {
       var panel = null
-      if (this.state.selected === "alert") {
-        panel = <CreateAlertContainer coin={coin} />
-      } else if (this.state.selected === "limit") {
+      if (this.state.selected === "limit") {
         panel = <LimitOrderContainer coin={coin} />
       } else if (this.state.selected === "oco") {
         panel = <StopTakeProfitContainer coin={coin} />
