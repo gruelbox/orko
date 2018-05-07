@@ -10,11 +10,12 @@ import Panel from "../components/primitives/Panel"
 import Href from "../components/primitives/Href"
 import Loading from "../components/primitives/Loading"
 import FlashEntry from "../components/primitives/FlashEntry"
+import Span from "../components/primitives/Span"
 
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
-import * as jobTypes from '../services/jobTypes'
-import * as dateUtils from '../util/dateUtils'
+import * as jobTypes from "../services/jobTypes"
+import * as dateUtils from "../util/dateUtils"
 
 const TICK_TIME = 10000
 
@@ -36,6 +37,10 @@ const NoOrders = props => (
   </Panel>
 )
 
+const Directional = ({direction, children}) => <Span color={direction === "BID" ? "buy" : "sell"}>{children}</Span>
+
+const DirectionalFlash = ({direction, content, children}) => <FlashEntry><Directional direction={direction}>{children}{content}</Directional></FlashEntry>
+
 const textStyle = {
   textAlign: "left"
 }
@@ -45,6 +50,8 @@ const numberStyle = {
 }
 
 const Orders = props => (
+
+
   <ReactTable
     data={props.orders.asMutable()}
     defaultSorted={[
@@ -59,7 +66,10 @@ const Orders = props => (
         Header: () => null,
         Cell: ({ original }) => (
           <FlashEntry>
-            <Href onClick={() => props.onCancel(original.id, original.type)} title="Cancel order">
+            <Href
+              onClick={() => props.onCancel(original.id, original.type)}
+              title="Cancel order"
+            >
               <Icon fitted name="close" />
             </Href>
           </FlashEntry>
@@ -71,25 +81,30 @@ const Orders = props => (
         resizable: false
       },
       {
-        id: "watch",
-        Header: <Icon fitted name="eye" />,
+        id: "orderType",
+        Header: null,
         Cell: ({ original }) => (
           <FlashEntry>
-            <Href onClick={() => props.onWatch(original.id, original.watchJob)} title={original.watchJob ? "Watched" : "Not watched"}>
-              <Icon fitted name={original.watchJob ? "eye" : "circle outline"} />
-            </Href>
+            {original.type === "BID" ? (
+              <Span color="buy" title="Buy">
+                <Icon fitted name="arrow up" />
+              </Span>
+            ) : (
+              <Span color="sell" title="Sell">
+                <Icon fitted name="arrow down" />
+              </Span>
+            )}
           </FlashEntry>
         ),
         headerStyle: textStyle,
         style: textStyle,
-        width: 32,
-        sortable: false,
-        resizable: false
+        resizable: true,
+        width: 32
       },
       {
         id: "runningAt",
         Header: "Running",
-        Cell: ({ original }) => <FlashEntry content="Exchange" />,
+        Cell: ({ original }) => <DirectionalFlash direction={original.type} content="Exchange" />,
         headerStyle: textStyle,
         style: textStyle,
         resizable: true,
@@ -99,7 +114,7 @@ const Orders = props => (
         id: "createdDate",
         Header: "Created",
         Cell: ({ original }) => (
-          <FlashEntry content={dateUtils.formatDate(original.timestamp)} />
+          <DirectionalFlash direction={original.type} content={dateUtils.formatDate(original.timestamp)} />
         ),
         headerStyle: textStyle,
         style: textStyle,
@@ -107,19 +122,8 @@ const Orders = props => (
         minWidth: 80
       },
       {
-        id: "orderType",
-        Header: "Type",
-        Cell: ({ original }) => (
-          <FlashEntry content={original.type === "BID" ? "Buy" : "Sell"} />
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        resizable: true,
-        minWidth: 50
-      },
-      {
         Header: "Limit",
-        Cell: ({ original }) => <FlashEntry content={original.limitPrice} />,
+        Cell: ({ original }) => <DirectionalFlash direction={original.type} content={original.limitPrice} />,
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
@@ -129,7 +133,7 @@ const Orders = props => (
         id: "stopPrice",
         Header: "Trigger",
         Cell: ({ original }) => (
-          <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />
+          <DirectionalFlash direction={original.type} content={original.stopPrice ? original.stopPrice : "-"} />
         ),
         headerStyle: numberStyle,
         style: numberStyle,
@@ -139,7 +143,7 @@ const Orders = props => (
       {
         Header: "Amount",
         Cell: ({ original }) => (
-          <FlashEntry content={original.originalAmount} />
+          <DirectionalFlash direction={original.type} content={original.originalAmount} />
         ),
         headerStyle: numberStyle,
         style: numberStyle,
@@ -149,13 +153,35 @@ const Orders = props => (
       {
         Header: "Filled",
         Cell: ({ original }) => (
-          <FlashEntry content={original.cumulativeAmount} />
+          <DirectionalFlash direction={original.type} content={original.cumulativeAmount} />
         ),
         headerStyle: numberStyle,
         style: numberStyle,
         resizable: true,
         minWidth: 50
-      }
+      },
+      {
+        id: "watch",
+        Header: <Icon fitted name="eye" />,
+        Cell: ({ original }) => (
+          <FlashEntry>
+            <Href
+              onClick={() => props.onWatch(original.id, original.watchJob)}
+              title={original.watchJob ? "Remove watch" : "Add watch"}
+            >
+              <Icon
+                fitted
+                name={original.watchJob ? "eye" : "circle outline"}
+              />
+            </Href>
+          </FlashEntry>
+        ),
+        headerStyle: textStyle,
+        style: textStyle,
+        width: 32,
+        sortable: false,
+        resizable: false
+      },
     ]}
     showPagination={false}
     resizable={false}
@@ -218,7 +244,11 @@ class OpenOrdersContainer extends React.Component {
     ) : this.props.orders.length === 0 ? (
       <NoOrders />
     ) : (
-      <Orders orders={this.props.orders} onCancel={this.onCancel} onWatch={this.onWatch} />
+      <Orders
+        orders={this.props.orders}
+        onCancel={this.onCancel}
+        onWatch={this.onWatch}
+      />
     )
 
     return (

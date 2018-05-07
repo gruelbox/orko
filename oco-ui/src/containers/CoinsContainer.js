@@ -61,7 +61,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
           id: "exchange",
           Header: "Exchange",
           Cell: ({ original }) => (
-            <Link to={"/coin/" + original.key}>{original.exchange}</Link>
+            <Link to={"/coin/" + original.key} title="Open coin">{original.exchange}</Link>
           ),
           headerStyle: textStyle,
           style: textStyle,
@@ -72,7 +72,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
           id: "name",
           Header: "Name",
           Cell: ({ original }) => (
-            <Link to={"/coin/" + original.key}>
+            <Link to={"/coin/" + original.key} title="Open coin">
               {original.base + "/" + original.counter}
             </Link>
           ),
@@ -97,7 +97,6 @@ const CoinsCointainer = ({ data, dispatch }) => (
           Header: <Icon fitted name="bell outline" />,
           Cell: ({ original }) => (
             <Icon
-              color={original.hasAlert ? "red" : undefined}
               fitted
               name={original.hasAlert ? "bell" : "bell outline"}
             />
