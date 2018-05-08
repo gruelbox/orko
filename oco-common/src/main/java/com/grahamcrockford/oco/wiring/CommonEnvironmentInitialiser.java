@@ -42,7 +42,7 @@ class CommonEnvironmentInitialiser implements EnvironmentInitialiser {
 
     // And health checks
     healthChecks.stream()
-      .peek(t -> LOGGER.info("Registering resource {}", t))
+      .peek(t -> LOGGER.info("Registering health check {}", t))
       .forEach(t -> environment.healthChecks().register(t.getClass().getSimpleName(), t));
   }
 }
