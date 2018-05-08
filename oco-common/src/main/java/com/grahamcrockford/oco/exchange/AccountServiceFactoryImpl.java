@@ -20,28 +20,13 @@ class AccountServiceFactoryImpl implements AccountServiceFactory {
 
   private final ExchangeService exchangeService;
   private final OcoConfiguration configuration;
+  private final AccountService dummyService;
 
   @Inject
   AccountServiceFactoryImpl(ExchangeService exchangeService, OcoConfiguration configuration) {
     this.exchangeService = exchangeService;
     this.configuration = configuration;
-  }
-
-  @Override
-  public AccountService getForExchange(String exchange) {
-    Map<String, ExchangeConfiguration> exchangeConfig = configuration.getExchanges();
-    if (exchangeConfig == null) {
-      return dummyService();
-    }
-    final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(exchange);
-    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey())) {
-      return dummyService();
-    }
-    return exchangeService.get(exchange).getAccountService();
-  }
-
-  private AccountService dummyService() {
-    return new AccountService() {
+    this.dummyService = new AccountService() {
 
       @Override
       public String withdrawFunds(Currency currency, BigDecimal amount, String address) throws IOException {
@@ -73,5 +58,18 @@ class AccountServiceFactoryImpl implements AccountServiceFactory {
         throw new UnsupportedOperationException();
       }
     };
+  }
+
+  @Override
+  public AccountService getForExchange(String exchange) {
+    Map<String, ExchangeConfiguration> exchangeConfig = configuration.getExchanges();
+    if (exchangeConfig == null) {
+      return dummyService;
+    }
+    final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(exchange);
+    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey())) {
+      return dummyService;
+    }
+    return exchangeService.get(exchange).getAccountService();
   }
 }
