@@ -20,7 +20,7 @@
 	<name>OCO All-In-One</name>
 	
 	<properties>
-		<mainClass>com.grahamcrockford.oco.worker.AllInOneApplication</mainClass>
+		<mainClass>com.grahamcrockford.oco.allinone.AllInOneApplication</mainClass>
 	</properties>
 
 	<dependencies>

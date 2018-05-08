@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.worker;
+package com.grahamcrockford.oco.allinone;
 
 import javax.ws.rs.client.Client;
 
