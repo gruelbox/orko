@@ -7,7 +7,7 @@ sudo apt-get install maven
 mvn clean package
 
 // Run the single-app server
-java -jar oco-worker/target/oco-all-in-one.jar server ../example-developer-mode-config-allinone.yml
+java -jar oco-all-in-one/target/oco-all-in-one.jar server ../example-developer-mode-config-allinone.yml
 
 // Build the UI
 cd oco-ui
