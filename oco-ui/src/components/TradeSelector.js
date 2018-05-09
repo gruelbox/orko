@@ -1,6 +1,5 @@
 import React from "react"
 import Tab from "./primitives/Tab"
-import Panel from "./primitives/Panel"
 import Para from "./primitives/Para"
 import Section from "../components/primitives/Section"
 import LimitOrderContainer from "../containers/LimitOrderContainer"
