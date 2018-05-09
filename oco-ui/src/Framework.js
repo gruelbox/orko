@@ -25,18 +25,6 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive)
 const LayoutBox = styled.div`
   ${color}
   height: ${props => props.height ? props.height + "px" : "auto"}
-  position: relative;
-  overflow: ${props => props.expand ? "hidden" : "auto"}
-  ::-webkit-scrollbar-corner {
-    background: ${props => props.theme.colors.boxBorder};
-  }
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.colors.deemphasis};
-  }
 `
 
 const baseLayouts = {
@@ -143,12 +131,16 @@ export default class Framework extends React.Component {
       </LayoutBox>
     ]
 
+    const ManageAlertsActual = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
+    const footer = <WithCoinParameter key="managealerts" component={ManageAlertsActual}/>
+
     if (isMobile) {
       return (
         <BrowserRouter>
-          <div>
+          <div style={{ position: "relative" }}>
             {header}
             {content}
+            {footer}
           </div>
         </BrowserRouter>
       )
@@ -171,7 +163,7 @@ export default class Framework extends React.Component {
             >
               {content}
             </ResponsiveReactGridLayout>
-            <WithCoinParameter key="managealerts" component={ManageAlertsContainer}/>
+            {footer}
           </div>
         </BrowserRouter>
       )

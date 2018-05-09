@@ -8,7 +8,7 @@ const buttonColor = props =>
 const Button = styled.button.attrs({
   fontSize: 2,
   color: "white",
-  my: 2,
+  mt: 2,
   p: 2,
   type: "button"
 })`

@@ -12,7 +12,7 @@ const CONTAINER_ID = "tradingview-widget-container"
 
 const ChartOuter = styled.div`
   overflow: hidden;
-  height: calc(100% - 34px);
+  height: 100%;
 `
 
 const ChartInner = styled.div`

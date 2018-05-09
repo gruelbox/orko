@@ -61,13 +61,11 @@ export default class TradeSelector extends React.Component {
     if (!coin) {
       content = <Para>No coin selected</Para>
     } else {
-      var panel = null
       if (this.state.selected === "limit") {
-        panel = <LimitOrderContainer coin={coin} />
+        content = <LimitOrderContainer coin={coin} />
       } else if (this.state.selected === "oco") {
-        panel = <StopTakeProfitContainer coin={coin} />
+        content = <StopTakeProfitContainer coin={coin} />
       }
-      content = <Panel mr={3}>{panel}</Panel>
     }
 
     return (

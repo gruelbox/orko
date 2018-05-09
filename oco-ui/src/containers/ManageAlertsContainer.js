@@ -103,7 +103,7 @@ class ManageAlertsContainer extends React.Component {
         job.tickTrigger.counter === coin.counter
     )
     return (
-      <Modal>
+      <Modal mobile={this.props.mobile}>
         <Section
           id="manageAlerts"
           heading={"Manage alerts for " + coin.name}
