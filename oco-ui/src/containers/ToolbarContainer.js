@@ -26,7 +26,7 @@ const TickerSocketState = ({ connected }) => {
   return (
     <Span
       title={connected ? "Socket connected" : "Socket down"}
-      color={connected ? "white" : "heading"}
+      color={connected ? "white" : "red"}
       mx={2}
       fontWeight="bold"
     >
