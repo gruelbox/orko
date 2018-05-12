@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -classpath "/usr/share/app/lib" -jar oco-all-in-one/target/oco-all-in-one.jar server example-config.yml
+web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp target/classes:target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server example-config.yml

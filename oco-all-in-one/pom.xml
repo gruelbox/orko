@@ -11,14 +11,14 @@
 	<packaging>jar</packaging>
 
 	<parent>
-        <groupId>com.grahamcrockford</groupId>
-        <artifactId>oco-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+		<groupId>com.grahamcrockford</groupId>
+		<artifactId>oco-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 
 	<name>OCO All-In-One</name>
-	
+
 	<properties>
 		<mainClass>com.grahamcrockford.oco.allinone.AllInOneApplication</mainClass>
 	</properties>
@@ -30,7 +30,7 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<finalName>${project.artifactId}</finalName>
 		<plugins>
@@ -43,31 +43,17 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven.jar.plugin.version}</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>${mainClass}</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>${maven-dependency-plugin-version}</version>
 				<executions>
 					<execution>
-						<phase>initialize</phase>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<overWriteReleases>false</overWriteReleases>
-							<includeScope>runtime</includeScope>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<prependGroupId>true</prependGroupId>
 						</configuration>
 					</execution>
