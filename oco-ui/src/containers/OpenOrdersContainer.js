@@ -30,12 +30,6 @@ const NoData = props => (
   </Panel>
 )
 
-const NoOrders = props => (
-  <Panel p={2}>
-    <Para>No open orders</Para>
-  </Panel>
-)
-
 const textStyle = {
   textAlign: "left"
 }
@@ -240,8 +234,6 @@ class OpenOrdersContainer extends React.Component {
       <NoData coin={this.props.coin} />
     ) : !this.props.orders ? (
       <Loading />
-    ) : this.props.orders.length === 0 ? (
-      <NoOrders />
     ) : (
       <Orders
         orders={this.props.orders}
