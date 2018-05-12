@@ -11,16 +11,16 @@
 	<packaging>jar</packaging>
 
 	<parent>
-        <groupId>com.grahamcrockford</groupId>
-        <artifactId>oco-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+		<groupId>com.grahamcrockford</groupId>
+		<artifactId>oco-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 
 	<name>OCO Common</name>
 
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>
@@ -34,61 +34,61 @@
 			<artifactId>dropwizard-client</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>com.liveperson</groupId>
-		    <artifactId>dropwizard-websockets</artifactId>
+			<groupId>com.liveperson</groupId>
+			<artifactId>dropwizard-websockets</artifactId>
 		</dependency>
-		
+
 		<dependency>
-		    <groupId>com.okta.jwt</groupId>
-		    <artifactId>okta-jwt-verifier</artifactId>
+			<groupId>com.okta.jwt</groupId>
+			<artifactId>okta-jwt-verifier</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-core</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>info.bitrich.xchange-stream</groupId>
-		    <artifactId>xchange-stream-core</artifactId>
+			<groupId>info.bitrich.xchange-stream</groupId>
+			<artifactId>xchange-stream-core</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-gdax</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>info.bitrich.xchange-stream</groupId>
-		    <artifactId>xchange-gdax</artifactId>
+			<groupId>info.bitrich.xchange-stream</groupId>
+			<artifactId>xchange-gdax</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-binance</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>info.bitrich.xchange-stream</groupId>
-		    <artifactId>xchange-binance</artifactId>
+			<groupId>info.bitrich.xchange-stream</groupId>
+			<artifactId>xchange-binance</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-kucoin</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-cryptopia</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-bitfinex</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>info.bitrich.xchange-stream</groupId>
-		    <artifactId>xchange-bitfinex</artifactId>
+			<groupId>info.bitrich.xchange-stream</groupId>
+			<artifactId>xchange-bitfinex</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.knowm.xchange</groupId>
 			<artifactId>xchange-bittrex</artifactId>
@@ -98,7 +98,7 @@
 			<groupId>org.mongojack</groupId>
 			<artifactId>mongojack</artifactId>
 		</dependency>
-				<dependency>
+		<dependency>
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
 		</dependency>
@@ -115,10 +115,14 @@
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-servlet</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.google.auto.value</groupId>
 			<artifactId>auto-value</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.auto.value</groupId>
+			<artifactId>auto-value-annotations</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.reflections</groupId>
@@ -128,12 +132,12 @@
 			<groupId>com.warrenstrange</groupId>
 			<artifactId>googleauth</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>one.util</groupId>
 			<artifactId>streamex</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
@@ -143,7 +147,7 @@
 			<artifactId>junit</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>

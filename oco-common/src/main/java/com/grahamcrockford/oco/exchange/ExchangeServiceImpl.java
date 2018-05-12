@@ -51,12 +51,10 @@ class ExchangeServiceImpl implements ExchangeService {
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
     public Exchange load(String name) throws Exception {
-      if (configuration.getExchanges() == null)
-        return publicApi(name);
-      final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(name);
-      if (exchangeConfiguration == null)
-        return publicApi(name);
-      if (StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
+      final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges() == null
+        ? null
+        : configuration.getExchanges().get(name);
+      if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
         return publicApi(name);
       return privateApi(name, exchangeConfiguration);
     }
@@ -177,15 +175,12 @@ class ExchangeServiceImpl implements ExchangeService {
     if (friendlyName.equals("gdax-sandbox"))
       return GDAXStreamingExchange.class;
 
-    // TODO bug in streaming implementation on binance https://github.com/bitrich-info/xchange-stream/issues/140
-    if (!"binance".equals(friendlyName)) {
-      Optional<Class<? extends StreamingExchange>> streamingResult = streamingExchangeTypes.get()
-          .stream()
-          .filter(c -> c.getSimpleName().replace("StreamingExchange", "").toLowerCase().equals(friendlyName))
-          .findFirst();
-      if (streamingResult.isPresent())
-        return streamingResult.get();
-    }
+    Optional<Class<? extends StreamingExchange>> streamingResult = streamingExchangeTypes.get()
+        .stream()
+        .filter(c -> c.getSimpleName().replace("StreamingExchange", "").toLowerCase().equals(friendlyName))
+        .findFirst();
+    if (streamingResult.isPresent())
+      return streamingResult.get();
 
     Optional<Class<? extends Exchange>> result = exchangeTypes.get()
         .stream()

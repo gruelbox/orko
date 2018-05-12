@@ -31,6 +31,12 @@ exchanges:
   kucoin:
     apiKey: ${KUCOIN_API_KEY}
     secretKey: ${KUCOIN_SECRET}
+  bitfinex:
+    apiKey: ${BITFINEX_API_KEY}
+    secretKey: ${BITFINEX_SECRET}
+  bittrex:
+    apiKey: ${BITTREX_API_KEY}
+    secretKey: ${BITTREX_SECRET}
 server:
   type: simple
   applicationContextPath: /

@@ -2,6 +2,7 @@ package com.grahamcrockford.oco.ticker;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +30,7 @@ import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBu
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.disposables.Disposable;
+import jersey.repackaged.com.google.common.collect.Lists;
 
 @Singleton
 @VisibleForTesting
@@ -75,6 +77,8 @@ public class TickerGenerator extends AbstractExecutionThreadService {
   private Set<String> disconnectChangedExchanges(Multimap<String, TickerSpec> byExchange) {
     Builder<String> unchanged = ImmutableSet.builder();
 
+    List<String> changed = Lists.newArrayListWithCapacity(subscribedTickersPerExchange.keySet().size());
+
     for (Entry<String, Collection<TickerSpec>> entry : subscribedTickersPerExchange.asMap().entrySet()) {
 
       String exchangeName = entry.getKey();
@@ -85,16 +89,17 @@ public class TickerGenerator extends AbstractExecutionThreadService {
 
       if (tickers.equals(target)) {
         unchanged.add(exchangeName);
-        continue;
+      } else {
+        changed.add(exchangeName);
       }
+    }
 
-      LOGGER.info("... disconnecting");
-
+    changed.forEach(exchangeName -> {
+      LOGGER.info("... disconnecting " + exchangeName);
       disconnectExchange(exchangeName);
-
       subsPerExchange.removeAll(exchangeName);
       subscribedTickersPerExchange.removeAll(exchangeName);
-    }
+    });
 
     return unchanged.build();
   }
