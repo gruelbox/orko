@@ -21,7 +21,7 @@ const numberStyle = {
   textAlign: "right"
 }
 
-const CoinsCointainer = ({ data, dispatch }) => (
+const CoinsCointainer = ({ data, dispatch, updateFocusedField }) => (
   <Section
     id="coinList"
     heading="Coins"
@@ -90,7 +90,11 @@ const CoinsCointainer = ({ data, dispatch }) => (
           id: "price",
           Header: "Price",
           Cell: ({ original }) => (
-            <Price counter={original.counter} bare>
+            <Price counter={original.counter} bare onClick={number => {
+              if (updateFocusedField) {
+                updateFocusedField(number)
+              }
+            }}>
               {original.ticker ? original.ticker.last : undefined}
             </Price>
           ),
@@ -136,6 +140,7 @@ function mapStateToProps(state) {
       ? state.job.jobs.filter(job => isAlert(job))
       : []
   return {
+    updateFocusedField: state.focus.fn,
     data: state.coins.coins.map(coin => ({
       ...coin,
       ticker: state.ticker.coins[coin.key],
