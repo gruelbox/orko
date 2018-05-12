@@ -61,6 +61,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
         {
           id: "exchange",
           Header: "Exchange",
+          accessor : "exchange",
           Cell: ({ original }) => (
             <Link to={"/coin/" + original.key} title="Open coin">
               {original.exchange}
@@ -69,14 +70,15 @@ const CoinsCointainer = ({ data, dispatch }) => (
           headerStyle: textStyle,
           style: textStyle,
           resizable: true,
-          minWidth: 50
+          minWidth: 50,
         },
         {
           id: "name",
           Header: "Name",
+          accessor: "shortName",
           Cell: ({ original }) => (
             <Link to={"/coin/" + original.key} title="Open coin">
-              {original.base + "/" + original.counter}
+              {original.shortName}
             </Link>
           ),
           headerStyle: textStyle,
@@ -95,7 +97,8 @@ const CoinsCointainer = ({ data, dispatch }) => (
           headerStyle: numberStyle,
           style: numberStyle,
           resizable: true,
-          minWidth: 50
+          minWidth: 50,
+          sortable: false,
         },
         {
           id: "alert",

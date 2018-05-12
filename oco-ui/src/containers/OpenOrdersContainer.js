@@ -80,6 +80,7 @@ const Orders = props => (
       {
         id: "orderType",
         Header: <Icon fitted name="sort" title="Direction"/>,
+        accessor: "type",
         Cell: ({ original }) => (
           <FlashEntry>
             <Icon fitted name={original.type === "BID" ? "arrow up" : "arrow down"} title={original.type === "BID" ? "Buy" : "Sell"}/>
@@ -105,6 +106,7 @@ const Orders = props => (
       },
       {
         id: "createdDate",
+        accessor: "timestamp",
         Header: "Created",
         Cell: ({ original }) => (
           <FlashEntry content={dateUtils.formatDate(original.timestamp)} />
@@ -119,6 +121,7 @@ const Orders = props => (
         Cell: ({ original }) => <FlashEntry content={original.limitPrice} />,
         headerStyle: numberStyle,
         style: numberStyle,
+        sortable: false,
         resizable: true,
         minWidth: 50
       },
@@ -130,6 +133,7 @@ const Orders = props => (
         ),
         headerStyle: numberStyle,
         style: numberStyle,
+        sortable: false,
         resizable: true,
         minWidth: 50
       },
@@ -140,6 +144,7 @@ const Orders = props => (
         ),
         headerStyle: numberStyle,
         style: numberStyle,
+        sortable: false,
         resizable: true,
         minWidth: 50
       },
@@ -150,6 +155,7 @@ const Orders = props => (
         ),
         headerStyle: numberStyle,
         style: numberStyle,
+        sortable: false,
         resizable: true,
         minWidth: 50
       },

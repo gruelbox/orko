@@ -8,6 +8,7 @@ import * as notificationActions from '../store/notifications/actions'
 import ReactTable from "react-table"
 import Section from "../components/primitives/Section"
 import Href from "../components/primitives/Href"
+import Span from "../components/primitives/Span"
 import FlashEntry from "../components/primitives/FlashEntry"
 import { Icon } from "semantic-ui-react"
 import theme from "../theme"
@@ -19,9 +20,9 @@ const textStyle = {
 const NotificationsContainer = ({notifications, dispatch}) => (
   <Section id="notifications" heading="Server Notifications" nopadding buttons={
     () => (
-      <span>
-        <Href title="Clear notifications" onClick={() => dispatch(notificationActions.clear())}><Icon color="white" name="close"/></Href>
-      </span>
+      <Span color="white">
+        <Href title="Clear notifications" onClick={() => dispatch(notificationActions.clear())}><Icon name="close"/></Href>
+      </Span>
     )
   }>
     <ReactTable
@@ -41,6 +42,7 @@ const NotificationsContainer = ({notifications, dispatch}) => (
         {
           id: "icon",
           Header: null,
+          accessor: "notificationType",
           Cell: ({original}) => (
             <FlashEntry>
               {original.notificationType === "ERROR" ? <Icon fitted name="warning sign"/> : <Icon fitted name="info"/>}
@@ -54,6 +56,7 @@ const NotificationsContainer = ({notifications, dispatch}) => (
         {
           id: "dateTime",
           Header: "Time",
+          accessor: "dateTime",
           Cell: ({original}) => <FlashEntry content={dateUtils.formatDate(original.dateTime)} />,
           headerStyle: textStyle,
           style: textStyle,
@@ -63,6 +66,7 @@ const NotificationsContainer = ({notifications, dispatch}) => (
         {
           id: "message",
           Header: "Message",
+          accessor: "message",
           Cell: ({original}) => <FlashEntry content={original.message} />,
           headerStyle: textStyle,
           style: textStyle,
