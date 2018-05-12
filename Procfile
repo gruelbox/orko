@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp target/classes:target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server example-config.yml
+web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server example-config.yml
