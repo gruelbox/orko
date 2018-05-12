@@ -68,28 +68,11 @@
 							<overWriteReleases>false</overWriteReleases>
 							<includeScope>runtime</includeScope>
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<prependGroupId>true</prependGroupId>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-<!-- 			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>${dockerfile-maven-version}</version>
-				<executions>
-					<execution>
-						<id>default</id>
-						<goals>
-							<goal>build</goal>
-							<goal>push</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<repository>llcoolg/${project.artifactId}</repository>
-					<tag>${project.version}</tag>
-				</configuration>
-			</plugin> -->
 		</plugins>
 	</build>
 </project>
