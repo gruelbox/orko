@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.websocket;
 
+import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature.NOTIFICATION;
 
 import java.io.IOException;
@@ -22,13 +23,17 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Multimaps;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.MarketDataType;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
@@ -94,7 +99,7 @@ public final class OcoWebSocketServer {
       LOGGER.error("Error unregistering socket from notification", t);
     }
     try {
-      exchangeEventRegistry.changeRegisteredTickers(ImmutableList.of(), eventRegistryClientId, null);
+      exchangeEventRegistry.changeSubscriptions(ArrayListMultimap.create(), eventRegistryClientId, null, null);
     } catch (Throwable t) {
       LOGGER.error("Error unregistering socket from ticker", t);
     }
@@ -120,10 +125,17 @@ public final class OcoWebSocketServer {
   }
 
   private synchronized void changeTickers(Collection<TickerSpec> specs, Session session) {
-    exchangeEventRegistry.changeRegisteredTickers(specs, eventRegistryClientId, event -> {
-      LOGGER.debug("Tick: {}", event);
-      session.getAsyncRemote().sendText(message(Nature.TICKER, null, event));
-    });
+    Multimap<TickerSpec, MarketDataType> request = specs.stream()
+        .collect(Multimaps.toMultimap(s -> s, s -> TICKER, MultimapBuilder.hashKeys().hashSetValues()::build));
+    exchangeEventRegistry.changeSubscriptions(
+      request,
+      eventRegistryClientId,
+      event -> {
+        LOGGER.debug("Tick: {}", event);
+        session.getAsyncRemote().sendText(message(Nature.TICKER, null, event));
+      },
+      null
+    );
   }
 
 

@@ -1,5 +1,7 @@
 package com.grahamcrockford.oco.exchange;
 
+import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,9 +38,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Multimaps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.MarketDataType;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
@@ -112,19 +118,22 @@ final class PaperTradeService implements TradeService {
   }
 
   private void updateTickerRegistry() {
-    exchangeEventRegistry.changeRegisteredTickers(
-      openOrders.values().stream()
-        .filter(this::isOpen)
-        .map(o ->
-          TickerSpec.builder()
-            .exchange(exchange)
-            .counter(o.getCurrencyPair().counter.getCurrencyCode())
-            .base(o.getCurrencyPair().base.getCurrencyCode())
-            .build()
-        )
-        .collect(Collectors.toSet()),
+    Multimap<TickerSpec, MarketDataType> request = openOrders.values().stream()
+      .filter(this::isOpen)
+      .map(o ->
+        TickerSpec.builder()
+          .exchange(exchange)
+          .counter(o.getCurrencyPair().counter.getCurrencyCode())
+          .base(o.getCurrencyPair().base.getCurrencyCode())
+          .build()
+      )
+      .collect(Multimaps.toMultimap(s -> s, s -> TICKER, MultimapBuilder.hashKeys().hashSetValues()::build));
+
+    exchangeEventRegistry.changeSubscriptions(
+      request,
       eventRegistryClientId,
-      this::updateAgainstMarket
+      this::updateAgainstMarket,
+      null
     );
   }
 

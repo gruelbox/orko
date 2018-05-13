@@ -56,7 +56,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final Multimap<String, Disposable> subsPerExchange = HashMultimap.create();
   private final Multimap<String, MarketDataSubscription> subscriptionsPerExchange = HashMultimap.create();
 
-  private volatile ImmutableSet<MarketDataSubscription> activePolling;
+  private volatile ImmutableSet<MarketDataSubscription> activePolling = ImmutableSet.of();
 
 
   @Inject
