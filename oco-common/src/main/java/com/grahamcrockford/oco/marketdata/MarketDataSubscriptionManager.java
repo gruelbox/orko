@@ -30,6 +30,7 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.exchange.ExchangeService;
+import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.util.Sleep;
 
@@ -58,13 +59,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private volatile ImmutableSet<MarketDataSubscription> activePolling = ImmutableSet.of();
 
+  private final TradeServiceFactory tradeServiceFactory;
+
 
   @Inject
   @VisibleForTesting
-  public MarketDataSubscriptionManager(EventBus eventBus, ExchangeService exchangeService, Sleep sleep) {
+  public MarketDataSubscriptionManager(EventBus eventBus, ExchangeService exchangeService, Sleep sleep, TradeServiceFactory tradeServiceFactory) {
     this.exchangeService = exchangeService;
     this.eventBus = eventBus;
     this.sleep = sleep;
+    this.tradeServiceFactory = tradeServiceFactory;
   }
 
   /**
@@ -283,10 +287,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     TickerSpec spec = subscription.spec();
     if (subscription.types().contains(OPEN_ORDERS)) {
       try {
-        TradeService tradeService = exchangeService.get(subscription.spec().exchange()).getTradeService();
+        TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
         onOpenOrders(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair())));
       } catch (Throwable e) {
-        LOGGER.error("Failed fetching ticker: " + spec, e);
+        LOGGER.error("Failed fetching open orders: " + spec, e);
       }
     }
   }

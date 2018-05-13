@@ -6,6 +6,8 @@ import static com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Natu
 import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.annotation.security.RolesAllowed;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
@@ -24,9 +26,9 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -52,7 +54,11 @@ public final class OcoWebSocketServer {
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
   @Inject private AsyncEventBus eventBus;
+
   private Session session;
+
+  private final AtomicReference<ImmutableSet<TickerSpec>> tickersSubscribed = new AtomicReference<>(ImmutableSet.of());
+  private final AtomicReference<ImmutableSet<TickerSpec>> openOrdersSubscribed = new AtomicReference<>(ImmutableSet.of());
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
@@ -64,7 +70,7 @@ public final class OcoWebSocketServer {
 
   @Subscribe
   void notify(NotificationEvent notificationEvent) {
-    session.getAsyncRemote().sendText(message(NOTIFICATION, null, notificationEvent));
+    session.getAsyncRemote().sendText(message(NOTIFICATION, notificationEvent));
   }
 
   @OnMessage
@@ -76,7 +82,13 @@ public final class OcoWebSocketServer {
 
       switch (request.command()) {
         case CHANGE_TICKERS:
-          changeTickers(request.tickers(), session);
+          changeTickerSubscriptions(request.tickers());
+          break;
+        case CHANGE_OPEN_ORDERS:
+          changeOpenOrderSubscriptions(request.tickers());
+          break;
+        case UPDATE_SUBSCRIPTIONS:
+          updateSubscriptions(session);
           break;
         default:
           // Jackson should stop this happening in the try block above, but just for completeness
@@ -85,7 +97,7 @@ public final class OcoWebSocketServer {
 
     } catch (Exception e) {
       LOGGER.error("Error processing message: " + message, e);
-      session.getAsyncRemote().sendText(message(Nature.ERROR, request == null ? null : request.correlationId(), "Error processing message"));
+      session.getAsyncRemote().sendText(message(Nature.ERROR, "Error processing message"));
       return;
     }
   }
@@ -124,24 +136,35 @@ public final class OcoWebSocketServer {
     return request;
   }
 
-  private synchronized void changeTickers(Collection<TickerSpec> specs, Session session) {
-    Multimap<TickerSpec, MarketDataType> request = specs.stream()
-        .collect(Multimaps.toMultimap(s -> s, s -> TICKER, MultimapBuilder.hashKeys().hashSetValues()::build));
+  private synchronized void changeTickerSubscriptions(Collection<TickerSpec> specs) {
+    tickersSubscribed.set(ImmutableSet.copyOf(specs));
+  }
+
+  private synchronized void changeOpenOrderSubscriptions(Collection<TickerSpec> specs) {
+    tickersSubscribed.set(ImmutableSet.copyOf(specs));
+  }
+
+  private void updateSubscriptions(Session session) {
+    SetMultimap<TickerSpec, MarketDataType> request = MultimapBuilder.hashKeys().hashSetValues().build();
+    tickersSubscribed.get().forEach(spec -> request.put(spec, TICKER));
+    openOrdersSubscribed.get().forEach(spec -> request.put(spec, MarketDataType.OPEN_ORDERS));
     exchangeEventRegistry.changeSubscriptions(
       request,
       eventRegistryClientId,
-      event -> {
-        LOGGER.debug("Tick: {}", event);
-        session.getAsyncRemote().sendText(message(Nature.TICKER, null, event));
+      tickerEvent -> {
+        LOGGER.debug("Tick: {}", tickerEvent);
+        session.getAsyncRemote().sendText(message(Nature.TICKER, tickerEvent));
       },
-      null
+      openOrdersEvent -> {
+        LOGGER.info("Open orders: {}", openOrdersEvent);
+        session.getAsyncRemote().sendText(message(Nature.OPEN_ORDERS, openOrdersEvent));
+      }
     );
   }
 
-
-  private String message(Nature nature, String correlationId, Object data) {
+  private String message(Nature nature, Object data) {
     try {
-      return objectMapper.writeValueAsString(OcoWebSocketOutgoingMessage.create(nature, correlationId, data));
+      return objectMapper.writeValueAsString(OcoWebSocketOutgoingMessage.create(nature, data));
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }

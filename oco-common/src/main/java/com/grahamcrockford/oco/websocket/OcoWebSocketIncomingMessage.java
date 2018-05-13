@@ -2,8 +2,6 @@ package com.grahamcrockford.oco.websocket;
 
 import java.util.Collection;
 
-import javax.annotation.Nullable;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -17,22 +15,19 @@ abstract class OcoWebSocketIncomingMessage {
 
   @JsonCreator
   static OcoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
-                                            @JsonProperty("correlationId") String correlationId,
                                             @JsonProperty("tickers") Collection<TickerSpec> tickers) {
-    return new AutoValue_OcoWebSocketIncomingMessage(command, correlationId, tickers);
+    return new AutoValue_OcoWebSocketIncomingMessage(command, tickers);
   }
 
   @JsonProperty
   abstract Command command();
 
   @JsonProperty
-  @Nullable
-  abstract String correlationId();
-
-  @JsonProperty
   abstract Collection<TickerSpec> tickers();
 
   enum Command {
-    CHANGE_TICKERS
+    CHANGE_TICKERS,
+    CHANGE_OPEN_ORDERS,
+    UPDATE_SUBSCRIPTIONS
   }
 }
