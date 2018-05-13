@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.marketdata;
 
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -8,6 +9,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.BiConsumer;
+
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     withWriteLock(() -> {
       listeners.put(spec, new CallbackDef(jobId, callback));
       if (byExchange.put(spec.exchange(), spec)) {
-        tickerGenerator.updateSubscriptions(byExchange);
+        updateSubscriptions();
       }
     });
   }
@@ -57,7 +59,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     withWriteLock(() -> {
       if (listeners.remove(spec, new CallbackDef(jobId, null)) && !listeners.containsKey(spec)) {
         byExchange.remove(spec.exchange(), spec);
-        tickerGenerator.updateSubscriptions(byExchange);
+        updateSubscriptions();
       }
     });
   }
@@ -92,11 +94,20 @@ class ExchangeEventBus implements ExchangeEventRegistry {
       }
 
       if (updated) {
-        tickerGenerator.updateSubscriptions(byExchange);
+        updateSubscriptions();
       }
     });
 
 
+  }
+
+  private void updateSubscriptions() {
+    tickerGenerator.updateSubscriptions(
+        Multimaps.transformValues(
+            byExchange,
+            s -> MarketDataSubscription.create(s, EnumSet.of(MarketDataType.TICKER))
+        )
+    );
   }
 
   @Subscribe
