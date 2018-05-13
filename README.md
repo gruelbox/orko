@@ -7,7 +7,7 @@ sudo apt-get install maven
 mvn clean package
 
 // Run the single-app server
-java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./example-developer-mode-config-allinone.yml
+java -Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./example-developer-mode-config-allinone.yml
 
 // Build the UI
 cd oco-ui
@@ -48,7 +48,7 @@ Once you have the connection details, you can set the appropriate section in you
 Then run the backend pointing to this config file instead:
 
 ```
-java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config.yml
+java -Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config.yml
 
 ```
 
@@ -123,10 +123,10 @@ Backend setup:
     1. Install Maven (`sudo apt-get install maven`)
     1. Run `mvn clean package` to build the application
     1. Next:
-        1. EITHER Start the all-in-one application with `java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config-all-in-one.yml`.
+        1. EITHER Start the all-in-one application with `java -Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config-all-in-one.yml`.
         1. OR:
-            1. Start the worker application with `java -cp oco-worker/target/classes:oco-worker/target/dependency/* com.grahamcrockford.oco.worker.WorkerApplication server ./my-config-worker.yml`.
-            1. Start the web application with `java -cp oco-web/target/classes:oco-web/target/dependency/* com.grahamcrockford.oco.web.WebApplication server ./my-config-web.yml`.
+            1. Start the worker application with `java -Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops -cp oco-worker/target/classes:oco-worker/target/dependency/* com.grahamcrockford.oco.worker.WorkerApplication server ./my-config-worker.yml`.
+            1. Start the web application with `java -Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops -cp oco-web/target/classes:oco-web/target/dependency/* com.grahamcrockford.oco.web.WebApplication server ./my-config-web.yml`.
 1. Or:
     1. Install Eclipse
     1. Install the m2e-apt plugin from the marketplace
@@ -180,12 +180,17 @@ On the backend, set up the environment variables in addition to those already co
 | `GDAX_PASSPHRASE`         | Your GDAX passphrase. May be left blank for paper trading. |
 | `BINANCE_API_KEY`         | Your Binance API key. May be left blank for paper trading. |
 | `BINANCE_SECRET`          | Your Binance secret. May be left blank for paper trading. |
+| `BITFINEX_API_KEY` |Your BitFinex API key. May be left blank for paper trading. |
+| `BITFINEX_SECRET` |Your Binance secret. May be left blank for paper trading. |
+| `BITTREX_API_KEY` |our Bittrex API key. May be left blank for paper trading. |
+| `BITTREX_SECRET` |our Bittrex secret. May be left blank for paper trading. |
 | `KUCOIN_API_KEY`          | Your Kucoin API key. May be left blank for paper trading. | 
 | `KUCOIN_SECRET`           | Your Kucoin secret. May be left blank for paper trading. |
 | `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`) - more on this below.  Can be left blank (in which case 2FA whitelisting is disabled) but must be defined.  Strongly recommended to be enabled.|
 | `OKTA_BASEURL`           | Will be provided during Okta setup (see below) |
 | `OKTA_CLIENTID`           | Will be provided during Okta setup (see below) |
 | `OKTA_ISSUER`           |  Will be provided during Okta setup (see below) |
+| `JAVA_OPTS` | `-Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops` |
 
 On the front end, set up as follows:
 
