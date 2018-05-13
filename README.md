@@ -7,7 +7,7 @@ sudo apt-get install maven
 mvn clean package
 
 // Run the single-app server
-java -jar oco-all-in-one/target/oco-all-in-one.jar server ../example-developer-mode-config-allinone.yml
+java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./example-developer-mode-config-allinone.yml
 
 // Build the UI
 cd oco-ui
@@ -48,7 +48,8 @@ Once you have the connection details, you can set the appropriate section in you
 Then run the backend pointing to this config file instead:
 
 ```
-java -jar oco-worker/target/oco-all-in-one.jar server ../my-config.yml
+java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config.yml
+
 ```
 
 The application will now use this bot to send you notifications on your private channel.  You can add more people to the channel if you like.
@@ -122,10 +123,10 @@ Backend setup:
     1. Install Maven (`sudo apt-get install maven`)
     1. Run `mvn clean package` to build the application
     1. Next:
-        1. EITHER Start the all-in-one application with `java -jar oco-worker/target/oco-all-in-one.jar server ../my-config-all-in-one.yml`.
+        1. EITHER Start the all-in-one application with `java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config-all-in-one.yml`.
         1. OR:
-            1. Start the worker application with `java -jar oco-worker/target/oco-worker.jar server ../my-config-worker.yml`.
-            1. Start the web application with `java -jar oco-web/target/oco-web.jar server ../my-config-web.yml`.
+            1. Start the worker application with `java -cp oco-worker/target/classes:oco-worker/target/dependency/* com.grahamcrockford.oco.worker.WorkerApplication server ./my-config-worker.yml`.
+            1. Start the web application with `java -cp oco-web/target/classes:oco-web/target/dependency/* com.grahamcrockford.oco.web.WebApplication server ./my-config-web.yml`.
 1. Or:
     1. Install Eclipse
     1. Install the m2e-apt plugin from the marketplace
