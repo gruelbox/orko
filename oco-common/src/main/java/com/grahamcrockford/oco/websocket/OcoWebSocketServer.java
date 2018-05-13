@@ -94,7 +94,7 @@ public final class OcoWebSocketServer {
       LOGGER.error("Error unregistering socket from notification", t);
     }
     try {
-      exchangeEventRegistry.changeTickers(ImmutableList.of(), eventRegistryClientId, null);
+      exchangeEventRegistry.changeRegisteredTickers(ImmutableList.of(), eventRegistryClientId, null);
     } catch (Throwable t) {
       LOGGER.error("Error unregistering socket from ticker", t);
     }
@@ -120,7 +120,7 @@ public final class OcoWebSocketServer {
   }
 
   private synchronized void changeTickers(Collection<TickerSpec> specs, Session session) {
-    exchangeEventRegistry.changeTickers(specs, eventRegistryClientId, event -> {
+    exchangeEventRegistry.changeRegisteredTickers(specs, eventRegistryClientId, event -> {
       LOGGER.debug("Tick: {}", event);
       session.getAsyncRemote().sendText(message(Nature.TICKER, null, event));
     });

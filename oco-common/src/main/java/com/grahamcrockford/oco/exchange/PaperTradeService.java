@@ -112,7 +112,7 @@ final class PaperTradeService implements TradeService {
   }
 
   private void updateTickerRegistry() {
-    exchangeEventRegistry.changeTickers(
+    exchangeEventRegistry.changeRegisteredTickers(
       openOrders.values().stream()
         .filter(this::isOpen)
         .map(o ->

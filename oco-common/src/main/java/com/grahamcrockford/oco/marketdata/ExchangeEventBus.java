@@ -64,7 +64,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 
   @Override
-  public void changeTickers(Iterable<TickerSpec> targetTickers, String subscriberId, Consumer<TickerEvent> callback) {
+  public void changeRegisteredTickers(Iterable<TickerSpec> targetTickers, String subscriberId, Consumer<TickerEvent> callback) {
     LOGGER.info("Changing subscriptions for subscriber {} to {}", subscriberId, targetTickers);
     CallbackDef callbackDef = new CallbackDef(subscriberId, callback);
     Set<TickerSpec> targetSet = Sets.newHashSet(targetTickers);
