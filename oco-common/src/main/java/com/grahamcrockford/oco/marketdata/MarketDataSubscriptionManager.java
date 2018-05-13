@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.marketdata;
 
+import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
@@ -8,12 +9,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.marketdata.Trade;
+import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.service.marketdata.MarketDataService;
+import org.knowm.xchange.service.trade.TradeService;
+import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +39,6 @@ import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.disposables.Disposable;
 import jersey.repackaged.com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Sets;
 
 /**
  * Maintains subscriptions to exchange market data, distributing them via the event bus.
@@ -47,13 +49,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
 
-  private final Set<MarketDataSubscription> activePolling = Sets.newConcurrentHashSet();
-  private final Multimap<String, Disposable> subsPerExchange = HashMultimap.create();
-  private final Multimap<String, MarketDataSubscription> subscriptionsPerExchange = HashMultimap.create();
-
   private final EventBus eventBus;
   private final ExchangeService exchangeService;
   private final Sleep sleep;
+
+  private final Multimap<String, Disposable> subsPerExchange = HashMultimap.create();
+  private final Multimap<String, MarketDataSubscription> subscriptionsPerExchange = HashMultimap.create();
+
+  private volatile ImmutableSet<MarketDataSubscription> activePolling;
 
 
   @Inject
@@ -78,9 +81,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     // Add new subscriptions
     subscribe(byExchange, unchanged);
-
-    // Remove any active polling tickers we're not interested in anymore
-    activePolling.removeIf(spec -> !byExchange.values().contains(spec));
   }
 
   private Set<String> disconnectChangedExchanges(Multimap<String, MarketDataSubscription> byExchange) {
@@ -127,6 +127,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void subscribe(Multimap<String, MarketDataSubscription> byExchange, Set<String> unchanged) {
+    final Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
     byExchange.asMap()
       .entrySet()
       .stream()
@@ -139,9 +140,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           subscriptionsPerExchange.putAll(entry.getKey(), subscriptionsForExchange);
           subscribeExchange((StreamingExchange)exchange, subscriptionsForExchange, entry.getKey());
         } else {
-          pollExchange(subscriptionsForExchange);
+          LOGGER.info("Subscribing to market data: " + subscriptionsForExchange);
+          pollingBuilder.addAll(subscriptionsForExchange);
         }
       });
+    activePolling = pollingBuilder.build();
   }
 
   private void subscribeExchange(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptions, String exchangeName) {
@@ -204,11 +207,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       });
   }
 
-  private void pollExchange(Collection<MarketDataSubscription> subscriptions) {
-    LOGGER.info("Subscribing to market data: " + subscriptions);
-    activePolling.addAll(subscriptions);
-  }
-
   private void onTicker(TickerSpec spec, Ticker ticker) {
     LOGGER.debug("Got ticker {} on {}", ticker, spec);
     eventBus.post(TickerEvent.create(spec, ticker));
@@ -224,13 +222,21 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     eventBus.post(OrderBookEvent.create(spec, orderBook));
   }
 
+  private void onOpenOrders(TickerSpec spec, OpenOrders openOrders) {
+    LOGGER.debug("Got open orders {} on {}", openOrders, spec);
+    eventBus.post(OpenOrdersEvent.create(spec, openOrders));
+  }
+
   @Override
   protected void run() {
-    Thread.currentThread().setName("Ticker generator");
+    Thread.currentThread().setName("Market data subscription manager");
     LOGGER.info(this + " started");
     while (isRunning()) {
       try {
         activePolling.forEach(this::fetchAndBroadcast);
+        subscriptionsPerExchange.values().forEach(subscription -> {
+          fetchAndBroadcastOpenOrders(subscription);
+        });
       } catch (Throwable e) {
         LOGGER.error("Serious error. Trying to stay alive", e);
       }
@@ -268,6 +274,19 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           .forEach(t -> onTrade(spec, t));
       } catch (Throwable e) {
         LOGGER.error("Failed fetching trades: " + spec, e);
+      }
+    }
+    fetchAndBroadcastOpenOrders(subscription);
+  }
+
+  private void fetchAndBroadcastOpenOrders(MarketDataSubscription subscription) {
+    TickerSpec spec = subscription.spec();
+    if (subscription.types().contains(OPEN_ORDERS)) {
+      try {
+        TradeService tradeService = exchangeService.get(subscription.spec().exchange()).getTradeService();
+        onOpenOrders(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair())));
+      } catch (Throwable e) {
+        LOGGER.error("Failed fetching ticker: " + spec, e);
       }
     }
   }

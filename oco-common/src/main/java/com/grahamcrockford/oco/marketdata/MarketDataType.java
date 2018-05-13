@@ -3,5 +3,6 @@ package com.grahamcrockford.oco.marketdata;
 public enum MarketDataType {
   TICKER,
   ORDERBOOK,
-  TRADES
+  TRADES,
+  OPEN_ORDERS
 }

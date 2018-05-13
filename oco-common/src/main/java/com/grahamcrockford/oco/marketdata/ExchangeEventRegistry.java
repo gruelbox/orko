@@ -10,6 +10,8 @@ public interface ExchangeEventRegistry {
 
   public void unregisterTicker(TickerSpec spec, String subscriberId);
 
-  public void changeTickers(Iterable<TickerSpec> targetTickers, String subscriberId, Consumer<TickerEvent> callback);
+  public void changeRegisteredTickers(Iterable<TickerSpec> targetTickers, String subscriberId, Consumer<TickerEvent> callback);
+
+  public void changeRegisteredOpenOrders(Iterable<TickerSpec> targetTickers, String subscriberId, Consumer<TickerEvent> callback);
 
 }

@@ -98,6 +98,13 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     });
   }
 
+  @Override
+  public void changeRegisteredOpenOrders(Iterable<TickerSpec> targetTickers, String subscriberId,
+      Consumer<TickerEvent> callback) {
+    // TODO Auto-generated method stub
+
+  }
+
   private void updateSubscriptions() {
     marketDataSubscriptionManager.updateSubscriptions(
         Multimaps.transformValues(
