@@ -29,7 +29,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
-import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
@@ -121,9 +120,9 @@ public final class OcoWebSocketServer {
   }
 
   private synchronized void changeTickers(Collection<TickerSpec> specs, Session session) {
-    exchangeEventRegistry.changeTickers(specs, eventRegistryClientId, (spec, t) -> {
-      LOGGER.debug("Tick: {}", t);
-      session.getAsyncRemote().sendText(message(Nature.TICKER, null, TickerEvent.create(spec, t)));
+    exchangeEventRegistry.changeTickers(specs, eventRegistryClientId, event -> {
+      LOGGER.debug("Tick: {}", event);
+      session.getAsyncRemote().sendText(message(Nature.TICKER, null, event));
     });
   }
 

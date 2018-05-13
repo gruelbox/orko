@@ -13,6 +13,7 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.marketdata.Trade;
+import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,9 @@ import io.reactivex.disposables.Disposable;
 import jersey.repackaged.com.google.common.collect.Lists;
 import jersey.repackaged.com.google.common.collect.Sets;
 
+/**
+ * Maintains subscriptions to exchange market data, distributing them via the event bus.
+ */
 @Singleton
 @VisibleForTesting
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
@@ -169,35 +173,35 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     // Add the subscriptions
     StreamingMarketDataService marketDataService = streamingExchange.getStreamingMarketDataService();
     subscriptions.stream()
-    .forEach(s -> {
-      if (s.types().contains(TICKER)) {
-        Disposable subscription = marketDataService
-            .getTicker(s.spec().currencyPair())
-            .subscribe(
-              ticker -> onTicker(s.spec(), ticker),
-              throwable -> LOGGER.error("Error in subscribing tickers.", throwable)
-            );
-        subsPerExchange.put(s.spec().exchange(), subscription);
-      }
-      if (s.types().contains(ORDERBOOK)) {
-        Disposable subscription = marketDataService
-            .getOrderBook(s.spec().currencyPair())
-            .subscribe(
-              orderBook -> onOrderBook(s.spec(), orderBook),
-              throwable -> LOGGER.error("Error in subscribing order book.", throwable)
-            );
-        subsPerExchange.put(s.spec().exchange(), subscription);
-      }
-      if (s.types().contains(TRADES)) {
-        Disposable subscription = marketDataService
-            .getTrades(s.spec().currencyPair())
-            .subscribe(
-              trade -> onTrade(s.spec(), trade),
-              throwable -> LOGGER.error("Error in subscribing tickers.", throwable)
-            );
-        subsPerExchange.put(s.spec().exchange(), subscription);
-      }
-    });
+      .forEach(s -> {
+        if (s.types().contains(TICKER)) {
+          Disposable subscription = marketDataService
+              .getTicker(s.spec().currencyPair())
+              .subscribe(
+                ticker -> onTicker(s.spec(), ticker),
+                throwable -> LOGGER.error("Error in subscribing tickers.", throwable)
+              );
+          subsPerExchange.put(s.spec().exchange(), subscription);
+        }
+        if (s.types().contains(ORDERBOOK)) {
+          Disposable subscription = marketDataService
+              .getOrderBook(s.spec().currencyPair())
+              .subscribe(
+                orderBook -> onOrderBook(s.spec(), orderBook),
+                throwable -> LOGGER.error("Error in subscribing order book.", throwable)
+              );
+          subsPerExchange.put(s.spec().exchange(), subscription);
+        }
+        if (s.types().contains(TRADES)) {
+          Disposable subscription = marketDataService
+              .getTrades(s.spec().currencyPair())
+              .subscribe(
+                trade -> onTrade(s.spec(), trade),
+                throwable -> LOGGER.error("Error in subscribing tickers.", throwable)
+              );
+          subsPerExchange.put(s.spec().exchange(), subscription);
+        }
+      });
   }
 
   private void pollExchange(Collection<MarketDataSubscription> subscriptions) {
@@ -211,11 +215,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void onTrade(TickerSpec spec, Trade trade) {
-    // TODO
+    LOGGER.debug("Got trade {} on {}", trade, spec);
+    eventBus.post(TradeEvent.create(spec, trade));
   }
 
   private void onOrderBook(TickerSpec spec, OrderBook orderBook) {
-    // TODO
+    LOGGER.debug("Got orderBook {} on {}", orderBook, spec);
+    eventBus.post(OrderBookEvent.create(spec, orderBook));
   }
 
   @Override
@@ -239,19 +245,30 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private void fetchAndBroadcast(MarketDataSubscription subscription) {
     TickerSpec spec = subscription.spec();
+    MarketDataService marketDataService = exchangeService.get(spec.exchange()).getMarketDataService();
     if (subscription.types().contains(TICKER)) {
       try {
-        Ticker ticker = exchangeService.get(spec.exchange()).getMarketDataService().getTicker(spec.currencyPair());
-        onTicker(spec, ticker);
+        onTicker(spec, marketDataService.getTicker(spec.currencyPair()));
       } catch (Throwable e) {
         LOGGER.error("Failed fetching ticker: " + spec, e);
       }
     }
     if (subscription.types().contains(ORDERBOOK)) {
-      // TODO
+      try {
+        onOrderBook(spec, marketDataService.getOrderBook(spec.currencyPair()));
+      } catch (Throwable e) {
+        LOGGER.error("Failed fetching order book: " + spec, e);
+      }
     }
     if (subscription.types().contains(TRADES)) {
-      // TODO
+      try {
+        marketDataService.getTrades(spec.currencyPair())
+          .getTrades()
+          .stream()
+          .forEach(t -> onTrade(spec, t));
+      } catch (Throwable e) {
+        LOGGER.error("Failed fetching trades: " + spec, e);
+      }
     }
   }
 }

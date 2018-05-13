@@ -8,9 +8,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.StampedLock;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +44,9 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 
   @Override
-  public void registerTicker(TickerSpec spec, String jobId, BiConsumer<TickerSpec, Ticker> callback) {
+  public void registerTicker(TickerSpec spec, String subscriberId, Consumer<TickerEvent> callback) {
     withWriteLock(() -> {
-      listeners.put(spec, new CallbackDef(jobId, callback));
+      listeners.put(spec, new CallbackDef(subscriberId, callback));
       if (byExchange.put(spec.exchange(), spec)) {
         updateSubscriptions();
       }
@@ -55,9 +54,9 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 
   @Override
-  public void unregisterTicker(TickerSpec spec, String jobId) {
+  public void unregisterTicker(TickerSpec spec, String subscriberId) {
     withWriteLock(() -> {
-      if (listeners.remove(spec, new CallbackDef(jobId, null)) && !listeners.containsKey(spec)) {
+      if (listeners.remove(spec, new CallbackDef(subscriberId, null)) && !listeners.containsKey(spec)) {
         byExchange.remove(spec.exchange(), spec);
         updateSubscriptions();
       }
@@ -65,9 +64,9 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 
   @Override
-  public void changeTickers(Iterable<TickerSpec> targetTickers, String jobId, BiConsumer<TickerSpec, Ticker> callback) {
-    LOGGER.info("Changing subscriptions for subscriber {} to {}", jobId, targetTickers);
-    CallbackDef callbackDef = new CallbackDef(jobId, callback);
+  public void changeTickers(Iterable<TickerSpec> targetTickers, String subscriberId, Consumer<TickerEvent> callback) {
+    LOGGER.info("Changing subscriptions for subscriber {} to {}", subscriberId, targetTickers);
+    CallbackDef callbackDef = new CallbackDef(subscriberId, callback);
     Set<TickerSpec> targetSet = Sets.newHashSet(targetTickers);
     withWriteLock(() -> {
 
@@ -97,8 +96,6 @@ class ExchangeEventBus implements ExchangeEventRegistry {
         updateSubscriptions();
       }
     });
-
-
   }
 
   private void updateSubscriptions() {
@@ -116,7 +113,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     long stamp = rwLock.readLock();
     try {
       listeners.get(tickerEvent.spec())
-        .forEach(c -> executorService.execute(() -> c.process(tickerEvent.spec(), tickerEvent.ticker())));
+        .forEach(c -> executorService.execute(() -> c.process(tickerEvent)));
     } finally {
       rwLock.unlockRead(stamp);
     }
@@ -132,13 +129,17 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 }
 
+
+/**
+ * Callback placeholder.
+ */
 final class CallbackDef {
 
   private final String id;
-  private final BiConsumer<TickerSpec, Ticker> callback;
+  private final Consumer<TickerEvent> callback;
   private final Lock lock = new ReentrantLock();
 
-  CallbackDef(String id, BiConsumer<TickerSpec, Ticker> callback) {
+  CallbackDef(String id, Consumer<TickerEvent> callback) {
     super();
     this.id = id;
     this.callback = callback;
@@ -174,13 +175,13 @@ final class CallbackDef {
     return "CallbackDef [id=" + id + "]";
   }
 
-  void process(TickerSpec spec, Ticker ticker) {
+  void process(TickerEvent tickerEvent) {
     // Prevent passing more tickers to the same job if it's still processing
     // an old one.
     if (!lock.tryLock())
       return;
     try {
-      callback.accept(spec, ticker);
+      callback.accept(tickerEvent);
     } finally {
       lock.unlock();
     }

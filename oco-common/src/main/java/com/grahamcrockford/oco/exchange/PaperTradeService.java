@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
-import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.MarketOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
@@ -40,6 +39,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
 /**
@@ -209,22 +209,22 @@ final class PaperTradeService implements TradeService {
   /**
    * Handles a tick by updating any affected orders.
    */
-  private synchronized void updateAgainstMarket(TickerSpec spec, Ticker ticker) {
+  private synchronized void updateAgainstMarket(TickerEvent tickerEvent) {
     openOrders.values().stream()
-      .filter(o -> o.getCurrencyPair().counter.getCurrencyCode().equals(spec.counter()) &&
-                   o.getCurrencyPair().base.getCurrencyCode().equals(spec.base())
+      .filter(o -> o.getCurrencyPair().counter.getCurrencyCode().equals(tickerEvent.spec().counter()) &&
+                   o.getCurrencyPair().base.getCurrencyCode().equals(tickerEvent.spec().base())
       )
       .forEach(order -> {
         switch (order.getType()) {
           case ASK:
-            if (ticker.getBid().compareTo(order.getLimitPrice()) >= 0) {
+            if (tickerEvent.ticker().getBid().compareTo(order.getLimitPrice()) >= 0) {
               order.setCumulativeAmount(order.getOriginalAmount());
               order.setOrderStatus(Order.OrderStatus.FILLED);
               return;
             }
             break;
           case BID:
-            if (ticker.getAsk().compareTo(order.getLimitPrice()) <= 0) {
+            if (tickerEvent.ticker().getAsk().compareTo(order.getLimitPrice()) <= 0) {
               order.setCumulativeAmount(order.getOriginalAmount());
               order.setOrderStatus(Order.OrderStatus.FILLED);
               return;
