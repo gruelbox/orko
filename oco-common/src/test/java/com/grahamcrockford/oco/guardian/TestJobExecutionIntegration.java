@@ -28,7 +28,7 @@ import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.guardian.GuardianLoop;
 import com.grahamcrockford.oco.guardian.JobRunner;
 import com.grahamcrockford.oco.guardian.StopEvent;
-import com.grahamcrockford.oco.marketdata.MarketDataGenerator;
+import com.grahamcrockford.oco.marketdata.MarketDataSubscriptionManager;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
@@ -54,7 +54,7 @@ public class TestJobExecutionIntegration {
   private JobRunner jobSubmitter;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
-  private MarketDataGenerator tickerGenerator;
+  private MarketDataSubscriptionManager marketDataSubscriptionManager;
 
   private ExecutorService executor;
 
@@ -81,7 +81,7 @@ public class TestJobExecutionIntegration {
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    tickerGenerator = new MarketDataGenerator(eventBus, exchangeService, new Sleep(config));
+    marketDataSubscriptionManager = new MarketDataSubscriptionManager(eventBus, exchangeService, new Sleep(config));
   }
 
 
@@ -226,18 +226,18 @@ public class TestJobExecutionIntegration {
   private void start() {
     guardianLoop1.startAsync();
     guardianLoop2.startAsync();
-    tickerGenerator.startAsync();
+    marketDataSubscriptionManager.startAsync();
     guardianLoop1.awaitRunning();
     guardianLoop2.awaitRunning();
-    tickerGenerator.awaitRunning();
+    marketDataSubscriptionManager.awaitRunning();
   }
 
   @After
   public void tearDown() throws Exception {
-    tickerGenerator.stopAsync();
+    marketDataSubscriptionManager.stopAsync();
     guardianLoop1.stopAsync();
     guardianLoop2.stopAsync();
-    tickerGenerator.awaitTerminated();
+    marketDataSubscriptionManager.awaitTerminated();
     guardianLoop1.awaitTerminated();
     guardianLoop2.awaitTerminated();
     executor.shutdownNow();

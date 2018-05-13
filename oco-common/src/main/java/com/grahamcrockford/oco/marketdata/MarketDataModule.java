@@ -8,6 +8,6 @@ public class MarketDataModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);
-    Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MarketDataGenerator.class);
+    Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MarketDataSubscriptionManager.class);
   }
 }

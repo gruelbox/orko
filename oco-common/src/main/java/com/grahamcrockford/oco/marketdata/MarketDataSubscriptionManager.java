@@ -39,9 +39,9 @@ import jersey.repackaged.com.google.common.collect.Sets;
 
 @Singleton
 @VisibleForTesting
-public class MarketDataGenerator extends AbstractExecutionThreadService {
+public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataGenerator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
 
   private final Set<MarketDataSubscription> activePolling = Sets.newConcurrentHashSet();
   private final Multimap<String, Disposable> subsPerExchange = HashMultimap.create();
@@ -54,7 +54,7 @@ public class MarketDataGenerator extends AbstractExecutionThreadService {
 
   @Inject
   @VisibleForTesting
-  public MarketDataGenerator(EventBus eventBus, ExchangeService exchangeService, Sleep sleep) {
+  public MarketDataSubscriptionManager(EventBus eventBus, ExchangeService exchangeService, Sleep sleep) {
     this.exchangeService = exchangeService;
     this.eventBus = eventBus;
     this.sleep = sleep;

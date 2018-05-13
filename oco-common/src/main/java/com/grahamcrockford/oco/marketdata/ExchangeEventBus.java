@@ -35,12 +35,12 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   private final Multimap<String, TickerSpec> byExchange = MultimapBuilder.hashKeys().hashSetValues().build();
   private final Multimap<TickerSpec, CallbackDef> listeners = MultimapBuilder.hashKeys().hashSetValues().build();
   private final StampedLock rwLock = new StampedLock();
-  private final MarketDataGenerator tickerGenerator;
+  private final MarketDataSubscriptionManager marketDataSubscriptionManager;
 
   @Inject
-  ExchangeEventBus(EventBus eventBus, ExecutorService executorService, MarketDataGenerator tickerGenerator) {
+  ExchangeEventBus(EventBus eventBus, ExecutorService executorService, MarketDataSubscriptionManager marketDataSubscriptionManager) {
     this.executorService = executorService;
-    this.tickerGenerator = tickerGenerator;
+    this.marketDataSubscriptionManager = marketDataSubscriptionManager;
     eventBus.register(this);
   }
 
@@ -102,7 +102,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 
   private void updateSubscriptions() {
-    tickerGenerator.updateSubscriptions(
+    marketDataSubscriptionManager.updateSubscriptions(
         Multimaps.transformValues(
             byExchange,
             s -> MarketDataSubscription.create(s, EnumSet.of(MarketDataType.TICKER))
