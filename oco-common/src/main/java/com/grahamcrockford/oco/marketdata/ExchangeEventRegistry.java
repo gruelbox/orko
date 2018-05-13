@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.ticker;
+package com.grahamcrockford.oco.marketdata;
 
 import java.util.function.BiConsumer;
 import org.knowm.xchange.dto.marketdata.Ticker;

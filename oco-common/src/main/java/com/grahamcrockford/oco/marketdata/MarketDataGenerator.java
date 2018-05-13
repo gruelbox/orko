@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.ticker;
+package com.grahamcrockford.oco.marketdata;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,9 +34,9 @@ import jersey.repackaged.com.google.common.collect.Lists;
 
 @Singleton
 @VisibleForTesting
-public class TickerGenerator extends AbstractExecutionThreadService {
+public class MarketDataGenerator extends AbstractExecutionThreadService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TickerGenerator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataGenerator.class);
 
   private final Set<TickerSpec> activePolling = Collections.newSetFromMap(new ConcurrentHashMap<TickerSpec, Boolean>());
   private final Multimap<String, Disposable> subsPerExchange = HashMultimap.create();
@@ -49,7 +49,7 @@ public class TickerGenerator extends AbstractExecutionThreadService {
 
   @Inject
   @VisibleForTesting
-  public TickerGenerator(EventBus eventBus, ExchangeService exchangeService, Sleep sleep) {
+  public MarketDataGenerator(EventBus eventBus, ExchangeService exchangeService, Sleep sleep) {
     this.exchangeService = exchangeService;
     this.eventBus = eventBus;
     this.sleep = sleep;

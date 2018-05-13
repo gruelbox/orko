@@ -28,11 +28,11 @@ import org.mockito.MockitoAnnotations;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.job.SoftTrailingStop.Builder;
+import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 public class TestSoftTrailingStopProcessorBuy {
 

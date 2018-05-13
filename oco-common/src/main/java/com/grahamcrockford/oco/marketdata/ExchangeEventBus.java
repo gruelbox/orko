@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.ticker;
+package com.grahamcrockford.oco.marketdata;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -33,10 +33,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   private final Multimap<String, TickerSpec> byExchange = MultimapBuilder.hashKeys().hashSetValues().build();
   private final Multimap<TickerSpec, CallbackDef> listeners = MultimapBuilder.hashKeys().hashSetValues().build();
   private final StampedLock rwLock = new StampedLock();
-  private final TickerGenerator tickerGenerator;
+  private final MarketDataGenerator tickerGenerator;
 
   @Inject
-  ExchangeEventBus(EventBus eventBus, ExecutorService executorService, TickerGenerator tickerGenerator) {
+  ExchangeEventBus(EventBus eventBus, ExecutorService executorService, MarketDataGenerator tickerGenerator) {
     this.executorService = executorService;
     this.tickerGenerator = tickerGenerator;
     eventBus.register(this);

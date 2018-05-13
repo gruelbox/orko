@@ -28,12 +28,12 @@ import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.guardian.GuardianLoop;
 import com.grahamcrockford.oco.guardian.JobRunner;
 import com.grahamcrockford.oco.guardian.StopEvent;
+import com.grahamcrockford.oco.marketdata.MarketDataGenerator;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.submit.JobAccess;
 import com.grahamcrockford.oco.submit.JobLocker;
-import com.grahamcrockford.oco.ticker.TickerGenerator;
 import com.grahamcrockford.oco.util.Sleep;
 
 public class TestJobExecutionIntegration {
@@ -54,7 +54,7 @@ public class TestJobExecutionIntegration {
   private JobRunner jobSubmitter;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
-  private TickerGenerator tickerGenerator;
+  private MarketDataGenerator tickerGenerator;
 
   private ExecutorService executor;
 
@@ -81,7 +81,7 @@ public class TestJobExecutionIntegration {
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    tickerGenerator = new TickerGenerator(eventBus, exchangeService, new Sleep(config));
+    tickerGenerator = new MarketDataGenerator(eventBus, exchangeService, new Sleep(config));
   }
 
 

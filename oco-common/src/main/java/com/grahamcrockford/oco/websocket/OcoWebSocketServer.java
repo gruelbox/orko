@@ -28,10 +28,10 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
+import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
-import com.grahamcrockford.oco.ticker.TickerEvent;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
 
 @Metered

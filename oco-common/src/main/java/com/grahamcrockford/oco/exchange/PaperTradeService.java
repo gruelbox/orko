@@ -39,8 +39,8 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 /**
  * Paper trading implementation.  Note: doesn't work between restarts. Probably not thread
