@@ -42,12 +42,6 @@ const Orders = props => (
 
   <ReactTable
     data={props.orders.asMutable()}
-    defaultSorted={[
-      {
-        id: "createdDate",
-        desc: false
-      }
-    ]}
     getTrProps={(state, rowInfo, column) => ({
       className: rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell"
     })}

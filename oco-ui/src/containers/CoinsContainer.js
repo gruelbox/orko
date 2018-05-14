@@ -6,7 +6,7 @@ import ReactTable from "react-table"
 
 import * as coinsActions from "../store/coins/actions"
 import * as uiActions from "../store/ui/actions"
-import { isAlert } from "../util/jobUtils"
+import { getCoinsForDisplay } from "../selectors/coins"
 
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
@@ -34,12 +34,6 @@ const CoinsCointainer = ({ data, dispatch, updateFocusedField }) => (
   >
     <ReactTable
       data={data.asMutable()}
-      defaultSorted={[
-        {
-          id: "name",
-          desc: false
-        }
-      ]}
       columns={[
         {
           id: "close",
@@ -135,22 +129,9 @@ const CoinsCointainer = ({ data, dispatch, updateFocusedField }) => (
 )
 
 function mapStateToProps(state) {
-  const alertJobs =
-    state.job && state.job.jobs
-      ? state.job.jobs.filter(job => isAlert(job))
-      : []
   return {
     updateFocusedField: state.focus.fn,
-    data: state.coins.coins.map(coin => ({
-      ...coin,
-      ticker: state.ticker.coins[coin.key],
-      hasAlert: !!alertJobs.find(
-        job =>
-          job.tickTrigger.exchange === coin.exchange &&
-          job.tickTrigger.base === coin.base &&
-          job.tickTrigger.counter === coin.counter
-      )
-    }))
+    data: getCoinsForDisplay(state)
   }
 }
 

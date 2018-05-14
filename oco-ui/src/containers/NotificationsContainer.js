@@ -27,12 +27,6 @@ const NotificationsContainer = ({notifications, dispatch}) => (
   }>
     <ReactTable
       data={Immutable.asMutable(notifications)}
-      defaultSorted={[
-        {
-          id: "dateTime",
-          desc: false
-        }
-      ]}
       getTrProps={(state, rowInfo, column) => ({
         style: {
           color: rowInfo.original.notificationType === "ERROR" ? theme.colors.alert : undefined
