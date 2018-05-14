@@ -2,6 +2,8 @@ package com.grahamcrockford.oco.websocket;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -23,6 +25,7 @@ abstract class OcoWebSocketIncomingMessage {
   abstract Command command();
 
   @JsonProperty
+  @Nullable
   abstract Collection<TickerSpec> tickers();
 
   enum Command {

@@ -85,13 +85,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
     withWriteLock(() -> {
 
-      CallbackDef<OpenOrdersEvent> openOrdersCallbackDef = new CallbackDef<OpenOrdersEvent>(subscriberId, openOrdersCallback);
-      CallbackDef<TickerEvent> tickerCallbackDef = new CallbackDef<TickerEvent>(subscriberId, tickerCallback);
-
       // Remove the subscriptions we don't need
       SetView<TickerSpec> tickersWithDeletions = Sets.union(
-        clearUnusedTickerSubscriptions(targetSubscriptions, subscriberId, tickerCallbackDef),
-        clearUnusedOpenOrdersSubscriptions(targetSubscriptions, subscriberId, openOrdersCallbackDef)
+        clearUnusedSubscriptionsForSubscriber(targetSubscriptions, subscriberId, tickerListeners),
+        clearUnusedSubscriptionsForSubscriber(targetSubscriptions, subscriberId, openOrdersListeners)
       );
 
       // Disconnect the exchanges we don't need
@@ -110,12 +107,13 @@ class ExchangeEventBus implements ExchangeEventRegistry {
         Collection<MarketDataType> types = entry.getValue();
         types.forEach(type -> {
           if (type == TICKER) {
-            tickerListeners.put(spec, tickerCallbackDef);
+            tickerListeners.put(spec, new CallbackDef<TickerEvent>(subscriberId, tickerCallback));
           } else if (type == OPEN_ORDERS) {
-            openOrdersListeners.put(spec, openOrdersCallbackDef);
+            openOrdersListeners.put(spec, new CallbackDef<OpenOrdersEvent>(subscriberId, openOrdersCallback));
           }
         });
       });
+
       if (subscriptionsByExchange.putAll(targetByExchange)) {
         updated = true;
       }
@@ -126,28 +124,16 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     });
   }
 
-  private Set<TickerSpec> clearUnusedOpenOrdersSubscriptions(Multimap<TickerSpec, MarketDataType> targetSubscriptions, String subscriberId, CallbackDef<OpenOrdersEvent> openOrdersCallbackDef) {
+  private <T> Set<TickerSpec> clearUnusedSubscriptionsForSubscriber(Multimap<TickerSpec, MarketDataType> targetSubscriptions,
+                                                                    String subscriberId,
+                                                                    Multimap<TickerSpec, CallbackDef<T>> listeners) {
     Builder<TickerSpec> affectedTickers = ImmutableSet.builder();
-    Iterator<Entry<TickerSpec, CallbackDef<OpenOrdersEvent>>> openOrderListenerIterator = openOrdersListeners.entries().iterator();
-    while (openOrderListenerIterator.hasNext()) {
-      Entry<TickerSpec, CallbackDef<OpenOrdersEvent>> next = openOrderListenerIterator.next();
-      TickerSpec spec = next.getKey();
-      if (next.getValue().equals(openOrdersCallbackDef) && !targetSubscriptions.containsEntry(spec, OPEN_ORDERS)) {
-        openOrderListenerIterator.remove();
-        affectedTickers.add(spec);
-      }
-    }
-    return affectedTickers.build();
-  }
-
-  private Set<TickerSpec> clearUnusedTickerSubscriptions(Multimap<TickerSpec, MarketDataType> targetSubscriptions, String subscriberId, CallbackDef<TickerEvent> tickerCallbackDef) {
-    Builder<TickerSpec> affectedTickers = ImmutableSet.builder();
-
-    Iterator<Entry<TickerSpec, CallbackDef<TickerEvent>>> listenerIterator = tickerListeners.entries().iterator();
+    CallbackDef<T> subscriberCallback = new CallbackDef<T>(subscriberId, null);
+    Iterator<Entry<TickerSpec, CallbackDef<T>>> listenerIterator = listeners.entries().iterator();
     while (listenerIterator.hasNext()) {
-      Entry<TickerSpec, CallbackDef<TickerEvent>> next = listenerIterator.next();
+      Entry<TickerSpec, CallbackDef<T>> next = listenerIterator.next();
       TickerSpec spec = next.getKey();
-      if (next.getValue().equals(tickerCallbackDef) && !targetSubscriptions.containsEntry(spec, TICKER)) {
+      if (next.getValue().equals(subscriberCallback) && !targetSubscriptions.containsEntry(spec, TICKER)) {
         listenerIterator.remove();
         affectedTickers.add(spec);
       }

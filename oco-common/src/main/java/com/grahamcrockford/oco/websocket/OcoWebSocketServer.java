@@ -1,8 +1,6 @@
 package com.grahamcrockford.oco.websocket;
 
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
-import static com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature.NOTIFICATION;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
@@ -36,6 +34,8 @@ import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.MarketDataType;
+import com.grahamcrockford.oco.marketdata.OpenOrdersEvent;
+import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
@@ -66,11 +66,6 @@ public final class OcoWebSocketServer {
     injectMembers(session);
     this.session = session;
     eventBus.register(this);
-  }
-
-  @Subscribe
-  void notify(NotificationEvent notificationEvent) {
-    session.getAsyncRemote().sendText(message(NOTIFICATION, notificationEvent));
   }
 
   @OnMessage
@@ -141,25 +136,36 @@ public final class OcoWebSocketServer {
   }
 
   private synchronized void changeOpenOrderSubscriptions(Collection<TickerSpec> specs) {
-    tickersSubscribed.set(ImmutableSet.copyOf(specs));
+    openOrdersSubscribed.set(ImmutableSet.copyOf(specs));
   }
 
   private void updateSubscriptions(Session session) {
     SetMultimap<TickerSpec, MarketDataType> request = MultimapBuilder.hashKeys().hashSetValues().build();
     tickersSubscribed.get().forEach(spec -> request.put(spec, TICKER));
     openOrdersSubscribed.get().forEach(spec -> request.put(spec, MarketDataType.OPEN_ORDERS));
-    exchangeEventRegistry.changeSubscriptions(
-      request,
-      eventRegistryClientId,
-      tickerEvent -> {
-        LOGGER.debug("Tick: {}", tickerEvent);
-        session.getAsyncRemote().sendText(message(Nature.TICKER, tickerEvent));
-      },
-      openOrdersEvent -> {
-        LOGGER.info("Open orders: {}", openOrdersEvent);
-        session.getAsyncRemote().sendText(message(Nature.OPEN_ORDERS, openOrdersEvent));
-      }
-    );
+    exchangeEventRegistry.changeSubscriptions(request, eventRegistryClientId, this::onTicker, this::onOpenOrders);
+  }
+
+  @Subscribe
+  void onNotification(NotificationEvent notificationEvent) {
+    send(notificationEvent, Nature.NOTIFICATION);
+  }
+
+  void onTicker(TickerEvent tickerEvent) {
+    send(tickerEvent, Nature.TICKER);
+  }
+
+  void onOpenOrders(OpenOrdersEvent openOrdersEvent) {
+    send(openOrdersEvent, Nature.OPEN_ORDERS);
+  }
+
+  void send(Object object, Nature nature) {
+    LOGGER.debug("{}: {}", nature, object);
+//    try {
+      session.getAsyncRemote().sendText(message(nature, object));
+//    } catch (IOException e) {
+//      LOGGER.info("Failed to send " + object + " to socket", e);
+//    }
   }
 
   private String message(Nature nature, Object data) {

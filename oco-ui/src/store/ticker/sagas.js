@@ -24,12 +24,13 @@ const serverMessages = {
   TICKER: "TICKER",
   ERROR: "ERROR",
   CHANGE_TICKERS: "CHANGE_TICKERS",
+  CHANGE_OPEN_ORDERS: "CHANGE_OPEN_ORDERS",
+  UPDATE_SUBSCRIPTIONS: "UPDATE_SUBSCRIPTIONS",
   NOTIFICATION: "NOTIFICATION"
 }
 
-export const getAuth = state => state.auth
-export const getSubscribedCoins = state => state.coins.coins
-export const getConnected = state => state.ticker.connected
+const getAuth = state => state.auth
+const getSubscribedCoins = state => state.coins.coins
 
 /**
  * Event channel which allows the saga to react to incoming
@@ -122,17 +123,14 @@ function* socketManager() {
       } else if (action.type === types.RESUBSCRIBE) {
         const coins = yield select(getSubscribedCoins)
         console.log("Subscribing to tickers", coins)
-        yield socket.send(
-          JSON.stringify({
-            command: serverMessages.CHANGE_TICKERS,
-            correlationId: "CHANGE",
-            tickers: coins.map(coin => ({
-              exchange: coin.exchange,
-              counter: coin.counter,
-              base: coin.base
-            }))
-          })
-        )
+        const tickers = coins.map(coin => ({
+          exchange: coin.exchange,
+          counter: coin.counter,
+          base: coin.base
+        }))
+        yield socket.send(JSON.stringify({ command: serverMessages.CHANGE_TICKERS, tickers }))
+        //TODO yield socket.send(JSON.stringify({ command: serverMessages.CHANGE_OPEN_ORDERS, tickers }))
+        yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
       }
     }
   }
