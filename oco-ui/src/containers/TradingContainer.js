@@ -23,11 +23,6 @@ class TradingContainer extends React.Component {
 
   render() {
     const ticker = (this.props.tickers && this.props.coin) ? this.props.tickers[this.props.coin.key] : null
-    if (ticker && this.props.coin) {
-      document.title = ticker.last + " " + this.props.coin.base + "/" + this.props.coin.counter 
-    } else {
-      document.title = "No coin"
-    }
     return (
       <TradeSelector
         coin={this.props.coin}

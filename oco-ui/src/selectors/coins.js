@@ -3,8 +3,10 @@ import { isAlert } from "../util/jobUtils"
 
 const getAlertJobs = state =>
   state.job && state.job.jobs ? state.job.jobs.filter(job => isAlert(job)) : []
-const getCoins = state => state.coins.coins
-const getTickers = state => state.ticker.coins
+
+export const getCoins = state => state.coins.coins
+
+export const getTickers = state => state.ticker.coins
 
 export const getCoinsForDisplay = createSelector(
   [getAlertJobs, getCoins, getTickers],
