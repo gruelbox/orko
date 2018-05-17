@@ -60,11 +60,11 @@ export const getSelectedCoinTicker = createSelector(
 )
 
 export const getCoinsForDisplay = createSelector(
-  [getAlertJobs, getCoins, getSelectedCoinTicker],
-  (alertJobs, coins, ticker) =>
+  [getAlertJobs, getCoins, getTickers],
+  (alertJobs, coins, tickers) =>
     coins.map(coin => ({
       ...coin,
-      ticker,
+      ticker: tickers[coin.key],
       hasAlert: !!alertJobs.find(
         job =>
           job.tickTrigger.exchange === coin.exchange &&
