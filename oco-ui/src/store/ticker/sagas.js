@@ -14,6 +14,7 @@ import { eventChannel } from "redux-saga"
 import { coin as createCoin } from "../coin/reducer"
 import * as errorActions from "../error/actions"
 import * as notificationActions from "../notifications/actions"
+import { getSelectedCoin } from "../../selectors/coins"
 
 const channelMessages = {
   OPEN: "OPEN",
@@ -91,6 +92,12 @@ function* actionLoop() {
   ])
 }
 
+const webCoinToServerCoin = coin => ({
+  exchange: coin.exchange,
+  counter: coin.counter,
+  base: coin.base
+})
+
 function* socketManager() {
   while (true) {
     const auth = yield select(getAuth)
@@ -122,14 +129,16 @@ function* socketManager() {
         break
       } else if (action.type === types.RESUBSCRIBE) {
         const coins = yield select(getSubscribedCoins)
+        const selectedCoin = yield select(getSelectedCoin)
         console.log("Subscribing to tickers", coins)
-        const tickers = coins.map(coin => ({
-          exchange: coin.exchange,
-          counter: coin.counter,
-          base: coin.base
+        yield socket.send(JSON.stringify({
+          command: serverMessages.CHANGE_TICKERS,
+          tickers: coins.map(coin => webCoinToServerCoin(coin))
         }))
-        yield socket.send(JSON.stringify({ command: serverMessages.CHANGE_TICKERS, tickers }))
-        //TODO yield socket.send(JSON.stringify({ command: serverMessages.CHANGE_OPEN_ORDERS, tickers }))
+        yield socket.send(JSON.stringify({
+          command: serverMessages.CHANGE_OPEN_ORDERS,
+          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+        }))
         yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
       }
     }
