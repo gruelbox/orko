@@ -13,8 +13,8 @@ import FlashEntry from "../components/primitives/FlashEntry"
 
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
-import * as jobTypes from "../services/jobTypes"
 import * as dateUtils from "../util/dateUtils"
+import { getOrdersWithWatchesForSelectedCoin } from "../selectors/coins"
 
 const TICK_TIME = 10000
 
@@ -245,27 +245,8 @@ class OpenOrdersContainer extends React.Component {
 }
 
 function mapStateToProps(state, props) {
-  const notifierJobs =
-    state.job.jobs && props.coin
-      ? state.job.jobs.filter(
-          job =>
-            job.jobType === jobTypes.WATCH_JOB &&
-            job.tickTrigger.exchange === props.coin.exchange &&
-            job.tickTrigger.base === props.coin.base &&
-            job.tickTrigger.counter === props.coin.counter
-        )
-      : []
   return {
-    orders: state.coin.orders
-      ? state.coin.orders.allOpenOrders.map(order => {
-          const watchJob = notifierJobs.find(job => job.orderId === order.id)
-          if (watchJob) {
-            return { ...order, watchJob }
-          } else {
-            return order
-          }
-        })
-      : null,
+    orders: getOrdersWithWatchesForSelectedCoin(state),
     ordersUnavailable: state.coin.ordersUnavailable
   }
 }

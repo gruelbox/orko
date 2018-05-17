@@ -22,12 +22,9 @@ class TradingContainer extends React.Component {
   }
 
   render() {
-    const ticker = (this.props.tickers && this.props.coin) ? this.props.tickers[this.props.coin.key] : null
     return (
       <TradeSelector
         coin={this.props.coin}
-        balance={this.props.balance}
-        ticker={ticker}
         onClickNumber={number => {
           if (this.props.updateFocusedField) {
             this.props.updateFocusedField(number)
@@ -40,8 +37,6 @@ class TradingContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    balance: state.coin.balance,
-    tickers: state.ticker.coins,
     updateFocusedField: state.focus.fn
   }
 }
