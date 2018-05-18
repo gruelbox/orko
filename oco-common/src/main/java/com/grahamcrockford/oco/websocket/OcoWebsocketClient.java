@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import javax.websocket.ClientEndpoint;
@@ -60,7 +59,7 @@ class OcoWebsocketClient implements AutoCloseable {
 
   private void sendCommand(Command command, Collection<TickerSpec> specs) {
     try {
-      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, UUID.randomUUID().toString(), specs);
+      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, specs);
       String message = objectMapper.writeValueAsString(request);
       this.session.getAsyncRemote().sendText(message);
     } catch (JsonProcessingException e) {

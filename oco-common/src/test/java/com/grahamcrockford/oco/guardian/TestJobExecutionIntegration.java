@@ -25,15 +25,16 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.ExchangeService;
+import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.guardian.GuardianLoop;
 import com.grahamcrockford.oco.guardian.JobRunner;
 import com.grahamcrockford.oco.guardian.StopEvent;
+import com.grahamcrockford.oco.marketdata.MarketDataSubscriptionManager;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.submit.JobAccess;
 import com.grahamcrockford.oco.submit.JobLocker;
-import com.grahamcrockford.oco.ticker.TickerGenerator;
 import com.grahamcrockford.oco.util.Sleep;
 
 public class TestJobExecutionIntegration {
@@ -48,13 +49,14 @@ public class TestJobExecutionIntegration {
   @Mock private JobLocker jobLocker;
   @Mock private Injector injector;
   @Mock private ExchangeService exchangeService;
+  @Mock private TradeServiceFactory tradeServiceFactory;
 
   private AsyncEventBus asyncEventBus;
   private EventBus eventBus;
   private JobRunner jobSubmitter;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
-  private TickerGenerator tickerGenerator;
+  private MarketDataSubscriptionManager marketDataSubscriptionManager;
 
   private ExecutorService executor;
 
@@ -81,7 +83,7 @@ public class TestJobExecutionIntegration {
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    tickerGenerator = new TickerGenerator(eventBus, exchangeService, new Sleep(config));
+    marketDataSubscriptionManager = new MarketDataSubscriptionManager(eventBus, exchangeService, new Sleep(config), tradeServiceFactory);
   }
 
 
@@ -226,18 +228,18 @@ public class TestJobExecutionIntegration {
   private void start() {
     guardianLoop1.startAsync();
     guardianLoop2.startAsync();
-    tickerGenerator.startAsync();
+    marketDataSubscriptionManager.startAsync();
     guardianLoop1.awaitRunning();
     guardianLoop2.awaitRunning();
-    tickerGenerator.awaitRunning();
+    marketDataSubscriptionManager.awaitRunning();
   }
 
   @After
   public void tearDown() throws Exception {
-    tickerGenerator.stopAsync();
+    marketDataSubscriptionManager.stopAsync();
     guardianLoop1.stopAsync();
     guardianLoop2.stopAsync();
-    tickerGenerator.awaitTerminated();
+    marketDataSubscriptionManager.awaitTerminated();
     guardianLoop1.awaitTerminated();
     guardianLoop2.awaitTerminated();
     executor.shutdownNow();

@@ -1,6 +1,6 @@
 import React from "react"
 
-import { Route, BrowserRouter } from "react-router-dom"
+import { Route } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
 import styled from "styled-components"
 import { color } from "styled-system"
@@ -136,36 +136,32 @@ export default class Framework extends React.Component {
 
     if (isMobile) {
       return (
-        <BrowserRouter>
-          <div style={{ position: "relative" }}>
-            {header}
-            {content}
-            {footer}
-          </div>
-        </BrowserRouter>
+        <div style={{ position: "relative" }}>
+          {header}
+          {content}
+          {footer}
+        </div>
       )
     } else {
       return (
-        <BrowserRouter>
-          <div>
-            {header}
-            <ResponsiveReactGridLayout
-              breakpoints={{ lg: 1400, md: 850, sm: 0 }}
-              cols={{ lg: 20, md: 8, sm: 2 }}
-              rowHeight={24}
-              layouts={this.state.layouts}
-              onLayoutChange={(layout, layouts) =>
-                this.onLayoutChange(layout, layouts)
-              }
-              margin={[2, 2]}
-              containerPadding={[2, 2]}
-              draggableHandle=".dragMe"
-            >
-              {content}
-            </ResponsiveReactGridLayout>
-            {footer}
-          </div>
-        </BrowserRouter>
+        <div>
+          {header}
+          <ResponsiveReactGridLayout
+            breakpoints={{ lg: 1400, md: 850, sm: 0 }}
+            cols={{ lg: 20, md: 8, sm: 2 }}
+            rowHeight={24}
+            layouts={this.state.layouts}
+            onLayoutChange={(layout, layouts) =>
+              this.onLayoutChange(layout, layouts)
+            }
+            margin={[2, 2]}
+            containerPadding={[2, 2]}
+            draggableHandle=".dragMe"
+          >
+            {content}
+          </ResponsiveReactGridLayout>
+          {footer}
+        </div>
       )
     }
   }

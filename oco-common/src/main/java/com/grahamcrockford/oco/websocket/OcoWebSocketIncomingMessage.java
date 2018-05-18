@@ -17,9 +17,8 @@ abstract class OcoWebSocketIncomingMessage {
 
   @JsonCreator
   static OcoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
-                                            @JsonProperty("correlationId") String correlationId,
                                             @JsonProperty("tickers") Collection<TickerSpec> tickers) {
-    return new AutoValue_OcoWebSocketIncomingMessage(command, correlationId, tickers);
+    return new AutoValue_OcoWebSocketIncomingMessage(command, tickers);
   }
 
   @JsonProperty
@@ -27,12 +26,12 @@ abstract class OcoWebSocketIncomingMessage {
 
   @JsonProperty
   @Nullable
-  abstract String correlationId();
-
-  @JsonProperty
   abstract Collection<TickerSpec> tickers();
 
   enum Command {
-    CHANGE_TICKERS
+    CHANGE_TICKERS,
+    CHANGE_OPEN_ORDERS,
+    CHANGE_ORDER_BOOK,
+    UPDATE_SUBSCRIPTIONS
   }
 }

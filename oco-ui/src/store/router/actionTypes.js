@@ -1,0 +1,1 @@
+export const LOCATION_CHANGED = 'router.LOCATION_CHANGED';

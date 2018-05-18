@@ -12,6 +12,7 @@ import Span from "../components/primitives/Span"
 import Ticker from "../components/Ticker"
 
 import * as authActions from "../store/auth/actions"
+import { getSelectedCoinTicker } from "../selectors/coins"
 
 const ToolbarBox = styled.div`
   background-color: ${props => props.theme.colors.backgrounds[2]};
@@ -135,39 +136,36 @@ const Coin = ({ coin }) => (
   </CoinContainer>
 )
 
-const ToolbarContainer = props => {
-  const ticker =
-    props.tickers && props.coin ? props.tickers[props.coin.key] : null
-  if (ticker && props.coin) {
-    document.title =
-      ticker.last + " " + props.coin.base + "/" + props.coin.counter
+const ToolbarContainer = ({ticker, coin, connected, errors, userName, updateFocusedField, onResetLayout, dispatch}) => {
+  if (ticker && coin) {
+    document.title = ticker.last + " " + coin.base + "/" + coin.counter
   } else {
     document.title = "No coin"
   }
   return (
     <ToolbarBox p={0}>
       <HomeLink />
-      <TickerSocketState connected={props.connected} />
-      <BackgroundErrors errors={props.errors} />
-      <Coin coin={props.coin} />
+      <TickerSocketState connected={connected} />
+      <BackgroundErrors errors={errors} />
+      <Coin coin={coin} />
       <RemainingSpace mx={2}>
         <Ticker
-          coin={props.coin}
-          ticker={props.coin ? props.tickers[props.coin.key] : null}
+          coin={coin}
+          ticker={ticker}
           onClickNumber={number => {
-            if (props.updateFocusedField) {
-              props.updateFocusedField(number)
+            if (updateFocusedField) {
+              updateFocusedField(number)
             }
           }}
         />
       </RemainingSpace>
-      <ResetLayout onClick={props.onResetLayout} />
+      <ResetLayout onClick={onResetLayout} />
       <SignOutLink
-        userName={props.userName}
-        onClick={() => props.dispatch(authActions.logout())}
+        userName={userName}
+        onClick={() => dispatch(authActions.logout())}
       />
       <InvalidateLink
-        onClick={() => props.dispatch(authActions.clearWhitelist())}
+        onClick={() => dispatch(authActions.clearWhitelist())}
       />
     </ToolbarBox>
   )
@@ -179,7 +177,7 @@ function mapStateToProps(state) {
     userName: state.auth.userName,
     connected: state.ticker.connected,
     updateFocusedField: state.focus.fn,
-    tickers: state.ticker.coins
+    ticker: getSelectedCoinTicker(state)
   }
 }
 

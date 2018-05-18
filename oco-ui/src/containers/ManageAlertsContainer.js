@@ -29,22 +29,48 @@ const lowStyle = {
   color: theme.colors.sell
 }
 
+const lowPriceColumn = {
+  id: "lowPrice",
+  Header: "Low price",
+  Cell: ({ original }) => original.low
+    ? original.low.thresholdAsString
+    : "--",
+  headerStyle: numberStyle,
+  style: lowStyle,
+  resizable: true,
+  minWidth: 50
+}
+
+const highPriceColumn = {
+  id: "highPrice",
+  Header: "High price",
+  Cell: ({ original }) => original.high
+    ? original.high.thresholdAsString
+    : "--",
+  headerStyle: numberStyle,
+  style: highStyle,
+  resizable: true,
+  minWidth: 50
+}
+
+const defaultSort = [
+  {
+    id: "lowPrice",
+    desc: false
+  },
+  {
+    id: "highPrice",
+    desc: false
+  }
+]
+
 const Alerts = ({ alerts, onDelete }) => (
   <ReactTable
     data={alerts.asMutable()}
     style={{
       border: "1px solid rgba(0,0,0,0.3)"
     }}
-    defaultSorted={[
-      {
-        id: "lowPrice",
-        desc: false
-      },
-      {
-        id: "highPrice",
-        desc: false
-      }
-    ]}
+    defaultSorted={defaultSort}
     columns={[
       {
         id: "close",
@@ -60,28 +86,8 @@ const Alerts = ({ alerts, onDelete }) => (
         sortable: false,
         resizable: false
       },
-      {
-        id: "lowPrice",
-        Header: "Low price",
-        Cell: ({ original }) => original.low
-          ? original.low.thresholdAsString
-          : "--",
-        headerStyle: numberStyle,
-        style: lowStyle,
-        resizable: true,
-        minWidth: 50
-      },
-      {
-        id: "highPrice",
-        Header: "High price",
-        Cell: ({ original }) => original.high
-          ? original.high.thresholdAsString
-          : "--",
-        headerStyle: numberStyle,
-        style: highStyle,
-        resizable: true,
-        minWidth: 50
-      }
+      lowPriceColumn,
+      highPriceColumn
     ]}
     showPagination={false}
     resizable={false}

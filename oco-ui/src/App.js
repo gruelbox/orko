@@ -5,24 +5,40 @@ import theme from "./theme"
 
 import { Provider as ReduxProvider } from "react-redux"
 import { compose, createStore, applyMiddleware, combineReducers } from "redux"
+
+import createHistory from 'history/createBrowserHistory'
+import { ConnectedRouter, routerReducer, routerMiddleware } from 'react-router-redux'
+
 import createSagaMiddleware from "redux-saga"
 import thunk from "redux-thunk"
 import * as reducers from "./store/reducers"
 import rootSaga from "./store/sagas"
+import * as routerActions from "./store/router/actions"
 
 import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"
 import Framework from "./Framework"
 
 const sagaMiddleware = createSagaMiddleware()
+const history = createHistory()
+const reduxRouterMiddleware = routerMiddleware(history)
+
 const store = createStore(
-  combineReducers(reducers),
+  combineReducers({
+    ...reducers,
+    router: routerReducer
+  }),
   compose(
+    applyMiddleware(reduxRouterMiddleware),
     applyMiddleware(thunk),
-    applyMiddleware(sagaMiddleware)
+    applyMiddleware(sagaMiddleware),
   )
 )
 sagaMiddleware.run(rootSaga, store.dispatch, store.getState)
+
+history.listen(location => {
+  store.dispatch(routerActions.locationChanged(location))
+})
 
 export default class App extends Component {
   render() {
@@ -32,7 +48,9 @@ export default class App extends Component {
           <ErrorContainer />
           <AuthContainer>
             <ThemeProvider theme={theme}>
-              <Framework />
+              <ConnectedRouter history={history}>
+                <Framework />
+              </ConnectedRouter>
             </ThemeProvider>
           </AuthContainer>
         </div>

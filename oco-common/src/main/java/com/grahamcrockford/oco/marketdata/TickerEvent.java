@@ -1,4 +1,4 @@
-package com.grahamcrockford.oco.ticker;
+package com.grahamcrockford.oco.marketdata;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
 

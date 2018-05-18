@@ -1,10 +1,12 @@
 package com.grahamcrockford.oco.websocket;
 
-import static com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature.NOTIFICATION;
-
+import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.annotation.security.RolesAllowed;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
@@ -22,16 +24,21 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
+import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
+import com.grahamcrockford.oco.marketdata.MarketDataType;
+import com.grahamcrockford.oco.marketdata.OpenOrdersEvent;
+import com.grahamcrockford.oco.marketdata.OrderBookEvent;
+import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
-import com.grahamcrockford.oco.ticker.TickerEvent;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
 
 @Metered
@@ -48,7 +55,10 @@ public final class OcoWebSocketServer {
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
   @Inject private AsyncEventBus eventBus;
+
   private Session session;
+
+  private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
@@ -56,11 +66,6 @@ public final class OcoWebSocketServer {
     injectMembers(session);
     this.session = session;
     eventBus.register(this);
-  }
-
-  @Subscribe
-  void notify(NotificationEvent notificationEvent) {
-    session.getAsyncRemote().sendText(message(NOTIFICATION, null, notificationEvent));
   }
 
   @OnMessage
@@ -72,7 +77,16 @@ public final class OcoWebSocketServer {
 
       switch (request.command()) {
         case CHANGE_TICKERS:
-          changeTickers(request.tickers(), session);
+          mutateSubscriptions(TICKER, request.tickers());
+          break;
+        case CHANGE_OPEN_ORDERS:
+          mutateSubscriptions(OPEN_ORDERS, request.tickers());
+          break;
+        case CHANGE_ORDER_BOOK:
+          mutateSubscriptions(ORDERBOOK, request.tickers());
+          break;
+        case UPDATE_SUBSCRIPTIONS:
+          updateSubscriptions(session);
           break;
         default:
           // Jackson should stop this happening in the try block above, but just for completeness
@@ -81,9 +95,18 @@ public final class OcoWebSocketServer {
 
     } catch (Exception e) {
       LOGGER.error("Error processing message: " + message, e);
-      session.getAsyncRemote().sendText(message(Nature.ERROR, request == null ? null : request.correlationId(), "Error processing message"));
+      session.getAsyncRemote().sendText(message(Nature.ERROR, "Error processing message"));
       return;
     }
+  }
+
+
+  private void mutateSubscriptions(MarketDataType marketDataType, Iterable<TickerSpec> tickers) {
+    marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
+      .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(marketDataType)))
+      .addAll(FluentIterable.from(tickers).transform(spec -> MarketDataSubscription.create(spec, marketDataType)))
+      .build()
+    );
   }
 
   @OnClose
@@ -95,7 +118,8 @@ public final class OcoWebSocketServer {
       LOGGER.error("Error unregistering socket from notification", t);
     }
     try {
-      exchangeEventRegistry.changeTickers(ImmutableList.of(), eventRegistryClientId, null);
+      marketDataSubscriptions.set(ImmutableSet.of());
+      exchangeEventRegistry.clearSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId);
     } catch (Throwable t) {
       LOGGER.error("Error unregistering socket from ticker", t);
     }
@@ -103,6 +127,7 @@ public final class OcoWebSocketServer {
 
   @OnError
   public void onError(Throwable error) {
+    LOGGER.error("Socket error", error);
   }
 
   private void injectMembers(final javax.websocket.Session session) {
@@ -120,17 +145,40 @@ public final class OcoWebSocketServer {
     return request;
   }
 
-  private synchronized void changeTickers(Collection<TickerSpec> specs, Session session) {
-    exchangeEventRegistry.changeTickers(specs, eventRegistryClientId, (spec, t) -> {
-      LOGGER.debug("Tick: {}", t);
-      session.getAsyncRemote().sendText(message(Nature.TICKER, null, TickerEvent.create(spec, t)));
-    });
+  private void updateSubscriptions(Session session) {
+    LOGGER.info("Updating subscriptions for socket to: {}", marketDataSubscriptions);
+    exchangeEventRegistry.changeSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId, this::onTicker, this::onOpenOrders, this::onOrderBook);
   }
 
+  @Subscribe
+  void onNotification(NotificationEvent notificationEvent) {
+    send(notificationEvent, Nature.NOTIFICATION);
+  }
 
-  private String message(Nature nature, String correlationId, Object data) {
+  void onTicker(TickerEvent tickerEvent) {
+    send(tickerEvent, Nature.TICKER);
+  }
+
+  void onOpenOrders(OpenOrdersEvent openOrdersEvent) {
+    send(openOrdersEvent, Nature.OPEN_ORDERS);
+  }
+
+  void onOrderBook(OrderBookEvent orderBookEvent) {
+    send(orderBookEvent, Nature.ORDERBOOK);
+  }
+
+  void send(Object object, Nature nature) {
+    LOGGER.debug("{}: {}", nature, object);
+//    try {
+      session.getAsyncRemote().sendText(message(nature, object));
+//    } catch (IOException e) {
+//      LOGGER.info("Failed to send " + object + " to socket", e);
+//    }
+  }
+
+  private String message(Nature nature, Object data) {
     try {
-      return objectMapper.writeValueAsString(OcoWebSocketOutgoingMessage.create(nature, correlationId, data));
+      return objectMapper.writeValueAsString(OcoWebSocketOutgoingMessage.create(nature, data));
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }

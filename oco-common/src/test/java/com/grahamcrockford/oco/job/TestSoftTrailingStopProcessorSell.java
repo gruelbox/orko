@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.RandomUtils;
@@ -28,11 +27,12 @@ import org.mockito.MockitoAnnotations;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.job.SoftTrailingStop.Builder;
+import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 public class TestSoftTrailingStopProcessorSell {
 
@@ -80,11 +80,11 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
-    processor.tick(job.tickTrigger(), new Ticker.Builder()
+    processor.tick(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
         .last(ENTRY_PRICE)
         .ask(ENTRY_PRICE.add(PENNY))
         .timestamp(new Date())
-        .build());
+        .build()));
 
     verifySentMessage();
     verifyWillRepeatWithoutChange();
@@ -98,11 +98,11 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
-    processor.tick(job.tickTrigger(), new Ticker.Builder()
+    processor.tick(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
         .last(ENTRY_PRICE)
         .ask(ENTRY_PRICE.add(PENNY))
         .timestamp(new Date())
-        .build());
+        .build()));
 
     verifySentMessage();
     verifyWillRepeatWithoutChange();
@@ -117,7 +117,7 @@ public class TestSoftTrailingStopProcessorSell {
     SoftTrailingStopProcessor processor = processor(job);
 
     start(job, processor);
-    processor.tick(job.tickTrigger(), everythingAt(STOP_PRICE.add(PENNY)));
+    processor.tick(TickerEvent.create(job.tickTrigger(), everythingAt(STOP_PRICE.add(PENNY))));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -131,7 +131,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     Ticker ticker = everythingAt(STOP_PRICE);
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
@@ -145,11 +145,11 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
-    processor.tick(job.tickTrigger(), new Ticker.Builder()
+    processor.tick(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
         .bid(STOP_PRICE.add(PENNY))
         .last(STOP_PRICE)
         .ask(STOP_PRICE.add(PENNY).add(PENNY))
-        .timestamp(new Date()).build());
+        .timestamp(new Date()).build()));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -167,7 +167,7 @@ public class TestSoftTrailingStopProcessorSell {
         .last(STOP_PRICE.add(PENNY))
         .ask(STOP_PRICE.add(PENNY))
         .timestamp(new Date()).build();
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
@@ -182,7 +182,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(ADJUSTED_STOP_PRICE.add(PENNY));
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -196,7 +196,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(ADJUSTED_STOP_PRICE);
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
@@ -215,7 +215,7 @@ public class TestSoftTrailingStopProcessorSell {
         .last(ADJUSTED_STOP_PRICE)
         .ask(ADJUSTED_STOP_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -233,7 +233,7 @@ public class TestSoftTrailingStopProcessorSell {
         .last(ADJUSTED_STOP_PRICE.add(PENNY))
         .ask(ADJUSTED_STOP_PRICE.add(PENNY))
         .timestamp(new Date()).build();
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
@@ -251,7 +251,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(new BigDecimal("66.68"));
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -268,7 +268,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(new BigDecimal("66.67"));
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyLimitSellAt(ticker, new BigDecimal("50"));
     verifyFinished();
@@ -285,7 +285,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(ENTRY_PRICE);
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -298,7 +298,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(ENTRY_PRICE.subtract(PENNY));
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -316,7 +316,7 @@ public class TestSoftTrailingStopProcessorSell {
         .last(ENTRY_PRICE)
         .ask(ENTRY_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyResyncedPriceTo(job, ENTRY_PRICE.add(PENNY));
     verifyDidNothingElse();
@@ -330,7 +330,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(HIGHER_ENTRY_PRICE);
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -344,7 +344,7 @@ public class TestSoftTrailingStopProcessorSell {
     start(job, processor);
 
     final Ticker ticker = everythingAt(HIGHER_ENTRY_PRICE.subtract(PENNY));
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -362,7 +362,7 @@ public class TestSoftTrailingStopProcessorSell {
         .last(HIGHER_ENTRY_PRICE)
         .ask(HIGHER_ENTRY_PRICE.add(PENNY).add(PENNY))
         .timestamp(new Date()).build();
-    processor.tick(job.tickTrigger(), ticker);
+    processor.tick(TickerEvent.create(job.tickTrigger(), ticker));
 
     verifyResyncedPriceTo(job, HIGHER_ENTRY_PRICE.add(PENNY));
     verifyDidNothingElse();
@@ -373,7 +373,7 @@ public class TestSoftTrailingStopProcessorSell {
   @SuppressWarnings("unchecked")
   private void start(SoftTrailingStop job, SoftTrailingStopProcessor processor) {
     Assert.assertTrue(processor.start());
-    verify(exchangeEventRegistry).registerTicker(Mockito.eq(job.tickTrigger()), Mockito.eq(job.id()), Mockito.any(BiConsumer.class));
+    verify(exchangeEventRegistry).registerTicker(Mockito.eq(job.tickTrigger()), Mockito.eq(job.id()), Mockito.any(Consumer.class));
   }
 
   private SoftTrailingStopProcessor processor(SoftTrailingStop job) {

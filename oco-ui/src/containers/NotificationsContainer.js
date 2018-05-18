@@ -17,6 +17,42 @@ const textStyle = {
   textAlign: "left",
 }
 
+const columns = [
+  {
+    id: "icon",
+    Header: null,
+    accessor: "notificationType",
+    Cell: ({original}) => (
+      <FlashEntry>
+        {original.notificationType === "ERROR" ? <Icon fitted name="warning sign"/> : <Icon fitted name="info"/>}
+      </FlashEntry>
+    ),
+    headerStyle: textStyle,
+    style: textStyle,
+    resizable: true,
+    width: 32
+  },
+  {
+    id: "dateTime",
+    Header: "Time",
+    accessor: "dateTime",
+    Cell: ({original}) => <FlashEntry content={dateUtils.formatDate(original.dateTime)} />,
+    headerStyle: textStyle,
+    style: textStyle,
+    resizable: true,
+    width: 130
+  },
+  {
+    id: "message",
+    Header: "Message",
+    accessor: "message",
+    Cell: ({original}) => <FlashEntry content={original.message} />,
+    headerStyle: textStyle,
+    style: textStyle,
+    resizable: true
+  },
+]
+
 const NotificationsContainer = ({notifications, dispatch}) => (
   <Section id="notifications" heading="Server Notifications" nopadding buttons={
     () => (
@@ -27,52 +63,12 @@ const NotificationsContainer = ({notifications, dispatch}) => (
   }>
     <ReactTable
       data={Immutable.asMutable(notifications)}
-      defaultSorted={[
-        {
-          id: "dateTime",
-          desc: false
-        }
-      ]}
       getTrProps={(state, rowInfo, column) => ({
         style: {
           color: rowInfo.original.notificationType === "ERROR" ? theme.colors.alert : undefined
         }
       })}
-      columns={[
-        {
-          id: "icon",
-          Header: null,
-          accessor: "notificationType",
-          Cell: ({original}) => (
-            <FlashEntry>
-              {original.notificationType === "ERROR" ? <Icon fitted name="warning sign"/> : <Icon fitted name="info"/>}
-            </FlashEntry>
-          ),
-          headerStyle: textStyle,
-          style: textStyle,
-          resizable: true,
-          width: 32
-        },
-        {
-          id: "dateTime",
-          Header: "Time",
-          accessor: "dateTime",
-          Cell: ({original}) => <FlashEntry content={dateUtils.formatDate(original.dateTime)} />,
-          headerStyle: textStyle,
-          style: textStyle,
-          resizable: true,
-          width: 130
-        },
-        {
-          id: "message",
-          Header: "Message",
-          accessor: "message",
-          Cell: ({original}) => <FlashEntry content={original.message} />,
-          headerStyle: textStyle,
-          style: textStyle,
-          resizable: true
-        },
-      ]}
+      columns={columns}
       showPagination={false}
       resizable={false}
       className="-striped"

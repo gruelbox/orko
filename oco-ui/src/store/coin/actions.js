@@ -11,13 +11,12 @@ export function fetchBalance(coin) {
   );
 }
 
-export function fetchOrders(coin) {
-  // No error handling. Order books are often missing where there's no API key.
-  return authActions.wrappedRequest(
-    auth => exchangesService.fetchOrders(coin, auth.token),
-    orders => ({ type: types.SET_ORDERS, orders }),
-    error => ({ type: types.SET_ORDERS_UNAVAILABLE }),
-  );
+export function setOrders(orders) {
+  return { type: types.SET_ORDERS, orders }
+}
+
+export function setOrderBook(orderBook) {
+  return { type: types.SET_ORDERBOOK, orderBook }
 }
 
 export function cancelOrder(coin, orderId, orderType) {

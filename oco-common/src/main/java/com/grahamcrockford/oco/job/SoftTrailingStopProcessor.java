@@ -18,11 +18,12 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
+import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
-import com.grahamcrockford.oco.ticker.ExchangeEventRegistry;
 
 class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
@@ -74,8 +75,9 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   }
 
   @VisibleForTesting
-  void tick(TickerSpec spec, Ticker ticker) {
+  void tick(TickerEvent tickerEvent) {
 
+    final Ticker ticker = tickerEvent.ticker();
     final TickerSpec ex = job.tickTrigger();
 
     if (ticker.getAsk() == null) {
