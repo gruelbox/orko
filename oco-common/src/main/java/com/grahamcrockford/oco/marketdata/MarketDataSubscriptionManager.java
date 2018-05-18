@@ -228,7 +228,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void onOrderBook(TickerSpec spec, OrderBook orderBook) {
-    LOGGER.info("Got orderBook {} on {}", orderBook, spec);
+    LOGGER.debug("Got orderBook {} on {}", orderBook, spec);
     eventBus.post(OrderBookEvent.create(spec, orderBook));
   }
 

@@ -26,9 +26,11 @@ const channelMessages = {
 const serverMessages = {
   TICKER: "TICKER",
   OPEN_ORDERS: "OPEN_ORDERS",
+  ORDER_BOOK: "ORDER_BOOK",
   ERROR: "ERROR",
   CHANGE_TICKERS: "CHANGE_TICKERS",
   CHANGE_OPEN_ORDERS: "CHANGE_OPEN_ORDERS",
+  CHANGE_ORDER_BOOK: "CHANGE_ORDER_BOOK",
   UPDATE_SUBSCRIPTIONS: "UPDATE_SUBSCRIPTIONS",
   NOTIFICATION: "NOTIFICATION"
 }
@@ -147,11 +149,19 @@ function* socketManager() {
           command: serverMessages.CHANGE_OPEN_ORDERS,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
         }))
+        yield socket.send(JSON.stringify({
+          command: serverMessages.CHANGE_ORDER_BOOK,
+          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+        }))
         yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
       } else if (action.type === routerActionTypes.LOCATION_CHANGED) {
         const selectedCoin = yield locationToCoin(action.location)
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_OPEN_ORDERS,
+          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+        }))
+        yield socket.send(JSON.stringify({
+          command: serverMessages.CHANGE_ORDER_BOOK,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
         }))
         yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))

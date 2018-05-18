@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.websocket;
 
 import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import java.io.IOException;
 import java.util.UUID;
@@ -32,9 +33,12 @@ import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
+import com.grahamcrockford.oco.marketdata.MarketDataType;
 import com.grahamcrockford.oco.marketdata.OpenOrdersEvent;
+import com.grahamcrockford.oco.marketdata.OrderBookEvent;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
+import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
 
 @Metered
@@ -73,18 +77,13 @@ public final class OcoWebSocketServer {
 
       switch (request.command()) {
         case CHANGE_TICKERS:
-          marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
-            .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(TICKER)))
-            .addAll(FluentIterable.from(request.tickers()).transform(spec -> MarketDataSubscription.create(spec, TICKER)))
-            .build()
-          );
+          mutateSubscriptions(TICKER, request.tickers());
           break;
         case CHANGE_OPEN_ORDERS:
-          marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
-            .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(OPEN_ORDERS)))
-            .addAll(FluentIterable.from(request.tickers()).transform(spec -> MarketDataSubscription.create(spec, OPEN_ORDERS)))
-            .build()
-          );
+          mutateSubscriptions(OPEN_ORDERS, request.tickers());
+          break;
+        case CHANGE_ORDER_BOOK:
+          mutateSubscriptions(ORDERBOOK, request.tickers());
           break;
         case UPDATE_SUBSCRIPTIONS:
           updateSubscriptions(session);
@@ -101,6 +100,15 @@ public final class OcoWebSocketServer {
     }
   }
 
+
+  private void mutateSubscriptions(MarketDataType marketDataType, Iterable<TickerSpec> tickers) {
+    marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
+      .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(marketDataType)))
+      .addAll(FluentIterable.from(tickers).transform(spec -> MarketDataSubscription.create(spec, marketDataType)))
+      .build()
+    );
+  }
+
   @OnClose
   public void myOnClose(final javax.websocket.Session session, CloseReason cr) {
     LOGGER.info("Closing socket ({})", cr.toString());
@@ -111,7 +119,7 @@ public final class OcoWebSocketServer {
     }
     try {
       marketDataSubscriptions.set(ImmutableSet.of());
-      exchangeEventRegistry.changeSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId, null, null);
+      exchangeEventRegistry.clearSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId);
     } catch (Throwable t) {
       LOGGER.error("Error unregistering socket from ticker", t);
     }
@@ -138,7 +146,8 @@ public final class OcoWebSocketServer {
   }
 
   private void updateSubscriptions(Session session) {
-    exchangeEventRegistry.changeSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId, this::onTicker, this::onOpenOrders);
+    LOGGER.info("Updating subscriptions for socket to: {}", marketDataSubscriptions);
+    exchangeEventRegistry.changeSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId, this::onTicker, this::onOpenOrders, this::onOrderBook);
   }
 
   @Subscribe
@@ -152,6 +161,10 @@ public final class OcoWebSocketServer {
 
   void onOpenOrders(OpenOrdersEvent openOrdersEvent) {
     send(openOrdersEvent, Nature.OPEN_ORDERS);
+  }
+
+  void onOrderBook(OrderBookEvent orderBookEvent) {
+    send(orderBookEvent, Nature.ORDERBOOK);
   }
 
   void send(Object object, Nature nature) {

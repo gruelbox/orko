@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.marketdata;
 
 import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 
 import java.util.Set;
@@ -35,6 +36,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   private final Multimap<String, MarketDataSubscription> subscriptionsBySubscriber = MultimapBuilder.hashKeys().hashSetValues().build();
   private final Multimap<MarketDataSubscription, CallbackDef<TickerEvent>> tickerListeners = MultimapBuilder.hashKeys().hashSetValues().build();
   private final Multimap<MarketDataSubscription, CallbackDef<OpenOrdersEvent>> openOrdersListeners = MultimapBuilder.hashKeys().hashSetValues().build();
+  private final Multimap<MarketDataSubscription, CallbackDef<OrderBookEvent>> orderBookListeners = MultimapBuilder.hashKeys().hashSetValues().build();
 
   private final StampedLock rwLock = new StampedLock();
   private final MarketDataSubscriptionManager marketDataSubscriptionManager;
@@ -68,7 +70,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   public void changeSubscriptions(Set<MarketDataSubscription> targetSubscriptions,
                                   String subscriberId,
                                   Consumer<TickerEvent> tickerCallback,
-                                  Consumer<OpenOrdersEvent> openOrdersCallback) {
+                                  Consumer<OpenOrdersEvent> openOrdersCallback,
+                                  Consumer<OrderBookEvent> orderBookCallback) {
 
     LOGGER.info("Changing subscriptions for subscriber {} to {}", subscriberId, targetSubscriptions);
 
@@ -90,6 +93,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
             if (unsubscribe(subscriberId, sub, tickerListeners))
               updated = true;
             break;
+          case ORDERBOOK:
+            if (unsubscribe(subscriberId, sub, orderBookListeners))
+              updated = true;
+            break;
           default:
             throw new UnsupportedOperationException("Unsupported market data type:" + sub.type());
         }
@@ -103,6 +110,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
             break;
           case TICKER:
             if (subscribe(subscriberId, sub, tickerCallback, tickerListeners))
+              updated = true;
+            break;
+          case ORDERBOOK:
+            if (subscribe(subscriberId, sub, orderBookCallback, orderBookListeners))
               updated = true;
             break;
           default:
@@ -141,23 +152,25 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
   @Subscribe
   public void tickerEvent(TickerEvent tickerEvent) {
-    LOGGER.debug("Ticker event: {}", tickerEvent);
-    long stamp = rwLock.readLock();
-    try {
-      tickerListeners.get(MarketDataSubscription.create(tickerEvent.spec(), TICKER))
-        .forEach(c -> executorService.execute(() -> c.process(tickerEvent)));
-    } finally {
-      rwLock.unlockRead(stamp);
-    }
+    processEvent(TICKER, tickerEvent, tickerEvent.spec(), tickerListeners);
   }
 
   @Subscribe
   public void openOrdersEvent(OpenOrdersEvent openOrdersEvent) {
-    LOGGER.debug("Open orders event: {}", openOrdersEvent);
+    processEvent(OPEN_ORDERS, openOrdersEvent, openOrdersEvent.spec(), openOrdersListeners);
+  }
+
+  @Subscribe
+  public void orderBookEvent(OrderBookEvent orderBookEvent) {
+    processEvent(ORDERBOOK, orderBookEvent, orderBookEvent.spec(), orderBookListeners);
+  }
+
+  private <T> void processEvent(MarketDataType marketDataType, T event, TickerSpec spec, Multimap<MarketDataSubscription, CallbackDef<T>> callbacks) {
+    LOGGER.debug("Event: {}", event);
     long stamp = rwLock.readLock();
     try {
-      openOrdersListeners.get(MarketDataSubscription.create(openOrdersEvent.spec(), OPEN_ORDERS))
-        .forEach(c -> executorService.execute(() -> c.process(openOrdersEvent)));
+      callbacks.get(MarketDataSubscription.create(spec, marketDataType))
+        .forEach(c -> executorService.execute(() -> c.process(event)));
     } finally {
       rwLock.unlockRead(stamp);
     }

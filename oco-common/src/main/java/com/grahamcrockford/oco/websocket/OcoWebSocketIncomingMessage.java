@@ -31,6 +31,7 @@ abstract class OcoWebSocketIncomingMessage {
   enum Command {
     CHANGE_TICKERS,
     CHANGE_OPEN_ORDERS,
+    CHANGE_ORDER_BOOK,
     UPDATE_SUBSCRIPTIONS
   }
 }

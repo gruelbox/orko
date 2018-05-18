@@ -126,7 +126,7 @@ final class PaperTradeService implements TradeService {
       )).toSet(),
       eventRegistryClientId,
       this::updateAgainstMarket,
-      null
+      null, null
     );
   }
 

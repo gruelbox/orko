@@ -25,6 +25,7 @@ abstract class OcoWebSocketOutgoingMessage {
     ERROR,
     TICKER,
     OPEN_ORDERS,
+    ORDERBOOK,
     NOTIFICATION
   }
 }
