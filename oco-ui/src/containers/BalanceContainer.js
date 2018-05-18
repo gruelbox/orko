@@ -10,13 +10,18 @@ const TICK_TIME = 5000
 
 class BalanceContainer extends React.Component {
   shouldComponentUpdate(nextProps) {
-    return (
-      (this.props.balance && !nextProps.balance) ||
-      (!this.props.balance && nextProps.balance) ||
-      (this.props.balance &&
-        nextProps.balance &&
-        !areEqualShallow(this.props.balance, nextProps.balance))
-    )
+    if (this.props.balance && !nextProps.balance) {
+      return true
+    }
+    if (!this.props.balance && nextProps.balance) {
+      return true
+    }
+    if (this.props.balance &&
+      nextProps.balance &&
+      !areEqualShallow(this.props.balance, nextProps.balance)) {
+      return true
+    }
+    return false
   }
 
   tick = () => {

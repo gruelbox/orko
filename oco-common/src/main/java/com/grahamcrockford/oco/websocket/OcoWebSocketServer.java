@@ -114,6 +114,7 @@ public final class OcoWebSocketServer {
 
   @OnError
   public void onError(Throwable error) {
+    LOGGER.error("Socket error", error);
   }
 
   private void injectMembers(final javax.websocket.Session session) {

@@ -16,8 +16,6 @@ import * as jobActions from "../store/job/actions"
 import * as dateUtils from "../util/dateUtils"
 import { getOrdersWithWatchesForSelectedCoin } from "../selectors/coins"
 
-const TICK_TIME = 10000
-
 const NoCoin = props => (
   <Panel p={2}>
     <Para>No coin selected</Para>
@@ -184,10 +182,6 @@ class OpenOrdersContainer extends React.Component {
     this.state = { loading: true }
   }
 
-  tick = () => {
-    this.props.dispatch(coinActions.fetchOrders(this.props.coin))
-  }
-
   onCancel = (id, orderType) => {
     this.props.dispatch(coinActions.cancelOrder(this.props.coin, id, orderType))
   }
@@ -200,20 +194,11 @@ class OpenOrdersContainer extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.tick()
-    this.interval = setInterval(this.tick, TICK_TIME)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
-  }
-
   componentWillReceiveProps(nextProps) {
     const nextKey = nextProps.coin ? nextProps.coin.key : null
     const thisKey = this.props.coin ? this.props.coin.key : null
     if (nextKey !== thisKey) {
-      this.setState({ loading: true }, () => this.tick())
+      this.setState({ loading: true })
     } else {
       this.setState({ loading: false })
     }

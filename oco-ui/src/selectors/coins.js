@@ -5,38 +5,39 @@ import * as jobTypes from "../services/jobTypes"
 
 const getCoins = state => state.coins.coins
 const getTickers = state => state.ticker.coins
-const getRouterPath = state => state.router.location.pathname
+const getRouterLocation = state => state.router.location
 const getJobs = state => state.job.jobs
 const getOrders = state => state.coin.orders
 
-export const getSelectedCoin = createSelector(
-  [getRouterPath],
-  (path) => {
-    if (path && path.startsWith("/coin/") && path.length > 6) {
-      return coinFromKey(path.substring(6))
-    } else {
-      return null
-    }
+export const locationToCoin = ({ pathname }) => {
+  if (pathname && pathname.startsWith("/coin/") && pathname.length > 6) {
+    return coinFromKey(pathname.substring(6))
+  } else {
+    return null
   }
+}
+
+export const getSelectedCoin = createSelector([getRouterLocation], location =>
+  locationToCoin(location)
 )
 
 export const getAlertJobs = createSelector(
   [getJobs],
-  (jobs) => jobs ? jobs.filter(job => isAlert(job)) : []
+  jobs => (jobs ? jobs.filter(job => isAlert(job)) : [])
 )
 
 export const getWatchJobsForSelectedCoin = createSelector(
   [getJobs, getSelectedCoin],
-  (jobs, coin) => 
+  (jobs, coin) =>
     jobs && coin
-    ? jobs.filter(
-        job =>
-          job.jobType === jobTypes.WATCH_JOB &&
-          job.tickTrigger.exchange === coin.exchange &&
-          job.tickTrigger.base === coin.base &&
-          job.tickTrigger.counter === coin.counter
-      )
-    : []
+      ? jobs.filter(
+          job =>
+            job.jobType === jobTypes.WATCH_JOB &&
+            job.tickTrigger.exchange === coin.exchange &&
+            job.tickTrigger.base === coin.base &&
+            job.tickTrigger.counter === coin.counter
+        )
+      : []
 )
 
 export const getOrdersWithWatchesForSelectedCoin = createSelector(
@@ -51,12 +52,12 @@ export const getOrdersWithWatchesForSelectedCoin = createSelector(
             return order
           }
         })
-      : null,
+      : null
 )
 
 export const getSelectedCoinTicker = createSelector(
   [getSelectedCoin, getTickers],
-  (coin, tickers) => coin ? tickers[coin.key] : null
+  (coin, tickers) => (coin ? tickers[coin.key] : null)
 )
 
 export const getCoinsForDisplay = createSelector(

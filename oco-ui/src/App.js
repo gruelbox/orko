@@ -13,6 +13,7 @@ import createSagaMiddleware from "redux-saga"
 import thunk from "redux-thunk"
 import * as reducers from "./store/reducers"
 import rootSaga from "./store/sagas"
+import * as routerActions from "./store/router/actions"
 
 import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"
@@ -34,6 +35,10 @@ const store = createStore(
   )
 )
 sagaMiddleware.run(rootSaga, store.dispatch, store.getState)
+
+history.listen(location => {
+  store.dispatch(routerActions.locationChanged(location))
+})
 
 export default class App extends Component {
   render() {

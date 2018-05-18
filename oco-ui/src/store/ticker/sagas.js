@@ -12,9 +12,11 @@ import {
 import { ws } from "../../services/fetchUtil"
 import { eventChannel } from "redux-saga"
 import { coin as createCoin } from "../coin/reducer"
+import * as coinActions from "../coin/actions"
+import * as routerActionTypes from "../router/actionTypes"
 import * as errorActions from "../error/actions"
 import * as notificationActions from "../notifications/actions"
-import { getSelectedCoin } from "../../selectors/coins"
+import { getSelectedCoin, locationToCoin } from "../../selectors/coins"
 
 const channelMessages = {
   OPEN: "OPEN",
@@ -23,6 +25,7 @@ const channelMessages = {
 
 const serverMessages = {
   TICKER: "TICKER",
+  OPEN_ORDERS: "OPEN_ORDERS",
   ERROR: "ERROR",
   CHANGE_TICKERS: "CHANGE_TICKERS",
   CHANGE_OPEN_ORDERS: "CHANGE_OPEN_ORDERS",
@@ -67,12 +70,14 @@ function* socketLoop(socketChannel) {
     yield put(errorActions.addBackground(message.data, "ws"))
   } else if (message && message.nature === serverMessages.TICKER) {
     yield put(errorActions.clearBackground("ws"))
-    const coin = createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base)
     yield put({
       type: types.SET_TICKER,
-      coin,
+      coin: createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base),
       ticker: message.data.ticker
     })
+  } else if (message && message.nature === serverMessages.OPEN_ORDERS) {
+    yield put(errorActions.clearBackground("ws"))
+    yield put(coinActions.setOrders(message.data.openOrders))
   } else if (message && message.nature === serverMessages.NOTIFICATION) {
     yield put(notificationActions.add(message.data))
   } else {
@@ -88,7 +93,8 @@ function* socketLoop(socketChannel) {
 function* actionLoop() {
   return yield take([
     types.DISCONNECT,
-    types.RESUBSCRIBE
+    types.RESUBSCRIBE,
+    routerActionTypes.LOCATION_CHANGED
   ])
 }
 
@@ -129,12 +135,19 @@ function* socketManager() {
         break
       } else if (action.type === types.RESUBSCRIBE) {
         const coins = yield select(getSubscribedCoins)
-        const selectedCoin = yield select(getSelectedCoin)
         console.log("Subscribing to tickers", coins)
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_TICKERS,
           tickers: coins.map(coin => webCoinToServerCoin(coin))
         }))
+        const selectedCoin = yield select(getSelectedCoin)
+        yield socket.send(JSON.stringify({
+          command: serverMessages.CHANGE_OPEN_ORDERS,
+          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+        }))
+        yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
+      } else if (action.type === routerActionTypes.LOCATION_CHANGED) {
+        const selectedCoin = yield locationToCoin(action.location)
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_OPEN_ORDERS,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
@@ -144,6 +157,8 @@ function* socketManager() {
     }
   }
 }
+
+
 
 /**
  * The saga. Connects a reconnecting websocket and starts the listeners

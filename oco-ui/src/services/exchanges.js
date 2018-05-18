@@ -18,10 +18,6 @@ class ExchangesService {
     return await get('exchanges/' + coin.exchange + '/balance/' + coin.base + "," + coin.counter, token);
   }
 
-  async fetchOrders(coin, token) {
-    return await get('exchanges/' + coin.exchange + '/markets/' + coin.base + "-" + coin.counter + "/orders", token);
-  }
-
   async cancelOrder(coin, id, orderType, token) {
     return await del('exchanges/' + coin.exchange + '/markets/' + coin.base + "-" + coin.counter + "/orders/" + id + "?orderType=" +  orderType, token);
   }

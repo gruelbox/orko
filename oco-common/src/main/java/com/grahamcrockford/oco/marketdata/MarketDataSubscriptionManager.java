@@ -144,7 +144,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           subscriptionsPerExchange.putAll(entry.getKey(), subscriptionsForExchange);
           subscribeExchange((StreamingExchange)exchange, subscriptionsForExchange, entry.getKey());
         } else {
-          LOGGER.info("Subscribing to market data: " + subscriptionsForExchange);
+          LOGGER.info("Adding polls: " + subscriptionsForExchange);
           pollingBuilder.addAll(subscriptionsForExchange);
         }
       });
@@ -231,19 +231,26 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     eventBus.post(OpenOrdersEvent.create(spec, openOrders));
   }
 
+  public void broadcastNow(MarketDataSubscription subscription) {
+    // GDAX broadcasts market data immediately on connecting a socket, so don't spam
+    if (subscription.spec().exchange().startsWith("gdax")) {
+      fetchAndBroadcastOpenOrders(subscription);
+    } else {
+      fetchAndBroadcast(subscription);
+    }
+  }
+
+  public void broadcastNow(Iterable<MarketDataSubscription> subscriptions) {
+    subscriptions.forEach(this::broadcastNow);
+  }
+
   @Override
   protected void run() {
     Thread.currentThread().setName("Market data subscription manager");
     LOGGER.info(this + " started");
     while (isRunning()) {
-      try {
-        activePolling.forEach(this::fetchAndBroadcast);
-        subscriptionsPerExchange.values().forEach(subscription -> {
-          fetchAndBroadcastOpenOrders(subscription);
-        });
-      } catch (Throwable e) {
-        LOGGER.error("Serious error. Trying to stay alive", e);
-      }
+      activePolling.forEach(this::fetchAndBroadcast);
+      subscriptionsPerExchange.values().forEach(this::fetchAndBroadcastOpenOrders);
       try {
         sleep.sleep();
       } catch (InterruptedException e) {
@@ -254,44 +261,52 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void fetchAndBroadcast(MarketDataSubscription subscription) {
-    TickerSpec spec = subscription.spec();
-    MarketDataService marketDataService = exchangeService.get(spec.exchange()).getMarketDataService();
-    if (subscription.types().contains(TICKER)) {
-      try {
-        onTicker(spec, marketDataService.getTicker(spec.currencyPair()));
-      } catch (Throwable e) {
-        LOGGER.error("Failed fetching ticker: " + spec, e);
+    try {
+      TickerSpec spec = subscription.spec();
+      MarketDataService marketDataService = exchangeService.get(spec.exchange()).getMarketDataService();
+      if (subscription.types().contains(TICKER)) {
+        try {
+          onTicker(spec, marketDataService.getTicker(spec.currencyPair()));
+        } catch (Throwable e) {
+          LOGGER.error("Failed fetching ticker: " + spec, e);
+        }
       }
-    }
-    if (subscription.types().contains(ORDERBOOK)) {
-      try {
-        onOrderBook(spec, marketDataService.getOrderBook(spec.currencyPair()));
-      } catch (Throwable e) {
-        LOGGER.error("Failed fetching order book: " + spec, e);
+      if (subscription.types().contains(ORDERBOOK)) {
+        try {
+          onOrderBook(spec, marketDataService.getOrderBook(spec.currencyPair()));
+        } catch (Throwable e) {
+          LOGGER.error("Failed fetching order book: " + spec, e);
+        }
       }
-    }
-    if (subscription.types().contains(TRADES)) {
-      try {
-        marketDataService.getTrades(spec.currencyPair())
-          .getTrades()
-          .stream()
-          .forEach(t -> onTrade(spec, t));
-      } catch (Throwable e) {
-        LOGGER.error("Failed fetching trades: " + spec, e);
+      if (subscription.types().contains(TRADES)) {
+        try {
+          marketDataService.getTrades(spec.currencyPair())
+            .getTrades()
+            .stream()
+            .forEach(t -> onTrade(spec, t));
+        } catch (Throwable e) {
+          LOGGER.error("Failed fetching trades: " + spec, e);
+        }
       }
+    } catch (Throwable e) {
+      LOGGER.error("Error fetching market data: " + subscription, e);
     }
     fetchAndBroadcastOpenOrders(subscription);
   }
 
   private void fetchAndBroadcastOpenOrders(MarketDataSubscription subscription) {
-    TickerSpec spec = subscription.spec();
-    if (subscription.types().contains(OPEN_ORDERS)) {
-      try {
-        TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-        onOpenOrders(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair())));
-      } catch (Throwable e) {
-        LOGGER.error("Failed fetching open orders: " + spec, e);
+    try {
+      TickerSpec spec = subscription.spec();
+      if (subscription.types().contains(OPEN_ORDERS)) {
+        try {
+          TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
+          onOpenOrders(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair())));
+        } catch (Throwable e) {
+          LOGGER.error("Failed fetching open orders: " + spec, e);
+        }
       }
+    } catch (Throwable e) {
+      LOGGER.error("Error fetching open orders for subscription: " + subscription, e);
     }
   }
 }
