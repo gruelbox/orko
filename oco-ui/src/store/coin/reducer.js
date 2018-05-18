@@ -57,8 +57,8 @@ export function coinFromKey(key) {
 
 export function augmentCoin(p, exchange) {
   return Immutable.merge(p, {
-    exchange: exchange,
-    key: exchange + "/" + p.counter + "/" + p.base,
+    exchange: exchange ? exchange : p.exchange,
+    key: (exchange ? exchange : p.exchange) + "/" + p.counter + "/" + p.base,
     name: p.base + "/" + p.counter + " (" + exchange + ")",
     shortName: p.base + "/" + p.counter
   })

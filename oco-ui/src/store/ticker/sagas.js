@@ -17,6 +17,7 @@ import * as routerActionTypes from "../router/actionTypes"
 import * as errorActions from "../error/actions"
 import * as notificationActions from "../notifications/actions"
 import { getSelectedCoin, locationToCoin } from "../../selectors/coins"
+import { augmentCoin } from "../coin/reducer"
 
 const channelMessages = {
   OPEN: "OPEN",
@@ -78,11 +79,24 @@ function* socketLoop(socketChannel) {
       ticker: message.data.ticker
     })
   } else if (message && message.nature === serverMessages.OPEN_ORDERS) {
-    yield put(errorActions.clearBackground("ws"))
-    yield put(coinActions.setOrders(message.data.openOrders))
+
+    // Ignore late-arriving messages related to a coin we're not interested in right now
+    const selectedCoin = yield select(getSelectedCoin)
+    const referredCoin = augmentCoin(message.data.spec)
+    if (selectedCoin && selectedCoin.key === referredCoin.key) {
+      yield put(errorActions.clearBackground("ws"))
+      yield put(coinActions.setOrders(message.data.openOrders))
+    }
   } else if (message && message.nature === serverMessages.ORDERBOOK) {
-    yield put(errorActions.clearBackground("ws"))
-    yield put(coinActions.setOrderBook(message.data.orderBook))
+
+    // Ignore late-arriving messages related to a coin we're not interested in right now
+    const selectedCoin = yield select(getSelectedCoin)
+    const referredCoin = augmentCoin(message.data.spec)
+    if (selectedCoin && selectedCoin.key === referredCoin.key) {
+      yield put(errorActions.clearBackground("ws"))
+      yield put(coinActions.setOrderBook(message.data.orderBook))
+    }
+
   } else if (message && message.nature === serverMessages.NOTIFICATION) {
     yield put(notificationActions.add(message.data))
   } else {
@@ -135,14 +149,21 @@ function* socketManager() {
       if (!action) continue
 
       if (action.type === types.DISCONNECT) {
+
         console.log("Disconnecting socket")
         socketChannel.close()
         break
+
       } else if (action.type === types.RESUBSCRIBE) {
+
+        yield put(coinActions.setOrders(null))
+        yield put(coinActions.setOrderBook(null))
+
         var coins = yield select(getSubscribedCoins)
         const selectedCoin = yield select(getSelectedCoin)
         if (selectedCoin)
           coins = coins.concat([selectedCoin])
+
         console.log("Subscribing to tickers", coins)
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_TICKERS,
@@ -157,8 +178,14 @@ function* socketManager() {
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
         }))
         yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
+     
       } else if (action.type === routerActionTypes.LOCATION_CHANGED) {
+
         const selectedCoin = yield locationToCoin(action.location)
+
+        yield put(coinActions.setOrders(null))
+        yield put(coinActions.setOrderBook(null))
+
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_OPEN_ORDERS,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
@@ -168,6 +195,7 @@ function* socketManager() {
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
         }))
         yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
+      
       }
     }
   }

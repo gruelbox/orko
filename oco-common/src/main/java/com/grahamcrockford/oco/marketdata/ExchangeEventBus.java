@@ -84,18 +84,25 @@ class ExchangeEventBus implements ExchangeEventRegistry {
       Set<MarketDataSubscription> toAdd = Sets.difference(targetSubscriptions, currentForSubscriber);
 
       for (MarketDataSubscription sub : toRemove) {
+        LOGGER.info("Unsubscribing {}", sub);
         switch (sub.type()) {
           case OPEN_ORDERS:
-            if (unsubscribe(subscriberId, sub, openOrdersListeners))
+            if (unsubscribe(subscriberId, sub, openOrdersListeners)) {
+              LOGGER.info("... removing global subscription");
               updated = true;
+            }
             break;
           case TICKER:
-            if (unsubscribe(subscriberId, sub, tickerListeners))
+            if (unsubscribe(subscriberId, sub, tickerListeners)) {
+              LOGGER.info("... removing global subscription");
               updated = true;
+            }
             break;
           case ORDERBOOK:
-            if (unsubscribe(subscriberId, sub, orderBookListeners))
+            if (unsubscribe(subscriberId, sub, orderBookListeners)) {
+              LOGGER.info("... removing global subscription");
               updated = true;
+            }
             break;
           default:
             throw new UnsupportedOperationException("Unsupported market data type:" + sub.type());
@@ -103,18 +110,25 @@ class ExchangeEventBus implements ExchangeEventRegistry {
       }
 
       for (MarketDataSubscription sub : toAdd) {
+        LOGGER.info("Subscribing {}", sub);
         switch (sub.type()) {
           case OPEN_ORDERS:
-            if (subscribe(subscriberId, sub, openOrdersCallback, openOrdersListeners))
+            if (subscribe(subscriberId, sub, openOrdersCallback, openOrdersListeners)) {
+              LOGGER.info("... new global subscription");
               updated = true;
+            }
             break;
           case TICKER:
-            if (subscribe(subscriberId, sub, tickerCallback, tickerListeners))
+            if (subscribe(subscriberId, sub, tickerCallback, tickerListeners)) {
+              LOGGER.info("... new global subscription");
               updated = true;
+            }
             break;
           case ORDERBOOK:
-            if (subscribe(subscriberId, sub, orderBookCallback, orderBookListeners))
+            if (subscribe(subscriberId, sub, orderBookCallback, orderBookListeners)) {
+              LOGGER.info("... new global subscription");
               updated = true;
+            }
             break;
           default:
             throw new UnsupportedOperationException("Unsupported market data type:" + sub.type());

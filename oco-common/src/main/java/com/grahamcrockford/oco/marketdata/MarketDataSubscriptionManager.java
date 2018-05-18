@@ -8,6 +8,7 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.Set;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.marketdata.OrderBook;
@@ -190,6 +191,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         if (s.type().equals(TICKER)) {
           Disposable subscription = marketDataService
               .getTicker(s.spec().currencyPair())
+              .throttleLast(250, TimeUnit.MILLISECONDS) // TODO TEMPORARY.  Need to implement this throttling downstream at the websocket.
               .subscribe(
                 ticker -> onTicker(s.spec(), ticker),
                 throwable -> LOGGER.error("Error in subscribing tickers.", throwable)
@@ -199,6 +201,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         if (s.type().equals(ORDERBOOK)) {
           Disposable subscription = marketDataService
               .getOrderBook(s.spec().currencyPair())
+              .throttleLast(2, TimeUnit.SECONDS) // TODO TEMPORARY.  Need to implement this throttling downstream at the websocket.
               .subscribe(
                 orderBook -> onOrderBook(s.spec(), orderBook),
                 throwable -> LOGGER.error("Error in subscribing order book.", throwable)
@@ -208,9 +211,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         if (s.type().equals(TRADES)) {
           Disposable subscription = marketDataService
               .getTrades(s.spec().currencyPair())
+              .throttleLast(1, TimeUnit.SECONDS) // TODO TEMPORARY.  Need to implement this throttling downstream at the websocket.
               .subscribe(
                 trade -> onTrade(s.spec(), trade),
-                throwable -> LOGGER.error("Error in subscribing tickers.", throwable)
+                throwable -> LOGGER.error("Error in subscribing trades.", throwable)
               );
           subsPerExchange.put(s.spec().exchange(), subscription);
         }

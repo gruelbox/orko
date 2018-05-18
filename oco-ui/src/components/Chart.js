@@ -58,6 +58,7 @@ class ChartContent extends Component {
       popup_width: "1000",
       popup_height: "650",
       container_id: CONTAINER_ID,
+      hide_side_toolbar: false,
       studies: ["RSI@tv-basicstudies"]
     })
   }

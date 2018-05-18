@@ -2,10 +2,10 @@ import React from "react"
 import { connect } from "react-redux"
 
 import Section from "../components/primitives/Section"
-import Para from "../components/primitives/Para"
 import Tab from "../components/primitives/Tab"
 import OrderBook from "../components/OrderBook"
 import styled from "styled-components"
+import Loading from "../components/primitives/Loading"
 
 const Split = styled.section`
   display: flex;
@@ -29,7 +29,7 @@ const MarketContainer = ({ orderBook }) => {
       <BidSide><OrderBook orders={orderBook.asks} direction="ASK" /></BidSide>
     </Split>
   ) : (
-    <Para>No market data</Para>
+    <Loading p={2} />
   )
 
   return (
