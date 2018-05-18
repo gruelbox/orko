@@ -26,7 +26,7 @@ const channelMessages = {
 const serverMessages = {
   TICKER: "TICKER",
   OPEN_ORDERS: "OPEN_ORDERS",
-  ORDER_BOOK: "ORDER_BOOK",
+  ORDERBOOK: "ORDERBOOK",
   ERROR: "ERROR",
   CHANGE_TICKERS: "CHANGE_TICKERS",
   CHANGE_OPEN_ORDERS: "CHANGE_OPEN_ORDERS",
@@ -80,6 +80,9 @@ function* socketLoop(socketChannel) {
   } else if (message && message.nature === serverMessages.OPEN_ORDERS) {
     yield put(errorActions.clearBackground("ws"))
     yield put(coinActions.setOrders(message.data.openOrders))
+  } else if (message && message.nature === serverMessages.ORDERBOOK) {
+    yield put(errorActions.clearBackground("ws"))
+    yield put(coinActions.setOrderBook(message.data.orderBook))
   } else if (message && message.nature === serverMessages.NOTIFICATION) {
     yield put(notificationActions.add(message.data))
   } else {

@@ -15,6 +15,10 @@ export function setOrders(orders) {
   return { type: types.SET_ORDERS, orders }
 }
 
+export function setOrderBook(orderBook) {
+  return { type: types.SET_ORDERBOOK, orderBook }
+}
+
 export function cancelOrder(coin, orderId, orderType) {
   return authActions.wrappedRequest(
     auth => exchangesService.cancelOrder(coin, orderId, orderType, auth.token),

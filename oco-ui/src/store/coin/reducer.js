@@ -7,6 +7,7 @@ const initialState = Immutable({
   balanceUnavailable: false,
   ticker: undefined,
   orders: undefined,
+  orderBook: undefined,
   ordersUnavailable: false
 })
 
@@ -66,16 +67,17 @@ export function augmentCoin(p, exchange) {
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_BALANCE:
-      console.debug(action.type, action)
       return Immutable.merge(state, { balance: action.balance })
     case types.SET_ORDERS:
-      console.debug(action.type, action)
       return Immutable.merge(state, {
         orders: Immutable(action.orders),
         ordersUnavailable: false
       })
+    case types.SET_ORDERBOOK:
+      return Immutable.merge(state, {
+        orderBook: Immutable(action.orderBook)
+      })
     case types.CANCEL_ORDER:
-      console.debug(action.type, action)
       return Immutable.merge(
         state,
         {
@@ -88,12 +90,10 @@ export default function reduce(state = initialState, action = {}) {
         { deep: true }
       )
     case types.SET_ORDERS_UNAVAILABLE:
-      console.debug(action.type, action)
       return Immutable.merge(state, {
         ordersUnavailable: true
       })
     case types.SET_BALANCE_UNAVAILABLE:
-      console.debug(action.type, action)
       return Immutable.merge(state, {
         balanceUnavailable: true
       })

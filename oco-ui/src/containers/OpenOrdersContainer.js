@@ -36,8 +36,96 @@ const numberStyle = {
   textAlign: "right"
 }
 
-const Orders = props => (
+const orderTypeColumn = {
+  id: "orderType",
+  Header: <Icon fitted name="sort" title="Direction"/>,
+  accessor: "type",
+  Cell: ({ original }) => (
+    <FlashEntry>
+      <Icon fitted name={original.type === "BID" ? "arrow up" : "arrow down"} title={original.type === "BID" ? "Buy" : "Sell"}/>
+    </FlashEntry>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  resizable: true,
+  width: 32
+}
 
+const runningAtColumn = {
+  id: "runningAt",
+  Header: "At",
+  Cell: ({ original }) => (
+    <FlashEntry>
+      <Icon fitted name="server" title="On exchange. Will execute immediately but locks up the balance."/>
+    </FlashEntry>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  resizable: true,
+  width: 32
+}
+
+const createdDateColumn = {
+  id: "createdDate",
+  accessor: "timestamp",
+  Header: "Created",
+  Cell: ({ original }) => (
+    <FlashEntry content={dateUtils.formatDate(original.timestamp)} />
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  resizable: true,
+  minWidth: 80
+}
+
+const limitPriceColumn = {
+  Header: "Limit",
+  Cell: ({ original }) => <FlashEntry content={original.limitPrice} />,
+  headerStyle: numberStyle,
+  style: numberStyle,
+  sortable: false,
+  resizable: true,
+  minWidth: 50
+}
+
+const stopPriceColumn = {
+  id: "stopPrice",
+  Header: "Trigger",
+  Cell: ({ original }) => (
+    <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />
+  ),
+  headerStyle: numberStyle,
+  style: numberStyle,
+  sortable: false,
+  resizable: true,
+  minWidth: 50
+}
+
+const amountColumn = {
+  Header: "Amount",
+  Cell: ({ original }) => (
+    <FlashEntry content={original.originalAmount} />
+  ),
+  headerStyle: numberStyle,
+  style: numberStyle,
+  sortable: false,
+  resizable: true,
+  minWidth: 50
+}
+
+const filledColumn = {
+  Header: "Filled",
+  Cell: ({ original }) => (
+    <FlashEntry content={original.cumulativeAmount} />
+  ),
+  headerStyle: numberStyle,
+  style: numberStyle,
+  sortable: false,
+  resizable: true,
+  minWidth: 50
+}
+
+const Orders = props => (
   <ReactTable
     data={props.orders.asMutable()}
     getTrProps={(state, rowInfo, column) => ({
@@ -63,88 +151,13 @@ const Orders = props => (
         sortable: false,
         resizable: false
       },
-      {
-        id: "orderType",
-        Header: <Icon fitted name="sort" title="Direction"/>,
-        accessor: "type",
-        Cell: ({ original }) => (
-          <FlashEntry>
-            <Icon fitted name={original.type === "BID" ? "arrow up" : "arrow down"} title={original.type === "BID" ? "Buy" : "Sell"}/>
-          </FlashEntry>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        resizable: true,
-        width: 32
-      },
-      {
-        id: "runningAt",
-        Header: "At",
-        Cell: ({ original }) => (
-          <FlashEntry>
-            <Icon fitted name="server" title="On exchange. Will execute immediately but locks up the balance."/>
-          </FlashEntry>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        resizable: true,
-        width: 32
-      },
-      {
-        id: "createdDate",
-        accessor: "timestamp",
-        Header: "Created",
-        Cell: ({ original }) => (
-          <FlashEntry content={dateUtils.formatDate(original.timestamp)} />
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        resizable: true,
-        minWidth: 80
-      },
-      {
-        Header: "Limit",
-        Cell: ({ original }) => <FlashEntry content={original.limitPrice} />,
-        headerStyle: numberStyle,
-        style: numberStyle,
-        sortable: false,
-        resizable: true,
-        minWidth: 50
-      },
-      {
-        id: "stopPrice",
-        Header: "Trigger",
-        Cell: ({ original }) => (
-          <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />
-        ),
-        headerStyle: numberStyle,
-        style: numberStyle,
-        sortable: false,
-        resizable: true,
-        minWidth: 50
-      },
-      {
-        Header: "Amount",
-        Cell: ({ original }) => (
-          <FlashEntry content={original.originalAmount} />
-        ),
-        headerStyle: numberStyle,
-        style: numberStyle,
-        sortable: false,
-        resizable: true,
-        minWidth: 50
-      },
-      {
-        Header: "Filled",
-        Cell: ({ original }) => (
-          <FlashEntry content={original.cumulativeAmount} />
-        ),
-        headerStyle: numberStyle,
-        style: numberStyle,
-        sortable: false,
-        resizable: true,
-        minWidth: 50
-      },
+      orderTypeColumn,
+      runningAtColumn,
+      createdDateColumn,
+      limitPriceColumn,
+      stopPriceColumn,
+      amountColumn,
+      filledColumn,
       {
         id: "watch",
         Header: <Icon fitted name="eye" />,
