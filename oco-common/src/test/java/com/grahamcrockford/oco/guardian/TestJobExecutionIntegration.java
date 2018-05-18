@@ -25,6 +25,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.ExchangeService;
+import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.guardian.GuardianLoop;
 import com.grahamcrockford.oco.guardian.JobRunner;
 import com.grahamcrockford.oco.guardian.StopEvent;
@@ -48,6 +49,7 @@ public class TestJobExecutionIntegration {
   @Mock private JobLocker jobLocker;
   @Mock private Injector injector;
   @Mock private ExchangeService exchangeService;
+  @Mock private TradeServiceFactory tradeServiceFactory;
 
   private AsyncEventBus asyncEventBus;
   private EventBus eventBus;
@@ -81,7 +83,7 @@ public class TestJobExecutionIntegration {
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    marketDataSubscriptionManager = new MarketDataSubscriptionManager(eventBus, exchangeService, new Sleep(config));
+    marketDataSubscriptionManager = new MarketDataSubscriptionManager(eventBus, exchangeService, new Sleep(config), tradeServiceFactory);
   }
 
 
