@@ -1,8 +1,8 @@
 package com.grahamcrockford.oco.websocket;
 
+import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,21 +23,18 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.SetMultimap;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
-import com.grahamcrockford.oco.marketdata.MarketDataType;
+import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
 import com.grahamcrockford.oco.marketdata.OpenOrdersEvent;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
-import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
 
 @Metered
@@ -57,8 +54,7 @@ public final class OcoWebSocketServer {
 
   private Session session;
 
-  private final AtomicReference<ImmutableSet<TickerSpec>> tickersSubscribed = new AtomicReference<>(ImmutableSet.of());
-  private final AtomicReference<ImmutableSet<TickerSpec>> openOrdersSubscribed = new AtomicReference<>(ImmutableSet.of());
+  private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
@@ -77,10 +73,18 @@ public final class OcoWebSocketServer {
 
       switch (request.command()) {
         case CHANGE_TICKERS:
-          changeTickerSubscriptions(request.tickers());
+          marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
+            .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(TICKER)))
+            .addAll(FluentIterable.from(request.tickers()).transform(spec -> MarketDataSubscription.create(spec, TICKER)))
+            .build()
+          );
           break;
         case CHANGE_OPEN_ORDERS:
-          changeOpenOrderSubscriptions(request.tickers());
+          marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
+            .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(OPEN_ORDERS)))
+            .addAll(FluentIterable.from(request.tickers()).transform(spec -> MarketDataSubscription.create(spec, OPEN_ORDERS)))
+            .build()
+          );
           break;
         case UPDATE_SUBSCRIPTIONS:
           updateSubscriptions(session);
@@ -106,7 +110,8 @@ public final class OcoWebSocketServer {
       LOGGER.error("Error unregistering socket from notification", t);
     }
     try {
-      exchangeEventRegistry.changeSubscriptions(ArrayListMultimap.create(), eventRegistryClientId, null, null);
+      marketDataSubscriptions.set(ImmutableSet.of());
+      exchangeEventRegistry.changeSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId, null, null);
     } catch (Throwable t) {
       LOGGER.error("Error unregistering socket from ticker", t);
     }
@@ -132,19 +137,8 @@ public final class OcoWebSocketServer {
     return request;
   }
 
-  private synchronized void changeTickerSubscriptions(Collection<TickerSpec> specs) {
-    tickersSubscribed.set(ImmutableSet.copyOf(specs));
-  }
-
-  private synchronized void changeOpenOrderSubscriptions(Collection<TickerSpec> specs) {
-    openOrdersSubscribed.set(ImmutableSet.copyOf(specs));
-  }
-
   private void updateSubscriptions(Session session) {
-    SetMultimap<TickerSpec, MarketDataType> request = MultimapBuilder.hashKeys().hashSetValues().build();
-    tickersSubscribed.get().forEach(spec -> request.put(spec, TICKER));
-    openOrdersSubscribed.get().forEach(spec -> request.put(spec, MarketDataType.OPEN_ORDERS));
-    exchangeEventRegistry.changeSubscriptions(request, eventRegistryClientId, this::onTicker, this::onOpenOrders);
+    exchangeEventRegistry.changeSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId, this::onTicker, this::onOpenOrders);
   }
 
   @Subscribe

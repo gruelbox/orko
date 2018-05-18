@@ -3,10 +3,6 @@ package com.grahamcrockford.oco.marketdata;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
@@ -17,14 +13,10 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -39,10 +31,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
   private final ExecutorService executorService;
 
-  private final Multimap<String, TickerSpec> subscriptionsByExchange = MultimapBuilder.hashKeys().hashSetValues().build();
-
-  private final Multimap<TickerSpec, CallbackDef<TickerEvent>> tickerListeners = MultimapBuilder.hashKeys().hashSetValues().build();
-  private final Multimap<TickerSpec, CallbackDef<OpenOrdersEvent>> openOrdersListeners = MultimapBuilder.hashKeys().hashSetValues().build();
+  private final Set<MarketDataSubscription> allSubscriptions = Sets.newHashSet();
+  private final Multimap<String, MarketDataSubscription> subscriptionsBySubscriber = MultimapBuilder.hashKeys().hashSetValues().build();
+  private final Multimap<MarketDataSubscription, CallbackDef<TickerEvent>> tickerListeners = MultimapBuilder.hashKeys().hashSetValues().build();
+  private final Multimap<MarketDataSubscription, CallbackDef<OpenOrdersEvent>> openOrdersListeners = MultimapBuilder.hashKeys().hashSetValues().build();
 
   private final StampedLock rwLock = new StampedLock();
   private final MarketDataSubscriptionManager marketDataSubscriptionManager;
@@ -57,10 +49,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   @Override
   public void registerTicker(TickerSpec spec, String subscriberId, Consumer<TickerEvent> callback) {
     withWriteLock(() -> {
-      if (tickerListeners.put(spec, new CallbackDef<TickerEvent>(subscriberId, callback))) {
-        if (subscriptionsByExchange.put(spec.exchange(), spec)) {
-          updateSubscriptions();
-        }
+      if (subscribe(subscriberId, MarketDataSubscription.create(spec, TICKER), callback, tickerListeners)) {
+        updateSubscriptions();
       }
     });
   }
@@ -68,15 +58,14 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   @Override
   public void unregisterTicker(TickerSpec spec, String subscriberId) {
     withWriteLock(() -> {
-      if (tickerListeners.remove(spec, new CallbackDef<TickerEvent>(subscriberId, null)) && !tickerListeners.containsKey(spec)) {
-        subscriptionsByExchange.remove(spec.exchange(), spec);
+      if (unsubscribe(subscriberId, MarketDataSubscription.create(spec, TICKER), tickerListeners)) {
         updateSubscriptions();
       }
     });
   }
 
   @Override
-  public void changeSubscriptions(Multimap<TickerSpec, MarketDataType> targetSubscriptions,
+  public void changeSubscriptions(Set<MarketDataSubscription> targetSubscriptions,
                                   String subscriberId,
                                   Consumer<TickerEvent> tickerCallback,
                                   Consumer<OpenOrdersEvent> openOrdersCallback) {
@@ -85,37 +74,40 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
     withWriteLock(() -> {
 
-      // Remove the subscriptions we don't need
-      SetView<TickerSpec> tickersWithDeletions = Sets.union(
-        clearUnusedSubscriptionsForSubscriber(targetSubscriptions, subscriberId, tickerListeners),
-        clearUnusedSubscriptionsForSubscriber(targetSubscriptions, subscriberId, openOrdersListeners)
-      );
-
-      // Disconnect the exchanges we don't need
       boolean updated = false;
-      for (TickerSpec spec : tickersWithDeletions) {
-        if (!tickerListeners.containsKey(spec) && !openOrdersListeners.containsKey(spec)) {
-          subscriptionsByExchange.remove(spec.exchange(), spec);
-          updated = true;
+
+      Set<MarketDataSubscription> currentForSubscriber = ImmutableSet.copyOf(subscriptionsBySubscriber.get(subscriberId));
+      Set<MarketDataSubscription> toRemove = Sets.difference(currentForSubscriber, targetSubscriptions);
+      Set<MarketDataSubscription> toAdd = Sets.difference(targetSubscriptions, currentForSubscriber);
+
+      for (MarketDataSubscription sub : toRemove) {
+        switch (sub.type()) {
+          case OPEN_ORDERS:
+            if (unsubscribe(subscriberId, sub, openOrdersListeners))
+              updated = true;
+            break;
+          case TICKER:
+            if (unsubscribe(subscriberId, sub, tickerListeners))
+              updated = true;
+            break;
+          default:
+            throw new UnsupportedOperationException("Unsupported market data type:" + sub.type());
         }
       }
 
-      // And add the new ones
-      ImmutableListMultimap<String, TickerSpec> targetByExchange = Multimaps.index(targetSubscriptions.keySet(), TickerSpec::exchange);
-      targetSubscriptions.asMap().entrySet().forEach(entry -> {
-        TickerSpec spec = entry.getKey();
-        Collection<MarketDataType> types = entry.getValue();
-        types.forEach(type -> {
-          if (type == TICKER) {
-            tickerListeners.put(spec, new CallbackDef<TickerEvent>(subscriberId, tickerCallback));
-          } else if (type == OPEN_ORDERS) {
-            openOrdersListeners.put(spec, new CallbackDef<OpenOrdersEvent>(subscriberId, openOrdersCallback));
-          }
-        });
-      });
-
-      if (subscriptionsByExchange.putAll(targetByExchange)) {
-        updated = true;
+      for (MarketDataSubscription sub : toAdd) {
+        switch (sub.type()) {
+          case OPEN_ORDERS:
+            if (subscribe(subscriberId, sub, openOrdersCallback, openOrdersListeners))
+              updated = true;
+            break;
+          case TICKER:
+            if (subscribe(subscriberId, sub, tickerCallback, tickerListeners))
+              updated = true;
+            break;
+          default:
+            throw new UnsupportedOperationException("Unsupported market data type:" + sub.type());
+        }
       }
 
       if (updated) {
@@ -124,39 +116,27 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     });
   }
 
-  private <T> Set<TickerSpec> clearUnusedSubscriptionsForSubscriber(Multimap<TickerSpec, MarketDataType> targetSubscriptions,
-                                                                    String subscriberId,
-                                                                    Multimap<TickerSpec, CallbackDef<T>> listeners) {
-    Builder<TickerSpec> affectedTickers = ImmutableSet.builder();
-    CallbackDef<T> subscriberCallback = new CallbackDef<T>(subscriberId, null);
-    Iterator<Entry<TickerSpec, CallbackDef<T>>> listenerIterator = listeners.entries().iterator();
-    while (listenerIterator.hasNext()) {
-      Entry<TickerSpec, CallbackDef<T>> next = listenerIterator.next();
-      TickerSpec spec = next.getKey();
-      if (next.getValue().equals(subscriberCallback) && !targetSubscriptions.containsEntry(spec, TICKER)) {
-        listenerIterator.remove();
-        affectedTickers.add(spec);
+  private <T> boolean subscribe(String subscriberId, MarketDataSubscription subscription, Consumer<T> callback, Multimap<MarketDataSubscription, CallbackDef<T>> listeners) {
+    if (subscriptionsBySubscriber.put(subscriberId, subscription)) {
+      listeners.put(subscription, new CallbackDef<T>(subscriberId, callback));
+      return allSubscriptions.add(subscription);
+    }
+    return false;
+  }
+
+  private <T> boolean unsubscribe(String subscriberId, MarketDataSubscription subscription, Multimap<MarketDataSubscription, CallbackDef<T>> listeners) {
+    if (subscriptionsBySubscriber.remove(subscriberId, subscription)) {
+      listeners.remove(subscription, new CallbackDef<T>(subscriberId, null));
+      if (!listeners.containsKey(subscription)) {
+        allSubscriptions.remove(subscription);
+        return true;
       }
     }
-    return affectedTickers.build();
+    return false;
   }
 
   private void updateSubscriptions() {
-    marketDataSubscriptionManager.updateSubscriptions(
-      Multimaps.transformValues(
-        subscriptionsByExchange,
-        s -> {
-          EnumSet<MarketDataType> dataTypes = EnumSet.noneOf(MarketDataType.class);
-          if (tickerListeners.containsKey(s)) {
-            dataTypes.add(TICKER);
-          }
-          if (openOrdersListeners.containsKey(s)) {
-            dataTypes.add(OPEN_ORDERS);
-          }
-          return MarketDataSubscription.create(s, dataTypes);
-        }
-      )
-    );
+    marketDataSubscriptionManager.updateSubscriptions(allSubscriptions);
   }
 
   @Subscribe
@@ -164,7 +144,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     LOGGER.debug("Ticker event: {}", tickerEvent);
     long stamp = rwLock.readLock();
     try {
-      tickerListeners.get(tickerEvent.spec())
+      tickerListeners.get(MarketDataSubscription.create(tickerEvent.spec(), TICKER))
         .forEach(c -> executorService.execute(() -> c.process(tickerEvent)));
     } finally {
       rwLock.unlockRead(stamp);
@@ -176,7 +156,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     LOGGER.debug("Open orders event: {}", openOrdersEvent);
     long stamp = rwLock.readLock();
     try {
-      openOrdersListeners.get(openOrdersEvent.spec())
+      openOrdersListeners.get(MarketDataSubscription.create(openOrdersEvent.spec(), OPEN_ORDERS))
         .forEach(c -> executorService.execute(() -> c.process(openOrdersEvent)));
     } finally {
       rwLock.unlockRead(stamp);

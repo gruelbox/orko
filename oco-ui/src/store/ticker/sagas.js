@@ -134,13 +134,15 @@ function* socketManager() {
         socketChannel.close()
         break
       } else if (action.type === types.RESUBSCRIBE) {
-        const coins = yield select(getSubscribedCoins)
+        var coins = yield select(getSubscribedCoins)
+        const selectedCoin = yield select(getSelectedCoin)
+        if (selectedCoin)
+          coins = coins.concat([selectedCoin])
         console.log("Subscribing to tickers", coins)
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_TICKERS,
           tickers: coins.map(coin => webCoinToServerCoin(coin))
         }))
-        const selectedCoin = yield select(getSelectedCoin)
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_OPEN_ORDERS,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []

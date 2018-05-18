@@ -21,10 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
@@ -39,7 +42,6 @@ import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBu
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.disposables.Disposable;
-import jersey.repackaged.com.google.common.collect.Lists;
 
 /**
  * Maintains subscriptions to exchange market data, distributing them via the event bus.
@@ -76,8 +78,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    *
    * @param byExchange The exchanges and subscriptions for each.
    */
-  public synchronized void updateSubscriptions(Multimap<String, MarketDataSubscription> byExchange) {
-    LOGGER.info("Updating subscriptions to: " + byExchange);
+  public synchronized void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
+    LOGGER.info("Updating subscriptions to: " + subscriptions);
+    Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
 
     // Disconnect any streaming exchanges where the tickers currently
     // subscribed mismatch the ones we want.
@@ -96,7 +99,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       String exchangeName = entry.getKey();
       Collection<MarketDataSubscription> current = entry.getValue();
-      Collection<MarketDataSubscription> target = byExchange.get(exchangeName);
+      Collection<MarketDataSubscription> target = FluentIterable.from(byExchange.get(exchangeName)).filter(s -> !s.type().equals(OPEN_ORDERS)).toSet();
 
       LOGGER.info("Exchange {} has {}, wants {}", exchangeName, current, target);
 
@@ -135,43 +138,46 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     byExchange.asMap()
       .entrySet()
       .stream()
-      .filter(entry -> !unchanged.contains(entry.getKey()))
       .forEach(entry -> {
         Exchange exchange = exchangeService.get(entry.getKey());
         Collection<MarketDataSubscription> subscriptionsForExchange = entry.getValue();
         boolean streaming = exchange instanceof StreamingExchange;
         if (streaming) {
-          subscriptionsPerExchange.putAll(entry.getKey(), subscriptionsForExchange);
-          subscribeExchange((StreamingExchange)exchange, subscriptionsForExchange, entry.getKey());
+          if (!unchanged.contains(entry.getKey())) {
+            Collection<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(entry.getValue()).filter(s -> !s.type().equals(OPEN_ORDERS)).toSet();
+            subscriptionsPerExchange.putAll(entry.getKey(), streamingSubscriptions);
+            subscribeExchange((StreamingExchange)exchange, streamingSubscriptions, entry.getKey());
+          }
+          pollingBuilder.addAll(FluentIterable.from(entry.getValue()).filter(s -> s.type().equals(OPEN_ORDERS)).toSet());
         } else {
-          LOGGER.info("Adding polls: " + subscriptionsForExchange);
           pollingBuilder.addAll(subscriptionsForExchange);
         }
       });
     activePolling = pollingBuilder.build();
+    LOGGER.info("Polls now set to: " + activePolling);
   }
 
-  private void subscribeExchange(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptions, String exchangeName) {
-    if (subscriptions.isEmpty())
+  private void subscribeExchange(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptionsForExchange, String exchangeName) {
+    if (subscriptionsForExchange.isEmpty())
       return;
     LOGGER.info("Connecting to exchange: " + exchangeName);
-    openConnections(streamingExchange, subscriptions);
+    openConnections(streamingExchange, subscriptionsForExchange);
     LOGGER.info("Connected to exchange: " + exchangeName);
   }
 
-  private void openConnections(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptions) {
+  private void openConnections(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptionsForExchange) {
 
     // Connect, specifying all the subscriptions we need
     ProductSubscriptionBuilder builder = ProductSubscription.create();
-    subscriptions.stream()
+    subscriptionsForExchange.stream()
       .forEach(s -> {
-        if (s.types().contains(TICKER)) {
+        if (s.type().equals(TICKER)) {
           builder.addTicker(s.spec().currencyPair());
         }
-        if (s.types().contains(ORDERBOOK)) {
+        if (s.type().equals(ORDERBOOK)) {
           builder.addOrderbook(s.spec().currencyPair());
         }
-        if (s.types().contains(TRADES)) {
+        if (s.type().equals(TRADES)) {
           builder.addTrades(s.spec().currencyPair());
         }
       });
@@ -179,9 +185,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     // Add the subscriptions
     StreamingMarketDataService marketDataService = streamingExchange.getStreamingMarketDataService();
-    subscriptions.stream()
+    subscriptionsForExchange.stream()
       .forEach(s -> {
-        if (s.types().contains(TICKER)) {
+        if (s.type().equals(TICKER)) {
           Disposable subscription = marketDataService
               .getTicker(s.spec().currencyPair())
               .subscribe(
@@ -190,7 +196,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               );
           subsPerExchange.put(s.spec().exchange(), subscription);
         }
-        if (s.types().contains(ORDERBOOK)) {
+        if (s.type().equals(ORDERBOOK)) {
           Disposable subscription = marketDataService
               .getOrderBook(s.spec().currencyPair())
               .subscribe(
@@ -199,7 +205,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               );
           subsPerExchange.put(s.spec().exchange(), subscription);
         }
-        if (s.types().contains(TRADES)) {
+        if (s.type().equals(TRADES)) {
           Disposable subscription = marketDataService
               .getTrades(s.spec().currencyPair())
               .subscribe(
@@ -217,12 +223,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void onTrade(TickerSpec spec, Trade trade) {
-    LOGGER.debug("Got trade {} on {}", trade, spec);
+    LOGGER.info("Got trade {} on {}", trade, spec);
     eventBus.post(TradeEvent.create(spec, trade));
   }
 
   private void onOrderBook(TickerSpec spec, OrderBook orderBook) {
-    LOGGER.debug("Got orderBook {} on {}", orderBook, spec);
+    LOGGER.info("Got orderBook {} on {}", orderBook, spec);
     eventBus.post(OrderBookEvent.create(spec, orderBook));
   }
 
@@ -231,26 +237,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     eventBus.post(OpenOrdersEvent.create(spec, openOrders));
   }
 
-  public void broadcastNow(MarketDataSubscription subscription) {
-    // GDAX broadcasts market data immediately on connecting a socket, so don't spam
-    if (subscription.spec().exchange().startsWith("gdax")) {
-      fetchAndBroadcastOpenOrders(subscription);
-    } else {
-      fetchAndBroadcast(subscription);
-    }
-  }
-
-  public void broadcastNow(Iterable<MarketDataSubscription> subscriptions) {
-    subscriptions.forEach(this::broadcastNow);
-  }
-
   @Override
   protected void run() {
     Thread.currentThread().setName("Market data subscription manager");
     LOGGER.info(this + " started");
     while (isRunning()) {
       activePolling.forEach(this::fetchAndBroadcast);
-      subscriptionsPerExchange.values().forEach(this::fetchAndBroadcastOpenOrders);
       try {
         sleep.sleep();
       } catch (InterruptedException e) {
@@ -264,49 +256,21 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     try {
       TickerSpec spec = subscription.spec();
       MarketDataService marketDataService = exchangeService.get(spec.exchange()).getMarketDataService();
-      if (subscription.types().contains(TICKER)) {
-        try {
-          onTicker(spec, marketDataService.getTicker(spec.currencyPair()));
-        } catch (Throwable e) {
-          LOGGER.error("Failed fetching ticker: " + spec, e);
-        }
-      }
-      if (subscription.types().contains(ORDERBOOK)) {
-        try {
-          onOrderBook(spec, marketDataService.getOrderBook(spec.currencyPair()));
-        } catch (Throwable e) {
-          LOGGER.error("Failed fetching order book: " + spec, e);
-        }
-      }
-      if (subscription.types().contains(TRADES)) {
-        try {
-          marketDataService.getTrades(spec.currencyPair())
-            .getTrades()
-            .stream()
-            .forEach(t -> onTrade(spec, t));
-        } catch (Throwable e) {
-          LOGGER.error("Failed fetching trades: " + spec, e);
-        }
+      if (subscription.type().equals(TICKER)) {
+        onTicker(spec, marketDataService.getTicker(spec.currencyPair()));
+      } else if (subscription.type().equals(ORDERBOOK)) {
+        onOrderBook(spec, marketDataService.getOrderBook(spec.currencyPair()));
+      } else if (subscription.type().equals(TRADES)) {
+        marketDataService.getTrades(spec.currencyPair())
+          .getTrades()
+          .stream()
+          .forEach(t -> onTrade(spec, t));
+      } else if (subscription.type().equals(OPEN_ORDERS)) {
+        TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
+        onOpenOrders(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair())));
       }
     } catch (Throwable e) {
       LOGGER.error("Error fetching market data: " + subscription, e);
-    }
-    fetchAndBroadcastOpenOrders(subscription);
-  }
-
-  private void fetchAndBroadcastOpenOrders(MarketDataSubscription subscription) {
-    try {
-      TickerSpec spec = subscription.spec();
-      if (subscription.types().contains(OPEN_ORDERS)) {
-        try {
-          TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-          onOpenOrders(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair())));
-        } catch (Throwable e) {
-          LOGGER.error("Failed fetching open orders: " + spec, e);
-        }
-      }
-    } catch (Throwable e) {
-      LOGGER.error("Error fetching open orders for subscription: " + subscription, e);
     }
   }
 }
