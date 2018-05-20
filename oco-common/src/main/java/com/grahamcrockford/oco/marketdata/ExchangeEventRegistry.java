@@ -6,21 +6,28 @@ import java.util.function.Consumer;
 import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
+import io.reactivex.Flowable;
+
 public interface ExchangeEventRegistry {
 
-  public void registerTicker(TickerSpec spec, String subscriberId, Consumer<TickerEvent> callback);
-
-  public void unregisterTicker(TickerSpec spec, String subscriberId);
-
-  public void changeSubscriptions(
-      Set<MarketDataSubscription> targetSubscriptions,
-      String subscriberId,
-      Consumer<TickerEvent> tickerCallback,
-      Consumer<OpenOrdersEvent> openOrdersCallback,
-      Consumer<OrderBookEvent> orderBookCallback);
-
-  public default void clearSubscriptions(ImmutableSet<MarketDataSubscription> immutableSet, String subscriberId) {
-    changeSubscriptions(ImmutableSet.of(), subscriberId, null, null, null);
+  public default void changeSubscriptions(String subscriberId, MarketDataSubscription... targetSubscriptions) {
+    changeSubscriptions(subscriberId, ImmutableSet.copyOf(targetSubscriptions));
   }
 
+  public void changeSubscriptions(String subscriberId, Set<MarketDataSubscription> targetSubscriptions);
+
+  public default void clearSubscriptions(String subscriberId) {
+    changeSubscriptions(subscriberId, ImmutableSet.of());
+  }
+
+  public Flowable<TickerEvent> getTickers(String subscriberId);
+  public Flowable<OpenOrdersEvent> getOpenOrders(String subscriberId);
+  public Flowable<OrderBookEvent> getOrderBooks(String subscriberId);
+  public Flowable<TradeEvent> getTrades(String subscriberId);
+
+  @Deprecated
+  public void registerTicker(TickerSpec tickerSpec, String subscriberId, Consumer<TickerEvent> callback);
+
+  @Deprecated
+  public void unregisterTicker(TickerSpec tickerSpec, String subscriberId);
 }

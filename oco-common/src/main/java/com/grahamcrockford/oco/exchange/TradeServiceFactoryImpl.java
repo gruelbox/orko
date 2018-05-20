@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.service.trade.TradeService;
+
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.OcoConfiguration;
 

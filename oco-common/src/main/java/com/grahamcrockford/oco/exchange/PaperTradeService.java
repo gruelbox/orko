@@ -44,12 +44,15 @@ import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import io.reactivex.disposables.Disposable;
 
 /**
  * Paper trading implementation.  Note: doesn't work between restarts. Probably not thread
  * safe either yet.
  */
-final class PaperTradeService implements TradeService {
+public final class PaperTradeService implements TradeService {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PaperTradeService.class);
 
   private final AtomicLong orderCounter = new AtomicLong();
   private final ConcurrentMap<Long, LimitOrder> openOrders = new ConcurrentHashMap<>();
@@ -61,6 +64,7 @@ final class PaperTradeService implements TradeService {
   private final Random random = new Random();
 
   private final String eventRegistryClientId = PaperTradeService.class.getSimpleName() + "/" + UUID.randomUUID().toString();
+  private volatile Disposable subscription;
 
   private PaperTradeService(String exchange, ExchangeEventRegistry exchangeEventRegistry) {
     this.exchange = exchange;
@@ -115,7 +119,15 @@ final class PaperTradeService implements TradeService {
   }
 
   private void updateTickerRegistry() {
+    if (subscription != null) {
+      try {
+        subscription.dispose();
+      } catch (Exception e) {
+        LOGGER.error("Error unsubscribing to ticker stream", e);
+      }
+    }
     exchangeEventRegistry.changeSubscriptions(
+      eventRegistryClientId,
       FluentIterable.from(openOrders.values()).transform(o -> MarketDataSubscription.create(
           TickerSpec.builder()
             .exchange(exchange)
@@ -123,11 +135,9 @@ final class PaperTradeService implements TradeService {
             .base(o.getCurrencyPair().base.getCurrencyCode())
             .build(),
           TICKER
-      )).toSet(),
-      eventRegistryClientId,
-      this::updateAgainstMarket,
-      null, null
+      )).toSet()
     );
+    subscription = exchangeEventRegistry.getTickers(eventRegistryClientId).subscribe(this::updateAgainstMarket);
   }
 
   private boolean isOpen(LimitOrder o) {

@@ -21,7 +21,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.ExchangeService;
@@ -52,7 +51,6 @@ public class TestJobExecutionIntegration {
   @Mock private TradeServiceFactory tradeServiceFactory;
 
   private AsyncEventBus asyncEventBus;
-  private EventBus eventBus;
   private JobRunner jobSubmitter;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
@@ -79,11 +77,10 @@ public class TestJobExecutionIntegration {
     config.setLoopSeconds(1);
 
     executor = Executors.newCachedThreadPool();
-    asyncEventBus = new AsyncEventBus(executor);
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    marketDataSubscriptionManager = new MarketDataSubscriptionManager(eventBus, exchangeService, new Sleep(config), tradeServiceFactory);
+    marketDataSubscriptionManager = new MarketDataSubscriptionManager(exchangeService, new Sleep(config), tradeServiceFactory);
   }
 
 

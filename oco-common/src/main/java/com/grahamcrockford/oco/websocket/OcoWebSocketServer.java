@@ -34,12 +34,11 @@ import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
 import com.grahamcrockford.oco.marketdata.MarketDataType;
-import com.grahamcrockford.oco.marketdata.OpenOrdersEvent;
-import com.grahamcrockford.oco.marketdata.OrderBookEvent;
-import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
+
+import io.reactivex.disposables.Disposable;
 
 @Metered
 @Timed
@@ -56,7 +55,8 @@ public final class OcoWebSocketServer {
   @Inject private ObjectMapper objectMapper;
   @Inject private AsyncEventBus eventBus;
 
-  private Session session;
+  private volatile Session session;
+  private volatile Disposable subscription;
 
   private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
 
@@ -110,16 +110,14 @@ public final class OcoWebSocketServer {
   }
 
   @OnClose
-  public void myOnClose(final javax.websocket.Session session, CloseReason cr) {
+  public synchronized void myOnClose(final javax.websocket.Session session, CloseReason cr) {
     LOGGER.info("Closing socket ({})", cr.toString());
+    if (subscription != null)
+      subscription.dispose();
+    subscription = null;
+    marketDataSubscriptions.set(ImmutableSet.of());
     try {
-      eventBus.unregister(this);
-    } catch (Throwable t) {
-      LOGGER.error("Error unregistering socket from notification", t);
-    }
-    try {
-      marketDataSubscriptions.set(ImmutableSet.of());
-      exchangeEventRegistry.clearSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId);
+      exchangeEventRegistry.clearSubscriptions(eventRegistryClientId);
     } catch (Throwable t) {
       LOGGER.error("Error unregistering socket from ticker", t);
     }
@@ -145,9 +143,38 @@ public final class OcoWebSocketServer {
     return request;
   }
 
-  private void updateSubscriptions(Session session) {
-    LOGGER.info("Updating subscriptions for socket to: {}", marketDataSubscriptions);
-    exchangeEventRegistry.changeSubscriptions(marketDataSubscriptions.get(), eventRegistryClientId, this::onTicker, this::onOpenOrders, this::onOrderBook);
+  private synchronized void updateSubscriptions(Session session) {
+    exchangeEventRegistry.changeSubscriptions(eventRegistryClientId, marketDataSubscriptions.get());
+    subscription = new Disposable() {
+
+      private final Disposable openOrders = exchangeEventRegistry.getOpenOrders(eventRegistryClientId).subscribe(e -> send(e, Nature.OPEN_ORDERS));
+      private final Disposable orderBook = exchangeEventRegistry.getOrderBooks(eventRegistryClientId).subscribe(e -> send(e, Nature.ORDERBOOK));
+      private final Disposable tickers = exchangeEventRegistry.getTickers(eventRegistryClientId).subscribe(e -> send(e, Nature.TICKER));
+
+      @Override
+      public boolean isDisposed() {
+        return openOrders.isDisposed() && orderBook.isDisposed() && tickers.isDisposed();
+      }
+
+      @Override
+      public void dispose() {
+        try {
+          openOrders.dispose();
+        } catch (Throwable t) {
+          LOGGER.error("Error disposing of openOrders subscription", t);
+        }
+        try {
+          orderBook.dispose();
+        } catch (Throwable t) {
+          LOGGER.error("Error disposing of orderBook subscription", t);
+        }
+        try {
+          tickers.dispose();
+        } catch (Throwable t) {
+          LOGGER.error("Error disposing of tickers subscription", t);
+        }
+      }
+    };
   }
 
   @Subscribe
@@ -155,25 +182,17 @@ public final class OcoWebSocketServer {
     send(notificationEvent, Nature.NOTIFICATION);
   }
 
-  void onTicker(TickerEvent tickerEvent) {
-    send(tickerEvent, Nature.TICKER);
-  }
-
-  void onOpenOrders(OpenOrdersEvent openOrdersEvent) {
-    send(openOrdersEvent, Nature.OPEN_ORDERS);
-  }
-
-  void onOrderBook(OrderBookEvent orderBookEvent) {
-    send(orderBookEvent, Nature.ORDERBOOK);
-  }
-
-  void send(Object object, Nature nature) {
+  /**
+   * Synchronized so we send backpressure down the channels and feed data through
+   * as fast as it can be used.
+   */
+  synchronized void send(Object object, Nature nature) {
     LOGGER.debug("{}: {}", nature, object);
-//    try {
-      session.getAsyncRemote().sendText(message(nature, object));
-//    } catch (IOException e) {
-//      LOGGER.info("Failed to send " + object + " to socket", e);
-//    }
+    try {
+      session.getBasicRemote().sendText(message(nature, object));
+    } catch (IOException e) {
+      LOGGER.info("Failed to send " + object + " to socket", e);
+    }
   }
 
   private String message(Nature nature, Object data) {

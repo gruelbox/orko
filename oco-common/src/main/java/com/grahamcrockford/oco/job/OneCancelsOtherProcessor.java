@@ -1,5 +1,7 @@
 package com.grahamcrockford.oco.job;
 
+import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
+
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,11 +11,14 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
+
+import io.reactivex.disposables.Disposable;
 
 class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
@@ -35,6 +40,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
   private final OneCancelsOther job;
   private final JobControl jobControl;
+  private final String subscriberId;
+  private volatile Disposable subscription;
 
   @AssistedInject
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
@@ -47,17 +54,24 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     this.jobSubmitter = jobSubmitter;
     this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
+    this.subscriberId = "Job/" + job.id();
   }
 
   @Override
   public boolean start() {
-    exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
+    exchangeEventRegistry.changeSubscriptions(subscriberId, MarketDataSubscription.create(job.tickTrigger(), TICKER));
+    subscription = exchangeEventRegistry.getTickers(subscriberId).subscribe(this::tick);
     return true;
   }
 
   @Override
   public void stop() {
-    exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
+    try {
+      subscription.dispose();
+    } catch (Exception e) {
+      LOGGER.error("Error disposing of subscription", e);
+    }
+    exchangeEventRegistry.clearSubscriptions(subscriberId);
   }
 
   private void tick(TickerEvent tickerEvent) {

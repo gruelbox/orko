@@ -1,28 +1,28 @@
 package com.grahamcrockford.oco.marketdata;
 
-import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
-import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
-
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Sets;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.spi.TickerSpec;
+
+import io.reactivex.Flowable;
+import io.reactivex.disposables.Disposable;
 
 
 @Singleton
@@ -30,52 +30,27 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeEventBus.class);
 
-  private final ExecutorService executorService;
-
-  private final Set<MarketDataSubscription> allSubscriptions = Sets.newHashSet();
+  private final ConcurrentMap<MarketDataSubscription, AtomicInteger> allSubscriptions = Maps.newConcurrentMap();
   private final Multimap<String, MarketDataSubscription> subscriptionsBySubscriber = MultimapBuilder.hashKeys().hashSetValues().build();
-  private final Multimap<MarketDataSubscription, CallbackDef<TickerEvent>> tickerListeners = MultimapBuilder.hashKeys().hashSetValues().build();
-  private final Multimap<MarketDataSubscription, CallbackDef<OpenOrdersEvent>> openOrdersListeners = MultimapBuilder.hashKeys().hashSetValues().build();
-  private final Multimap<MarketDataSubscription, CallbackDef<OrderBookEvent>> orderBookListeners = MultimapBuilder.hashKeys().hashSetValues().build();
+
+  @Deprecated
+  private final Multimap<String, Disposable> tickerDisposables = MultimapBuilder.hashKeys().hashSetValues().build();
 
   private final StampedLock rwLock = new StampedLock();
   private final MarketDataSubscriptionManager marketDataSubscriptionManager;
 
   @Inject
-  ExchangeEventBus(EventBus eventBus, ExecutorService executorService, MarketDataSubscriptionManager marketDataSubscriptionManager) {
-    this.executorService = executorService;
+  ExchangeEventBus(MarketDataSubscriptionManager marketDataSubscriptionManager) {
     this.marketDataSubscriptionManager = marketDataSubscriptionManager;
-    eventBus.register(this);
   }
 
   @Override
-  public void registerTicker(TickerSpec spec, String subscriberId, Consumer<TickerEvent> callback) {
-    withWriteLock(() -> {
-      if (subscribe(subscriberId, MarketDataSubscription.create(spec, TICKER), callback, tickerListeners)) {
-        updateSubscriptions();
-      }
-    });
-  }
-
-  @Override
-  public void unregisterTicker(TickerSpec spec, String subscriberId) {
-    withWriteLock(() -> {
-      if (unsubscribe(subscriberId, MarketDataSubscription.create(spec, TICKER), tickerListeners)) {
-        updateSubscriptions();
-      }
-    });
-  }
-
-  @Override
-  public void changeSubscriptions(Set<MarketDataSubscription> targetSubscriptions,
-                                  String subscriberId,
-                                  Consumer<TickerEvent> tickerCallback,
-                                  Consumer<OpenOrdersEvent> openOrdersCallback,
-                                  Consumer<OrderBookEvent> orderBookCallback) {
+  public void changeSubscriptions(String subscriberId, Set<MarketDataSubscription> targetSubscriptions) {
 
     LOGGER.info("Changing subscriptions for subscriber {} to {}", subscriberId, targetSubscriptions);
 
-    withWriteLock(() -> {
+    long stamp = rwLock.writeLock();
+    try {
 
       boolean updated = false;
 
@@ -84,178 +59,124 @@ class ExchangeEventBus implements ExchangeEventRegistry {
       Set<MarketDataSubscription> toAdd = Sets.difference(targetSubscriptions, currentForSubscriber);
 
       for (MarketDataSubscription sub : toRemove) {
-        LOGGER.info("Unsubscribing {}", sub);
-        switch (sub.type()) {
-          case OPEN_ORDERS:
-            if (unsubscribe(subscriberId, sub, openOrdersListeners)) {
-              LOGGER.info("... removing global subscription");
-              updated = true;
-            }
-            break;
-          case TICKER:
-            if (unsubscribe(subscriberId, sub, tickerListeners)) {
-              LOGGER.info("... removing global subscription");
-              updated = true;
-            }
-            break;
-          case ORDERBOOK:
-            if (unsubscribe(subscriberId, sub, orderBookListeners)) {
-              LOGGER.info("... removing global subscription");
-              updated = true;
-            }
-            break;
-          default:
-            throw new UnsupportedOperationException("Unsupported market data type:" + sub.type());
+        LOGGER.info("... unsubscribing {}", sub);
+        if (unsubscribe(subscriberId, sub)) {
+          LOGGER.info("   ... removing global subscription");
+          updated = true;
         }
       }
 
       for (MarketDataSubscription sub : toAdd) {
-        LOGGER.info("Subscribing {}", sub);
-        switch (sub.type()) {
-          case OPEN_ORDERS:
-            if (subscribe(subscriberId, sub, openOrdersCallback, openOrdersListeners)) {
-              LOGGER.info("... new global subscription");
-              updated = true;
-            }
-            break;
-          case TICKER:
-            if (subscribe(subscriberId, sub, tickerCallback, tickerListeners)) {
-              LOGGER.info("... new global subscription");
-              updated = true;
-            }
-            break;
-          case ORDERBOOK:
-            if (subscribe(subscriberId, sub, orderBookCallback, orderBookListeners)) {
-              LOGGER.info("... new global subscription");
-              updated = true;
-            }
-            break;
-          default:
-            throw new UnsupportedOperationException("Unsupported market data type:" + sub.type());
+        LOGGER.info("... subscribing {}", sub);
+        if (subscribe(subscriberId, sub)) {
+          LOGGER.info("   ... new global subscription");
+          updated = true;
         }
       }
 
       if (updated) {
         updateSubscriptions();
       }
-    });
-  }
 
-  private <T> boolean subscribe(String subscriberId, MarketDataSubscription subscription, Consumer<T> callback, Multimap<MarketDataSubscription, CallbackDef<T>> listeners) {
-    if (subscriptionsBySubscriber.put(subscriberId, subscription)) {
-      listeners.put(subscription, new CallbackDef<T>(subscriberId, callback));
-      return allSubscriptions.add(subscription);
+    } finally {
+      rwLock.unlockWrite(stamp);
     }
-    return false;
   }
 
-  private <T> boolean unsubscribe(String subscriberId, MarketDataSubscription subscription, Multimap<MarketDataSubscription, CallbackDef<T>> listeners) {
-    if (subscriptionsBySubscriber.remove(subscriberId, subscription)) {
-      listeners.remove(subscription, new CallbackDef<T>(subscriberId, null));
-      if (!listeners.containsKey(subscription)) {
-        allSubscriptions.remove(subscription);
-        return true;
-      }
+  @Override
+  public Flowable<TickerEvent> getTickers(String subscriberId) {
+    return getStream(subscriberId, MarketDataType.TICKER, marketDataSubscriptionManager::getTicker);
+  }
+
+  @Override
+  public Flowable<OpenOrdersEvent> getOpenOrders(String subscriberId) {
+    return getStream(subscriberId, MarketDataType.OPEN_ORDERS, marketDataSubscriptionManager::getOpenOrders);
+  }
+
+  @Override
+  public Flowable<OrderBookEvent> getOrderBooks(String subscriberId) {
+    return getStream(subscriberId, MarketDataType.ORDERBOOK, marketDataSubscriptionManager::getOrderBook);
+  }
+
+  @Override
+  public Flowable<TradeEvent> getTrades(String subscriberId) {
+    return getStream(subscriberId, MarketDataType.TRADES, marketDataSubscriptionManager::getTrades);
+  }
+
+  @Override
+  public void registerTicker(TickerSpec tickerSpec, String subscriberId, Consumer<TickerEvent> callback) {
+    changeSubscriptions(subscriberId, MarketDataSubscription.create(tickerSpec, TICKER));
+    long stamp = rwLock.writeLock();
+    try {
+      tickerDisposables.put(subscriberId, getTickers(subscriberId).subscribe(e -> callback.accept(e)));
+    } finally {
+      rwLock.unlockWrite(stamp);
     }
-    return false;
   }
 
-  private void updateSubscriptions() {
-    marketDataSubscriptionManager.updateSubscriptions(allSubscriptions);
+  @Override
+  public void unregisterTicker(TickerSpec tickerSpec, String subscriberId) {
+    long stamp = rwLock.writeLock();
+    try {
+      tickerDisposables.get(subscriberId).forEach(d -> {
+        try {
+          d.dispose();
+        } catch (Exception e) {
+          LOGGER.error("Error disposing of subscription", e);
+        }
+      });
+      tickerDisposables.removeAll(subscriberId);
+    } finally {
+      rwLock.unlockWrite(stamp);
+    }
+    clearSubscriptions(subscriberId);
   }
 
-  @Subscribe
-  public void tickerEvent(TickerEvent tickerEvent) {
-    processEvent(TICKER, tickerEvent, tickerEvent.spec(), tickerListeners);
-  }
-
-  @Subscribe
-  public void openOrdersEvent(OpenOrdersEvent openOrdersEvent) {
-    processEvent(OPEN_ORDERS, openOrdersEvent, openOrdersEvent.spec(), openOrdersListeners);
-  }
-
-  @Subscribe
-  public void orderBookEvent(OrderBookEvent orderBookEvent) {
-    processEvent(ORDERBOOK, orderBookEvent, orderBookEvent.spec(), orderBookListeners);
-  }
-
-  private <T> void processEvent(MarketDataType marketDataType, T event, TickerSpec spec, Multimap<MarketDataSubscription, CallbackDef<T>> callbacks) {
-    LOGGER.debug("Event: {}", event);
+  private <T> Flowable<T> getStream(String subscriberId, MarketDataType marketDataType, Function<TickerSpec, Flowable<T>> source) {
     long stamp = rwLock.readLock();
     try {
-      callbacks.get(MarketDataSubscription.create(spec, marketDataType))
-        .forEach(c -> executorService.execute(() -> c.process(event)));
+      FluentIterable<Flowable<T>> streams = FluentIterable
+          .from(subscriptionsBySubscriber.get(subscriberId))
+          .filter(s -> s.type().equals(marketDataType))
+          .transform(sub -> source.apply(sub.spec()).onBackpressureLatest());
+      return Flowable.merge(streams);
     } finally {
       rwLock.unlockRead(stamp);
     }
   }
 
-  private void withWriteLock(Runnable runnable) {
-    long stamp = rwLock.writeLock();
-    try {
-      runnable.run();
-    } finally {
-      rwLock.unlockWrite(stamp);
+  private <T> boolean subscribe(String subscriberId, MarketDataSubscription subscription) {
+    if (subscriptionsBySubscriber.put(subscriberId, subscription)) {
+      return allSubscriptions.computeIfAbsent(subscription, s -> new AtomicInteger(0)).incrementAndGet() == 1;
+    } else {
+      LOGGER.info("   ... subscriber already subscribed");
+      return false;
     }
   }
-}
 
-
-/**
- * Callback placeholder.
- */
-final class CallbackDef<T> {
-
-  private final String id;
-  private final Consumer<T> callback;
-  private final Lock lock = new ReentrantLock();
-
-  CallbackDef(String id, Consumer<T> callback) {
-    super();
-    this.id = id;
-    this.callback = callback;
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    @SuppressWarnings("unchecked")
-    CallbackDef<T> other = (CallbackDef<T>) obj;
-    if (id == null) {
-      if (other.id != null)
+  private <T> boolean unsubscribe(String subscriberId, MarketDataSubscription subscription) {
+    if (subscriptionsBySubscriber.remove(subscriberId, subscription)) {
+      AtomicInteger refCount = allSubscriptions.get(subscription);
+      if (refCount == null) {
+        LOGGER.warn("   ... Refcount is unset for live subscription: {}/{}", subscriberId, subscription);
+        return true;
+      }
+      LOGGER.info("   ... refcount is {}", refCount.get());
+      if (refCount.decrementAndGet() == 0) {
+        LOGGER.debug("   ... refcount set to {}", refCount.get());
+        allSubscriptions.remove(subscription);
+        return true;
+      } else {
+        LOGGER.debug("   ... other subscribers still holding it open");
         return false;
-    } else if (!id.equals(other.id))
+      }
+    } else {
+      LOGGER.warn("   ... subscriber {} not actually subscribed to {}", subscriberId, subscription);
       return false;
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "CallbackDef [id=" + id + "]";
-  }
-
-  void process(T tickerEvent) {
-    // Prevent passing more tickers to the same job if it's still processing
-    // an old one.
-    if (!lock.tryLock())
-      return;
-    try {
-      callback.accept(tickerEvent);
-    } finally {
-      lock.unlock();
     }
+  }
+
+  private void updateSubscriptions() {
+    marketDataSubscriptionManager.updateSubscriptions(allSubscriptions.keySet());
   }
 }
