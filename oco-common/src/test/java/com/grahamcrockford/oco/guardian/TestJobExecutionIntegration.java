@@ -64,6 +64,8 @@ public class TestJobExecutionIntegration {
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
 
+    asyncEventBus = new AsyncEventBus(Executors.newCachedThreadPool());
+
     when(injector.getInstance(TestingJobProcessor.Factory.class)).thenReturn(new TestingJobProcessor.Factory() {
       @Override
       public JobProcessor<TestingJob> create(TestingJob job, JobControl jobControl) {

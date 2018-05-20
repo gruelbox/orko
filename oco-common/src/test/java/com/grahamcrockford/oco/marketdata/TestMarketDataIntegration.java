@@ -96,21 +96,15 @@ public class TestMarketDataIntegration {
       );
       Set<Disposable> disposables = FluentIterable.from(subscriptions).transformAndConcat(sub -> ImmutableSet.<Disposable>of(
         marketDataSubscriptionManager.getSubscription(sub).subscribe(t -> {
-          String desc = t.toString();
-          if (desc.length() > 120) desc = desc.substring(0, 120);
-          System.out.println("A received " + desc);
           latchesBySubscriber.get(sub).get(0).countDown();
         }),
         marketDataSubscriptionManager.getSubscription(sub).subscribe(t -> {
-          String desc = t.toString();
-          if (desc.length() > 120) desc = desc.substring(0, 120);
-          System.out.println("B received " + desc);
           latchesBySubscriber.get(sub).get(1).countDown();
         })
       )).toSet();
       latchesBySubscriber.forEach((sub, latches) -> {
         try {
-          assertTrue("Missing two responses (A) for " + sub, latches.get(0).await(60, TimeUnit.SECONDS));
+          assertTrue("Missing two responses (A) for " + sub, latches.get(0).await(120, TimeUnit.SECONDS));
           System.out.println("Found responses (A) for " + sub);
           assertTrue("Missing two responses (B) for " + sub, latches.get(1).await(1, TimeUnit.SECONDS));
           System.out.println("Found responses (B) for " + sub);
