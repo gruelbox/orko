@@ -161,9 +161,9 @@ class ExchangeEventBus implements ExchangeEventRegistry {
         LOGGER.warn("   ... Refcount is unset for live subscription: {}/{}", subscriberId, subscription);
         return true;
       }
-      LOGGER.info("   ... refcount is {}", refCount.get());
-      if (refCount.decrementAndGet() == 0) {
-        LOGGER.debug("   ... refcount set to {}", refCount.get());
+      int newRefCount = refCount.decrementAndGet();
+      LOGGER.debug("   ... refcount set to {}", newRefCount);
+      if (newRefCount == 0) {
         allSubscriptions.remove(subscription);
         return true;
       } else {

@@ -189,7 +189,8 @@ public final class OcoWebSocketServer {
   synchronized void send(Object object, Nature nature) {
     LOGGER.debug("{}: {}", nature, object);
     try {
-      session.getBasicRemote().sendText(message(nature, object));
+      if (session.isOpen())
+        session.getBasicRemote().sendText(message(nature, object));
     } catch (IOException e) {
       LOGGER.info("Failed to send " + object + " to socket", e);
     }

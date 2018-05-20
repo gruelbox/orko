@@ -153,10 +153,11 @@ public class TestMarketDataIntegration {
       });
       Disposable disposable2 = exchangeEventBus.getTickers("ME").throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
         System.out.println(Thread.currentThread().getId() + " (B) received ticker: " + t);
+        sleep.sleep();
         called2.countDown();
       });
       Disposable disposable3 = exchangeEventBus.getOrderBooks("ME").throttleLast(1, TimeUnit.SECONDS).subscribe(t -> {
-        System.out.println(Thread.currentThread().getId() + " (C) eceived order book: " + t.getClass().getSimpleName());
+        System.out.println(Thread.currentThread().getId() + " (C) received order book: " + t.getClass().getSimpleName());
         called3.countDown();
       });
       assertTrue(called1.await(20, SECONDS));
