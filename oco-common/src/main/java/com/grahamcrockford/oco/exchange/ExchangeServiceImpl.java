@@ -39,14 +39,25 @@ import info.bitrich.xchangestream.gdax.GDAXStreamingExchange;
  * API-friendly name mapping for exchanges.
  */
 @Singleton
-class ExchangeServiceImpl implements ExchangeService {
+@VisibleForTesting
+public class ExchangeServiceImpl implements ExchangeService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
-  private final OcoConfiguration configuration;
-  private final Supplier<List<Class<? extends Exchange>>> exchangeTypes;
-  private final Supplier<List<Class<? extends StreamingExchange>>> streamingExchangeTypes;
+  private static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
+      () -> new Reflections("org.knowm.xchange")
+      .getSubTypesOf(Exchange.class)
+      .stream()
+      .filter(c -> !c.equals(BaseExchange.class))
+      .collect(Collectors.toList()));
 
+  private static final Supplier<List<Class<? extends StreamingExchange>>> STREAMING_EXCHANGE_TYPES = Suppliers.memoize(
+      () -> new Reflections("info.bitrich.xchangestream")
+      .getSubTypesOf(StreamingExchange.class)
+      .stream()
+      .collect(Collectors.toList()));
+
+  private final OcoConfiguration configuration;
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
@@ -106,19 +117,9 @@ class ExchangeServiceImpl implements ExchangeService {
 
 
   @Inject
-  ExchangeServiceImpl(OcoConfiguration configuration) {
+  @VisibleForTesting
+  public ExchangeServiceImpl(OcoConfiguration configuration) {
     this.configuration = configuration;
-    this.exchangeTypes = Suppliers.memoize(
-        () -> new Reflections("org.knowm.xchange")
-          .getSubTypesOf(Exchange.class)
-          .stream()
-          .filter(c -> !c.equals(BaseExchange.class))
-          .collect(Collectors.toList()));
-    this.streamingExchangeTypes = Suppliers.memoize(
-        () -> new Reflections("info.bitrich.xchangestream")
-          .getSubTypesOf(StreamingExchange.class)
-          .stream()
-          .collect(Collectors.toList()));
   }
 
 
@@ -128,7 +129,7 @@ class ExchangeServiceImpl implements ExchangeService {
   @Override
   public Collection<String> getExchanges() {
     return ImmutableSet.<String>builder()
-        .addAll(FluentIterable.from(exchangeTypes.get())
+        .addAll(FluentIterable.from(EXCHANGE_TYPES.get())
                   .transform(Class::getSimpleName)
                   .transform(s -> s.replace("Exchange", ""))
                   .transform(String::toLowerCase))
@@ -175,14 +176,14 @@ class ExchangeServiceImpl implements ExchangeService {
     if (friendlyName.equals("gdax-sandbox"))
       return GDAXStreamingExchange.class;
 
-    Optional<Class<? extends StreamingExchange>> streamingResult = streamingExchangeTypes.get()
+    Optional<Class<? extends StreamingExchange>> streamingResult = STREAMING_EXCHANGE_TYPES.get()
         .stream()
         .filter(c -> c.getSimpleName().replace("StreamingExchange", "").toLowerCase().equals(friendlyName))
         .findFirst();
     if (streamingResult.isPresent())
       return streamingResult.get();
 
-    Optional<Class<? extends Exchange>> result = exchangeTypes.get()
+    Optional<Class<? extends Exchange>> result = EXCHANGE_TYPES.get()
         .stream()
         .filter(c -> c.getSimpleName().replace("Exchange", "").toLowerCase().equals(friendlyName))
         .findFirst();
