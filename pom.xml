@@ -20,11 +20,14 @@
 	</modules>
 
 	<repositories>
-		<repository>
-			<id>sonatype-oss-snapshot</id>
-			<snapshots />
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</repository>
+	    <repository>
+	        <id>xchange-stream-mvn-repo</id>
+	        <url>https://raw.github.com/badgerwithagun/xchange-stream/mvn-repo/</url>
+	        <snapshots>
+	            <enabled>true</enabled>
+	            <updatePolicy>always</updatePolicy>
+	        </snapshots>
+	    </repository>
 	</repositories>
 
 	<profiles>
@@ -116,7 +119,6 @@
 		<maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
 		<jacoco.version>0.8.1</jacoco.version>
 		<mockito.version>1.10.19</mockito.version>
-
 	</properties>
 
 	<dependencyManagement>
