@@ -32,6 +32,8 @@ export default function reduce(state = initialState, action = {}) {
           [action.key]: action.error
         }
       }, {deep: true});
+    default:
+      break;
   }
   return state
 }
