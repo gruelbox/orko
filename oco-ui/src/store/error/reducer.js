@@ -9,22 +9,24 @@ const initialState = Immutable({
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.CLEAR_FOREGROUND:
-      console.debug(action.type, action);
-      return Immutable.merge(state, {
-        errorForeground: null,
-      });
+      if (state.errorForeground) {
+        return Immutable.merge(state, {
+          errorForeground: null,
+        });
+      }
+      break;
     case types.CLEAR_BACKGROUND:
-      console.debug(action.type, action);
-      return Immutable.merge(state, {
-        errorBackground: state.errorBackground.without(action.key),
-      });
+      if (state.errorBackground.length > 0) {
+        return Immutable.merge(state, {
+          errorBackground: state.errorBackground.without(action.key),
+        });
+      }
+      break;
     case types.SET_FOREGROUND:
-      console.debug(action.type, action);
       return Immutable.merge(state, {
         errorForeground: action.error,
       });
     case types.ADD_BACKGROUND:
-      console.debug(action.type, action);
       return Immutable.merge(state, {
         errorBackground: {
           [action.key]: action.error

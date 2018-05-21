@@ -8,6 +8,15 @@ const getTickers = state => state.ticker.coins
 const getRouterLocation = state => state.router.location
 const getJobs = state => state.job.jobs
 const getOrders = state => state.coin.orders
+const getOrderbook = state => state.coin.orderBook
+
+export const getTopOfOrderBook = createSelector(
+  [getOrderbook],
+  orderBook => orderBook ? ({
+    asks: orderBook.asks.slice(0, 10),
+    bids: orderBook.bids.slice(0, 10),
+  }) : orderBook
+)
 
 export const locationToCoin = ({ pathname }) => {
   if (pathname && pathname.startsWith("/coin/") && pathname.length > 6) {

@@ -5,7 +5,6 @@
   "dependencies": {
     "@mars/heroku-js-runtime-env": "^3.0.2",
     "@okta/okta-signin-widget": "^2.7.0",
-    "create-react-context": "^0.2.1",
     "fetch": "^1.1.0",
     "immutable": "^3.8.2",
     "polished": "^1.9.2",
@@ -18,6 +17,7 @@
     "react-router-dom": "^4.2.2",
     "react-router-redux": "^5.0.0-alpha.9",
     "react-table": "^6.8.2",
+    "recompose": "^0.27.1",
     "reconnecting-websocket": "^3.2.2",
     "redux": "^3.7.2",
     "redux-saga": "^0.16.0",
@@ -28,7 +28,6 @@
     "semantic-ui-react": "^0.78.3",
     "styled-components": "^3.2.6",
     "styled-system": "^2.2.5",
-    "unstated": "^1.0.3",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {

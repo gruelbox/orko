@@ -2,9 +2,10 @@ import React from "react"
 
 import ReactTable from "react-table"
 import theme from "../theme"
+import { pure } from 'recompose'
 
 const style = {
-  textAlign: "right",
+  textAlign: "right"
 }
 
 const amountColumn = {
@@ -26,25 +27,33 @@ const priceColumn = {
 
 const askPriceColumn = {
   ...priceColumn,
-  Header: "Ask",
+  Header: "Ask"
 }
 
 const bidPriceColumn = {
   ...priceColumn,
-  Header: "Bid",
+  Header: "Bid"
 }
 
 const askColumns = [askPriceColumn, amountColumn]
 const bidColumns = [amountColumn, bidPriceColumn]
 
+const sellTrProps = {
+  style: {
+    color: theme.colors["sell"]
+  }
+}
+
+const buyTrProps = {
+  style: {
+    color: theme.colors["buy"]
+  }
+}
+
 const OrderBook = ({orders, direction}) => (
   <ReactTable
     data={orders}
-    getTrProps={(state, rowInfo, column) => ({
-      style: {
-        color: theme.colors[direction === 'BID' ? "buy" : "sell"]
-      }
-    })}
+    getTrProps={() => direction === 'BID' ? buyTrProps : sellTrProps}
     columns={direction === 'BID' ? bidColumns : askColumns}
     showPagination={false}
     resizable={false}
@@ -54,4 +63,4 @@ const OrderBook = ({orders, direction}) => (
   />
 )
 
-export default OrderBook
+export default pure(OrderBook)

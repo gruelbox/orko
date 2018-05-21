@@ -1,5 +1,6 @@
 import React from "react"
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import { pure } from 'recompose'
 
 const FlashEntry = ({children, content}) => (
     <ReactCSSTransitionGroup
@@ -12,4 +13,4 @@ const FlashEntry = ({children, content}) => (
     </ReactCSSTransitionGroup>
 )
 
-export default FlashEntry
+export default pure(FlashEntry)

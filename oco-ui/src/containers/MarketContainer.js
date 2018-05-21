@@ -6,6 +6,7 @@ import Tab from "../components/primitives/Tab"
 import OrderBook from "../components/OrderBook"
 import styled from "styled-components"
 import Loading from "../components/primitives/Loading"
+import { getTopOfOrderBook } from "../selectors/coins"
 
 const Split = styled.section`
   display: flex;
@@ -22,6 +23,15 @@ const AskSide = styled.div`
   flex-grow: 1;
 `
 
+const loading = <Loading p={2} />
+
+const buttons = (
+  <span>
+    <Tab selected>Order Book</Tab>
+    <Tab>History</Tab>
+  </span>
+)
+
 const MarketContainer = ({ orderBook }) => {
   const content = orderBook ? (
     <Split>
@@ -29,20 +39,14 @@ const MarketContainer = ({ orderBook }) => {
       <BidSide><OrderBook orders={orderBook.asks} direction="ASK" /></BidSide>
     </Split>
   ) : (
-    <Loading p={2} />
+    loading
   )
-
   return (
     <Section
       nopadding
       id="marketData"
       heading="Market"
-      buttons={() => (
-        <span>
-          <Tab selected>Order Book</Tab>
-          <Tab>History</Tab>
-        </span>
-      )}
+      buttons={() => buttons}
     >
       {content}
     </Section>
@@ -51,7 +55,7 @@ const MarketContainer = ({ orderBook }) => {
 
 function mapStateToProps(state) {
   return {
-    orderBook: state.coin.orderBook
+    orderBook: getTopOfOrderBook(state)
   }
 }
 

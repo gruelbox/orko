@@ -10,13 +10,11 @@ const initialState = Immutable({
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_EXCHANGES:
-      console.debug(action.type, action);
       return Immutable.merge(state, {
         exchanges: Immutable(action.exchanges),
         error: null,
       });
     case types.SET_PAIRS:
-      console.debug(action.type, action);
       return Immutable.merge(state, {
         pairs: Immutable(action.pairs),
         error: null,

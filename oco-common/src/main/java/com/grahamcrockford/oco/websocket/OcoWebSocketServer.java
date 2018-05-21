@@ -175,7 +175,7 @@ public final class OcoWebSocketServer {
           .subscribe(e -> send(e, Nature.OPEN_ORDERS));
       private final Disposable orderBook = exchangeEventRegistry.getOrderBooks(eventRegistryClientId)
           .filter(o -> isReady())
-          .throttleLast(1, TimeUnit.SECONDS)
+          .throttleLast(2, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
       private final Disposable tickers = exchangeEventRegistry.getTickers(eventRegistryClientId)
           .filter(o -> isReady())
@@ -222,7 +222,7 @@ public final class OcoWebSocketServer {
       if (session.isOpen())
         session.getBasicRemote().sendText(message(nature, object));
     } catch (IOException e) {
-      LOGGER.info("Failed to send " + object + " to socket", e);
+      LOGGER.info("Failed to send " + nature + " to socket", e);
     }
   }
 

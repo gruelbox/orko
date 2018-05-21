@@ -84,23 +84,25 @@ const Container = styled.div`
   ${space};
 `
 
-class Price extends React.Component {
+class Price extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = { movement: null }
   }
 
   componentWillReceiveProps(nextProps) {
-    var movement = null
-    if (Number(nextProps.children) > Number(this.props.children)) {
-      movement = "up"
-    } else if (Number(nextProps.children) < Number(this.props.children)) {
-      movement = "down"
-    }
-    if (movement) {
-      this.setState({ movement: movement }, () =>
-        setTimeout(() => this.setState({ movement: null }), 2100)
-      )
+    if (!this.props.noflash) {
+      var movement = null
+      if (Number(nextProps.children) > Number(this.props.children)) {
+        movement = "up"
+      } else if (Number(nextProps.children) < Number(this.props.children)) {
+        movement = "down"
+      }
+      if (movement) {
+        this.setState({ movement: movement }, () =>
+          setTimeout(() => this.setState({ movement: null }), 2100)
+        )
+      }
     }
   }
 
@@ -133,7 +135,7 @@ class Price extends React.Component {
             {this.props.icon ? <Icon name={this.props.icon} /> : ""}
           </PriceKey>
           <PriceValue
-            color="heading"
+            color={this.props.color ? this.props.color : "heading"}
             fontSize={3}
             movement={this.state.movement}
             onClick={this.onClick}

@@ -25,7 +25,6 @@ export default function reduce(state = initialState, action = {}) {
         }
       }, {deep: true});
     case types.SET_CONNECTION_STATE:
-      console.debug(action.type, action);
       return Immutable.merge(state, { connected: action.connected });
     default:
       return state;

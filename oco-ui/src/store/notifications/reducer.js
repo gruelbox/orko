@@ -3,6 +3,7 @@ import * as types from "./actionTypes"
 
 const MAX_ITEMS = 50
 
+// TODO should move all this to middleware
 document.addEventListener('DOMContentLoaded', function () {
   if (!Notification) {
     return;
@@ -18,10 +19,8 @@ const initialState = Immutable({
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.CLEAR:
-      console.debug(action.type, action)
       return Immutable.merge(state, { notifications: [] })
     case types.ADD:
-      console.debug(action.type, action)
       notify("Server message", action.notification.message)
       const notification = Immutable.set(Immutable(action.notification), "dateTime", new Date())
       var newArr = state.notifications.concat([notification])
