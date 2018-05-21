@@ -25,6 +25,7 @@ const channelMessages = {
 }
 
 const serverMessages = {
+  READY: "READY",
   TICKER: "TICKER",
   OPEN_ORDERS: "OPEN_ORDERS",
   ORDERBOOK: "ORDERBOOK",
@@ -123,7 +124,7 @@ const webCoinToServerCoin = coin => ({
   base: coin.base
 })
 
-function* socketManager() {
+function* socketManager(getState) {
   while (true) {
     const auth = yield select(getAuth)
     if (!auth.token || !auth.whitelisted || !auth.loggedIn) {
@@ -135,6 +136,12 @@ function* socketManager() {
     const token = (yield select(getAuth)).token
     const socket = yield call(ws, "ws", token)
     const socketChannel = yield call(socketMessageChannel, socket)
+
+    setInterval(() => {
+      if (getState().ticker.connected) {
+        socket.send(JSON.stringify({command: serverMessages.READY}))
+      }
+    }, 3000)
 
     while (true) {
 
@@ -191,10 +198,10 @@ function* socketManager() {
  * The saga. Connects a reconnecting websocket and starts the listeners
  * for messages on the channel and outoing messages from redux dispatch.
  */
-export function* watcher() {
+export function* watcher(dispatch, getState) {
   while (true) {
     yield race({
-      task: all([call(socketManager)])
+      task: all([call(socketManager, getState)])
     })
     console.log("Started listeners")
   }

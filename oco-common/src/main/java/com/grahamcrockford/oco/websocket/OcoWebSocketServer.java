@@ -5,6 +5,8 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.security.RolesAllowed;
@@ -47,6 +49,7 @@ import io.reactivex.disposables.Disposable;
 @RolesAllowed(Roles.TRADER)
 public final class OcoWebSocketServer {
 
+  private static final int READY_TIMEOUT = 5000;
   private static final Logger LOGGER = LoggerFactory.getLogger(OcoWebSocketServer.class);
 
   private final String eventRegistryClientId = OcoWebSocketServer.class.getSimpleName() + "/" + UUID.randomUUID().toString();
@@ -57,12 +60,14 @@ public final class OcoWebSocketServer {
 
   private volatile Session session;
   private volatile Disposable subscription;
+  private final AtomicLong lastReadyTime = new AtomicLong();
 
   private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
     LOGGER.info("Opening socket");
+    markReady();
     injectMembers(session);
     this.session = session;
     eventBus.register(this);
@@ -77,6 +82,9 @@ public final class OcoWebSocketServer {
       request = decodeRequest(message);
 
       switch (request.command()) {
+        case READY:
+          markReady();
+          break;
         case CHANGE_TICKERS:
           mutateSubscriptions(TICKER, request.tickers());
           break;
@@ -101,6 +109,17 @@ public final class OcoWebSocketServer {
     }
   }
 
+  private void markReady() {
+    LOGGER.debug("Client is ready");
+    lastReadyTime.set(System.currentTimeMillis());
+  }
+
+  private boolean isReady() {
+    boolean result = (System.currentTimeMillis() - lastReadyTime.get()) < READY_TIMEOUT;
+    if (!result)
+      LOGGER.debug("Suppressing outgoing message as client is not ready");
+    return result;
+  }
 
   private void mutateSubscriptions(MarketDataType marketDataType, Iterable<TickerSpec> tickers) {
     marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
@@ -150,9 +169,17 @@ public final class OcoWebSocketServer {
     exchangeEventRegistry.changeSubscriptions(eventRegistryClientId, marketDataSubscriptions.get());
     subscription = new Disposable() {
 
-      private final Disposable openOrders = exchangeEventRegistry.getOpenOrders(eventRegistryClientId).subscribe(e -> send(e, Nature.OPEN_ORDERS));
-      private final Disposable orderBook = exchangeEventRegistry.getOrderBooks(eventRegistryClientId).subscribe(e -> send(e, Nature.ORDERBOOK));
-      private final Disposable tickers = exchangeEventRegistry.getTickers(eventRegistryClientId).subscribe(e -> send(e, Nature.TICKER));
+      private final Disposable openOrders = exchangeEventRegistry.getOpenOrders(eventRegistryClientId)
+          .filter(o -> isReady())
+          .throttleLast(1, TimeUnit.SECONDS)
+          .subscribe(e -> send(e, Nature.OPEN_ORDERS));
+      private final Disposable orderBook = exchangeEventRegistry.getOrderBooks(eventRegistryClientId)
+          .filter(o -> isReady())
+          .throttleLast(1, TimeUnit.SECONDS)
+          .subscribe(e -> send(e, Nature.ORDERBOOK));
+      private final Disposable tickers = exchangeEventRegistry.getTickers(eventRegistryClientId)
+          .filter(o -> isReady())
+          .subscribe(e -> send(e, Nature.TICKER));
 
       @Override
       public boolean isDisposed() {
