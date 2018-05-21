@@ -222,16 +222,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                   case ORDERBOOK:
                     return streaming.getOrderBook(sub.spec().currencyPair())
                         .map(t -> OrderBookEvent.create(sub.spec(), t))
-                        .subscribe(this::onOrderBook);
+                        .subscribe(this::onOrderBook, e -> LOGGER.error("Error in order book stream for " + sub, e));
                   case TICKER:
                     LOGGER.debug("Subscribing to {}", sub.spec());
                     return streaming.getTicker(sub.spec().currencyPair())
                         .map(t -> TickerEvent.create(sub.spec(), t))
-                        .subscribe(this::onTicker);
+                        .subscribe(this::onTicker, e -> LOGGER.error("Error in ticker stream for " + sub, e));
                   case TRADES:
                     return streaming.getTrades(sub.spec().currencyPair())
                         .map(t -> TradeEvent.create(sub.spec(), t))
-                        .subscribe(this::onTrade);
+                        .subscribe(this::onTrade, e -> LOGGER.error("Error in trade stream for " + sub, e));
                   default:
                     throw new IllegalStateException("Unexpected market data type: " + sub.type());
                 }
