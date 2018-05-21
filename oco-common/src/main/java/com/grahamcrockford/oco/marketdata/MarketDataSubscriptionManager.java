@@ -56,8 +56,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final TradeServiceFactory tradeServiceFactory;
   private final Sleep sleep;
 
+  private final AtomicReference<Set<MarketDataSubscription>> nextSubscriptions = new AtomicReference<>();
   private final Multimap<String, MarketDataSubscription> subscriptionsPerExchange = HashMultimap.create();
-  private volatile ImmutableSet<MarketDataSubscription> activePolling = ImmutableSet.of();
+  private ImmutableSet<MarketDataSubscription> activePolling = ImmutableSet.of();
   private final Multimap<String, Disposable> disposablesPerExchange = HashMultimap.create();
 
   private final Flowable<TickerEvent> tickers;
@@ -84,25 +85,18 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
   /**
-   * Updates the subscriptions for the specified exchanges.  Call with an empty set
-   * to cancel all subscriptions.  None of the streams (e.g. {@link #getTicker(TickerSpec)}
-   * will return anything until this is called, but there is no strict order
-   * in which they need to be called.
+   * Updates the subscriptions for the specified exchanges on the next loop
+   * tick. The delay is to avoid a large number of new subscriptions in quick
+   * succession causing rate bans on exchanges. Call with an empty set to cancel
+   * all subscriptions. None of the streams (e.g. {@link #getTicker(TickerSpec)}
+   * will return anything until this is called, but there is no strict order in
+   * which they need to be called.
    *
    * @param byExchange The exchanges and subscriptions for each.
    */
-  public synchronized void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
-    LOGGER.info("Updating subscriptions to: " + subscriptions);
-    Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
-
-    // Disconnect any streaming exchanges where the tickers currently
-    // subscribed mismatch the ones we want.
-    Set<String> unchanged = disconnectChangedExchanges(byExchange);
-
-    // Add new subscriptions
-    subscribe(byExchange, unchanged);
+  public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
+    nextSubscriptions.set(subscriptions);
   }
-
 
   /**
    * Gets the stream of a subscription.  Typed by the caller in
@@ -154,6 +148,23 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
 
+  private void doSubscriptionChanges() {
+    Set<MarketDataSubscription> subscriptions = nextSubscriptions.getAndSet(null);
+    if (subscriptions == null)
+      return;
+
+    LOGGER.debug("Updating subscriptions to: " + subscriptions);
+    Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
+
+    // Disconnect any streaming exchanges where the tickers currently
+    // subscribed mismatch the ones we want.
+    Set<String> unchanged = disconnectChangedExchanges(byExchange);
+
+    // Add new subscriptions
+    subscribe(byExchange, unchanged);
+  }
+
+
   private Set<String> disconnectChangedExchanges(Multimap<String, MarketDataSubscription> byExchange) {
     Builder<String> unchanged = ImmutableSet.builder();
 
@@ -165,7 +176,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       Collection<MarketDataSubscription> current = entry.getValue();
       Collection<MarketDataSubscription> target = FluentIterable.from(byExchange.get(exchangeName)).filter(s -> !s.type().equals(OPEN_ORDERS)).toSet();
 
-      LOGGER.info("Exchange {} has {}, wants {}", exchangeName, current, target);
+      LOGGER.debug("Exchange {} has {}, wants {}", exchangeName, current, target);
 
       if (current.equals(target)) {
         unchanged.add(exchangeName);
@@ -244,7 +255,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         }
       });
     activePolling = pollingBuilder.build();
-    LOGGER.info("Polls now set to: " + activePolling);
+    LOGGER.debug("Polls now set to: " + activePolling);
   }
 
   private void onTicker(TickerEvent e) {
@@ -298,6 +309,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     Thread.currentThread().setName("Market data subscription manager");
     LOGGER.info(this + " started");
     while (isRunning()) {
+      doSubscriptionChanges();
       activePolling.forEach(this::fetchAndBroadcast);
       try {
         sleep.sleep();

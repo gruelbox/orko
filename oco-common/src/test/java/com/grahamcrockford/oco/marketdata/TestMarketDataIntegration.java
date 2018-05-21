@@ -36,6 +36,7 @@ import jersey.repackaged.com.google.common.collect.Maps;
 public class TestMarketDataIntegration {
 
   private static final TickerSpec binance = TickerSpec.builder().base("BTC").counter("USDT").exchange("binance").build();
+  private static final TickerSpec binanceOddTicker = TickerSpec.builder().base("CLOAK").counter("BTC").exchange("binance").build();
   private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange("bitfinex").build();
   private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange("gdax").build();
   private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange("bittrex").build();
@@ -67,12 +68,12 @@ public class TestMarketDataIntegration {
       null
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
-    marketDataSubscriptionManager.startAsync().awaitRunning(5, SECONDS);
+    marketDataSubscriptionManager.startAsync().awaitRunning(20, SECONDS);
   }
 
   @After
   public void tearDown() throws TimeoutException {
-    marketDataSubscriptionManager.stopAsync().awaitTerminated(5, SECONDS);
+    marketDataSubscriptionManager.stopAsync().awaitTerminated(20, SECONDS);
   }
 
   @Test
@@ -83,6 +84,13 @@ public class TestMarketDataIntegration {
   @Test
   public void testSubscribeUnsubscribe() throws InterruptedException {
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
+    marketDataSubscriptionManager.updateSubscriptions(emptySet());
+  }
+
+  @Test
+  public void testSubscribePauseAndUnsubscribe() throws InterruptedException {
+    marketDataSubscriptionManager.updateSubscriptions(subscriptions);
+    Thread.sleep(2500);
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
   }
 
@@ -189,6 +197,20 @@ public class TestMarketDataIntegration {
       } finally {
         exchangeEventBus.clearSubscriptions("2");
       }
+    } finally {
+      exchangeEventBus.clearSubscriptions("1");
+    }
+  }
+
+
+  @Test
+  public void test5CharacterTicker() throws InterruptedException {
+    exchangeEventBus.changeSubscriptions("1", ImmutableSet.of(MarketDataSubscription.create(binanceOddTicker, TICKER)));
+    try {
+      CountDownLatch called = new CountDownLatch(2);
+      Disposable disposable = exchangeEventBus.getTickers("1").subscribe(t -> called.countDown());
+      assertTrue(called.await(30, SECONDS));
+      disposable.dispose();
     } finally {
       exchangeEventBus.clearSubscriptions("1");
     }
