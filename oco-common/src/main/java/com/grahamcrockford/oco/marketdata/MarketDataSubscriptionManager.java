@@ -4,6 +4,7 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
+import static java.util.Collections.emptySet;
 
 import java.util.Collection;
 import java.util.List;
@@ -223,6 +224,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                         .map(t -> OrderBookEvent.create(sub.spec(), t))
                         .subscribe(this::onOrderBook);
                   case TICKER:
+                    LOGGER.debug("Subscribing to {}", sub.spec());
                     return streaming.getTicker(sub.spec().currencyPair())
                         .map(t -> TickerEvent.create(sub.spec(), t))
                         .subscribe(this::onTicker);
@@ -303,6 +305,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         break;
       }
     }
+    updateSubscriptions(emptySet());
     LOGGER.info(this + " stopped");
   }
 
