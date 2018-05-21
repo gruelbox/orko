@@ -192,6 +192,8 @@ On the backend, set up the environment variables in addition to those already co
 | `OKTA_ISSUER`           |  Will be provided during Okta setup (see below) |
 | `JAVA_OPTS` | `-Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops` |
 | `LOG_LEVEL` | `INFO` (or `DEBUG` if you need it) |
+| `MAVEN_CUSTOM_OPTS` | `--update-snapshots -DskipTests=true` |
+| `MAVEN_CUSTOM_GOALS` | `clean package` |
 
 On the front end, set up as follows:
 
