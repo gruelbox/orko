@@ -106,9 +106,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   @Override
   public void registerTicker(TickerSpec tickerSpec, String subscriberId, Consumer<TickerEvent> callback) {
     changeSubscriptions(subscriberId, MarketDataSubscription.create(tickerSpec, TICKER));
+    Disposable disposable = getTickers(subscriberId).subscribe(e -> callback.accept(e));
     long stamp = rwLock.writeLock();
     try {
-      tickerDisposables.put(subscriberId, getTickers(subscriberId).subscribe(e -> callback.accept(e)));
+      tickerDisposables.put(subscriberId, disposable);
     } finally {
       rwLock.unlockWrite(stamp);
     }

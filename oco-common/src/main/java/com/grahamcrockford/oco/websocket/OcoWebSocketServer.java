@@ -186,7 +186,7 @@ public final class OcoWebSocketServer {
    * Synchronized so we send backpressure down the channels and feed data through
    * as fast as it can be used.
    */
-  synchronized void send(Object object, Nature nature) {
+  private synchronized void send(Object object, Nature nature) {
     LOGGER.debug("{}: {}", nature, object);
     try {
       if (session.isOpen())
