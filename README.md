@@ -4,7 +4,7 @@ Just let me try it out
 ```
 // Build the server
 sudo apt-get install maven
-mvn clean package
+mvn clean package -Dmaven.test.skip=true
 
 // Run the single-app server
 java -Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./example-developer-mode-config-allinone.yml
