@@ -49,7 +49,6 @@ import io.reactivex.disposables.Disposable;
 @VisibleForTesting
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
-  private static final BackpressureStrategy OUTPUT_BACKPRESSURE = BackpressureStrategy.LATEST;
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
 
   private final ExchangeService exchangeService;
@@ -76,12 +75,41 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.exchangeService = exchangeService;
     this.sleep = sleep;
     this.tradeServiceFactory = tradeServiceFactory;
-    this.tickers = Flowable.create(tickerEmitter::set, OUTPUT_BACKPRESSURE).share();
-    this.openOrders = Flowable.create(openOrdersEmitter::set, OUTPUT_BACKPRESSURE).share();
-    this.orderbook = Flowable.create(orderBookEmitter::set, OUTPUT_BACKPRESSURE).share();
-    this.trades = Flowable.create(tradesEmitter::set, OUTPUT_BACKPRESSURE).share();
+    this.tickers = Flowable.create((FlowableEmitter<TickerEvent> e) -> tickerEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
+    this.openOrders = Flowable.create((FlowableEmitter<OpenOrdersEvent> e) -> openOrdersEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
+    this.orderbook = Flowable.create((FlowableEmitter<OrderBookEvent> e) -> orderBookEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
+    this.trades = Flowable.create((FlowableEmitter<TradeEvent> e) -> tradesEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
   }
 
+
+  /**
+   * Updates the subscriptions for the specified exchanges.  Call with an empty set
+   * to cancel all subscriptions.  None of the streams (e.g. {@link #getTicker(TickerSpec)}
+   * will return anything until this is called, but there is no strict order
+   * in which they need to be called.
+   *
+   * @param byExchange The exchanges and subscriptions for each.
+   */
+  public synchronized void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
+    LOGGER.info("Updating subscriptions to: " + subscriptions);
+    Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
+
+    // Disconnect any streaming exchanges where the tickers currently
+    // subscribed mismatch the ones we want.
+    Set<String> unchanged = disconnectChangedExchanges(byExchange);
+
+    // Add new subscriptions
+    subscribe(byExchange, unchanged);
+  }
+
+
+  /**
+   * Gets the stream of a subscription.  Typed by the caller in
+   * an unsafe manner for convenience,
+   *
+   * @param sub The subscription
+   * @return The stream.
+   */
   @SuppressWarnings("unchecked")
   public <T> Flowable<T> getSubscription(MarketDataSubscription sub) {
     switch (sub.type()) {
@@ -98,8 +126,18 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
   }
 
+
+  /**
+   * Gets a stream of tickers.
+   *
+   * @param spec The ticker specification.
+   * @return The ticker stream.
+   */
   public Flowable<TickerEvent> getTicker(TickerSpec spec) {
-    return tickers.filter(t -> t.spec().equals(spec));
+    return tickers.filter(t -> t.spec().equals(spec))
+      .doOnNext(t -> {
+        if (LOGGER.isDebugEnabled()) logTicker("filtered", t);
+      });
   }
 
   public Flowable<OpenOrdersEvent> getOpenOrders(TickerSpec spec) {
@@ -114,27 +152,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     return trades.filter(t -> t.spec().equals(spec));
   }
 
-  private boolean isStreamingExchange(Exchange exchange) {
-    return exchange instanceof StreamingExchange;
-  }
-
-
-  /**
-   * Updates the subscriptions for the specified exchanges.
-   *
-   * @param byExchange The exchanges and subscriptions for each.
-   */
-  public synchronized void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
-    LOGGER.info("Updating subscriptions to: " + subscriptions);
-    Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
-
-    // Disconnect any streaming exchanges where the tickers currently
-    // subscribed mismatch the ones we want.
-    Set<String> unchanged = disconnectChangedExchanges(byExchange);
-
-    // Add new subscriptions
-    subscribe(byExchange, unchanged);
-  }
 
   private Set<String> disconnectChangedExchanges(Multimap<String, MarketDataSubscription> byExchange) {
     Builder<String> unchanged = ImmutableSet.builder();
@@ -229,6 +246,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void onTicker(TickerEvent e) {
+    logTicker("onTicker", e);
     if (tickerEmitter.get() != null)
       tickerEmitter.get().onNext(e);
   }
@@ -309,5 +327,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     } catch (Throwable e) {
       LOGGER.error("Error fetching market data: " + subscription, e);
     }
+  }
+
+  private boolean isStreamingExchange(Exchange exchange) {
+    return exchange instanceof StreamingExchange;
+  }
+
+  private void logTicker(String context, TickerEvent e) {
+    LOGGER.debug("Ticker [{}] ({}) {}/{} = {}", context, e.spec().exchange(), e.spec().base(), e.spec().counter(), e.ticker().getLast());
   }
 }
