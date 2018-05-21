@@ -49,5 +49,6 @@ jerseyClient:
   timeout: 15000ms
   connectionTimeout: 15000ms
   connectionRequestTimeout: 15000ms
-#logging:
-#  level: TRACE
+logging: 
+  loggers:
+    "com.grahamcrockford.oco": ${LOG_LEVEL}

@@ -191,6 +191,7 @@ On the backend, set up the environment variables in addition to those already co
 | `OKTA_CLIENTID`           | Will be provided during Okta setup (see below) |
 | `OKTA_ISSUER`           |  Will be provided during Okta setup (see below) |
 | `JAVA_OPTS` | `-Xmx384m -Xms384m -Xss512k -XX:+UseCompressedOops` |
+| `LOG_LEVEL` | `INFO` (or `DEBUG` if you need it) |
 
 On the front end, set up as follows:
 
