@@ -52,3 +52,4 @@ jerseyClient:
 logging: 
   loggers:
     "com.grahamcrockford.oco": ${LOG_LEVEL}
+    "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL}
