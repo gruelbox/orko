@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.util.SafelyDispose;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
@@ -119,13 +120,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   public void unregisterTicker(TickerSpec tickerSpec, String subscriberId) {
     long stamp = rwLock.writeLock();
     try {
-      tickerDisposables.get(subscriberId).forEach(d -> {
-        try {
-          d.dispose();
-        } catch (Exception e) {
-          LOGGER.error("Error disposing of subscription", e);
-        }
-      });
+      SafelyDispose.of(tickerDisposables.get(subscriberId));
       tickerDisposables.removeAll(subscriberId);
     } finally {
       rwLock.unlockWrite(stamp);

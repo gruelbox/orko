@@ -32,6 +32,7 @@ import com.google.inject.Singleton;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.util.SafelyDispose;
 import com.grahamcrockford.oco.util.Sleep;
 
 import info.bitrich.xchangestream.core.ProductSubscription;
@@ -44,7 +45,9 @@ import io.reactivex.FlowableEmitter;
 import io.reactivex.disposables.Disposable;
 
 /**
- * Maintains subscriptions to exchange market data, distributing them via the event bus.
+ * Maintains subscriptions to multiple exchanges' market data, using web sockets where it can
+ * and polling where it can't, but this is abstracted away. All clients have access to reactive
+ * streams of data to which they are subscribed.
  */
 @Singleton
 @VisibleForTesting
@@ -95,8 +98,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @param byExchange The exchanges and subscriptions for each.
    */
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
-    nextSubscriptions.set(subscriptions);
+    nextSubscriptions.set(ImmutableSet.copyOf(subscriptions));
   }
+
 
   /**
    * Gets the stream of a subscription.  Typed by the caller in
@@ -135,33 +139,60 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       });
   }
 
+
+  /**
+   * Gets a stream of open order lists.
+   *
+   * @param spec The ticker specification.
+   */
   public Flowable<OpenOrdersEvent> getOpenOrders(TickerSpec spec) {
     return openOrders.filter(t -> t.spec().equals(spec));
   }
 
+
+  /**
+   * Gets a stream containing updates to the order book.
+   *
+   * @param spec The ticker specification.
+   */
   public Flowable<OrderBookEvent> getOrderBook(TickerSpec spec) {
     return orderbook.filter(t -> t.spec().equals(spec));
   }
 
+
+  /**
+   * Gets a stream of trades.
+   *
+   * @param spec The ticker specification.
+   */
   public Flowable<TradeEvent> getTrades(TickerSpec spec) {
     return trades.filter(t -> t.spec().equals(spec));
   }
 
 
+  /**
+   * Actually performs the subscription changes. Occurs synchronously in the
+   * poll loop.
+   */
   private void doSubscriptionChanges() {
     Set<MarketDataSubscription> subscriptions = nextSubscriptions.getAndSet(null);
-    if (subscriptions == null)
-      return;
+    try {
+      if (subscriptions == null)
+        return;
 
-    LOGGER.debug("Updating subscriptions to: " + subscriptions);
-    Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
+      LOGGER.debug("Updating subscriptions to: " + subscriptions);
+      Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
 
-    // Disconnect any streaming exchanges where the tickers currently
-    // subscribed mismatch the ones we want.
-    Set<String> unchanged = disconnectChangedExchanges(byExchange);
+      // Disconnect any streaming exchanges where the tickers currently
+      // subscribed mismatch the ones we want.
+      Set<String> unchanged = disconnectChangedExchanges(byExchange);
 
-    // Add new subscriptions
-    subscribe(byExchange, unchanged);
+      // Add new subscriptions
+      subscribe(byExchange, unchanged);
+    } catch (Throwable t) {
+      LOGGER.error("Error updating subscriptions", t);
+      nextSubscriptions.compareAndSet(null, subscriptions);
+    }
   }
 
 
@@ -186,76 +217,73 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     changed.forEach(exchangeName -> {
-      LOGGER.info("... disconnecting " + exchangeName);
+      LOGGER.info("... disconnecting from exchange: {}", exchangeName);
       disconnectExchange(exchangeName);
       subscriptionsPerExchange.removeAll(exchangeName);
+      LOGGER.info("... disconnected from exchange: {}", exchangeName);
     });
 
     return unchanged.build();
   }
 
   private void disconnectExchange(String exchangeName) {
-    LOGGER.info("Disconnecting from exchange: " + exchangeName);
     StreamingExchange exchange = (StreamingExchange) exchangeService.get(exchangeName);
 
-    disposablesPerExchange.get(exchangeName).forEach(d -> {
-      try {
-        d.dispose();
-      } catch (Exception e) {
-        LOGGER.error("Error disposing of subscription", e);
-      }
-    });
-    disposablesPerExchange.removeAll(exchangeName);
+    SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
 
     exchange.disconnect().blockingAwait();
-
-    LOGGER.info("Disconnected from exchange: " + exchangeName);
   }
 
   private void subscribe(Multimap<String, MarketDataSubscription> byExchange, Set<String> unchanged) {
     final Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
-    byExchange.asMap()
-      .entrySet()
-      .stream()
-      .forEach(entry -> {
-        Exchange exchange = exchangeService.get(entry.getKey());
-        Collection<MarketDataSubscription> subscriptionsForExchange = entry.getValue();
+    byExchange
+      .asMap()
+      .forEach((exchangeName, subscriptionsForExchange) -> {
+        Exchange exchange = exchangeService.get(exchangeName);
         if (isStreamingExchange(exchange)) {
-          if (!unchanged.contains(entry.getKey())) {
-            Collection<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(entry.getValue()).filter(s -> !s.type().equals(OPEN_ORDERS)).toSet();
-            subscriptionsPerExchange.putAll(entry.getKey(), streamingSubscriptions);
-            subscribeExchange((StreamingExchange)exchange, streamingSubscriptions, entry.getKey());
-            StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
-            disposablesPerExchange.putAll(
-              entry.getKey(),
-              FluentIterable.from(streamingSubscriptions).transform(sub -> {
-                switch (sub.type()) {
-                  case ORDERBOOK:
-                    return streaming.getOrderBook(sub.spec().currencyPair())
-                        .map(t -> OrderBookEvent.create(sub.spec(), t))
-                        .subscribe(this::onOrderBook, e -> LOGGER.error("Error in order book stream for " + sub, e));
-                  case TICKER:
-                    LOGGER.debug("Subscribing to {}", sub.spec());
-                    return streaming.getTicker(sub.spec().currencyPair())
-                        .map(t -> TickerEvent.create(sub.spec(), t))
-                        .subscribe(this::onTicker, e -> LOGGER.error("Error in ticker stream for " + sub, e));
-                  case TRADES:
-                    return streaming.getTrades(sub.spec().currencyPair())
-                        .map(t -> TradeEvent.create(sub.spec(), t))
-                        .subscribe(this::onTrade, e -> LOGGER.error("Error in trade stream for " + sub, e));
-                  default:
-                    throw new IllegalStateException("Unexpected market data type: " + sub.type());
-                }
-              })
-            );
+          if (!unchanged.contains(exchangeName)) {
+            Collection<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptionsForExchange).filter(s -> !s.type().equals(OPEN_ORDERS)).toSet();
+            if (!streamingSubscriptions.isEmpty()) {
+              openSubscriptions(exchangeName, exchange, streamingSubscriptions);
+            }
           }
-          pollingBuilder.addAll(FluentIterable.from(entry.getValue()).filter(s -> s.type().equals(OPEN_ORDERS)).toSet());
+          pollingBuilder.addAll(FluentIterable.from(subscriptionsForExchange).filter(s -> s.type().equals(OPEN_ORDERS)).toSet());
         } else {
           pollingBuilder.addAll(subscriptionsForExchange);
         }
       });
     activePolling = pollingBuilder.build();
     LOGGER.debug("Polls now set to: " + activePolling);
+  }
+
+
+  private void openSubscriptions(String exchangeName, Exchange exchange, Collection<MarketDataSubscription> streamingSubscriptions) {
+    subscriptionsPerExchange.putAll(exchangeName, streamingSubscriptions);
+    subscribeExchange((StreamingExchange)exchange, streamingSubscriptions, exchangeName);
+
+    StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
+    disposablesPerExchange.putAll(
+      exchangeName,
+      FluentIterable.from(streamingSubscriptions).transform(sub -> {
+        switch (sub.type()) {
+          case ORDERBOOK:
+            return streaming.getOrderBook(sub.spec().currencyPair())
+                .map(t -> OrderBookEvent.create(sub.spec(), t))
+                .subscribe(this::onOrderBook, e -> LOGGER.error("Error in order book stream for " + sub, e));
+          case TICKER:
+            LOGGER.debug("Subscribing to {}", sub.spec());
+            return streaming.getTicker(sub.spec().currencyPair())
+                .map(t -> TickerEvent.create(sub.spec(), t))
+                .subscribe(this::onTicker, e -> LOGGER.error("Error in ticker stream for " + sub, e));
+          case TRADES:
+            return streaming.getTrades(sub.spec().currencyPair())
+                .map(t -> TradeEvent.create(sub.spec(), t))
+                .subscribe(this::onTrade, e -> LOGGER.error("Error in trade stream for " + sub, e));
+          default:
+            throw new IllegalStateException("Unexpected market data type: " + sub.type());
+        }
+      })
+    );
   }
 
   private void onTicker(TickerEvent e) {
@@ -307,15 +335,25 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   @Override
   protected void run() {
     Thread.currentThread().setName("Market data subscription manager");
-    LOGGER.info(this + " started");
+    LOGGER.info("{} started", this);
     while (isRunning()) {
+
+      LOGGER.debug("{} start subscription check", this);
       doSubscriptionChanges();
-      activePolling.forEach(this::fetchAndBroadcast);
+
+      LOGGER.debug("{} start poll", this);
+      activePolling.forEach(sub -> {
+        if (isRunning())
+          fetchAndBroadcast(sub);
+      });
+
+      LOGGER.debug("{} going to sleep", this);
       try {
         sleep.sleep();
       } catch (InterruptedException e) {
         break;
       }
+
     }
     updateSubscriptions(emptySet());
     LOGGER.info(this + " stopped");
@@ -330,11 +368,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } else if (subscription.type().equals(ORDERBOOK)) {
         onOrderBook(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair())));
       } else if (subscription.type().equals(TRADES)) {
-        throw new UnsupportedOperationException("TODO"); // TODO
-//        marketDataService.getTrades(spec.currencyPair())
-//          .getTrades()
-//          .stream()
-//          .forEach(t -> onTrade(spec, t));
+        // TODO need to return only the new ones onTrade(TradeEvent.create(spec, marketDataService.getTrades(spec.currencyPair())));
       } else if (subscription.type().equals(OPEN_ORDERS)) {
         TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
         onOpenOrders(OpenOrdersEvent.create(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair()))));

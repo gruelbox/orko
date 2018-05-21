@@ -73,6 +73,7 @@ public final class OcoWebSocketServer {
     OcoWebSocketIncomingMessage request = null;
     try {
 
+      LOGGER.debug("Received websocket message: {}", message);
       request = decodeRequest(message);
 
       switch (request.command()) {
@@ -144,6 +145,8 @@ public final class OcoWebSocketServer {
   }
 
   private synchronized void updateSubscriptions(Session session) {
+    if (subscription != null)
+      subscription.dispose();
     exchangeEventRegistry.changeSubscriptions(eventRegistryClientId, marketDataSubscriptions.get());
     subscription = new Disposable() {
 

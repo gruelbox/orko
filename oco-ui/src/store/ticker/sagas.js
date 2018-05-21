@@ -77,7 +77,7 @@ function* socketLoop(socketChannel) {
       type: types.SET_TICKER,
       coin: createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base),
       ticker: message.data.ticker
-    })
+    })      
   } else if (message && message.nature === serverMessages.OPEN_ORDERS) {
 
     // Ignore late-arriving messages related to a coin we're not interested in right now
@@ -154,17 +154,18 @@ function* socketManager() {
         socketChannel.close()
         break
 
-      } else if (action.type === types.RESUBSCRIBE) {
+      } else if (action.type === types.RESUBSCRIBE || action.type === routerActionTypes.LOCATION_CHANGED) {
 
         yield put(coinActions.setOrders(null))
         yield put(coinActions.setOrderBook(null))
 
         var coins = yield select(getSubscribedCoins)
-        const selectedCoin = yield select(getSelectedCoin)
+        const selectedCoin = action.type === routerActionTypes.LOCATION_CHANGED
+          ? yield locationToCoin(action.location)
+          : yield select(getSelectedCoin)
         if (selectedCoin)
           coins = coins.concat([selectedCoin])
 
-        console.log("Subscribing to tickers", coins)
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_TICKERS,
           tickers: coins.map(coin => webCoinToServerCoin(coin))
@@ -179,23 +180,6 @@ function* socketManager() {
         }))
         yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
      
-      } else if (action.type === routerActionTypes.LOCATION_CHANGED) {
-
-        const selectedCoin = yield locationToCoin(action.location)
-
-        yield put(coinActions.setOrders(null))
-        yield put(coinActions.setOrderBook(null))
-
-        yield socket.send(JSON.stringify({
-          command: serverMessages.CHANGE_OPEN_ORDERS,
-          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
-        }))
-        yield socket.send(JSON.stringify({
-          command: serverMessages.CHANGE_ORDER_BOOK,
-          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
-        }))
-        yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
-      
       }
     }
   }
