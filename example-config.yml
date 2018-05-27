@@ -37,6 +37,9 @@ exchanges:
   bittrex:
     apiKey: ${BITTREX_API_KEY}
     secretKey: ${BITTREX_SECRET}
+  cryptopia:
+    apiKey: ${CRYPTOPIA_API_KEY}
+    secretKey: ${CRYPTOPIA_SECRET}
 server:
   type: simple
   applicationContextPath: /
