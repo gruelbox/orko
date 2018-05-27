@@ -10,6 +10,20 @@ const CHART_INTERVAL_KEY = "Chart.interval"
 
 const CONTAINER_ID = "tradingview-widget-container"
 
+const NewWindowChartContent = ({coin, url}) => (
+  <Section id="chart" heading="Chart">
+    <Para>TradingView does not support charts for this exchange.</Para>
+    <Para>
+      <a
+        target="_blank"
+        href={url}
+      >
+        Open in {coin.exchange}
+      </a>
+    </Para>
+  </Section>
+)
+
 const ChartOuter = styled.div`
   overflow: hidden;
   height: 100%;
@@ -23,7 +37,7 @@ const ChartInner = styled.div`
   height: calc(100% + 8px);
 `
 
-class ChartContent extends Component {
+class TradingViewChartContent extends Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     return this.props.coin.key !== nextProps.coin.key || this.props.interval !== nextProps.interval
   }
@@ -80,6 +94,18 @@ class ChartContent extends Component {
   }
 }
 
+const Interval = ({ name, code }) => (
+  <Tab
+    selected={this.state.interval === code}
+    onClick={() => {
+      localStorage.setItem(CHART_INTERVAL_KEY, code)
+      this.setState({ interval: code })
+    }}
+  >
+    {name}
+  </Tab>
+)
+
 class Chart extends React.Component {
   constructor(props) {
     super(props)
@@ -103,36 +129,15 @@ class Chart extends React.Component {
 
     if (coin.exchange === "kucoin") {
       return (
-        <Section id="chart" heading="Chart">
-          <Para>TradingView does not support charts for this exchange.</Para>
-          <Para>
-            <a
-              target="_blank"
-              href={
-                "https://www.kucoin.com/#/trade.pro/" +
-                coin.base +
-                "-" +
-                coin.counter
-              }
-            >
-              Open in {coin.exchange}
-            </a>
-          </Para>
-        </Section>
+        <NewWindowChartContent coin={coin} url={"https://www.kucoin.com/#/trade.pro/" + coin.base + "-" + coin.counter}/>
       )
     }
 
-    const Interval = ({ name, code }) => (
-      <Tab
-        selected={this.state.interval === code}
-        onClick={() => {
-          localStorage.setItem(CHART_INTERVAL_KEY, code)
-          this.setState({ interval: code })
-        }}
-      >
-        {name}
-      </Tab>
-    )
+    if (coin.exchange === "cryptopia") {
+      return (
+        <NewWindowChartContent coin={coin} url={"https://www.cryptopia.co.nz/Exchange/?market=" + coin.base + "_" + coin.counter}/>
+      )
+    }
 
     return (
       <Section
@@ -150,7 +155,7 @@ class Chart extends React.Component {
           </span>
         )}
       >
-        <ChartContent coin={coin} interval={this.state.interval} />
+        <TradingViewChartContent coin={coin} interval={this.state.interval} />
       </Section>
     )
   }
