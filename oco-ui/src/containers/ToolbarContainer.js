@@ -137,7 +137,9 @@ const Coin = ({ coin }) => (
 )
 
 const ToolbarContainer = ({ticker, coin, connected, errors, userName, updateFocusedField, onResetLayout, dispatch}) => {
-  if (ticker && coin) {
+  if (!connected) {
+    document.title = "Not connected"
+  } else if (ticker && coin) {
     document.title = ticker.last + " " + coin.base + "/" + coin.counter
   } else {
     document.title = "No coin"
