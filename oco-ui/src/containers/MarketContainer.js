@@ -25,7 +25,7 @@ const AskSide = styled.div`
 
 const loading = <Loading p={2} />
 
-const buttons = (
+const buttons = () => (
   <span>
     <Tab selected>Order Book</Tab>
     <Tab>History</Tab>
@@ -47,7 +47,7 @@ const MarketContainer = ({ orderBook, priceComponent, coin }) => {
       nopadding
       id="marketData"
       heading="Market"
-      buttons={() => buttons}
+      buttons={buttons}
     >
       {content}
     </Section>
