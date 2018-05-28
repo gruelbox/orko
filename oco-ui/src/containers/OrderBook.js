@@ -1,97 +1,27 @@
 import React from "react"
-import styled from "styled-components"
-import theme from "../theme"
-import Price from "../components/primitives/Price"
+
 import { connect } from "react-redux"
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import { getTopOfOrderBook } from "../selectors/coins"
+import OrderBookSide from "./OrderBookSide"
+import styled from "styled-components"
+import Loading from "../components/primitives/Loading"
 
-const Aligned = styled.div`
+const Split = styled.section`
   display: flex;
-  text-align: ${props => (props.direction === "BID" ? "right" : "left")};
-  height: 24px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  overflow: visible;
+  flex-direction: row;
+  width: 100%;
 `
 
-const Bar = styled.div`
-  position: absolute;
-  box-shadow: inset 0 6px 8px rgba(0, 0, 0, 0.1);
-  top: 0;
-  left: ${props => (props.direction === "BID" ? "auto" : 0)};
-  right: ${props => (props.direction === "BID" ? 0 : "auto" )};
-  height: 100%;
-  min-width: 1px;
-  width: ${props => props.size + "%"};
-  transition: width 0.5s ease-out;
-  background-color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
-  overflow: visible;
-`
-
-const BarSize = styled.div`
-  position: absolute;
-  top: 0;
-  right: ${props => props.direction === "BID"
-    ? props.size < 50
-      ? "100%"
-      : "auto"
-    : props.size < 50
-      ? "auto"
-      : 0};
-  left: ${props => props.direction === "BID"
-    ? props.size < 50
-      ? "auto"
-      : 0
-    : props.size < 50
-      ? "100%"
-      : "auto"};
-  color: ${props => props.size > 50
-    ? "black"
-    : props.direction === "BID"
-      ? theme.colors.buy
-      : theme.colors.sell};
-  font-size: ${props => theme.fontSizes[0] + "px"}
-  padding: 0 4px 0 4px;
-  overflow: visible;
-  white-space: nowrap;
-`
-
-const BarColumn = styled.div`
+const BidSide = styled.div`
   flex-grow: 1;
-  position: relative;
-  order: ${props => (props.direction === "BID" ? 1 : 2)};
+  border-left: 1px solid rgba(0,0,0,0.2);
 `
 
-const PriceColumn = styled.div`
-  flex-basis: auto;
-  width: 70px;
-  order: ${props => (props.direction === "BID" ? 2 : 1)};
+const AskSide = styled.div`
+  flex-grow: 1;
 `
 
-const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
-  <Aligned id={direction + "-" + price} direction={direction}>
-    <BarColumn direction={direction}>
-      <Bar direction={direction} size={magnitude}>
-        <BarSize direction={direction} size={magnitude}>{size}</BarSize>
-      </Bar>
-    </BarColumn>
-    <PriceColumn direction={direction}>
-      <Price
-        bare
-        noflash
-        color={direction === "BID" ? "buy" : "sell"}
-        counter={counter}
-        onClick={number => {
-          if (focusFn) {
-            focusFn(number)
-          }
-        }}
-      >
-        {price}
-      </Price>
-    </PriceColumn>
-  </Aligned>
-)
+const loading = <Loading p={2} />
 
 class OrderBook extends React.PureComponent {
 
@@ -100,40 +30,34 @@ class OrderBook extends React.PureComponent {
     this.largestOrder = 0
   }
 
+  componentWillReceiveProps(nextProps) {
+    if ((!this.props.coin && nextProps.coin) || (!this.props.coin.key !== nextProps.coin.key))
+      this.largestOrder = 0
+  }
+
   render() {
-    const coin = this.props.coin
-    const orders = this.props.orders
-    const direction = this.props.direction
-    const focusFn = this.props.focusFn
-    this.largestOrder = Math.max(...orders.map(o => o.remainingAmount), this.largestOrder)
-    return (
-      <ReactCSSTransitionGroup
-        transitionName="collapse"
-        transitionEnter={true}
-        transitionAppear={false}
-        transitionEnterTimeout={2000}
-        transitionLeaveTimeout={1400}
-        transitionLeave={true}
-      >
-        {orders.map(order => (
-          <Entry
-            key={order.limitPrice}
-            focusFn={focusFn}
-            counter={coin.counter}
-            direction={direction}
-            price={order.limitPrice}
-            magnitude={order.remainingAmount * 100.0 / this.largestOrder}
-            size={order.remainingAmount}
-          />
-        ))}
-      </ReactCSSTransitionGroup>
+    const { orderBook, coin } = this.props
+    if (orderBook) {
+      this.largestOrder = Math.max(
+        ...orderBook.bids.map(o => o.remainingAmount),
+        ...orderBook.asks.map(o => o.remainingAmount),
+        this.largestOrder
+      )
+    }
+    return orderBook ? (
+      <Split>
+        <AskSide><OrderBookSide key="asks" orders={orderBook.bids} largestOrder={this.largestOrder} direction="BID" coin={coin} /></AskSide>
+        <BidSide><OrderBookSide key="buys" orders={orderBook.asks} largestOrder={this.largestOrder} direction="ASK" coin={coin} /></BidSide>
+      </Split>
+    ) : (
+      loading
     )
   }
 }
 
 function mapStateToProps(state) {
   return {
-    focusFn: state.focus.fn
+    orderBook: getTopOfOrderBook(state)
   }
 }
 
