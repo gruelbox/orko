@@ -368,7 +368,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       if (subscription.type().equals(TICKER)) {
         onTicker(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
       } else if (subscription.type().equals(ORDERBOOK)) {
-        onOrderBook(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), ORDERBOOK_DEPTH, ORDERBOOK_DEPTH)));
+        if (spec.exchange().equals("cryptopia")) {
+          // TODO submit a PR to xChange for this
+          long longValue = Integer.valueOf(ORDERBOOK_DEPTH).longValue();
+          onOrderBook(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), longValue, longValue)));
+        } else {
+          onOrderBook(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), ORDERBOOK_DEPTH, ORDERBOOK_DEPTH)));
+        }
       } else if (subscription.type().equals(TRADES)) {
         // TODO need to return only the new ones onTrade(TradeEvent.create(spec, marketDataService.getTrades(spec.currencyPair())));
       } else if (subscription.type().equals(OPEN_ORDERS)) {
