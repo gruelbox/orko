@@ -30,7 +30,8 @@ const SectionInner = styled.section`
   padding-right: ${props => props.nopadding ? 0 :props.theme.space[2] + "px"};
   flex: 1
   position: relative;
-  overflow: ${props => props.alwaysscroll ? "scroll" : "auto"};
+  overflow-x: ${props => props.scroll === "horizontal" || props.scroll === "both" ? "scroll" : "auto"};
+  overflow-y: ${props => props.scroll === "vertical" || props.scroll === "both" ? "scroll" : "auto"};
 `
 
 class Section extends React.Component {
@@ -46,7 +47,7 @@ class Section extends React.Component {
             {this.props.buttons && this.props.buttons()}
           </div>
         </SectionHeadingBox>
-        <SectionInner alwaysscroll={this.props.alwaysscroll} expand={this.props.expand} nopadding={this.props.nopadding}>
+        <SectionInner scroll={this.props.scroll} expand={this.props.expand} nopadding={this.props.nopadding}>
           {this.props.children}
         </SectionInner>
       </SectionBox>

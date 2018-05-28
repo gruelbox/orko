@@ -126,8 +126,8 @@ const globalCss = `
 
     .collapse-leave {
       height: 24px !important;
-      opacity: 0.3;
-      background-color: rgba(0, 0, 0, 0.7);
+      opacity: 0.4;
+      background-color: rgba(0, 0, 0, 0.8);
     }
     
     .collapse-leave.collapse-leave-active {

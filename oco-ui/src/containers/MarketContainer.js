@@ -27,8 +27,9 @@ const loading = <Loading p={2} />
 
 const buttons = () => (
   <span>
-    <Tab selected>Order Book</Tab>
-    <Tab>History</Tab>
+    <Tab selected>Top Orders</Tab>
+    <Tab>Full Book</Tab>
+    <Tab>Market History</Tab>
   </span>
 )
 
@@ -43,7 +44,7 @@ const MarketContainer = ({ orderBook, priceComponent, coin }) => {
   )
   return (
     <Section
-      alwaysscroll
+      alwaysscroll="vertical"
       nopadding
       id="marketData"
       heading="Market"
