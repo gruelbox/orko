@@ -95,23 +95,45 @@ const globalCss = `
     }
 
     .flashEntry-appear {
-        color: white;
-        text-shadow: 0px 0px 5px white;
+      color: white;
+      text-shadow: 0px 0px 5px white;
     }
       
     .flashEntry-appear.flashEntry-appear-active {
-        color: inherit;
-        text-shadow: none;
-        transition: color 2s, text-shadow 2s;
+      color: inherit;
+      text-shadow: none;
+      transition: color 2s, text-shadow 2s;
     }
 
     .fadeIn-appear {
-        opacity: 0.01;
+      opacity: 0.01;
     }
       
-    .fadeIn-appear.example-appear-active {
-        opacity: 1;
-        transition: opacity .5s ease-in;
+    .fadeIn-appear.fadeIn-appear-active {
+      opacity: 1;
+      transition: opacity .5s ease-in;
+    }
+
+    .collapse-enter {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .collapse-enter.collapse-enter-active {
+      background-color: inherit;
+      transition: background-color 400ms ease-in 1300ms;
+    }
+
+    .collapse-leave {
+      height: inherit;
+      opacity: 0.3;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    
+    .collapse-leave.collapse-leave-active {
+      background-color: inherit;
+      opacity: 0;
+      height: 0px;
+      transition: height 400ms ease-in 1000ms, opacity 400ms linear 1000ms, background-color 400ms linear 1000ms;
     }
 
     .oco-deemphasis {

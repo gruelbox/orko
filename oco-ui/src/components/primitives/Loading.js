@@ -2,10 +2,10 @@ import React from 'react';
 import Para from './Para';
 import { Icon } from "semantic-ui-react"
 
-const Loading = ({fitted}) => (
+const Loading = ({fitted, p}) => (
   fitted
   ? <Icon fitted name="spinner" loading/>
-  : <Para p={2}><Icon name="spinner" loading/></Para>
+  : <Para p={p}><Icon name="spinner" loading/></Para>
 )
 
 export default Loading;

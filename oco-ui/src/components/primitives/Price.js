@@ -69,11 +69,13 @@ const BarePriceValue = styled.span.attrs({
         ? props.theme.colors.sell
         : "none"};
   color: ${props =>
-    props.movement === "up"
-      ? props.theme.colors.black
-      : props.movement === "down"
+    props.color
+      ? props.color
+      : props.movement === "up"
         ? props.theme.colors.black
-        : props.theme.colors.fore};
+        : props.movement === "down"
+          ? props.theme.colors.black
+          : props.theme.colors.fore};
   ${color}
   ${fontSize}
   ${fontWeight}
@@ -108,7 +110,6 @@ class Price extends React.PureComponent {
 
   onClick = () => {
     if (this.props.onClick) {
-      console.log("Price clicked", this.props.name, this.props.children)
       this.props.onClick(this.props.children)
     }
   }
@@ -120,7 +121,7 @@ class Price extends React.PureComponent {
       }
     if (this.props.bare) {
       return (
-        <BarePriceValue movement={this.state.movement} onClick={this.onClick}>
+        <BarePriceValue movement={this.state.movement} onClick={this.onClick} color={this.props.color}>
           {this.props.children === "--" ? "--" : formatter(this.props.children)}
         </BarePriceValue>
       )

@@ -3,7 +3,7 @@ import { connect } from "react-redux"
 
 import Section from "../components/primitives/Section"
 import Tab from "../components/primitives/Tab"
-import OrderBook from "../components/OrderBook"
+import OrderBook from "./OrderBook"
 import styled from "styled-components"
 import Loading from "../components/primitives/Loading"
 import { getTopOfOrderBook } from "../selectors/coins"
@@ -32,17 +32,18 @@ const buttons = (
   </span>
 )
 
-const MarketContainer = ({ orderBook }) => {
+const MarketContainer = ({ orderBook, priceComponent, coin }) => {
   const content = orderBook ? (
     <Split>
-      <AskSide><OrderBook orders={orderBook.bids} direction="BID" /></AskSide>
-      <BidSide><OrderBook orders={orderBook.asks} direction="ASK" /></BidSide>
+      <AskSide><OrderBook key="asks" orders={orderBook.bids} direction="BID" coin={coin} /></AskSide>
+      <BidSide><OrderBook key="buys" orders={orderBook.asks} direction="ASK" coin={coin} /></BidSide>
     </Split>
   ) : (
     loading
   )
   return (
     <Section
+      alwaysscroll
       nopadding
       id="marketData"
       heading="Market"

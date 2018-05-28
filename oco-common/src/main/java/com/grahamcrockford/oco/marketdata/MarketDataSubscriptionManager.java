@@ -55,6 +55,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
 
+  private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK);
+
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
   private final Sleep sleep;
@@ -242,12 +244,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         Exchange exchange = exchangeService.get(exchangeName);
         if (isStreamingExchange(exchange)) {
           if (!unchanged.contains(exchangeName)) {
-            Collection<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptionsForExchange).filter(s -> !s.type().equals(OPEN_ORDERS)).toSet();
+            Collection<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptionsForExchange).filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
             if (!streamingSubscriptions.isEmpty()) {
               openSubscriptions(exchangeName, exchange, streamingSubscriptions);
             }
           }
-          pollingBuilder.addAll(FluentIterable.from(subscriptionsForExchange).filter(s -> s.type().equals(OPEN_ORDERS)).toSet());
+          pollingBuilder.addAll(FluentIterable.from(subscriptionsForExchange).filter(s -> !STREAMING_MARKET_DATA.contains(s.type())).toSet());
         } else {
           pollingBuilder.addAll(subscriptionsForExchange);
         }
