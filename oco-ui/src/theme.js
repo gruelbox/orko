@@ -115,24 +115,25 @@ const globalCss = `
     }
 
     .collapse-enter {
-      background-color: rgba(255, 255, 255, 0.05);
+      opacity: 0;
     }
 
     .collapse-enter.collapse-enter-active {
-      background-color: inherit;
-      transition: background-color 400ms ease-in 1300ms;
+      opacity: 1;
+      background-color: rgba(255, 255, 255, 0.07);
+      transition: opacity 400ms linear 100ms, background-color 400ms ease-in 100ms;
     }
 
     .collapse-leave {
-      height: inherit;
+      height: 24px !important;
       opacity: 0.3;
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0, 0, 0, 0.7);
     }
     
     .collapse-leave.collapse-leave-active {
       background-color: inherit;
       opacity: 0;
-      height: 0px;
+      height: 0px !important;
       transition: height 400ms ease-in 1000ms, opacity 400ms linear 1000ms, background-color 400ms linear 1000ms;
     }
 

@@ -13,8 +13,8 @@ const getOrderbook = state => state.coin.orderBook
 export const getTopOfOrderBook = createSelector(
   [getOrderbook],
   orderBook => orderBook ? ({
-    asks: orderBook.asks.slice(0, 10),
-    bids: orderBook.bids.slice(0, 10),
+    asks: orderBook.asks.slice(0, 16),
+    bids: orderBook.bids.slice(0, 16),
   }) : orderBook
 )
 

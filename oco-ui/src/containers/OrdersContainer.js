@@ -10,6 +10,7 @@ import Panel from "../components/primitives/Panel"
 import Href from "../components/primitives/Href"
 import Loading from "../components/primitives/Loading"
 import FlashEntry from "../components/primitives/FlashEntry"
+import Tab from "../components/primitives/Tab"
 
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
@@ -189,6 +190,13 @@ const Orders = props => (
   />
 )
 
+const buttons = () => (
+  <span>
+    <Tab selected>Open</Tab>
+    <Tab>History</Tab>
+  </span>
+)
+
 class OpenOrdersContainer extends React.Component {
   constructor(props) {
     super(props)
@@ -222,10 +230,8 @@ class OpenOrdersContainer extends React.Component {
       <Loading p={2} />
     ) : !this.props.coin ? (
       <NoCoin />
-    ) : this.props.ordersUnavailable ? (
+    ) : this.props.ordersUnavailable || !this.props.orders ? (
       <NoData coin={this.props.coin} />
-    ) : !this.props.orders ? (
-      <Loading />
     ) : (
       <Orders
         orders={this.props.orders}
@@ -235,7 +241,7 @@ class OpenOrdersContainer extends React.Component {
     )
 
     return (
-      <Section nopadding id="orders" heading="Open Orders">
+      <Section nopadding id="orders" heading="Orders" buttons={buttons}>
         {component}
       </Section>
     )

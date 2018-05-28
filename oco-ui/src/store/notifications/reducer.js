@@ -24,7 +24,7 @@ export default function reduce(state = initialState, action = {}) {
       notify("Server message", action.notification.message)
       const notification = Immutable.set(Immutable(action.notification), "dateTime", new Date())
       var newArr = state.notifications.concat([notification])
-      if (state.notifications.length > MAX_ITEMS) {
+      if (newArr.length > MAX_ITEMS) {
         newArr = newArr.slice(1)
       }
       return Immutable.merge(state, { notifications: newArr })

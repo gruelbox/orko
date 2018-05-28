@@ -11,7 +11,7 @@ import JobsContainer from "./containers/JobsContainer"
 import ToolbarContainer from "./containers/ToolbarContainer"
 import AddCoinContainer from "./containers/AddCoinContainer"
 import MarketContainer from "./containers/MarketContainer"
-import OpenOrdersContainer from "./containers/OpenOrdersContainer"
+import OrdersContainer from "./containers/OrdersContainer"
 import TradingContainer from "./containers/TradingContainer"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
@@ -106,7 +106,7 @@ export default class Framework extends React.Component {
         <WithCoinParameter component={Chart}/>
       </LayoutBox>,
       <LayoutBox key="openOrders" bg="backgrounds.1">
-        <WithCoinParameter component={OpenOrdersContainer}/>
+        <WithCoinParameter component={OrdersContainer}/>
       </LayoutBox>,
       <LayoutBox key="balance" bg="backgrounds.1">
         <WithCoinParameter component={BalanceContainer}/>
