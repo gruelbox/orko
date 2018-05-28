@@ -54,7 +54,7 @@ import io.reactivex.disposables.Disposable;
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
-
+  private static final int ORDERBOOK_DEPTH = 20;
   private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK);
 
   private final ExchangeService exchangeService;
@@ -368,7 +368,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       if (subscription.type().equals(TICKER)) {
         onTicker(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
       } else if (subscription.type().equals(ORDERBOOK)) {
-        onOrderBook(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair())));
+        onOrderBook(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), ORDERBOOK_DEPTH, ORDERBOOK_DEPTH)));
       } else if (subscription.type().equals(TRADES)) {
         // TODO need to return only the new ones onTrade(TradeEvent.create(spec, marketDataService.getTrades(spec.currencyPair())));
       } else if (subscription.type().equals(OPEN_ORDERS)) {
