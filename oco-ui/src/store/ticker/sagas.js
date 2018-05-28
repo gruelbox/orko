@@ -124,7 +124,7 @@ const webCoinToServerCoin = coin => ({
   base: coin.base
 })
 
-function* socketManager(getState) {
+function* socketManager(dispatch, getState) {
   while (true) {
     const auth = yield select(getAuth)
     if (!auth.token || !auth.whitelisted || !auth.loggedIn) {
@@ -170,8 +170,13 @@ function* socketManager(getState) {
         const selectedCoin = action.type === routerActionTypes.LOCATION_CHANGED
           ? yield locationToCoin(action.location)
           : yield select(getSelectedCoin)
-        if (selectedCoin)
+        if (selectedCoin) {
           coins = coins.concat([selectedCoin])
+          if (action.type === routerActionTypes.LOCATION_CHANGED) {
+            yield dispatch(coinActions.fetchBalance(selectedCoin))
+            yield dispatch(coinActions.fetchOrders(selectedCoin))
+          }
+        }
 
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_TICKERS,
@@ -201,7 +206,7 @@ function* socketManager(getState) {
 export function* watcher(dispatch, getState) {
   while (true) {
     yield race({
-      task: all([call(socketManager, getState)])
+      task: all([call(socketManager, dispatch, getState)])
     })
     console.log("Started listeners")
   }
