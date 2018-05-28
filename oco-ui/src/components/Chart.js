@@ -94,18 +94,6 @@ class TradingViewChartContent extends Component {
   }
 }
 
-const Interval = ({ name, code }) => (
-  <Tab
-    selected={this.state.interval === code}
-    onClick={() => {
-      localStorage.setItem(CHART_INTERVAL_KEY, code)
-      this.setState({ interval: code })
-    }}
-  >
-    {name}
-  </Tab>
-)
-
 class Chart extends React.Component {
   constructor(props) {
     super(props)
@@ -139,6 +127,18 @@ class Chart extends React.Component {
       )
     }
 
+    const Interval = ({ name, code, selected }) => (
+      <Tab
+        selected={selected === code}
+        onClick={() => {
+          localStorage.setItem(CHART_INTERVAL_KEY, code)
+          this.setState({ interval: code })
+        }}
+      >
+        {name}
+      </Tab>
+    )
+
     return (
       <Section
         id="chart"
@@ -147,11 +147,11 @@ class Chart extends React.Component {
         buttons={() => (
           <span>
             <Span>Default interval</Span>
-            <Interval code="W" name="W" />
-            <Interval code="D" name="D" />
-            <Interval code="240" name="4h" />
-            <Interval code="60" name="1h" />
-            <Interval code="15" name="15m" />
+            <Interval selected={this.state.interval} code="W" name="W" />
+            <Interval selected={this.state.interval} code="D" name="D" />
+            <Interval selected={this.state.interval} code="240" name="4h" />
+            <Interval selected={this.state.interval} code="60" name="1h" />
+            <Interval selected={this.state.interval} code="15" name="15m" />
           </span>
         )}
       >
