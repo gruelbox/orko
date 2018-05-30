@@ -4,14 +4,49 @@ import theme from "../theme"
 import Price from "../components/primitives/Price"
 import { connect } from "react-redux"
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import { lighten } from "polished"
 
 const Aligned = styled.div`
   display: flex;
   text-align: ${props => (props.direction === "BID" ? "right" : "left")};
   height: 24px;
-  padding-top: 2px;
-  padding-bottom: 2px;
+  padding-top: 3px;
+  border-bottom: 1px solid ${props => props.theme.colors.backgrounds[3]};
+  padding-bottom: 3px;
   overflow: visible;
+
+  &.collapse-enter {
+    opacity: 0.1;
+    .orderbook-value {
+      color: ${props => lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
+    }
+    .orderbook-bar {
+      background-color: ${props => lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
+    }
+    &.collapse-enter-active {
+      opacity: 1;
+      transition: opacity 400ms ease-in 300ms;
+      .orderbook-value {
+        color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
+        transition: color 400ms ease-in 1400ms;
+      }
+      .orderbook-bar {
+        background-color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
+        transition: background-color 400ms ease-in 1400ms;
+      }
+    }
+  }
+
+  &.collapse-leave {
+    height: 24px !important;
+    opacity: 0.4;
+    &.collapse-leave-active {
+      opacity: 0;
+      height: 0px !important;
+      transition: height 400ms ease-in 1000ms, opacity 400ms linear 1000ms;
+    }
+  }
+  
 `
 
 const Bar = styled.div`
@@ -30,7 +65,7 @@ const Bar = styled.div`
 
 const BarSize = styled.div`
   position: absolute;
-  top: 0;
+  top: -1px;
   right: ${props => props.direction === "BID"
     ? props.size < 50
       ? "100%"
@@ -71,14 +106,15 @@ const PriceColumn = styled.div`
 const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
   <Aligned id={direction + "-" + price} direction={direction}>
     <BarColumn direction={direction}>
-      <Bar direction={direction} size={magnitude}>
-        <BarSize direction={direction} size={magnitude}>{size}</BarSize>
+      <Bar direction={direction} size={magnitude} className="orderbook-bar">
+        <BarSize direction={direction} size={magnitude} className="orderbook-value">{size}</BarSize>
       </Bar>
     </BarColumn>
     <PriceColumn direction={direction}>
       <Price
         bare
         noflash
+        className="orderbook-value"
         color={direction === "BID" ? "buy" : "sell"}
         counter={counter}
         onClick={number => {
@@ -98,7 +134,7 @@ const OrderBookSide = ({coin, orders, direction, focusFn, largestOrder}) => (
     transitionName="collapse"
     transitionEnter={true}
     transitionAppear={false}
-    transitionEnterTimeout={2000}
+    transitionEnterTimeout={1800}
     transitionLeaveTimeout={1400}
     transitionLeave={true}
   >

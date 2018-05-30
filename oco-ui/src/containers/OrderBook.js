@@ -10,6 +10,8 @@ const Split = styled.section`
   display: flex;
   flex-direction: row;
   width: 100%;
+  background-color: ${props => props.theme.colors.canvas};
+  padding: ${props => props.theme.space[1] + "px"}
 `
 
 const BidSide = styled.div`
@@ -31,7 +33,7 @@ class OrderBook extends React.PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
-    if ((!this.props.coin && nextProps.coin) || (!this.props.coin.key !== nextProps.coin.key))
+    if (!this.props.coin || !nextProps.coin || (!this.props.coin.key !== nextProps.coin.key))
       this.largestOrder = 0
   }
 

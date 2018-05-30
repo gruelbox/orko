@@ -121,7 +121,7 @@ class Price extends React.PureComponent {
       }
     if (this.props.bare) {
       return (
-        <BarePriceValue movement={this.state.movement} onClick={this.onClick} color={this.props.color}>
+        <BarePriceValue movement={this.state.movement} onClick={this.onClick} color={this.props.color} className={this.props.className}>
           {this.props.children === "--" ? "--" : formatter(this.props.children)}
         </BarePriceValue>
       )

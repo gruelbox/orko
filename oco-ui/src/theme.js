@@ -24,6 +24,7 @@ const theme = {
       "#343747",
       lighten(0.1, "#343747")
     ],
+    canvas: "#131722",
     inputBg: lighten(0.1, "#2F3241"),
     fore: "#aaa",
     emphasis: "#3BB3E4",
@@ -112,29 +113,6 @@ const globalCss = `
     .fadeIn-appear.fadeIn-appear-active {
       opacity: 1;
       transition: opacity .5s ease-in;
-    }
-
-    .collapse-enter {
-      opacity: 0;
-    }
-
-    .collapse-enter.collapse-enter-active {
-      opacity: 1;
-      background-color: rgba(255, 255, 255, 0.07);
-      transition: opacity 400ms linear 100ms, background-color 400ms ease-in 100ms;
-    }
-
-    .collapse-leave {
-      height: 24px !important;
-      opacity: 0.4;
-      background-color: rgba(0, 0, 0, 0.8);
-    }
-    
-    .collapse-leave.collapse-leave-active {
-      background-color: inherit;
-      opacity: 0;
-      height: 0px !important;
-      transition: height 400ms ease-in 1000ms, opacity 400ms linear 1000ms, background-color 400ms linear 1000ms;
     }
 
     .oco-deemphasis {
