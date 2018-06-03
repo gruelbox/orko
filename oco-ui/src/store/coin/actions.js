@@ -28,6 +28,10 @@ export function setOrderBook(orderBook) {
   return { type: types.SET_ORDERBOOK, orderBook }
 }
 
+export function setTradeHistory(tradeHistory) {
+  return { type: types.SET_TRADE_HISTORY, tradeHistory }
+}
+
 export function cancelOrder(coin, orderId, orderType) {
   return authActions.wrappedRequest(
     auth => exchangesService.cancelOrder(coin, orderId, orderType, auth.token),

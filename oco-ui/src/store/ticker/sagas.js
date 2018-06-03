@@ -29,10 +29,12 @@ const serverMessages = {
   TICKER: "TICKER",
   OPEN_ORDERS: "OPEN_ORDERS",
   ORDERBOOK: "ORDERBOOK",
+  TRADE_HISTORY: "TRADE_HISTORY",
   ERROR: "ERROR",
   CHANGE_TICKERS: "CHANGE_TICKERS",
   CHANGE_OPEN_ORDERS: "CHANGE_OPEN_ORDERS",
   CHANGE_ORDER_BOOK: "CHANGE_ORDER_BOOK",
+  CHANGE_TRADE_HISTORY: "CHANGE_TRADE_HISTORY",
   UPDATE_SUBSCRIPTIONS: "UPDATE_SUBSCRIPTIONS",
   NOTIFICATION: "NOTIFICATION"
 }
@@ -79,23 +81,20 @@ function* socketLoop(socketChannel) {
       coin: createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base),
       ticker: message.data.ticker
     })      
-  } else if (message && message.nature === serverMessages.OPEN_ORDERS) {
+  } else if (message && (message.nature === serverMessages.OPEN_ORDERS || message.nature === serverMessages.ORDERBOOK || message.nature === serverMessages.TRADE_HISTORY)) {
 
     // Ignore late-arriving messages related to a coin we're not interested in right now
     const selectedCoin = yield select(getSelectedCoin)
     const referredCoin = augmentCoin(message.data.spec)
     if (selectedCoin && selectedCoin.key === referredCoin.key) {
       yield put(errorActions.clearBackground("ws"))
-      yield put(coinActions.setOrders(message.data.openOrders))
-    }
-  } else if (message && message.nature === serverMessages.ORDERBOOK) {
-
-    // Ignore late-arriving messages related to a coin we're not interested in right now
-    const selectedCoin = yield select(getSelectedCoin)
-    const referredCoin = augmentCoin(message.data.spec)
-    if (selectedCoin && selectedCoin.key === referredCoin.key) {
-      yield put(errorActions.clearBackground("ws"))
-      yield put(coinActions.setOrderBook(message.data.orderBook))
+      if (message.nature === serverMessages.OPEN_ORDERS) {
+        yield put(coinActions.setOrders(message.data.openOrders))
+      } else if (message.nature === serverMessages.ORDERBOOK) {
+        yield put(coinActions.setOrderBook(message.data.orderBook))
+      } else if (message.nature === serverMessages.TRADE_HISTORY) {
+        yield put(coinActions.setTradeHistory(message.data.userTrades))
+      }
     }
 
   } else if (message && message.nature === serverMessages.NOTIFICATION) {
@@ -188,6 +187,10 @@ function* socketManager(dispatch, getState) {
         }))
         yield socket.send(JSON.stringify({
           command: serverMessages.CHANGE_ORDER_BOOK,
+          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+        }))
+        yield socket.send(JSON.stringify({
+          command: serverMessages.CHANGE_TRADE_HISTORY,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
         }))
         yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
