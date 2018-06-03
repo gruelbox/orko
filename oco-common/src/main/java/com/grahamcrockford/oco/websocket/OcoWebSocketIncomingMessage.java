@@ -32,6 +32,7 @@ abstract class OcoWebSocketIncomingMessage {
     CHANGE_TICKERS,
     CHANGE_OPEN_ORDERS,
     CHANGE_ORDER_BOOK,
+    CHANGE_TRADE_HISTORY,
     UPDATE_SUBSCRIPTIONS,
 
     /*
