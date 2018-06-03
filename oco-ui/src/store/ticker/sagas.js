@@ -20,6 +20,7 @@ import { augmentCoin } from "../coin/reducer"
 import * as socketEvents from "../../worker/socketEvents"
 import * as serverMessages from "../../worker/socketMessages"
 import Worker from '../../worker/socket.worker.js'
+import runtimeEnv from "@mars/heroku-js-runtime-env"
 
 const getAuth = state => state.auth
 const getSubscribedCoins = state => state.coins.coins
@@ -124,7 +125,10 @@ function* socketManager(dispatch, getState) {
     console.log("Connecting to socket...")
     const token = (yield select(getAuth)).token
     const worker = new Worker()
-    worker.postMessage({ eventType: socketEvents.CONNECT, payload: token })
+    worker.postMessage({ eventType: socketEvents.CONNECT, payload: {
+      token,
+      root: runtimeEnv().REACT_APP_WS_URL
+    }})
     const socketChannel = yield call(socketMessageChannel, worker)
     
     const sendToSocket = message => worker.postMessage({

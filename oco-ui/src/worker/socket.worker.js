@@ -1,7 +1,6 @@
 import * as socketEvents from "./socketEvents"
 import * as socketMessages from "./socketMessages"
 import ReconnectingWebSocket from "reconnecting-websocket"
-import runtimeEnv from "@mars/heroku-js-runtime-env"
 
 var socket
 var connected = true
@@ -35,8 +34,8 @@ function send(message) {
     socket.send(JSON.stringify(message))
 }
 
-function connect(token) {
-  var socket = ws("ws", token)
+function connect({token, root}) {
+  var socket = ws("ws", token, root)
   socket.onopen = () => {
     connected = true
     postMessage({ eventType: socketEvents.OPEN })
@@ -60,11 +59,10 @@ function disconnect(socket) {
   connected = false
 }
 
-function ws(url, token) {
-  const env = runtimeEnv()
+function ws(url, token, root) {
   var fullUrl
-  if (env.REACT_APP_WS_URL) {
-    fullUrl = env.REACT_APP_WS_URL + "/" + url
+  if (root) {
+    fullUrl = root + "/" + url
   } else {
     const protocol = self.location.protocol === "https:" ? "wss:" : "ws:"
     fullUrl = protocol + "//" + self.location.host + "/" + url
