@@ -9,7 +9,6 @@ import {
   fork,
   join
 } from "redux-saga/effects"
-import { ws } from "../../services/fetchUtil"
 import { eventChannel } from "redux-saga"
 import { coin as createCoin } from "../coin/reducer"
 import * as coinActions from "../coin/actions"
@@ -18,26 +17,10 @@ import * as errorActions from "../error/actions"
 import * as notificationActions from "../notifications/actions"
 import { getSelectedCoin, locationToCoin } from "../../selectors/coins"
 import { augmentCoin } from "../coin/reducer"
-
-const channelMessages = {
-  OPEN: "OPEN",
-  CLOSE: "CLOSE"
-}
-
-const serverMessages = {
-  READY: "READY",
-  TICKER: "TICKER",
-  OPEN_ORDERS: "OPEN_ORDERS",
-  ORDERBOOK: "ORDERBOOK",
-  TRADE_HISTORY: "TRADE_HISTORY",
-  ERROR: "ERROR",
-  CHANGE_TICKERS: "CHANGE_TICKERS",
-  CHANGE_OPEN_ORDERS: "CHANGE_OPEN_ORDERS",
-  CHANGE_ORDER_BOOK: "CHANGE_ORDER_BOOK",
-  CHANGE_TRADE_HISTORY: "CHANGE_TRADE_HISTORY",
-  UPDATE_SUBSCRIPTIONS: "UPDATE_SUBSCRIPTIONS",
-  NOTIFICATION: "NOTIFICATION"
-}
+import * as socketEvents from "../../worker/socketEvents"
+import * as serverMessages from "../../worker/socketMessages"
+import Worker from '../../worker/socket.worker.js'
+import runtimeEnv from "@mars/heroku-js-runtime-env"
 
 const getAuth = state => state.auth
 const getSubscribedCoins = state => state.coins.coins
@@ -47,62 +30,72 @@ const getSubscribedCoins = state => state.coins.coins
  * messages on the socket, or socket open/close in between
  * retries
  */
-function socketMessageChannel(socket) {
+function socketMessageChannel(worker) {
   return eventChannel(emit => {
-    socket.onmessage = evt => {
-      try {
-        emit(JSON.parse(evt.data))
-      } catch (e) {
-        console.log("Invalid message from server", evt.data)
-      }
-    }
-    socket.onopen = () => emit(channelMessages.OPEN)
-    socket.onclose = () => emit(channelMessages.CLOSE)
-    return () => socket.close(undefined, "Shutdown", { keepClosed: true })
+    worker.onmessage = m => emit(m.data)
+    return () => worker.postMessage({ eventType: socketEvents.DISCONNECT })
   })
 }
 
 function* socketLoop(socketChannel) {
-  const message = yield take(socketChannel)
-  if (message === channelMessages.OPEN) {
+  const event = yield take(socketChannel)
+  if (!event) {
+
+    yield put(errorActions.addBackground("Empty event from server", "ws"))
+
+  } else if (event.eventType === socketEvents.OPEN) {
+    
     console.log("Socket (re)connected")
     yield put.resolve({ type: types.SET_CONNECTION_STATE, connected: true })
     yield put({ type: types.RESUBSCRIBE })
-  } else if (message && message === channelMessages.CLOSE) {
+
+  } else if (event.eventType === socketEvents.CLOSE) {
+
     console.log("Socket connection temporarily lost")
     yield put({ type: types.SET_CONNECTION_STATE, connected: false })
-  } else if (message && message.nature === serverMessages.ERROR) {
-    console.log("Error from socket")
-    yield put(errorActions.addBackground(message.data, "ws"))
-  } else if (message && message.nature === serverMessages.TICKER) {
-    yield put(errorActions.clearBackground("ws"))
-    yield put({
-      type: types.SET_TICKER,
-      coin: createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base),
-      ticker: message.data.ticker
-    })      
-  } else if (message && (message.nature === serverMessages.OPEN_ORDERS || message.nature === serverMessages.ORDERBOOK || message.nature === serverMessages.TRADE_HISTORY)) {
 
-    // Ignore late-arriving messages related to a coin we're not interested in right now
-    const selectedCoin = yield select(getSelectedCoin)
-    const referredCoin = augmentCoin(message.data.spec)
-    if (selectedCoin && selectedCoin.key === referredCoin.key) {
+  } else if (event.eventType === socketEvents.MESSAGE) {
+
+    const message = event.payload
+
+    if (message.nature === serverMessages.ERROR) {
+
+      console.log("Error from socket")
+      yield put(errorActions.addBackground(message.data, "ws"))
+
+    } else if (message.nature === serverMessages.TICKER) {
+
       yield put(errorActions.clearBackground("ws"))
-      if (message.nature === serverMessages.OPEN_ORDERS) {
-        yield put(coinActions.setOrders(message.data.openOrders))
-      } else if (message.nature === serverMessages.ORDERBOOK) {
-        yield put(coinActions.setOrderBook(message.data.orderBook))
-      } else if (message.nature === serverMessages.TRADE_HISTORY) {
-        yield put(coinActions.setTradeHistory(message.data.userTrades))
+      yield put({
+        type: types.SET_TICKER,
+        coin: createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base),
+        ticker: message.data.ticker
+      })      
+
+    } else if (message.nature === serverMessages.OPEN_ORDERS || message.nature === serverMessages.ORDERBOOK || message.nature === serverMessages.TRADE_HISTORY) {
+
+      // Ignore late-arriving messages related to a coin we're not interested in right now
+      const selectedCoin = yield select(getSelectedCoin)
+      const referredCoin = yield augmentCoin(message.data.spec)
+      if (selectedCoin && selectedCoin.key === referredCoin.key) {
+        yield put(errorActions.clearBackground("ws"))
+        if (message.nature === serverMessages.OPEN_ORDERS) {
+          yield put(coinActions.setOrders(message.data.openOrders))
+        } else if (message.nature === serverMessages.ORDERBOOK) {
+          yield put(coinActions.setOrderBook(message.data.orderBook))
+        } else if (message.nature === serverMessages.TRADE_HISTORY) {
+          yield put(coinActions.setTradeHistory(message.data.userTrades))
+        }
       }
+
+    } else if (message.nature === serverMessages.NOTIFICATION) {
+      yield put(notificationActions.add(message.data))
     }
 
-  } else if (message && message.nature === serverMessages.NOTIFICATION) {
-    yield put(notificationActions.add(message.data))
   } else {
     yield put(
       errorActions.addBackground(
-        "Unknown message from server: " + JSON.stringify(message),
+        "Unknown event from server: " + JSON.stringify(event),
         "ws"
       )
     )
@@ -133,14 +126,17 @@ function* socketManager(dispatch, getState) {
 
     console.log("Connecting to socket...")
     const token = (yield select(getAuth)).token
-    const socket = yield call(ws, "ws", token)
-    const socketChannel = yield call(socketMessageChannel, socket)
-
-    setInterval(() => {
-      if (getState().ticker.connected) {
-        socket.send(JSON.stringify({command: serverMessages.READY}))
-      }
-    }, 3000)
+    const worker = new Worker()
+    worker.postMessage({ eventType: socketEvents.CONNECT, payload: {
+      token,
+      root: runtimeEnv().REACT_APP_WS_URL
+    }})
+    const socketChannel = yield call(socketMessageChannel, worker)
+    
+    const sendToSocket = message => worker.postMessage({
+      eventType: socketEvents.MESSAGE,
+      payload: message
+    })
 
     while (true) {
 
@@ -157,7 +153,7 @@ function* socketManager(dispatch, getState) {
       if (action.type === types.DISCONNECT) {
 
         console.log("Disconnecting socket")
-        socketChannel.close()
+        yield socketChannel.close()
         break
 
       } else if (action.type === types.RESUBSCRIBE || action.type === routerActionTypes.LOCATION_CHANGED) {
@@ -177,23 +173,19 @@ function* socketManager(dispatch, getState) {
           }
         }
 
-        yield socket.send(JSON.stringify({
+        yield sendToSocket({
           command: serverMessages.CHANGE_TICKERS,
           tickers: coins.map(coin => webCoinToServerCoin(coin))
-        }))
-        yield socket.send(JSON.stringify({
+        })
+        yield sendToSocket({
           command: serverMessages.CHANGE_OPEN_ORDERS,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
-        }))
-        yield socket.send(JSON.stringify({
+        })
+        yield sendToSocket({
           command: serverMessages.CHANGE_ORDER_BOOK,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
-        }))
-        yield socket.send(JSON.stringify({
-          command: serverMessages.CHANGE_TRADE_HISTORY,
-          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
-        }))
-        yield socket.send(JSON.stringify({ command: serverMessages.UPDATE_SUBSCRIPTIONS }))
+        })
+        yield sendToSocket({ command: serverMessages.UPDATE_SUBSCRIPTIONS })
      
       }
     }
