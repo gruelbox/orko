@@ -18,21 +18,8 @@ import * as notificationActions from "../notifications/actions"
 import { getSelectedCoin, locationToCoin } from "../../selectors/coins"
 import { augmentCoin } from "../coin/reducer"
 import * as socketEvents from "../../worker/socketEvents"
+import * as serverMessages from "../../worker/socketMessages"
 import Worker from '../../worker/socket.worker.js'
-
-const serverMessages = {
-  READY: "READY",
-  TICKER: "TICKER",
-  OPEN_ORDERS: "OPEN_ORDERS",
-  ORDERBOOK: "ORDERBOOK",
-  TRADE_HISTORY: "TRADE_HISTORY",
-  ERROR: "ERROR",
-  CHANGE_TICKERS: "CHANGE_TICKERS",
-  CHANGE_OPEN_ORDERS: "CHANGE_OPEN_ORDERS",
-  CHANGE_ORDER_BOOK: "CHANGE_ORDER_BOOK",
-  UPDATE_SUBSCRIPTIONS: "UPDATE_SUBSCRIPTIONS",
-  NOTIFICATION: "NOTIFICATION"
-}
 
 const getAuth = state => state.auth
 const getSubscribedCoins = state => state.coins.coins
@@ -88,7 +75,7 @@ function* socketLoop(socketChannel) {
 
       // Ignore late-arriving messages related to a coin we're not interested in right now
       const selectedCoin = yield select(getSelectedCoin)
-      const referredCoin = augmentCoin(message.data.spec)
+      const referredCoin = yield augmentCoin(message.data.spec)
       if (selectedCoin && selectedCoin.key === referredCoin.key) {
         yield put(errorActions.clearBackground("ws"))
         if (message.nature === serverMessages.OPEN_ORDERS) {
@@ -145,12 +132,6 @@ function* socketManager(dispatch, getState) {
       payload: message
     })
 
-    setInterval(() => {
-      if (getState().ticker.connected) {
-        sendToSocket({command: serverMessages.READY})
-      }
-    }, 3000)
-
     while (true) {
 
       const socketTask = yield fork(socketLoop, socketChannel)
@@ -166,7 +147,7 @@ function* socketManager(dispatch, getState) {
       if (action.type === types.DISCONNECT) {
 
         console.log("Disconnecting socket")
-        socketChannel.close()
+        yield socketChannel.close()
         break
 
       } else if (action.type === types.RESUBSCRIBE || action.type === routerActionTypes.LOCATION_CHANGED) {

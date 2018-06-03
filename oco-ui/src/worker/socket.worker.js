@@ -1,9 +1,14 @@
 import * as socketEvents from "./socketEvents"
+import * as socketMessages from "./socketMessages"
 import ReconnectingWebSocket from "reconnecting-websocket"
 import runtimeEnv from "@mars/heroku-js-runtime-env"
 
 var socket
+var connected = true
 
+/**
+ * Listen to and act on messages from the main thread
+ */
 self.addEventListener('message', ({data}) => {
   switch (data.eventType) {
     case socketEvents.CONNECT:
@@ -13,17 +18,33 @@ self.addEventListener('message', ({data}) => {
       disconnect(socket)
       break
     case socketEvents.MESSAGE:
-      socket.send(JSON.stringify(data.payload))
+      send(data.payload)
       break
     default:
       console.log("Unknown message", data)
   }
 })
 
+/**
+ * Keep the socket alive
+ */
+setInterval(() => send({command: socketMessages.READY}), 3000)
+
+function send(message) {
+  if (connected)
+    socket.send(JSON.stringify(message))
+}
+
 function connect(token) {
   var socket = ws("ws", token)
-  socket.onopen = () => postMessage({ eventType: socketEvents.OPEN })
-  socket.onclose = () => postMessage({ eventType: socketEvents.CLOSE })
+  socket.onopen = () => {
+    connected = true
+    postMessage({ eventType: socketEvents.OPEN })
+  }
+  socket.onclose = () => {
+    connected = false
+    postMessage({ eventType: socketEvents.CLOSE })
+  }
   socket.onmessage = evt => {
     try {
         postMessage({ eventType: socketEvents.MESSAGE, payload: JSON.parse(evt.data) })
@@ -36,6 +57,7 @@ function connect(token) {
 
 function disconnect(socket) {
   socket.close(undefined, "Shutdown", { keepClosed: true })
+  connected = false
 }
 
 function ws(url, token) {
