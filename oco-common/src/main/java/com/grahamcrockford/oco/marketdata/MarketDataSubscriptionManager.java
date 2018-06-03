@@ -4,6 +4,7 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.USER_TRADE_HISTORY;
 import static java.util.Collections.emptySet;
 
 import java.util.Collection;
@@ -14,13 +15,19 @@ import java.util.Set;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
-import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
+import org.knowm.xchange.service.trade.params.TradeHistoryParamCurrencyPair;
+import org.knowm.xchange.service.trade.params.TradeHistoryParamLimit;
+import org.knowm.xchange.service.trade.params.TradeHistoryParamPaging;
+import org.knowm.xchange.service.trade.params.TradeHistoryParams;
+import org.knowm.xchange.service.trade.params.orders.OpenOrdersParamCurrencyPair;
+import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Lists;
@@ -53,6 +60,7 @@ import io.reactivex.disposables.Disposable;
 @VisibleForTesting
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
+  private static final int MAX_TRADES = 20;
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
   private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK);
@@ -74,6 +82,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final AtomicReference<FlowableEmitter<OrderBookEvent>> orderBookEmitter = new AtomicReference<>();
   private final Flowable<TradeEvent> trades;
   private final AtomicReference<FlowableEmitter<TradeEvent>> tradesEmitter = new AtomicReference<>();
+  private final Flowable<TradeHistoryEvent> tradeHistory;
+  private final AtomicReference<FlowableEmitter<TradeHistoryEvent>> tradeHistoryEmitter = new AtomicReference<>();
 
 
   @Inject
@@ -86,6 +96,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.openOrders = Flowable.create((FlowableEmitter<OpenOrdersEvent> e) -> openOrdersEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
     this.orderbook = Flowable.create((FlowableEmitter<OrderBookEvent> e) -> orderBookEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
     this.trades = Flowable.create((FlowableEmitter<TradeEvent> e) -> tradesEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
+    this.tradeHistory = Flowable.create((FlowableEmitter<TradeHistoryEvent> e) -> tradeHistoryEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
   }
 
 
@@ -122,6 +133,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         return (Flowable<T>) getTicker(sub.spec());
       case TRADES:
         return (Flowable<T>) getTrades(sub.spec());
+      case USER_TRADE_HISTORY:
+        return (Flowable<T>) getTradeHistory(sub.spec());
       default:
         throw new IllegalArgumentException("Unknown market data type");
     }
@@ -169,6 +182,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    */
   public Flowable<TradeEvent> getTrades(TickerSpec spec) {
     return trades.filter(t -> t.spec().equals(spec));
+  }
+
+
+  /**
+   * Gets a stream with updates to the recent trade history.
+   *
+   * @param spec The ticker specification.
+   */
+  public Flowable<TradeHistoryEvent> getTradeHistory(TickerSpec spec) {
+    return tradeHistory.filter(t -> t.spec().equals(spec));
   }
 
 
@@ -279,7 +302,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                 .subscribe(this::onTicker, e -> LOGGER.error("Error in ticker stream for " + sub, e));
           case TRADES:
             return streaming.getTrades(sub.spec().currencyPair())
-                .map(t -> TradeEvent.create(sub.spec(), t))
+                .map(t -> TradeEvent.create(sub.spec(), Trade.create(exchangeName, t)))
                 .subscribe(this::onTrade, e -> LOGGER.error("Error in trade stream for " + sub, e));
           default:
             throw new IllegalStateException("Unexpected market data type: " + sub.type());
@@ -307,6 +330,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private void onOpenOrders(OpenOrdersEvent e) {
     if (openOrdersEmitter.get() != null)
       openOrdersEmitter.get().onNext(e);
+  }
+
+  private void onTradeHistory(TradeHistoryEvent e) {
+    if (tradeHistoryEmitter.get() != null)
+      tradeHistoryEmitter.get().onNext(e);
   }
 
   private void subscribeExchange(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptionsForExchange, String exchangeName) {
@@ -366,8 +394,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       TickerSpec spec = subscription.spec();
       MarketDataService marketDataService = exchangeService.get(spec.exchange()).getMarketDataService();
       if (subscription.type().equals(TICKER)) {
+
         onTicker(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
+
       } else if (subscription.type().equals(ORDERBOOK)) {
+
         if (spec.exchange().equals("cryptopia")) {
           // TODO submit a PR to xChange for this
           long longValue = Integer.valueOf(ORDERBOOK_DEPTH).longValue();
@@ -375,11 +406,47 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         } else {
           onOrderBook(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), ORDERBOOK_DEPTH, ORDERBOOK_DEPTH)));
         }
+
       } else if (subscription.type().equals(TRADES)) {
+
         // TODO need to return only the new ones onTrade(TradeEvent.create(spec, marketDataService.getTrades(spec.currencyPair())));
+        throw new UnsupportedOperationException("Trades not supported yet");
+
       } else if (subscription.type().equals(OPEN_ORDERS)) {
+
         TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-        onOpenOrders(OpenOrdersEvent.create(spec, tradeService.getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair()))));
+        OpenOrdersParams params = tradeService.createOpenOrdersParams();
+        if (params instanceof OpenOrdersParamCurrencyPair) {
+          ((OpenOrdersParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
+        } else {
+          throw new UnsupportedOperationException("Don't know how to read open orders on this exchange: " + subscription.spec().exchange());
+        }
+
+        onOpenOrders(OpenOrdersEvent.create(spec, tradeService.getOpenOrders(params)));
+
+      } else if (subscription.type().equals(USER_TRADE_HISTORY)) {
+
+        TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
+        TradeHistoryParams params = tradeService.createTradeHistoryParams();
+        if (params instanceof TradeHistoryParamCurrencyPair) {
+          ((TradeHistoryParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
+        } else {
+          throw new UnsupportedOperationException("Don't know how to read user trades on this exchange: " + subscription.spec().exchange());
+        }
+        if (params instanceof TradeHistoryParamLimit) {
+          ((TradeHistoryParamLimit) params).setLimit(MAX_TRADES);
+        }
+        if (params instanceof TradeHistoryParamPaging) {
+          ((TradeHistoryParamPaging) params).setPageLength(MAX_TRADES);
+          ((TradeHistoryParamPaging) params).setPageNumber(1);
+        }
+
+        ImmutableList<Trade> trades = FluentIterable.from(tradeService.getTradeHistory(params).getUserTrades())
+          .transform(t -> Trade.create(subscription.spec().exchange(), t))
+          .toList();
+
+        onTradeHistory(TradeHistoryEvent.create(spec, trades));
+
       }
     } catch (Throwable e) {
       LOGGER.error("Error fetching market data: " + subscription, e);

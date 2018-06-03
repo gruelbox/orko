@@ -8,7 +8,7 @@ const initialState = Immutable({
   ticker: undefined,
   orders: undefined,
   orderBook: undefined,
-  ordersUnavailable: false
+  tradeHistory: undefined,
 })
 
 export const coinShape = {
@@ -71,11 +71,14 @@ export default function reduce(state = initialState, action = {}) {
     case types.SET_ORDERS:
       return Immutable.merge(state, {
         orders: Immutable(action.orders),
-        ordersUnavailable: false
       })
     case types.SET_ORDERBOOK:
       return Immutable.merge(state, {
         orderBook: Immutable(action.orderBook)
+      })
+    case types.SET_TRADE_HISTORY:
+      return Immutable.merge(state, {
+        tradeHistory: Immutable(action.tradeHistory),
       })
     case types.CANCEL_ORDER:
       return Immutable.merge(
@@ -89,10 +92,6 @@ export default function reduce(state = initialState, action = {}) {
         },
         { deep: true }
       )
-    case types.SET_ORDERS_UNAVAILABLE:
-      return Immutable.merge(state, {
-        ordersUnavailable: true
-      })
     case types.SET_BALANCE_UNAVAILABLE:
       return Immutable.merge(state, {
         balanceUnavailable: true

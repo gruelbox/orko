@@ -3,6 +3,8 @@ package com.grahamcrockford.oco.websocket;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.USER_TRADE_HISTORY;
+
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +96,9 @@ public final class OcoWebSocketServer {
         case CHANGE_ORDER_BOOK:
           mutateSubscriptions(ORDERBOOK, request.tickers());
           break;
+        case CHANGE_TRADE_HISTORY:
+          mutateSubscriptions(USER_TRADE_HISTORY, request.tickers());
+          break;
         case UPDATE_SUBSCRIPTIONS:
           updateSubscriptions(session);
           break;
@@ -180,6 +185,9 @@ public final class OcoWebSocketServer {
       private final Disposable tickers = exchangeEventRegistry.getTickers(eventRegistryClientId)
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.TICKER));
+      private final Disposable tradeHistory = exchangeEventRegistry.getTradeHistory(eventRegistryClientId)
+          .filter(o -> isReady())
+          .subscribe(e -> send(e, Nature.TRADE_HISTORY));
 
       @Override
       public boolean isDisposed() {
@@ -202,6 +210,11 @@ public final class OcoWebSocketServer {
           tickers.dispose();
         } catch (Throwable t) {
           LOGGER.error("Error disposing of tickers subscription", t);
+        }
+        try {
+          tradeHistory.dispose();
+        } catch (Throwable t) {
+          LOGGER.error("Error disposing of tradeHistory subscription", t);
         }
       }
     };

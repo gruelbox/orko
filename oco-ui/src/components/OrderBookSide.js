@@ -2,7 +2,6 @@ import React from "react"
 import styled from "styled-components"
 import theme from "../theme"
 import Price from "../components/primitives/Price"
-import { connect } from "react-redux"
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { lighten } from "polished"
 
@@ -101,6 +100,8 @@ const PriceColumn = styled.div`
   flex-basis: auto;
   width: 70px;
   order: ${props => (props.direction === "BID" ? 2 : 1)};
+  padding-left: ${props => theme.space[1] + "px"};
+  padding-right: ${props => theme.space[1] + "px"};
 `
 
 const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
@@ -117,11 +118,6 @@ const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
         className="orderbook-value"
         color={direction === "BID" ? "buy" : "sell"}
         counter={counter}
-        onClick={number => {
-          if (focusFn) {
-            focusFn(number)
-          }
-        }}
       >
         {price}
       </Price>
@@ -152,10 +148,4 @@ const OrderBookSide = ({coin, orders, direction, focusFn, largestOrder}) => (
   </ReactCSSTransitionGroup>
 )
 
-function mapStateToProps(state) {
-  return {
-    focusFn: state.focus.fn
-  }
-}
-
-export default connect(mapStateToProps)(OrderBookSide)
+export default OrderBookSide

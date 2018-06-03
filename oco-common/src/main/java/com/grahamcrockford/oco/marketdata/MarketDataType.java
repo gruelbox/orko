@@ -4,5 +4,6 @@ public enum MarketDataType {
   TICKER,
   ORDERBOOK,
   TRADES,
-  OPEN_ORDERS
+  OPEN_ORDERS,
+  USER_TRADE_HISTORY
 }

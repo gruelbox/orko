@@ -43,11 +43,6 @@ class BalanceContainer extends React.Component {
         coin={this.props.coin}
         balance={this.props.balance}
         ticker={this.props.ticker}
-        onClickNumber={number => {
-          if (this.props.updateFocusedField) {
-            this.props.updateFocusedField(number)
-          }
-        }}
       />
     )
   }
@@ -56,8 +51,7 @@ class BalanceContainer extends React.Component {
 function mapStateToProps(state) {
   return {
     balance: state.coin.balance,
-    ticker: getSelectedCoinTicker(state),
-    updateFocusedField: state.focus.fn
+    ticker: getSelectedCoinTicker(state)
   }
 }
 
