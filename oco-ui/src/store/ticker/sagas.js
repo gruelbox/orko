@@ -84,7 +84,7 @@ function* socketLoop(socketChannel) {
         } else if (message.nature === serverMessages.ORDERBOOK) {
           yield put(coinActions.setOrderBook(message.data.orderBook))
         } else if (message.nature === serverMessages.TRADE_HISTORY) {
-          yield put(coinActions.setTradeHistory(message.data.userTrades))
+          yield put(coinActions.setTradeHistory(message.data.trades))
         }
       }
 
@@ -160,6 +160,7 @@ function* socketManager(dispatch, getState) {
 
         yield put(coinActions.setOrders(null))
         yield put(coinActions.setOrderBook(null))
+        yield put(coinActions.setTradeHistory(null))
 
         var coins = yield select(getSubscribedCoins)
         const selectedCoin = action.type === routerActionTypes.LOCATION_CHANGED
@@ -183,6 +184,10 @@ function* socketManager(dispatch, getState) {
         })
         yield sendToSocket({
           command: serverMessages.CHANGE_ORDER_BOOK,
+          tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+        })
+        yield sendToSocket({
+          command: serverMessages.CHANGE_TRADE_HISTORY,
           tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
         })
         yield sendToSocket({ command: serverMessages.UPDATE_SUBSCRIPTIONS })

@@ -80,7 +80,8 @@ export default function reduce(state = initialState, action = {}) {
       })
     case types.SET_TRADE_HISTORY:
       return Immutable.merge(state, {
-        tradeHistory: Immutable(action.tradeHistory)
+        tradeHistory: Immutable(action.tradeHistory),
+        tradeHistoryUnavailable: false
       })
     case types.CANCEL_ORDER:
       return Immutable.merge(
@@ -97,6 +98,10 @@ export default function reduce(state = initialState, action = {}) {
     case types.SET_ORDERS_UNAVAILABLE:
       return Immutable.merge(state, {
         ordersUnavailable: true
+      })
+    case types.SET_TRADE_HISTORY_UNAVAILABLE:
+      return Immutable.merge(state, {
+        tradeHistoryUnavailable: true
       })
     case types.SET_BALANCE_UNAVAILABLE:
       return Immutable.merge(state, {

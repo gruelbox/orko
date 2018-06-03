@@ -16,6 +16,8 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.TradeHistoryParamCurrencyPair;
+import org.knowm.xchange.service.trade.params.TradeHistoryParamLimit;
+import org.knowm.xchange.service.trade.params.TradeHistoryParamPaging;
 import org.knowm.xchange.service.trade.params.TradeHistoryParams;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Lists;
@@ -57,6 +60,7 @@ import io.reactivex.disposables.Disposable;
 @VisibleForTesting
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
+  private static final int MAX_TRADES = 20;
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
   private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK);
@@ -298,7 +302,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                 .subscribe(this::onTicker, e -> LOGGER.error("Error in ticker stream for " + sub, e));
           case TRADES:
             return streaming.getTrades(sub.spec().currencyPair())
-                .map(t -> TradeEvent.create(sub.spec(), t))
+                .map(t -> TradeEvent.create(sub.spec(), Trade.create(exchangeName, t)))
                 .subscribe(this::onTrade, e -> LOGGER.error("Error in trade stream for " + sub, e));
           default:
             throw new IllegalStateException("Unexpected market data type: " + sub.type());
@@ -429,8 +433,19 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         } else {
           throw new UnsupportedOperationException("Don't know how to read user trades on this exchange: " + subscription.spec().exchange());
         }
+        if (params instanceof TradeHistoryParamLimit) {
+          ((TradeHistoryParamLimit) params).setLimit(MAX_TRADES);
+        }
+        if (params instanceof TradeHistoryParamPaging) {
+          ((TradeHistoryParamPaging) params).setPageLength(MAX_TRADES);
+          ((TradeHistoryParamPaging) params).setPageNumber(1);
+        }
 
-        onTradeHistory(TradeHistoryEvent.create(spec, tradeService.getTradeHistory(params).getUserTrades()));
+        ImmutableList<Trade> trades = FluentIterable.from(tradeService.getTradeHistory(params).getUserTrades())
+          .transform(t -> Trade.create(subscription.spec().exchange(), t))
+          .toList();
+
+        onTradeHistory(TradeHistoryEvent.create(spec, trades));
 
       }
     } catch (Throwable e) {

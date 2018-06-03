@@ -9,6 +9,7 @@ const getRouterLocation = state => state.router.location
 const getJobs = state => state.job.jobs
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
+const getTradeHistory = state => state.coin.tradeHistory
 
 export const getTopOfOrderBook = createSelector(
   [getOrderbook],
@@ -62,6 +63,11 @@ export const getOrdersWithWatchesForSelectedCoin = createSelector(
           }
         })
       : null
+)
+
+export const getTradeHistoryInReverseOrder = createSelector(
+  [getTradeHistory],
+  (tradeHistory) => tradeHistory ? tradeHistory.asMutable().reverse() : null
 )
 
 export const getSelectedCoinTicker = createSelector(
