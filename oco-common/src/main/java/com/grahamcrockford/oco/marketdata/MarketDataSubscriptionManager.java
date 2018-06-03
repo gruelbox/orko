@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.TradeHistoryParamCurrencyPair;
@@ -427,7 +428,28 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } else if (subscription.type().equals(USER_TRADE_HISTORY)) {
 
         TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-        TradeHistoryParams params = tradeService.createTradeHistoryParams();
+        TradeHistoryParams params;
+
+        // TODO fix with pull request
+        if (subscription.spec().exchange().startsWith("gdax")) {
+          params = new TradeHistoryParamCurrencyPair() {
+
+            private CurrencyPair pair;
+
+            @Override
+            public void setCurrencyPair(CurrencyPair pair) {
+              this.pair = pair;
+            }
+
+            @Override
+            public CurrencyPair getCurrencyPair() {
+              return pair;
+            }
+          };
+        } else {
+          params = tradeService.createTradeHistoryParams();
+        }
+
         if (params instanceof TradeHistoryParamCurrencyPair) {
           ((TradeHistoryParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
         } else {
