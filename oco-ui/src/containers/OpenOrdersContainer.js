@@ -204,8 +204,7 @@ class OpenOrdersContainer extends React.Component {
 function mapStateToProps(state, props) {
   const orders = getOrdersWithWatchesForSelectedCoin(state)
   return {
-    orders: orders ? orders.asMutable() : null,
-    ordersUnavailable: state.coin.ordersUnavailable
+    orders: orders ? orders.asMutable() : null
   }
 }
 

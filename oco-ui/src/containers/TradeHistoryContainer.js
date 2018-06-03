@@ -3,7 +3,7 @@ import { connect } from "react-redux"
 
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
-
+import Price from "../components/primitives/Price"
 import Loading from "../components/primitives/Loading"
 import FlashEntry from "../components/primitives/FlashEntry"
 import { getTradeHistoryInReverseOrder } from "../selectors/coins"
@@ -48,18 +48,12 @@ const orderTypeColumn = {
 
 const priceColumn = {
   Header: "Price",
-  Cell: ({ original }) => <FlashEntry content={original.p} />,
-  headerStyle: numberStyle,
-  style: numberStyle,
-  sortable: false,
-  resizable: true,
-  minWidth: 50
-}
-
-const amountColumn = {
-  Header: "Amount",
   Cell: ({ original }) => (
-    <FlashEntry content={original.a} />
+    <FlashEntry>
+      <Price counter={original.c.counter} color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+        {original.p}
+      </Price>
+    </FlashEntry>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -68,10 +62,42 @@ const amountColumn = {
   minWidth: 50
 }
 
-const feeColumn = {
+const amountColumn ={
+  Header: "Amount",
+  Cell: ({ original }) => (
+    <FlashEntry>
+      <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+        {original.a}
+      </Price>
+    </FlashEntry>
+  ),
+  headerStyle: numberStyle,
+  style: numberStyle,
+  sortable: false,
+  resizable: true,
+  minWidth: 50
+}
+
+const feeAmountColumn = {
   Header: "Fee",
   Cell: ({ original }) => (
-    <FlashEntry content={original.fa + " " + original.fc} />
+    <FlashEntry>
+      <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+        {original.fa}
+      </Price>
+    </FlashEntry>
+  ),
+  headerStyle: numberStyle,
+  style: numberStyle,
+  sortable: false,
+  resizable: true,
+  minWidth: 50
+}
+
+const feeCurrencyColumn = {
+  Header: "Fee Ccy",
+  Cell: ({ original }) => (
+    <FlashEntry content={original.fc} />
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -91,7 +117,8 @@ const Trades = props => (
       dateColumn,
       priceColumn,
       amountColumn,
-      feeColumn
+      feeAmountColumn,
+      feeCurrencyColumn
     ]}
     showPagination={false}
     resizable={false}
@@ -114,8 +141,7 @@ class TradeHistoryContainer extends React.Component {
 function mapStateToProps(state, props) {
   const tradeHistory = getTradeHistoryInReverseOrder(state);
   return {
-    tradeHistory: tradeHistory ? tradeHistory.slice(0) : null,
-    unavailable: state.coin.tradeHistoryUnavailable
+    tradeHistory: tradeHistory ? tradeHistory.slice(0) : null
   }
 }
 

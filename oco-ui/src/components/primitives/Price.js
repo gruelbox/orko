@@ -4,6 +4,7 @@ import styled from "styled-components"
 import { fontSize, color, fontWeight, space } from "styled-system"
 import { isValidNumber } from "../../util/numberUtils"
 import Loading from "./Loading"
+import { connect } from "react-redux"
 
 /**
  * Formatters for amounts in specific counter currencies.
@@ -54,8 +55,6 @@ const PriceValue = styled.div`
 const BarePriceValue = styled.span.attrs({
   fontSize: 1,
   py: 0,
-  pl: 1,
-  pr: 1,
   m: 0
 })`
   cursor: copy;
@@ -121,7 +120,7 @@ class Price extends React.PureComponent {
       }
     if (this.props.bare) {
       return (
-        <BarePriceValue movement={this.state.movement} onClick={this.onClick} color={this.props.color} className={this.props.className}>
+        <BarePriceValue px={this.props.noflash ? 0 : 1} movement={this.state.movement} onClick={this.onClick} color={this.props.color} className={this.props.className}>
           {this.props.children === "--" ? "--" : formatter(this.props.children)}
         </BarePriceValue>
       )
@@ -149,4 +148,14 @@ class Price extends React.PureComponent {
   }
 }
 
-export default Price
+function mapStateToProps(state, props) {
+  return {
+    onClick: props.onClick
+      ? props.onClick
+      : state.focus.fn
+        ? state.focus.fn
+        : number => {},
+  }
+}
+
+export default connect(mapStateToProps)(Price)

@@ -21,16 +21,63 @@ const numberStyle = {
   textAlign: "right"
 }
 
+const buttons = () => (
+  <Link to="/addCoin" color="heading">
+    <Icon name="add" />
+  </Link>
+)
+
+const exchangeColumn = {
+  id: "exchange",
+  Header: "Exchange",
+  accessor : "exchange",
+  Cell: ({ original }) => (
+    <Link to={"/coin/" + original.key} title="Open coin">
+      {original.exchange}
+    </Link>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  resizable: true,
+  minWidth: 50,
+}
+
+const nameColumn = {
+  id: "name",
+  Header: "Name",
+  accessor: "shortName",
+  Cell: ({ original }) => (
+    <Link to={"/coin/" + original.key} title="Open coin">
+      {original.shortName}
+    </Link>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  resizable: true,
+  minWidth: 50
+}
+
+const priceColumn = {
+  id: "price",
+  Header: "Price",
+  Cell: ({ original }) => (
+    <Price counter={original.counter} bare>
+      {original.ticker ? original.ticker.last : undefined}
+    </Price>
+  ),
+  headerStyle: numberStyle,
+  style: numberStyle,
+  resizable: true,
+  minWidth: 50,
+  sortable: false,
+}
+
 const CoinsCointainer = ({ data, dispatch, updateFocusedField }) => (
   <Section
     id="coinList"
     heading="Coins"
     nopadding
-    buttons={() => (
-      <Link to="/addCoin" color="heading">
-        <Icon name="add" />
-      </Link>
-    )}
+    buttons={buttons}
   >
     <ReactTable
       data={data.asMutable()}
@@ -52,52 +99,9 @@ const CoinsCointainer = ({ data, dispatch, updateFocusedField }) => (
           sortable: false,
           resizable: false
         },
-        {
-          id: "exchange",
-          Header: "Exchange",
-          accessor : "exchange",
-          Cell: ({ original }) => (
-            <Link to={"/coin/" + original.key} title="Open coin">
-              {original.exchange}
-            </Link>
-          ),
-          headerStyle: textStyle,
-          style: textStyle,
-          resizable: true,
-          minWidth: 50,
-        },
-        {
-          id: "name",
-          Header: "Name",
-          accessor: "shortName",
-          Cell: ({ original }) => (
-            <Link to={"/coin/" + original.key} title="Open coin">
-              {original.shortName}
-            </Link>
-          ),
-          headerStyle: textStyle,
-          style: textStyle,
-          resizable: true,
-          minWidth: 50
-        },
-        {
-          id: "price",
-          Header: "Price",
-          Cell: ({ original }) => (
-            <Price counter={original.counter} bare onClick={number => {
-              if (updateFocusedField) {
-                updateFocusedField(number)
-              }
-            }}>
-              {original.ticker ? original.ticker.last : undefined}
-            </Price>
-          ),
-          headerStyle: numberStyle,
-          style: numberStyle,
-          resizable: true,
-          minWidth: 50,
-          sortable: false,
-        },
+        exchangeColumn,
+        nameColumn,
+        priceColumn,
         {
           id: "alert",
           Header: <Icon fitted name="bell outline" />,
@@ -130,7 +134,6 @@ const CoinsCointainer = ({ data, dispatch, updateFocusedField }) => (
 
 function mapStateToProps(state) {
   return {
-    updateFocusedField: state.focus.fn,
     data: getCoinsForDisplay(state)
   }
 }

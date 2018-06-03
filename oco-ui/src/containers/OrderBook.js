@@ -2,7 +2,7 @@ import React from "react"
 
 import { connect } from "react-redux"
 import { getTopOfOrderBook } from "../selectors/coins"
-import OrderBookSide from "./OrderBookSide"
+import OrderBookSide from "../components/OrderBookSide"
 import styled from "styled-components"
 import Loading from "../components/primitives/Loading"
 
