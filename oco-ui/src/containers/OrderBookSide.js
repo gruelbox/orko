@@ -25,14 +25,14 @@ const Aligned = styled.div`
     }
     &.collapse-enter-active {
       opacity: 1;
-      transition: opacity 400ms ease-in 300ms;
+      transition: opacity 200ms ease-in 100ms;
       .orderbook-value {
         color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
-        transition: color 400ms ease-in 1400ms;
+        transition: color 200ms ease-in 1400ms;
       }
       .orderbook-bar {
         background-color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
-        transition: background-color 400ms ease-in 1400ms;
+        transition: background-color 200ms ease-in 1400ms;
       }
     }
   }
@@ -43,7 +43,7 @@ const Aligned = styled.div`
     &.collapse-leave-active {
       opacity: 0;
       height: 0px !important;
-      transition: height 400ms ease-in 1000ms, opacity 400ms linear 1000ms;
+      transition: height 200ms ease-in 800ms, opacity 200ms linear 800ms;
     }
   }
   
@@ -58,7 +58,7 @@ const Bar = styled.div`
   height: 100%;
   min-width: 1px;
   width: ${props => props.size + "%"};
-  transition: width 0.5s ease-out;
+  transition: width 0.3s ease-out;
   background-color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
   overflow: visible;
 `
@@ -134,8 +134,8 @@ const OrderBookSide = ({coin, orders, direction, focusFn, largestOrder}) => (
     transitionName="collapse"
     transitionEnter={true}
     transitionAppear={false}
-    transitionEnterTimeout={1800}
-    transitionLeaveTimeout={1400}
+    transitionEnterTimeout={1600}
+    transitionLeaveTimeout={1000}
     transitionLeave={true}
   >
     {orders.map(order => (
