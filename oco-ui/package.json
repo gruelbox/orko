@@ -68,7 +68,8 @@
     "whatwg-fetch": "2.0.3"
   },
   "devDependencies": {
-    "gulp": "^3.9.1"
+    "gulp": "^3.9.1",
+    "worker-loader": "^2.0.0"
   },
   "scripts": {
     "start": "node scripts/start.js",
