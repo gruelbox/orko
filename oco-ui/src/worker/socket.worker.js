@@ -34,19 +34,21 @@ function send(message) {
     socket.send(JSON.stringify(message))
 }
 
+const messageStart = "{ \"eventType\": \"" + socketEvents.MESSAGE + "\", \"payload\": "
+
 function connect({token, root}) {
   var socket = ws("ws", token, root)
   socket.onopen = () => {
     connected = true
-    postMessage({ eventType: socketEvents.OPEN })
+    postMessage("{ \"eventType\": \"" + socketEvents.OPEN + "\" }")
   }
   socket.onclose = () => {
     connected = false
-    postMessage({ eventType: socketEvents.CLOSE })
+    postMessage("{ \"eventType\": \"" + socketEvents.CLOSE + "\" }")
   }
   socket.onmessage = evt => {
     try {
-        postMessage({ eventType: socketEvents.MESSAGE, payload: JSON.parse(evt.data) })
+        postMessage(messageStart + evt.data + "}")
     } catch (e) {
         console.log("Invalid message from server", evt.data)
     }

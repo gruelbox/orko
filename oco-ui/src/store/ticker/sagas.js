@@ -32,7 +32,7 @@ const getSubscribedCoins = state => state.coins.coins
  */
 function socketMessageChannel(worker) {
   return eventChannel(emit => {
-    worker.onmessage = m => emit(m.data)
+    worker.onmessage = m => emit(JSON.parse(m.data))
     return () => worker.postMessage({ eventType: socketEvents.DISCONNECT })
   })
 }
