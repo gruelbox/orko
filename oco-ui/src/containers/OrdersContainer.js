@@ -4,8 +4,11 @@ import Section from "../components/primitives/Section"
 import Tab from "../components/primitives/Tab"
 import OpenOrdersContainer from "./OpenOrdersContainer"
 import TradeHistoryContainer from "./TradeHistoryContainer"
+import GetPageVisibility from "../components/GetPageVisibility"
+import RenderIf from "../components/RenderIf"
 
 class OrdersContainer extends React.Component {
+
   constructor(props) {
     super(props)
     this.state = { selected: "open" }
@@ -30,17 +33,20 @@ class OrdersContainer extends React.Component {
       </span>
     )
 
-    var component
-    if (this.state.selected === "open") {
-      component = <OpenOrdersContainer coin={this.props.coin}/>
-    } else {
-      component = <TradeHistoryContainer coin={this.props.coin}/>
-    }
-
     return (
-      <Section nopadding id="orders" heading="Orders" buttons={buttons}>
-        {component}
-      </Section>
+      <GetPageVisibility>
+        {visible => (
+          <RenderIf condition={visible}>
+            <Section nopadding id="orders" heading="Orders" buttons={buttons}>
+              {
+                this.state.selected === "open"
+                  ? <OpenOrdersContainer coin={this.props.coin}/>
+                  : <TradeHistoryContainer coin={this.props.coin}/>
+              }
+            </Section>
+          </RenderIf>
+        )}
+      </GetPageVisibility>
     )
   }
 }
