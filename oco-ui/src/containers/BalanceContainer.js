@@ -48,11 +48,7 @@ class BalanceContainer extends React.Component {
   }
 }
 
-function mapStateToProps(state) {
-  return {
-    balance: state.coin.balance,
-    ticker: getSelectedCoinTicker(state)
-  }
-}
-
-export default connect(mapStateToProps)(BalanceContainer)
+export default connect(state => ({
+  balance: state.coin.balance,
+  ticker: getSelectedCoinTicker(state)
+}))(BalanceContainer)

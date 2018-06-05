@@ -173,14 +173,10 @@ const ToolbarContainer = ({ticker, coin, connected, errors, userName, updateFocu
   )
 }
 
-function mapStateToProps(state) {
-  return {
-    errors: state.error.errorBackground,
-    userName: state.auth.userName,
-    connected: state.ticker.connected,
-    updateFocusedField: state.focus.fn,
-    ticker: getSelectedCoinTicker(state)
-  }
-}
-
-export default connect(mapStateToProps)(ToolbarContainer)
+export default connect(state => ({
+  errors: state.error.errorBackground,
+  userName: state.auth.userName,
+  connected: state.ticker.connected,
+  updateFocusedField: state.focus.fn,
+  ticker: getSelectedCoinTicker(state)
+}))(ToolbarContainer)

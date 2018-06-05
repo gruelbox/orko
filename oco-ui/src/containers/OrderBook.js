@@ -57,10 +57,6 @@ class OrderBook extends React.PureComponent {
   }
 }
 
-function mapStateToProps(state) {
-  return {
-    orderBook: getTopOfOrderBook(state)
-  }
-}
-
-export default connect(mapStateToProps)(OrderBook)
+export default connect(state => ({
+  orderBook: getTopOfOrderBook(state)
+}))(OrderBook)

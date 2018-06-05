@@ -41,10 +41,6 @@ const CoinsCointainer = ({ data, dispatch }) => (
   </GetPageVisibility>
 )
 
-function mapStateToProps(state) {
-  return {
-    data: getCoinsForDisplay(state)
-  }
-}
-
-export default connect(mapStateToProps)(CoinsCointainer)
+export default connect(state => (
+  { data: getCoinsForDisplay(state) }
+))(CoinsCointainer)

@@ -78,10 +78,6 @@ const NotificationsContainer = ({notifications, dispatch}) => (
   </Section>
 )
 
-function mapStateToProps(state) {
-  return {
-    notifications: state.notifications.notifications
-  }
-}
-
-export default connect(mapStateToProps)(NotificationsContainer)
+export default connect(state => ({
+  notifications: state.notifications.notifications
+}))(NotificationsContainer)
