@@ -126,7 +126,7 @@ class Price extends React.PureComponent {
       )
     } else {
       return (
-        <Container m={2}>
+        <Container my={0} mx={2}>
           <PriceKey
             color={this.props.nameColor ? this.props.nameColor : "fore"}
             fontSize={1}
@@ -148,13 +148,15 @@ class Price extends React.PureComponent {
   }
 }
 
+const nullOnCLick = number => {}
+
 function mapStateToProps(state, props) {
   return {
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn
         ? state.focus.fn
-        : number => {},
+        : nullOnCLick,
   }
 }
 

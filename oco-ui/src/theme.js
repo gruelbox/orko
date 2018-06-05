@@ -3,7 +3,7 @@ import { lighten, darken } from "polished"
 import { injectGlobal } from "styled-components"
 
 const theme = {
-  breakpoints: ["62em"],
+  breakpoints: ["86em"],
   fontSizes: [11, 12, 13, 16],
   fonts: {
     sans: "system-ui, sans-serif",

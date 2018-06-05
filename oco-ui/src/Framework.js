@@ -31,17 +31,17 @@ const baseLayouts = {
   lg: [
     { i: "coins", x: 0, y: 0, w: 4, h: 25 },
     { i: "jobs", x: 13, y: 25, w: 7, h: 9 },
-    { i: "chart", x: 4, y: 0, w: 9, h: 20 },
+    { i: "chart", x: 4, y: 0, w: 9, h: 21 },
     { i: "openOrders", x: 13, y: 11, w: 7, h: 14 },
-    { i: "balance", x: 4, y: 20, w: 9, h: 5 },
+    { i: "balance", x: 4, y: 20, w: 9, h: 4 },
     { i: "tradeSelector", x: 7, y: 25, w: 6, h: 9},
     { i: "marketData", x: 13, y: 0, w: 7, h: 11 },
     { i: "notifications", x: 0, y: 25, w: 7, h: 9 }
   ],
   md: [
     { i: "chart", x: 0, y: 100, w: 5, h: 14 },
-    { i: "openOrders", x: 0, y: 200, w: 5, h: 5 },
-    { i: "balance", x: 0, y: 300, w: 5, h: 5 },
+    { i: "openOrders", x: 0, y: 200, w: 5, h: 6 },
+    { i: "balance", x: 0, y: 300, w: 5, h: 4 },
     { i: "tradeSelector", x: 0, y: 400, w: 5, h: 8 },
     { i: "coins", x: 5, y: 100, w: 3, h: 12 },
     { i: "jobs", x: 5, y: 200, w: 3, h: 9 },
@@ -50,8 +50,8 @@ const baseLayouts = {
   ],
   sm: [
     { i: "chart", x: 0, y: 100, w: 2, h: 12 },
-    { i: "openOrders", x: 0, y: 200, w: 2, h: 4 },
-    { i: "balance", x: 0, y: 300, w: 2, h: 5 },
+    { i: "openOrders", x: 0, y: 200, w: 2, h: 6 },
+    { i: "balance", x: 0, y: 300, w: 2, h: 4 },
     { i: "tradeSelector", x: 0, y: 400, w: 2, h: 8 },
     { i: "coins", x: 0, y: 500, w: 2, h: 6 },
     { i: "jobs", x: 0, y: 600, w: 2, h: 6 },
@@ -144,7 +144,7 @@ export default class Framework extends React.Component {
         <div>
           {header}
           <ResponsiveReactGridLayout
-            breakpoints={{ lg: 1400, md: 850, sm: 0 }}
+            breakpoints={{ lg: 1630, md: 900, sm: 0 }}
             cols={{ lg: 20, md: 8, sm: 2 }}
             rowHeight={24}
             layouts={this.state.layouts}
