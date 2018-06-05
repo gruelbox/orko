@@ -460,7 +460,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         }
         if (params instanceof TradeHistoryParamPaging) {
           ((TradeHistoryParamPaging) params).setPageLength(MAX_TRADES);
-          ((TradeHistoryParamPaging) params).setPageNumber(1);
+          ((TradeHistoryParamPaging) params).setPageNumber(0);
         }
 
         ImmutableList<Trade> trades = FluentIterable.from(tradeService.getTradeHistory(params).getUserTrades())
