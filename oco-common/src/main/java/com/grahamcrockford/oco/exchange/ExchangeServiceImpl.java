@@ -74,11 +74,7 @@ public class ExchangeServiceImpl implements ExchangeService {
       try {
         LOGGER.warn("No API connection details.  Connecting to public API: " + name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name);
-        if (exSpec.getExchangeClassName().contains("Streaming")) {
-          return StreamingExchangeFactory.INSTANCE.createExchange(exSpec);
-        } else {
-          return ExchangeFactory.INSTANCE.createExchange(exSpec);
-        }
+        return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
@@ -86,20 +82,27 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private Exchange privateApi(String name, final ExchangeConfiguration exchangeConfiguration) {
       try {
+
         LOGGER.info("Connecting to private API: " + name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name);
-
         if (name.toLowerCase().equals("gdax-sandbox") || name.toLowerCase().equals("gdax")) {
           exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
         }
-
         exSpec.setUserName(exchangeConfiguration.getUserName());
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
+        return createExchange(exSpec);
 
-        return ExchangeFactory.INSTANCE.createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
+      }
+    }
+
+    private Exchange createExchange(final ExchangeSpecification exSpec) {
+      if (exSpec.getExchangeClassName().contains("Streaming")) {
+        return StreamingExchangeFactory.INSTANCE.createExchange(exSpec);
+      } else {
+        return ExchangeFactory.INSTANCE.createExchange(exSpec);
       }
     }
 
@@ -173,8 +176,12 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @VisibleForTesting
   Class<? extends Exchange> map(String friendlyName) {
+
     if (friendlyName.equals("gdax-sandbox"))
       return GDAXStreamingExchange.class;
+
+    if (friendlyName.equals("cryptopia"))
+      return FixedCryptopiaExchange.class;
 
     Optional<Class<? extends StreamingExchange>> streamingResult = STREAMING_EXCHANGE_TYPES.get()
         .stream()
