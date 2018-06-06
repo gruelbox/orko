@@ -53,7 +53,7 @@ export default class Job extends Component {
       return (
         <JobStages>
           <JobStage>
-            <Icon name="eye" /> Watch price{job.tickTrigger.base +
+            <Icon name="eye" /> Watch price {job.tickTrigger.base +
               "/" +
               job.tickTrigger.counter}{" "}
             on {job.tickTrigger.exchange}

@@ -46,20 +46,21 @@ const RawLabel = styled.label.attrs({
   ${padding}
 `;
 
-const RawFieldSet = styled.fieldset`
+const RawFieldSet = styled.fieldset.attrs({
+  my: 2,
+  ml: 0,
+  p: 0
+})`
   display: inline;
   border: none;
-  margin-top: ${props => props.theme.space[2] + "px"};
-  margin-bottom: ${props => props.theme.space[2] + "px"};
-  margin-left: 0;
-  margin-right: ${props => props.theme.space[2] + "px"};
-  padding: 0;
-`;
+  ${space}
+  ${padding}
+`
 
 const Input = props => (
-  <RawFieldSet>
+  <RawFieldSet mr={props.mr ? props.mr : 2}>
     {props.label &&
-      <RawLabel for={props.id}>{props.label}</RawLabel>
+      <RawLabel for={props.id} disabled={props.disabled}>{props.label}</RawLabel>
     }
     <RawInput
       id={props.id}
@@ -69,6 +70,7 @@ const Input = props => (
       value={props.value}
       onChange={props.onChange}
       onFocus={props.onFocus}
+      disabled={props.disabled}
     />
   </RawFieldSet>
 );

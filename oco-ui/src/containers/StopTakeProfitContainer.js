@@ -15,8 +15,12 @@ class StopTakeProfitContainer extends React.Component {
     this.state = {
       job: Immutable({
         lowPrice: "",
+        lowLimitPrice: "",
+        lowTrailing: false,
         highPrice: "",
-        limitPrice: "",
+        highLimitPrice: "",
+        highTrailing: false,
+        trailingAmount: "",
         amount: "",
         direction: "BUY",
         track: true
@@ -44,42 +48,55 @@ class StopTakeProfitContainer extends React.Component {
   }
 
   createJob = () => {
+    console.log(this.state)
+    
     const tickTrigger = {
       exchange: this.props.coin.exchange,
       counter: this.props.coin.counter,
       base: this.props.coin.base
     }
+
+    const limitOrder = (limitPrice) => ({
+      jobType: jobTypes.LIMIT_ORDER,
+      direction: this.state.job.direction,
+      track: this.state.job.track,
+      tickTrigger,
+      bigDecimals: {
+        amount: this.state.job.amount,
+        limitPrice
+      }
+    })
+
+    const trailingOrder = (startPrice, stopPrice, limitPrice) => ({
+      jobType: jobTypes.SOFT_TRAILING_STOP,
+      direction: this.state.job.direction,
+      tickTrigger,
+      bigDecimals: {
+        amount: this.state.job.amount,
+        startPrice,
+        lastSyncPrice: startPrice,
+        stopPrice,
+        limitPrice
+      }
+    })
+
     return {
       jobType: jobTypes.OCO,
       tickTrigger: tickTrigger,
       low: this.state.job.lowPrice
         ? {
             thresholdAsString: this.state.job.lowPrice,
-            job: {
-              jobType: jobTypes.LIMIT_ORDER,
-              direction: this.state.job.direction,
-              track: this.state.job.track,
-              tickTrigger: tickTrigger,
-              bigDecimals: {
-                amount: this.state.job.amount,
-                limitPrice: this.state.job.limitPrice
-              }
-            }
+            job: this.state.job.lowTrailing
+              ? trailingOrder(this.state.job.lowPrice, (Number(this.state.job.lowPrice) + Number(this.state.job.trailingAmount)).toString(), this.state.job.lowLimitPrice)
+              : limitOrder(this.state.job.lowLimitPrice)
           }
         : null,
       high: this.state.job.highPrice
         ? {
             thresholdAsString: this.state.job.highPrice,
-            job: {
-              jobType: jobTypes.LIMIT_ORDER,
-              direction: this.state.job.direction,
-              track: this.state.job.track,
-              tickTrigger: tickTrigger,
-              bigDecimals: {
-                amount: this.state.job.amount,
-                limitPrice: this.state.job.limitPrice
-              }
-            }
+            job: this.state.job.highTrailing
+              ? trailingOrder(this.state.job.highPrice, (Number(this.state.job.highPrice) - Number(this.state.job.trailingAmount)).toString(), this.state.job.highLimitPrice)
+              : limitOrder(this.state.job.highLimitPrice)
           }
         : null
     }
@@ -90,14 +107,18 @@ class StopTakeProfitContainer extends React.Component {
   }
 
   render() {
-    const limitPriceValid =
-      this.state.job.limitPrice && isValidNumber(this.state.job.limitPrice) && this.state.job.limitPrice > 0
+    const lowLimitPriceValid =
+      this.state.job.lowLimitPrice && isValidNumber(this.state.job.lowLimitPrice) && this.state.job.lowLimitPrice > 0
+    const highLimitPriceValid =
+      this.state.job.highLimitPrice && isValidNumber(this.state.job.highLimitPrice) && this.state.job.highLimitPrice > 0
     const highPriceValid =
       this.state.job.highPrice && isValidNumber(this.state.job.highPrice) && this.state.job.highPrice > 0
     const lowPriceValid =
       this.state.job.lowPrice && isValidNumber(this.state.job.lowPrice) && this.state.job.lowPrice > 0
     const amountValid =
       this.state.job.amount && isValidNumber(this.state.job.amount) && this.state.job.amount > 0
+    const trailingAmountValid =
+      this.state.job.trailingAmount && isValidNumber(this.state.job.trailingAmount) && this.state.job.trailingAmount > 0
 
     return (
       <StopTakeProfit
@@ -105,10 +126,12 @@ class StopTakeProfitContainer extends React.Component {
         onChange={this.onChange}
         onFocus={this.onFocus}
         onSubmit={this.onSubmit}
-        limitPriceValid={limitPriceValid}
+        lowLimitPriceValid={lowLimitPriceValid}
+        highLimitPriceValid={highLimitPriceValid}
         highPriceValid={highPriceValid}
         lowPriceValid={lowPriceValid}
         amountValid={amountValid}
+        trailingAmountValid={trailingAmountValid}
       />
     )
   }

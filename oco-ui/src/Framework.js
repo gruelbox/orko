@@ -34,15 +34,15 @@ const baseLayouts = {
     { i: "chart", x: 4, y: 0, w: 9, h: 21 },
     { i: "openOrders", x: 13, y: 11, w: 7, h: 14 },
     { i: "balance", x: 4, y: 20, w: 9, h: 4 },
-    { i: "tradeSelector", x: 7, y: 25, w: 6, h: 9},
+    { i: "tradeSelector", x: 6, y: 25, w: 7, h: 9},
     { i: "marketData", x: 13, y: 0, w: 7, h: 11 },
-    { i: "notifications", x: 0, y: 25, w: 7, h: 9 }
+    { i: "notifications", x: 0, y: 25, w: 6, h: 9 }
   ],
   md: [
-    { i: "chart", x: 0, y: 100, w: 5, h: 14 },
+    { i: "chart", x: 0, y: 100, w: 5, h: 13 },
     { i: "openOrders", x: 0, y: 200, w: 5, h: 6 },
     { i: "balance", x: 0, y: 300, w: 5, h: 4 },
-    { i: "tradeSelector", x: 0, y: 400, w: 5, h: 8 },
+    { i: "tradeSelector", x: 0, y: 400, w: 5, h: 9 },
     { i: "coins", x: 5, y: 100, w: 3, h: 12 },
     { i: "jobs", x: 5, y: 200, w: 3, h: 9 },
     { i: "marketData", x: 5, y: 300, w: 3, h: 4 },
@@ -52,7 +52,7 @@ const baseLayouts = {
     { i: "chart", x: 0, y: 100, w: 2, h: 12 },
     { i: "openOrders", x: 0, y: 200, w: 2, h: 6 },
     { i: "balance", x: 0, y: 300, w: 2, h: 4 },
-    { i: "tradeSelector", x: 0, y: 400, w: 2, h: 8 },
+    { i: "tradeSelector", x: 0, y: 400, w: 2, h: 9 },
     { i: "coins", x: 0, y: 500, w: 2, h: 6 },
     { i: "jobs", x: 0, y: 600, w: 2, h: 6 },
     { i: "marketData", x: 0, y: 700, w: 2, h: 6 },

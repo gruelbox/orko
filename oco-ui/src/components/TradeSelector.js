@@ -23,24 +23,6 @@ export default class TradeSelector extends React.Component {
           Limit
         </Tab>
         <Tab
-          selected={this.state.selected === "market"}
-          onClick={() => this.setState({ selected: "market" })}
-        >
-          Market
-        </Tab>
-        <Tab
-          selected={this.state.selected === "hardstop"}
-          onClick={() => this.setState({ selected: "hardstop" })}
-        >
-          Hard Stop
-        </Tab>
-        <Tab
-          selected={this.state.selected === "softstop"}
-          onClick={() => this.setState({ selected: "softstop" })}
-        >
-          Soft Stop
-        </Tab>
-        <Tab
           selected={this.state.selected === "oco"}
           onClick={() => this.setState({ selected: "oco" })}
         >
@@ -50,7 +32,7 @@ export default class TradeSelector extends React.Component {
           selected={this.state.selected === "complex"}
           onClick={() => this.setState({ selected: "complex" })}
         >
-          Complex
+          More to come...
         </Tab>
       </span>
     )
