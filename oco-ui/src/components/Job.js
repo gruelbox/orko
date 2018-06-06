@@ -56,7 +56,7 @@ export default class Job extends Component {
             <Icon name="eye" /> Watch price {job.tickTrigger.base +
               "/" +
               job.tickTrigger.counter}{" "}
-            on {job.tickTrigger.exchange}
+            on {job.tickTrigger.exchange} 
             <JobStages>
               <JobStage>
                 <Icon name="pointing down" />
@@ -75,7 +75,7 @@ export default class Job extends Component {
                   <JobStage>
                     <Icon name="caret up" />
                     Raise the stop price by the same amount, but not the limit
-                    price
+                    price. Last synced price is {job.bigDecimals.lastSyncPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>
@@ -108,7 +108,7 @@ export default class Job extends Component {
                   <JobStage>
                     <Icon name="caret down" />
                     Lower the stop price by the same amount, but not the limit
-                    price
+                    price. Last synced price is {job.bigDecimals.lastSyncPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>

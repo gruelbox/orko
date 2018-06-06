@@ -63,7 +63,7 @@ export default class JobShort extends React.Component {
         job.bigDecimals.stopPrice +
         " then sell at " +
         job.bigDecimals.limitPrice +
-        " trailing"
+        " trailing at " + job.bigDecimals.lastSyncPrice
       )
     } else if (
       job.jobType === jobTypes.SOFT_TRAILING_STOP &&
@@ -76,7 +76,7 @@ export default class JobShort extends React.Component {
         job.bigDecimals.stopPrice +
         " then buy at " +
         job.bigDecimals.limitPrice +
-        " trailing"
+        " trailing at " + job.bigDecimals.lastSyncPrice
       )
     } else if (job.jobType === jobTypes.ALERT) {
       return "Send alert"
