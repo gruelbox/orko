@@ -60,44 +60,48 @@ const priceColumn = {
   sortable: false,
 }
 
+const closeColumn = (onRemove) => ({
+  id: "close",
+  Header: null,
+  Cell: ({ original }) => (
+    <Href title="Remove coin" onClick={() => onRemove(original)}>
+      <Icon fitted name="close" />
+    </Href>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  width: 32,
+  sortable: false,
+  resizable: false
+})
+
+const alertColumn =(onClickAlerts) => ({
+  id: "alert",
+  Header: <Icon fitted name="bell outline" />,
+  Cell: ({ original }) => (
+    <Href title="Manage alerts" onClick={() => onClickAlerts(original)}>
+      <Icon
+        fitted
+        name={original.hasAlert ? "bell" : "bell outline"}
+      />
+    </Href>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  width: 32,
+  sortable: false,
+  resizable: false
+})
+
 const Coins = ({ data, onRemove, onClickAlerts }) => (
   <ReactTable
-    data={data.asMutable()}
+    data={data}
     columns={[
-      {
-        id: "close",
-        Header: null,
-        Cell: ({ original }) => (
-          <Href title="Remove coin" onClick={() => onRemove(original)}>
-            <Icon fitted name="close" />
-          </Href>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        width: 32,
-        sortable: false,
-        resizable: false
-      },
+      closeColumn(onRemove),
       exchangeColumn,
       nameColumn,
       priceColumn,
-      {
-        id: "alert",
-        Header: <Icon fitted name="bell outline" />,
-        Cell: ({ original }) => (
-          <Href title="Manage alerts" onClick={() => onClickAlerts(original)}>
-            <Icon
-              fitted
-              name={original.hasAlert ? "bell" : "bell outline"}
-            />
-          </Href>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        width: 32,
-        sortable: false,
-        resizable: false
-      }
+      alertColumn(onClickAlerts)
     ]}
     showPagination={false}
     resizable={false}

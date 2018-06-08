@@ -1,12 +1,11 @@
 import { createSelector } from "reselect"
-import { isAlert } from "../util/jobUtils"
+import { getRouterLocation } from "./router"
+import { getAlertJobs } from "./jobs"
+import { getWatchJobs } from "./jobs"
 import { coinFromKey } from "../store/coin/reducer"
-import * as jobTypes from "../services/jobTypes"
 
 const getCoins = state => state.coins.coins
 const getTickers = state => state.ticker.coins
-const getRouterLocation = state => state.router.location
-const getJobs = state => state.job.jobs
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
 const getTradeHistory = state => state.coin.tradeHistory
@@ -31,18 +30,12 @@ export const getSelectedCoin = createSelector([getRouterLocation], location =>
   locationToCoin(location)
 )
 
-export const getAlertJobs = createSelector(
-  [getJobs],
-  jobs => (jobs ? jobs.filter(job => isAlert(job)) : [])
-)
-
 export const getWatchJobsForSelectedCoin = createSelector(
-  [getJobs, getSelectedCoin],
+  [getWatchJobs, getSelectedCoin],
   (jobs, coin) =>
     jobs && coin
       ? jobs.filter(
           job =>
-            job.jobType === jobTypes.WATCH_JOB &&
             job.tickTrigger.exchange === coin.exchange &&
             job.tickTrigger.base === coin.base &&
             job.tickTrigger.counter === coin.counter
