@@ -1,6 +1,5 @@
 import React from "react"
 import { connect } from "react-redux"
-import Immutable from 'seamless-immutable'
 
 import * as dateUtils from '../util/dateUtils'
 import * as notificationActions from '../store/notifications/actions'
@@ -62,7 +61,7 @@ const NotificationsContainer = ({notifications, dispatch}) => (
     )
   }>
     <ReactTable
-      data={Immutable.asMutable(notifications)}
+      data={notifications}
       getTrProps={(state, rowInfo, column) => ({
         style: {
           color: rowInfo.original.notificationType === "ERROR" ? theme.colors.alert : undefined

@@ -45,7 +45,6 @@ const Aligned = styled.div`
       transition: height 200ms ease-in 800ms, opacity 200ms linear 800ms;
     }
   }
-  
 `
 
 const Bar = styled.div`

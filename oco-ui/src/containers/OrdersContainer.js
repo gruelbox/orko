@@ -14,30 +14,29 @@ class OrdersContainer extends React.Component {
     this.state = { selected: "open" }
   }
 
+  buttons = () => (
+    <span>
+      <Tab
+        selected={this.state.selected === "open"}
+        onClick={() => this.setState({ selected: "open" })}
+      >
+        Open
+      </Tab>
+      <Tab
+        selected={this.state.selected === "history"}
+        onClick={() => this.setState({ selected: "history" })}
+      >
+        History
+      </Tab>
+    </span>
+  )
+
   render() {
-
-    const buttons = () => (
-      <span>
-        <Tab
-          selected={this.state.selected === "open"}
-          onClick={() => this.setState({ selected: "open" })}
-        >
-          Open
-        </Tab>
-        <Tab
-          selected={this.state.selected === "history"}
-          onClick={() => this.setState({ selected: "history" })}
-        >
-          History
-        </Tab>
-      </span>
-    )
-
     return (
       <GetPageVisibility>
         {visible => (
           <RenderIf condition={visible}>
-            <Section nopadding id="orders" heading="Orders" buttons={buttons}>
+            <Section nopadding id="orders" heading="Orders" buttons={this.buttons}>
               {
                 this.state.selected === "open"
                   ? <OpenOrdersContainer coin={this.props.coin}/>

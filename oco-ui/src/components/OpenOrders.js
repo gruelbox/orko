@@ -106,6 +106,49 @@ const filledColumn = {
   minWidth: 50
 }
 
+const cancelColumn = (onCancel) => ({
+  id: "close",
+  Header: () => null,
+  Cell: ({ original }) => (
+    <FlashEntry>
+      <Href
+        onClick={() => onCancel(original.id, original.type)}
+        title="Cancel order"
+      >
+        <Icon fitted name="close" />
+      </Href>
+    </FlashEntry>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  width: 32,
+  sortable: false,
+  resizable: false
+})
+
+const watchColumn = (onWatch) => ({
+  id: "watch",
+  Header: <Icon fitted name="eye" />,
+  Cell: ({ original }) => (
+    <FlashEntry>
+      <Href
+        onClick={() => onWatch(original.id, original.watchJob)}
+        title={original.watchJob ? "Remove watch" : "Add watch"}
+      >
+        <Icon
+          fitted
+          name={original.watchJob ? "eye" : "circle outline"}
+        />
+      </Href>
+    </FlashEntry>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  width: 32,
+  sortable: false,
+  resizable: false
+})
+
 const OpenOrders = props => (
   <ReactTable
     data={props.orders}
@@ -113,25 +156,7 @@ const OpenOrders = props => (
       className: rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell"
     })}
     columns={[
-      {
-        id: "close",
-        Header: () => null,
-        Cell: ({ original }) => (
-          <FlashEntry>
-            <Href
-              onClick={() => props.onCancel(original.id, original.type)}
-              title="Cancel order"
-            >
-              <Icon fitted name="close" />
-            </Href>
-          </FlashEntry>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        width: 32,
-        sortable: false,
-        resizable: false
-      },
+      cancelColumn(props.onCancel),
       orderTypeColumn,
       runningAtColumn,
       createdDateColumn,
@@ -139,28 +164,7 @@ const OpenOrders = props => (
       stopPriceColumn,
       amountColumn,
       filledColumn,
-      {
-        id: "watch",
-        Header: <Icon fitted name="eye" />,
-        Cell: ({ original }) => (
-          <FlashEntry>
-            <Href
-              onClick={() => props.onWatch(original.id, original.watchJob)}
-              title={original.watchJob ? "Remove watch" : "Add watch"}
-            >
-              <Icon
-                fitted
-                name={original.watchJob ? "eye" : "circle outline"}
-              />
-            </Href>
-          </FlashEntry>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        width: 32,
-        sortable: false,
-        resizable: false
-      }
+      watchColumn(props.onWatch)
     ]}
     showPagination={false}
     resizable={false}

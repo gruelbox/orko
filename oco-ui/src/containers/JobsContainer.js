@@ -1,5 +1,8 @@
 import React from "react"
 import { connect } from "react-redux"
+import PageVisibility from 'react-page-visibility'
+import RenderIf from "../components/RenderIf"
+
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import * as jobUtils from "../util/jobUtils"
@@ -10,16 +13,27 @@ import Loading from "../components/primitives/Loading"
 import JobShort from "../components/JobShort"
 import Tab from "../components/primitives/Tab"
 
+
 const TICK_TIME = 5000
 
 class JobsContainer extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { loading: true, selected: "onlycomplex" }
+    this.state = {
+      loading: true,
+      selected: "onlycomplex",
+      visible: true
+    }
+  }
+
+  handleVisibilityChange = visible => {
+    this.setState({ visible });
   }
 
   tick = () => {
-    this.props.dispatch(jobActions.fetchJobs())
+    if (this.state.visible) {
+      this.props.dispatch(jobActions.fetchJobs())
+    }
   }
 
   componentDidMount() {
@@ -77,9 +91,13 @@ class JobsContainer extends React.Component {
     )
 
     return (
-      <Section id="jobs" heading="Running Jobs" buttons={() => buttons}>
-        {jobs}
-      </Section>
+      <PageVisibility onChange={this.handleVisibilityChange}>
+        <RenderIf condition={this.state.visible}>
+          <Section id="jobs" heading="Running Jobs" buttons={() => buttons}>
+            {jobs}
+          </Section>
+        </RenderIf>
+      </PageVisibility>
     )
   }
 }

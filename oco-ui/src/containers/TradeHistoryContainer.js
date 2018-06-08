@@ -15,9 +15,8 @@ class TradeHistoryContainer extends React.Component {
 }
 
 function mapStateToProps(state, props) {
-  const tradeHistory = getTradeHistoryInReverseOrder(state);
   return {
-    tradeHistory: tradeHistory ? tradeHistory.slice(0) : null
+    tradeHistory: getTradeHistoryInReverseOrder(state)
   }
 }
 
