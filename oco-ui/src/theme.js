@@ -3,7 +3,7 @@ import { lighten, darken } from "polished"
 import { injectGlobal } from "styled-components"
 
 const theme = {
-  breakpoints: ["86em"],
+  breakpoints: ["62em"],
   fontSizes: [11, 12, 13, 16],
   fonts: {
     sans: "system-ui, sans-serif",
@@ -104,15 +104,6 @@ const globalCss = `
       color: inherit;
       text-shadow: none;
       transition: color 2s, text-shadow 2s;
-    }
-
-    .fadeIn-appear {
-      opacity: 0.01;
-    }
-      
-    .fadeIn-appear.fadeIn-appear-active {
-      opacity: 1;
-      transition: opacity .5s ease-in;
     }
 
     .oco-deemphasis {
