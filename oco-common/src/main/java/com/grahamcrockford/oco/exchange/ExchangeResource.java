@@ -1,7 +1,6 @@
 package com.grahamcrockford.oco.exchange;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -30,11 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.grahamcrockford.oco.auth.Roles;
+import com.grahamcrockford.oco.marketdata.Balance;
 import com.grahamcrockford.oco.wiring.WebResource;
 
 /**
@@ -321,27 +320,15 @@ public class ExchangeResource implements WebResource {
         )
         .transform(Map.Entry::getValue)
         .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()))
-        .transform(balance -> {
-          Balance result = new Balance();
-          result.currency = balance.getCurrency().getCurrencyCode();
-          result.total = balance.getTotal();
-          result.available = balance.getAvailable();
-          return result;
-        });
+        .transform(Balance::create);
 
       return Response.ok()
-          .entity(Maps.uniqueIndex(balances, balance -> balance.currency))
+          .entity(Maps.uniqueIndex(balances, balance -> balance.currency()))
           .build();
 
     } catch (UnsupportedOperationException e) {
       return Response.status(503).build();
     }
-  }
-
-  public static final class Balance {
-    @JsonIgnore public String currency;
-    @JsonProperty public BigDecimal total;
-    @JsonProperty public BigDecimal available;
   }
 
 

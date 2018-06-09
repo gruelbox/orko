@@ -5,6 +5,7 @@ import static java.util.Collections.emptySet;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import java.util.Set;
@@ -21,7 +22,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.exchange.ExchangeServiceImpl;
+import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import ch.qos.logback.classic.Level;
 import io.reactivex.disposables.Disposable;
@@ -61,7 +64,8 @@ public class TestMarketDataIntegration {
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
       exchangeServiceImpl,
       ocoConfiguration,
-      null
+      mock(TradeServiceFactory.class),
+      mock(AccountServiceFactory.class)
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
     marketDataSubscriptionManager.startAsync().awaitRunning(20, SECONDS);

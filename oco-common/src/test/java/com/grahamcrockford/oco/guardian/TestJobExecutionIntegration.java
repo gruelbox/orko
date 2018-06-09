@@ -23,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.guardian.GuardianLoop;
@@ -48,6 +49,7 @@ public class TestJobExecutionIntegration {
   @Mock private Injector injector;
   @Mock private ExchangeService exchangeService;
   @Mock private TradeServiceFactory tradeServiceFactory;
+  @Mock private AccountServiceFactory accountServiceFactory;
 
   private AsyncEventBus asyncEventBus;
   private JobRunner jobSubmitter;
@@ -81,7 +83,7 @@ public class TestJobExecutionIntegration {
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    marketDataSubscriptionManager = new MarketDataSubscriptionManager(exchangeService, config, tradeServiceFactory);
+    marketDataSubscriptionManager = new MarketDataSubscriptionManager(exchangeService, config, tradeServiceFactory, accountServiceFactory);
   }
 
 

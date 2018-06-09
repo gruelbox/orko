@@ -18,9 +18,9 @@ export const getTopOfOrderBook = createSelector(
   }) : orderBook
 )
 
-export const locationToCoin = ({ pathname }) => {
-  if (pathname && pathname.startsWith("/coin/") && pathname.length > 6) {
-    return coinFromKey(pathname.substring(6))
+export const locationToCoin = (location) => {
+  if (location && location.pathname && location.pathname.startsWith("/coin/") && location.pathname.length > 6) {
+    return coinFromKey(location.pathname.substring(6))
   } else {
     return null
   }

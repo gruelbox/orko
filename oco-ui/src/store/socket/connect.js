@@ -20,11 +20,6 @@ function selectedCoin() {
   return locationToCoin(store.getState().router.location)
 }
 
-function isSelected(coin) {
-  const sel = selectedCoin()
-  return sel && sel.key === coin.key
-}
-
 export function initialise(s, history) {
   store = s
   history.listen(location => {
@@ -32,6 +27,7 @@ export function initialise(s, history) {
     store.dispatch(coinActions.setOrderBook(null))
     store.dispatch(coinActions.setOrders(null))
     store.dispatch(coinActions.setTradeHistory(null))
+    store.dispatch(coinActions.clearBalances())
     socketClient.changeSubscriptions(subscribedCoins(), locationToCoin(location))
     socketClient.resubscribe()
   })
@@ -46,16 +42,20 @@ export function initialise(s, history) {
   socketClient.onError(message => store.dispatch(errorActions.addBackground(message, "ws")))
   socketClient.onNotification(message => store.dispatch(notificationActions.add(message)))
   socketClient.onTicker((coin, ticker) => store.dispatch(tickerActions.setTicker(coin, ticker)))
+  socketClient.onBalance((exchange, currency, balance) => store.dispatch(coinActions.setBalance(exchange, currency, balance)))
+
+  const sameCoin = (left, right) => left && right && left.key === right.key
+
   socketClient.onOrderBook((coin, orderBook) => {
-    if (isSelected(coin, store))
+    if (sameCoin(coin, selectedCoin()))
       store.dispatch(coinActions.setOrderBook(orderBook))
   })
   socketClient.onOrders((coin, orders) => {
-    if (isSelected(coin, store))
+    if (sameCoin(coin, selectedCoin()))
       store.dispatch(coinActions.setOrders(orders))
   })
   socketClient.onTradeHistory((coin, trades) => {
-    if (isSelected(coin, store))
+    if (sameCoin(coin, selectedCoin()))
       store.dispatch(coinActions.setTradeHistory(trades))
   })
 } 

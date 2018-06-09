@@ -13,6 +13,7 @@ var handleTicker = (coin, ticker) => {}
 var handleOrders = (coin, orders) => {}
 var handleOrderBook = (coin, orderBook) => {}
 var handleTradeHistory = (coin, trades) => {}
+var handleBalance = (exchange, currency, balance) => {}
 
 var subscribedCoins = []
 var selectedCoin = null
@@ -53,6 +54,10 @@ export function onTradeHistory(handler) {
   handleTradeHistory = handler
 }
 
+export function onBalance(handler) {
+  handleBalance = handler
+}
+
 export function connect(token) {
   if (connected)
     throw Error("Already connected")
@@ -78,21 +83,26 @@ export function changeSubscriptions(coins, selected) {
 }
 
 export function resubscribe() {
+  const serverSelectedCoinTickers = selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
   send({
     command: serverMessages.CHANGE_TICKERS,
     tickers: subscribedCoins.map(coin => webCoinToServerCoin(coin))
   })
   send({
     command: serverMessages.CHANGE_OPEN_ORDERS,
-    tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+    tickers: serverSelectedCoinTickers
   })
   send({
     command: serverMessages.CHANGE_ORDER_BOOK,
-    tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+    tickers: serverSelectedCoinTickers
   })
   send({
     command: serverMessages.CHANGE_TRADE_HISTORY,
-    tickers: selectedCoin ? [ webCoinToServerCoin(selectedCoin) ] : []
+    tickers: serverSelectedCoinTickers
+  })
+  send({
+    command: serverMessages.CHANGE_BALANCE,
+    tickers: serverSelectedCoinTickers
   })
   send({ command: serverMessages.UPDATE_SUBSCRIPTIONS })
 }
@@ -151,18 +161,27 @@ function receive(event) {
         break
       
       case serverMessages.OPEN_ORDERS:
+
+        handleClearErrors()
+        handleOrders(augmentCoin(message.data.spec), message.data.openOrders)
+        break
+
       case serverMessages.ORDERBOOK:
+
+        handleClearErrors()
+        handleOrderBook(augmentCoin(message.data.spec), message.data.orderBook)
+        break
+      
       case serverMessages.TRADE_HISTORY:
 
-        const coin = augmentCoin(message.data.spec)
         handleClearErrors()
-        if (message.nature === serverMessages.OPEN_ORDERS) {
-          handleOrders(coin, message.data.openOrders)
-        } else if (message.nature === serverMessages.ORDERBOOK) {
-          handleOrderBook(coin, message.data.orderBook)
-        } else if (message.nature === serverMessages.TRADE_HISTORY) {
-          handleTradeHistory(coin, message.data.trades)
-        }
+        handleTradeHistory(augmentCoin(message.data.spec), message.data.trades)
+        break
+    
+      case serverMessages.BALANCE:
+
+        handleClearErrors()
+        handleBalance(message.data.exchange, message.data.currency, message.data.balance)
         break
       
       case serverMessages.NOTIFICATION:

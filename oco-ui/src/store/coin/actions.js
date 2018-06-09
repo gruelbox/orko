@@ -3,22 +3,6 @@ import exchangesService from '../../services/exchanges';
 import * as authActions from '../auth/actions';
 import * as errorActions from '../error/actions';
 
-export function fetchBalance(coin) {
-  return authActions.wrappedRequest(
-    auth => exchangesService.fetchBalance(coin, auth.token),
-    balance => ({ type: types.SET_BALANCE, balance }),
-    error => ({ type: types.SET_BALANCE_UNAVAILABLE }),
-  );
-}
-
-export function fetchOrders(coin) {
-  // No error handling. Order books are often missing where there's no API key.
-  return authActions.wrappedRequest(
-    auth => exchangesService.fetchOrders(coin, auth.token),
-    orders => ({ type: types.SET_ORDERS, orders })
-  );
-}
-
 export function setOrders(orders) {
   return { type: types.SET_ORDERS, orders }
 }
@@ -29,6 +13,14 @@ export function setOrderBook(orderBook) {
 
 export function setTradeHistory(tradeHistory) {
   return { type: types.SET_TRADE_HISTORY, tradeHistory }
+}
+
+export function setBalance(exchange, currency, balance) {
+  return { type: types.SET_BALANCE, currency, balance }
+}
+
+export function clearBalances() {
+  return { type: types.CLEAR_BALANCES }
 }
 
 export function cancelOrder(coin, orderId, orderType) {

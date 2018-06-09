@@ -110,6 +110,11 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 
   @Override
+  public Flowable<BalanceEvent> getBalance(String subscriberId) {
+    return getStream(subscriberId, MarketDataType.BALANCE, marketDataSubscriptionManager::getBalance);
+  }
+
+  @Override
   public void registerTicker(TickerSpec tickerSpec, String subscriberId, Consumer<TickerEvent> callback) {
     changeSubscriptions(subscriberId, MarketDataSubscription.create(tickerSpec, TICKER));
     Disposable disposable = getTickers(subscriberId).subscribe(e -> callback.accept(e));

@@ -2,11 +2,8 @@ import React from "react"
 import { connect } from "react-redux"
 import Balance from "../components/Balance"
 import Section from "../components/primitives/Section"
-import * as coinActions from "../store/coin/actions"
 import { getSelectedCoinTicker } from "../selectors/coins"
 import { areEqualShallow } from "../util/objectUtils"
-
-const TICK_TIME = 5000
 
 class BalanceContainer extends React.Component {
   shouldComponentUpdate(nextProps) {
@@ -24,19 +21,6 @@ class BalanceContainer extends React.Component {
       return true
     }
     return false
-  }
-
-  tick = () => {
-    this.props.dispatch(coinActions.fetchBalance(this.props.coin))
-  }
-
-  componentDidMount() {
-    this.tick()
-    this.interval = setInterval(this.tick, TICK_TIME)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
   }
 
   render() {

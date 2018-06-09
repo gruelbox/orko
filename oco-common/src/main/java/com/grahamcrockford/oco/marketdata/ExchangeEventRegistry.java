@@ -25,6 +25,7 @@ public interface ExchangeEventRegistry {
   public Flowable<OrderBookEvent> getOrderBooks(String subscriberId);
   public Flowable<TradeEvent> getTrades(String subscriberId);
   public Flowable<TradeHistoryEvent> getTradeHistory(String subscriberId);
+  public Flowable<BalanceEvent> getBalance(String subscriberId);
 
   @Deprecated
   public void registerTicker(TickerSpec tickerSpec, String subscriberId, Consumer<TickerEvent> callback);

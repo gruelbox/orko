@@ -4,7 +4,6 @@ import * as types from "./actionTypes"
 
 const initialState = Immutable({
   balance: undefined,
-  balanceUnavailable: false,
   ticker: undefined,
   orders: undefined,
   orderBook: undefined,
@@ -67,7 +66,19 @@ export function augmentCoin(p, exchange) {
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_BALANCE:
-      return Immutable.merge(state, { balance: action.balance })
+      return Immutable.merge(
+        state,
+        {
+          balance: {
+            [action.currency]: action.balance
+          } 
+        },
+        { deep: true }
+      )
+    case types.CLEAR_BALANCES:
+      return Immutable.merge(state, {
+        balance: null
+      })
     case types.SET_ORDERS:
       return Immutable.merge(state, {
         orders: Immutable(action.orders),
@@ -92,10 +103,6 @@ export default function reduce(state = initialState, action = {}) {
         },
         { deep: true }
       )
-    case types.SET_BALANCE_UNAVAILABLE:
-      return Immutable.merge(state, {
-        balanceUnavailable: true
-      })
     default:
       return state
   }
