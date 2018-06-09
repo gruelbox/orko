@@ -1,19 +1,22 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
 import * as errorActions from "../error/actions"
-import * as socket from "../socket/connect"
+
 
 export function checkWhiteList() {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, socket) => {
     try {
       const result = await authService.checkWhiteList()
       dispatch({ type: types.SET_WHITELIST_STATUS, status: Boolean(result) })
       if (result) {
+        console.log("Verified whitelist")
         dispatch(fetchOktaConfig())
-        if (getState().auth.loggedIn && !getState().socket.connected) {
+        if (!getState().socket.connected) {
+          console.log("Connecting")
           socket.connect()
         }
       } else {
+        console.log("Whitelist rejected, disconnecting")
         socket.disconnect()
       }
     } catch (error) {
@@ -23,11 +26,15 @@ export function checkWhiteList() {
 }
 
 export function whitelist(token) {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, socket) => {
     try {
       await authService.whitelist(token)
       dispatch({ type: types.SET_WHITELIST_STATUS, status: true })
       dispatch(fetchOktaConfig())
+      if (!getState().socket.connected) {
+        console.log("Connecting")
+        socket.connect()
+      }
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
     }
@@ -35,7 +42,7 @@ export function whitelist(token) {
 }
 
 export function clearWhitelist() {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, socket) => {
     try {
       await authService.clearWhiteList()
       dispatch({ type: types.SET_WHITELIST_STATUS, status: false })
@@ -60,21 +67,21 @@ export function fetchOktaConfig() {
 }
 
 export function logout() {
-  return (dispatch, getState) => {
+  return (dispatch, getState, socket) => {
     dispatch({ type: types.LOGOUT })
     socket.disconnect()
   }
 }
 
 export function setToken(token, userName) {
-  return (dispatch, getState) => {
+  return (dispatch, getState, socket) => {
     dispatch({ type: types.SET_TOKEN, token, userName })
     socket.connect()
   }
 }
 
 export function invalidateLogin() {
-  return (dispatch, getState) => {
+  return (dispatch, getState, socket) => {
     dispatch({ type: types.INVALIDATE_LOGIN })
     socket.disconnect()
   }

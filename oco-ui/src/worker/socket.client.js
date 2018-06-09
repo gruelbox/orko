@@ -62,8 +62,10 @@ export function connect(token) {
 }
 
 export function disconnect() {
-  if (connected)
+  if (connected) {
+    console.log("Disconnecting socket")
     worker.postMessage({ eventType: socketEvents.DISCONNECT })
+  }
 }
 
 export function changeSubscriptions(coins, selected) {

@@ -27,7 +27,7 @@ const store = createStore(
   }),
   compose(
     applyMiddleware(reduxRouterMiddleware),
-    applyMiddleware(thunk),
+    applyMiddleware(thunk.withExtraArgument(socket)),
   )
 )
 

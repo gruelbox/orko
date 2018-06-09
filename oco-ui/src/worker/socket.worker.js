@@ -35,6 +35,7 @@ function send(message) {
 const messageStart = "{ \"eventType\": \"" + socketEvents.MESSAGE + "\", \"payload\": "
 
 function connect({token, root}) {
+  console.log("Received connect request", root)
   var socket = ws("ws", token, root)
   socket.onopen = () => {
     connected = true
@@ -55,6 +56,7 @@ function connect({token, root}) {
 }
 
 function disconnect(socket) {
+  console.log("Received disconnect request")
   socket.close(undefined, "Shutdown", { keepClosed: true })
   connected = false
 }
