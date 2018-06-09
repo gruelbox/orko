@@ -1,7 +1,7 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
 import * as errorActions from "../error/actions"
-import * as socket from "../socketStoreIntegration"
+import * as socket from "../socket/connect"
 
 export function checkWhiteList() {
   return async (dispatch, getState) => {
@@ -10,7 +10,7 @@ export function checkWhiteList() {
       dispatch({ type: types.SET_WHITELIST_STATUS, status: Boolean(result) })
       if (result) {
         dispatch(fetchOktaConfig())
-        if (getState().auth.loggedIn && !getState().ticker.connected) {
+        if (getState().auth.loggedIn && !getState().socket.connected) {
           socket.connect()
         }
       } else {

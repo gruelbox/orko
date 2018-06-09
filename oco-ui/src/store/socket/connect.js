@@ -1,9 +1,10 @@
-import * as coinActions from "./coin/actions"
-import * as errorActions from "./error/actions"
-import * as notificationActions from "./notifications/actions"
-import * as socketClient from '../worker/socket.client.js'
-import * as tickerActions from "./ticker/actions"
-import { locationToCoin } from "../selectors/coins"
+import * as coinActions from "../coin/actions"
+import * as errorActions from "../error/actions"
+import * as notificationActions from "../notifications/actions"
+import * as socketClient from '../../worker/socket.client.js'
+import * as tickerActions from "../ticker/actions"
+import * as socketActions from "../socket/actions"
+import { locationToCoin } from "../../selectors/coins"
 
 var store
 
@@ -35,7 +36,7 @@ export function initialise(s, history) {
     socketClient.resubscribe()
   })
   socketClient.onConnectionStateChange(connected => {
-    store.dispatch(tickerActions.setConnectionState(connected))
+    store.dispatch(socketActions.setConnectionState(connected))
     if (connected) {
       console.log("Resubscribing following reconnection")
       resubscribe()

@@ -1,5 +1,5 @@
 import * as types from './actionTypes';
-import * as socket from "../socketStoreIntegration"
+import * as socket from "../socket/connect"
 
 export function add(coin) {
   return (dispatch, getState) => {

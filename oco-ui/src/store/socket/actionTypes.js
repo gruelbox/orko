@@ -1,0 +1,1 @@
+export const SET_CONNECTION_STATE = 'socket.SET_CONNECTION_STATE'

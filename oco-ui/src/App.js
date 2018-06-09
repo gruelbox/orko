@@ -11,7 +11,7 @@ import { ConnectedRouter, routerReducer, routerMiddleware } from 'react-router-r
 
 import thunk from "redux-thunk"
 import * as reducers from "./store/reducers"
-import * as socket from "./store/socketStoreIntegration"
+import * as socket from "./store/socket/connect"
 
 import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"

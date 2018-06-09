@@ -176,7 +176,7 @@ const ToolbarContainer = ({ticker, coin, connected, errors, userName, updateFocu
 export default connect(state => ({
   errors: state.error.errorBackground,
   userName: state.auth.userName,
-  connected: state.ticker.connected,
+  connected: state.socket.connected,
   updateFocusedField: state.focus.fn,
   ticker: getSelectedCoinTicker(state)
 }))(ToolbarContainer)
