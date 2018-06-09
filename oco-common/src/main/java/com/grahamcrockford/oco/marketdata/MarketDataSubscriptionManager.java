@@ -15,12 +15,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.TradeHistoryParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.TradeHistoryParamLimit;
 import org.knowm.xchange.service.trade.params.TradeHistoryParamPaging;
 import org.knowm.xchange.service.trade.params.TradeHistoryParams;
+import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
 import org.slf4j.Logger;
@@ -253,12 +255,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    changed.forEach(exchangeName -> {
-      LOGGER.info("... disconnecting from exchange: {}", exchangeName);
-      disconnectExchange(exchangeName);
-      subscriptionsPerExchange.removeAll(exchangeName);
-      LOGGER.info("... disconnected from exchange: {}", exchangeName);
-    });
+    changed.stream()
+      .parallel()
+      .forEach(exchangeName -> {
+        LOGGER.info("... disconnecting from exchange: {}", exchangeName);
+        disconnectExchange(exchangeName);
+        subscriptionsPerExchange.removeAll(exchangeName);
+        LOGGER.info("... disconnected from exchange: {}", exchangeName);
+      });
 
     return unchanged.build();
   }
@@ -273,9 +277,15 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private void subscribe(Multimap<String, MarketDataSubscription> byExchange, Set<String> unchanged) {
     final Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
-    byExchange
-      .asMap()
-      .forEach((exchangeName, subscriptionsForExchange) -> {
+    byExchange.asMap()
+      .entrySet()
+      .stream()
+      .parallel()
+      .forEach(e -> {
+
+        String exchangeName = e.getKey();
+        Collection<MarketDataSubscription> subscriptionsForExchange = e.getValue();
+
         Exchange exchange = exchangeService.get(exchangeName);
         if (isStreamingExchange(exchange)) {
           if (!unchanged.contains(exchangeName)) {
@@ -431,7 +441,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
         TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
         OpenOrdersParams params = tradeService.createOpenOrdersParams();
-        if (params instanceof OpenOrdersParamCurrencyPair) {
+        if (params == null) {
+          // Bitfinex
+          params = new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair());
+        } else if (params instanceof OpenOrdersParamCurrencyPair) {
           ((OpenOrdersParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
         } else {
           throw new UnsupportedOperationException("Don't know how to read open orders on this exchange: " + subscription.spec().exchange());
@@ -484,6 +497,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         onTradeHistory(TradeHistoryEvent.create(spec, trades));
 
       }
+    } catch (NotAvailableFromExchangeException e) {
+      LOGGER.warn(subscription.type() + " not available on " + subscription.spec().exchange());
     } catch (Throwable e) {
       LOGGER.error("Error fetching market data: " + subscription, e);
     }
