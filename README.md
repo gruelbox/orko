@@ -172,11 +172,13 @@ On the backend, set up the environment variables in addition to those already co
 | `MONGO_DATABASE`          | The bit at the end of `MONGODB_URI` after the last slash.  I should really just extract it from the URL. To do. |
 | `TELEGRAM_BOT_TOKEN`      | The bot API token. Can be left blank, in which case Telegram notifications won't be used, but must be defined. Note that at the moment, there are no other notifications (even on-screen) so it's a bit of a nightmare to use without phone notifiations.  Turn them on. |
 | `TELEGRAM_CHAT_ID`        | The chat ID. Must be defined but may be blank if `TELEGRAM_BOT_TOKEN` is. |
+| `CRYPTOPIA_API_KEY` | Your Cryptopia API key. May be left blank for paper trading.|
+| `CRYPTOPIA_SECRET` | Your Cryptopia API secret. May be left blank for paper trading.|
 | `GDAX_SANDBOX_API_KEY`    | Your API key from the GDAX sandbox (https://public.sandbox.gdax.com). If left blank, paper trading will be used. |
 | `GDAX_SANDBOX_SECRET`     | Your secret from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading. |
 | `GDAX_SANDBOX_PASSPHRASE` | Your passphrase from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading. |
 | `GDAX_API_KEY`            | Your GDAX API key. May be left blank for paper trading. |
-| `GDAX_SECRET`             | Your GDAX secret. May be left blank for paper trading.. |
+| `GDAX_SECRET`             | Your GDAX secret. May be left blank for paper trading. |
 | `GDAX_PASSPHRASE`         | Your GDAX passphrase. May be left blank for paper trading. |
 | `BINANCE_API_KEY`         | Your Binance API key. May be left blank for paper trading. |
 | `BINANCE_SECRET`          | Your Binance secret. May be left blank for paper trading. |
@@ -194,6 +196,7 @@ On the backend, set up the environment variables in addition to those already co
 | `LOG_LEVEL` | `INFO` (or `DEBUG` if you need it) |
 | `MAVEN_CUSTOM_OPTS` | `--update-snapshots -DskipTests=true` |
 | `MAVEN_CUSTOM_GOALS` | `clean package` |
+
 
 On the front end, set up as follows:
 
