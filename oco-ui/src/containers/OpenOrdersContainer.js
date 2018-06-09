@@ -8,8 +8,12 @@ import { getOrdersWithWatchesForSelectedCoin } from "../selectors/coins"
 
 class OpenOrdersContainer extends React.Component {
 
-  onCancel = (id, orderType) => {
+  onCancelExchange = (id, orderType) => {
     this.props.dispatch(coinActions.cancelOrder(this.props.coin, id, orderType))
+  }
+
+  onCancelServer = (jobId) => {
+    this.props.dispatch(jobActions.deleteJob({ id: jobId }))
   }
 
   onWatch = (id, watchJob) => {
@@ -26,7 +30,8 @@ class OpenOrdersContainer extends React.Component {
     ) : (
       <OpenOrders
         orders={this.props.orders}
-        onCancel={this.onCancel}
+        onCancelExchange={this.onCancelExchange}
+        onCancelServer={this.onCancelServer}
         onWatch={this.onWatch}
       />
     )

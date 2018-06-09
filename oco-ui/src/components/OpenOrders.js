@@ -34,11 +34,21 @@ const runningAtColumn = {
   id: "runningAt",
   Header: "At",
   Cell: ({ original }) => (
-    <Icon
-      fitted
-      name="server"
-      title="On exchange. Will execute immediately but locks up the balance."
-    />
+    original.runningAt === "SERVER"
+      ? (
+          <Icon
+            fitted
+            name="desktop"
+            title="On server. Slightly delayed execution which may cause slippage, but does not lock the balance."
+          />
+        )
+      : (
+          <Icon
+            fitted
+            name="server"
+            title="On exchange. Will execute immediately but locks up the balance."
+          />
+        )
   ),
   headerStyle: textStyle,
   style: textStyle,
@@ -50,7 +60,7 @@ const createdDateColumn = {
   id: "createdDate",
   accessor: "timestamp",
   Header: "Created",
-  Cell: ({ original }) => dateUtils.formatDate(original.timestamp),
+  Cell: ({ original }) => original.timestamp ? dateUtils.formatDate(original.timestamp) : "Unknown",
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
@@ -114,12 +124,18 @@ const filledColumn = {
   minWidth: 50
 }
 
-const cancelColumn = (onCancel) => ({
+const cancelColumn = (onCancelExchange, onCancelServer) => ({
   id: "close",
   Header: () => null,
   Cell: ({ original }) => (
     <Href
-      onClick={() => onCancel(original.id, original.type)}
+      onClick={() => {
+        if (original.runningAt === "SERVER") {
+          onCancelServer(original.jobId)
+        } else {
+          onCancelExchange(original.id, original.type)
+        }
+      }}
       title="Cancel order"
     >
       <Icon fitted name="close" />
@@ -136,15 +152,19 @@ const watchColumn = (onWatch) => ({
   id: "watch",
   Header: <Icon fitted name="eye" />,
   Cell: ({ original }) => (
-    <Href
-      onClick={() => onWatch(original.id, original.watchJob)}
-      title={original.watchJob ? "Remove watch" : "Add watch"}
-    >
-      <Icon
-        fitted
-        name={original.watchJob ? "eye" : "circle outline"}
-      />
-    </Href>
+    original.runningAt === "SERVER"
+      ? null
+      : (
+        <Href
+          onClick={() => onWatch(original.id, original.watchJob)}
+          title={original.watchJob ? "Remove watch" : "Add watch"}
+        >
+          <Icon
+            fitted
+            name={original.watchJob ? "eye" : "circle outline"}
+          />
+        </Href>
+      )
   ),
   headerStyle: textStyle,
   style: textStyle,
@@ -160,7 +180,7 @@ const OpenOrders = props => (
       className: rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell"
     })}
     columns={[
-      cancelColumn(props.onCancel),
+      cancelColumn(props.onCancelExchange, props.onCancelServer),
       orderTypeColumn,
       runningAtColumn,
       createdDateColumn,

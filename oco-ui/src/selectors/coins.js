@@ -1,7 +1,6 @@
 import { createSelector } from "reselect"
 import { getRouterLocation } from "./router"
-import { getAlertJobs } from "./jobs"
-import { getWatchJobs } from "./jobs"
+import { getAlertJobs, getWatchJobs, getStopJobs } from "./jobs"
 import { coinFromKey } from "../store/coin/reducer"
 
 const getCoins = state => state.coins.coins
@@ -30,23 +29,28 @@ export const getSelectedCoin = createSelector([getRouterLocation], location =>
   locationToCoin(location)
 )
 
+function jobTriggerMatchesCoin(job, coin) {
+  return job.tickTrigger.exchange === coin.exchange &&
+          job.tickTrigger.base === coin.base &&
+          job.tickTrigger.counter === coin.counter
+}
+
 export const getWatchJobsForSelectedCoin = createSelector(
   [getWatchJobs, getSelectedCoin],
   (jobs, coin) =>
     jobs && coin
-      ? jobs.filter(
-          job =>
-            job.tickTrigger.exchange === coin.exchange &&
-            job.tickTrigger.base === coin.base &&
-            job.tickTrigger.counter === coin.counter
-        )
+      ? jobs.filter(job => jobTriggerMatchesCoin(job, coin))
       : []
 )
 
 export const getOrdersWithWatchesForSelectedCoin = createSelector(
-  [getOrders, getWatchJobsForSelectedCoin],
-  (orders, watchJobs) =>
-    orders
+  [getOrders, getStopJobs, getWatchJobsForSelectedCoin, getSelectedCoin],
+  (orders, stopJobs, watchJobs, selectedCoin) => {
+
+    if (!selectedCoin)
+      return null
+
+    const exchange = orders
       ? orders.allOpenOrders.map(order => {
           const watchJob = watchJobs.find(job => job.orderId === order.id)
           if (watchJob) {
@@ -55,7 +59,24 @@ export const getOrdersWithWatchesForSelectedCoin = createSelector(
             return order
           }
         })
-      : null
+      : []
+
+    const server = stopJobs
+      .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
+      .map(job => ({
+        runningAt: "SERVER",
+        jobId: job.id,
+        type: job.high
+          ? job.high.job.direction === "BUY" ? "BID" : "ASK"
+          : job.low.job.direction === "BUY" ? "BID" : "ASK",
+        stopPrice: job.high ? Number(job.high.thresholdAsString) : Number(job.low.thresholdAsString),
+        limitPrice: job.high ? Number(job.high.job.bigDecimals.limitPrice) : Number(job.low.job.bigDecimals.limitPrice),
+        originalAmount: job.high ? Number(job.high.job.bigDecimals.amount) : Number(job.low.job.bigDecimals.amount),
+        cumulativeAmount: "--"
+      }))
+
+    return exchange.concat(server)
+  }
 )
 
 export const getTradeHistoryInReverseOrder = createSelector(

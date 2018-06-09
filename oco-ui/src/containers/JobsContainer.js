@@ -56,7 +56,7 @@ class JobsContainer extends React.Component {
   render() {
     const onRemove = this.onRemove
     const complexOnly = this.state.selected === "onlycomplex"
-    const show = job => !complexOnly || (job.jobType !== jobTypes.WATCH_JOB && !jobUtils.isAlert(job))
+    const show = job => !complexOnly || (job.jobType !== jobTypes.WATCH_JOB && !jobUtils.isAlert(job) && !jobUtils.isStop(job))
     const rawJobs = this.props.jobs.filter(job => show(job))
     var jobs
     if (this.state.loading) {
