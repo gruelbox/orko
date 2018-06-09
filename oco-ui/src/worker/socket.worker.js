@@ -4,6 +4,7 @@ import ReconnectingWebSocket from "reconnecting-websocket"
 
 var socket
 var connected = true
+var timer
 
 /**
  * Listen to and act on messages from the main thread
@@ -12,8 +13,10 @@ self.addEventListener('message', ({data}) => {
   switch (data.eventType) {
     case socketEvents.CONNECT:
       socket = connect(data.payload)
+      timer = setInterval(() => send({command: socketMessages.READY}), 3000)
       break
     case socketEvents.DISCONNECT:
+      clearInterval(timer)
       disconnect(socket)
       break
     case socketEvents.MESSAGE:
@@ -23,11 +26,6 @@ self.addEventListener('message', ({data}) => {
       console.log("Unknown message", data)
   }
 })
-
-/**
- * Keep the socket alive
- */
-setInterval(() => send({command: socketMessages.READY}), 3000)
 
 function send(message) {
   if (connected)

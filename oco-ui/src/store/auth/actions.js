@@ -1,7 +1,7 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
 import * as errorActions from "../error/actions"
-import * as tickerActions from "../ticker/actions"
+import * as socket from "../socketStoreIntegration"
 
 export function checkWhiteList() {
   return async (dispatch, getState) => {
@@ -11,10 +11,10 @@ export function checkWhiteList() {
       if (result) {
         dispatch(fetchOktaConfig())
         if (getState().auth.loggedIn && !getState().ticker.connected) {
-          dispatch(tickerActions.connect())
+          socket.connect()
         }
       } else {
-        dispatch(tickerActions.disconnect())
+        socket.disconnect()
       }
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
@@ -39,7 +39,7 @@ export function clearWhitelist() {
     try {
       await authService.clearWhiteList()
       dispatch({ type: types.SET_WHITELIST_STATUS, status: false })
-      dispatch(tickerActions.disconnect())
+      socket.disconnect()
     } catch (error) {
       dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
     }
@@ -62,21 +62,21 @@ export function fetchOktaConfig() {
 export function logout() {
   return (dispatch, getState) => {
     dispatch({ type: types.LOGOUT })
-    dispatch(tickerActions.disconnect())
+    socket.disconnect()
   }
 }
 
 export function setToken(token, userName) {
   return (dispatch, getState) => {
     dispatch({ type: types.SET_TOKEN, token, userName })
-    dispatch(tickerActions.connect())
+    socket.connect()
   }
 }
 
 export function invalidateLogin() {
   return (dispatch, getState) => {
     dispatch({ type: types.INVALIDATE_LOGIN })
-    dispatch(tickerActions.disconnect())
+    socket.disconnect()
   }
 }
 

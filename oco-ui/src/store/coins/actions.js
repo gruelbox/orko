@@ -1,16 +1,16 @@
 import * as types from './actionTypes';
-import * as tickerActions from '../ticker/actions';
+import * as socket from "../socketStoreIntegration"
 
 export function add(coin) {
   return (dispatch, getState) => {
     dispatch({ type: types.ADD, coin })
-    dispatch(tickerActions.resubscribe())
+    socket.resubscribe()
   }
 }
 
 export function remove(coin) {
   return (dispatch, getState) => {
     dispatch({ type: types.REMOVE, coin })
-    dispatch(tickerActions.resubscribe())
+    socket.resubscribe()
   }
 }

@@ -9,17 +9,14 @@ import { compose, createStore, applyMiddleware, combineReducers } from "redux"
 import createHistory from 'history/createBrowserHistory'
 import { ConnectedRouter, routerReducer, routerMiddleware } from 'react-router-redux'
 
-import createSagaMiddleware from "redux-saga"
 import thunk from "redux-thunk"
 import * as reducers from "./store/reducers"
-import rootSaga from "./store/sagas"
-import * as routerActions from "./store/router/actions"
+import * as socket from "./store/socketStoreIntegration"
 
 import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"
 import Framework from "./Framework"
 
-const sagaMiddleware = createSagaMiddleware()
 const history = createHistory()
 const reduxRouterMiddleware = routerMiddleware(history)
 
@@ -31,14 +28,10 @@ const store = createStore(
   compose(
     applyMiddleware(reduxRouterMiddleware),
     applyMiddleware(thunk),
-    applyMiddleware(sagaMiddleware),
   )
 )
-sagaMiddleware.run(rootSaga, store.dispatch, store.getState)
 
-history.listen(location => {
-  store.dispatch(routerActions.locationChanged(location))
-})
+socket.initialise(store, history)
 
 export default class App extends Component {
   render() {

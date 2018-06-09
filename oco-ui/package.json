@@ -51,7 +51,6 @@
     "recompose": "^0.27.1",
     "reconnecting-websocket": "^3.2.2",
     "redux": "^3.7.2",
-    "redux-saga": "^0.16.0",
     "redux-thunk": "^2.2.0",
     "reselect": "^3.0.1",
     "resolve": "1.6.0",
