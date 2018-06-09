@@ -41,7 +41,7 @@ class AuthEnvironment implements EnvironmentInitialiser {
 
     // Interceptor to convert protocol header into Bearer for use in websocket comms
     // And finally validate the JWT
-    if (authConfiguration.okta != null) {
+    if (authConfiguration.okta != null && StringUtils.isNotEmpty(authConfiguration.okta.issuer)) {
       environment.servlets().addFilter(ProtocolToBearerTranslationFilter.class.getSimpleName(), protocolToBearerTranslationFilter.get())
         .addMappingForUrlPatterns(null, true, "/*");
       environment.servlets().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())
