@@ -6,6 +6,7 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
 import static java.util.Collections.emptySet;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.account.Wallet;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -454,13 +456,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) {
     try {
-      return FluentIterable.from(
-          accountServiceFactory.getForExchange(exchangeName)
-            .getAccountInfo()
-            .getWallet()
-            .getBalances()
-            .entrySet()
-        )
+      return FluentIterable.from(exchangeWallet(exchangeName).getBalances().entrySet())
         .transform(Map.Entry::getValue)
         .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
         .transform(Balance::create);
@@ -470,6 +466,18 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     } catch (Throwable e) {
       LOGGER.error("Error fetching balance on " + exchangeName, e);
       return Collections.emptyList();
+    }
+  }
+
+  private Wallet exchangeWallet(String exchangeName) throws IOException {
+    if (exchangeName.equals("bitfinex")) {
+      return accountServiceFactory.getForExchange(exchangeName)
+          .getAccountInfo()
+          .getWallet("exchange");
+    } else {
+      return accountServiceFactory.getForExchange(exchangeName)
+        .getAccountInfo()
+        .getWallet();
     }
   }
 
