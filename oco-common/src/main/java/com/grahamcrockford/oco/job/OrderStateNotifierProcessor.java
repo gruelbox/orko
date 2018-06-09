@@ -118,7 +118,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
 
   private void completedOrRemovedMessage(OrderStateNotifier job2) {
     String message = String.format(
-        "Order closed: order for %s on [%s %s/%s] (id %s) not found. Was cancelled or filled.",
+        "Order closed: order for %s on [%s %s/%s] (id %s). Was cancelled or filled.",
         order.getOriginalAmount().toPlainString(),
         job.tickTrigger().exchange(),
         job.tickTrigger().base(),
@@ -138,7 +138,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
 
   private void notFoundMessage(OrderStateNotifier job) {
     String message = String.format(
-        "Order not found: order id [%s] on [%s %s/%s] not found. Was cancelled or filled.",
+        "Order not found: order id [%s] on [%s %s/%s]. Was cancelled or filled.",
         job.orderId(),
         job.tickTrigger().exchange(),
         job.tickTrigger().base(),
