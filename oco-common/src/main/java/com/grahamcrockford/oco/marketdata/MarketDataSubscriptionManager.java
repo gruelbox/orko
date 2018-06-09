@@ -10,6 +10,7 @@ import static java.util.Collections.emptySet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
 import org.knowm.xchange.Exchange;
@@ -37,12 +38,11 @@ import com.google.common.collect.Multimaps;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.util.SafelyDispose;
-import com.grahamcrockford.oco.util.Sleep;
-
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
@@ -68,8 +68,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
-  private final Sleep sleep;
+  private final OcoConfiguration configuration;
 
+  private final AtomicLong lastUpdatedSubscriptionsTime = new AtomicLong(0L);
   private final AtomicReference<Set<MarketDataSubscription>> nextSubscriptions = new AtomicReference<>();
   private final Multimap<String, MarketDataSubscription> subscriptionsPerExchange = HashMultimap.create();
   private ImmutableSet<MarketDataSubscription> activePolling = ImmutableSet.of();
@@ -89,9 +90,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   @Inject
   @VisibleForTesting
-  public MarketDataSubscriptionManager(ExchangeService exchangeService, Sleep sleep, TradeServiceFactory tradeServiceFactory) {
+  public MarketDataSubscriptionManager(ExchangeService exchangeService, OcoConfiguration configuration, TradeServiceFactory tradeServiceFactory) {
     this.exchangeService = exchangeService;
-    this.sleep = sleep;
+    this.configuration = configuration;
     this.tradeServiceFactory = tradeServiceFactory;
     this.tickers = Flowable.create((FlowableEmitter<TickerEvent> e) -> tickerEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
     this.openOrders = Flowable.create((FlowableEmitter<OpenOrdersEvent> e) -> openOrdersEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
@@ -113,6 +114,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    */
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
     nextSubscriptions.set(ImmutableSet.copyOf(subscriptions));
+
+    // As long as we've not performed a resubscription recently, give the loop a kick so
+    // we get our updates quickly.
+    long currentTimeMillis = System.currentTimeMillis();
+    long lastChanged = lastUpdatedSubscriptionsTime.getAndSet(System.currentTimeMillis());
+    if (currentTimeMillis - lastChanged > configuration.getLoopSeconds() * 1000) {
+      synchronized (this) {
+        this.notify();
+      }
+    }
   }
 
 
@@ -380,8 +391,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       LOGGER.debug("{} going to sleep", this);
       try {
-        sleep.sleep();
+        synchronized (this) {
+          this.wait(configuration.getLoopSeconds() * 1000);
+        }
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         break;
       }
 

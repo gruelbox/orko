@@ -23,8 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.ExchangeServiceImpl;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.util.Sleep;
-
 import ch.qos.logback.classic.Level;
 import io.reactivex.disposables.Disposable;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
@@ -50,7 +48,6 @@ public class TestMarketDataIntegration {
 
   private MarketDataSubscriptionManager marketDataSubscriptionManager;
   private ExchangeEventBus exchangeEventBus;
-  private Sleep sleep;
 
 
   @Before
@@ -60,11 +57,10 @@ public class TestMarketDataIntegration {
 
     OcoConfiguration ocoConfiguration = new OcoConfiguration();
     ocoConfiguration.setLoopSeconds(2);
-    sleep = new Sleep(ocoConfiguration);
     ExchangeServiceImpl exchangeServiceImpl = new ExchangeServiceImpl(ocoConfiguration);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
       exchangeServiceImpl,
-      sleep,
+      ocoConfiguration,
       null
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
@@ -155,7 +151,7 @@ public class TestMarketDataIntegration {
       });
       Disposable disposable2 = exchangeEventBus.getTickers("ME").throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
         System.out.println(Thread.currentThread().getId() + " (B) received ticker: " + t);
-        sleep.sleep();
+        Thread.sleep(2000);
         called2.countDown();
       });
       Disposable disposable3 = exchangeEventBus.getOrderBooks("ME").throttleLast(1, TimeUnit.SECONDS).subscribe(t -> {

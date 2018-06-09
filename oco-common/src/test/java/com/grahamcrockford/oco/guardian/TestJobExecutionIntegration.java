@@ -34,7 +34,6 @@ import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.submit.JobAccess;
 import com.grahamcrockford.oco.submit.JobLocker;
-import com.grahamcrockford.oco.util.Sleep;
 
 public class TestJobExecutionIntegration {
 
@@ -82,7 +81,7 @@ public class TestJobExecutionIntegration {
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    marketDataSubscriptionManager = new MarketDataSubscriptionManager(exchangeService, new Sleep(config), tradeServiceFactory);
+    marketDataSubscriptionManager = new MarketDataSubscriptionManager(exchangeService, config, tradeServiceFactory);
   }
 
 
