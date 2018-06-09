@@ -8,7 +8,6 @@ import ReactTable from "react-table"
 import Section from "../components/primitives/Section"
 import Href from "../components/primitives/Href"
 import Span from "../components/primitives/Span"
-import FlashEntry from "../components/primitives/FlashEntry"
 import { Icon } from "semantic-ui-react"
 import theme from "../theme"
 
@@ -21,11 +20,7 @@ const columns = [
     id: "icon",
     Header: null,
     accessor: "notificationType",
-    Cell: ({original}) => (
-      <FlashEntry>
-        {original.notificationType === "ERROR" ? <Icon fitted name="warning sign"/> : <Icon fitted name="info"/>}
-      </FlashEntry>
-    ),
+    Cell: ({original}) => original.notificationType === "ERROR" ? <Icon fitted name="warning sign"/> : <Icon fitted name="info"/>,
     headerStyle: textStyle,
     style: textStyle,
     resizable: true,
@@ -35,7 +30,7 @@ const columns = [
     id: "dateTime",
     Header: "Time",
     accessor: "dateTime",
-    Cell: ({original}) => <FlashEntry content={dateUtils.formatDate(original.dateTime)} />,
+    Cell: ({original}) => dateUtils.formatDate(original.dateTime),
     headerStyle: textStyle,
     style: textStyle,
     resizable: true,
@@ -45,7 +40,7 @@ const columns = [
     id: "message",
     Header: "Message",
     accessor: "message",
-    Cell: ({original}) => <FlashEntry content={original.message} />,
+    Cell: ({original}) => original.message,
     headerStyle: textStyle,
     style: textStyle,
     resizable: true

@@ -16,7 +16,6 @@ import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
-import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
 
 class LimitOrderJobProcessor implements LimitOrderJob.Processor {
@@ -90,41 +89,11 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
   }
 
   private void reportSuccess(final LimitOrderJob job, String xChangeOrderId) {
-    final TickerSpec ex = job.tickTrigger();
-
-    String string = String.format(
-      "[%s/%s/%s]: placed %s order id [%s] for [%s %s] at [%s %s]",
-      ex.exchange(),
-      ex.base(),
-      ex.counter(),
-      job.direction(),
-      xChangeOrderId,
-      job.amount(),
-      ex.base(),
-      job.limitPrice(),
-      ex.counter()
-    );
-
-    notificationService.info(string);
+    notificationService.info(String.format("Placed order: %s (order id [%s])", job, xChangeOrderId));
   }
 
   private void reportFailed(final LimitOrderJob job, Throwable e) {
-    final TickerSpec ex = job.tickTrigger();
-
-    String string = String.format(
-      "[%s/%s/%s]: attempted %s order for [%s %s] at [%s %s] but failed. It might have worked. Error detail: %s",
-      ex.exchange(),
-      ex.base(),
-      ex.counter(),
-      job.direction(),
-      job.amount(),
-      ex.base(),
-      job.limitPrice(),
-      ex.counter(),
-      e.getMessage()
-    );
-
-    notificationService.error(string);
+    notificationService.error(String.format("Order failed: %s (%s)", job, e.getMessage()), e);
   }
 
   public static final class Module extends AbstractModule {

@@ -60,7 +60,7 @@ const RawFieldSet = styled.fieldset.attrs({
 const Input = props => (
   <RawFieldSet mr={props.mr ? props.mr : 2}>
     {props.label &&
-      <RawLabel for={props.id} disabled={props.disabled}>{props.label}</RawLabel>
+      <RawLabel htmlFor={props.id} disabled={props.disabled}>{props.label}</RawLabel>
     }
     <RawInput
       id={props.id}

@@ -95,17 +95,6 @@ const globalCss = `
       color: inherit !important;
     }
 
-    .flashEntry-appear {
-      color: white;
-      text-shadow: 0px 0px 5px white;
-    }
-      
-    .flashEntry-appear.flashEntry-appear-active {
-      color: inherit;
-      text-shadow: none;
-      transition: color 2s, text-shadow 2s;
-    }
-
     .oco-deemphasis {
       color: ${theme.colors.deemphasis} !important;
     }

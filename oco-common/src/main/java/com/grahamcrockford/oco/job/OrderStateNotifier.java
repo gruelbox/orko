@@ -53,6 +53,10 @@ public abstract class OrderStateNotifier implements Job {
   @JsonProperty
   public abstract String orderId();
 
+  @Override
+  public String toString() {
+    return String.format("watch order %s on %s", orderId(), tickTrigger());
+  }
 
   @JsonIgnore
   @Override

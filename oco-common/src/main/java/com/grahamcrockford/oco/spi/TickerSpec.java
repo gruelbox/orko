@@ -47,6 +47,11 @@ public abstract class TickerSpec {
     return base() + "/" + counter();
   }
 
+  @Override
+  public final String toString() {
+    return base() + "/" + counter() + " on " + exchange();
+  }
+
   @JsonIgnore
   public final CurrencyPair currencyPair() {
     return new CurrencyPair(base(), counter());

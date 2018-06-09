@@ -102,6 +102,11 @@ public abstract class SoftTrailingStop implements Job {
         .build();
   }
 
+  @Override
+  public String toString() {
+    return String.format("soft trailing stop: %s %s at %s on %s", amount(), tickTrigger().base(), stopPrice(), tickTrigger());
+  }
+
   @JsonIgnore
   @Override
   public final Class<Processor.Factory> processorFactory() {

@@ -73,7 +73,7 @@ public class JobResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public Job put(Job job) throws AuthenticationException {
     Job created = jobSubmitter.submitNewUnchecked(job);
-    notificationService.info("Created job " + created.id());
+    notificationService.info("Requested: " + created + " (" + created.id() + ")");
     return created;
   }
 
@@ -101,8 +101,9 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
+    Job job = jobAccess.load(id);
     jobAccess.delete(id);
-    notificationService.info("Deleted job " + id);
+    notificationService.info("Deleted: " + job + " (" + id + ")");
   }
 
   @PUT

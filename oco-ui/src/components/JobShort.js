@@ -4,7 +4,6 @@ import styled from "styled-components"
 
 import Href from "./primitives/Href"
 import Link from "./primitives/Link"
-import FlashEntry from "./primitives/FlashEntry"
 import * as jobTypes from "../services/jobTypes"
 
 const BUY = "BUY"
@@ -98,16 +97,14 @@ export default class JobShort extends React.Component {
 
   render() {
     return (
-      <FlashEntry>
-        <JobShortBox>
-          <Href title="Delete job" onClick={this.props.onRemove}>
-            <Icon name="close" />
-          </Href>
-          <Link to={"/job/" + this.props.job.id}>
-            {this.describe(this.props.job)}
-          </Link>
-        </JobShortBox>
-      </FlashEntry>
+      <JobShortBox>
+        <Href title="Delete job" onClick={this.props.onRemove}>
+          <Icon name="close" />
+        </Href>
+        <Link to={"/job/" + this.props.job.id}>
+          {this.describe(this.props.job)}
+        </Link>
+      </JobShortBox>
     )
   }
 }

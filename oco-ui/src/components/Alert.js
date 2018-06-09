@@ -6,8 +6,7 @@ import Form from "./primitives/Form"
 import Button from "./primitives/Button"
 
 const Alert = props => {
-  const valid =
-    (props.highPriceValid || props.lowPriceValid) && props.messageValid
+  const valid = (props.highPriceValid || props.lowPriceValid)
 
   const onChange = props.onChange
     ? (prop, e) =>

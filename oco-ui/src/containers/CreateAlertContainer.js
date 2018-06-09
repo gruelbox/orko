@@ -18,7 +18,7 @@ class CreateAlertContainer extends React.Component {
       job: Immutable({
         highPrice: "",
         lowPrice: "",
-        message: "Alert"
+        message: ""
       })
     }
   }
@@ -66,10 +66,9 @@ class CreateAlertContainer extends React.Component {
               message:
                 "Price of " +
                 this.props.coin.name +
-                " dropped below [" +
+                " dropped below " +
                 this.state.job.lowPrice +
-                "]: " +
-                this.state.job.message
+                ((this.state.job.message !== "") ? ": " + this.state.job.message : "")
             }
           }
         : null,
@@ -81,10 +80,9 @@ class CreateAlertContainer extends React.Component {
               message:
                 "Price of " +
                 this.props.coin.name +
-                " rose above [" +
+                " rose above " +
                 this.state.job.highPrice +
-                "]: " +
-                this.state.job.message
+                ((this.state.job.message !== "") ? ": " + this.state.job.message : "")
             }
           }
         : null
@@ -101,7 +99,6 @@ class CreateAlertContainer extends React.Component {
       this.state.job.highPrice && isValidNumber(this.state.job.highPrice)
     const lowPriceValid =
       this.state.job.lowPrice && isValidNumber(this.state.job.lowPrice)
-    const messageValid = this.state.job.message !== ""
 
     return (
       <Alert
@@ -111,7 +108,6 @@ class CreateAlertContainer extends React.Component {
         onSubmit={this.onSubmit}
         highPriceValid={highPriceValid}
         lowPriceValid={lowPriceValid}
-        messageValid={messageValid}
       />
     )
   }

@@ -66,6 +66,19 @@ public abstract class OneCancelsOther implements Job {
   @JsonProperty
   public abstract boolean verbose();
 
+  @Override
+  public String toString() {
+    if (high() == null) {
+      return String.format("when price drops below %s on %s, %s", low().threshold(), tickTrigger(), low().job());
+    } else {
+      if (low() == null) {
+        return String.format("when price rises above %s on %s, %s", high().threshold(), tickTrigger(), high().job());
+      } else {
+        return String.format("one-cancels-other (high: %s, low: %s) on %s", high().threshold(), low().threshold(), tickTrigger());
+      }
+    }
+  }
+
   @JsonIgnore
   @Override
   public final Class<Processor.Factory> processorFactory() {

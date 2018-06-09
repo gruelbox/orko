@@ -79,6 +79,11 @@ public abstract class LimitOrderJob implements Job {
         .build();
   }
 
+  @Override
+  public String toString() {
+    return String.format("%s order: %s %s at %s on %s", direction(), amount(), tickTrigger().base(), limitPrice(), tickTrigger());
+  }
+
   @JsonIgnore
   @Override
   public final Class<Processor.Factory> processorFactory() {

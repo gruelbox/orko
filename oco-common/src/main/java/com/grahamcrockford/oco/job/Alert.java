@@ -48,6 +48,11 @@ public abstract class Alert implements Job {
   @JsonProperty
   public abstract String message();
 
+  @Override
+  public String toString() {
+    return String.format("send alert '%s'", message());
+  }
+
   @JsonIgnore
   @Override
   public final Class<Processor.Factory> processorFactory() {

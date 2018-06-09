@@ -2,7 +2,6 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 import Price from "../components/primitives/Price"
-import FlashEntry from "../components/primitives/FlashEntry"
 import * as dateUtils from "../util/dateUtils"
 
 const textStyle = {
@@ -17,9 +16,7 @@ const dateColumn = {
   id: "date",
   accessor: "d",
   Header: "Created",
-  Cell: ({ original }) => (
-    <FlashEntry content={dateUtils.formatDate(original.d)} />
-  ),
+  Cell: ({ original }) => dateUtils.formatDate(original.d),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
@@ -31,9 +28,7 @@ const orderTypeColumn = {
   Header: <Icon fitted name="sort" title="Direction"/>,
   accessor: "t",
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Icon fitted name={original.t === "BID" ? "arrow up" : "arrow down"} title={original.t === "BID" ? "Buy" : "Sell"}/>
-    </FlashEntry>
+    <Icon fitted name={original.t === "BID" ? "arrow up" : "arrow down"} title={original.t === "BID" ? "Buy" : "Sell"}/>
   ),
   headerStyle: textStyle,
   style: textStyle,
@@ -44,11 +39,9 @@ const orderTypeColumn = {
 const priceColumn = {
   Header: "Price",
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Price counter={original.c.counter} color={original.t === "BID" ? "buy" : "sell"} noflash bare>
-        {original.p}
-      </Price>
-    </FlashEntry>
+    <Price counter={original.c.counter} color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+      {original.p}
+    </Price>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -60,11 +53,9 @@ const priceColumn = {
 const amountColumn ={
   Header: "Amount",
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
-        {original.a}
-      </Price>
-    </FlashEntry>
+    <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+      {original.a}
+    </Price>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -76,11 +67,9 @@ const amountColumn ={
 const feeAmountColumn = {
   Header: "Fee",
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
-        {original.fa}
-      </Price>
-    </FlashEntry>
+    <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+      {original.fa}
+    </Price>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -91,9 +80,7 @@ const feeAmountColumn = {
 
 const feeCurrencyColumn = {
   Header: "Fee Ccy",
-  Cell: ({ original }) => (
-    <FlashEntry content={original.fc} />
-  ),
+  accessor: "fc",
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,

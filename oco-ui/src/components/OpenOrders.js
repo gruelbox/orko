@@ -2,8 +2,8 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 import Href from "../components/primitives/Href"
-import FlashEntry from "../components/primitives/FlashEntry"
 import * as dateUtils from "../util/dateUtils"
+import Price from "../components/primitives/Price"
 
 const textStyle = {
   textAlign: "left"
@@ -18,13 +18,11 @@ const orderTypeColumn = {
   Header: <Icon fitted name="sort" title="Direction" />,
   accessor: "type",
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Icon
-        fitted
-        name={original.type === "BID" ? "arrow up" : "arrow down"}
-        title={original.type === "BID" ? "Buy" : "Sell"}
-      />
-    </FlashEntry>
+    <Icon
+      fitted
+      name={original.type === "BID" ? "arrow up" : "arrow down"}
+      title={original.type === "BID" ? "Buy" : "Sell"}
+    />
   ),
   headerStyle: textStyle,
   style: textStyle,
@@ -36,13 +34,11 @@ const runningAtColumn = {
   id: "runningAt",
   Header: "At",
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Icon
-        fitted
-        name="server"
-        title="On exchange. Will execute immediately but locks up the balance."
-      />
-    </FlashEntry>
+    <Icon
+      fitted
+      name="server"
+      title="On exchange. Will execute immediately but locks up the balance."
+    />
   ),
   headerStyle: textStyle,
   style: textStyle,
@@ -54,9 +50,7 @@ const createdDateColumn = {
   id: "createdDate",
   accessor: "timestamp",
   Header: "Created",
-  Cell: ({ original }) => (
-    <FlashEntry content={dateUtils.formatDate(original.timestamp)} />
-  ),
+  Cell: ({ original }) => dateUtils.formatDate(original.timestamp),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
@@ -65,7 +59,11 @@ const createdDateColumn = {
 
 const limitPriceColumn = {
   Header: "Limit",
-  Cell: ({ original }) => <FlashEntry content={original.limitPrice} />,
+  Cell: ({ original }) => (
+    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+      {original.limitPrice}
+    </Price>
+  ),
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
@@ -77,7 +75,9 @@ const stopPriceColumn = {
   id: "stopPrice",
   Header: "Trigger",
   Cell: ({ original }) => (
-    <FlashEntry content={original.stopPrice ? original.stopPrice : "-"} />
+    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+      {original.stopPrice ? original.stopPrice : "--"}
+    </Price>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -88,7 +88,11 @@ const stopPriceColumn = {
 
 const amountColumn = {
   Header: "Amount",
-  Cell: ({ original }) => <FlashEntry content={original.originalAmount} />,
+  Cell: ({ original }) => (
+    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+      {original.originalAmount}
+    </Price>
+  ),
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
@@ -98,7 +102,11 @@ const amountColumn = {
 
 const filledColumn = {
   Header: "Filled",
-  Cell: ({ original }) => <FlashEntry content={original.cumulativeAmount} />,
+  Cell: ({ original }) => (
+    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+      {original.cumulativeAmount}
+    </Price>
+  ),
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
@@ -110,14 +118,12 @@ const cancelColumn = (onCancel) => ({
   id: "close",
   Header: () => null,
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Href
-        onClick={() => onCancel(original.id, original.type)}
-        title="Cancel order"
-      >
-        <Icon fitted name="close" />
-      </Href>
-    </FlashEntry>
+    <Href
+      onClick={() => onCancel(original.id, original.type)}
+      title="Cancel order"
+    >
+      <Icon fitted name="close" />
+    </Href>
   ),
   headerStyle: textStyle,
   style: textStyle,
@@ -130,17 +136,15 @@ const watchColumn = (onWatch) => ({
   id: "watch",
   Header: <Icon fitted name="eye" />,
   Cell: ({ original }) => (
-    <FlashEntry>
-      <Href
-        onClick={() => onWatch(original.id, original.watchJob)}
-        title={original.watchJob ? "Remove watch" : "Add watch"}
-      >
-        <Icon
-          fitted
-          name={original.watchJob ? "eye" : "circle outline"}
-        />
-      </Href>
-    </FlashEntry>
+    <Href
+      onClick={() => onWatch(original.id, original.watchJob)}
+      title={original.watchJob ? "Remove watch" : "Add watch"}
+    >
+      <Icon
+        fitted
+        name={original.watchJob ? "eye" : "circle outline"}
+      />
+    </Href>
   ),
   headerStyle: textStyle,
   style: textStyle,

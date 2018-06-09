@@ -1,34 +1,26 @@
 package com.grahamcrockford.oco.job;
 
-import java.io.IOException;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
+
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.knowm.xchange.binance.service.BinanceQueryOrderParams;
 import org.knowm.xchange.dto.Order;
-import org.knowm.xchange.dto.trade.OpenOrders;
-import org.knowm.xchange.exceptions.ExchangeException;
-import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
-import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterables;
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.grahamcrockford.oco.exchange.TradeServiceFactory;
+import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
+import com.grahamcrockford.oco.marketdata.OpenOrdersEvent;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
-import com.grahamcrockford.oco.spi.KeepAliveEvent;
-
-import si.mazi.rescu.HttpStatusExceptionSupport;
+import io.reactivex.disposables.Disposable;
 
 class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
 
@@ -45,64 +37,71 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   );
 
   private final NotificationService notificationService;
-  private final TradeServiceFactory tradeServiceFactory;
-  private final AsyncEventBus asyncEventBus;
+  private final ExchangeEventRegistry exchangeEventRegistry;
   private final OrderStateNotifier job;
   private final JobControl jobControl;
 
-  private final AtomicBoolean couldNotFetchOrderData = new AtomicBoolean();
+  private final String subscriberId;
+  private volatile Disposable subscription;
+  private volatile Order order;
 
 
   @AssistedInject
   public OrderStateNotifierProcessor(@Assisted OrderStateNotifier job,
                                      @Assisted JobControl jobControl,
                                      final NotificationService notificationService,
-                                     final TradeServiceFactory tradeServiceFactory,
-                                     final AsyncEventBus asyncEventBus) {
+                                     ExchangeEventRegistry exchangeEventRegistry) {
     this.job = job;
     this.jobControl = jobControl;
     this.notificationService = notificationService;
-    this.tradeServiceFactory = tradeServiceFactory;
-    this.asyncEventBus = asyncEventBus;
+    this.exchangeEventRegistry = exchangeEventRegistry;
+    this.subscriberId = "OrderStateNotifierProcessor/" + job.id();
   }
 
   @Override
   public boolean start() {
-    if (tick()) {
-      asyncEventBus.register(this);
-      return true;
-    } else {
-      couldNotFetchOrderData.set(true);
-      return false;
-    }
+    exchangeEventRegistry.changeSubscriptions(subscriberId, MarketDataSubscription.create(job.tickTrigger(), OPEN_ORDERS));
+    subscription = exchangeEventRegistry.getOpenOrders(subscriberId).subscribe(this::tick);
+    return true;
   }
 
   @Override
   public void stop() {
-    if (!couldNotFetchOrderData.get())
-      asyncEventBus.unregister(this);
+    subscription.dispose();
+    exchangeEventRegistry.clearSubscriptions(subscriberId);
   }
 
-  @Subscribe
   @VisibleForTesting
-  void process(KeepAliveEvent keepAliveEvent) {
-    if (!tick())
+  void tick(OpenOrdersEvent openOrdersEvent) {
+
+    Collection<Order> matchingOrders = openOrdersEvent.openOrders()
+        .getAllOpenOrders()
+        .stream()
+        .filter(o -> o.getId().equals(job.orderId()))
+        .collect(Collectors.toList());
+
+    if (matchingOrders.isEmpty()) {
+
+      if (this.order == null) {
+        notFoundMessage(job);
+      } else  {
+        completedOrRemovedMessage(job);
+      }
       jobControl.finish();
-  }
+      return;
 
-  private boolean tick() {
+    } else if (matchingOrders.size() != 1) {
 
-    final Order order = getOrder(job);
-    if (order == null) {
-
-      return false;
+      notUniqueMessage(job);
+      jobControl.finish();
+      return;
 
     } else {
+      this.order = matchingOrders.iterator().next();
 
       BigDecimal amount = order.getOriginalAmount();
       BigDecimal filled = order.getCumulativeAmount();
       Order.OrderStatus status = order.getStatus();
-
       COLUMN_LOGGER.line(
         job.id(),
         job.tickTrigger().exchange(),
@@ -114,116 +113,20 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
         filled
       );
 
-      switch (order.getStatus()) {
-        case PENDING_CANCEL:
-        case CANCELED:
-        case EXPIRED:
-        case PENDING_REPLACE:
-        case REPLACED:
-        case REJECTED:
-          notificationService.info(String.format(
-            "Order [%s] on [%s/%s/%s] %s. Giving up.",
-            job.orderId(),
-            job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
-            status
-          ));
-          return false;
-        case FILLED:
-        case STOPPED:
-          notificationService.info(String.format(
-            "Order [%s] on [%s/%s/%s] has %s. Average price [%s]",
-            job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
-            status, order.getAveragePrice()
-          ));
-          return false;
-        case PENDING_NEW:
-        case NEW:
-        case PARTIALLY_FILLED:
-          // In progress so ignore
-          return true;
-        default:
-          notificationService.info(String.format(
-            "Order [%s] on [%s/%s/%s] in unknown status %s. Giving up.",
-            job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter(),
-            status
-          ));
-          return false;
-      }
     }
   }
 
-  private Order getOrder(OrderStateNotifier job) {
-    final Collection<Order> matchingOrders;
-    try {
-      matchingOrders = tradeServiceFactory.getForExchange(job.tickTrigger().exchange())
-          .getOrder(new BinanceQueryOrderParams(job.tickTrigger().currencyPair(), job.orderId()));
-    } catch (NotAvailableFromExchangeException e) {
-      return getOrders(job);
-    } catch (ArithmeticException e) {
-      gdaxBugMessage(job);
-      return null;
-    } catch (ExchangeException | IOException e) {
-      if (e.getCause() instanceof HttpStatusExceptionSupport && ((HttpStatusExceptionSupport)e.getCause()).getHttpStatusCode() == 404) {
-        notFoundMessage(job);
-        return null;
-      } else {
-        throw new RuntimeException(e);
-      }
-    }
-
-    if (matchingOrders == null || matchingOrders.isEmpty()) {
-      notFoundMessage(job);
-      return null;
-    } else if (matchingOrders.size() != 1) {
-      notUniqueMessage(job);
-      return null;
-    }
-
-    return Iterables.getOnlyElement(matchingOrders);
-  }
-
-  private Order getOrders(OrderStateNotifier job2) {
-    final Collection<Order> matchingOrders;
-    try {
-      OpenOrders openOrders = tradeServiceFactory
-        .getForExchange(job.tickTrigger().exchange())
-        .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(job.tickTrigger().currencyPair()));
-      matchingOrders = openOrders
-        .getAllOpenOrders()
-        .stream()
-        .filter(o -> o.getId().equals(job.orderId()))
-        .collect(Collectors.toList());
-    } catch (NotAvailableFromExchangeException e) {
-      notSupportedMessage(job);
-      return null;
-    } catch (ExchangeException | IOException e) {
-      if (e.getCause() instanceof HttpStatusExceptionSupport && ((HttpStatusExceptionSupport)e.getCause()).getHttpStatusCode() == 404) {
-        notFoundMessage(job);
-        return null;
-      } else {
-        throw new RuntimeException(e);
-      }
-    }
-
-    if (matchingOrders.isEmpty()) {
-      notFoundMessage(job);
-      return null;
-    } else if (matchingOrders.size() != 1) {
-      notUniqueMessage(job);
-      return null;
-    }
-
-    return Iterables.getOnlyElement(matchingOrders);
-  }
-
-  private void gdaxBugMessage(OrderStateNotifier job) {
+  private void completedOrRemovedMessage(OrderStateNotifier job2) {
     String message = String.format(
-        "Order [%s] on [%s/%s/%s] can't be checked. There's a bug in the GDAX access library which prevents it. It'll be fixed soon.",
-        job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
+        "Order closed: order for %s on [%s %s/%s] (id %s) not found. Was cancelled or filled.",
+        order.getOriginalAmount().toPlainString(),
+        job.tickTrigger().exchange(),
+        job.tickTrigger().base(),
+        job.tickTrigger().counter(),
+        job.orderId()
       );
-    notificationService.error(message);
+    notificationService.info(message);
   }
-
 
   private void notUniqueMessage(OrderStateNotifier job) {
     String message = String.format(
@@ -235,18 +138,13 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
 
   private void notFoundMessage(OrderStateNotifier job) {
     String message = String.format(
-        "Order [%s] on [%s] was not found on the exchange. It may have been cancelled. Giving up.",
-        job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
+        "Order not found: order id [%s] on [%s %s/%s] not found. Was cancelled or filled.",
+        job.orderId(),
+        job.tickTrigger().exchange(),
+        job.tickTrigger().base(),
+        job.tickTrigger().counter()
       );
     notificationService.info(message);
-  }
-
-  private void notSupportedMessage(OrderStateNotifier job) {
-    String message = String.format(
-        "Order [%s] on [%s] can't be checked. The exchange doesn't support order status checks. Giving up.",
-        job.orderId(), job.tickTrigger().exchange(), job.tickTrigger().base(), job.tickTrigger().counter()
-      );
-    notificationService.error(message);
   }
 
   public static final class Module extends AbstractModule {
