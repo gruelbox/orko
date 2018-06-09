@@ -86,6 +86,7 @@ const Container = styled.div`
 `
 
 class Price extends React.PureComponent {
+
   constructor(props) {
     super(props)
     this.state = { movement: null }
@@ -101,10 +102,15 @@ class Price extends React.PureComponent {
       }
       if (movement) {
         this.setState({ movement: movement }, () =>
-          setTimeout(() => this.setState({ movement: null }), 2100)
+          this.timeout = setTimeout(() => this.setState({ movement: null }), 2100)
         )
       }
     }
+  }
+
+  componentWillUnmount() {
+    if (this.timeout)
+      clearTimeout(this.timeout)
   }
 
   onClick = () => {
