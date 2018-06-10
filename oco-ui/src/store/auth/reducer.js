@@ -20,10 +20,10 @@ export default function reduce(state = initialState, action = {}) {
     case types.WHITELIST_UPDATE:
       return Immutable.merge(state, {
         whitelisted: action.payload === true,
-        error: action.error ? action.error.message : null,
+        error: action.error ? action.payload.message : null,
         loading: false,
-        loggedIn: action.payload === true // Slightly tricksy. Triggers a round of API calls
-                                          // which will invalidate the login if it's not working.
+        loggedIn: !action.error && (action.payload === true) // Slightly tricksy. Triggers a round of API calls
+                                                             // which will invalidate the login if it's not working.
       })
     case types.SET_OKTA_CONFIG:
       return Immutable.merge(state, {

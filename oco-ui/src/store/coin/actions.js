@@ -4,19 +4,19 @@ import * as authActions from '../auth/actions';
 import * as errorActions from '../error/actions';
 
 export function setOrders(orders) {
-  return { type: types.SET_ORDERS, orders }
+  return { type: types.SET_ORDERS, payload: orders }
 }
 
 export function setOrderBook(orderBook) {
-  return { type: types.SET_ORDERBOOK, orderBook }
+  return { type: types.SET_ORDERBOOK, payload: orderBook }
 }
 
 export function setTradeHistory(tradeHistory) {
-  return { type: types.SET_TRADE_HISTORY, tradeHistory }
+  return { type: types.SET_TRADE_HISTORY, payload: tradeHistory }
 }
 
 export function setBalance(exchange, currency, balance) {
-  return { type: types.SET_BALANCE, currency, balance }
+  return { type: types.SET_BALANCE, payload: { currency, balance } }
 }
 
 export function clearBalances() {
@@ -28,6 +28,6 @@ export function cancelOrder(coin, orderId, orderType) {
     auth => exchangesService.cancelOrder(coin, orderId, orderType, auth.token),
     null,
     error => errorActions.setForeground("Could not cancel order: " + error.message),
-    () => ({ type: types.CANCEL_ORDER, orderId })
+    () => ({ type: types.CANCEL_ORDER, payload: orderId })
   );
 }

@@ -19,7 +19,7 @@ export function checkWhiteList() {
         socket.disconnect()
       }
     } catch (error) {
-      dispatch({ type: types.WHITELIST_UPDATE, error })
+      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
 }
@@ -35,7 +35,7 @@ export function whitelist(token) {
         socket.connect()
       }
     } catch (error) {
-      dispatch({ type: types.WHITELIST_UPDATE, error })
+      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
 }
@@ -47,7 +47,7 @@ export function clearWhitelist() {
       dispatch({ type: types.WHITELIST_UPDATE, payload: false })
       socket.disconnect()
     } catch (error) {
-      dispatch({ type: types.WHITELIST_UPDATE, error })
+      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
 }
@@ -94,7 +94,7 @@ export function invalidateLogin() {
 
 export function handleHttpResponse(response) {
   if (response.status === 403) {
-    return { type: types.WHITELIST_UPDATE, error: new Error("Whitelisting expired") }
+    return { type: types.WHITELIST_UPDATE, error: true, payload: new Error("Whitelisting expired") }
   } else if (response.status === 401) {
     return invalidateLogin()
   }

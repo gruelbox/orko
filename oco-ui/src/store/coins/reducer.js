@@ -13,12 +13,12 @@ export default function reduce(state = initialState, action = {}) {
   var newState
   switch (action.type) {
     case types.ADD:
-      newCoins = state.coins.concat([action.coin])
+      newCoins = state.coins.concat([action.payload])
       newState = Immutable({ coins: newCoins })
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins))
       return newState
     case types.REMOVE:
-      newCoins = state.coins.filter(c => c.key !== action.coin.key)
+      newCoins = state.coins.filter(c => c.key !== action.payload.key)
       newState = Immutable({ coins: newCoins })
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newCoins))
       return newState

@@ -70,7 +70,7 @@ export default function reduce(state = initialState, action = {}) {
         state,
         {
           balance: {
-            [action.currency]: action.balance
+            [action.payload.currency]: action.payload.balance
           } 
         },
         { deep: true }
@@ -81,15 +81,15 @@ export default function reduce(state = initialState, action = {}) {
       })
     case types.SET_ORDERS:
       return Immutable.merge(state, {
-        orders: Immutable(action.orders),
+        orders: Immutable(action.payload),
       })
     case types.SET_ORDERBOOK:
       return Immutable.merge(state, {
-        orderBook: Immutable(action.orderBook)
+        orderBook: Immutable(action.payload)
       })
     case types.SET_TRADE_HISTORY:
       return Immutable.merge(state, {
-        tradeHistory: Immutable(action.tradeHistory),
+        tradeHistory: Immutable(action.payload),
       })
     case types.CANCEL_ORDER:
       return Immutable.merge(
@@ -97,7 +97,7 @@ export default function reduce(state = initialState, action = {}) {
         {
           orders: {
             allOpenOrders: state.orders.allOpenOrders.filter(
-              o => o.id !== action.orderId
+              o => o.id !== action.payload
             )
           }
         },
