@@ -1,6 +1,6 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
-import * as errorActions from "../error/actions"
+import * as notificationActions from "../notifications/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
@@ -56,12 +56,7 @@ export function fetchOktaConfig() {
   return wrappedRequest(
     () => authService.config(),
     config => ({ type: types.SET_OKTA_CONFIG, payload: config }),
-    error =>
-      errorActions.addBackground(
-        "Could not fetch authentication data: " + error.message,
-        "auth-config",
-        "auth"
-      )
+    error => notificationActions.localError("Could not fetch authentication data: " + error.message)
   )
 }
 

@@ -8,7 +8,7 @@ const initialState = Immutable({
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.OPEN_ALERTS:
-      return Immutable.merge(state, { alertsCoin: action.coin })
+      return Immutable.merge(state, { alertsCoin: action.payload })
     case types.CLOSE_ALERTS:
       return Immutable.merge(state, { alertsCoin: null })
     default:

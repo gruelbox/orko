@@ -1,7 +1,7 @@
 import { createSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getAlertJobs, getWatchJobs, getStopJobs } from "./jobs"
-import { coinFromKey } from "../store/coin/reducer"
+import { coinFromKey } from "../util/coinUtils"
 
 const getCoins = state => state.coins.coins
 const getTickers = state => state.ticker.coins

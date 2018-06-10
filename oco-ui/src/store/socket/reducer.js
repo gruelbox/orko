@@ -8,7 +8,7 @@ const initialState = Immutable({
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_CONNECTION_STATE:
-      return Immutable.merge(state, { connected: action.connected });
+      return Immutable.merge(state, { connected: action.payload });
     default:
       return state;
   }

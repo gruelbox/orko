@@ -11,12 +11,12 @@ export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
     case types.SET_EXCHANGES:
       return Immutable.merge(state, {
-        exchanges: Immutable(action.exchanges),
+        exchanges: Immutable(action.payload),
         error: null,
       });
     case types.SET_PAIRS:
       return Immutable.merge(state, {
-        pairs: Immutable(action.pairs),
+        pairs: Immutable(action.payload),
         error: null,
       });
     default:

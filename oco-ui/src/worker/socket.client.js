@@ -2,11 +2,9 @@ import Worker from './socket.worker.js'
 import runtimeEnv from "@mars/heroku-js-runtime-env"
 import * as socketEvents from "./socketEvents"
 import * as serverMessages from "./socketMessages"
-import { coin as createCoin } from "../store/coin/reducer"
-import { augmentCoin } from "../store/coin/reducer"
+import { augmentCoin, coin as createCoin } from "../util/coinUtils"
 
 var handleError = message => {}
-var handleClearErrors = () => {}
 var handleConnectionStateChange = connected => {}
 var handleNotification = message => {}
 var handleTicker = (coin, ticker) => {}
@@ -24,10 +22,6 @@ worker.onmessage = m => receive(JSON.parse(m.data))
 
 export function onError(handler) {
   handleError = handler
-}
-
-export function onClearErrors(handler) {
-  handleClearErrors = handler
 }
 
 export function onConnectionStateChange(handler) {
@@ -153,7 +147,6 @@ function receive(event) {
 
       case serverMessages.TICKER:
 
-        handleClearErrors()
         handleTicker(
           createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base),
           message.data.ticker
@@ -162,25 +155,21 @@ function receive(event) {
       
       case serverMessages.OPEN_ORDERS:
 
-        handleClearErrors()
         handleOrders(augmentCoin(message.data.spec), message.data.openOrders)
         break
 
       case serverMessages.ORDERBOOK:
 
-        handleClearErrors()
         handleOrderBook(augmentCoin(message.data.spec), message.data.orderBook)
         break
       
       case serverMessages.TRADE_HISTORY:
 
-        handleClearErrors()
         handleTradeHistory(augmentCoin(message.data.spec), message.data.trades)
         break
     
       case serverMessages.BALANCE:
 
-        handleClearErrors()
         handleBalance(message.data.exchange, message.data.currency, message.data.balance)
         break
       
