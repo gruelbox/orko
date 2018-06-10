@@ -13,57 +13,38 @@ const initialState = Immutable({
   userName: data ? data.userName : null,
   config: null,
   loading: true
-});
+})
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.SET_WHITELIST_STATUS:
-      console.debug(action.type, action);
+    case types.WHITELIST_UPDATE:
       return Immutable.merge(state, {
-        whitelisted: action.status,
-        error: null,
+        whitelisted: action.payload === true,
+        error: action.error ? action.error.message : null,
         loading: false,
-        loggedIn: true // Slightly tricksy. Triggers a round of API calls
-                       // which will invalidate the login if it's not working.
-      });
-    case types.SET_WHITELIST_ERROR:
-      console.debug(action.type, action);
-      return Immutable.merge(state, {
-        whitelisted: false,
-        error: action.error,
-        loading: false
-      });
-    case types.SET_WHITELIST_EXPIRED:
-      console.log(action.type, action);
-      return Immutable.merge(state, {
-        whitelisted: false,
-        loggedIn: false,
-        error: "Whitelisting expired",
-        loading: false
-      });
+        loggedIn: action.payload === true // Slightly tricksy. Triggers a round of API calls
+                                          // which will invalidate the login if it's not working.
+      })
     case types.SET_OKTA_CONFIG:
-      console.debug(action.type, action);
       return Immutable.merge(state, {
-        config: action.config,
-      });
+        config: action.payload,
+      })
     case types.SET_TOKEN:
-      console.debug(action.type);
       localStorage.setItem(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
-          token: action.token,
-          userName: action.userName,
+          token: action.payload.token,
+          userName: action.payload.userName,
         })
-      );
+      )
       return Immutable.merge(state, {
         loggedIn: true,
         error: null,
-        token: action.token,
-        userName: action.userName,
+        token: action.payload.token,
+        userName: action.payload.userName,
         loading: false
-      });
+      })
     case types.INVALIDATE_LOGIN:
-      console.log(action.type);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       return Immutable.merge(state, {
         loggedIn: false,
@@ -71,9 +52,8 @@ export default function reduce(state = initialState, action = {}) {
         token: null,
         userName: null,
         loading: false
-      });
+      })
     case types.LOGOUT:
-      console.debug(action.type);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       return Immutable.merge(state, {
         loggedIn: false,
@@ -81,8 +61,8 @@ export default function reduce(state = initialState, action = {}) {
         token: null,
         userName: null,
         loading: false
-      });
+      })
     default:
-      return state;
+      return state
   }
 }
