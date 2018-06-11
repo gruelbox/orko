@@ -8,9 +8,14 @@ document.addEventListener('DOMContentLoaded', function () {
     Notification.requestPermission();
 });
 
+var lastMessage = null
+
 export function localError(message) {
   return (dispatch, getState, socket) => {
-    notify("Error", message)
+    if (lastMessage !== message) {
+      notify("Error", message)
+      lastMessage = message
+    }
     dispatch({
       type: types.ADD,
       payload: {
