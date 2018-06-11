@@ -39,6 +39,6 @@ export function deleteJob(job) {
     auth => jobService.deleteJob(job, auth.token),
     null,
     error => notificationActions.localError("Failed to delete job: " + error.message),
-    () => fetchJobs()
+    () => ({ type: types.DELETE_JOB, payload: job })
   );
 }

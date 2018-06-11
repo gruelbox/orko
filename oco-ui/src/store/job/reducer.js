@@ -11,9 +11,13 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         jobs: state.jobs.concat([action.payload]),
       });
+    case types.DELETE_JOB:
+      return Immutable.merge(state, {
+        jobs: state.jobs.filter(j => j.id !== action.payload.id),
+      });
     case types.SET_JOBS:
       return Immutable.merge(state, {
-        jobs: Immutable(action.payload),
+        jobs: action.payload,
       });
     default:
       return state;
