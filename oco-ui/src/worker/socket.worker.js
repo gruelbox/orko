@@ -47,12 +47,50 @@ function connect({token, root}) {
   }
   socket.onmessage = evt => {
     try {
-        postMessage(messageStart + evt.data + "}")
+      const data = preProcess(evt.data)
+      postMessage(messageStart + data + "}")
     } catch (e) {
-        console.log("Invalid message from server", evt.data)
+      console.log("Invalid message from server", evt.data)
     }
   }
   return socket
+}
+
+/**
+ * Processor-heavy preprocessing we want to do on the incoming message
+ * prior to transmitting to the main thread.
+ */
+function preProcess(data) {
+  const obj = JSON.parse(data)
+  switch (obj.nature) {
+
+    case socketMessages.ORDERBOOK:
+
+      const ORDERBOOK_SIZE = 16
+      const orderBook = obj.data.orderBook
+      var modified = false
+      if (orderBook.asks.length > ORDERBOOK_SIZE) {
+        orderBook.asks = orderBook.asks.slice(0, 16)
+        modified = true
+      }
+      if (orderBook.bids.length > ORDERBOOK_SIZE) {
+        orderBook.bids = orderBook.bids.slice(0, 16)
+        modified = true
+      }
+      if (modified) {
+        return JSON.stringify(obj)
+      } else {
+        return data
+      }
+
+    case socketMessages.TRADE_HISTORY:
+
+      obj.data.trades = obj.data.trades.reverse()
+      return JSON.stringify(obj)
+
+    default:
+      return data
+  }
 }
 
 function disconnect(socket) {

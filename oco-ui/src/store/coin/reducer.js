@@ -27,15 +27,15 @@ export default function reduce(state = initialState, action = {}) {
       })
     case types.SET_ORDERS:
       return Immutable.merge(state, {
-        orders: Immutable(action.payload),
+        orders: action.payload
       })
     case types.SET_ORDERBOOK:
       return Immutable.merge(state, {
-        orderBook: Immutable(action.payload)
+        orderBook: action.payload
       })
     case types.SET_TRADE_HISTORY:
       return Immutable.merge(state, {
-        tradeHistory: Immutable(action.payload),
+        tradeHistory: action.payload
       })
     case types.CANCEL_ORDER:
       return Immutable.merge(
