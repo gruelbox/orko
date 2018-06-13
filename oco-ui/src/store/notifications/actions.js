@@ -8,10 +8,28 @@ document.addEventListener('DOMContentLoaded', function () {
     Notification.requestPermission();
 });
 
+var lastMessage = null
+
+export function localError(message) {
+  return (dispatch, getState, socket) => {
+    if (lastMessage !== message) {
+      notify("Error", message)
+      lastMessage = message
+    }
+    dispatch({
+      type: types.ADD,
+      payload: {
+        notificationType: "ERROR",
+        message
+      }
+    })
+  }
+}
+
 export function add(notification) {
   return (dispatch, getState, socket) => {
     notify("Server message", notification.message)
-    dispatch({ type: types.ADD, notification })
+    dispatch({ type: types.ADD, payload: notification })
   }
 }
 

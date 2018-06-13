@@ -1,13 +1,12 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
-import * as errorActions from "../error/actions"
-
+import * as notificationActions from "../notifications/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
     try {
       const result = await authService.checkWhiteList()
-      dispatch({ type: types.SET_WHITELIST_STATUS, status: Boolean(result) })
+      dispatch({ type: types.WHITELIST_UPDATE, payload: Boolean(result) })
       if (result) {
         console.log("Verified whitelist")
         dispatch(fetchOktaConfig())
@@ -20,7 +19,7 @@ export function checkWhiteList() {
         socket.disconnect()
       }
     } catch (error) {
-      dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
+      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
 }
@@ -29,14 +28,14 @@ export function whitelist(token) {
   return async (dispatch, getState, socket) => {
     try {
       await authService.whitelist(token)
-      dispatch({ type: types.SET_WHITELIST_STATUS, status: true })
+      dispatch({ type: types.WHITELIST_UPDATE, payload: true })
       dispatch(fetchOktaConfig())
       if (!getState().socket.connected) {
         console.log("Connecting")
         socket.connect()
       }
     } catch (error) {
-      dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
+      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
 }
@@ -45,10 +44,10 @@ export function clearWhitelist() {
   return async (dispatch, getState, socket) => {
     try {
       await authService.clearWhiteList()
-      dispatch({ type: types.SET_WHITELIST_STATUS, status: false })
+      dispatch({ type: types.WHITELIST_UPDATE, payload: false })
       socket.disconnect()
     } catch (error) {
-      dispatch({ type: types.SET_WHITELIST_ERROR, error: error.message })
+      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
 }
@@ -56,13 +55,8 @@ export function clearWhitelist() {
 export function fetchOktaConfig() {
   return wrappedRequest(
     () => authService.config(),
-    config => ({ type: types.SET_OKTA_CONFIG, config }),
-    error =>
-      errorActions.addBackground(
-        "Could not fetch authentication data: " + error.message,
-        "auth-config",
-        "auth"
-      )
+    config => ({ type: types.SET_OKTA_CONFIG, payload: config }),
+    error => notificationActions.localError("Could not fetch authentication data: " + error.message)
   )
 }
 
@@ -75,7 +69,13 @@ export function logout() {
 
 export function setToken(token, userName) {
   return (dispatch, getState, socket) => {
-    dispatch({ type: types.SET_TOKEN, token, userName })
+    dispatch({
+      type: types.SET_TOKEN,
+      payload: {
+        token,
+        userName
+      }
+    })
     socket.connect()
   }
 }
@@ -89,7 +89,7 @@ export function invalidateLogin() {
 
 export function handleHttpResponse(response) {
   if (response.status === 403) {
-    return { type: types.SET_WHITELIST_EXPIRED }
+    return { type: types.WHITELIST_UPDATE, error: true, payload: new Error("Whitelisting expired") }
   } else if (response.status === 401) {
     return invalidateLogin()
   }

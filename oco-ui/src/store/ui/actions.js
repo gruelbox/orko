@@ -1,7 +1,7 @@
 import * as types from './actionTypes';
 
 export function openAlerts(coin) {
-  return { type: types.OPEN_ALERTS, coin }
+  return { type: types.OPEN_ALERTS, payload: coin }
 }
 
 export function closeAlerts() {

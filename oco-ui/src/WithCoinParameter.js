@@ -1,6 +1,6 @@
 import React from "react"
 import { Switch, Route } from "react-router-dom"
-import { coin as createCoin } from "./store/coin/reducer"
+import { coin as createCoin } from "./util/coinUtils"
 
 class ExtractCoin extends React.Component {
   render() {

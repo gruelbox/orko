@@ -10,7 +10,7 @@ export default function reduce(state = initialState, action = {}) {
     case types.CLEAR:
       return Immutable.merge(state, { notifications: [] })
     case types.ADD:
-      const notification = Immutable.set(Immutable(action.notification), "dateTime", new Date())
+      const notification = Immutable.set(Immutable(action.payload), "dateTime", new Date())
       return Immutable.merge(state, { notifications: Immutable([notification]).concat(state.notifications) })
     default:
       return state

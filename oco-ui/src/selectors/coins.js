@@ -1,7 +1,7 @@
 import { createSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getAlertJobs, getWatchJobs, getStopJobs } from "./jobs"
-import { coinFromKey } from "../store/coin/reducer"
+import { coinFromKey } from "../util/coinUtils"
 
 const getCoins = state => state.coins.coins
 const getTickers = state => state.ticker.coins
@@ -9,13 +9,7 @@ const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
 const getTradeHistory = state => state.coin.tradeHistory
 
-export const getTopOfOrderBook = createSelector(
-  [getOrderbook],
-  orderBook => orderBook ? ({
-    asks: orderBook.asks.slice(0, 16),
-    bids: orderBook.bids.slice(0, 16),
-  }) : orderBook
-)
+export const getTopOfOrderBook = getOrderbook // Moved to worker
 
 export const locationToCoin = (location) => {
   if (location && location.pathname && location.pathname.startsWith("/coin/") && location.pathname.length > 6) {
@@ -79,10 +73,7 @@ export const getOrdersWithWatchesForSelectedCoin = createSelector(
   }
 )
 
-export const getTradeHistoryInReverseOrder = createSelector(
-  [getTradeHistory],
-  (tradeHistory) => tradeHistory ? tradeHistory.asMutable().reverse() : null
-)
+export const getTradeHistoryInReverseOrder = getTradeHistory // Moved to worker
 
 export const getSelectedCoinTicker = createSelector(
   [getSelectedCoin, getTickers],

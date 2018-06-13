@@ -36,24 +36,6 @@ const TickerSocketState = ({ connected }) => {
   )
 }
 
-const BackgroundErrors = ({ errors }) => {
-  const errorKeys = Object.keys(errors)
-  const hasErrors = errorKeys.length !== 0
-  const errorString = hasErrors
-    ? errorKeys.map(k => errors[k]).join(", ")
-    : null
-  return (
-    <Span
-      title={hasErrors ? errorString : "Connected"}
-      color={hasErrors ? "red" : "white"}
-      mx={2}
-      fontWeight="bold"
-    >
-      <Icon name="wifi" />
-    </Span>
-  )
-}
-
 const HomeLink = () => (
   <Link
     mx={2}
@@ -148,7 +130,6 @@ const ToolbarContainer = ({ticker, coin, connected, errors, userName, updateFocu
     <ToolbarBox p={0}>
       <HomeLink />
       <TickerSocketState connected={connected} />
-      <BackgroundErrors errors={errors} />
       <Coin coin={coin} />
       <RemainingSpace mx={2}>
         <Ticker

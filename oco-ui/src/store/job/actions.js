@@ -3,13 +3,14 @@ import * as authActions from '../auth/actions';
 import * as errorActions from '../error/actions';
 import jobService from '../../services/job';
 import * as jobTypes from '../../services/jobTypes'
+import * as notificationActions from "../notifications/actions"
 
 export function submitJob(job) {
   return authActions.wrappedRequest(
     auth => jobService.submitJob(job, auth.token),
     null,
     error => errorActions.setForeground("Could not submit job: " + error.message),
-    () => fetchJobs()
+    () => ({ type: types.ADD_JOB, payload: job })
   );
 }
 
@@ -28,9 +29,8 @@ export function submitWatchJob(coin, orderId) {
 export function fetchJobs() {
   return authActions.wrappedRequest(
     auth => jobService.fetchJobs(auth.token),
-    jobs => ({ type: types.SET_JOBS, jobs }),
-    error => errorActions.addBackground("Could not fetch jobs: " + error.message, "jobs"),
-    () => errorActions.clearBackground("jobs")
+    jobs => ({ type: types.SET_JOBS, payload: jobs }),
+    error => notificationActions.localError("Could not fetch jobs: " + error.message)
   );
 }
 
@@ -38,7 +38,7 @@ export function deleteJob(job) {
   return authActions.wrappedRequest(
     auth => jobService.deleteJob(job, auth.token),
     null,
-    error => errorActions.setForeground("Failed to delete job: " + error.message),
-    () => fetchJobs()
+    error => notificationActions.localError("Failed to delete job: " + error.message),
+    () => ({ type: types.DELETE_JOB, payload: job })
   );
 }

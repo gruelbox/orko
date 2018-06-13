@@ -1,5 +1,4 @@
 import * as coinActions from "../coin/actions"
-import * as errorActions from "../error/actions"
 import * as notificationActions from "../notifications/actions"
 import * as socketClient from '../../worker/socket.client.js'
 import * as tickerActions from "../ticker/actions"
@@ -38,8 +37,7 @@ export function initialise(s, history) {
       resubscribe()
     }
   })
-  socketClient.onClearErrors(() => store.dispatch(errorActions.clearBackground("ws")))
-  socketClient.onError(message => store.dispatch(errorActions.addBackground(message, "ws")))
+  socketClient.onError(message => store.dispatch(notificationActions.localError(message)))
   socketClient.onNotification(message => store.dispatch(notificationActions.add(message)))
   socketClient.onTicker((coin, ticker) => store.dispatch(tickerActions.setTicker(coin, ticker)))
   socketClient.onBalance((exchange, currency, balance) => store.dispatch(coinActions.setBalance(exchange, currency, balance)))
