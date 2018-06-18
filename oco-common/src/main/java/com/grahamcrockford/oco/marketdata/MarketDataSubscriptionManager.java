@@ -1,6 +1,5 @@
 package com.grahamcrockford.oco.marketdata;
 
-import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
@@ -101,6 +100,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final AtomicReference<FlowableEmitter<BalanceEvent>> balanceEmitter = new AtomicReference<>();
 
   private final ConcurrentMap<TickerSpec, TickerEvent> latestTickers = Maps.newConcurrentMap();
+  private final ConcurrentMap<TickerSpec, OrderBookEvent> latestOrderbooks = Maps.newConcurrentMap();
 
 
   @Inject
@@ -118,7 +118,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         .onBackpressureLatest();
 
     this.openOrders = Flowable.create((FlowableEmitter<OpenOrdersEvent> e) -> openOrdersEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
-    this.orderbook = Flowable.create((FlowableEmitter<OrderBookEvent> e) -> orderBookEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
+
+    // Add every copy of the order book as it arrives to our cache
+    this.orderbook = Flowable.create((FlowableEmitter<OrderBookEvent> e) -> orderBookEmitter.set(e.serialize()), BackpressureStrategy.MISSING)
+        .doOnNext(e -> latestOrderbooks.put(e.spec(), e))
+        .share()
+        .onBackpressureLatest();
+
     this.trades = Flowable.create((FlowableEmitter<TradeEvent> e) -> tradesEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
     this.tradeHistory = Flowable.create((FlowableEmitter<TradeHistoryEvent> e) -> tradeHistoryEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
     this.balance = Flowable.create((FlowableEmitter<BalanceEvent> e) -> balanceEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
@@ -186,11 +192,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    */
   public Flowable<TickerEvent> getTicker(TickerSpec spec) {
     return tickers
-      .startWith(Flowable.defer(() -> {
-        Collection<TickerEvent> values = latestTickers.values();
-        LOGGER.info("New subscriber. Supplying cached tickers: {}", values);
-        return Flowable.fromIterable(values);
-       }))
+      .startWith(Flowable.defer(() -> Flowable.fromIterable(latestTickers.values())))
       .filter(t -> t.spec().equals(spec))
       .doOnNext(t -> {
         if (LOGGER.isDebugEnabled()) logTicker("filtered", t);
@@ -214,7 +216,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @param spec The ticker specification.
    */
   public Flowable<OrderBookEvent> getOrderBook(TickerSpec spec) {
-    return orderbook.filter(t -> t.spec().equals(spec));
+    return orderbook
+      .startWith(Flowable.defer(() -> Flowable.fromIterable(latestOrderbooks.values())))
+      .filter(t -> t.spec().equals(spec));
   }
 
 
@@ -269,11 +273,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       // subscribed mismatch the ones we want.
       Set<String> unchanged = disconnectChangedExchanges(byExchange);
 
-      // Clear cached tickers for anything we've unsubscribed so that we don't feed out-of-date data
+      // Clear cached tickers and order books for anything we've unsubscribed so that we don't feed out-of-date data
       Sets.difference(oldSubscriptions, subscriptions)
-        .stream()
-        .peek(s -> LOGGER.info("Clearing cached price for {}", s))
-        .forEach(s -> latestTickers.remove(s.spec()));
+        .forEach(s -> {
+          latestTickers.remove(s.spec());
+          latestOrderbooks.remove(s.spec());
+        });
 
       // Add new subscriptions
       subscribe(byExchange, unchanged);
@@ -294,7 +299,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       String exchangeName = entry.getKey();
       Collection<MarketDataSubscription> current = entry.getValue();
-      Collection<MarketDataSubscription> target = FluentIterable.from(byExchange.get(exchangeName)).filter(s -> !s.type().equals(OPEN_ORDERS)).toSet();
+      Collection<MarketDataSubscription> target = FluentIterable.from(byExchange.get(exchangeName))
+          .filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
 
       LOGGER.debug("Exchange {} has {}, wants {}", exchangeName, current, target);
 

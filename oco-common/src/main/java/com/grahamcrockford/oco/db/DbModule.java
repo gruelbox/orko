@@ -12,6 +12,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.marketdata.PermanentSubscriptionAccess;
 import com.grahamcrockford.oco.submit.JobAccess;
 import com.grahamcrockford.oco.submit.JobLocker;
 import com.grahamcrockford.oco.util.CheckedExceptions;
@@ -75,5 +76,11 @@ public class DbModule extends AbstractModule {
       return inMemoryJobAccess.get();
     }
     return dbJobLocker.get();
+  }
+
+  @Provides
+  @Singleton
+  PermanentSubscriptionAccess permanentSubscriptionAccess(Provider<InMemoryPermanentSubscriptionAccess> inMemory) {
+    return inMemory.get();
   }
 }

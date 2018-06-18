@@ -1,6 +1,7 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
 import * as notificationActions from "../notifications/actions"
+import * as coinActions from "../coins/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
@@ -12,6 +13,7 @@ export function checkWhiteList() {
         dispatch(fetchOktaConfig())
         if (!getState().socket.connected) {
           console.log("Connecting")
+          dispatch(coinActions.fetch())
           socket.connect()
         }
       } else {
@@ -32,6 +34,7 @@ export function whitelist(token) {
       dispatch(fetchOktaConfig())
       if (!getState().socket.connected) {
         console.log("Connecting")
+        dispatch(coinActions.fetch())
         socket.connect()
       }
     } catch (error) {
@@ -76,6 +79,7 @@ export function setToken(token, userName) {
         userName
       }
     })
+    dispatch(coinActions.fetch())
     socket.connect()
   }
 }

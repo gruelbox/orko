@@ -1,6 +1,18 @@
-import { get, del } from './fetchUtil';
+import { get, put, del } from './fetchUtil';
 
 class ExchangesService {
+
+  async fetchSubscriptions(token) {
+    return await get('subscriptions', token);
+  }
+
+  async addSubscription(token, ticker) {
+    return await put('subscriptions', token, ticker);
+  }
+
+  async removeSubscription(token, ticker) {
+    return await del('subscriptions', token, ticker);
+  }
   
   async fetchExchanges(token) {
     return await get('exchanges', token);

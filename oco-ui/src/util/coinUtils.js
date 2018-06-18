@@ -21,6 +21,21 @@ export function coinFromKey(key) {
   )
 }
 
+export function coinFromTicker(t) {
+  return augmentCoin(
+    t,
+    t.exchange
+  )
+}
+
+export function tickerFromCoin(coin) {
+  return {
+    counter: coin.counter,
+    base: coin.base,
+    exchange: coin.exchange
+  }
+}
+
 export function augmentCoin(p, exchange) {
   return Immutable.merge(p, {
     exchange: exchange ? exchange : p.exchange,
