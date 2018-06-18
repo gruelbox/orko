@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
@@ -36,10 +37,13 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -96,6 +100,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final Flowable<BalanceEvent> balance;
   private final AtomicReference<FlowableEmitter<BalanceEvent>> balanceEmitter = new AtomicReference<>();
 
+  private final ConcurrentMap<TickerSpec, TickerEvent> latestTickers = Maps.newConcurrentMap();
+
 
   @Inject
   @VisibleForTesting
@@ -104,7 +110,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.configuration = configuration;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
-    this.tickers = Flowable.create((FlowableEmitter<TickerEvent> e) -> tickerEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
+
+    // Add every ticker as it arrives to our cache
+    this.tickers = Flowable.create((FlowableEmitter<TickerEvent> e) -> tickerEmitter.set(e.serialize()), BackpressureStrategy.MISSING)
+        .doOnNext(e -> latestTickers.put(e.spec(), e))
+        .share()
+        .onBackpressureLatest();
+
     this.openOrders = Flowable.create((FlowableEmitter<OpenOrdersEvent> e) -> openOrdersEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
     this.orderbook = Flowable.create((FlowableEmitter<OrderBookEvent> e) -> orderBookEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
     this.trades = Flowable.create((FlowableEmitter<TradeEvent> e) -> tradesEmitter.set(e.serialize()), BackpressureStrategy.MISSING).share().onBackpressureLatest();
@@ -167,13 +179,19 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
   /**
-   * Gets a stream of tickers.
+   * Gets a stream of tickers, starting with any cached tickers.
    *
    * @param spec The ticker specification.
    * @return The ticker stream.
    */
   public Flowable<TickerEvent> getTicker(TickerSpec spec) {
-    return tickers.filter(t -> t.spec().equals(spec))
+    return tickers
+      .startWith(Flowable.defer(() -> {
+        Collection<TickerEvent> values = latestTickers.values();
+        LOGGER.info("New subscriber. Supplying cached tickers: {}", values);
+        return Flowable.fromIterable(values);
+       }))
+      .filter(t -> t.spec().equals(spec))
       .doOnNext(t -> {
         if (LOGGER.isDebugEnabled()) logTicker("filtered", t);
       });
@@ -244,12 +262,22 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       LOGGER.debug("Updating subscriptions to: " + subscriptions);
       Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
 
+      // Remember all our old subscriptions for a moment...
+      Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(subscriptionsPerExchange.values(), activePolling)).toSet();
+
       // Disconnect any streaming exchanges where the tickers currently
       // subscribed mismatch the ones we want.
       Set<String> unchanged = disconnectChangedExchanges(byExchange);
 
+      // Clear cached tickers for anything we've unsubscribed so that we don't feed out-of-date data
+      Sets.difference(oldSubscriptions, subscriptions)
+        .stream()
+        .peek(s -> LOGGER.info("Clearing cached price for {}", s))
+        .forEach(s -> latestTickers.remove(s.spec()));
+
       // Add new subscriptions
       subscribe(byExchange, unchanged);
+
     } catch (Throwable t) {
       LOGGER.error("Error updating subscriptions", t);
       nextSubscriptions.compareAndSet(null, subscriptions);
@@ -321,6 +349,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           pollingBuilder.addAll(subscriptionsForExchange);
         }
       });
+
     activePolling = pollingBuilder.build();
     LOGGER.debug("Polls now set to: " + activePolling);
   }

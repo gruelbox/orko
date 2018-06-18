@@ -13,6 +13,10 @@ export default function reduce(state = initialState, action = {}) {
           [action.payload.coin.key]: action.payload.ticker
         }
       }, {deep: true});
+    case types.CLEAR_TICKER:
+      return Immutable({
+        coins: Immutable.without(state.coins, action.payload.key)
+      });
     default:
       return state;
   }

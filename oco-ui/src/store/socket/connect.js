@@ -33,8 +33,10 @@ export function initialise(s, history) {
   socketClient.onConnectionStateChange(connected => {
     store.dispatch(socketActions.setConnectionState(connected))
     if (connected) {
-      console.log("Resubscribing following reconnection")
+      store.dispatch(notificationActions.localMessage("Socket connected"))
       resubscribe()
+    } else {
+      store.dispatch(notificationActions.localError("Socket disconnected"))
     }
   })
   socketClient.onError(message => store.dispatch(notificationActions.localError(message)))

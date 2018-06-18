@@ -11,15 +11,23 @@ document.addEventListener('DOMContentLoaded', function () {
 var lastMessage = null
 
 export function localError(message) {
+  return local(message, "ERROR")
+}
+
+export function localMessage(message) {
+  return local(message, "INFO")
+}
+
+function local(message, level) {
   return (dispatch, getState, socket) => {
     if (lastMessage !== message) {
-      notify("Error", message)
+      notify("OKO Client", message)
       lastMessage = message
     }
     dispatch({
       type: types.ADD,
       payload: {
-        notificationType: "ERROR",
+        notificationType: level,
         message
       }
     })
@@ -28,7 +36,7 @@ export function localError(message) {
 
 export function add(notification) {
   return (dispatch, getState, socket) => {
-    notify("Server message", notification.message)
+    notify("OKO Server", notification.message)
     dispatch({ type: types.ADD, payload: notification })
   }
 }
