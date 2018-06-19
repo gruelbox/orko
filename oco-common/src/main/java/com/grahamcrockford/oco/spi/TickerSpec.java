@@ -53,6 +53,11 @@ public abstract class TickerSpec {
   }
 
   @JsonIgnore
+  public final String key() {
+    return exchange() + "/" + counter() + "/" + base();
+  }
+
+  @JsonIgnore
   public final CurrencyPair currencyPair() {
     return new CurrencyPair(base(), counter());
   }

@@ -80,7 +80,10 @@ public class DbModule extends AbstractModule {
 
   @Provides
   @Singleton
-  PermanentSubscriptionAccess permanentSubscriptionAccess(Provider<InMemoryPermanentSubscriptionAccess> inMemory) {
-    return inMemory.get();
+  PermanentSubscriptionAccess permanentSubscriptionAccess(@Nullable DbConfiguration configuration, Provider<DbPermanentSubscriptionAccess> db, Provider<InMemoryPermanentSubscriptionAccess> inMemory) {
+    if (configuration == null) {
+      return inMemory.get();
+    }
+    return db.get();
   }
 }

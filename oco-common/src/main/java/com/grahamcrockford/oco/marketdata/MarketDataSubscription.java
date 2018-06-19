@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.marketdata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.auto.value.AutoValue;
@@ -21,4 +22,9 @@ public abstract class MarketDataSubscription {
 
   @JsonProperty
   public abstract MarketDataType type();
+
+  @JsonIgnore
+  public final String key() {
+    return spec().key() + "/" + type();
+  }
 }
