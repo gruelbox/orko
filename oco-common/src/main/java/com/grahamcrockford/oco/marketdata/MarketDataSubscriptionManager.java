@@ -340,6 +340,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       Ordering
         .from((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.type().compareTo(o2.type()))
         .thenComparing((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.spec().exchange().compareTo(o2.spec().exchange()))
+        .thenComparing((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.spec().counter().compareTo(o2.spec().counter()))
+        .thenComparing((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.spec().base().compareTo(o2.spec().base()))
     );
 
     byExchange.asMap()
