@@ -38,10 +38,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
@@ -332,7 +334,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void subscribe(Multimap<String, MarketDataSubscription> byExchange, Set<String> unchanged) {
-    final Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
+
+    // Sort polling by market data type then exchange, so we spread out calls to the same exchange as much as possible
+    final Builder<MarketDataSubscription> pollingBuilder = ImmutableSortedSet.orderedBy(
+      Ordering
+        .from((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.type().compareTo(o2.type()))
+        .thenComparing((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.spec().exchange().compareTo(o2.spec().exchange()))
+    );
+
     byExchange.asMap()
       .entrySet()
       .stream()
