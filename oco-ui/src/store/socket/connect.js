@@ -51,14 +51,14 @@ export function initialise(s, history) {
 
   history.listen(location => {
     console.log("Resubscribing following coin change")
-    bufferActions({
-      [ACTION_KEY_ORDERBOOK]: coinActions.setOrderBook(null),
-      [ACTION_KEY_ORDERS]: coinActions.setOrders(null),
-      [ACTION_KEY_TRADEHISTORY]: coinActions.setTradeHistory(null),
-      [ACTION_KEY_BALANCE]: coinActions.clearBalances()
-    })
     socketClient.changeSubscriptions(subscribedCoins(), locationToCoin(location))
     socketClient.resubscribe()
+    store.dispatch(batchActions(
+      coinActions.setOrderBook(null),
+      coinActions.setOrders(null),
+      coinActions.setTradeHistory(null),
+      coinActions.clearBalances()
+    ))
   })
   socketClient.onConnectionStateChange(connected => {
     store.dispatch(socketActions.setConnectionState(connected))
@@ -72,7 +72,7 @@ export function initialise(s, history) {
   socketClient.onError(message => store.dispatch(notificationActions.localError(message)))
   socketClient.onNotification(message => store.dispatch(notificationActions.add(message)))
   socketClient.onTicker((coin, ticker) => bufferAction(ACTION_KEY_TICKER + "/" + coin.key, tickerActions.setTicker(coin, ticker)))
-  socketClient.onBalance((exchange, currency, balance) => bufferAction(ACTION_KEY_BALANCE, coinActions.setBalance(exchange, currency, balance)))
+  socketClient.onBalance((exchange, currency, balance) => bufferAction(ACTION_KEY_BALANCE + "/" + exchange + "/" + currency, coinActions.setBalance(exchange, currency, balance)))
 
   const sameCoin = (left, right) => left && right && left.key === right.key
 
