@@ -53,12 +53,12 @@ export function initialise(s, history) {
     console.log("Resubscribing following coin change")
     socketClient.changeSubscriptions(subscribedCoins(), locationToCoin(location))
     socketClient.resubscribe()
-    store.dispatch(batchActions(
+    store.dispatch(batchActions([
       coinActions.setOrderBook(null),
       coinActions.setOrders(null),
       coinActions.setTradeHistory(null),
       coinActions.clearBalances()
-    ))
+    ]))
   })
   socketClient.onConnectionStateChange(connected => {
     store.dispatch(socketActions.setConnectionState(connected))
