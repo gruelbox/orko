@@ -6,18 +6,24 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
 import static java.util.Collections.emptySet;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.account.Wallet;
+import org.knowm.xchange.dto.meta.RateLimit;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -35,15 +41,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableSet.Builder;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
@@ -54,6 +58,7 @@ import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.util.SafelyDispose;
+
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
@@ -82,10 +87,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final AccountServiceFactory accountServiceFactory;
   private final OcoConfiguration configuration;
 
-  private final AtomicLong lastUpdatedSubscriptionsTime = new AtomicLong(0L);
-  private final AtomicReference<Set<MarketDataSubscription>> nextSubscriptions = new AtomicReference<>();
-  private final Multimap<String, MarketDataSubscription> subscriptionsPerExchange = HashMultimap.create();
-  private ImmutableSet<MarketDataSubscription> activePolling = ImmutableSet.of();
+  private final Map<String, AtomicReference<Set<MarketDataSubscription>>> nextSubscriptions;
+  private final ConcurrentMap<String, Set<MarketDataSubscription>> subscriptionsPerExchange = Maps.newConcurrentMap();
+  private final ConcurrentMap<String, Set<MarketDataSubscription>> pollsPerExchange = Maps.newConcurrentMap();
   private final Multimap<String, Disposable> disposablesPerExchange = HashMultimap.create();
 
   private final Flowable<TickerEvent> tickers;
@@ -112,6 +116,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.configuration = configuration;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
+
+    this.nextSubscriptions = FluentIterable.from(exchangeService.getExchanges())
+        .toMap(e -> new AtomicReference<Set<MarketDataSubscription>>());
+
+    exchangeService.getExchanges().forEach(e -> {
+      subscriptionsPerExchange.put(e, ImmutableSet.of());
+      pollsPerExchange.put(e, ImmutableSet.of());
+    });
 
     // Add every ticker as it arrives to our cache
     this.tickers = Flowable.create((FlowableEmitter<TickerEvent> e) -> tickerEmitter.set(e.serialize()), BackpressureStrategy.MISSING)
@@ -144,23 +156,18 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @param byExchange The exchanges and subscriptions for each.
    */
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
-    nextSubscriptions.set(ImmutableSet.copyOf(subscriptions));
 
-    // As long as we've not performed a resubscription recently, give the loop a kick so
-    // we get our updates quickly.
-    long currentTimeMillis = System.currentTimeMillis();
-    long lastChanged = lastUpdatedSubscriptionsTime.getAndSet(System.currentTimeMillis());
-    if (currentTimeMillis - lastChanged > configuration.getLoopSeconds() * 1000) {
-      synchronized (this) {
-        this.notify();
-      }
+    // Queue them up for each exchange's processing thread individually
+    ImmutableListMultimap<String, MarketDataSubscription> byExchange = Multimaps.index(subscriptions, s -> s.spec().exchange());
+    for (String exchangeName : exchangeService.getExchanges()) {
+      nextSubscriptions.get(exchangeName).set(ImmutableSet.copyOf(byExchange.get(exchangeName)));
     }
   }
 
 
   /**
    * Gets the stream of a subscription.  Typed by the caller in
-   * an unsafe manner for convenience,
+   * an unsafe manner for convenience.
    *
    * @param sub The subscription
    * @return The stream.
@@ -259,121 +266,81 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * Actually performs the subscription changes. Occurs synchronously in the
    * poll loop.
    */
-  private void doSubscriptionChanges() {
-    Set<MarketDataSubscription> subscriptions = nextSubscriptions.getAndSet(null);
+  private void doSubscriptionChanges(String exchangeName) {
+    Set<MarketDataSubscription> subscriptions = nextSubscriptions.get(exchangeName).getAndSet(null);
     try {
       if (subscriptions == null)
         return;
 
-      LOGGER.debug("Updating subscriptions to: " + subscriptions);
-      Multimap<String, MarketDataSubscription> byExchange = Multimaps.<String, MarketDataSubscription>index(subscriptions, sub -> sub.spec().exchange());
+      LOGGER.debug("Updating {} subscriptions to: {}", exchangeName, subscriptions);
 
       // Remember all our old subscriptions for a moment...
-      Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(subscriptionsPerExchange.values(), activePolling)).toSet();
+      Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(
+          subscriptionsPerExchange.get(exchangeName),
+          pollsPerExchange.get(exchangeName)
+        ))
+        .toSet();
 
       // Disconnect any streaming exchanges where the tickers currently
       // subscribed mismatch the ones we want.
-      Set<String> unchanged = disconnectChangedExchanges(byExchange);
+      if (!subscriptions.equals(oldSubscriptions)) {
 
-      // Clear cached tickers and order books for anything we've unsubscribed so that we don't feed out-of-date data
-      Sets.difference(oldSubscriptions, subscriptions)
-        .forEach(s -> {
-          latestTickers.remove(s.spec());
-          latestOrderbooks.remove(s.spec());
-        });
+        if (!oldSubscriptions.isEmpty()) {
+          disconnectExchange(exchangeName);
+        }
 
-      // Add new subscriptions
-      subscribe(byExchange, unchanged);
+        // Clear cached tickers and order books for anything we've unsubscribed so that we don't feed out-of-date data
+        Sets.difference(oldSubscriptions, subscriptions)
+          .forEach(s -> {
+            latestTickers.remove(s.spec());
+            latestOrderbooks.remove(s.spec());
+          });
+
+        // Add new subscriptions if we have any
+        if (!subscriptions.isEmpty()) {
+          subscribe(exchangeName, subscriptions);
+        }
+
+      }
 
     } catch (Throwable t) {
       LOGGER.error("Error updating subscriptions", t);
-      nextSubscriptions.compareAndSet(null, subscriptions);
+      nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions);
     }
-  }
-
-
-  private Set<String> disconnectChangedExchanges(Multimap<String, MarketDataSubscription> byExchange) {
-    Builder<String> unchanged = ImmutableSet.builder();
-
-    List<String> changed = Lists.newArrayListWithCapacity(subscriptionsPerExchange.keySet().size());
-
-    for (Entry<String, Collection<MarketDataSubscription>> entry : subscriptionsPerExchange.asMap().entrySet()) {
-
-      String exchangeName = entry.getKey();
-      Collection<MarketDataSubscription> current = entry.getValue();
-      Collection<MarketDataSubscription> target = FluentIterable.from(byExchange.get(exchangeName))
-          .filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
-
-      LOGGER.debug("Exchange {} has {}, wants {}", exchangeName, current, target);
-
-      if (current.equals(target)) {
-        unchanged.add(exchangeName);
-      } else {
-        changed.add(exchangeName);
-      }
-    }
-
-    changed.stream()
-      .parallel()
-      .forEach(exchangeName -> {
-        LOGGER.info("... disconnecting from exchange: {}", exchangeName);
-        disconnectExchange(exchangeName);
-        subscriptionsPerExchange.removeAll(exchangeName);
-        LOGGER.info("... disconnected from exchange: {}", exchangeName);
-      });
-
-    return unchanged.build();
   }
 
   private void disconnectExchange(String exchangeName) {
-    StreamingExchange exchange = (StreamingExchange) exchangeService.get(exchangeName);
-
-    SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
-
-    exchange.disconnect().blockingAwait();
+    Exchange exchange = exchangeService.get(exchangeName);
+    if (exchange instanceof StreamingExchange) {
+      SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
+      ((StreamingExchange) exchange).disconnect().blockingAwait();
+    }
   }
 
-  private void subscribe(Multimap<String, MarketDataSubscription> byExchange, Set<String> unchanged) {
+  private void subscribe(String exchangeName, Set<MarketDataSubscription> subscriptions) {
 
-    // Sort polling by market data type then exchange, so we spread out calls to the same exchange as much as possible
-    final Builder<MarketDataSubscription> pollingBuilder = ImmutableSortedSet.orderedBy(
-      Ordering
-        .from((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.type().compareTo(o2.type()))
-        .thenComparing((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.spec().exchange().compareTo(o2.spec().exchange()))
-        .thenComparing((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.spec().counter().compareTo(o2.spec().counter()))
-        .thenComparing((MarketDataSubscription o1, MarketDataSubscription o2) -> o1.spec().base().compareTo(o2.spec().base()))
-    );
+    Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
 
-    byExchange.asMap()
-      .entrySet()
-      .stream()
-      .parallel()
-      .forEach(e -> {
+    Exchange exchange = exchangeService.get(exchangeName);
 
-        String exchangeName = e.getKey();
-        Collection<MarketDataSubscription> subscriptionsForExchange = e.getValue();
+    if (isStreamingExchange(exchange)) {
+      Set<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptions).filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
+      if (!streamingSubscriptions.isEmpty()) {
+        openSubscriptions(exchangeName, exchange, streamingSubscriptions);
+      }
+      pollingBuilder.addAll(FluentIterable.from(subscriptions).filter(s -> !STREAMING_MARKET_DATA.contains(s.type())).toSet());
+    } else {
+      pollingBuilder.addAll(subscriptions);
+    }
 
-        Exchange exchange = exchangeService.get(exchangeName);
-        if (isStreamingExchange(exchange)) {
-          if (!unchanged.contains(exchangeName)) {
-            Collection<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptionsForExchange).filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
-            if (!streamingSubscriptions.isEmpty()) {
-              openSubscriptions(exchangeName, exchange, streamingSubscriptions);
-            }
-          }
-          pollingBuilder.addAll(FluentIterable.from(subscriptionsForExchange).filter(s -> !STREAMING_MARKET_DATA.contains(s.type())).toSet());
-        } else {
-          pollingBuilder.addAll(subscriptionsForExchange);
-        }
-      });
-
-    activePolling = pollingBuilder.build();
-    LOGGER.debug("Polls now set to: " + activePolling);
+    Set<MarketDataSubscription> polls = pollingBuilder.build();
+    pollsPerExchange.put(exchangeName, pollingBuilder.build());
+    LOGGER.debug("Polls now set to: {}", polls);
   }
 
 
-  private void openSubscriptions(String exchangeName, Exchange exchange, Collection<MarketDataSubscription> streamingSubscriptions) {
-    subscriptionsPerExchange.putAll(exchangeName, streamingSubscriptions);
+  private void openSubscriptions(String exchangeName, Exchange exchange, Set<MarketDataSubscription> streamingSubscriptions) {
+    subscriptionsPerExchange.put(exchangeName, streamingSubscriptions);
     subscribeExchange((StreamingExchange)exchange, streamingSubscriptions, exchangeName);
 
     StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
@@ -461,43 +428,105 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   protected void run() {
     Thread.currentThread().setName("Market data subscription manager");
     LOGGER.info("{} started", this);
+
+    final ForkJoinWorkerThreadFactory factory = pool -> {
+      final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+      worker.setName(MarketDataSubscriptionManager.class.getSimpleName() + "-" + worker.getPoolIndex());
+      return worker;
+    };
+
+    ForkJoinPool forkJoinPool = new ForkJoinPool(exchangeService.getExchanges().size() + 1, factory, null, false);
+    try {
+      forkJoinPool.submit(() ->
+        exchangeService.getExchanges()
+          .stream()
+          .parallel()
+          .forEach(this::pollExchange)
+      ).get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return;
+    } catch (ExecutionException e1) {
+      throw new RuntimeException(e1);
+    }
+    updateSubscriptions(emptySet());
+    LOGGER.info(this + " stopped");
+  }
+
+  private void pollExchange(String exchangeName) {
     while (isRunning()) {
 
       LOGGER.debug("{} start subscription check", this);
-      doSubscriptionChanges();
+      doSubscriptionChanges(exchangeName);
 
       LOGGER.debug("{} start poll", this);
 
-      HashMultimap<String, String> balanceCurrenciesByExchange = HashMultimap.create();
-      for (MarketDataSubscription subscription : activePolling) {
+      Collection<MarketDataSubscription> polls = pollsPerExchange.get(exchangeName);
+
+      Set<String> balanceCurrencies = new HashSet<>();
+
+      for (MarketDataSubscription subscription : polls) {
         if (!isRunning())
           break;
         if (subscription.type().equals(MarketDataType.BALANCE)) {
-          balanceCurrenciesByExchange.put(subscription.spec().exchange(), subscription.spec().base());
-          balanceCurrenciesByExchange.put(subscription.spec().exchange(), subscription.spec().counter());
+          balanceCurrencies.add(subscription.spec().base());
+          balanceCurrencies.add(subscription.spec().counter());
         } else {
           fetchAndBroadcast(subscription);
+
+          if (!sleep(exchangeName, polls.size()))
+            break;
         }
       }
 
       // We'll be extending this sort of batching to more market data types...
-      balanceCurrenciesByExchange.asMap().forEach((exchangeName, currencyCodes) -> {
-        fetchBalances(exchangeName, currencyCodes).forEach(b -> onBalance(BalanceEvent.create(exchangeName, b.currency(), b)));
-      });
+      if (!balanceCurrencies.isEmpty()) {
+        fetchBalances(exchangeName, balanceCurrencies)
+          .forEach(b -> onBalance(BalanceEvent.create(exchangeName, b.currency(), b)));
 
-      LOGGER.debug("{} going to sleep", this);
-      try {
-        synchronized (this) {
-          this.wait(configuration.getLoopSeconds() * 1000);
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        break;
+        if (!sleep(exchangeName, polls.size()))
+          break;
       }
 
     }
-    updateSubscriptions(emptySet());
-    LOGGER.info(this + " stopped");
+  }
+
+  private boolean sleep(String exchangeName, int pollCount) {
+    LOGGER.debug("{} going to sleep", this);
+    try {
+      Thread.sleep(sleepTime(exchangeName, pollCount));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    }
+  }
+
+  private long sleepTime(String exchangeName, int pollCount) {
+    try {
+
+      RateLimit[] privateRateLimits = exchangeService.get(exchangeName)
+        .getExchangeMetaData()
+        .getPrivateRateLimits();
+
+      if (privateRateLimits == null) {
+        return defaultSleep(pollCount);
+      }
+
+      return Arrays.asList(privateRateLimits)
+        .stream()
+        .map(RateLimit::getPollDelayMillis)
+        .max(Comparator.naturalOrder())
+        .orElse(defaultSleep(pollCount));
+
+    } catch (Exception e) {
+      LOGGER.warn("Failed to fetch exchange metadata for " + exchangeName, e);
+      return defaultSleep(pollCount);
+    }
+  }
+
+  private long defaultSleep(int pollCount) {
+    return (configuration.getLoopSeconds() * 1000) / pollCount;
   }
 
   private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) {
