@@ -39,14 +39,14 @@ class OrderBook extends React.PureComponent {
 
   render() {
     const { orderBook, coin, animate } = this.props
-    if (orderBook) {
+    if (orderBook && coin) {
       this.largestOrder = Math.max(
         ...orderBook.bids.map(o => o.remainingAmount),
         ...orderBook.asks.map(o => o.remainingAmount),
         this.largestOrder
       )
     }
-    return orderBook ? (
+    return (orderBook && coin) ? (
       <Split>
         <AskSide><OrderBookSide key="asks" animate={animate} orders={orderBook.bids} largestOrder={this.largestOrder} direction="BID" coin={coin} /></AskSide>
         <BidSide><OrderBookSide key="buys" animate={animate} orders={orderBook.asks} largestOrder={this.largestOrder} direction="ASK" coin={coin} /></BidSide>
