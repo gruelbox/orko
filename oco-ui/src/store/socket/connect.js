@@ -32,13 +32,6 @@ function bufferAction(key, action) {
   actionBuffer[key] = action
 }
 
-function bufferActions(actions) {
-  actionBuffer = {
-    ...actionBuffer,
-    ...actions
-  }
-}
-
 export function initialise(s, history) {
   store = s
 
