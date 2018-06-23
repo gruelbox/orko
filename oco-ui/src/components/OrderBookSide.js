@@ -124,27 +124,33 @@ const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
   </Aligned>
 )
 
-const OrderBookSide = ({coin, orders, direction, focusFn, largestOrder}) => (
-  <ReactCSSTransitionGroup
-    transitionName="collapse"
-    transitionEnter={true}
-    transitionAppear={false}
-    transitionEnterTimeout={1600}
-    transitionLeaveTimeout={1000}
-    transitionLeave={true}
-  >
-    {orders.map(order => (
-      <Entry
-        key={order.limitPrice}
-        focusFn={focusFn}
-        counter={coin.counter}
-        direction={direction}
-        price={order.limitPrice}
-        magnitude={order.remainingAmount * 100.0 / largestOrder}
-        size={order.remainingAmount}
-      />
-    ))}
-  </ReactCSSTransitionGroup>
+const entries = ({coin, orders, direction, focusFn, largestOrder}) => (
+  orders.map(order => (
+    <Entry
+      key={order.limitPrice}
+      focusFn={focusFn}
+      counter={coin.counter}
+      direction={direction}
+      price={order.limitPrice}
+      magnitude={order.remainingAmount * 100.0 / largestOrder}
+      size={order.remainingAmount}
+    />
+  ))
+)
+
+const OrderBookSide = props => (
+  props.animate
+    ? <ReactCSSTransitionGroup
+        transitionName="collapse"
+        transitionEnter={true}
+        transitionAppear={false}
+        transitionEnterTimeout={1600}
+        transitionLeaveTimeout={1000}
+        transitionLeave={true}
+      >
+        {entries(props)}
+      </ReactCSSTransitionGroup>
+    : <div>{entries(props)}</div>
 )
 
 export default OrderBookSide

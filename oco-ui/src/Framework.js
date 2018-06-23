@@ -5,6 +5,8 @@ import { WidthProvider, Responsive } from "react-grid-layout"
 import styled from "styled-components"
 import { color } from "styled-system"
 
+import { getFromLS, saveToLS } from "./util/localStorage"
+
 import CoinsContainer from "./containers/CoinsContainer"
 import JobContainer from "./containers/JobContainer"
 import JobsContainer from "./containers/JobsContainer"
@@ -161,23 +163,5 @@ export default class Framework extends React.Component {
         </div>
       )
     }
-  }
-}
-
-function getFromLS(key) {
-  let ls = null
-  if (global.localStorage) {
-    try {
-      ls = JSON.parse(global.localStorage.getItem(key)) || null
-    } catch (e) {
-      /*Ignore*/
-    }
-  }
-  return ls
-}
-
-function saveToLS(key, value) {
-  if (global.localStorage) {
-    global.localStorage.setItem(key, JSON.stringify(value))
   }
 }

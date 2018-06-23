@@ -38,7 +38,7 @@ class OrderBook extends React.PureComponent {
   }
 
   render() {
-    const { orderBook, coin } = this.props
+    const { orderBook, coin, animate } = this.props
     if (orderBook) {
       this.largestOrder = Math.max(
         ...orderBook.bids.map(o => o.remainingAmount),
@@ -48,8 +48,8 @@ class OrderBook extends React.PureComponent {
     }
     return orderBook ? (
       <Split>
-        <AskSide><OrderBookSide key="asks" orders={orderBook.bids} largestOrder={this.largestOrder} direction="BID" coin={coin} /></AskSide>
-        <BidSide><OrderBookSide key="buys" orders={orderBook.asks} largestOrder={this.largestOrder} direction="ASK" coin={coin} /></BidSide>
+        <AskSide><OrderBookSide key="asks" animate={animate} orders={orderBook.bids} largestOrder={this.largestOrder} direction="BID" coin={coin} /></AskSide>
+        <BidSide><OrderBookSide key="buys" animate={animate} orders={orderBook.asks} largestOrder={this.largestOrder} direction="ASK" coin={coin} /></BidSide>
       </Split>
     ) : (
       loading
