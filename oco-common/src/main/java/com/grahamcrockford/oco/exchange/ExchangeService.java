@@ -1,6 +1,8 @@
 package com.grahamcrockford.oco.exchange;
 
 import java.util.Collection;
+import java.util.Optional;
+
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
@@ -18,5 +20,7 @@ public interface ExchangeService {
   Ticker fetchTicker(TickerSpec ex);
 
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
+
+  Optional<Long> safePollDelay(String name);
 
 }
