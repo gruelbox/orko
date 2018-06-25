@@ -195,6 +195,7 @@ const OpenOrders = props => (
     className="-striped"
     minRows={0}
     noDataText="No open orders"
+    defaultPageSize={1000}
   />
 )
 

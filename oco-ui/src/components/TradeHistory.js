@@ -107,6 +107,7 @@ const TradeHistory = props => (
     className="-striped"
     minRows={0}
     noDataText="No trade history"
+    defaultPageSize={1000}
   />
 )
 

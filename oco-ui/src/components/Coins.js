@@ -108,6 +108,7 @@ const Coins = ({ data, onRemove, onClickAlerts }) => (
     className="-striped"
     minRows={0}
     noDataText="Add a coin by clicking +, above"
+    defaultPageSize={1000}
   />
 )
 
