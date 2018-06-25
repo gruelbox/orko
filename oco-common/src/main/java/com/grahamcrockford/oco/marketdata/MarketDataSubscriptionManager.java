@@ -1,15 +1,13 @@
 package com.grahamcrockford.oco.marketdata;
 
+import static com.grahamcrockford.oco.marketdata.MarketDataType.BALANCE;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
 import static java.util.Collections.emptySet;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -18,12 +16,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
 import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.account.Wallet;
-import org.knowm.xchange.dto.meta.RateLimit;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -91,6 +91,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final ConcurrentMap<String, Set<MarketDataSubscription>> subscriptionsPerExchange = Maps.newConcurrentMap();
   private final ConcurrentMap<String, Set<MarketDataSubscription>> pollsPerExchange = Maps.newConcurrentMap();
   private final Multimap<String, Disposable> disposablesPerExchange = HashMultimap.create();
+  private final Set<MarketDataSubscription> unavailableSubscriptions = Sets.newConcurrentHashSet();
 
   private final Flowable<TickerEvent> tickers;
   private final AtomicReference<FlowableEmitter<TickerEvent>> tickerEmitter = new AtomicReference<>();
@@ -107,6 +108,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private final ConcurrentMap<TickerSpec, TickerEvent> latestTickers = Maps.newConcurrentMap();
   private final ConcurrentMap<TickerSpec, OrderBookEvent> latestOrderbooks = Maps.newConcurrentMap();
+
+  private final Phaser phaser  = new Phaser(1);
 
 
   @Inject
@@ -162,6 +165,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     for (String exchangeName : exchangeService.getExchanges()) {
       nextSubscriptions.get(exchangeName).set(ImmutableSet.copyOf(byExchange.get(exchangeName)));
     }
+
+    // Give the loops a kick
+    phaser.arrive();
   }
 
 
@@ -266,13 +272,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * Actually performs the subscription changes. Occurs synchronously in the
    * poll loop.
    */
-  private void doSubscriptionChanges(String exchangeName) {
+  private boolean doSubscriptionChanges(String exchangeName) throws Exception {
     Set<MarketDataSubscription> subscriptions = nextSubscriptions.get(exchangeName).getAndSet(null);
+    if (subscriptions == null)
+      return false;
     try {
-      if (subscriptions == null)
-        return;
 
-      LOGGER.debug("Updating {} subscriptions to: {}", exchangeName, subscriptions);
+      LOGGER.info("Updating {} subscriptions to: {}", exchangeName, subscriptions);
 
       // Remember all our old subscriptions for a moment...
       Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(
@@ -283,7 +289,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       // Disconnect any streaming exchanges where the tickers currently
       // subscribed mismatch the ones we want.
-      if (!subscriptions.equals(oldSubscriptions)) {
+      if (subscriptions.equals(oldSubscriptions)) {
+        return false;
+      } else {
 
         if (!oldSubscriptions.isEmpty()) {
           disconnectExchange(exchangeName);
@@ -301,11 +309,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           subscribe(exchangeName, subscriptions);
         }
 
+        return true;
+
       }
 
-    } catch (Throwable t) {
-      LOGGER.error("Error updating subscriptions", t);
+    } catch (Exception e) {
+      LOGGER.error("Error updating subscriptions", e);
       nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions);
+      throw e;
     }
   }
 
@@ -453,48 +464,110 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     LOGGER.info(this + " stopped");
   }
 
+  @Override
+  protected void triggerShutdown() {
+    super.triggerShutdown();
+    phaser.arriveAndDeregister();
+    phaser.forceTermination();
+  }
+
   private void pollExchange(String exchangeName) {
-    while (isRunning()) {
+    long defaultSleep = configuration.getLoopSeconds() * 1000;
+    while (!phaser.isTerminated()) {
 
-      LOGGER.debug("{} start subscription check", this);
-      doSubscriptionChanges(exchangeName);
+      // Handle any pending resubscriptions.
+      LOGGER.debug("{} - start subscription check", exchangeName);
+      boolean subscriptionsFailed = false;
+      boolean resubscribed = false;
+      try {
+        resubscribed = doSubscriptionChanges(exchangeName);
+      } catch (Exception e) {
+        subscriptionsFailed = true;
+      }
 
-      LOGGER.debug("{} start poll", this);
+      // Before we check for the presence of polls, determine which phase
+      // we are going to wait for if there's no work to do - i.e. the
+      // next wakeup.
+      int phase = phaser.getPhase();
+      if (phase == -1)
+        break;
 
-      Collection<MarketDataSubscription> polls = pollsPerExchange.get(exchangeName);
+      // Work out how often we can poll the exchange safely.
+      Set<MarketDataSubscription> polls = FluentIterable.from(pollsPerExchange.get(exchangeName))
+          .filter(s -> !unavailableSubscriptions.contains(s)).toSet();
+      long interApiSleep = sleepTime(exchangeName, defaultSleep, polls.isEmpty() ? 10 : polls.size());
 
-      Set<String> balanceCurrencies = new HashSet<>();
-
-      for (MarketDataSubscription subscription : polls) {
-        if (!isRunning())
+      // Pause after a resubscription since it probably counts as an API call and thus
+      // toward the rate limit
+      if (resubscribed) {
+        if (!sleep(exchangeName, interApiSleep)) {
           break;
-        if (subscription.type().equals(MarketDataType.BALANCE)) {
+        }
+      }
+
+      // Check if we have any polling to do. If not, go to sleep until awoken
+      // by a subscription change, unless we failed to process subscriptions,
+      // in which case wake ourselves up in a few seconds to try again
+      if (polls.isEmpty()) {
+        LOGGER.debug("{} - poll going to sleep", exchangeName);
+        try {
+          if (subscriptionsFailed) {
+            phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
+          } else {
+            phaser.awaitAdvanceInterruptibly(phase);
+            LOGGER.debug("{} - poll woken up on request", exchangeName);
+          }
+          continue;
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          break;
+        } catch (TimeoutException e) {
+          continue;
+        }
+      }
+
+      LOGGER.debug("{} - start poll", exchangeName);
+      Set<String> balanceCurrencies = new HashSet<>();
+      for (MarketDataSubscription subscription : polls) {
+        if (phaser.isTerminated())
+          break;
+        if (subscription.type().equals(BALANCE)) {
           balanceCurrencies.add(subscription.spec().base());
           balanceCurrencies.add(subscription.spec().counter());
         } else {
           fetchAndBroadcast(subscription);
-
-          if (!sleep(exchangeName, polls.size()))
+          if (!sleep(exchangeName, interApiSleep))
             break;
         }
       }
 
+      if (phaser.isTerminated())
+        break;
+
       // We'll be extending this sort of batching to more market data types...
       if (!balanceCurrencies.isEmpty()) {
-        fetchBalances(exchangeName, balanceCurrencies)
-          .forEach(b -> onBalance(BalanceEvent.create(exchangeName, b.currency(), b)));
-
-        if (!sleep(exchangeName, polls.size()))
+        try {
+          fetchBalances(exchangeName, balanceCurrencies)
+            .forEach(b -> onBalance(BalanceEvent.create(exchangeName, b.currency(), b)));
+        } catch (NotAvailableFromExchangeException e) {
+          LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
+          Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
+        } catch (Throwable e) {
+          LOGGER.error("Error fetching balance on " + exchangeName, e);
+        }
+        if (phaser.isTerminated())
+          break;
+        if (!sleep(exchangeName, interApiSleep))
           break;
       }
 
     }
   }
 
-  private boolean sleep(String exchangeName, int pollCount) {
-    LOGGER.debug("{} going to sleep", this);
+  private boolean sleep(String exchangeName, long sleepTime) {
+    LOGGER.debug("{} pausing between API calls", exchangeName);
     try {
-      Thread.sleep(sleepTime(exchangeName, pollCount));
+      Thread.sleep(sleepTime);
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -502,46 +575,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
   }
 
-  private long sleepTime(String exchangeName, int pollCount) {
-    try {
-
-      RateLimit[] privateRateLimits = exchangeService.get(exchangeName)
-        .getExchangeMetaData()
-        .getPrivateRateLimits();
-
-      if (privateRateLimits == null) {
-        return defaultSleep(pollCount);
-      }
-
-      return Arrays.asList(privateRateLimits)
-        .stream()
-        .map(RateLimit::getPollDelayMillis)
-        .max(Comparator.naturalOrder())
-        .orElse(defaultSleep(pollCount));
-
-    } catch (Exception e) {
-      LOGGER.warn("Failed to fetch exchange metadata for " + exchangeName, e);
-      return defaultSleep(pollCount);
-    }
+  private long sleepTime(String exchangeName, long defaultSleep, int pollCount) {
+    return exchangeService.safePollDelay(exchangeName)
+        .orElse(defaultSleep / pollCount);
   }
 
-  private long defaultSleep(int pollCount) {
-    return (configuration.getLoopSeconds() * 1000) / pollCount;
-  }
-
-  private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) {
-    try {
-      return FluentIterable.from(exchangeWallet(exchangeName).getBalances().entrySet())
-        .transform(Map.Entry::getValue)
-        .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
-        .transform(Balance::create);
-    } catch (NotAvailableFromExchangeException e) {
-      LOGGER.warn("Balance not available on {}" , exchangeName);
-      return Collections.emptyList();
-    } catch (Throwable e) {
-      LOGGER.error("Error fetching balance on " + exchangeName, e);
-      return Collections.emptyList();
-    }
+  private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) throws IOException {
+    return FluentIterable.from(exchangeWallet(exchangeName).getBalances().entrySet())
+      .transform(Map.Entry::getValue)
+      .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
+      .transform(Balance::create);
   }
 
   private Wallet exchangeWallet(String exchangeName) throws IOException {
@@ -595,6 +638,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     } catch (NotAvailableFromExchangeException e) {
       LOGGER.warn(subscription.type() + " not available on " + subscription.spec().exchange());
+      unavailableSubscriptions.add(subscription);
     } catch (Throwable e) {
       LOGGER.error("Error fetching market data: " + subscription, e);
     }

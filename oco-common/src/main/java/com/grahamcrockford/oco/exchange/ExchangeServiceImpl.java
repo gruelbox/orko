@@ -1,10 +1,13 @@
 package com.grahamcrockford.oco.exchange;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -16,6 +19,8 @@ import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
+import org.knowm.xchange.dto.meta.ExchangeMetaData;
+import org.knowm.xchange.dto.meta.RateLimit;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +120,30 @@ public class ExchangeServiceImpl implements ExchangeService {
       }
       return exSpec;
     }
+  });
 
+  private final LoadingCache<String, Optional<Long>> safePollDelays = CacheBuilder.newBuilder().build(new CacheLoader<String, Optional<Long>>() {
+    @Override
+    public Optional<Long> load(String exchangeName) throws Exception {
+      try {
+
+        ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
+
+        Stream<RateLimit> rateLimits = Stream.empty();
+
+        if (metaData.getPrivateRateLimits() != null)
+          rateLimits = Arrays.asList(metaData.getPrivateRateLimits()).stream();
+        if (metaData.getPublicRateLimits() != null)
+          rateLimits = Stream.concat(rateLimits, Arrays.asList(metaData.getPublicRateLimits()).stream());
+        return rateLimits
+          .map(RateLimit::getPollDelayMillis)
+          .max(Comparator.naturalOrder());
+
+      } catch (Exception e) {
+        LOGGER.warn("Failed to fetch exchange metadata for " + exchangeName, e);
+        return Optional.empty();
+      }
+    }
   });
 
 
@@ -197,5 +225,11 @@ public class ExchangeServiceImpl implements ExchangeService {
     if (!result.isPresent())
       throw new IllegalArgumentException("Unknown exchange [" + friendlyName + "]");
     return result.get();
+  }
+
+
+  @Override
+  public Optional<Long> safePollDelay(String exchangeName) {
+    return safePollDelays.getUnchecked(exchangeName);
   }
 }

@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,17 +61,17 @@ class ExchangeEventBus implements ExchangeEventRegistry {
       Set<MarketDataSubscription> toAdd = Sets.difference(targetSubscriptions, currentForSubscriber);
 
       for (MarketDataSubscription sub : toRemove) {
-        LOGGER.info("... unsubscribing {}", sub);
+        LOGGER.debug("... unsubscribing {}", sub);
         if (unsubscribe(subscriberId, sub)) {
-          LOGGER.info("   ... removing global subscription");
+          LOGGER.debug("   ... removing global subscription");
           updated = true;
         }
       }
 
       for (MarketDataSubscription sub : toAdd) {
-        LOGGER.info("... subscribing {}", sub);
+        LOGGER.debug("... subscribing {}", sub);
         if (subscribe(subscriberId, sub)) {
-          LOGGER.info("   ... new global subscription");
+          LOGGER.debug("   ... new global subscription");
           updated = true;
         }
       }

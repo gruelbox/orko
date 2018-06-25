@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
@@ -44,6 +45,7 @@ import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
+
 import io.reactivex.disposables.Disposable;
 
 /**
@@ -243,7 +245,7 @@ public final class PaperTradeService implements TradeService {
             }
             break;
           default:
-            throw new UnsupportedOperationException("Derivatives not supported");
+            throw new NotAvailableFromExchangeException();
         }
       });
   }

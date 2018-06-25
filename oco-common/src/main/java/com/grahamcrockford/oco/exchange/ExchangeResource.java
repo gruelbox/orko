@@ -23,6 +23,7 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.trade.OpenOrders;
+import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
@@ -120,7 +121,7 @@ public class ExchangeResource implements WebResource {
       return Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).getOpenOrders())
           .build();
-    } catch (UnsupportedOperationException e) {
+    } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
   }
@@ -169,7 +170,7 @@ public class ExchangeResource implements WebResource {
           })
           .collect(Collectors.toList())
         ).build();
-    } catch (UnsupportedOperationException e) {
+    } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
 
@@ -206,7 +207,7 @@ public class ExchangeResource implements WebResource {
 
       return Response.ok().entity(filtered).build();
 
-    } catch (UnsupportedOperationException e) {
+    } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
   }
@@ -239,7 +240,7 @@ public class ExchangeResource implements WebResource {
               .cancelOrder(new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType))
           )
           .build();
-    } catch (UnsupportedOperationException e) {
+    } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
   }
@@ -262,7 +263,7 @@ public class ExchangeResource implements WebResource {
       return Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).getOrder(id))
           .build();
-    } catch (UnsupportedOperationException e) {
+    } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
   }
@@ -286,7 +287,7 @@ public class ExchangeResource implements WebResource {
       return Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(id))
           .build();
-    } catch (UnsupportedOperationException e) {
+    } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
   }
@@ -326,7 +327,7 @@ public class ExchangeResource implements WebResource {
           .entity(Maps.uniqueIndex(balances, balance -> balance.currency()))
           .build();
 
-    } catch (UnsupportedOperationException e) {
+    } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
   }
