@@ -225,7 +225,7 @@ public class TestLimitOrderJobProcessor {
   }
 
   private void verifySentError() {
-    verify(telegramService).error(Mockito.anyString());
+    verify(telegramService).error(Mockito.anyString(), Mockito.any(IOError.class));
   }
 
   private void verifySentMessage() {
