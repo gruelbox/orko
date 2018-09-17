@@ -5,24 +5,6 @@ import Input from "./primitives/Input"
 import Form from "./primitives/Form"
 import Button from "./primitives/Button"
 
-import styled from "styled-components"
-
-const RadioInput = Button.extend`
-  margin:
-    0
-    ${props => props.left ? "2px" : "0"}
-    0
-    ${props => props.right ? "2px" : "0"};
-  border-radius:
-    ${props => props.left ? props.theme.radii[2] + "px" : "0"}
-    ${props => props.right ? props.theme.radii[2] + "px" : "0"}
-    ${props => props.right ? props.theme.radii[2] + "px" : "0"}
-    ${props => props.left ? props.theme.radii[2] + "px" : "0"};
-  width: 58px;
-`
-
-const RadioGroup = styled.div``
-
 const LimitOrder = props => {
   const valid = props.limitPriceValid && props.amountValid
 
@@ -37,30 +19,6 @@ const LimitOrder = props => {
 
   return (
     <Form>
-      <RadioGroup>
-        <RadioInput
-          id="BUY"
-          name="direction"
-          value="BUY"
-          checked={props.job.direction === "BUY"}
-          onClick={() => onChange("direction", "BUY")}
-          left
-          bg={props.job.direction === "BUY" ? "buy" : "deemphasis"}
-        >
-          Buy
-        </RadioInput>
-        <RadioInput
-          id="SELL"
-          name="direction"
-          value="BUY"
-          checked={props.job.direction === "SELL"}
-          onClick={() => onChange("direction", "SELL")}
-          right
-          bg={props.job.direction === "SELL" ? "sell" : "deemphasis"}
-        >
-          Sell
-        </RadioInput>
-      </RadioGroup>
       <div>
         <Input
           id="limitPrice"
@@ -85,11 +43,21 @@ const LimitOrder = props => {
       </div>
       <Button
         disabled={!valid}
-        onClick={props.onSubmit}
+        onClick={props.onSell}
         width={120}
-        bg={props.job.direction === "BUY" ? "buy" : "sell"}
+        bg="sell"
+        mr={1}
       >
-        {props.job.direction}
+        SELL
+      </Button>
+      <Button
+        disabled={!valid}
+        onClick={props.onBuy}
+        width={120}
+        bg="buy"
+        ml={1}
+      >
+        BUY
       </Button>
     </Form>
   )

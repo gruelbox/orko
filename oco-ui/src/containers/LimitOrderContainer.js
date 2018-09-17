@@ -16,7 +16,6 @@ class LimitOrderContainer extends React.Component {
       job: Immutable({
         limitPrice: "",
         amount: "",
-        direction: "BUY",
         track: true
       })
     }
@@ -41,7 +40,7 @@ class LimitOrderContainer extends React.Component {
     )
   }
 
-  createJob = () => {
+  createJob = (direction) => {
     const tickTrigger = {
       exchange: this.props.coin.exchange,
       counter: this.props.coin.counter,
@@ -55,13 +54,18 @@ class LimitOrderContainer extends React.Component {
         amount: this.state.job.amount,
         limitPrice: this.state.job.limitPrice
       },
-      direction: this.state.job.direction,
+      direction: direction,
       track: this.state.job.track
     }
   }
 
-  onSubmit = async () => {
-    this.props.dispatch(jobActions.submitJob(this.createJob()))
+  onSubmit = async (direction) => {
+    this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
+    this.setState(current => ({
+      job: Immutable.merge(current.job, {
+        amount: ""
+      })
+    }))
   }
 
   render() {
@@ -75,7 +79,8 @@ class LimitOrderContainer extends React.Component {
         job={this.state.job}
         onChange={this.onChange}
         onFocus={this.onFocus}
-        onSubmit={this.onSubmit}
+        onBuy={() => this.onSubmit("BUY")}
+        onSell={() => this.onSubmit("SELL")}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
       />
