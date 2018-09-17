@@ -62,7 +62,7 @@ public abstract class Trade {
                              @JsonProperty("oid") String orderId,
                              @JsonProperty("fa") BigDecimal feeAmount,
                              @JsonProperty("fc") String feeCurrency) {
-    return new AutoValue_Trade(type, originalAmount.toPlainString(), spec, price.toPlainString(), timestamp, id, orderId, feeAmount.toPlainString(), feeCurrency);
+    return new AutoValue_Trade(type, originalAmount.toPlainString(), spec, price.toPlainString(), timestamp, id, orderId, feeAmount == null ? null : feeAmount.toPlainString(), feeCurrency);
   }
 
   /** Did this trade result from the execution of a bid or a ask? */

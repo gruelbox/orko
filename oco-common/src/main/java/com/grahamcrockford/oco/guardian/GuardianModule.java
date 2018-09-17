@@ -15,6 +15,7 @@ public class GuardianModule extends AbstractModule {
   @Override
   protected void configure() {
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(GuardianLoop.class);
+    Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MonitorExchangeSocketHealth.class);
     if (mq) {
       Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MqListener.class);
     }
