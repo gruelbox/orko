@@ -150,7 +150,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     // Give the loops a kick
-    phaser.arrive();
+    int phase = phaser.arrive();
+    LOGGER.info("Progressing to phase {}", phase); // TODO REMOVE
   }
 
 
@@ -301,7 +302,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     } catch (Exception e) {
       LOGGER.error("Error updating subscriptions", e);
-      nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions);
+      if (nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions)) {
+        int phase = phaser.arrive();
+        LOGGER.info("Progressing to phase {}", phase); // TODO REMOVE
+      }
       throw e;
     }
   }
@@ -430,6 +434,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     long defaultSleep = configuration.getLoopSeconds() * 1000;
     while (!phaser.isTerminated()) {
 
+      // Before we check for the presence of polls, determine which phase
+      // we are going to wait for if there's no work to do - i.e. the
+      // next wakeup.
+      int phase = phaser.getPhase();
+      if (phase == -1)
+        break;
+
       // Handle any pending resubscriptions.
       LOGGER.debug("{} - start subscription check", exchangeName);
       boolean subscriptionsFailed = false;
@@ -438,15 +449,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         resubscribed = doSubscriptionChanges(exchangeName);
       } catch (Exception e) {
         subscriptionsFailed = true;
-        LOGGER.error("Failed to perform subscription changes for " + exchangeName, e);
       }
-
-      // Before we check for the presence of polls, determine which phase
-      // we are going to wait for if there's no work to do - i.e. the
-      // next wakeup.
-      int phase = phaser.getPhase();
-      if (phase == -1)
-        break;
 
       // Work out how often we can poll the exchange safely.
       Set<MarketDataSubscription> polls = FluentIterable.from(pollsPerExchange.get(exchangeName))
@@ -470,6 +473,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           if (subscriptionsFailed) {
             phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
           } else {
+            LOGGER.info("{} - sleeping until phase {}", exchangeName, phase); // TODO REMOVE
             phaser.awaitAdvanceInterruptibly(phase);
             LOGGER.debug("{} - poll woken up on request", exchangeName);
           }
