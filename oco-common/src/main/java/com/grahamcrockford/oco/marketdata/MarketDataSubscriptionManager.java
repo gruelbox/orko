@@ -438,6 +438,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         resubscribed = doSubscriptionChanges(exchangeName);
       } catch (Exception e) {
         subscriptionsFailed = true;
+        LOGGER.error("Failed to perform subscription changes for " + exchangeName, e);
       }
 
       // Before we check for the presence of polls, determine which phase
@@ -477,6 +478,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           Thread.currentThread().interrupt();
           break;
         } catch (TimeoutException e) {
+          continue;
+        } catch (Exception e) {
+          LOGGER.error("Failure in phaser wait for " + exchangeName, e);
           continue;
         }
       }
@@ -531,8 +535,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private long sleepTime(String exchangeName, long defaultSleep, int pollCount) {
-    return exchangeService.safePollDelay(exchangeName)
-        .orElse(defaultSleep / pollCount);
+    try {
+      return exchangeService.safePollDelay(exchangeName)
+          .orElse(defaultSleep / pollCount);
+    } catch (Exception e) {
+      LOGGER.error("Failed to fetch exchange safe poll delay for " + exchangeName, e);
+      return defaultSleep / pollCount;
+    }
   }
 
   private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) throws IOException {
