@@ -115,8 +115,8 @@ public class ExchangeServiceImpl implements ExchangeService {
       final ExchangeSpecification exSpec = map(exchangeName).newInstance().getDefaultExchangeSpecification();
       if (exchangeName.toLowerCase().equals("gdax-sandbox")) {
         LOGGER.info("Using sandbox GDAX");
-        exSpec.setSslUri("https://api-public.sandbox.gdax.com");
-        exSpec.setHost("api-public.sandbox.gdax.com");
+        exSpec.setSslUri("https://api-public.sandbox.pro.coinbase.com");
+        exSpec.setHost("api-public.sandbox.pro.coinbase.com");
       }
       return exSpec;
     }
