@@ -1,7 +1,10 @@
 package com.grahamcrockford.oco.marketdata;
 
+import static com.grahamcrockford.oco.marketdata.MarketDataType.BALANCE;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.USER_TRADE_HISTORY;
 
 import java.util.Collection;
 import javax.annotation.security.RolesAllowed;
@@ -53,7 +56,10 @@ public class SubscriptionResource implements WebResource {
   public void put(TickerSpec spec) {
     permanentSubscriptionManager.add(
       MarketDataSubscription.create(spec, TICKER),
-      MarketDataSubscription.create(spec, ORDERBOOK)
+      MarketDataSubscription.create(spec, ORDERBOOK),
+      MarketDataSubscription.create(spec, OPEN_ORDERS),
+      MarketDataSubscription.create(spec, USER_TRADE_HISTORY),
+      MarketDataSubscription.create(spec, BALANCE)
     );
   }
 
@@ -63,7 +69,10 @@ public class SubscriptionResource implements WebResource {
   public void delete(TickerSpec spec) {
     permanentSubscriptionManager.remove(
       MarketDataSubscription.create(spec, TICKER),
-      MarketDataSubscription.create(spec, ORDERBOOK)
+      MarketDataSubscription.create(spec, ORDERBOOK),
+      MarketDataSubscription.create(spec, OPEN_ORDERS),
+      MarketDataSubscription.create(spec, USER_TRADE_HISTORY),
+      MarketDataSubscription.create(spec, BALANCE)
     );
   }
 }
