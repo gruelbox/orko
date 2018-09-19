@@ -38,6 +38,7 @@ server:
   connector:
     type: http
     port: 8080
+  maxThreads: 16
 logging:
   loggers:
     "com.grahamcrockford.oco": INFO

@@ -48,6 +48,7 @@ server:
     port: 8080
   requestLog:
     appenders: []
+  maxThreads: 16
 jerseyClient:
   timeout: 15000ms
   connectionTimeout: 15000ms
