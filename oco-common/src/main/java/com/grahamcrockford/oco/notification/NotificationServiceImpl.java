@@ -3,7 +3,7 @@ package com.grahamcrockford.oco.notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.notification.NotificationEvent.NotificationType;
 
@@ -11,10 +11,10 @@ class NotificationServiceImpl implements NotificationService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
-  private final AsyncEventBus eventBus;
+  private final EventBus eventBus;
 
   @Inject
-  NotificationServiceImpl(AsyncEventBus eventBus) {
+  NotificationServiceImpl(EventBus eventBus) {
     this.eventBus = eventBus;
   }
 

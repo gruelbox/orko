@@ -31,7 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -59,7 +59,7 @@ public final class OcoWebSocketServer {
 
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
-  @Inject private AsyncEventBus eventBus;
+  @Inject private EventBus eventBus;
 
   private volatile Session session;
   private volatile Disposable subscription;

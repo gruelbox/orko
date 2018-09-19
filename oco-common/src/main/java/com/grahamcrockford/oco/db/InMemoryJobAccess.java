@@ -9,7 +9,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -32,8 +32,8 @@ class InMemoryJobAccess implements JobAccess, JobLocker {
   private final Cache<String, UUID> locks = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.SECONDS).build();
 
   @Inject
-  InMemoryJobAccess(AsyncEventBus asyncEventBus) {
-    asyncEventBus.register(this);
+  InMemoryJobAccess(EventBus eventBus) {
+    eventBus.register(this);
   }
 
   @Subscribe

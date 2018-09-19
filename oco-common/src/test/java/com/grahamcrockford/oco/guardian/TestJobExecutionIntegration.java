@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.AccountServiceFactory;
@@ -51,7 +52,7 @@ public class TestJobExecutionIntegration {
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private AccountServiceFactory accountServiceFactory;
 
-  private AsyncEventBus asyncEventBus;
+  private EventBus asyncEventBus;
   private JobRunner jobSubmitter;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
@@ -65,7 +66,7 @@ public class TestJobExecutionIntegration {
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    asyncEventBus = new AsyncEventBus(Executors.newCachedThreadPool());
+    asyncEventBus = new EventBus();
 
     when(injector.getInstance(TestingJobProcessor.Factory.class)).thenReturn(new TestingJobProcessor.Factory() {
       @Override

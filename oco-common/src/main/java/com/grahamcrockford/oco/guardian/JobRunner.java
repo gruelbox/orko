@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -28,14 +28,14 @@ class JobRunner {
   private final JobLocker jobLocker;
   private final UUID uuid;
   private final Injector injector;
-  private final AsyncEventBus asyncEventBus;
+  private final EventBus eventBus;
 
   @Inject
-  JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker, Injector injector, AsyncEventBus asyncEventBus) {
+  JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker, Injector injector, EventBus eventBus) {
     this.jobAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.injector = injector;
-    this.asyncEventBus = asyncEventBus;
+    this.eventBus = eventBus;
     this.uuid = UUID.randomUUID();
   }
 
@@ -147,7 +147,7 @@ class JobRunner {
         LOGGER.debug(job + " finished immediately");
       } else {
         status.set(JobStatus.RUNNING);
-        asyncEventBus.register(this);
+        eventBus.register(this);
         LOGGER.debug(job + " started");
       }
     }
@@ -201,7 +201,7 @@ class JobRunner {
       if (!status.compareAndSet(JobStatus.RUNNING, JobStatus.STOPPING))
         return false;
       processor.stop();
-      asyncEventBus.unregister(this);
+      eventBus.unregister(this);
       status.set(JobStatus.STOPPED);
       return true;
     }

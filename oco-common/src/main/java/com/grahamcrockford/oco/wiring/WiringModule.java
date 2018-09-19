@@ -2,7 +2,6 @@ package com.grahamcrockford.oco.wiring;
 
 import java.util.concurrent.ExecutorService;
 
-import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -23,12 +22,6 @@ public class WiringModule extends AbstractModule {
   @Singleton
   EventBus eventBus() {
     return new EventBus();
-  }
-
-  @Provides
-  @Singleton
-  AsyncEventBus eventBus(ExecutorService executorService) {
-    return new AsyncEventBus(executorService);
   }
 
   @Provides

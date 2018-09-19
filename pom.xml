@@ -105,6 +105,7 @@
 
 		<streamex.version>0.6.6</streamex.version>
 		<guice.version>4.2.0</guice.version>
+		<guava.version>26.0-jre</guava.version>
 		<autovalue.version>1.6</autovalue.version>
 		<rabbitmq.version>5.2.0</rabbitmq.version>
 		<mongo.version>3.7.0</mongo.version>
@@ -204,6 +205,11 @@
 				<groupId>org.knowm.xchange</groupId>
 				<artifactId>xchange-okcoin</artifactId>
 				<version>${xchange.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.inject</groupId>

@@ -3,7 +3,7 @@ package com.grahamcrockford.oco.guardian;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -19,17 +19,17 @@ class GuardianLoop extends AbstractExecutionThreadService {
 
   private final JobAccess advancedOrderAccess;
   private final JobRunner jobSubmitter;
-  private final AsyncEventBus asyncEventBus;
+  private final EventBus eventBus;
   private final OcoConfiguration ocoConfiguration;
 
   @Inject
   GuardianLoop(JobAccess jobaccess,
                JobRunner jobRunner,
-               AsyncEventBus asyncEventBus,
+               EventBus eventBus,
                OcoConfiguration ocoConfiguration) {
     this.advancedOrderAccess = jobaccess;
     this.jobSubmitter = jobRunner;
-    this.asyncEventBus = asyncEventBus;
+    this.eventBus = eventBus;
     this.ocoConfiguration = ocoConfiguration;
   }
 
@@ -49,13 +49,13 @@ class GuardianLoop extends AbstractExecutionThreadService {
           break;
         }
 
-        asyncEventBus.post(KeepAliveEvent.INSTANCE);
+        eventBus.post(KeepAliveEvent.INSTANCE);
 
       } catch (Throwable e) {
         LOGGER.error("Error in keep-alive loop", e);
       }
     }
-    asyncEventBus.post(StopEvent.INSTANCE);
+    eventBus.post(StopEvent.INSTANCE);
     LOGGER.info(this + " stopped");
   }
 

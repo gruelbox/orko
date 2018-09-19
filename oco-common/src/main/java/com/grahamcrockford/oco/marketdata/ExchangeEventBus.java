@@ -49,7 +49,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   @Override
   public void changeSubscriptions(String subscriberId, Set<MarketDataSubscription> targetSubscriptions) {
 
-    LOGGER.info("Changing subscriptions for subscriber {} to {}", subscriberId, targetSubscriptions);
+    LOGGER.debug("Changing subscriptions for subscriber {} to {}", subscriberId, targetSubscriptions);
 
     long stamp = rwLock.writeLock();
     try {

@@ -16,8 +16,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
-import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -70,6 +68,7 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Maintains subscriptions to multiple exchanges' market data, using web sockets where it can
@@ -398,14 +397,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   protected void run() {
     Thread.currentThread().setName("Market data subscription manager");
     LOGGER.info("{} started", this);
-
-    final ForkJoinWorkerThreadFactory factory = pool -> {
-      final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
-      worker.setName(MarketDataSubscriptionManager.class.getSimpleName() + "-" + worker.getPoolIndex());
-      return worker;
-    };
-
-    ForkJoinPool forkJoinPool = new ForkJoinPool(exchangeService.getExchanges().size() + 1, factory, null, false);
+    ForkJoinPool forkJoinPool = new ForkJoinPool(exchangeService.getExchanges().size() + 1);
     try {
       forkJoinPool.submit(() ->
         exchangeService.getExchanges()
@@ -431,6 +423,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void pollExchange(String exchangeName) {
+    Thread.currentThread().setName(getClass().getSimpleName() + "-" + exchangeName);
     long defaultSleep = configuration.getLoopSeconds() * 1000;
     while (!phaser.isTerminated()) {
 
@@ -683,7 +676,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       this.flowable = Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING)
           .doOnNext(e -> latest.put(keyFunction.apply(e), e))
           .share()
-          .onBackpressureLatest();
+          .onBackpressureLatest()
+          .observeOn(Schedulers.computation());
     }
 
     void removeFromCache(U key) {

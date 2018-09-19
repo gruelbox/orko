@@ -2,7 +2,7 @@ package com.grahamcrockford.oco.guardian;
 
 import javax.inject.Inject;
 
-import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
@@ -15,11 +15,11 @@ import com.grahamcrockford.oco.spi.KeepAliveEvent;
 class TestingJobProcessor implements JobProcessor<TestingJob> {
 
   private final TestingJob job;
-  private final AsyncEventBus asyncEventBus;
+  private final EventBus asyncEventBus;
   private final JobControl jobControl;
 
   @Inject
-  public TestingJobProcessor(@Assisted TestingJob job, @Assisted JobControl jobControl, AsyncEventBus asyncEventBus) {
+  public TestingJobProcessor(@Assisted TestingJob job, @Assisted JobControl jobControl, EventBus asyncEventBus) {
     this.job = job;
     this.jobControl = jobControl;
     this.asyncEventBus = asyncEventBus;
