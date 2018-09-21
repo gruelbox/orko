@@ -49,7 +49,7 @@ public abstract class TickerSpec {
 
   @Override
   public final String toString() {
-    return base() + "/" + counter() + " on " + exchange();
+    return base() + "/" + counter() + "(" + exchange() + ")";
   }
 
   @JsonIgnore

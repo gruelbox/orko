@@ -27,4 +27,9 @@ public abstract class MarketDataSubscription {
   public final String key() {
     return spec().key() + "/" + type();
   }
+
+  @Override
+  public final String toString() {
+    return key();
+  }
 }

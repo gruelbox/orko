@@ -150,7 +150,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     // Give the loops a kick
     int phase = phaser.arrive();
-    LOGGER.info("Progressing to phase {}", phase); // TODO REMOVE
+    LOGGER.debug("Progressing to phase {}", phase);
   }
 
 
@@ -303,7 +303,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       LOGGER.error("Error updating subscriptions", e);
       if (nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions)) {
         int phase = phaser.arrive();
-        LOGGER.info("Progressing to phase {}", phase); // TODO REMOVE
+        LOGGER.debug("Progressing to phase {}", phase);
       }
       throw e;
     }
@@ -466,7 +466,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           if (subscriptionsFailed) {
             phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
           } else {
-            LOGGER.info("{} - sleeping until phase {}", exchangeName, phase); // TODO REMOVE
+            LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase); // TODO REMOVE
             phaser.awaitAdvanceInterruptibly(phase);
             LOGGER.debug("{} - poll woken up on request", exchangeName);
           }
