@@ -8,6 +8,8 @@ import com.grahamcrockford.oco.db.DbModule;
 import com.grahamcrockford.oco.job.JobsModule;
 import com.grahamcrockford.oco.marketdata.MarketDataModule;
 import com.grahamcrockford.oco.notification.TelegramModule;
+import com.grahamcrockford.oco.signal.SignalModule;
+import com.grahamcrockford.oco.strategy.StrategyModule;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import com.grahamcrockford.oco.wiring.WebResource;
 import com.grahamcrockford.oco.wiring.WiringModule;
@@ -27,5 +29,7 @@ class CommonModule extends AbstractModule {
     install(new MarketDataModule());
     install(new JobsModule());
     install(new TelegramModule());
+    install(new SignalModule());
+    install(new StrategyModule());
   }
 }

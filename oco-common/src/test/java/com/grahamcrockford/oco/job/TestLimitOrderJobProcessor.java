@@ -81,32 +81,6 @@ public class TestLimitOrderJobProcessor {
     processor.stop();
 
     verifyLimitSell();
-    verifySubmitWatcher();
-    verifySentMessage();
-    verifyFinished(result);
-    verifyDidNothingElse();
-  }
-
-  @Test
-  public void testSellNoTrack() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .track(false)
-        .build();
-
-    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
-    boolean result = processor.start();
-    processor.stop();
-
-    verifyLimitSell();
     verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
@@ -132,7 +106,6 @@ public class TestLimitOrderJobProcessor {
     processor.stop();
 
     verifyLimitBuy();
-    verifySubmitWatcher();
     verifySentMessage();
     verifyFinished(result);
     verifyDidNothingElse();
@@ -150,7 +123,6 @@ public class TestLimitOrderJobProcessor {
         .limitPrice(PRICE)
         .tickTrigger(ex)
         .direction(Direction.BUY)
-        .track(false)
         .build();
 
     LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory, enqueuer);
@@ -250,26 +222,11 @@ public class TestLimitOrderJobProcessor {
     Assert.assertEquals(Order.OrderType.BID, captor.getValue().getType());
   }
 
-  private void verifySubmitWatcher() throws Exception {
-    verify(enqueuer).submitNew(OrderStateNotifier.builder()
-        .orderId(lastTradeId())
-        .tickTrigger(TickerSpec.builder()
-            .base(BASE)
-            .counter(COUNTER)
-            .exchange(EXCHANGE)
-            .build())
-        .build());
-  }
-
   private void verifyFinished(boolean result) {
     Assert.assertFalse(result);
   }
 
   private String newTradeId() {
     return Integer.toString(xChangeOrderId.incrementAndGet());
-  }
-
-  private String lastTradeId() {
-    return Integer.toString(xChangeOrderId.get());
   }
 }

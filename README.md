@@ -285,7 +285,6 @@ Best way to work is to catch 401 any time you call an entry point, and if you ge
 | ------ | ----------------------------------------------------- | ---------- |---------- | ------- | ------- |
 | PUT    | /auth                                                 | Whitelists your IP | `token` = the response from Google Authenticator. | None | PUT /auth?token=623432 |
 | PUT    | /jobs                                                 | Adds a fully specified job | None       | JSON | See below |
-| PUT    | /jobs/pumpchecker                                     | Shortcut to add a pump checker | exchange, counter, base | None | PUT /jobs/pumpchecker?exchange=binance&counter=BTC&base=ICX |
 | PUT    | /jobs/softtrailingstop                                | Shortcut to add a soft trailing stop | exchange, counter, base, amount, stop, limit, direction| None | PUT /jobs/softtrailingstop?exchange=binance&counter=BTC&base=VEN&direction=SELL&amount=0.5&stop=0.000555&limit=0.0005 |
 | PUT    | /jobs/limitsell                                       | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitsell?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
 | PUT    | /jobs/limitbuy                                        | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitbuy?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |

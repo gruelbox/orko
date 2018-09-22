@@ -20,16 +20,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
-import com.grahamcrockford.oco.guardian.GuardianLoop;
-import com.grahamcrockford.oco.guardian.JobRunner;
-import com.grahamcrockford.oco.guardian.StopEvent;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscriptionManager;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;

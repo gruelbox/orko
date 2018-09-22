@@ -8,8 +8,10 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import io.dropwizard.lifecycle.Managed;
+
 @Singleton
-class PermanentSubscriptionManager {
+class PermanentSubscriptionManager implements Managed {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PermanentSubscriptionManager.class);
 
@@ -21,7 +23,16 @@ class PermanentSubscriptionManager {
                                ExchangeEventRegistry exchangeEventRegistry) {
     this.permanentSubscriptionAccess = permanentSubscriptionAccess;
     this.exchangeEventRegistry = exchangeEventRegistry;
+  }
+
+  @Override
+  public void start() throws Exception {
     update();
+  }
+
+  @Override
+  public void stop() throws Exception {
+    // No-op
   }
 
   private void update() {

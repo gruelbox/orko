@@ -26,10 +26,8 @@ import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.job.LimitOrderJob;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
-import com.grahamcrockford.oco.notification.NotificationService;
-import com.grahamcrockford.oco.job.OrderStateNotifier;
-import com.grahamcrockford.oco.job.PumpChecker;
 import com.grahamcrockford.oco.job.SoftTrailingStop;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobAccess;
@@ -132,46 +130,6 @@ public class JobResource implements WebResource {
         .startPrice(ticker.getBid())
         .stopPrice(stopPrice)
         .limitPrice(limitPrice)
-        .build());
-  }
-
-  @PUT
-  @Path("pumpchecker")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public Job pumpChecker(@QueryParam("exchange") String exchange,
-                                 @QueryParam("counter") String counter,
-                                 @QueryParam("base") String base) throws IOException {
-
-    // Just check it's a valid ticker
-    exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
-
-    return jobSubmitter.submitNewUnchecked(PumpChecker.builder()
-        .tickTrigger(TickerSpec.builder()
-          .exchange(exchange)
-          .base(base)
-          .counter(counter)
-          .build()
-        )
-        .build());
-  }
-
-  @PUT
-  @Path("monitororder")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public Job monitorOrder(@QueryParam("exchange") String exchange,
-                                         @QueryParam("counter") String counter,
-                                         @QueryParam("base") String base,
-                                         @QueryParam("orderId") String orderId) {
-
-    return jobSubmitter.submitNewUnchecked(OrderStateNotifier.builder()
-        .tickTrigger(TickerSpec.builder()
-          .exchange(exchange)
-          .base(base)
-          .counter(counter)
-          .build())
-        .orderId(orderId)
         .build());
   }
 

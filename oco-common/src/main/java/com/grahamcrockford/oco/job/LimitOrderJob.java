@@ -25,7 +25,7 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 public abstract class LimitOrderJob implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_LimitOrderJob.Builder().track(true);
+    return new AutoValue_LimitOrderJob.Builder();
   }
 
   @AutoValue.Builder
@@ -41,7 +41,6 @@ public abstract class LimitOrderJob implements Job {
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder limitPrice(BigDecimal value);
     public abstract Builder direction(Direction direction);
-    public abstract Builder track(boolean track);
 
     final Builder bigDecimals(Map<String, String> values) {
       amount(new BigDecimal(values.get("amount")));
@@ -66,7 +65,6 @@ public abstract class LimitOrderJob implements Job {
   public abstract TickerSpec tickTrigger();
 
   @JsonProperty public abstract Direction direction();
-  @JsonProperty public abstract boolean track();
 
   @JsonIgnore public abstract BigDecimal amount();
   @JsonIgnore public abstract BigDecimal limitPrice();
