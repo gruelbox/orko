@@ -15,8 +15,7 @@ class LimitOrderContainer extends React.Component {
     this.state = {
       job: Immutable({
         limitPrice: "",
-        amount: "",
-        track: true
+        amount: ""
       })
     }
   }
@@ -54,8 +53,7 @@ class LimitOrderContainer extends React.Component {
         amount: this.state.job.amount,
         limitPrice: this.state.job.limitPrice
       },
-      direction: direction,
-      track: this.state.job.track
+      direction: direction
     }
   }
 

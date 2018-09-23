@@ -21,8 +21,7 @@ class StopTakeProfitContainer extends React.Component {
         highTrailing: false,
         initialTrailingStop: "",
         amount: "",
-        direction: "BUY",
-        track: true
+        direction: "BUY"
       })
     }
   }
@@ -57,7 +56,6 @@ class StopTakeProfitContainer extends React.Component {
     const limitOrder = (limitPrice) => ({
       jobType: jobTypes.LIMIT_ORDER,
       direction: this.state.job.direction,
-      track: this.state.job.track,
       tickTrigger,
       bigDecimals: {
         amount: this.state.job.amount,
