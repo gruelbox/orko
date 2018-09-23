@@ -30,7 +30,9 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -39,6 +41,7 @@ import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
 import com.grahamcrockford.oco.marketdata.MarketDataType;
+import com.grahamcrockford.oco.marketdata.SerializableTrade;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
@@ -191,6 +194,11 @@ public final class OcoWebSocketServer {
           .subscribe(e -> send(e, Nature.TICKER));
       private final Disposable tradeHistory = exchangeEventRegistry.getTradeHistory(eventRegistryClientId)
           .filter(o -> isReady())
+          // Workaround for lack of serializability of the XChange object
+          .map(e -> ImmutableMap.of(
+            "spec", e.spec().exchange(),
+            "trades", Lists.transform(e.trades(), t -> SerializableTrade.create(e.spec().exchange(), t))
+          ))
           .subscribe(e -> send(e, Nature.TRADE_HISTORY));
       private final Disposable balance = exchangeEventRegistry.getBalance(eventRegistryClientId)
           .filter(o -> isReady())

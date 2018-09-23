@@ -16,9 +16,9 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 
 @AutoValue
 @JsonDeserialize
-public abstract class Trade {
+public abstract class SerializableTrade {
 
-  public static Trade create(String exchange, UserTrade userTrade) {
+  public static SerializableTrade create(String exchange, UserTrade userTrade) {
     return create(
       userTrade.getType(),
       userTrade.getOriginalAmount(),
@@ -31,7 +31,9 @@ public abstract class Trade {
       userTrade.getFeeCurrency().getCurrencyCode());
   }
 
-  public static Trade create(String exchange, org.knowm.xchange.dto.marketdata.Trade trade) {
+  public static SerializableTrade create(String exchange, org.knowm.xchange.dto.marketdata.Trade trade) {
+    if (trade instanceof UserTrade)
+      return create(exchange, (UserTrade) trade);
     return create(
       trade.getType(),
       trade.getOriginalAmount(),
@@ -53,7 +55,7 @@ public abstract class Trade {
   }
 
   @JsonCreator
-  public static Trade create(@JsonProperty("t") OrderType type,
+  public static SerializableTrade create(@JsonProperty("t") OrderType type,
                              @JsonProperty("a") BigDecimal originalAmount,
                              @JsonProperty("c") TickerSpec spec,
                              @JsonProperty("p") BigDecimal price,
@@ -62,7 +64,7 @@ public abstract class Trade {
                              @JsonProperty("oid") String orderId,
                              @JsonProperty("fa") BigDecimal feeAmount,
                              @JsonProperty("fc") String feeCurrency) {
-    return new AutoValue_Trade(type, originalAmount.toPlainString(), spec, price.toPlainString(), timestamp, id, orderId, feeAmount == null ? null : feeAmount.toPlainString(), feeCurrency);
+    return new AutoValue_SerializableTrade(type, originalAmount.toPlainString(), spec, price.toPlainString(), timestamp, id, orderId, feeAmount == null ? null : feeAmount.toPlainString(), feeCurrency);
   }
 
   /** Did this trade result from the execution of a bid or a ask? */

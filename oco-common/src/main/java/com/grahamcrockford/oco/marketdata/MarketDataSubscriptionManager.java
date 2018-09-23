@@ -25,6 +25,7 @@ import java.util.function.Function;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.account.Wallet;
+import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -50,6 +51,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -88,6 +90,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
   private final OcoConfiguration configuration;
+  private final EventBus eventBus;
 
   private final Map<String, AtomicReference<Set<MarketDataSubscription>>> nextSubscriptions;
   private final ConcurrentMap<String, Set<MarketDataSubscription>> subscriptionsPerExchange = Maps.newConcurrentMap();
@@ -107,11 +110,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   @Inject
   @VisibleForTesting
-  public MarketDataSubscriptionManager(ExchangeService exchangeService, OcoConfiguration configuration, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory) {
+  public MarketDataSubscriptionManager(ExchangeService exchangeService, OcoConfiguration configuration, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, EventBus eventBus) {
     this.exchangeService = exchangeService;
     this.configuration = configuration;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
+    this.eventBus = eventBus;
 
     this.nextSubscriptions = FluentIterable.from(exchangeService.getExchanges())
         .toMap(e -> new AtomicReference<Set<MarketDataSubscription>>());
@@ -189,10 +193,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The ticker stream.
    */
   public Flowable<TickerEvent> getTicker(TickerSpec spec) {
-    return tickers.get(spec)
-      .doOnNext(t -> {
-        if (LOGGER.isDebugEnabled()) logTicker("filtered", t);
-      });
+    return tickers.get(spec);
   }
 
 
@@ -359,7 +360,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                 .subscribe(tickers::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
           case TRADES:
             return streaming.getTrades(sub.spec().currencyPair())
-                .map(t -> TradeEvent.create(sub.spec(), Trade.create(exchangeName, t)))
+                .map(t -> TradeEvent.create(sub.spec(), t))
                 .subscribe(trades::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
           default:
             throw new IllegalStateException("Unexpected market data type: " + sub.type());
@@ -589,9 +590,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         case USER_TRADE_HISTORY:
           tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
           TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription, tradeService);
-          ImmutableList<Trade> trades = FluentIterable.from(tradeService.getTradeHistory(tradeHistoryParams).getUserTrades())
-            .transform(t -> Trade.create(subscription.spec().exchange(), t))
-            .toList();
+          ImmutableList<UserTrade> trades = ImmutableList.copyOf(tradeService.getTradeHistory(tradeHistoryParams).getUserTrades());
           tradeHistory.emit(TradeHistoryEvent.create(spec, trades));
           break;
         default:
@@ -661,11 +660,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     return exchange instanceof StreamingExchange;
   }
 
-  private void logTicker(String context, TickerEvent e) {
-    LOGGER.debug("Ticker [{}] ({}) {}/{} = {}", context, e.spec().exchange(), e.spec().base(), e.spec().counter(), e.ticker().getLast());
-  }
-
-  private static final class CachingSubscription<T, U> {
+  private final class CachingSubscription<T, U> {
     private final Flowable<T> flowable;
     private final AtomicReference<FlowableEmitter<T>> emitter = new AtomicReference<>();
     private final ConcurrentMap<U, T> latest = Maps.newConcurrentMap();
@@ -678,6 +673,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           .share()
           .onBackpressureLatest()
           .observeOn(Schedulers.computation());
+      this.flowable.subscribe(eventBus::post);
     }
 
     void removeFromCache(U key) {

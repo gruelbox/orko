@@ -2,6 +2,8 @@ package com.grahamcrockford.oco.marketdata;
 
 import java.util.List;
 
+import org.knowm.xchange.dto.trade.UserTrade;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -14,7 +16,7 @@ public abstract class TradeHistoryEvent {
 
   @JsonCreator
   public static TradeHistoryEvent create(@JsonProperty("spec") TickerSpec spec,
-                                         @JsonProperty("openOrders") List<Trade> trades) {
+                                         @JsonProperty("openOrders") List<UserTrade> trades) {
     return new AutoValue_TradeHistoryEvent(spec, trades);
   }
 
@@ -22,5 +24,5 @@ public abstract class TradeHistoryEvent {
   public abstract TickerSpec spec();
 
   @JsonProperty
-  public abstract List<Trade> trades();
+  public abstract List<UserTrade> trades();
 }

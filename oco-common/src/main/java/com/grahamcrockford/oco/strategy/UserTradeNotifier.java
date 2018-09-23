@@ -38,9 +38,9 @@ class UserTradeNotifier implements Managed {
       e.spec().exchange(),
       e.spec().base(),
       e.spec().counter(),
-      e.trade().type().toString().toLowerCase(),
-      e.trade().originalAmount(),
-      e.trade().price()
+      e.trade().getType().toString().toLowerCase(),
+      e.trade().getOriginalAmount(),
+      e.trade().getPrice()
     );
     notificationService.info(message);
   }

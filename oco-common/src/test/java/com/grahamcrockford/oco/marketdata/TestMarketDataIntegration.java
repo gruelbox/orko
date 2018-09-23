@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,11 +22,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.eventbus.EventBus;
 import com.grahamcrockford.oco.OcoConfiguration;
 import com.grahamcrockford.oco.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.exchange.ExchangeServiceImpl;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.spi.TickerSpec;
+
 import ch.qos.logback.classic.Level;
 import io.reactivex.disposables.Disposable;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
@@ -65,7 +68,8 @@ public class TestMarketDataIntegration {
       exchangeServiceImpl,
       ocoConfiguration,
       mock(TradeServiceFactory.class),
-      mock(AccountServiceFactory.class)
+      mock(AccountServiceFactory.class),
+      new EventBus()
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
     marketDataSubscriptionManager.startAsync().awaitRunning(20, SECONDS);
