@@ -73,7 +73,7 @@ class TradingViewChartContent extends Component {
       popup_height: "650",
       container_id: CONTAINER_ID,
       hide_side_toolbar: false,
-      studies: ["RSI@tv-basicstudies", "BB@tv-basicstudies"]
+      studies: ["RSI@tv-basicstudies"]
     })
   }
 
