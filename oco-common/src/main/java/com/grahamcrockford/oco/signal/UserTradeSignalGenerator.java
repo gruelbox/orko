@@ -9,8 +9,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import org.knowm.xchange.dto.trade.UserTrade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -28,7 +26,6 @@ import io.dropwizard.lifecycle.Managed;
 @Singleton
 class UserTradeSignalGenerator implements Managed {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(UserTradeSignalGenerator.class);
   private static final Set<String> NATIVELY_SUPPORTED_EXCHANGES = ImmutableSet.of("gdax", "gdax-sandbox");
 
   private final EventBus eventBus;
