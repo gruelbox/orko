@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.spi.JobControl;
 
 @Deprecated
 class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
@@ -14,6 +15,7 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
 
   @AssistedInject
   public OrderStateNotifierProcessor(@Assisted OrderStateNotifier job,
+                                     @Assisted JobControl jobControl,
                                      final NotificationService notificationService) {
     this.job = job;
     this.notificationService = notificationService;
