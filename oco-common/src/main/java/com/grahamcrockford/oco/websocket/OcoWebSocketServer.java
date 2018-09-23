@@ -196,7 +196,7 @@ public final class OcoWebSocketServer {
           .filter(o -> isReady())
           // Workaround for lack of serializability of the XChange object
           .map(e -> ImmutableMap.of(
-            "spec", e.spec().exchange(),
+            "spec", e.spec(),
             "trades", Lists.transform(e.trades(), t -> SerializableTrade.create(e.spec().exchange(), t))
           ))
           .subscribe(e -> send(e, Nature.TRADE_HISTORY));
