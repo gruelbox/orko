@@ -164,7 +164,7 @@ public class ExchangeServiceImpl implements ExchangeService {
                   .transform(Class::getSimpleName)
                   .transform(s -> s.replace("Exchange", ""))
                   .transform(String::toLowerCase))
-        //.add("gdax-sandbox") // Removed for now. Doesn't work.
+        .add("gdax-sandbox")
         .build();
   }
 
