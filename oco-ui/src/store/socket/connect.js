@@ -36,24 +36,25 @@ function bufferAction(key, action) {
 export function initialise(s, history) {
   store = s
 
-  // Buffer and dispatch as a batch all the actions from the socket once a second
-  setInterval(() => {
+  const actionDispatch = () => {
     const batch = Object.values(actionBuffer)
     actionBuffer = {}
     store.dispatch(batchActions(batch))
-  }, 1000)
+  }
+
+  // Buffer and dispatch as a batch all the actions from the socket once a second
+  setInterval(actionDispatch, 1000)
 
   history.listen(location => {
     console.log("Resubscribing following coin change")
     socketClient.changeSubscriptions(subscribedCoins(), locationToCoin(location))
     socketClient.resubscribe()
-    store.dispatch(batchActions([
-      coinActions.setOrderBook(null),
-      coinActions.setOrders(null),
-      coinActions.clearTrades(),
-      coinActions.setUserTradeHistory(null),
-      coinActions.clearBalances()
-    ]))
+    bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
+    bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(null))
+    bufferAction(ACTION_KEY_TRADE, coinActions.clearTrades())
+    bufferAction(ACTION_KEY_USERTRADEHISTORY, coinActions.setUserTradeHistory(null))
+    bufferAction(ACTION_KEY_BALANCE, coinActions.clearBalances())
+    actionDispatch()
   })
   socketClient.onConnectionStateChange(connected => {
     store.dispatch(socketActions.setConnectionState(connected))

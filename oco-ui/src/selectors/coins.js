@@ -38,9 +38,10 @@ export const getOrdersForSelectedCoin = createSelector(
     if (!selectedCoin)
       return null
 
-    const exchange = orders
-      ? orders.allOpenOrders
-      : []
+    if (!orders)
+      return orders
+
+    const exchange = orders.allOpenOrders
 
     const server = stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
