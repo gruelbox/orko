@@ -9,7 +9,7 @@ class UserTradeHistoryContainer extends React.Component {
     return !this.props.tradeHistory ? (
       <Loading p={2} />
     ) : (
-      <TradeHistory trades={this.props.tradeHistory} />
+      <TradeHistory trades={this.props.tradeHistory} buySide="BID" />
     )
   }
 }

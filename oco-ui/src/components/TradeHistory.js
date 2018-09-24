@@ -23,23 +23,23 @@ const dateColumn = {
   minWidth: 80
 }
 
-const orderTypeColumn = {
+const orderTypeColumn = (buySide) => ({
   id: "orderType",
   Header: <Icon fitted name="sort" title="Direction"/>,
   accessor: "t",
   Cell: ({ original }) => (
-    <Icon fitted name={original.t === "BID" ? "arrow up" : "arrow down"} title={original.t === "BID" ? "Buy" : "Sell"}/>
+    <Icon fitted name={original.t === buySide ? "arrow up" : "arrow down"} title={original.t === buySide ? "Buy" : "Sell"}/>
   ),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
   width: 32
-}
+})
 
-const priceColumn = {
+const priceColumn = (buySide) => ({
   Header: "Price",
   Cell: ({ original }) => (
-    <Price counter={original.c.counter} color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+    <Price counter={original.c.counter} color={original.t === buySide ? "buy" : "sell"} noflash bare>
       {original.p}
     </Price>
   ),
@@ -48,12 +48,12 @@ const priceColumn = {
   sortable: false,
   resizable: true,
   minWidth: 50
-}
+})
 
-const amountColumn ={
+const amountColumn = (buySide) => ({
   Header: "Amount",
   Cell: ({ original }) => (
-    <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+    <Price color={original.t === buySide ? "buy" : "sell"} noflash bare>
       {original.a}
     </Price>
   ),
@@ -62,12 +62,12 @@ const amountColumn ={
   sortable: false,
   resizable: true,
   minWidth: 50
-}
+})
 
-const feeAmountColumn = {
+const feeAmountColumn = (buySide) => ({
   Header: "Fee",
   Cell: ({ original }) => (
-    <Price color={original.t === "BID" ? "buy" : "sell"} noflash bare>
+    <Price color={original.t === buySide ? "buy" : "sell"} noflash bare>
       {original.fa}
     </Price>
   ),
@@ -76,7 +76,7 @@ const feeAmountColumn = {
   sortable: false,
   resizable: true,
   minWidth: 50
-}
+})
 
 const feeCurrencyColumn = {
   Header: "Fee Ccy",
@@ -88,20 +88,25 @@ const feeCurrencyColumn = {
   minWidth: 50
 }
 
+const columns = (buySide) => ([
+  orderTypeColumn(buySide),
+  dateColumn,
+  priceColumn(buySide),
+  amountColumn(buySide),
+  feeAmountColumn(buySide),
+  feeCurrencyColumn
+])
+
+const bidBuyColumns = columns("BID")
+const askBuyColumns = columns("ASK")
+
 const TradeHistory = props => (
   <ReactTable
     data={props.trades}
     getTrProps={(state, rowInfo, column) => ({
-      className: rowInfo.original.t === "BID" ? "oco-buy" : "oco-sell"
+      className: rowInfo.original.t === props.buySide ? "oco-buy" : "oco-sell"
     })}
-    columns={[
-      orderTypeColumn,
-      dateColumn,
-      priceColumn,
-      amountColumn,
-      feeAmountColumn,
-      feeCurrencyColumn
-    ]}
+    columns={props.buySide === "BID" ? bidBuyColumns : askBuyColumns}
     showPagination={false}
     resizable={false}
     className="-striped"
