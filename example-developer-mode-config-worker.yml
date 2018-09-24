@@ -42,3 +42,4 @@ server:
 logging:
   loggers:
     "com.grahamcrockford.oco": INFO
+    "si.mazi.rescu": ERROR

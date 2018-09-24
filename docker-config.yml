@@ -19,5 +19,6 @@ jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
   connectionRequestTimeout: 5000ms
-#logging:
-#  level: TRACE
+logging: 
+  loggers:
+    "si.mazi.rescu": ERROR
