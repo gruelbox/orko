@@ -4,7 +4,6 @@ import PageVisibility from 'react-page-visibility'
 import RenderIf from "../components/RenderIf"
 
 import * as jobActions from "../store/job/actions"
-import * as jobTypes from "../services/jobTypes"
 import * as jobUtils from "../util/jobUtils"
 
 import Section from "../components/primitives/Section"
@@ -56,7 +55,7 @@ class JobsContainer extends React.Component {
   render() {
     const onRemove = this.onRemove
     const complexOnly = this.state.selected === "onlycomplex"
-    const show = job => !complexOnly || (job.jobType !== jobTypes.WATCH_JOB && !jobUtils.isAlert(job) && !jobUtils.isStop(job))
+    const show = job => !complexOnly || (!jobUtils.isAlert(job) && !jobUtils.isStop(job))
     const rawJobs = this.props.jobs.filter(job => show(job))
     var jobs
     if (this.state.loading) {

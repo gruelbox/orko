@@ -148,31 +148,6 @@ const cancelColumn = (onCancelExchange, onCancelServer) => ({
   resizable: false
 })
 
-const watchColumn = (onWatch) => ({
-  id: "watch",
-  Header: <Icon fitted name="eye" />,
-  Cell: ({ original }) => (
-    original.runningAt === "SERVER"
-      ? null
-      : (
-        <Href
-          onClick={() => onWatch(original.id, original.watchJob)}
-          title={original.watchJob ? "Remove watch" : "Add watch"}
-        >
-          <Icon
-            fitted
-            name={original.watchJob ? "eye" : "circle outline"}
-          />
-        </Href>
-      )
-  ),
-  headerStyle: textStyle,
-  style: textStyle,
-  width: 32,
-  sortable: false,
-  resizable: false
-})
-
 const OpenOrders = props => (
   <ReactTable
     data={props.orders}
@@ -187,8 +162,7 @@ const OpenOrders = props => (
       limitPriceColumn,
       stopPriceColumn,
       amountColumn,
-      filledColumn,
-      watchColumn(props.onWatch)
+      filledColumn
     ]}
     showPagination={false}
     resizable={false}

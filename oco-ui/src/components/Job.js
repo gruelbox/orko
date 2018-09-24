@@ -124,22 +124,6 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === jobTypes.WATCH_JOB) {
-      return (
-        <JobStages>
-          <JobStage>
-            <Icon name="eye" /> Watch order {job.orderId} on{" "}
-            {job.tickTrigger.base + "/" + job.tickTrigger.counter} on{" "}
-            {job.tickTrigger.exchange}
-            <JobStages>
-              <JobStage>
-                <Icon name="spy" />If order changes status, send a telegram
-                message
-              </JobStage>
-            </JobStages>
-          </JobStage>
-        </JobStages>
-      )
     } else {
       return (
         <JobStages>

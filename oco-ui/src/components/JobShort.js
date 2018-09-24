@@ -79,17 +79,6 @@ export default class JobShort extends React.Component {
       )
     } else if (job.jobType === jobTypes.ALERT) {
       return "Send alert"
-    } else if (job.jobType === jobTypes.WATCH_JOB) {
-      return (
-        "Watch order " +
-        job.orderId +
-        " on " +
-        job.tickTrigger.base +
-        "/" +
-        job.tickTrigger.counter +
-        " on " +
-        job.tickTrigger.exchange
-      )
     } else {
       return "Complex (" + job.jobType + ")"
     }

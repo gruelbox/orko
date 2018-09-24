@@ -1,6 +1,6 @@
 import { createSelector } from "reselect"
 import { getRouterLocation } from "./router"
-import { getAlertJobs, getWatchJobs, getStopJobs } from "./jobs"
+import { getAlertJobs, getStopJobs } from "./jobs"
 import { coinFromKey } from "../util/coinUtils"
 
 const getCoins = state => state.coins.coins
@@ -29,30 +29,15 @@ function jobTriggerMatchesCoin(job, coin) {
           job.tickTrigger.counter === coin.counter
 }
 
-export const getWatchJobsForSelectedCoin = createSelector(
-  [getWatchJobs, getSelectedCoin],
-  (jobs, coin) =>
-    jobs && coin
-      ? jobs.filter(job => jobTriggerMatchesCoin(job, coin))
-      : []
-)
-
-export const getOrdersWithWatchesForSelectedCoin = createSelector(
-  [getOrders, getStopJobs, getWatchJobsForSelectedCoin, getSelectedCoin],
-  (orders, stopJobs, watchJobs, selectedCoin) => {
+export const getOrdersForSelectedCoin = createSelector(
+  [getOrders, getStopJobs, getSelectedCoin],
+  (orders, stopJobs, selectedCoin) => {
 
     if (!selectedCoin)
       return null
 
     const exchange = orders
-      ? orders.allOpenOrders.map(order => {
-          const watchJob = watchJobs.find(job => job.orderId === order.id)
-          if (watchJob) {
-            return { ...order, watchJob }
-          } else {
-            return order
-          }
-        })
+      ? orders.allOpenOrders
       : []
 
     const server = stopJobs

@@ -2,7 +2,6 @@ import * as types from './actionTypes';
 import * as authActions from '../auth/actions';
 import * as errorActions from '../error/actions';
 import jobService from '../../services/job';
-import * as jobTypes from '../../services/jobTypes'
 import * as notificationActions from "../notifications/actions"
 
 export function submitJob(job) {
@@ -12,18 +11,6 @@ export function submitJob(job) {
     error => errorActions.setForeground("Could not submit job: " + error.message),
     () => ({ type: types.ADD_JOB, payload: job })
   );
-}
-
-export function submitWatchJob(coin, orderId) {
-  return submitJob({
-    jobType: jobTypes.WATCH_JOB,
-    tickTrigger: {
-      exchange: coin.exchange,
-      base: coin.base,
-      counter: coin.counter
-    },
-    orderId
-  })
 }
 
 export function fetchJobs() {
