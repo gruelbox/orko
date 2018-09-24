@@ -321,7 +321,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     Exchange exchange = exchangeService.get(exchangeName);
     if (exchange instanceof StreamingExchange) {
       SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
-      ((StreamingExchange) exchange).disconnect().blockingAwait();
+      try {
+        ((StreamingExchange) exchange).disconnect().blockingAwait();
+      } catch (Exception e) {
+        LOGGER.error("Error disconnecting from " + exchangeName, e);
+      }
     } else {
       Iterator<Entry<TickerSpec, Instant>> iterator = mostRecentTrades.entrySet().iterator();
       while (iterator.hasNext()) {
