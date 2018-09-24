@@ -4,6 +4,7 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.BALANCE;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.USER_TRADE_HISTORY;
 
 import java.util.Collection;
@@ -59,7 +60,8 @@ public class SubscriptionResource implements WebResource {
       MarketDataSubscription.create(spec, ORDERBOOK),
       MarketDataSubscription.create(spec, OPEN_ORDERS),
       MarketDataSubscription.create(spec, USER_TRADE_HISTORY),
-      MarketDataSubscription.create(spec, BALANCE)
+      MarketDataSubscription.create(spec, BALANCE),
+      MarketDataSubscription.create(spec, TRADES)
     );
   }
 
@@ -72,7 +74,8 @@ public class SubscriptionResource implements WebResource {
       MarketDataSubscription.create(spec, ORDERBOOK),
       MarketDataSubscription.create(spec, OPEN_ORDERS),
       MarketDataSubscription.create(spec, USER_TRADE_HISTORY),
-      MarketDataSubscription.create(spec, BALANCE)
+      MarketDataSubscription.create(spec, BALANCE),
+      MarketDataSubscription.create(spec, TRADES)
     );
   }
 }
