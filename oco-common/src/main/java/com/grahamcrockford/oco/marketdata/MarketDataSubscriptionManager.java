@@ -26,7 +26,10 @@ import java.util.function.Function;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.account.Wallet;
+import org.knowm.xchange.dto.trade.LimitOrder;
+import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.marketdata.MarketDataService;
@@ -576,6 +579,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
   }
 
+  @SuppressWarnings("unchecked")
   private void fetchAndBroadcast(MarketDataSubscription subscription) {
     try {
       TradeService tradeService;
@@ -614,7 +618,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         case OPEN_ORDERS:
           tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
           OpenOrdersParams openOrdersParams = openOrdersParams(subscription, tradeService);
-          openOrders.emit(OpenOrdersEvent.create(spec, tradeService.getOpenOrders(openOrdersParams)));
+          OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
+
+          // TODO GDAX PR required
+          if (subscription.spec().exchange().equals("gdax")) {
+            ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
+            ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
+            fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
+          }
+
+          openOrders.emit(OpenOrdersEvent.create(spec, fetched));
           break;
         case USER_TRADE_HISTORY:
           tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
