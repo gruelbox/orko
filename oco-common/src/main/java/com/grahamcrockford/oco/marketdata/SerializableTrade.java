@@ -89,6 +89,7 @@ public abstract class SerializableTrade {
 
   /** The trade id */
   @JsonProperty("id")
+  @Nullable
   public abstract String id();
 
   /** The id of the order responsible for execution of this trade */

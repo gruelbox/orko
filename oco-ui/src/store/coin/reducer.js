@@ -6,7 +6,8 @@ const initialState = Immutable({
   ticker: undefined,
   orders: undefined,
   orderBook: undefined,
-  tradeHistory: undefined,
+  userTradeHistory: undefined,
+  trades: Immutable([])
 })
 
 export default function reduce(state = initialState, action = {}) {
@@ -21,6 +22,14 @@ export default function reduce(state = initialState, action = {}) {
         },
         { deep: true }
       )
+    case types.CLEAR_TRADES:
+      return Immutable.merge(state, {
+        trades: Immutable([])
+      })
+    case types.ADD_TRADE:
+      return Immutable.merge(state, {
+        trades: Immutable([action.payload].concat(state.trades.slice(0, 48)))
+      })
     case types.CLEAR_BALANCES:
       return Immutable.merge(state, {
         balance: null
@@ -33,9 +42,9 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         orderBook: action.payload
       })
-    case types.SET_TRADE_HISTORY:
+    case types.SET_USER_TRADE_HISTORY:
       return Immutable.merge(state, {
-        tradeHistory: action.payload
+        userTradeHistory: action.payload
       })
     case types.CANCEL_ORDER:
       return Immutable.merge(

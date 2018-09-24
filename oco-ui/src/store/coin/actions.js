@@ -11,12 +11,20 @@ export function setOrderBook(orderBook) {
   return { type: types.SET_ORDERBOOK, payload: orderBook }
 }
 
-export function setTradeHistory(tradeHistory) {
-  return { type: types.SET_TRADE_HISTORY, payload: tradeHistory }
+export function setUserTradeHistory(tradeHistory) {
+  return { type: types.SET_USER_TRADE_HISTORY, payload: tradeHistory }
 }
 
 export function setBalance(exchange, currency, balance) {
   return { type: types.SET_BALANCE, payload: { currency, balance } }
+}
+
+export function addTrade(trade) {
+  return { type: types.ADD_TRADE, payload: trade }
+}
+
+export function clearTrades() {
+  return { type: types.CLEAR_TRADES }
 }
 
 export function clearBalances() {

@@ -5,13 +5,15 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
 import static java.util.Collections.emptySet;
-
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -104,6 +106,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final CachingSubscription<TradeEvent, TickerSpec> trades;
   private final CachingSubscription<TradeHistoryEvent, TickerSpec> tradeHistory;
   private final CachingSubscription<BalanceEvent, String> balance;
+
+  private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
   private final Phaser phaser  = new Phaser(1);
 
@@ -315,6 +319,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     if (exchange instanceof StreamingExchange) {
       SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
       ((StreamingExchange) exchange).disconnect().blockingAwait();
+    } else {
+      Iterator<Entry<TickerSpec, Instant>> iterator = mostRecentTrades.entrySet().iterator();
+      while (iterator.hasNext()) {
+        if (iterator.next().getKey().exchange().equals(exchangeName))
+          iterator.remove();
+      }
     }
   }
 
@@ -510,7 +520,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
           Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
         } catch (Throwable e) {
-          LOGGER.error("Error fetching balance on " + exchangeName, e);
+          if ("kucoin".equals(exchangeName)) {
+            // Kucoin does this literally all the time, so to save our logs, just write the message
+            LOGGER.error("Error fetching balance on " + exchangeName + " (" + e.getMessage() + ")");
+          } else {
+            LOGGER.error("Error fetching balance on " + exchangeName, e);
+          }
         }
         if (phaser.isTerminated())
           break;
@@ -580,8 +595,22 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           }
           break;
         case TRADES:
-          // TODO need to return only the new ones onTrade(TradeEvent.create(spec, marketDataService.getTrades(spec.currencyPair())));
-          throw new UnsupportedOperationException("Trades not supported yet");
+          marketDataService.getTrades(subscription.spec().currencyPair())
+            .getTrades()
+            .stream()
+            .forEach(t -> {
+              mostRecentTrades.compute(subscription.spec(), (k, previousTiming) -> {
+                Instant thisTradeTiming = t.getTimestamp().toInstant();
+                Instant newMostRecent = previousTiming;
+                if (previousTiming == null) {
+                  newMostRecent = thisTradeTiming;
+                } else if (thisTradeTiming.isAfter(previousTiming)) {
+                  newMostRecent = thisTradeTiming;
+                  trades.emit(TradeEvent.create(subscription.spec(), t));
+                }
+                return newMostRecent;
+              });
+            });
         case OPEN_ORDERS:
           tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
           OpenOrdersParams openOrdersParams = openOrdersParams(subscription, tradeService);
@@ -600,7 +629,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       LOGGER.warn(subscription.type() + " not available on " + subscription.spec().exchange());
       unavailableSubscriptions.add(subscription);
     } catch (Throwable e) {
-      LOGGER.error("Error fetching market data: " + subscription, e);
+      if ("kucoin".equals(subscription.spec().exchange())) {
+        // Kucoin does this literally all the time, so to save our logs, just write the message
+        LOGGER.error("Error fetching market data: " + subscription + " (" + e.getMessage() + ")");
+      } else {
+        LOGGER.error("Error fetching market data: " + subscription, e);
+      }
     }
   }
 

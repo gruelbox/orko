@@ -4,6 +4,7 @@ import static com.grahamcrockford.oco.marketdata.MarketDataType.BALANCE;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.TICKER;
+import static com.grahamcrockford.oco.marketdata.MarketDataType.TRADES;
 import static com.grahamcrockford.oco.marketdata.MarketDataType.USER_TRADE_HISTORY;
 
 import java.io.IOException;
@@ -100,7 +101,10 @@ public final class OcoWebSocketServer {
         case CHANGE_ORDER_BOOK:
           mutateSubscriptions(ORDERBOOK, request.tickers());
           break;
-        case CHANGE_TRADE_HISTORY:
+        case CHANGE_TRADES:
+          mutateSubscriptions(TRADES, request.tickers());
+          break;
+        case CHANGE_USER_TRADE_HISTORY:
           mutateSubscriptions(USER_TRADE_HISTORY, request.tickers());
           break;
         case CHANGE_BALANCE:
@@ -192,6 +196,14 @@ public final class OcoWebSocketServer {
       private final Disposable tickers = exchangeEventRegistry.getTickers(eventRegistryClientId)
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.TICKER));
+      private final Disposable trades = exchangeEventRegistry.getTrades(eventRegistryClientId)
+          .filter(o -> isReady())
+          // Workaround for lack of serializability of the XChange object
+          .map(e -> ImmutableMap.of(
+            "spec", e.spec(),
+            "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
+          ))
+          .subscribe(e -> send(e, Nature.TRADE));
       private final Disposable tradeHistory = exchangeEventRegistry.getTradeHistory(eventRegistryClientId)
           .filter(o -> isReady())
           // Workaround for lack of serializability of the XChange object
@@ -199,14 +211,14 @@ public final class OcoWebSocketServer {
             "spec", e.spec(),
             "trades", Lists.transform(e.trades(), t -> SerializableTrade.create(e.spec().exchange(), t))
           ))
-          .subscribe(e -> send(e, Nature.TRADE_HISTORY));
+          .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
       private final Disposable balance = exchangeEventRegistry.getBalance(eventRegistryClientId)
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.BALANCE));
 
       @Override
       public boolean isDisposed() {
-        return openOrders.isDisposed() && orderBook.isDisposed() && tickers.isDisposed() && balance.isDisposed();
+        return openOrders.isDisposed() && orderBook.isDisposed() && tickers.isDisposed() && trades.isDisposed() && tradeHistory.isDisposed() && balance.isDisposed();
       }
 
       @Override
@@ -227,6 +239,11 @@ public final class OcoWebSocketServer {
           LOGGER.error("Error disposing of tickers subscription", t);
         }
         try {
+          trades.dispose();
+        } catch (Throwable t) {
+          LOGGER.error("Error disposing of trade subscription", t);
+        }
+        try {
           tradeHistory.dispose();
         } catch (Throwable t) {
           LOGGER.error("Error disposing of tradeHistory subscription", t);
@@ -239,6 +256,7 @@ public final class OcoWebSocketServer {
       }
     };
   }
+
 
   @Subscribe
   void onNotification(NotificationEvent notificationEvent) {

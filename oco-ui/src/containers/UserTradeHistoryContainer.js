@@ -4,7 +4,7 @@ import TradeHistory from "../components/TradeHistory"
 import Loading from "../components/primitives/Loading"
 import { getTradeHistoryInReverseOrder } from "../selectors/coins"
 
-class TradeHistoryContainer extends React.Component {
+class UserTradeHistoryContainer extends React.Component {
   render() {
     return !this.props.tradeHistory ? (
       <Loading p={2} />
@@ -20,4 +20,4 @@ function mapStateToProps(state, props) {
   }
 }
 
-export default connect(mapStateToProps)(TradeHistoryContainer)
+export default connect(mapStateToProps)(UserTradeHistoryContainer)

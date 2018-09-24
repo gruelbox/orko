@@ -24,7 +24,8 @@ function selectedCoin() {
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_ORDERS = "orders"
-const ACTION_KEY_TRADEHISTORY = "tradehistory"
+const ACTION_KEY_TRADE = "trade"
+const ACTION_KEY_USERTRADEHISTORY = "usertradehistory"
 const ACTION_KEY_BALANCE = "balance"
 const ACTION_KEY_TICKER = "ticker"
 
@@ -49,7 +50,8 @@ export function initialise(s, history) {
     store.dispatch(batchActions([
       coinActions.setOrderBook(null),
       coinActions.setOrders(null),
-      coinActions.setTradeHistory(null),
+      coinActions.clearTrades(),
+      coinActions.setUserTradeHistory(null),
       coinActions.clearBalances()
     ]))
   })
@@ -77,9 +79,13 @@ export function initialise(s, history) {
     if (sameCoin(coin, selectedCoin()))
       bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(orders))
   })
-  socketClient.onTradeHistory((coin, trades) => {
+  socketClient.onTrade((coin, trade) => {
     if (sameCoin(coin, selectedCoin()))
-      bufferAction(ACTION_KEY_TRADEHISTORY, coinActions.setTradeHistory(trades))
+      bufferAction(ACTION_KEY_TRADE, coinActions.addTrade(trade))
+  })
+  socketClient.onUserTradeHistory((coin, trades) => {
+    if (sameCoin(coin, selectedCoin()))
+      bufferAction(ACTION_KEY_USERTRADEHISTORY, coinActions.setUserTradeHistory(trades))
   })
 }
 

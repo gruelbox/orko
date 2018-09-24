@@ -6,8 +6,9 @@ const theme = {
   breakpoints: ["62em"],
   fontSizes: [11, 12, 13, 16],
   fonts: {
-    sans: "system-ui, sans-serif",
-    mono: "Menlo, monospace"
+    sans: "Trebuchet MS, Tahoma, Arial, sans-serif",
+    mono: "Menlo, monospace",
+    heading: "system-ui, sans-serif",
   },
   space: [0, 4, 8, 16, 32, 64, 128],
   fontWeights: {
@@ -37,8 +38,8 @@ const theme = {
     alert: "#EB4D5C",
     success: "#53B987",
 
-    sell: "#EB4D5C",
-    buy: "#53B987",
+    sell: "#ef5451",
+    buy: "#2aa599",
 
     inputBorder: "#5C656C"
   },
@@ -375,7 +376,7 @@ const globalCss = `
       border-right: 0;
     }
     .ReactTable.-striped .rt-tr.-odd {
-      background: rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0.18);
     }
     .ReactTable.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
       background: rgba(0, 0, 0, 0.05);

@@ -3,7 +3,7 @@ import React from "react"
 import Section from "../components/primitives/Section"
 import Tab from "../components/primitives/Tab"
 import OpenOrdersContainer from "./OpenOrdersContainer"
-import TradeHistoryContainer from "./TradeHistoryContainer"
+import UserTradeHistoryContainer from "./UserTradeHistoryContainer"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
 
@@ -40,7 +40,7 @@ class OrdersContainer extends React.Component {
               {
                 this.state.selected === "open"
                   ? <OpenOrdersContainer coin={this.props.coin}/>
-                  : <TradeHistoryContainer coin={this.props.coin}/>
+                  : <UserTradeHistoryContainer coin={this.props.coin}/>
               }
             </Section>
           </RenderIf>

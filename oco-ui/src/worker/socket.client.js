@@ -10,7 +10,8 @@ var handleNotification = message => {}
 var handleTicker = (coin, ticker) => {}
 var handleOrders = (coin, orders) => {}
 var handleOrderBook = (coin, orderBook) => {}
-var handleTradeHistory = (coin, trades) => {}
+var handleTrade = (coin, trade) => {}
+var handleUserTradeHistory = (coin, trades) => {}
 var handleBalance = (exchange, currency, balance) => {}
 
 var subscribedCoins = []
@@ -44,8 +45,12 @@ export function onOrderBook(handler) {
   handleOrderBook = handler
 }
 
-export function onTradeHistory(handler) {
-  handleTradeHistory = handler
+export function onTrade(handler) {
+  handleTrade = handler
+}
+
+export function onUserTradeHistory(handler) {
+  handleUserTradeHistory = handler
 }
 
 export function onBalance(handler) {
@@ -91,7 +96,11 @@ export function resubscribe() {
     tickers: serverSelectedCoinTickers
   })
   send({
-    command: serverMessages.CHANGE_TRADE_HISTORY,
+    command: serverMessages.CHANGE_TRADES,
+    tickers: serverSelectedCoinTickers
+  })
+  send({
+    command: serverMessages.CHANGE_USER_TRADE_HISTORY,
     tickers: serverSelectedCoinTickers
   })
   send({
@@ -162,10 +171,15 @@ function receive(event) {
 
         handleOrderBook(augmentCoin(message.data.spec), message.data.orderBook)
         break
-      
-      case serverMessages.TRADE_HISTORY:
 
-        handleTradeHistory(augmentCoin(message.data.spec), message.data.trades)
+      case serverMessages.TRADE:
+
+        handleTrade(augmentCoin(message.data.spec), message.data.trade)
+        break
+      
+      case serverMessages.USER_TRADE_HISTORY:
+
+        handleUserTradeHistory(augmentCoin(message.data.spec), message.data.trades)
         break
     
       case serverMessages.BALANCE:

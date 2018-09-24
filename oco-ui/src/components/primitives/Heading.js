@@ -4,7 +4,7 @@ import { fontSize, color, fontWeight, fontFamily, space } from 'styled-system';
 const Heading = styled.h3.attrs({
   fontSize: 2,
   fontWeight: 700,
-  fontFamily: 'sans',
+  fontFamily: 'heading',
 })`
   ${color}
   ${fontSize}

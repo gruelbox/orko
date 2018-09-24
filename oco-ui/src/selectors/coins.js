@@ -7,7 +7,9 @@ const getCoins = state => state.coins.coins
 const getTickers = state => state.ticker.coins
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
-const getTradeHistory = state => state.coin.tradeHistory
+const getUserTradeHistory = state => state.coin.userTradeHistory
+
+export const getMarketTradeHistory = state => state.coin.trades
 
 export const getTopOfOrderBook = getOrderbook // Moved to worker
 
@@ -58,7 +60,7 @@ export const getOrdersForSelectedCoin = createSelector(
   }
 )
 
-export const getTradeHistoryInReverseOrder = getTradeHistory // Moved to worker
+export const getTradeHistoryInReverseOrder = getUserTradeHistory // Moved to worker
 
 export const getSelectedCoinTicker = createSelector(
   [getSelectedCoin, getTickers],
