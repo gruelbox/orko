@@ -100,12 +100,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final Multimap<String, Disposable> disposablesPerExchange = HashMultimap.create();
   private final Set<MarketDataSubscription> unavailableSubscriptions = Sets.newConcurrentHashSet();
 
-  private final CachingSubscription<TickerEvent, TickerSpec> tickers;
-  private final CachingSubscription<OpenOrdersEvent, TickerSpec> openOrders;
-  private final CachingSubscription<OrderBookEvent, TickerSpec> orderbook;
-  private final CachingSubscription<TradeEvent, TickerSpec> trades;
-  private final CachingSubscription<TradeHistoryEvent, TickerSpec> tradeHistory;
-  private final CachingSubscription<BalanceEvent, String> balance;
+  private final Subscription<TickerEvent, TickerSpec> tickers;
+  private final Subscription<OpenOrdersEvent, TickerSpec> openOrders;
+  private final Subscription<OrderBookEvent, TickerSpec> orderbook;
+  private final Subscription<TradeEvent, TickerSpec> trades;
+  private final Subscription<TradeHistoryEvent, TickerSpec> tradeHistory;
+  private final Subscription<BalanceEvent, String> balance;
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
@@ -129,12 +129,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       pollsPerExchange.put(e, ImmutableSet.of());
     });
 
-    this.tickers = new CachingSubscription<>(TickerEvent::spec);
-    this.openOrders = new CachingSubscription<>(OpenOrdersEvent::spec);
-    this.orderbook = new CachingSubscription<>(OrderBookEvent::spec);
-    this.trades = new CachingSubscription<>(TradeEvent::spec);
-    this.tradeHistory = new CachingSubscription<>(TradeHistoryEvent::spec);
-    this.balance = new CachingSubscription<>((BalanceEvent e) -> e.exchange() + "/" + e.currency());
+    this.tickers = new Subscription<>(TickerEvent::spec, true);
+    this.openOrders = new Subscription<>(OpenOrdersEvent::spec, true);
+    this.orderbook = new Subscription<>(OrderBookEvent::spec, true);
+    this.trades = new Subscription<>(TradeEvent::spec, false);
+    this.tradeHistory = new Subscription<>(TradeHistoryEvent::spec, true);
+    this.balance = new Subscription<>((BalanceEvent e) -> e.exchange() + "/" + e.currency(), true);
   }
 
 
@@ -694,16 +694,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     return exchange instanceof StreamingExchange;
   }
 
-  private final class CachingSubscription<T, U> {
+  private final class Subscription<T, U> {
     private final Flowable<T> flowable;
     private final AtomicReference<FlowableEmitter<T>> emitter = new AtomicReference<>();
     private final ConcurrentMap<U, T> latest = Maps.newConcurrentMap();
     private final Function<T, U> keyFunction;
+    private final boolean caching;
 
-    CachingSubscription(Function<T, U> keyFunction) {
+    Subscription(Function<T, U> keyFunction, boolean caching) {
       this.keyFunction = keyFunction;
-      this.flowable = Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING)
-          .doOnNext(e -> latest.put(keyFunction.apply(e), e))
+      this.caching = caching;
+      Flowable<T> flow = Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING);
+      if (caching)
+        flow = flow.doOnNext(e -> latest.put(keyFunction.apply(e), e));
+      this.flowable = flow
           .share()
           .onBackpressureLatest()
           .observeOn(Schedulers.computation());
@@ -716,9 +720,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     Flowable<T> get(@SuppressWarnings("unchecked") U... keys) {
       List<U> asList = Arrays.asList(keys);
-      return flowable
-        .startWith(Flowable.defer(() -> Flowable.fromIterable(latest.values())))
-        .filter(t -> asList.contains(keyFunction.apply(t)));
+      Flowable<T> flow = flowable;
+      if (caching)
+        flow = flow.startWith(Flowable.defer(() -> Flowable.fromIterable(latest.values())));
+      return flow.filter(t -> asList.contains(keyFunction.apply(t)));
     }
 
     void emit(T e) {
