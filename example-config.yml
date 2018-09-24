@@ -58,3 +58,5 @@ logging:
     "com.grahamcrockford.oco": ${LOG_LEVEL}
     "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL}
     "info.bitrich.xchangestream.binance": ${LOG_LEVEL}
+    "info.bitrich.xchangestream.gdax": ${LOG_LEVEL}
+    "si.mazi.rescu": ERROR
