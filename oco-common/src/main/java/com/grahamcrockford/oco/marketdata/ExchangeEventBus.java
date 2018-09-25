@@ -87,32 +87,37 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
   @Override
   public Flowable<TickerEvent> getTickers(String subscriberId) {
-    return getStream(subscriberId, MarketDataType.TICKER, marketDataSubscriptionManager::getTicker);
+    return getCombinedStream(subscriberId, MarketDataType.TICKER, marketDataSubscriptionManager::getTicker);
+  }
+
+  @Override
+  public Iterable<Flowable<TickerEvent>> getTickersSplit(String subscriberId) {
+    return getStreams(subscriberId, MarketDataType.TICKER, marketDataSubscriptionManager::getTicker);
   }
 
   @Override
   public Flowable<OpenOrdersEvent> getOpenOrders(String subscriberId) {
-    return getStream(subscriberId, MarketDataType.OPEN_ORDERS, marketDataSubscriptionManager::getOpenOrders);
+    return getCombinedStream(subscriberId, MarketDataType.OPEN_ORDERS, marketDataSubscriptionManager::getOpenOrders);
   }
 
   @Override
   public Flowable<OrderBookEvent> getOrderBooks(String subscriberId) {
-    return getStream(subscriberId, MarketDataType.ORDERBOOK, marketDataSubscriptionManager::getOrderBook);
+    return getCombinedStream(subscriberId, MarketDataType.ORDERBOOK, marketDataSubscriptionManager::getOrderBook);
   }
 
   @Override
   public Flowable<TradeEvent> getTrades(String subscriberId) {
-    return getStream(subscriberId, MarketDataType.TRADES, marketDataSubscriptionManager::getTrades);
+    return getCombinedStream(subscriberId, MarketDataType.TRADES, marketDataSubscriptionManager::getTrades);
   }
 
   @Override
   public Flowable<TradeHistoryEvent> getTradeHistory(String subscriberId) {
-    return getStream(subscriberId, MarketDataType.USER_TRADE_HISTORY, marketDataSubscriptionManager::getTradeHistory);
+    return getCombinedStream(subscriberId, MarketDataType.USER_TRADE_HISTORY, marketDataSubscriptionManager::getTradeHistory);
   }
 
   @Override
   public Flowable<BalanceEvent> getBalance(String subscriberId) {
-    return getStream(subscriberId, MarketDataType.BALANCE, marketDataSubscriptionManager::getBalance);
+    return getCombinedStream(subscriberId, MarketDataType.BALANCE, marketDataSubscriptionManager::getBalance);
   }
 
   @Override
@@ -139,14 +144,17 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     clearSubscriptions(subscriberId);
   }
 
-  private <T> Flowable<T> getStream(String subscriberId, MarketDataType marketDataType, Function<TickerSpec, Flowable<T>> source) {
+  private <T> Flowable<T> getCombinedStream(String subscriberId, MarketDataType marketDataType, Function<TickerSpec, Flowable<T>> source) {
+    return Flowable.merge(getStreams(subscriberId, marketDataType, source));
+  }
+
+  private <T> Iterable<Flowable<T>> getStreams(String subscriberId, MarketDataType marketDataType, Function<TickerSpec, Flowable<T>> source) {
     long stamp = rwLock.readLock();
     try {
-      FluentIterable<Flowable<T>> streams = FluentIterable
+      return FluentIterable
           .from(subscriptionsBySubscriber.get(subscriberId))
           .filter(s -> s.type().equals(marketDataType))
           .transform(sub -> source.apply(sub.spec()).onBackpressureLatest());
-      return Flowable.merge(streams);
     } finally {
       rwLock.unlockRead(stamp);
     }

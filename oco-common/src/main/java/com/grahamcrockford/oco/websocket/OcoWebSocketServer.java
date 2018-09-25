@@ -43,10 +43,13 @@ import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscription;
 import com.grahamcrockford.oco.marketdata.MarketDataType;
 import com.grahamcrockford.oco.marketdata.SerializableTrade;
+import com.grahamcrockford.oco.marketdata.TradeEvent;
+import com.grahamcrockford.oco.marketdata.TradeHistoryEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
 
+import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 
 @Metered
@@ -185,6 +188,13 @@ public final class OcoWebSocketServer {
     exchangeEventRegistry.changeSubscriptions(eventRegistryClientId, marketDataSubscriptions.get());
     subscription = new Disposable() {
 
+      // Apply a 1-second throttle on a PER TICKER basis
+      private final Disposable tickers = Flowable.fromIterable(exchangeEventRegistry.getTickersSplit(eventRegistryClientId))
+          .map(f -> f.filter(o -> isReady()).throttleLast(1, TimeUnit.SECONDS))
+          .flatMap(f -> f)
+          .subscribe(e -> send(e, Nature.TICKER));
+
+      // For all others apply throttles globally
       private final Disposable openOrders = exchangeEventRegistry.getOpenOrders(eventRegistryClientId)
           .filter(o -> isReady())
           .throttleLast(1, TimeUnit.SECONDS)
@@ -193,24 +203,13 @@ public final class OcoWebSocketServer {
           .filter(o -> isReady())
           .throttleLast(2, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
-      private final Disposable tickers = exchangeEventRegistry.getTickers(eventRegistryClientId)
-          .filter(o -> isReady())
-          .subscribe(e -> send(e, Nature.TICKER));
       private final Disposable trades = exchangeEventRegistry.getTrades(eventRegistryClientId)
           .filter(o -> isReady())
-          // Workaround for lack of serializability of the XChange object
-          .map(e -> ImmutableMap.of(
-            "spec", e.spec(),
-            "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
-          ))
+          .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.TRADE));
       private final Disposable tradeHistory = exchangeEventRegistry.getTradeHistory(eventRegistryClientId)
           .filter(o -> isReady())
-          // Workaround for lack of serializability of the XChange object
-          .map(e -> ImmutableMap.of(
-            "spec", e.spec(),
-            "trades", Lists.transform(e.trades(), t -> SerializableTrade.create(e.spec().exchange(), t))
-          ))
+          .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
       private final Disposable balance = exchangeEventRegistry.getBalance(eventRegistryClientId)
           .filter(o -> isReady())
@@ -255,6 +254,26 @@ public final class OcoWebSocketServer {
         }
       }
     };
+  }
+
+  /**
+   * Workaround for lack of serializability of the XChange object
+   */
+  private Object serialise(TradeEvent e) {
+    return ImmutableMap.of(
+      "spec", e.spec(),
+      "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
+    );
+  }
+
+  /**
+   * Workaround for lack of serializability of the XChange object
+   */
+  private Object serialise(TradeHistoryEvent e) {
+    return ImmutableMap.of(
+      "spec", e.spec(),
+      "trades", Lists.transform(e.trades(), t -> SerializableTrade.create(e.spec().exchange(), t))
+    );
   }
 
 

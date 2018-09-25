@@ -21,6 +21,8 @@ public interface ExchangeEventRegistry {
   }
 
   public Flowable<TickerEvent> getTickers(String subscriberId);
+  public Iterable<Flowable<TickerEvent>> getTickersSplit(String subscriberId);
+
   public Flowable<OpenOrdersEvent> getOpenOrders(String subscriberId);
   public Flowable<OrderBookEvent> getOrderBooks(String subscriberId);
   public Flowable<TradeEvent> getTrades(String subscriberId);
