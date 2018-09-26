@@ -25,12 +25,13 @@ export function checkWhiteList() {
 
 export function connect() {
   return async (dispatch, getState, socket) => {
-    if (getState().auth.config && getState().auth.config.clientId) {
-      if (!getState().socket.token) {
+    var { config, token } = getState().auth
+    if (config && config.clientId) {
+      if (token) {
+        dispatch(notificationActions.trace("Connecting using token"))
+      } else {
         dispatch(notificationActions.trace("Not attempting connect, require token"))
         return
-      } else {
-        dispatch(notificationActions.trace("Connecting using token"))
       }
     } else {
       dispatch(notificationActions.trace("Connecting - no authentication configured"))
@@ -85,6 +86,7 @@ export function logout() {
 
 export function setToken(token, userName) {
   return async (dispatch, getState, socket) => {
+    dispatch(notificationActions.trace("Setting token for" + userName))
     dispatch({
       type: types.SET_TOKEN,
       payload: {
@@ -162,8 +164,8 @@ export async function dispatchWrappedRequest(
         )
       }
     } else {
-      if (onSuccess) dispatch(onSuccess())
       if (jsonHandler) dispatch(jsonHandler(await response.json()))
+      if (onSuccess) dispatch(onSuccess())
     }
   } catch (error) {
     if (errorHandler) dispatch(errorHandler(error))
