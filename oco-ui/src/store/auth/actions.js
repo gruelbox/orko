@@ -86,7 +86,7 @@ export function logout() {
 
 export function setToken(token, userName) {
   return async (dispatch, getState, socket) => {
-    dispatch(notificationActions.trace("Setting token for" + userName))
+    dispatch(notificationActions.trace("Setting token for " + userName))
     dispatch({
       type: types.SET_TOKEN,
       payload: {
