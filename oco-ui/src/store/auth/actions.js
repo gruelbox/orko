@@ -6,21 +6,23 @@ import * as coinActions from "../coins/actions"
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
     try {
+      dispatch(notificationActions.trace("Checking whitelist"))
       const result = await authService.checkWhiteList()
       dispatch({ type: types.WHITELIST_UPDATE, payload: Boolean(result) })
       if (result) {
-        console.log("Verified whitelist")
+        dispatch(notificationActions.trace("Verified whitelist"))
         dispatch(fetchOktaConfig())
-        if (!getState().socket.connected) {
-          console.log("Connecting")
+        if (!getState().socket.connected && getState().socket.token) {
+          dispatch(notificationActions.trace("Connecting as token already set"))
           dispatch(coinActions.fetch())
           socket.connect()
         }
       } else {
-        console.log("Whitelist rejected, disconnecting")
+        dispatch(notificationActions.trace("Whitelist rejected, disconnecting"))
         socket.disconnect()
       }
     } catch (error) {
+      dispatch(notificationActions.trace("Error checking whitelist"))
       dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
@@ -29,15 +31,18 @@ export function checkWhiteList() {
 export function whitelist(token) {
   return async (dispatch, getState, socket) => {
     try {
+      dispatch(notificationActions.trace("Attempting whitelist"))
       await authService.whitelist(token)
+      dispatch(notificationActions.trace("Accepted whitelist"))
       dispatch({ type: types.WHITELIST_UPDATE, payload: true })
       dispatch(fetchOktaConfig())
-      if (!getState().socket.connected) {
-        console.log("Connecting")
+      if (!getState().socket.connected && getState().socket.token) {
+        dispatch(notificationActions.trace("Connecting as token already set"))
         dispatch(coinActions.fetch())
         socket.connect()
       }
     } catch (error) {
+      dispatch(notificationActions.trace("Error attempting whitelist"))
       dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
     }
   }
@@ -59,7 +64,8 @@ export function fetchOktaConfig() {
   return wrappedRequest(
     () => authService.config(),
     config => ({ type: types.SET_OKTA_CONFIG, payload: config }),
-    error => notificationActions.localError("Could not fetch authentication data: " + error.message)
+    error => notificationActions.localError("Could not fetch authentication data: " + error.message),
+    () => notificationActions.trace("Fetched authentication configuration")
   )
 }
 
@@ -79,6 +85,7 @@ export function setToken(token, userName) {
         userName
       }
     })
+    dispatch(notificationActions.trace("Connecting after setting token"))
     dispatch(coinActions.fetch())
     socket.connect()
   }

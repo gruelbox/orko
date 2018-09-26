@@ -18,6 +18,18 @@ export function localMessage(message) {
   return local(message, "INFO")
 }
 
+export function trace(message) {
+  return (dispatch, getState, socket) => {
+    dispatch({
+      type: types.ADD,
+      payload: {
+        notificationType: "TRACE",
+        message
+      }
+    })
+  }
+}
+
 function local(message, level) {
   return (dispatch, getState, socket) => {
     if (lastMessage !== message) {

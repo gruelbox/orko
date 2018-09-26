@@ -11,7 +11,7 @@ export function fetch() {
     auth => exchangesService.fetchSubscriptions(auth.token),
     json => ({ type: types.SET, payload: json.map(t => coinFromTicker(t)) }),
     error => errorActions.setForeground("Could not fetch coin list: " + error.message),
-    () => notificationActions.localMessage("Fetched coins")
+    () => notificationActions.trace("Fetched coins")
   );
 }
 
