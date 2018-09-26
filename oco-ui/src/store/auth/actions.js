@@ -12,11 +12,6 @@ export function checkWhiteList() {
       if (result) {
         dispatch(notificationActions.trace("Verified whitelist"))
         dispatch(fetchOktaConfig())
-        if (!getState().socket.connected && getState().socket.token) {
-          dispatch(notificationActions.trace("Connecting as token already set"))
-          dispatch(coinActions.fetch())
-          socket.connect()
-        }
       } else {
         dispatch(notificationActions.trace("Whitelist rejected, disconnecting"))
         socket.disconnect()
@@ -28,6 +23,23 @@ export function checkWhiteList() {
   }
 }
 
+export function connect() {
+  return async (dispatch, getState, socket) => {
+    if (getState().auth.config && getState().auth.config.clientId) {
+      if (!getState().socket.token) {
+        dispatch(notificationActions.trace("Not attempting connect, require token"))
+        return
+      } else {
+        dispatch(notificationActions.trace("Connecting using token"))
+      }
+    } else {
+      dispatch(notificationActions.trace("Connecting - no authentication configured"))
+    }
+    dispatch(coinActions.fetch())
+    socket.connect()
+  }
+}
+
 export function whitelist(token) {
   return async (dispatch, getState, socket) => {
     try {
@@ -36,11 +48,6 @@ export function whitelist(token) {
       dispatch(notificationActions.trace("Accepted whitelist"))
       dispatch({ type: types.WHITELIST_UPDATE, payload: true })
       dispatch(fetchOktaConfig())
-      if (!getState().socket.connected && getState().socket.token) {
-        dispatch(notificationActions.trace("Connecting as token already set"))
-        dispatch(coinActions.fetch())
-        socket.connect()
-      }
     } catch (error) {
       dispatch(notificationActions.trace("Error attempting whitelist"))
       dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
@@ -65,7 +72,7 @@ export function fetchOktaConfig() {
     () => authService.config(),
     config => ({ type: types.SET_OKTA_CONFIG, payload: config }),
     error => notificationActions.localError("Could not fetch authentication data: " + error.message),
-    () => notificationActions.trace("Fetched authentication configuration")
+    () => connect()
   )
 }
 
@@ -77,7 +84,7 @@ export function logout() {
 }
 
 export function setToken(token, userName) {
-  return (dispatch, getState, socket) => {
+  return async (dispatch, getState, socket) => {
     dispatch({
       type: types.SET_TOKEN,
       payload: {
@@ -85,9 +92,7 @@ export function setToken(token, userName) {
         userName
       }
     })
-    dispatch(notificationActions.trace("Connecting after setting token"))
-    dispatch(coinActions.fetch())
-    socket.connect()
+    dispatch(connect())
   }
 }
 
