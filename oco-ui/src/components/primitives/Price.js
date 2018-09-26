@@ -2,21 +2,9 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import styled from "styled-components"
 import { fontSize, color, fontWeight, space } from "styled-system"
-import { isValidNumber } from "../../util/numberUtils"
+import { formatMoney } from "../../util/numberUtils"
 import Loading from "./Loading"
 import { connect } from "react-redux"
-
-/**
- * Formatters for amounts in specific counter currencies.
- */
-const formatters = {
-  "BTC": x => (isValidNumber(x) ? Number(x).toFixed(8) : <Loading fitted />),
-  "ETH": x => (isValidNumber(x) ? Number(x).toFixed(7) : <Loading fitted />),
-  "USDT": x => (isValidNumber(x) ? Number(x).toFixed(2) : <Loading fitted />),
-  "USD": x => (isValidNumber(x) ? Number(x).toFixed(2) : <Loading fitted />),
-  "EUR": x => (isValidNumber(x) ? Number(x).toFixed(2) : <Loading fitted />),
-  "XXX": x => (isValidNumber(x) ? x : <Loading fitted />)
-}
 
 const PriceKey = styled.div.attrs({
   py: 0,
@@ -120,14 +108,10 @@ class Price extends React.PureComponent {
   }
 
   render() {
-    var formatter = formatters[this.props.counter]
-      if (!formatter) {
-        formatter = formatters["XXX"]
-      }
     if (this.props.bare) {
       return (
         <BarePriceValue px={this.props.noflash ? 0 : 1} movement={this.state.movement} onClick={this.onClick} color={this.props.color} className={this.props.className}>
-          {this.props.children === "--" ? "--" : formatter(this.props.children)}
+          {this.props.children === "--" ? "--" : formatMoney(this.props.children, this.props.counter, <Loading fitted />)}
         </BarePriceValue>
       )
     } else {
@@ -146,7 +130,7 @@ class Price extends React.PureComponent {
             movement={this.state.movement}
             onClick={this.onClick}
           >
-            {this.props.children === "--" ? "--" : formatter(this.props.children)}
+            {this.props.children === "--" ? "--" : formatMoney(this.props.children, this.props.counter, <Loading fitted />)}
           </PriceValue>
         </Container>
       )
@@ -161,7 +145,7 @@ function mapStateToProps(state, props) {
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn
-        ? state.focus.fn
+        ? value => state.focus.fn(formatMoney(value, props.counter, ""))
         : nullOnCLick,
   }
 }

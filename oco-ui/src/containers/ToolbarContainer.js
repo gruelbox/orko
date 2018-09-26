@@ -11,6 +11,7 @@ import Span from "../components/primitives/Span"
 
 import Ticker from "../components/Ticker"
 
+import { formatMoney } from "../util/numberUtils"
 import * as authActions from "../store/auth/actions"
 import { getSelectedCoinTicker } from "../selectors/coins"
 
@@ -122,7 +123,7 @@ const ToolbarContainer = ({ticker, coin, connected, errors, userName, updateFocu
   if (!connected) {
     document.title = "Not connected"
   } else if (ticker && coin) {
-    document.title = ticker.last + " " + coin.base + "/" + coin.counter
+    document.title = formatMoney(ticker.last, coin.counter, "No price") + " " + coin.base + "/" + coin.counter
   } else {
     document.title = "No coin"
   }
