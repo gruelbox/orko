@@ -83,9 +83,14 @@ function preProcess(data) {
         return data
       }
 
-    case socketMessages.TRADE_HISTORY:
+    case socketMessages.USER_TRADE_HISTORY:
 
-      obj.data.trades = obj.data.trades.reverse()
+      obj.data.trades = obj.data.trades.sort((a, b) => b.d - a.d)
+      return JSON.stringify(obj)
+
+    case socketMessages.USER_TRADE:
+
+      obj.data.trade.t = obj.data.trade.t === "BID" ? "ASK" : "BID"
       return JSON.stringify(obj)
 
     default:

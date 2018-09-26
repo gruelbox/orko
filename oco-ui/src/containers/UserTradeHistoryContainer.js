@@ -2,7 +2,7 @@ import React from "react"
 import { connect } from "react-redux"
 import TradeHistory from "../components/TradeHistory"
 import Loading from "../components/primitives/Loading"
-import { getTradeHistoryInReverseOrder } from "../selectors/coins"
+import { getUserTradeHistory } from "../selectors/coins"
 
 class UserTradeHistoryContainer extends React.Component {
   render() {
@@ -16,7 +16,7 @@ class UserTradeHistoryContainer extends React.Component {
 
 function mapStateToProps(state, props) {
   return {
-    tradeHistory: getTradeHistoryInReverseOrder(state)
+    tradeHistory: getUserTradeHistory(state)
   }
 }
 

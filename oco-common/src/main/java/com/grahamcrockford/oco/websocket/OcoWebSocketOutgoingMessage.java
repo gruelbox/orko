@@ -26,6 +26,7 @@ abstract class OcoWebSocketOutgoingMessage {
     TICKER,
     OPEN_ORDERS,
     ORDERBOOK,
+    USER_TRADE,
     TRADE,
     USER_TRADE_HISTORY,
     BALANCE,

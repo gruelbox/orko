@@ -11,6 +11,7 @@ var handleTicker = (coin, ticker) => {}
 var handleOrders = (coin, orders) => {}
 var handleOrderBook = (coin, orderBook) => {}
 var handleTrade = (coin, trade) => {}
+var handleUserTrade = (coin, trade) => {}
 var handleUserTradeHistory = (coin, trades) => {}
 var handleBalance = (exchange, currency, balance) => {}
 
@@ -47,6 +48,10 @@ export function onOrderBook(handler) {
 
 export function onTrade(handler) {
   handleTrade = handler
+}
+
+export function onUserTrade(handler) {
+  handleUserTrade = handler
 }
 
 export function onUserTradeHistory(handler) {
@@ -175,6 +180,11 @@ function receive(event) {
       case serverMessages.TRADE:
 
         handleTrade(augmentCoin(message.data.spec), message.data.trade)
+        break
+
+      case serverMessages.USER_TRADE:
+
+        handleUserTrade(augmentCoin(message.data.spec), message.data.trade)
         break
       
       case serverMessages.USER_TRADE_HISTORY:

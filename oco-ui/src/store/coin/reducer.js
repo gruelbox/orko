@@ -30,6 +30,12 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         trades: state.trades ? Immutable([action.payload].concat(state.trades.slice(0, 48))) : Immutable([action.payload])
       })
+    case types.ADD_USER_TRADE:
+      if (!!action.payload.id && state.userTradeHistory.some(t => t.id === action.payload.id))
+        return state;
+      return Immutable.merge(state, {
+        userTradeHistory: state.userTradeHistory ? Immutable([action.payload].concat(state.userTradeHistory.slice(0, 48))) : Immutable([action.payload])
+      })
     case types.CLEAR_BALANCES:
       return Immutable.merge(state, {
         balance: null
@@ -42,7 +48,7 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         orderBook: action.payload
       })
-    case types.SET_USER_TRADE_HISTORY:
+    case types.SET_USER_TRADES:
       return Immutable.merge(state, {
         userTradeHistory: action.payload
       })

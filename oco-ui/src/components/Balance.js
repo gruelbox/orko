@@ -13,20 +13,21 @@ const Container = styled.div`
 export const Balance = props => {
   const coin = props.coin
 
-  const noBalance =
+  const noBalances =
     !props.balance ||
-    !props.coin ||
-    !props.balance[coin.base] ||
-    !props.balance[coin.counter]
+    !props.coin
+
+  const noBaseBalance = noBalances || (!props.balance[coin.base] && props.balance[coin.base] !== 0)
+  const noCounterBalance = noBalances || (!props.balance[coin.counter] && props.balance[coin.counter] !== 0)
 
   if (coin) {
     return (
       <Container>
         <Price fontSize={1} name="Total" onClick={props.onClickNumber}>
-          {noBalance ? undefined : props.balance[coin.base].total}
+          {noBaseBalance ? undefined : props.balance[coin.base].total}
         </Price>
         <Price fontSize={1} name="Available" onClick={props.onClickNumber}>
-          {noBalance ? undefined : props.balance[coin.base].available}
+          {noBaseBalance ? undefined : props.balance[coin.base].available}
         </Price>
         <Price
           fontSize={1}
@@ -34,7 +35,7 @@ export const Balance = props => {
           name={coin.counter + " total"}
           onClick={props.onClickNumber}
         >
-          {noBalance ? undefined : props.balance[coin.counter].total}
+          {noCounterBalance ? undefined : props.balance[coin.counter].total}
         </Price>
         <Price
           fontSize={1}
@@ -42,10 +43,10 @@ export const Balance = props => {
           name={coin.counter + " available"}
           onClick={props.onClickNumber}
         >
-          {noBalance ? undefined : props.balance[coin.counter].available}
+          {noCounterBalance ? undefined : props.balance[coin.counter].available}
         </Price>
         <Price fontSize={1} name="Can buy" onClick={props.onClickNumber}>
-          {noBalance || !props.ticker
+          {noCounterBalance || !props.ticker
             ? undefined
             : props.balance[coin.counter].available / props.ticker.ask}
         </Price>

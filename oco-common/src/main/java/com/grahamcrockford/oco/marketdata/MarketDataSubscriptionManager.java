@@ -107,7 +107,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final Subscription<OpenOrdersEvent, TickerSpec> openOrders;
   private final Subscription<OrderBookEvent, TickerSpec> orderbook;
   private final Subscription<TradeEvent, TickerSpec> trades;
-  private final Subscription<TradeHistoryEvent, TickerSpec> tradeHistory;
+  private final Subscription<TradeHistoryEvent, TickerSpec> userTradeHistory;
   private final Subscription<BalanceEvent, String> balance;
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
@@ -136,7 +136,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.openOrders = new Subscription<>(OpenOrdersEvent::spec, true);
     this.orderbook = new Subscription<>(OrderBookEvent::spec, true);
     this.trades = new Subscription<>(TradeEvent::spec, false);
-    this.tradeHistory = new Subscription<>(TradeHistoryEvent::spec, true);
+    this.userTradeHistory = new Subscription<>(TradeHistoryEvent::spec, true);
     this.balance = new Subscription<>((BalanceEvent e) -> e.exchange() + "/" + e.currency(), true);
   }
 
@@ -184,7 +184,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       case TRADES:
         return (Flowable<T>) getTrades(sub.spec());
       case USER_TRADE_HISTORY:
-        return (Flowable<T>) getTradeHistory(sub.spec());
+        return (Flowable<T>) getUserTradeHistory(sub.spec());
       case BALANCE:
         return (Flowable<T>) getBalance(sub.spec());
       default:
@@ -235,12 +235,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
   /**
+   * Gets a stream of trades.
+   */
+  public Flowable<TradeEvent> getTrades() {
+    return trades.getAll();
+  }
+
+
+  /**
    * Gets a stream with updates to the recent trade history.
    *
    * @param spec The ticker specification.
    */
-  public Flowable<TradeHistoryEvent> getTradeHistory(TickerSpec spec) {
-    return tradeHistory.get(spec);
+  public Flowable<TradeHistoryEvent> getUserTradeHistory(TickerSpec spec) {
+    return userTradeHistory.get(spec);
   }
 
 
@@ -293,7 +301,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             orderbook.removeFromCache(s.spec());
             openOrders.removeFromCache(s.spec());
             trades.removeFromCache(s.spec());
-            tradeHistory.removeFromCache(s.spec());
+            userTradeHistory.removeFromCache(s.spec());
             balance.removeFromCache(s.spec().exchange() + "/" + s.spec().base());
             balance.removeFromCache(s.spec().exchange() + "/" + s.spec().counter());
           });
@@ -637,7 +645,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
           TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription, tradeService);
           ImmutableList<UserTrade> trades = ImmutableList.copyOf(tradeService.getTradeHistory(tradeHistoryParams).getUserTrades());
-          tradeHistory.emit(TradeHistoryEvent.create(spec, trades));
+          userTradeHistory.emit(TradeHistoryEvent.create(spec, trades));
           break;
         default:
           throw new IllegalStateException("Market data type " + subscription.type() + " not supported in this way");
@@ -735,12 +743,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       latest.remove(key);
     }
 
-    Flowable<T> get(@SuppressWarnings("unchecked") U... keys) {
-      List<U> asList = Arrays.asList(keys);
+    Flowable<T> getAll() {
       Flowable<T> flow = flowable;
       if (caching)
         flow = flow.startWith(Flowable.defer(() -> Flowable.fromIterable(latest.values())));
-      return flow.filter(t -> asList.contains(keyFunction.apply(t)));
+      return flow;
+    }
+
+    Flowable<T> get(@SuppressWarnings("unchecked") U... keys) {
+      List<U> asList = Arrays.asList(keys);
+      return getAll().filter(t -> asList.contains(keyFunction.apply(t)));
     }
 
     void emit(T e) {

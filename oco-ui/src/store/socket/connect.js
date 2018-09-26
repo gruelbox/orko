@@ -25,7 +25,6 @@ function selectedCoin() {
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_ORDERS = "orders"
 const ACTION_KEY_TRADE = "trade"
-const ACTION_KEY_USERTRADEHISTORY = "usertradehistory"
 const ACTION_KEY_BALANCE = "balance"
 const ACTION_KEY_TICKER = "ticker"
 
@@ -49,10 +48,10 @@ export function initialise(s, history) {
     console.log("Resubscribing following coin change")
     socketClient.changeSubscriptions(subscribedCoins(), locationToCoin(location))
     socketClient.resubscribe()
+	store.dispatch(coinActions.setUserTrades(null))
     bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
     bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(null))
     bufferAction(ACTION_KEY_TRADE, coinActions.clearTrades())
-    bufferAction(ACTION_KEY_USERTRADEHISTORY, coinActions.setUserTradeHistory(null))
     bufferAction(ACTION_KEY_BALANCE, coinActions.clearBalances())
     actionDispatch()
   })
@@ -82,11 +81,15 @@ export function initialise(s, history) {
   })
   socketClient.onTrade((coin, trade) => {
     if (sameCoin(coin, selectedCoin()))
-      bufferAction(ACTION_KEY_TRADE, coinActions.addTrade(trade))
+      bufferAction(ACTION_KEY_TRADE + trade.id, coinActions.addTrade(trade))
+  })
+  socketClient.onUserTrade((coin, trade) => {
+    if (sameCoin(coin, selectedCoin()))
+      store.dispatch(coinActions.addUserTrade(trade))
   })
   socketClient.onUserTradeHistory((coin, trades) => {
     if (sameCoin(coin, selectedCoin()))
-      bufferAction(ACTION_KEY_USERTRADEHISTORY, coinActions.setUserTradeHistory(trades))
+      store.dispatch(coinActions.setUserTrades(trades))
   })
 }
 

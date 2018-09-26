@@ -26,7 +26,10 @@ public interface ExchangeEventRegistry {
   public Flowable<OpenOrdersEvent> getOpenOrders(String subscriberId);
   public Flowable<OrderBookEvent> getOrderBooks(String subscriberId);
   public Flowable<TradeEvent> getTrades(String subscriberId);
-  public Flowable<TradeHistoryEvent> getTradeHistory(String subscriberId);
+
+  public Flowable<TradeHistoryEvent> getUserTradeHistory(String subscriberId);
+  public Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit(String eventRegistryClientId);
+
   public Flowable<BalanceEvent> getBalance(String subscriberId);
 
   @Deprecated
@@ -34,4 +37,6 @@ public interface ExchangeEventRegistry {
 
   @Deprecated
   public void unregisterTicker(TickerSpec tickerSpec, String subscriberId);
+
+
 }

@@ -7,7 +7,8 @@ const getCoins = state => state.coins.coins
 const getTickers = state => state.ticker.coins
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
-const getUserTradeHistory = state => state.coin.userTradeHistory
+
+export const getUserTradeHistory = state => state.coin.userTradeHistory
 
 export const getMarketTradeHistory = state => state.coin.trades
 
@@ -60,8 +61,6 @@ export const getOrdersForSelectedCoin = createSelector(
     return exchange.concat(server)
   }
 )
-
-export const getTradeHistoryInReverseOrder = getUserTradeHistory // Moved to worker
 
 export const getSelectedCoinTicker = createSelector(
   [getSelectedCoin, getTickers],

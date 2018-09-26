@@ -46,10 +46,14 @@ import com.grahamcrockford.oco.marketdata.SerializableTrade;
 import com.grahamcrockford.oco.marketdata.TradeEvent;
 import com.grahamcrockford.oco.marketdata.TradeHistoryEvent;
 import com.grahamcrockford.oco.notification.NotificationEvent;
+import com.grahamcrockford.oco.signal.UserTradeEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
+import com.grahamcrockford.oco.util.SafelyDispose;
 import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
 import io.reactivex.disposables.Disposable;
 
 @Metered
@@ -194,6 +198,26 @@ public final class OcoWebSocketServer {
           .flatMap(f -> f)
           .subscribe(e -> send(e, Nature.TICKER));
 
+      // Trade history should only be sent with long periods between each. The rest of the time the user trades
+      // stream should be used.
+      private final Disposable userTradeHistory = Flowable.fromIterable(exchangeEventRegistry.getUserTradeHistorySplit(eventRegistryClientId))
+          .map(f -> f.filter(o -> isReady()).throttleLast(5, TimeUnit.SECONDS))
+          .flatMap(f -> f)
+          .map(e -> serialise(e))
+          .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
+
+      // Trades are unthrottled - the assumption is that you need the lot
+      private final Disposable trades = exchangeEventRegistry.getTrades(eventRegistryClientId)
+          .filter(o -> isReady())
+          .map(e -> serialise(e))
+          .subscribe(e -> send(e, Nature.TRADE));
+      private final Disposable userTrades = Observable.create((ObservableEmitter<UserTradeEvent> emitter) -> { new UserTradesSubscriber(emitter); })
+          .share()
+          .filter(o -> isReady())
+          .filter(e -> marketDataSubscriptions.get().contains(MarketDataSubscription.create(e.spec(), USER_TRADE_HISTORY)))
+          .map(e -> serialise(e))
+          .subscribe(e -> send(e, Nature.USER_TRADE));
+
       // For all others apply throttles globally
       private final Disposable openOrders = exchangeEventRegistry.getOpenOrders(eventRegistryClientId)
           .filter(o -> isReady())
@@ -203,57 +227,36 @@ public final class OcoWebSocketServer {
           .filter(o -> isReady())
           .throttleLast(2, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
-      private final Disposable trades = exchangeEventRegistry.getTrades(eventRegistryClientId)
-          .filter(o -> isReady())
-          .map(e -> serialise(e))
-          .subscribe(e -> send(e, Nature.TRADE));
-      private final Disposable tradeHistory = exchangeEventRegistry.getTradeHistory(eventRegistryClientId)
-          .filter(o -> isReady())
-          .map(e -> serialise(e))
-          .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
       private final Disposable balance = exchangeEventRegistry.getBalance(eventRegistryClientId)
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.BALANCE));
 
       @Override
       public boolean isDisposed() {
-        return openOrders.isDisposed() && orderBook.isDisposed() && tickers.isDisposed() && trades.isDisposed() && tradeHistory.isDisposed() && balance.isDisposed();
+        return openOrders.isDisposed() &&
+            orderBook.isDisposed() &&
+            tickers.isDisposed() &&
+            trades.isDisposed() &&
+            userTrades.isDisposed() &&
+            userTradeHistory.isDisposed() &&
+            balance.isDisposed();
       }
 
       @Override
       public void dispose() {
-        try {
-          openOrders.dispose();
-        } catch (Throwable t) {
-          LOGGER.error("Error disposing of openOrders subscription", t);
-        }
-        try {
-          orderBook.dispose();
-        } catch (Throwable t) {
-          LOGGER.error("Error disposing of orderBook subscription", t);
-        }
-        try {
-          tickers.dispose();
-        } catch (Throwable t) {
-          LOGGER.error("Error disposing of tickers subscription", t);
-        }
-        try {
-          trades.dispose();
-        } catch (Throwable t) {
-          LOGGER.error("Error disposing of trade subscription", t);
-        }
-        try {
-          tradeHistory.dispose();
-        } catch (Throwable t) {
-          LOGGER.error("Error disposing of tradeHistory subscription", t);
-        }
-        try {
-          balance.dispose();
-        } catch (Throwable t) {
-          LOGGER.error("Error disposing of balance subscription", t);
-        }
+        SafelyDispose.of(openOrders, orderBook, tickers, trades, userTrades, userTradeHistory, balance);
       }
     };
+  }
+
+  /**
+   * Workaround for lack of serializability of the XChange object
+   */
+  private Object serialise(UserTradeEvent e) {
+    return ImmutableMap.of(
+      "spec", e.spec(),
+      "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
+    );
   }
 
   /**
@@ -301,6 +304,28 @@ public final class OcoWebSocketServer {
       return objectMapper.writeValueAsString(OcoWebSocketOutgoingMessage.create(nature, data));
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private final class UserTradesSubscriber {
+
+    private final ObservableEmitter<UserTradeEvent> emitter;
+
+    UserTradesSubscriber(ObservableEmitter<UserTradeEvent> emitter) {
+      this.emitter = emitter;
+      eventBus.register(this);
+      emitter.setCancellable(() -> {
+        eventBus.unregister(this);
+      });
+    }
+
+    @Subscribe
+    void onUserTrade(UserTradeEvent e) {
+      try {
+        emitter.onNext(e);
+      } catch (Throwable t) {
+        emitter.onError(t);
+      }
     }
   }
 }

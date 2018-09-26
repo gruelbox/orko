@@ -111,8 +111,13 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   }
 
   @Override
-  public Flowable<TradeHistoryEvent> getTradeHistory(String subscriberId) {
-    return getCombinedStream(subscriberId, MarketDataType.USER_TRADE_HISTORY, marketDataSubscriptionManager::getTradeHistory);
+  public Flowable<TradeHistoryEvent> getUserTradeHistory(String subscriberId) {
+    return getCombinedStream(subscriberId, MarketDataType.USER_TRADE_HISTORY, marketDataSubscriptionManager::getUserTradeHistory);
+  }
+
+  @Override
+  public Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit(String subscriberId) {
+    return getStreams(subscriberId, MarketDataType.USER_TRADE_HISTORY, marketDataSubscriptionManager::getUserTradeHistory);
   }
 
   @Override
