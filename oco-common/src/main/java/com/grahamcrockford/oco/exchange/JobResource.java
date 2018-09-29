@@ -1,7 +1,5 @@
 package com.grahamcrockford.oco.exchange;
 
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.Collection;
 
 import javax.annotation.security.RolesAllowed;
@@ -14,22 +12,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.Ticker;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.auth.Roles;
-import com.grahamcrockford.oco.job.LimitOrderJob;
-import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
-import com.grahamcrockford.oco.job.SoftTrailingStop;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.Job;
-import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobAccess;
 import com.grahamcrockford.oco.submit.JobAccess.JobDoesNotExistException;
 import com.grahamcrockford.oco.submit.JobSubmitter;
@@ -102,76 +92,5 @@ public class JobResource implements WebResource {
     Job job = jobAccess.load(id);
     jobAccess.delete(id);
     notificationService.info("Deleted: " + job + " (" + id + ")");
-  }
-
-  @PUT
-  @Path("softtrailingstop")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public Job softTrailingStop(@QueryParam("exchange") String exchange,
-                                           @QueryParam("counter") String counter,
-                                           @QueryParam("base") String base,
-                                           @QueryParam("direction") Direction direction,
-                                           @QueryParam("amount") BigDecimal amount,
-                                           @QueryParam("stop") BigDecimal stopPrice,
-                                           @QueryParam("limit") BigDecimal limitPrice) throws IOException {
-
-    final Ticker ticker = exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
-
-   return jobSubmitter.submitNewUnchecked(SoftTrailingStop.builder()
-        .tickTrigger(TickerSpec.builder()
-          .exchange(exchange)
-          .base(base)
-          .counter(counter)
-          .build()
-        )
-        .direction(direction)
-        .amount(amount)
-        .startPrice(ticker.getBid())
-        .stopPrice(stopPrice)
-        .limitPrice(limitPrice)
-        .build());
-  }
-
-  @PUT
-  @Path("limitbuy")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public Job limitBuy(@QueryParam("exchange") String exchange,
-                                 @QueryParam("counter") String counter,
-                                 @QueryParam("base") String base,
-                                 @QueryParam("amount") BigDecimal amount,
-                                 @QueryParam("limit") BigDecimal limitPrice) throws IOException {
-    return limitOrder(exchange, counter, base, amount, limitPrice, Direction.BUY);
-  }
-
-  @PUT
-  @Path("limitsell")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public Job limitSell(@QueryParam("exchange") String exchange,
-                                 @QueryParam("counter") String counter,
-                                 @QueryParam("base") String base,
-                                 @QueryParam("amount") BigDecimal amount,
-                                 @QueryParam("limit") BigDecimal limitPrice) throws IOException {
-    return limitOrder(exchange, counter, base, amount, limitPrice, Direction.SELL);
-  }
-
-  private Job limitOrder(String exchange, String counter, String base, BigDecimal amount,
-      BigDecimal limitPrice, Direction direction) throws IOException {
-    // Just check it's a valid ticker
-    exchanges.get(exchange).getMarketDataService().getTicker(new CurrencyPair(base, counter));
-
-    return jobSubmitter.submitNewUnchecked(LimitOrderJob.builder()
-        .tickTrigger(TickerSpec.builder()
-            .exchange(exchange)
-            .base(base)
-            .counter(counter)
-            .build()
-          )
-        .direction(direction)
-        .amount(amount)
-        .limitPrice(limitPrice)
-        .build());
   }
 }

@@ -7,3 +7,11 @@ export function openAlerts(coin) {
 export function closeAlerts() {
   return { type: types.CLOSE_ALERTS }
 }
+
+export function openReferencePrice(coin) {
+  return { type: types.OPEN_REFERENCE_PRICE, payload: coin }
+}
+
+export function closeReferencePrice() {
+  return { type: types.CLOSE_REFERENCE_PRICE }
+}

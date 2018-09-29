@@ -285,9 +285,6 @@ Best way to work is to catch 401 any time you call an entry point, and if you ge
 | ------ | ----------------------------------------------------- | ---------- |---------- | ------- | ------- |
 | PUT    | /auth                                                 | Whitelists your IP | `token` = the response from Google Authenticator. | None | PUT /auth?token=623432 |
 | PUT    | /jobs                                                 | Adds a fully specified job | None       | JSON | See below |
-| PUT    | /jobs/softtrailingstop                                | Shortcut to add a soft trailing stop | exchange, counter, base, amount, stop, limit, direction| None | PUT /jobs/softtrailingstop?exchange=binance&counter=BTC&base=VEN&direction=SELL&amount=0.5&stop=0.000555&limit=0.0005 |
-| PUT    | /jobs/limitsell                                       | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitsell?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
-| PUT    | /jobs/limitbuy                                        | Adds a limit order. | exchange, counter, base, amount, limit | None | PUT /jobs/limitbuy?exchange=binance&counter=BTC&base=VEN&amount=0.5limit=0.0005 |
 | DELETE | /jobs                                                 | Deletes all active jobs | None | None | DELETE /jobs |
 | DELETE | /jobs/{id}                                            | Deletes the specified job | None | None | DELETE /jobs/512EDA231BFEA23 |
 | GET    | /exchanges                                            | Gets the list of supported exchanges | None | None | GET /exchanges |
@@ -297,7 +294,10 @@ Best way to work is to catch 401 any time you call an entry point, and if you ge
 | GET    | /exchanges/{exchange}/markets/{base}-{counter}/orders | Gets your open orders on the specified ticker. | None | None | GET /exchanges/kucoin/markets/DRGN-BTC/orders |
 | GET    | /exchanges/{exchange}/orders                          | Gets your open orders on the specified exchange. Not supported on many exchanges. | None | None | GET /exchanges/gdax/orders |
 | GET    | /exchanges/{exchange}/orders/{id}                     | Gets a specific order. | None | None | GET /exchanges/binance/orders/DRGN-BTC/orders/5a9098f1d038110f1c4b7b0e |
-
+| GET    | /subscriptions                                        | Returns all tickers permanently subscribed. | None | None |  |
+| PUT    | /subscriptions                                        | Add a subscription | None | The ticker |  |
+| GET    | /subscriptions/referencePrices | Gets all reference prices stored.| None | None | |
+| PUT    | /subscriptions/referencePrices/{exchange}/{base}-{counter} | Set the reference price for a ticker. | The price | None | |
 Advanced examples
 ---
 

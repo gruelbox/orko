@@ -17,6 +17,7 @@ import org.knowm.xchange.BaseExchange;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
+import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.meta.ExchangeMetaData;
@@ -231,5 +232,16 @@ public class ExchangeServiceImpl implements ExchangeService {
   @Override
   public Optional<Long> safePollDelay(String exchangeName) {
     return safePollDelays.getUnchecked(exchangeName);
+  }
+
+
+  @Override
+  public boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair) {
+    return get(exchange)
+        .getExchangeMetaData()
+        .getCurrencyPairs()
+        .keySet()
+        .stream()
+        .anyMatch(pair -> pair.equals(currencyPair));
   }
 }

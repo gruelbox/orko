@@ -15,6 +15,15 @@ export function fetch() {
   );
 }
 
+export function fetchReferencePrices() {
+  return authActions.wrappedRequest(
+    auth => exchangesService.fetchReferencePrices(auth.token),
+    json => ({ type: types.SET_REFERENCE_PRICES, payload: json }),
+    error => errorActions.setForeground("Could not fetch coin list: " + error.message),
+    () => notificationActions.trace("Fetched coins")
+  );
+}
+
 export function add(coin) {
   return authActions.wrappedRequest(
     auth => exchangesService.addSubscription(auth.token, JSON.stringify(tickerFromCoin(coin))),
@@ -46,4 +55,13 @@ function applyRemove(coin) {
     socket.resubscribe()
     dispatch(tickerActions.clearTicker(coin))
   }
+}
+
+export function setReferencePrice(coin, price) {
+  return authActions.wrappedRequest(
+    auth => exchangesService.setReferencePrice(auth.token, coin, price),
+    null,
+    error => errorActions.setForeground("Could not set reference price on server: " + error.message),
+    () => ({ type: types.SET_REFERENCE_PRICE, payload: { coin, price }})
+  );
 }

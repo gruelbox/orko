@@ -5,9 +5,6 @@ import java.util.Date;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.service.trade.TradeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -16,14 +13,10 @@ import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
-import com.grahamcrockford.oco.submit.JobSubmitter;
 
 class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LimitOrderJobProcessor.class);
-
   private final NotificationService notificationService;
-  private final JobSubmitter jobSubmitter;
   private final TradeServiceFactory tradeServiceFactory;
 
   private final LimitOrderJob job;
@@ -36,12 +29,10 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
   public LimitOrderJobProcessor(@Assisted final LimitOrderJob job,
                                 @Assisted final JobControl jobControl,
                                 final NotificationService notificationService,
-                                final TradeServiceFactory tradeServiceFactory,
-                                final JobSubmitter jobSubmitter) {
+                                final TradeServiceFactory tradeServiceFactory) {
     this.job = job;
     this.notificationService = notificationService;
     this.tradeServiceFactory = tradeServiceFactory;
-    this.jobSubmitter = jobSubmitter;
   }
 
   /**

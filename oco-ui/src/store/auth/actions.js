@@ -37,6 +37,7 @@ export function connect() {
       dispatch(notificationActions.trace("Connecting - no authentication configured"))
     }
     dispatch(coinActions.fetch())
+    dispatch(coinActions.fetchReferencePrices())
     socket.connect()
   }
 }

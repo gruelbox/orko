@@ -4,6 +4,7 @@ import { getAlertJobs, getStopJobs } from "./jobs"
 import { coinFromKey } from "../util/coinUtils"
 
 const getCoins = state => state.coins.coins
+const getReferencePrices = state => state.coins.referencePrices
 const getTickers = state => state.ticker.coins
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
@@ -68,16 +69,21 @@ export const getSelectedCoinTicker = createSelector(
 )
 
 export const getCoinsForDisplay = createSelector(
-  [getAlertJobs, getCoins, getTickers],
-  (alertJobs, coins, tickers) =>
-    coins.map(coin => ({
-      ...coin,
-      ticker: tickers[coin.key],
-      hasAlert: !!alertJobs.find(
-        job =>
-          job.tickTrigger.exchange === coin.exchange &&
-          job.tickTrigger.base === coin.base &&
-          job.tickTrigger.counter === coin.counter
-      )
-    }))
+  [getAlertJobs, getCoins, getTickers, getReferencePrices],
+  (alertJobs, coins, tickers, referencePrices) =>
+    coins.map(coin => {
+      const referencePrice = referencePrices[coin.key]
+      const ticker = tickers[coin.key]
+      return {
+        ...coin,
+        ticker,
+        hasAlert: !!alertJobs.find(
+          job =>
+            job.tickTrigger.exchange === coin.exchange &&
+            job.tickTrigger.base === coin.base &&
+            job.tickTrigger.counter === coin.counter
+        ),
+        priceChange: referencePrice ? Number(((ticker ? ticker.last : referencePrice) - referencePrice) * 100 / referencePrice).toFixed(2) + "%" : "0.00%"
+      }
+    })
 )

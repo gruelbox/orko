@@ -18,6 +18,7 @@ import TradingContainer from "./containers/TradingContainer"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
+import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
 import Chart from "./components/Chart"
 
 import WithCoinParameter from "./WithCoinParameter"
@@ -131,7 +132,10 @@ export default class Framework extends React.Component {
     ]
 
     const ManageAlertsActual = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
-    const footer = <WithCoinParameter key="managealerts" component={ManageAlertsActual}/>
+    const footer = [
+      <WithCoinParameter key="managealerts" component={ManageAlertsActual}/>,
+      <SetReferencePriceContainer key="setrefprice"/>
+    ]
 
     if (isMobile) {
       return (

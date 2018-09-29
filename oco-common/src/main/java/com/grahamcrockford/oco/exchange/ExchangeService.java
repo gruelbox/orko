@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 
@@ -22,5 +23,7 @@ public interface ExchangeService {
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
 
   Optional<Long> safePollDelay(String name);
+
+  boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair);
 
 }

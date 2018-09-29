@@ -29,7 +29,6 @@ class LimitOrderContainer extends React.Component {
   onFocus = focusedProperty => {
     this.props.dispatch(
       focusActions.setUpdateAction(value => {
-        console.log("Set focus to" + focusedProperty)
         this.setState(prev => ({
           job: prev.job.merge({
             [focusedProperty]: value

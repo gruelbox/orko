@@ -8,6 +8,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationService;
@@ -36,21 +37,29 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private final OneCancelsOther job;
   private final JobControl jobControl;
 
+  private final ExchangeService exchangeService;
+
   @AssistedInject
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
                            @Assisted JobControl jobControl,
                            JobSubmitter jobSubmitter,
                            NotificationService notificationService,
-                           ExchangeEventRegistry exchangeEventRegistry) {
+                           ExchangeEventRegistry exchangeEventRegistry,
+                           ExchangeService exchangeService) {
     this.job = job;
     this.jobControl = jobControl;
     this.jobSubmitter = jobSubmitter;
     this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
+    this.exchangeService = exchangeService;
   }
 
   @Override
   public boolean start() {
+    if (!exchangeService.exchangeSupportsPair(job.tickTrigger().exchange(), job.tickTrigger().currencyPair())) {
+      notificationService.error("Cancelling job as currency no longer supported: " + job);
+      return false;
+    }
     exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
     return true;
   }

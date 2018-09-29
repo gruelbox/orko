@@ -27,7 +27,7 @@ const exchangeColumn = {
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
-  minWidth: 50,
+  minWidth: 40,
 }
 
 const nameColumn = {
@@ -59,6 +59,21 @@ const priceColumn = {
   minWidth: 50,
   sortable: false,
 }
+
+const changeColumn = (onClick) => ({
+  id: "change",
+  Header: "Change",
+  accessor: "change",
+  Cell: ({ original }) => (
+    <Href color={original.priceChange.slice(0,1) === "-" ? "sell" :"buy"} onClick={() => onClick(original)} title="Set reference price">
+      {original.priceChange}
+    </Href>
+  ),
+  headerStyle: numberStyle,
+  style: numberStyle,
+  resizable: true,
+  minWidth: 40
+})
 
 const closeColumn = (onRemove) => ({
   id: "close",
@@ -93,7 +108,7 @@ const alertColumn =(onClickAlerts) => ({
   resizable: false
 })
 
-const Coins = ({ data, onRemove, onClickAlerts }) => (
+const Coins = ({ data, onRemove, onClickAlerts, onClickReferencePrice }) => (
   <ReactTable
     data={data}
     columns={[
@@ -101,6 +116,7 @@ const Coins = ({ data, onRemove, onClickAlerts }) => (
       exchangeColumn,
       nameColumn,
       priceColumn,
+      changeColumn(onClickReferencePrice),
       alertColumn(onClickAlerts)
     ]}
     showPagination={false}

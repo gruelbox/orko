@@ -3,6 +3,7 @@ package com.grahamcrockford.oco.job;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.OneCancelsOther.ThresholdAndJob;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
@@ -51,6 +54,7 @@ public class TestOneCancelsOtherProcessor {
   @Mock private MarketDataService marketDataService;
   @Mock private JobControl jobControl;
   @Mock private ExchangeEventRegistry exchangeEventRegistry;
+  @Mock private ExchangeService exchangeService;
 
   @Mock private Job job1;
   @Mock private Job job2;
@@ -60,6 +64,7 @@ public class TestOneCancelsOtherProcessor {
   @Before
   public void before() throws IOException {
     MockitoAnnotations.initMocks(this);
+    when(exchangeService.exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER))).thenReturn(true);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -72,7 +77,7 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -94,7 +99,7 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -119,7 +124,7 @@ public class TestOneCancelsOtherProcessor {
         .verbose(false)
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -142,7 +147,7 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -163,7 +168,7 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -184,7 +189,7 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -209,7 +214,7 @@ public class TestOneCancelsOtherProcessor {
         .verbose(false)
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -231,7 +236,7 @@ public class TestOneCancelsOtherProcessor {
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .build();
 
-    OneCancelsOtherProcessor processor = new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry);
+    OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertTrue(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
@@ -245,7 +250,25 @@ public class TestOneCancelsOtherProcessor {
     verifyDidNothingElse();
   }
 
+  @Test
+  public void testCurrencyNotSupported() {
+    when(exchangeService.exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER))).thenReturn(false);
+    OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
+        .tickTrigger(TICKER_SPEC)
+        .low(ThresholdAndJob.create(LOW_PRICE, job1))
+        .build();
+    OneCancelsOtherProcessor processor = createProcessor(job);
+    Assert.assertFalse(processor.start());
+    verify(telegramService).error(Mockito.anyString());
+  }
+
+  private OneCancelsOtherProcessor createProcessor(OneCancelsOther job) {
+    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry, exchangeService);
+  }
+
   private void verifyDidNothingElse() {
-    verifyNoMoreInteractions(exchangeEventRegistry, telegramService, enqueuer, jobControl);
+    verify(exchangeService).exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER));
+    verifyNoMoreInteractions(exchangeEventRegistry, telegramService, enqueuer, jobControl, exchangeService);
   }
 }

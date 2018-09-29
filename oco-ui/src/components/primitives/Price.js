@@ -110,7 +110,7 @@ class Price extends React.PureComponent {
   render() {
     if (this.props.bare) {
       return (
-        <BarePriceValue px={this.props.noflash ? 0 : 1} movement={this.state.movement} onClick={this.onClick} color={this.props.color} className={this.props.className}>
+        <BarePriceValue title={this.props.title} px={this.props.noflash ? 0 : 1} movement={this.state.movement} onClick={this.onClick} color={this.props.color} className={this.props.className}>
           {this.props.children === "--" ? "--" : formatMoney(this.props.children, this.props.counter, <Loading fitted />)}
         </BarePriceValue>
       )
@@ -129,6 +129,7 @@ class Price extends React.PureComponent {
             fontSize={3}
             movement={this.state.movement}
             onClick={this.onClick}
+            title={this.props.title}
           >
             {this.props.children === "--" ? "--" : formatMoney(this.props.children, this.props.counter, <Loading fitted />)}
           </PriceValue>
@@ -142,6 +143,7 @@ const nullOnCLick = number => {}
 
 function mapStateToProps(state, props) {
   return {
+    title: props.onClick ? undefined : "Copy price to target field",
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn

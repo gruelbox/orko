@@ -10,6 +10,14 @@ class ExchangesService {
     return await put('subscriptions', token, ticker);
   }
 
+  async fetchReferencePrices(token) {
+    return await get('subscriptions/referencePrices', token);
+  }
+
+  async setReferencePrice(token, coin, price) {
+    return await put('subscriptions/referencePrices/' + coin.exchange + "/" + coin.base + "-" + coin.counter, token, price);
+  }
+
   async removeSubscription(token, ticker) {
     return await del('subscriptions', token, ticker);
   }

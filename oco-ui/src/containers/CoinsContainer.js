@@ -33,6 +33,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
             data={data}
             onRemove={coin => dispatch(coinsActions.remove(coin))}
             onClickAlerts={coin => dispatch(uiActions.openAlerts(coin))}
+            onClickReferencePrice={coin => dispatch(uiActions.openReferencePrice(coin))}
             visible
           />
         </Section>
@@ -42,5 +43,7 @@ const CoinsCointainer = ({ data, dispatch }) => (
 )
 
 export default connect(state => (
-  { data: getCoinsForDisplay(state) }
+  { 
+    data: getCoinsForDisplay(state)
+  }
 ))(CoinsCointainer)
