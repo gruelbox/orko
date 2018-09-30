@@ -8,7 +8,9 @@ const Content = styled.div`
 `
 
 const Modal = ({ children, mobile }) => (
-  <Content mobile={mobile}>{children}</Content>
+  mobile
+    ? <div>{children}</div>
+    : <Content>{children}</Content>
 )
 
 export default Modal

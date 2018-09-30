@@ -31,7 +31,12 @@ const LayoutBox = styled.div`
   height: ${props => props.height ? props.height + "px" : "auto"}
 `
 
-const PositioningWrapper = styled.div`
+const PositioningWrapper = ({mobile, children}) =>
+  mobile
+    ? <div>{children}</div>
+    : <FloatingPositioningWrapper>{children}</FloatingPositioningWrapper>
+
+const FloatingPositioningWrapper = styled.div`
   position: absolute;
   top: 0;
   left: 0;
@@ -113,13 +118,13 @@ export default class Framework extends React.Component {
     const ManageAlerts = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
 
     const header = [
-      <PositioningWrapper>
-        <WithCoinParameter key="managealerts" component={ManageAlerts}/>,
-        <SetReferencePriceContainer mobile={isMobile}/>
-      </PositioningWrapper>,
       <WithCoinParameter key="toolbar" component={Tools}/>,
       <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
-      <Route key="job" path="/job/:jobId" component={JobContainer} />
+      <Route key="job" path="/job/:jobId" component={JobContainer} />,
+      <PositioningWrapper mobile={isMobile}>
+        <WithCoinParameter key="managealerts" component={ManageAlerts}/>,
+        <SetReferencePriceContainer mobile={isMobile}/>
+      </PositioningWrapper>
     ]
 
     if (isMobile) {
