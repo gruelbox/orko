@@ -41,7 +41,7 @@ class SetReferencePriceContainer extends Component {
       <Modal mobile={this.props.mobile}>
         <Section
           id="referencePrice"
-          heading={"Set reference price for HOT/BTC"}
+          heading={"Set reference price for " + this.props.coin.name}
           buttons={() => (
             <Href
               title="Close"

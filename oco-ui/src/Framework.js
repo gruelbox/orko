@@ -4,6 +4,7 @@ import { Route } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
 import styled from "styled-components"
 import { color } from "styled-system"
+import { Tab } from 'semantic-ui-react'
 
 import { getFromLS, saveToLS } from "./util/localStorage"
 
@@ -105,68 +106,34 @@ export default class Framework extends React.Component {
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
     ]
 
-    const content = isMobile
-      ? [
-          <LayoutBox key="coins" bg="backgrounds.0">
-            <CoinsContainer />
-          </LayoutBox>,
-          <LayoutBox key="chart" bg="backgrounds.0" expand height={300}>
-            <WithCoinParameter component={Chart}/>
-          </LayoutBox>,
-          <div key="marketData" style={{height: "200px"}}>
-            <WithCoinParameter component={Market}/>
-          </div>,
-          <LayoutBox key="balance" bg="backgrounds.0">
-            <WithCoinParameter component={BalanceContainer}/>
-          </LayoutBox>,
-          <LayoutBox key="tradeSelector" bg="backgrounds.0" expand>
-            <WithCoinParameter component={TradingContainer}/>
-          </LayoutBox>,
-          <LayoutBox key="openOrders" bg="backgrounds.0">
-            <WithCoinParameter component={OrdersContainer}/>
-          </LayoutBox>,
-          <LayoutBox key="notifications" bg="backgrounds.0">
-            <NotificationsContainer/>
-          </LayoutBox>
-      ]
-      : [
-          <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-            <WithCoinParameter component={Chart}/>
-          </LayoutBox>,
-          <LayoutBox key="openOrders" bg="backgrounds.1">
-            <WithCoinParameter component={OrdersContainer}/>
-          </LayoutBox>,
-          <LayoutBox key="balance" bg="backgrounds.1">
-            <WithCoinParameter component={BalanceContainer}/>
-          </LayoutBox>,
-          <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-            <WithCoinParameter component={TradingContainer}/>
-          </LayoutBox>,
-          <LayoutBox key="coins" bg="backgrounds.1">
-            <CoinsContainer />
-          </LayoutBox>,
-          <LayoutBox key="jobs" bg="backgrounds.1">
-            <JobsContainer />
-          </LayoutBox>,
-          <LayoutBox key="marketData" bg="backgrounds.1">
-            <WithCoinParameter component={MarketContainer}/>
-          </LayoutBox>,
-          <LayoutBox key="notifications" bg="backgrounds.1">
-            <NotificationsContainer/>
-          </LayoutBox>
-        ]
-
-    const ManageAlertsActual = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
+    const ManageAlerts = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
     const footer = [
-      <WithCoinParameter key="managealerts" component={ManageAlertsActual}/>,
-      <SetReferencePriceContainer key="setrefprice"/>
+      <WithCoinParameter key="managealerts" component={ManageAlerts}/>,
+      <SetReferencePriceContainer mobile={isMobile}/>
     ]
 
     if (isMobile) {
       return (
-        <div style={{ position: "relative" }}>
+        <div style={{height: "100%"}}>
           {header}
-          {content}
+          <Tab menu={{ inverted: true, color: "blue" }} panes={[
+            { menuItem: 'Coins', render: () => <CoinsContainer /> },
+            { menuItem: 'Chart', render: () => <div style={{height: "400px"}}><WithCoinParameter component={Chart}/></div> },
+            { menuItem: 'Book', render: () => <WithCoinParameter component={Market}/> },
+            { menuItem: 'Trading', render: () => (
+              <div>
+                <WithCoinParameter component={BalanceContainer}/>
+                <WithCoinParameter component={TradingContainer}/>
+              </div>
+            )},
+            { menuItem: 'Orders', render: () => <WithCoinParameter component={OrdersContainer}/>},
+            { menuItem: 'Status', render: () => (
+              <div>
+                <NotificationsContainer/>
+                <JobsContainer />
+              </div>
+            )},
+          ]} />
           {footer}
         </div>
       )
@@ -186,7 +153,30 @@ export default class Framework extends React.Component {
             containerPadding={[2, 2]}
             draggableHandle=".dragMe"
           >
-            {content}
+            <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
+              <WithCoinParameter component={Chart}/>
+            </LayoutBox>
+            <LayoutBox key="openOrders" bg="backgrounds.1">
+              <WithCoinParameter component={OrdersContainer}/>
+            </LayoutBox>
+            <LayoutBox key="balance" bg="backgrounds.1">
+              <WithCoinParameter component={BalanceContainer}/>
+            </LayoutBox>
+            <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
+              <WithCoinParameter component={TradingContainer}/>
+            </LayoutBox>
+            <LayoutBox key="coins" bg="backgrounds.1">
+              <CoinsContainer />
+            </LayoutBox>
+            <LayoutBox key="jobs" bg="backgrounds.1">
+              <JobsContainer />
+            </LayoutBox>
+            <LayoutBox key="marketData" bg="backgrounds.1">
+              <WithCoinParameter component={Market}/>
+            </LayoutBox>
+            <LayoutBox key="notifications" bg="backgrounds.1">
+              <NotificationsContainer/>
+            </LayoutBox>
           </ResponsiveReactGridLayout>
           {footer}
         </div>
