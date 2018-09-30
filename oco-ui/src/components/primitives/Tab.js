@@ -17,6 +17,7 @@ const Tab = styled.button`
     background-color: ${props => props.theme.colors.deemphasis};
     border-color: ${props => props.theme.colors.deemphasis}};
   }
+  display: ${props => props.visible === false ? "none" : "inline"};
   ${color}
   ${padding}
   ${fontSize}

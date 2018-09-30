@@ -14,16 +14,18 @@ const LOCAL_STORAGE_KEY = "MarketContainer.animate"
 export default class MarketContainer extends React.Component {
   constructor(props) {
     super(props)
+    var animateSetting = getValueFromLS(LOCAL_STORAGE_KEY)
+    if (animateSetting === null) animateSetting = true
     this.state = {
-      animate: getValueFromLS(LOCAL_STORAGE_KEY),
+      animate: props.allowAnimate && animateSetting,
       selected: "book"
     }
-    if (this.state.animate === null) this.state.animate = true
   }
 
   buttons = () => (
     <span>
       <Tab
+        visible={this.props.allowAnimate}
         selected={this.state.animate}
         onClick={() => {
           this.setState(

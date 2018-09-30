@@ -8,7 +8,7 @@ import Button from "./primitives/Button"
 import { isValidNumber } from "../util/numberUtils"
 import styled from "styled-components"
 
-const RadioInput = Button.extend`
+const RadioInput = styled(Button)`
   margin: 0 ${props => (props.left ? "2px" : "0")} 0
     ${props => (props.right ? "2px" : "0")};
   border-radius: ${props => (props.left ? "3px" : "0")}

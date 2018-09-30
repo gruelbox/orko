@@ -96,7 +96,8 @@ export default class Framework extends React.Component {
     const { width } = this.state
     const isMobile = width <= 500
 
-    const Tools = ({coin}) => <ToolbarContainer coin={coin} onResetLayout={this.resetLayout}/>
+    const Tools = ({coin}) => <ToolbarContainer coin={coin} mobile={isMobile} onResetLayout={this.resetLayout}/>
+    const Market = ({coin}) => <MarketContainer coin={coin} allowAnimate={!isMobile}/>
 
     const header = [
       <WithCoinParameter key="toolbar" component={Tools}/>,
@@ -104,32 +105,56 @@ export default class Framework extends React.Component {
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
     ]
 
-    const content = [
-      <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-        <WithCoinParameter component={Chart}/>
-      </LayoutBox>,
-      <LayoutBox key="openOrders" bg="backgrounds.1">
-        <WithCoinParameter component={OrdersContainer}/>
-      </LayoutBox>,
-      <LayoutBox key="balance" bg="backgrounds.1">
-        <WithCoinParameter component={BalanceContainer}/>
-      </LayoutBox>,
-      <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-        <WithCoinParameter component={TradingContainer}/>
-      </LayoutBox>,
-      <LayoutBox key="coins" bg="backgrounds.1">
-        <CoinsContainer />
-      </LayoutBox>,
-      <LayoutBox key="jobs" bg="backgrounds.1">
-        <JobsContainer />
-      </LayoutBox>,
-      <LayoutBox key="marketData" bg="backgrounds.1">
-        <WithCoinParameter component={MarketContainer}/>
-      </LayoutBox>,
-      <LayoutBox key="notifications" bg="backgrounds.1">
-        <NotificationsContainer/>
-      </LayoutBox>
-    ]
+    const content = isMobile
+      ? [
+          <LayoutBox key="coins" bg="backgrounds.0">
+            <CoinsContainer />
+          </LayoutBox>,
+          <LayoutBox key="chart" bg="backgrounds.0" expand height={300}>
+            <WithCoinParameter component={Chart}/>
+          </LayoutBox>,
+          <div key="marketData" style={{height: "200px"}}>
+            <WithCoinParameter component={Market}/>
+          </div>,
+          <LayoutBox key="balance" bg="backgrounds.0">
+            <WithCoinParameter component={BalanceContainer}/>
+          </LayoutBox>,
+          <LayoutBox key="tradeSelector" bg="backgrounds.0" expand>
+            <WithCoinParameter component={TradingContainer}/>
+          </LayoutBox>,
+          <LayoutBox key="openOrders" bg="backgrounds.0">
+            <WithCoinParameter component={OrdersContainer}/>
+          </LayoutBox>,
+          <LayoutBox key="notifications" bg="backgrounds.0">
+            <NotificationsContainer/>
+          </LayoutBox>
+      ]
+      : [
+          <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
+            <WithCoinParameter component={Chart}/>
+          </LayoutBox>,
+          <LayoutBox key="openOrders" bg="backgrounds.1">
+            <WithCoinParameter component={OrdersContainer}/>
+          </LayoutBox>,
+          <LayoutBox key="balance" bg="backgrounds.1">
+            <WithCoinParameter component={BalanceContainer}/>
+          </LayoutBox>,
+          <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
+            <WithCoinParameter component={TradingContainer}/>
+          </LayoutBox>,
+          <LayoutBox key="coins" bg="backgrounds.1">
+            <CoinsContainer />
+          </LayoutBox>,
+          <LayoutBox key="jobs" bg="backgrounds.1">
+            <JobsContainer />
+          </LayoutBox>,
+          <LayoutBox key="marketData" bg="backgrounds.1">
+            <WithCoinParameter component={MarketContainer}/>
+          </LayoutBox>,
+          <LayoutBox key="notifications" bg="backgrounds.1">
+            <NotificationsContainer/>
+          </LayoutBox>
+        ]
 
     const ManageAlertsActual = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
     const footer = [

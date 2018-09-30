@@ -32,7 +32,7 @@ const RawLabel = styled.label.attrs({
 
 const Checkbox = props => (
   <RawFieldSet>
-    {props.label && <RawLabel for={props.id}>{props.label}</RawLabel>}
+    {props.label && <RawLabel htmlFor={props.id}>{props.label}</RawLabel>}
     <input
       id={props.id}
       type={props.type}

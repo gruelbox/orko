@@ -119,40 +119,58 @@ const Coin = ({ coin }) => (
   </CoinContainer>
 )
 
-const ToolbarContainer = ({ticker, coin, connected, errors, userName, updateFocusedField, onResetLayout, dispatch}) => {
-  if (!connected) {
+const Normal = ({ticker, coin, connected, errors, userName, updateFocusedField, onResetLayout, dispatch}) => (
+  <ToolbarBox p={0}>
+    <HomeLink />
+    <TickerSocketState connected={connected} />
+    <Coin coin={coin} />
+    <RemainingSpace mx={2}>
+      <Ticker
+        coin={coin}
+        ticker={ticker}
+        onClickNumber={number => {
+          if (updateFocusedField) {
+            updateFocusedField(number)
+          }
+        }}
+      />
+    </RemainingSpace>
+    <ResetLayout onClick={onResetLayout} />
+    <SignOutLink
+      userName={userName}
+      onClick={() => dispatch(authActions.logout())}
+    />
+    <InvalidateLink
+      onClick={() => dispatch(authActions.clearWhitelist())}
+    />
+  </ToolbarBox>
+)
+
+const Mobile = ({ticker, coin, connected, errors, userName, updateFocusedField, onResetLayout, dispatch}) => (
+  <ToolbarBox p={0}>
+    <HomeLink />
+    <TickerSocketState connected={connected} />
+    <SignOutLink
+      userName={userName}
+      onClick={() => dispatch(authActions.logout())}
+    />
+    <InvalidateLink
+      onClick={() => dispatch(authActions.clearWhitelist())}
+    />
+  </ToolbarBox>
+)
+
+const ToolbarContainer = (props) => {
+  if (!props.connected) {
     document.title = "Not connected"
-  } else if (ticker && coin) {
-    document.title = formatMoney(ticker.last, coin.counter, "No price") + " " + coin.base + "/" + coin.counter
+  } else if (props.ticker && props.coin) {
+    document.title = formatMoney(props.ticker.last, props.coin.counter, "No price") + " " + props.coin.base + "/" + props.coin.counter
   } else {
     document.title = "No coin"
   }
-  return (
-    <ToolbarBox p={0}>
-      <HomeLink />
-      <TickerSocketState connected={connected} />
-      <Coin coin={coin} />
-      <RemainingSpace mx={2}>
-        <Ticker
-          coin={coin}
-          ticker={ticker}
-          onClickNumber={number => {
-            if (updateFocusedField) {
-              updateFocusedField(number)
-            }
-          }}
-        />
-      </RemainingSpace>
-      <ResetLayout onClick={onResetLayout} />
-      <SignOutLink
-        userName={userName}
-        onClick={() => dispatch(authActions.logout())}
-      />
-      <InvalidateLink
-        onClick={() => dispatch(authActions.clearWhitelist())}
-      />
-    </ToolbarBox>
-  )
+  return props.mobile
+    ? <Mobile {...this.props} />
+    : <Normal {...this.props} />
 }
 
 export default connect(state => ({
