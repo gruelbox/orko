@@ -31,6 +31,17 @@ const LayoutBox = styled.div`
   height: ${props => props.height ? props.height + "px" : "auto"}
 `
 
+const PositioningWrapper = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
+
 const baseLayouts = {
   lg: [
     { i: "coins", x: 0, y: 0, w: 4, h: 25 },
@@ -99,17 +110,16 @@ export default class Framework extends React.Component {
 
     const Tools = ({coin}) => <ToolbarContainer coin={coin} mobile={isMobile} onResetLayout={this.resetLayout}/>
     const Market = ({coin}) => <MarketContainer coin={coin} allowAnimate={!isMobile}/>
+    const ManageAlerts = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
 
     const header = [
+      <PositioningWrapper>
+        <WithCoinParameter key="managealerts" component={ManageAlerts}/>,
+        <SetReferencePriceContainer mobile={isMobile}/>
+      </PositioningWrapper>,
       <WithCoinParameter key="toolbar" component={Tools}/>,
       <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
-      <Route key="job" path="/job/:jobId" component={JobContainer} />,
-    ]
-
-    const ManageAlerts = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
-    const footer = [
-      <WithCoinParameter key="managealerts" component={ManageAlerts}/>,
-      <SetReferencePriceContainer mobile={isMobile}/>
+      <Route key="job" path="/job/:jobId" component={JobContainer} />
     ]
 
     if (isMobile) {
@@ -134,7 +144,6 @@ export default class Framework extends React.Component {
               </div>
             )},
           ]} />
-          {footer}
         </div>
       )
     } else {
@@ -178,7 +187,6 @@ export default class Framework extends React.Component {
               <NotificationsContainer/>
             </LayoutBox>
           </ResponsiveReactGridLayout>
-          {footer}
         </div>
       )
     }
