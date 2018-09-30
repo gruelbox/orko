@@ -86,7 +86,7 @@ export default class Framework extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      width: window.innerWidth,
+      isMobile: window.innerWidth <= 500,
       layouts: JSON.parse(JSON.stringify(originalLayouts))
     }
   }
@@ -96,7 +96,9 @@ export default class Framework extends React.Component {
   }
 
   handleWindowSizeChange = () => {
-    this.setState({ width: window.innerWidth });
+    const isMobile = window.innerWidth <= 500
+    if (isMobile !== this.state.isMobile)
+      this.setState({ isMobile });
   };
 
   resetLayout = () => {
@@ -110,8 +112,7 @@ export default class Framework extends React.Component {
   }
 
   render() {
-    const { width } = this.state
-    const isMobile = width <= 500
+    const { isMobile } = this.state
 
     const Tools = ({coin}) => <ToolbarContainer coin={coin} mobile={isMobile} onResetLayout={this.resetLayout}/>
     const Market = ({coin}) => <MarketContainer coin={coin} allowAnimate={!isMobile}/>
