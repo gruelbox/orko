@@ -7,32 +7,29 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.grahamcrockford.oco.notification.NotificationEvent.NotificationType;
 
-class NotificationServiceImpl implements NotificationService {
+class TransientNotificationServiceImpl implements TransientNotificationService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(NotificationServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TransientNotificationServiceImpl.class);
 
   private final EventBus eventBus;
 
   @Inject
-  NotificationServiceImpl(EventBus eventBus) {
+  TransientNotificationServiceImpl(EventBus eventBus) {
     this.eventBus = eventBus;
   }
 
   @Override
   public void info(String message) {
-    LOGGER.info("Notification: " + message);
     eventBus.post(NotificationEvent.create(message, NotificationType.INFO));
   }
 
   @Override
   public void error(String message) {
-    LOGGER.error("Error notification: " + message);
     eventBus.post(NotificationEvent.create(message, NotificationType.ERROR));
   }
 
   @Override
   public void error(String message, Throwable cause) {
-    LOGGER.error("Error notification: " + message, cause);
     eventBus.post(NotificationEvent.create(message, NotificationType.ERROR));
   }
 }

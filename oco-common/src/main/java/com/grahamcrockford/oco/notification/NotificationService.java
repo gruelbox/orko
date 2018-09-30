@@ -5,7 +5,7 @@ import com.google.inject.ImplementedBy;
 /**
  * Service for notifying the user of an important event. Asynchronous.
  */
-@ImplementedBy(NotificationServiceImpl.class)
+@ImplementedBy(RetryingNotificationService.class)
 public interface NotificationService {
 
   /**

@@ -67,11 +67,31 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
   }
 
   private void reportSuccess(final LimitOrderJob job, String xChangeOrderId) {
-    notificationService.info(String.format("Placed order: %s (order id [%s])", job, xChangeOrderId));
+    String message = String.format(
+        "Order %s placed on %s %s/%s market: %s %s at %s",
+        xChangeOrderId,
+        job.tickTrigger().exchange(),
+        job.tickTrigger().base(),
+        job.tickTrigger().counter(),
+        job.direction().toString().toLowerCase(),
+        job.amount().toPlainString(),
+        job.limitPrice().toPlainString()
+      );
+    notificationService.info(message);
   }
 
   private void reportFailed(final LimitOrderJob job, Throwable e) {
-    notificationService.error(String.format("Order failed: %s (%s)", job, e.getMessage()), e);
+    String message = String.format(
+        "Error placing order on %s %s/%s market: %s %s at %s (%s)",
+        job.tickTrigger().exchange(),
+        job.tickTrigger().base(),
+        job.tickTrigger().counter(),
+        job.direction().toString().toLowerCase(),
+        job.amount().toPlainString(),
+        job.limitPrice().toPlainString(),
+        e.getMessage()
+      );
+    notificationService.error(message, e);
   }
 
   public static final class Module extends AbstractModule {

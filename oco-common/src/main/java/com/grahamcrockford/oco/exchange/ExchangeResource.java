@@ -35,6 +35,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.Balance;
+import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.wiring.WebResource;
 
 /**
@@ -50,12 +51,14 @@ public class ExchangeResource implements WebResource {
   private final ExchangeService exchanges;
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
+  private final NotificationService notificationService;
 
   @Inject
-  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory) {
+  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, NotificationService notificationService) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
+    this.notificationService = notificationService;
   }
 
 
@@ -234,12 +237,14 @@ public class ExchangeResource implements WebResource {
                               @QueryParam("orderType") org.knowm.xchange.dto.Order.OrderType orderType) throws IOException {
     try {
       // KucoinCancelOrderParams is the superset - pair, id and order type. Should work with pretty much any exchange.
-      return Response.ok()
+      Response response = Response.ok()
           .entity(
             tradeServiceFactory.getForExchange(exchange)
               .cancelOrder(new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType))
           )
           .build();
+      notificationService.info("Cancelled order: " + id);
+      return response;
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
@@ -284,9 +289,11 @@ public class ExchangeResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public Response cancelOrder(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
     try {
-      return Response.ok()
+      Response response = Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(id))
           .build();
+      notificationService.info("Cancelled order: " + id);
+      return response;
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
