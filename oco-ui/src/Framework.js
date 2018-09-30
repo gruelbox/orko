@@ -122,7 +122,7 @@ export default class Framework extends React.Component {
       <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
       <PositioningWrapper mobile={isMobile}>
-        <WithCoinParameter key="managealerts" component={ManageAlerts}/>,
+        <WithCoinParameter key="managealerts" component={ManageAlerts}/>
         <SetReferencePriceContainer mobile={isMobile}/>
       </PositioningWrapper>
     ]
