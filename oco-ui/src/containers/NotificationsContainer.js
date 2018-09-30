@@ -40,7 +40,7 @@ const columns = [
     id: "message",
     Header: "Message",
     accessor: "message",
-    Cell: ({original}) => original.message,
+    Cell: ({original}) => <div title={original.message}>{original.message}</div>,
     headerStyle: textStyle,
     style: textStyle,
     resizable: true
