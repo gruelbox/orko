@@ -150,6 +150,7 @@ const Mobile = ({ticker, coin, connected, errors, userName, updateFocusedField, 
   <ToolbarBox p={0}>
     <HomeLink />
     <TickerSocketState connected={connected} />
+    <Coin coin={coin} />
     <SignOutLink
       userName={userName}
       onClick={() => dispatch(authActions.logout())}
@@ -169,8 +170,8 @@ const ToolbarContainer = (props) => {
     document.title = "No coin"
   }
   return props.mobile
-    ? <Mobile {...this.props} />
-    : <Normal {...this.props} />
+    ? <Mobile {...props} />
+    : <Normal {...props} />
 }
 
 export default connect(state => ({
