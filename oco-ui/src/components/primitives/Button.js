@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { fontSize, color, space } from "styled-system"
+import { fontSize, color, space, fontFamily } from "styled-system"
 import { darken, lighten } from "polished"
 
 const buttonColor = props =>
@@ -10,7 +10,8 @@ const Button = styled.button.attrs({
   color: "white",
   mt: 2,
   p: 2,
-  type: "button"
+  type: "button",
+  fontFamily: "heading"
 })`
   text-transform: uppercase;
   font-weight: bold;
@@ -28,13 +29,14 @@ const Button = styled.button.attrs({
   };
   &:disabled {
     cursor: auto;
-    color: ${props => props.theme.colors.fore};
-    background-color: ${props => props.theme.colors.inputBg};
-    border: 1px solid ${props => props.theme.colors.inputBg};
+    color: ${props => props.theme.colors.disabled};
+    background-color: ${props => props.theme.colors.disabledBg};
+    border: 1px solid ${props => props.theme.colors.disabledBg};
   };
-  width: ${props => props.width ? props.width + "px" : "auto"};
+  width: ${props => (props.width ? props.width + "px" : "auto")};
   ${color}
   ${fontSize}
+  ${fontFamily}
   ${space}
 `
 

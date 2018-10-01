@@ -18,7 +18,7 @@ const numberStyle = {
 const exchangeColumn = {
   id: "exchange",
   Header: "Exchange",
-  accessor : "exchange",
+  accessor: "exchange",
   Cell: ({ original }) => (
     <Link to={"/coin/" + original.key} title="Open coin">
       {original.exchange}
@@ -27,7 +27,7 @@ const exchangeColumn = {
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
-  minWidth: 40,
+  minWidth: 42
 }
 
 const nameColumn = {
@@ -42,7 +42,7 @@ const nameColumn = {
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
-  minWidth: 50
+  minWidth: 48
 }
 
 const priceColumn = {
@@ -57,15 +57,19 @@ const priceColumn = {
   style: numberStyle,
   resizable: true,
   minWidth: 50,
-  sortable: false,
+  sortable: false
 }
 
-const changeColumn = (onClick) => ({
+const changeColumn = onClick => ({
   id: "change",
   Header: "Change",
   accessor: "change",
   Cell: ({ original }) => (
-    <Href color={original.priceChange.slice(0,1) === "-" ? "sell" :"buy"} onClick={() => onClick(original)} title="Set reference price">
+    <Href
+      color={original.priceChange.slice(0, 1) === "-" ? "sell" : "buy"}
+      onClick={() => onClick(original)}
+      title="Set reference price"
+    >
       {original.priceChange}
     </Href>
   ),
@@ -75,7 +79,7 @@ const changeColumn = (onClick) => ({
   minWidth: 40
 })
 
-const closeColumn = (onRemove) => ({
+const closeColumn = onRemove => ({
   id: "close",
   Header: null,
   Cell: ({ original }) => (
@@ -90,15 +94,12 @@ const closeColumn = (onRemove) => ({
   resizable: false
 })
 
-const alertColumn =(onClickAlerts) => ({
+const alertColumn = onClickAlerts => ({
   id: "alert",
   Header: <Icon fitted name="bell outline" />,
   Cell: ({ original }) => (
     <Href title="Manage alerts" onClick={() => onClickAlerts(original)}>
-      <Icon
-        fitted
-        name={original.hasAlert ? "bell" : "bell outline"}
-      />
+      <Icon fitted name={original.hasAlert ? "bell" : "bell outline"} />
     </Href>
   ),
   headerStyle: textStyle,

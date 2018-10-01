@@ -1,35 +1,36 @@
-import React from 'react';
-import styled from 'styled-components';
-import { fontSize, padding, color, fontWeight, space } from 'styled-system';
-import { lighten } from 'polished'
+import React from "react"
+import styled from "styled-components"
+import { fontSize, padding, color, fontWeight, space } from "styled-system"
 
 const RawInput = styled.input.attrs({
   fontSize: 2,
   color: "fore",
-  mb: 0,
-  mt: 0,
-  mx: 0,
+  m: 0,
   px: 2,
-  py: 2,
+  py: 2
 })`
   box-shadow: none;
   outline: none;
   display: block;
-  border: 1px solid ${props => props.theme.colors.inputBorder};
-  border-radius: ${props => props.theme.radii[1] + "px"};
-  box-shadow: ${props => props.error
-    ? "0 0 4px red"
-    : "none"};
+  border: 2px solid ${props =>
+    props.error
+      ? props.theme.colors.inputBorderError
+      : props.theme.colors.inputBg};
+  border-radius: ${props => props.theme.radii[2] + "px"};
   background-color: ${props => props.theme.colors.inputBg};
+  color: ${props => (props.error ? props.theme.colors.alert : "inherit")};
   &:focus {
-    border: 1px solid ${props => lighten(0.2, props.theme.colors.inputBorder)};
+    border: 2px solid ${props =>
+      props.error
+        ? props.theme.colors.inputBorderError
+        : props.theme.colors.inputBorder};
   }
-  width: 120px;
+  width: 100%;
   ${color}
   ${fontSize}
   ${fontWeight}
   ${space}
-`;
+`
 
 const RawLabel = styled.label.attrs({
   fontSize: 2,
@@ -44,24 +45,23 @@ const RawLabel = styled.label.attrs({
   ${fontWeight}
   ${space}
   ${padding}
-`;
+`
 
-const RawFieldSet = styled.fieldset.attrs({
-  my: 2,
-  ml: 0,
-  p: 0
-})`
+const RawFieldSet = styled.fieldset`
   display: inline;
   border: none;
-  ${space}
-  ${padding}
+  width: 140px;
+  flex: ${props => props.flex};
+  ${space} ${padding};
 `
 
 const Input = props => (
-  <RawFieldSet mr={props.mr ? props.mr : 2}>
-    {props.label &&
-      <RawLabel htmlFor={props.id} disabled={props.disabled}>{props.label}</RawLabel>
-    }
+  <RawFieldSet mr={props.mr ? props.mr : 2} flex={props.flex} ml={0} p={0}>
+    {props.label && (
+      <RawLabel htmlFor={props.id} disabled={props.disabled}>
+        {props.label}
+      </RawLabel>
+    )}
     <RawInput
       id={props.id}
       error={props.error}
@@ -73,6 +73,6 @@ const Input = props => (
       disabled={props.disabled}
     />
   </RawFieldSet>
-);
+)
 
-export default Input;
+export default Input

@@ -5,8 +5,7 @@ import { Icon } from "semantic-ui-react"
 import Heading from "./Heading"
 
 const SectionBox = styled.section`
-  ${color}
-  margin: 0;
+  ${color} margin: 0;
   padding: 0;
   height: 100%;
   display: flex;
@@ -24,14 +23,20 @@ const SectionHeadingBox = styled.div`
 `
 
 const SectionInner = styled.section`
-  padding-top: ${props => props.nopadding ? 0 : "10px"};
-  padding-bottom: ${props => props.nopadding ? 0 :props.theme.space[2] + "px"};
-  padding-left: ${props => props.nopadding ? 0 :props.theme.space[2] + "px"};
-  padding-right: ${props => props.nopadding ? 0 :props.theme.space[2] + "px"};
+  padding-top: ${props => (props.nopadding ? 0 : "10px")};
+  padding-bottom: ${props =>
+    props.nopadding ? 0 : props.theme.space[2] + "px"};
+  padding-left: ${props => (props.nopadding ? 0 : props.theme.space[2] + "px")};
+  padding-right: ${props =>
+    props.nopadding ? 0 : props.theme.space[2] + "px"};
   flex: 1
   position: relative;
-  overflow-x: ${props => props.scroll === "horizontal" || props.scroll === "both" ? "scroll" : "auto"};
-  overflow-y: ${props => props.scroll === "vertical" || props.scroll === "both" ? "scroll" : "auto"};
+  overflow-x: ${props =>
+    props.scroll === "horizontal" || props.scroll === "both"
+      ? "scroll"
+      : "auto"};
+  overflow-y: ${props =>
+    props.scroll === "vertical" || props.scroll === "both" ? "scroll" : "auto"};
 `
 
 class Section extends React.Component {
@@ -39,15 +44,17 @@ class Section extends React.Component {
     return (
       <SectionBox>
         <SectionHeadingBox>
-          <Heading p={0} m={0} color="heading">
-            <Icon name="content" className="dragMe"/>
+          <Heading p={0} my={0} ml={0} mr={3} color="heading">
+            <Icon name="content" className="dragMe" />
             {this.props.heading}
           </Heading>
-          <div>
-            {this.props.buttons && this.props.buttons()}
-          </div>
+          <div>{this.props.buttons && this.props.buttons()}</div>
         </SectionHeadingBox>
-        <SectionInner scroll={this.props.scroll} expand={this.props.expand} nopadding={this.props.nopadding}>
+        <SectionInner
+          scroll={this.props.scroll}
+          expand={this.props.expand}
+          nopadding={this.props.nopadding}
+        >
           {this.props.children}
         </SectionInner>
       </SectionBox>

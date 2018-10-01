@@ -1,5 +1,5 @@
 import { keyframes, css } from "styled-components"
-import { lighten, darken } from "polished"
+import { lighten, darken, rgba } from "polished"
 import { injectGlobal } from "styled-components"
 
 const theme = {
@@ -8,7 +8,7 @@ const theme = {
   fonts: {
     sans: "Trebuchet MS, Tahoma, Arial, sans-serif",
     mono: "Menlo, monospace",
-    heading: "system-ui, sans-serif",
+    heading: "system-ui, sans-serif"
   },
   space: [0, 4, 8, 16, 32, 64, 128],
   fontWeights: {
@@ -26,7 +26,9 @@ const theme = {
       lighten(0.1, "#343747")
     ],
     canvas: "#131722",
-    inputBg: lighten(0.1, "#2F3241"),
+    inputBg: "#131722",
+    disabled: darken(0.3, "#aaa"),
+    disabledBg: lighten(0.03, "#2F3241"),
     fore: "#aaa",
     emphasis: "#3BB3E4",
     deemphasis: "#555",
@@ -41,7 +43,8 @@ const theme = {
     sell: "#ef5451",
     buy: "#2aa599",
 
-    inputBorder: "#5C656C"
+    inputBorder: rgba(0, 0, 0, 0.3),
+    inputBorderError: "#EB4D5C"
   },
   radii: [0, 1, 4],
   keyFrames: {

@@ -13,30 +13,37 @@ import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
 import { isValidNumber, formatMoney } from "../util/numberUtils"
+import FormButtonBar from "../components/primitives/FormButtonBar"
 
 class SetReferencePriceContainer extends Component {
   state = {
     price: ""
   }
-  
-  onChangePrice = (e) => {
+
+  onChangePrice = e => {
     this.setState({ price: e.target.value })
   }
 
   onSubmit = coinContainer => {
-    this.props.dispatch(coinsActions.setReferencePrice(this.props.coin, this.state.price))
+    this.props.dispatch(
+      coinsActions.setReferencePrice(this.props.coin, this.state.price)
+    )
     this.props.dispatch(uiActions.closeReferencePrice())
     this.setState({ price: "" })
   }
 
   onFocus = () => {
-    this.props.dispatch(focusActions.setUpdateAction(value => this.setState({ price: value })))
+    this.props.dispatch(
+      focusActions.setUpdateAction(value => this.setState({ price: value }))
+    )
   }
 
   render() {
-    if (!this.props.coin)
-      return null
-    const ready = this.state.price && isValidNumber(this.state.price) && this.state.price > 0
+    if (!this.props.coin) return null
+    const ready =
+      this.state.price &&
+      isValidNumber(this.state.price) &&
+      this.state.price > 0
     return (
       <Modal mobile={this.props.mobile}>
         <Section
@@ -45,12 +52,14 @@ class SetReferencePriceContainer extends Component {
           buttons={() => (
             <Href
               title="Close"
-              onClick={() => this.props.dispatch(uiActions.closeReferencePrice())}
+              onClick={() =>
+                this.props.dispatch(uiActions.closeReferencePrice())
+              }
             >
               <Icon fitted name="close" />
             </Href>
           )}
-        > 
+        >
           <Form>
             <Input
               id="price"
@@ -58,13 +67,17 @@ class SetReferencePriceContainer extends Component {
               label="Reference price"
               type="number"
               placeholder="Enter price..."
-              value={this.state.price ? this.state.price : this.props.referencePrice}
+              value={
+                this.state.price ? this.state.price : this.props.referencePrice
+              }
               onChange={this.onChangePrice}
               onFocus={this.onFocus}
             />
-            <Button disabled={!ready} onClick={this.onSubmit}>
-              Set
-            </Button>
+            <FormButtonBar>
+              <Button disabled={!ready} onClick={this.onSubmit}>
+                Set
+              </Button>
+            </FormButtonBar>
           </Form>
         </Section>
       </Modal>
@@ -75,7 +88,13 @@ class SetReferencePriceContainer extends Component {
 function mapStateToProps(state) {
   return {
     coin: state.ui.referencePriceCoin,
-    referencePrice: state.ui.referencePriceCoin ? formatMoney(state.coins.referencePrices[state.ui.referencePriceCoin.key], state.ui.referencePriceCoin.counter, "") : null
+    referencePrice: state.ui.referencePriceCoin
+      ? formatMoney(
+          state.coins.referencePrices[state.ui.referencePriceCoin.key],
+          state.ui.referencePriceCoin.counter,
+          ""
+        )
+      : null
   }
 }
 

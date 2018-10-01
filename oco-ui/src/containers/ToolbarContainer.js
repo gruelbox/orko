@@ -48,16 +48,16 @@ const HomeLink = () => (
   </Link>
 )
 
-const ResetLayout = ({ onClick }) => (
+const ViewSettings = ({ onClick }) => (
   <Href
     ml="auto"
     onClick={onClick}
     color="heading"
-    title="Reset layout to defaults"
+    title="View settings"
     fontSize={3}
     fontWeight="bold"
   >
-    <Icon name="fast backward" />
+    <Icon name="eye" />
   </Href>
 )
 
@@ -124,7 +124,7 @@ const Normal = ({
   errors,
   userName,
   updateFocusedField,
-  onResetLayout,
+  onShowViewSettings,
   dispatch
 }) => (
   <ToolbarBox p={0}>
@@ -142,7 +142,7 @@ const Normal = ({
         }}
       />
     </RemainingSpace>
-    <ResetLayout onClick={onResetLayout} />
+    <ViewSettings onClick={onShowViewSettings} />
     <SignOutLink
       userName={userName}
       onClick={() => dispatch(authActions.logout())}

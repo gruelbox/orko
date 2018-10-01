@@ -6,6 +6,7 @@ import styled from "styled-components"
 import { color } from "styled-system"
 import { Tab } from "semantic-ui-react"
 import theme from "./theme"
+import Immutable from "seamless-immutable"
 
 import { getFromLS, saveToLS } from "./util/localStorage"
 
@@ -22,6 +23,7 @@ import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
 import Chart from "./components/Chart"
+import ViewSettings from "./components/ViewSettings"
 
 import WithCoinParameter from "./WithCoinParameter"
 
@@ -42,21 +44,37 @@ const PositioningWrapper = ({ mobile, children }) =>
 
 const FloatingPositioningWrapper = styled.div`
   position: absolute;
-  top: 0;
+  top: 50px;
   left: 0;
   right: 0;
   bottom: 0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
+  padding: ${props => props.theme.space[2] + "px"};
+  > * {
+    margin: ${props => props.theme.space[2] + "px"};
+  }
 `
 
-const baseLayouts = {
+const basePanels = Immutable([
+  { key: "coins", title: "Coins", visible: true },
+  { key: "jobs", title: "Jobs", visible: true },
+  { key: "chart", title: "Chart", visible: true },
+  { key: "openOrders", title: "Orders", visible: true },
+  { key: "balance", title: "Balance", visible: true },
+  { key: "tradeSelector", title: "Trading", visible: true },
+  { key: "marketData", title: "Market", visible: true },
+  { key: "notifications", title: "Notifications", visible: true }
+])
+
+const baseLayouts = Immutable({
   lg: [
-    { i: "coins", x: 0, y: 0, w: 4, h: 25 },
+    { i: "coins", x: 0, y: 0, w: 4, h: 22 },
     { i: "jobs", x: 13, y: 25, w: 7, h: 9 },
-    { i: "chart", x: 4, y: 0, w: 9, h: 21 },
-    { i: "openOrders", x: 13, y: 11, w: 7, h: 14 },
+    { i: "chart", x: 4, y: 0, w: 9, h: 18 },
+    { i: "openOrders", x: 13, y: 11, w: 7, h: 11 },
     { i: "balance", x: 4, y: 20, w: 9, h: 4 },
     { i: "tradeSelector", x: 6, y: 25, w: 7, h: 9 },
     { i: "marketData", x: 13, y: 0, w: 7, h: 11 },
@@ -64,12 +82,12 @@ const baseLayouts = {
   ],
   md: [
     { i: "chart", x: 0, y: 100, w: 5, h: 13 },
-    { i: "openOrders", x: 0, y: 200, w: 5, h: 6 },
+    { i: "openOrders", x: 0, y: 200, w: 5, h: 5 },
     { i: "balance", x: 0, y: 300, w: 5, h: 4 },
     { i: "tradeSelector", x: 0, y: 400, w: 5, h: 9 },
-    { i: "coins", x: 5, y: 100, w: 3, h: 12 },
-    { i: "jobs", x: 5, y: 200, w: 3, h: 9 },
-    { i: "marketData", x: 5, y: 300, w: 3, h: 4 },
+    { i: "coins", x: 5, y: 100, w: 3, h: 11 },
+    { i: "marketData", x: 5, y: 200, w: 3, h: 8 },
+    { i: "jobs", x: 5, y: 300, w: 3, h: 5 },
     { i: "notifications", x: 5, y: 400, w: 3, h: 7 }
   ],
   sm: [
@@ -82,16 +100,21 @@ const baseLayouts = {
     { i: "marketData", x: 0, y: 700, w: 2, h: 6 },
     { i: "notifications", x: 0, y: 800, w: 2, h: 6 }
   ]
-}
-
-const originalLayouts = getFromLS("layouts") || baseLayouts
+})
 
 export default class Framework extends React.Component {
   constructor(props) {
     super(props)
+    const loadedLayouts = getFromLS("layouts")
+    const loadedPanels = getFromLS("panels")
     this.state = {
       isMobile: window.innerWidth <= 500,
-      layouts: originalLayouts
+      layouts:
+        loadedLayouts === null
+          ? baseLayouts
+          : Immutable.merge(baseLayouts, loadedLayouts),
+      panels: loadedPanels === null ? basePanels : loadedPanels,
+      showSettings: false
     }
   }
 
@@ -104,14 +127,34 @@ export default class Framework extends React.Component {
     if (isMobile !== this.state.isMobile) this.setState({ isMobile })
   }
 
-  resetLayout = () => {
+  onResetLayout = () => {
     saveToLS("layouts", baseLayouts)
-    this.setState({ layouts: baseLayouts })
+    saveToLS("panels", basePanels)
+    this.setState({ layouts: baseLayouts, panels: basePanels })
   }
 
   onLayoutChange = (layout, layouts) => {
     saveToLS("layouts", layouts)
-    this.setState({ layouts })
+    this.setState({ layouts: Immutable.merge(baseLayouts, layouts) })
+  }
+
+  onChangePanels = panels => {
+    const reducer = toReduce =>
+      toReduce.reduce(function(accumulator, panel) {
+        accumulator[panel.key] = panel
+        return accumulator
+      }, {})
+    var current = reducer(this.state.panels)
+    var changes = reducer(panels)
+    const updated = Immutable(
+      Object.values(Immutable.merge(current, changes, { deep: true }))
+    )
+    saveToLS("panels", updated)
+    this.setState({ panels: updated })
+  }
+
+  onToggleViewSettings = () => {
+    this.setState(state => ({ showSettings: !state.showSettings }))
   }
 
   render() {
@@ -121,7 +164,8 @@ export default class Framework extends React.Component {
       <ToolbarContainer
         coin={coin}
         mobile={isMobile}
-        onResetLayout={this.resetLayout}
+        onShowViewSettings={this.onToggleViewSettings}
+        panels={this.state.panels}
       />
     )
     const Market = ({ coin }) => (
@@ -130,6 +174,18 @@ export default class Framework extends React.Component {
     const ManageAlerts = ({ coin }) => (
       <ManageAlertsContainer coin={coin} mobile={isMobile} />
     )
+
+    const Settings = () =>
+      this.state.showSettings ? (
+        <ViewSettings
+          panels={this.state.panels}
+          onChangePanels={this.onChangePanels}
+          onClose={this.onToggleViewSettings}
+          onReset={this.onResetLayout}
+        />
+      ) : (
+        <React.Fragment />
+      )
 
     const header = [
       <WithCoinParameter key="toolbar" component={Tools} />,
@@ -141,10 +197,54 @@ export default class Framework extends React.Component {
       />,
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
       <PositioningWrapper key="dialogs" mobile={isMobile}>
+        <Settings />
         <WithCoinParameter key="managealerts" component={ManageAlerts} />
         <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
       </PositioningWrapper>
     ]
+
+    const panelsRenderers = {
+      chart: () => (
+        <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
+          <WithCoinParameter component={Chart} />
+        </LayoutBox>
+      ),
+      openOrders: () => (
+        <LayoutBox key="openOrders" bg="backgrounds.1">
+          <WithCoinParameter component={OrdersContainer} />
+        </LayoutBox>
+      ),
+      balance: () => (
+        <LayoutBox key="balance" bg="backgrounds.1">
+          <WithCoinParameter component={BalanceContainer} />
+        </LayoutBox>
+      ),
+      tradeSelector: () => (
+        <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
+          <WithCoinParameter component={TradingContainer} />
+        </LayoutBox>
+      ),
+      coins: () => (
+        <LayoutBox key="coins" bg="backgrounds.1">
+          <CoinsContainer />
+        </LayoutBox>
+      ),
+      jobs: () => (
+        <LayoutBox key="jobs" bg="backgrounds.1">
+          <JobsContainer />
+        </LayoutBox>
+      ),
+      marketData: () => (
+        <LayoutBox key="marketData" bg="backgrounds.1">
+          <WithCoinParameter component={Market} />
+        </LayoutBox>
+      ),
+      notifications: () => (
+        <LayoutBox key="notifications" bg="backgrounds.1">
+          <NotificationsContainer />
+        </LayoutBox>
+      )
+    }
 
     if (isMobile) {
       return (
@@ -153,13 +253,13 @@ export default class Framework extends React.Component {
           <Tab
             menu={{ inverted: true, color: "blue" }}
             panes={[
-              { menuItem: "Coins", render: () => <CoinsContainer /> },
+              { menuItem: "Coins", render: panelsRenderers.coins },
               {
                 menuItem: "Chart",
                 render: () => (
-                  <div style={{ height: "400px" }}>
+                  <LayoutBox key="chart" bg="backgrounds.1" expand height={500}>
                     <WithCoinParameter component={Chart} />
-                  </div>
+                  </LayoutBox>
                 )
               },
               {
@@ -169,22 +269,23 @@ export default class Framework extends React.Component {
               {
                 menuItem: "Trading",
                 render: () => (
-                  <div>
-                    <WithCoinParameter component={BalanceContainer} />
-                    <WithCoinParameter component={TradingContainer} />
-                  </div>
+                  <React.Fragment>
+                    <div style={{ marginBottom: "4px" }}>
+                      {panelsRenderers.balance()}
+                    </div>
+                    {panelsRenderers.tradeSelector()}
+                  </React.Fragment>
                 )
               },
-              {
-                menuItem: "Orders",
-                render: () => <WithCoinParameter component={OrdersContainer} />
-              },
+              { menuItem: "Orders", render: panelsRenderers.openOrders },
               {
                 menuItem: "Status",
                 render: () => (
                   <div>
-                    <NotificationsContainer />
-                    <JobsContainer />
+                    <div style={{ marginBottom: "4px" }}>
+                      {panelsRenderers.notifications()}
+                    </div>
+                    {panelsRenderers.jobs()}
                   </div>
                 )
               }
@@ -200,36 +301,15 @@ export default class Framework extends React.Component {
             breakpoints={{ lg: 1630, md: 900, sm: 0 }}
             cols={{ lg: 20, md: 8, sm: 2 }}
             rowHeight={24}
-            layouts={this.state.layouts}
+            layouts={this.state.layouts.asMutable()}
             onLayoutChange={this.onLayoutChange}
             margin={[theme.space[1], theme.space[1]]}
             containerPadding={[theme.space[1], theme.space[1]]}
             draggableHandle=".dragMe"
           >
-            <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-              <WithCoinParameter component={Chart} />
-            </LayoutBox>
-            <LayoutBox key="openOrders" bg="backgrounds.1">
-              <WithCoinParameter component={OrdersContainer} />
-            </LayoutBox>
-            <LayoutBox key="balance" bg="backgrounds.1">
-              <WithCoinParameter component={BalanceContainer} />
-            </LayoutBox>
-            <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-              <WithCoinParameter component={TradingContainer} />
-            </LayoutBox>
-            <LayoutBox key="coins" bg="backgrounds.1">
-              <CoinsContainer />
-            </LayoutBox>
-            <LayoutBox key="jobs" bg="backgrounds.1">
-              <JobsContainer />
-            </LayoutBox>
-            <LayoutBox key="marketData" bg="backgrounds.1">
-              <WithCoinParameter component={Market} />
-            </LayoutBox>
-            <LayoutBox key="notifications" bg="backgrounds.1">
-              <NotificationsContainer />
-            </LayoutBox>
+            {this.state.panels
+              .filter(p => p.visible)
+              .map(p => panelsRenderers[p.key]())}
           </ResponsiveReactGridLayout>
         </div>
       )
