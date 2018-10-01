@@ -4,7 +4,8 @@ import { Route } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
 import styled from "styled-components"
 import { color } from "styled-system"
-import { Tab } from 'semantic-ui-react'
+import { Tab } from "semantic-ui-react"
+import theme from "./theme"
 
 import { getFromLS, saveToLS } from "./util/localStorage"
 
@@ -28,13 +29,16 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
 const LayoutBox = styled.div`
   ${color}
-  height: ${props => props.height ? props.height + "px" : "auto"}
+  height: ${props => (props.height ? props.height + "px" : "auto")}
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, .2);
 `
 
-const PositioningWrapper = ({mobile, children}) =>
-  mobile
-    ? <div>{children}</div>
-    : <FloatingPositioningWrapper>{children}</FloatingPositioningWrapper>
+const PositioningWrapper = ({ mobile, children }) =>
+  mobile ? (
+    <div>{children}</div>
+  ) : (
+    <FloatingPositioningWrapper>{children}</FloatingPositioningWrapper>
+  )
 
 const FloatingPositioningWrapper = styled.div`
   position: absolute;
@@ -54,7 +58,7 @@ const baseLayouts = {
     { i: "chart", x: 4, y: 0, w: 9, h: 21 },
     { i: "openOrders", x: 13, y: 11, w: 7, h: 14 },
     { i: "balance", x: 4, y: 20, w: 9, h: 4 },
-    { i: "tradeSelector", x: 6, y: 25, w: 7, h: 9},
+    { i: "tradeSelector", x: 6, y: 25, w: 7, h: 9 },
     { i: "marketData", x: 13, y: 0, w: 7, h: 11 },
     { i: "notifications", x: 0, y: 25, w: 6, h: 9 }
   ],
@@ -87,26 +91,25 @@ export default class Framework extends React.Component {
     super(props)
     this.state = {
       isMobile: window.innerWidth <= 500,
-      layouts: JSON.parse(JSON.stringify(originalLayouts))
+      layouts: originalLayouts
     }
   }
 
   componentWillMount() {
-    window.addEventListener('resize', this.handleWindowSizeChange);
+    window.addEventListener("resize", this.handleWindowSizeChange)
   }
 
   handleWindowSizeChange = () => {
     const isMobile = window.innerWidth <= 500
-    if (isMobile !== this.state.isMobile)
-      this.setState({ isMobile });
-  };
+    if (isMobile !== this.state.isMobile) this.setState({ isMobile })
+  }
 
   resetLayout = () => {
     saveToLS("layouts", baseLayouts)
     this.setState({ layouts: baseLayouts })
   }
 
-  onLayoutChange(layout, layouts) {
+  onLayoutChange = (layout, layouts) => {
     saveToLS("layouts", layouts)
     this.setState({ layouts })
   }
@@ -114,42 +117,79 @@ export default class Framework extends React.Component {
   render() {
     const { isMobile } = this.state
 
-    const Tools = ({coin}) => <ToolbarContainer coin={coin} mobile={isMobile} onResetLayout={this.resetLayout}/>
-    const Market = ({coin}) => <MarketContainer coin={coin} allowAnimate={!isMobile}/>
-    const ManageAlerts = ({coin}) => <ManageAlertsContainer coin={coin} mobile={isMobile}/>
+    const Tools = ({ coin }) => (
+      <ToolbarContainer
+        coin={coin}
+        mobile={isMobile}
+        onResetLayout={this.resetLayout}
+      />
+    )
+    const Market = ({ coin }) => (
+      <MarketContainer coin={coin} allowAnimate={!isMobile} />
+    )
+    const ManageAlerts = ({ coin }) => (
+      <ManageAlertsContainer coin={coin} mobile={isMobile} />
+    )
 
     const header = [
-      <WithCoinParameter key="toolbar" component={Tools}/>,
-      <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
+      <WithCoinParameter key="toolbar" component={Tools} />,
+      <Route
+        key="addCoin"
+        exact
+        path="/addCoin"
+        component={AddCoinContainer}
+      />,
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
-      <PositioningWrapper mobile={isMobile}>
-        <WithCoinParameter key="managealerts" component={ManageAlerts}/>
-        <SetReferencePriceContainer mobile={isMobile}/>
+      <PositioningWrapper key="dialogs" mobile={isMobile}>
+        <WithCoinParameter key="managealerts" component={ManageAlerts} />
+        <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
       </PositioningWrapper>
     ]
 
     if (isMobile) {
       return (
-        <div style={{height: "100%"}}>
+        <div style={{ height: "100%" }}>
           {header}
-          <Tab menu={{ inverted: true, color: "blue" }} panes={[
-            { menuItem: 'Coins', render: () => <CoinsContainer /> },
-            { menuItem: 'Chart', render: () => <div style={{height: "400px"}}><WithCoinParameter component={Chart}/></div> },
-            { menuItem: 'Book', render: () => <WithCoinParameter component={Market}/> },
-            { menuItem: 'Trading', render: () => (
-              <div>
-                <WithCoinParameter component={BalanceContainer}/>
-                <WithCoinParameter component={TradingContainer}/>
-              </div>
-            )},
-            { menuItem: 'Orders', render: () => <WithCoinParameter component={OrdersContainer}/>},
-            { menuItem: 'Status', render: () => (
-              <div>
-                <NotificationsContainer/>
-                <JobsContainer />
-              </div>
-            )},
-          ]} />
+          <Tab
+            menu={{ inverted: true, color: "blue" }}
+            panes={[
+              { menuItem: "Coins", render: () => <CoinsContainer /> },
+              {
+                menuItem: "Chart",
+                render: () => (
+                  <div style={{ height: "400px" }}>
+                    <WithCoinParameter component={Chart} />
+                  </div>
+                )
+              },
+              {
+                menuItem: "Book",
+                render: () => <WithCoinParameter component={Market} />
+              },
+              {
+                menuItem: "Trading",
+                render: () => (
+                  <div>
+                    <WithCoinParameter component={BalanceContainer} />
+                    <WithCoinParameter component={TradingContainer} />
+                  </div>
+                )
+              },
+              {
+                menuItem: "Orders",
+                render: () => <WithCoinParameter component={OrdersContainer} />
+              },
+              {
+                menuItem: "Status",
+                render: () => (
+                  <div>
+                    <NotificationsContainer />
+                    <JobsContainer />
+                  </div>
+                )
+              }
+            ]}
+          />
         </div>
       )
     } else {
@@ -161,24 +201,22 @@ export default class Framework extends React.Component {
             cols={{ lg: 20, md: 8, sm: 2 }}
             rowHeight={24}
             layouts={this.state.layouts}
-            onLayoutChange={(layout, layouts) =>
-              this.onLayoutChange(layout, layouts)
-            }
-            margin={[2, 2]}
-            containerPadding={[2, 2]}
+            onLayoutChange={this.onLayoutChange}
+            margin={[theme.space[1], theme.space[1]]}
+            containerPadding={[theme.space[1], theme.space[1]]}
             draggableHandle=".dragMe"
           >
             <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-              <WithCoinParameter component={Chart}/>
+              <WithCoinParameter component={Chart} />
             </LayoutBox>
             <LayoutBox key="openOrders" bg="backgrounds.1">
-              <WithCoinParameter component={OrdersContainer}/>
+              <WithCoinParameter component={OrdersContainer} />
             </LayoutBox>
             <LayoutBox key="balance" bg="backgrounds.1">
-              <WithCoinParameter component={BalanceContainer}/>
+              <WithCoinParameter component={BalanceContainer} />
             </LayoutBox>
             <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-              <WithCoinParameter component={TradingContainer}/>
+              <WithCoinParameter component={TradingContainer} />
             </LayoutBox>
             <LayoutBox key="coins" bg="backgrounds.1">
               <CoinsContainer />
@@ -187,10 +225,10 @@ export default class Framework extends React.Component {
               <JobsContainer />
             </LayoutBox>
             <LayoutBox key="marketData" bg="backgrounds.1">
-              <WithCoinParameter component={Market}/>
+              <WithCoinParameter component={Market} />
             </LayoutBox>
             <LayoutBox key="notifications" bg="backgrounds.1">
-              <NotificationsContainer/>
+              <NotificationsContainer />
             </LayoutBox>
           </ResponsiveReactGridLayout>
         </div>

@@ -1,7 +1,6 @@
 export function getFromLS(key) {
   let result = getValueFromLS(key)
-  if (result === null)
-    return null
+  if (result === null) return null
   return JSON.parse(result)
 }
 
@@ -18,7 +17,7 @@ export function getValueFromLS(key) {
 }
 
 export function saveToLS(key, value) {
-  saveValueToLS(JSON.stringify(value))
+  saveValueToLS(key, JSON.stringify(value))
 }
 
 export function saveValueToLS(key, value) {

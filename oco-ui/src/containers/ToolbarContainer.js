@@ -16,12 +16,10 @@ import * as authActions from "../store/auth/actions"
 import { getSelectedCoinTicker } from "../selectors/coins"
 
 const ToolbarBox = styled.div`
-  background-color: ${props => props.theme.colors.backgrounds[2]};
   display: flex;
   padding: 0;
   align-items: center;
   height: 56px;
-  ${space};
 `
 
 const TickerSocketState = ({ connected }) => {
@@ -50,7 +48,7 @@ const HomeLink = () => (
   </Link>
 )
 
-const ResetLayout = ({onClick}) => (
+const ResetLayout = ({ onClick }) => (
   <Href
     ml="auto"
     onClick={onClick}
@@ -119,7 +117,16 @@ const Coin = ({ coin }) => (
   </CoinContainer>
 )
 
-const Normal = ({ticker, coin, connected, errors, userName, updateFocusedField, onResetLayout, dispatch}) => (
+const Normal = ({
+  ticker,
+  coin,
+  connected,
+  errors,
+  userName,
+  updateFocusedField,
+  onResetLayout,
+  dispatch
+}) => (
   <ToolbarBox p={0}>
     <HomeLink />
     <TickerSocketState connected={connected} />
@@ -140,14 +147,21 @@ const Normal = ({ticker, coin, connected, errors, userName, updateFocusedField, 
       userName={userName}
       onClick={() => dispatch(authActions.logout())}
     />
-    <InvalidateLink
-      onClick={() => dispatch(authActions.clearWhitelist())}
-    />
+    <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
   </ToolbarBox>
 )
 
-const Mobile = ({ticker, coin, connected, errors, userName, updateFocusedField, onResetLayout, dispatch}) => (
-  <ToolbarBox p={0}>
+const Mobile = ({
+  ticker,
+  coin,
+  connected,
+  errors,
+  userName,
+  updateFocusedField,
+  onResetLayout,
+  dispatch
+}) => (
+  <ToolbarBox>
     <HomeLink />
     <TickerSocketState connected={connected} />
     <Coin coin={coin} />
@@ -155,23 +169,24 @@ const Mobile = ({ticker, coin, connected, errors, userName, updateFocusedField, 
       userName={userName}
       onClick={() => dispatch(authActions.logout())}
     />
-    <InvalidateLink
-      onClick={() => dispatch(authActions.clearWhitelist())}
-    />
+    <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
   </ToolbarBox>
 )
 
-const ToolbarContainer = (props) => {
+const ToolbarContainer = props => {
   if (!props.connected) {
     document.title = "Not connected"
   } else if (props.ticker && props.coin) {
-    document.title = formatMoney(props.ticker.last, props.coin.counter, "No price") + " " + props.coin.base + "/" + props.coin.counter
+    document.title =
+      formatMoney(props.ticker.last, props.coin.counter, "No price") +
+      " " +
+      props.coin.base +
+      "/" +
+      props.coin.counter
   } else {
     document.title = "No coin"
   }
-  return props.mobile
-    ? <Mobile {...props} />
-    : <Normal {...props} />
+  return props.mobile ? <Mobile {...props} /> : <Normal {...props} />
 }
 
 export default connect(state => ({
