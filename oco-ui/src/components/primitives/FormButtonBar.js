@@ -13,6 +13,9 @@ const FormButtonBar = styled.div`
   & > div {
     margin-left: ${props => props.theme.space[2] + "px"};
   }
+  & > label {
+    margin-left: ${props => props.theme.space[2] + "px"};
+  }
   padding-left: ${props => props.theme.space[2] + "px"};
   padding-right: ${props => props.theme.space[2] + "px"};
   padding-top: ${props => props.theme.space[1] + "px"};

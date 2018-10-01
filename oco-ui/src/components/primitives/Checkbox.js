@@ -1,38 +1,45 @@
 import React from "react"
 import styled from "styled-components"
-import { fontSize, padding, color, fontWeight, space } from 'styled-system';
+import { lighten } from "polished"
 
-const RawFieldSet = styled.fieldset.attrs({
-  my: 2,
-  ml: 0,
-  mr: 3,
-  p: 0
-})`
-  display: inline;
-  border: none;
-  ${space}
-  ${padding}
-`
-
-const RawLabel = styled.label.attrs({
-  fontSize: 2,
-  color: "fore",
-  mt: 0,
-  mb: 1,
-  mr: 2,
-  p: 0
-})`
-  display: inline;
-  ${color}
-  ${fontSize}
-  ${fontWeight}
-  ${space}
-  ${padding}
+const Content = styled.div`
+  margin-top: ${props => props.theme.space[2] + "px"};
+  margin-right: ${props => props.theme.space[3] + "px"};
+  display: inline-block;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center; 
+  & label {
+    cursor: pointer;
+    padding-left: 28px;
+    :before {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      left: 0;
+      cursor: pointer;
+      background-color: ${props => props.theme.colors.inputBg};
+      border: 4px solid ${props => props.theme.colors.inputBg};
+      border-radius: ${props => props.theme.radii[2] + "px"};
+      box-shadow: 0 0 10px ${props => props.theme.colors.backgrounds[4]};
+    }
+  }
+  & input {
+    display: none;
+    &:checked + label:before {
+      background-color: ${props => lighten(0.2, props.theme.colors.emphasis)};
+    }
+    &:checked {
+      box-shadow: 0 0 3px black inset;
+    }
+  }
+}
 `
 
 const Checkbox = props => (
-  <RawFieldSet>
-    {props.label && <RawLabel htmlFor={props.id}>{props.label}</RawLabel>}
+  <Content title={props.title}>
     <input
       id={props.id}
       type={props.type}
@@ -40,7 +47,8 @@ const Checkbox = props => (
       onChange={props.onChange}
       onFocus={props.onFocus}
     />
-  </RawFieldSet>
+    <label htmlFor={props.id}>{props.label}</label>
+  </Content>
 )
 
 export default Checkbox

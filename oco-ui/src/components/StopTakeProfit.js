@@ -168,6 +168,7 @@ const StopTakeProfit = props => {
       <FormButtonBar>
         {props.job.direction === "BUY" && (
           <Checkbox
+            title="Enable trailing buy stop"
             id="lowTrailing"
             label="Trailing"
             type="checkbox"
@@ -177,6 +178,7 @@ const StopTakeProfit = props => {
         )}
         {props.job.direction === "SELL" && (
           <Checkbox
+            title="Enable trailing sell stop"
             id="highTrailing"
             label="Trailing"
             type="checkbox"
