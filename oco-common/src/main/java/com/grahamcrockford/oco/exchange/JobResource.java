@@ -36,16 +36,14 @@ import io.dropwizard.auth.AuthenticationException;
 @Singleton
 public class JobResource implements WebResource {
 
-  private final ExchangeService exchanges;
   private final JobSubmitter jobSubmitter;
   private final JobAccess jobAccess;
   private final NotificationService notificationService;
 
   @Inject
-  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter, ExchangeService exchanges, NotificationService notificationService) {
+  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter, NotificationService notificationService) {
     this.jobAccess = jobAccess;
     this.jobSubmitter = jobSubmitter;
-    this.exchanges = exchanges;
     this.notificationService = notificationService;
   }
 
