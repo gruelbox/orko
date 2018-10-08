@@ -11,9 +11,14 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 @JsonDeserialize
 public abstract class OrderBookEvent {
 
-  @JsonCreator
   public static OrderBookEvent create(@JsonProperty("spec") TickerSpec spec,
                                       @JsonProperty("orderBook") OrderBook orderBook) {
+    return new AutoValue_OrderBookEvent(spec, new ImmutableOrderBook(orderBook));
+  }
+
+  @JsonCreator
+  public static OrderBookEvent create(@JsonProperty("spec") TickerSpec spec,
+                                      @JsonProperty("orderBook") ImmutableOrderBook orderBook) {
     return new AutoValue_OrderBookEvent(spec, orderBook);
   }
 
@@ -21,5 +26,5 @@ public abstract class OrderBookEvent {
   public abstract TickerSpec spec();
 
   @JsonProperty
-  public abstract OrderBook orderBook();
+  public abstract ImmutableOrderBook orderBook();
 }
