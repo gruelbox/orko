@@ -22,10 +22,7 @@ export function coinFromKey(key) {
 }
 
 export function coinFromTicker(t) {
-  return augmentCoin(
-    t,
-    t.exchange
-  )
+  return augmentCoin(t, t.exchange)
 }
 
 export function tickerFromCoin(coin) {

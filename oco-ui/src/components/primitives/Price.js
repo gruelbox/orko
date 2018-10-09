@@ -74,7 +74,6 @@ const Container = styled.div`
 `
 
 class Price extends React.PureComponent {
-
   constructor(props) {
     super(props)
     this.state = { movement: null }
@@ -89,16 +88,20 @@ class Price extends React.PureComponent {
         movement = "down"
       }
       if (movement) {
-        this.setState({ movement: movement }, () =>
-          this.timeout = setTimeout(() => this.setState({ movement: null }), 2100)
+        this.setState(
+          { movement: movement },
+          () =>
+            (this.timeout = setTimeout(
+              () => this.setState({ movement: null }),
+              2100
+            ))
         )
       }
     }
   }
 
   componentWillUnmount() {
-    if (this.timeout)
-      clearTimeout(this.timeout)
+    if (this.timeout) clearTimeout(this.timeout)
   }
 
   onClick = () => {
@@ -110,8 +113,21 @@ class Price extends React.PureComponent {
   render() {
     if (this.props.bare) {
       return (
-        <BarePriceValue title={this.props.title} px={this.props.noflash ? 0 : 1} movement={this.state.movement} onClick={this.onClick} color={this.props.color} className={this.props.className}>
-          {this.props.children === "--" ? "--" : formatMoney(this.props.children, this.props.counter, <Loading fitted />)}
+        <BarePriceValue
+          title={this.props.title}
+          px={this.props.noflash ? 0 : 1}
+          movement={this.state.movement}
+          onClick={this.onClick}
+          color={this.props.color}
+          className={this.props.className}
+        >
+          {this.props.children === "--"
+            ? "--"
+            : formatMoney(
+                this.props.children,
+                this.props.counter,
+                <Loading fitted />
+              )}
         </BarePriceValue>
       )
     } else {
@@ -131,7 +147,13 @@ class Price extends React.PureComponent {
             onClick={this.onClick}
             title={this.props.title}
           >
-            {this.props.children === "--" ? "--" : formatMoney(this.props.children, this.props.counter, <Loading fitted />)}
+            {this.props.children === "--"
+              ? "--"
+              : formatMoney(
+                  this.props.children,
+                  this.props.counter,
+                  <Loading fitted />
+                )}
           </PriceValue>
         </Container>
       )
@@ -148,7 +170,7 @@ function mapStateToProps(state, props) {
       ? props.onClick
       : state.focus.fn
         ? value => state.focus.fn(formatMoney(value, props.counter, ""))
-        : nullOnCLick,
+        : nullOnCLick
   }
 }
 

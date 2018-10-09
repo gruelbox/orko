@@ -23,7 +23,7 @@ export default function reduce(state = initialState, action = {}) {
         {
           referencePrices: {
             [action.payload.coin.key]: action.payload.price
-          } 
+          }
         },
         { deep: true }
       )
