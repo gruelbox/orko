@@ -3,7 +3,6 @@ import * as tickerActions from "../ticker/actions"
 import exchangesService from "../../services/exchanges"
 import * as authActions from "../auth/actions"
 import * as errorActions from "../error/actions"
-import * as notificationActions from "../notifications/actions"
 import { coinFromTicker, tickerFromCoin } from "../../util/coinUtils"
 
 export function fetch() {
@@ -12,7 +11,7 @@ export function fetch() {
     json => ({ type: types.SET, payload: json.map(t => coinFromTicker(t)) }),
     error =>
       errorActions.setForeground("Could not fetch coin list: " + error.message),
-    () => notificationActions.trace("Fetched coins")
+    () => multiFetchMetadata()
   )
 }
 
@@ -21,8 +20,7 @@ export function fetchReferencePrices() {
     auth => exchangesService.fetchReferencePrices(auth.token),
     json => ({ type: types.SET_REFERENCE_PRICES, payload: json }),
     error =>
-      errorActions.setForeground("Could not fetch coin list: " + error.message),
-    () => notificationActions.trace("Fetched coins")
+      errorActions.setForeground("Could not fetch coin list: " + error.message)
   )
 }
 
@@ -42,9 +40,27 @@ export function add(coin) {
   )
 }
 
+function multiFetchMetadata() {
+  return async (dispatch, getState) => {
+    getState().coins.coins.forEach(coin => dispatch(fetchMetadata(coin)))
+  }
+}
+
+function fetchMetadata(coin) {
+  return authActions.wrappedRequest(
+    auth => exchangesService.fetchMetadata(coin, auth.token),
+    json => ({ type: types.SET_META, payload: { coin: coin, meta: json } }),
+    error =>
+      errorActions.setForeground(
+        "Could not fetch coin metadata for " + coin.name + " : " + error.message
+      )
+  )
+}
+
 function applyAdd(coin) {
   return (dispatch, getState, socket) => {
     dispatch({ type: types.ADD, payload: coin })
+    dispatch(fetchMetadata(coin))
     socket.resubscribe()
   }
 }

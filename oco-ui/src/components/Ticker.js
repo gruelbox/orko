@@ -12,7 +12,6 @@ const Container = styled.div`
 `
 
 class Ticker extends React.Component {
-
   shouldComponentUpdate(nextProps) {
     return !areEqualShallow(this.props, nextProps)
   }
@@ -24,22 +23,39 @@ class Ticker extends React.Component {
     if (coin) {
       return (
         <Container>
-          <Price counter={coin.counter} name="Bid" nameColor="buy" icon="chevron up" onClick={onClickNumber}>
+          <Price
+            coin={coin}
+            name="Bid"
+            nameColor="buy"
+            icon="chevron up"
+            onClick={onClickNumber}
+          >
             {ticker ? ticker.bid : undefined}
           </Price>
-          <Price counter={coin.counter} name="Last" icon="circle outline" onClick={onClickNumber}>
+          <Price
+            coin={coin}
+            name="Last"
+            icon="circle outline"
+            onClick={onClickNumber}
+          >
             {ticker ? ticker.last : undefined}
           </Price>
-          <Price counter={coin.counter} name="Ask" nameColor="sell" icon="chevron down" onClick={onClickNumber}>
+          <Price
+            coin={coin}
+            name="Ask"
+            nameColor="sell"
+            icon="chevron down"
+            onClick={onClickNumber}
+          >
             {ticker ? ticker.ask : undefined}
           </Price>
-          <Price counter={coin.counter} name="Open" onClick={onClickNumber}>
+          <Price coin={coin} name="Open" onClick={onClickNumber}>
             {ticker ? ticker.open : undefined}
           </Price>
-          <Price counter={coin.counter} name="24h Low" onClick={onClickNumber}>
+          <Price coin={coin} name="24h Low" onClick={onClickNumber}>
             {ticker ? ticker.low : undefined}
           </Price>
-          <Price counter={coin.counter} name="24h High" onClick={onClickNumber}>
+          <Price coin={coin} name="24h High" onClick={onClickNumber}>
             {ticker ? ticker.high : undefined}
           </Price>
         </Container>

@@ -2,7 +2,7 @@ import React from "react"
 import styled from "styled-components"
 import theme from "../theme"
 import Price from "../components/primitives/Price"
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import ReactCSSTransitionGroup from "react-addons-css-transition-group"
 import { lighten } from "polished"
 
 const Aligned = styled.div`
@@ -17,20 +17,30 @@ const Aligned = styled.div`
   &.collapse-enter {
     opacity: 0.1;
     .orderbook-value {
-      color: ${props => lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
+      color: ${props =>
+        lighten(
+          0.2,
+          props.direction === "BID" ? theme.colors.buy : theme.colors.sell
+        )};
     }
     .orderbook-bar {
-      background-color: ${props => lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
+      background-color: ${props =>
+        lighten(
+          0.2,
+          props.direction === "BID" ? theme.colors.buy : theme.colors.sell
+        )};
     }
     &.collapse-enter-active {
       opacity: 1;
       transition: opacity 200ms ease-in 100ms;
       .orderbook-value {
-        color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
+        color: ${props =>
+          props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
         transition: color 200ms ease-in 1400ms;
       }
       .orderbook-bar {
-        background-color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
+        background-color: ${props =>
+          props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
         transition: background-color 200ms ease-in 1400ms;
       }
     }
@@ -52,37 +62,41 @@ const Bar = styled.div`
   box-shadow: inset 0 6px 8px rgba(0, 0, 0, 0.1);
   top: 0;
   left: ${props => (props.direction === "BID" ? "auto" : 0)};
-  right: ${props => (props.direction === "BID" ? 0 : "auto" )};
+  right: ${props => (props.direction === "BID" ? 0 : "auto")};
   height: 100%;
   min-width: 1px;
   width: ${props => props.size + "%"};
   transition: width 0.3s ease-out;
-  background-color: ${props => props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
+  background-color: ${props =>
+    props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
   overflow: visible;
 `
 
 const BarSize = styled.div`
   position: absolute;
   top: -1px;
-  right: ${props => props.direction === "BID"
-    ? props.size < 50
-      ? "100%"
-      : "auto"
-    : props.size < 50
-      ? "auto"
-      : 0};
-  left: ${props => props.direction === "BID"
-    ? props.size < 50
-      ? "auto"
-      : 0
-    : props.size < 50
-      ? "100%"
-      : "auto"};
-  color: ${props => props.size > 50
-    ? "black"
-    : props.direction === "BID"
-      ? theme.colors.buy
-      : theme.colors.sell};
+  right: ${props =>
+    props.direction === "BID"
+      ? props.size < 50
+        ? "100%"
+        : "auto"
+      : props.size < 50
+        ? "auto"
+        : 0};
+  left: ${props =>
+    props.direction === "BID"
+      ? props.size < 50
+        ? "auto"
+        : 0
+      : props.size < 50
+        ? "100%"
+        : "auto"};
+  color: ${props =>
+    props.size > 50
+      ? "black"
+      : props.direction === "BID"
+        ? theme.colors.buy
+        : theme.colors.sell};
   font-size: ${props => theme.fontSizes[0] + "px"}
   padding: 0 4px 0 4px;
   overflow: visible;
@@ -103,11 +117,17 @@ const PriceColumn = styled.div`
   padding-right: ${props => theme.space[1] + "px"};
 `
 
-const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
+const Entry = ({ coin, direction, price, size, focusFn, magnitude }) => (
   <Aligned id={direction + "-" + price} direction={direction}>
     <BarColumn direction={direction}>
       <Bar direction={direction} size={magnitude} className="orderbook-bar">
-        <BarSize direction={direction} size={magnitude} className="orderbook-value">{size}</BarSize>
+        <BarSize
+          direction={direction}
+          size={magnitude}
+          className="orderbook-value"
+        >
+          {size}
+        </BarSize>
       </Bar>
     </BarColumn>
     <PriceColumn direction={direction}>
@@ -116,7 +136,7 @@ const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
         noflash
         className="orderbook-value"
         color={direction === "BID" ? "buy" : "sell"}
-        counter={counter}
+        coin={coin}
       >
         {price}
       </Price>
@@ -124,33 +144,33 @@ const Entry = ({ counter, direction, price, size, focusFn, magnitude }) => (
   </Aligned>
 )
 
-const entries = ({coin, orders, direction, focusFn, largestOrder}) => (
+const entries = ({ coin, orders, direction, focusFn, largestOrder }) =>
   orders.map(order => (
     <Entry
       key={order.limitPrice}
       focusFn={focusFn}
-      counter={coin.counter}
+      coin={coin}
       direction={direction}
       price={order.limitPrice}
-      magnitude={order.remainingAmount * 100.0 / largestOrder}
+      magnitude={(order.remainingAmount * 100.0) / largestOrder}
       size={order.remainingAmount}
     />
   ))
-)
 
-const OrderBookSide = props => (
-  props.animate
-    ? <ReactCSSTransitionGroup
-        transitionName="collapse"
-        transitionEnter={true}
-        transitionAppear={false}
-        transitionEnterTimeout={1600}
-        transitionLeaveTimeout={1000}
-        transitionLeave={true}
-      >
-        {entries(props)}
-      </ReactCSSTransitionGroup>
-    : <div>{entries(props)}</div>
-)
+const OrderBookSide = props =>
+  props.animate ? (
+    <ReactCSSTransitionGroup
+      transitionName="collapse"
+      transitionEnter={true}
+      transitionAppear={false}
+      transitionEnterTimeout={1600}
+      transitionLeaveTimeout={1000}
+      transitionLeave={true}
+    >
+      {entries(props)}
+    </ReactCSSTransitionGroup>
+  ) : (
+    <div>{entries(props)}</div>
+  )
 
 export default OrderBookSide

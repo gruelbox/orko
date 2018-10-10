@@ -6,7 +6,7 @@ import { formatNumber } from "../../util/numberUtils"
 import Loading from "./Loading"
 import { connect } from "react-redux"
 
-const PriceKey = styled.div.attrs({
+const AmountKey = styled.div.attrs({
   py: 0,
   px: 1
 })`
@@ -16,7 +16,7 @@ const PriceKey = styled.div.attrs({
   ${space}
 `
 
-const PriceValue = styled.div`
+const AmountValue = styled.div`
   padding: 3px;
   cursor: copy;
   &:hover {
@@ -40,7 +40,7 @@ const PriceValue = styled.div`
   ${space}
 `
 
-const BarePriceValue = styled.span.attrs({
+const BareAmountValue = styled.span.attrs({
   fontSize: 1,
   py: 0,
   m: 0
@@ -73,7 +73,7 @@ const Container = styled.div`
   ${space};
 `
 
-class Price extends React.PureComponent {
+class Amount extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = { movement: null }
@@ -113,7 +113,7 @@ class Price extends React.PureComponent {
   render() {
     if (this.props.bare) {
       return (
-        <BarePriceValue
+        <BareAmountValue
           title={this.props.title}
           px={this.props.noflash ? 0 : 1}
           movement={this.state.movement}
@@ -125,22 +125,22 @@ class Price extends React.PureComponent {
             ? "--"
             : formatNumber(
                 this.props.children,
-                this.props.meta ? this.props.meta.priceScale : 8,
+                this.props.meta ? this.props.meta.amountScale : 8,
                 <Loading fitted />
               )}
-        </BarePriceValue>
+        </BareAmountValue>
       )
     } else {
       return (
         <Container my={0} mx={2}>
-          <PriceKey
+          <AmountKey
             color={this.props.nameColor ? this.props.nameColor : "fore"}
             fontSize={1}
           >
             {this.props.name}{" "}
             {this.props.icon ? <Icon name={this.props.icon} /> : ""}
-          </PriceKey>
-          <PriceValue
+          </AmountKey>
+          <AmountValue
             color={this.props.color ? this.props.color : "heading"}
             fontSize={3}
             movement={this.state.movement}
@@ -151,10 +151,10 @@ class Price extends React.PureComponent {
               ? "--"
               : formatNumber(
                   this.props.children,
-                  this.props.meta ? this.props.meta.priceScale : 8,
+                  this.props.meta ? this.props.meta.amountScale : 8,
                   <Loading fitted />
                 )}
-          </PriceValue>
+          </AmountValue>
         </Container>
       )
     }
@@ -166,15 +166,15 @@ const nullOnCLick = number => {}
 function mapStateToProps(state, props) {
   const meta = props.coin ? state.coins.meta[props.coin.key] : undefined
   return {
-    title: props.onClick ? undefined : "Copy price to target field",
+    title: props.onClick ? undefined : "Copy amount to target field",
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn
         ? value =>
-            state.focus.fn(formatNumber(value, meta ? meta.priceScale : 8, ""))
+            state.focus.fn(formatNumber(value, meta ? meta.amountScale : 8, ""))
         : nullOnCLick,
     meta
   }
 }
 
-export default connect(mapStateToProps)(Price)
+export default connect(mapStateToProps)(Amount)

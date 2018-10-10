@@ -2,6 +2,7 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 import Price from "../components/primitives/Price"
+import Amount from "../components/primitives/Amount"
 import * as dateUtils from "../util/dateUtils"
 
 const textStyle = {
@@ -23,12 +24,16 @@ const dateColumn = {
   minWidth: 80
 }
 
-const orderTypeColumn = (buySide) => ({
+const orderTypeColumn = buySide => ({
   id: "orderType",
-  Header: <Icon fitted name="sort" title="Direction"/>,
+  Header: <Icon fitted name="sort" title="Direction" />,
   accessor: "t",
   Cell: ({ original }) => (
-    <Icon fitted name={original.t === buySide ? "arrow up" : "arrow down"} title={original.t === buySide ? "Buy" : "Sell"}/>
+    <Icon
+      fitted
+      name={original.t === buySide ? "arrow up" : "arrow down"}
+      title={original.t === buySide ? "Buy" : "Sell"}
+    />
   ),
   headerStyle: textStyle,
   style: textStyle,
@@ -36,10 +41,15 @@ const orderTypeColumn = (buySide) => ({
   width: 32
 })
 
-const priceColumn = (buySide) => ({
+const priceColumn = (coin, buySide) => ({
   Header: "Price",
   Cell: ({ original }) => (
-    <Price counter={original.c.counter} color={original.t === buySide ? "buy" : "sell"} noflash bare>
+    <Price
+      coin={coin}
+      color={original.t === buySide ? "buy" : "sell"}
+      noflash
+      bare
+    >
       {original.p}
     </Price>
   ),
@@ -50,12 +60,17 @@ const priceColumn = (buySide) => ({
   minWidth: 50
 })
 
-const amountColumn = (buySide) => ({
+const amountColumn = (coin, buySide) => ({
   Header: "Amount",
   Cell: ({ original }) => (
-    <Price color={original.t === buySide ? "buy" : "sell"} noflash bare>
+    <Amount
+      coin={coin}
+      color={original.t === buySide ? "buy" : "sell"}
+      noflash
+      bare
+    >
       {original.a}
-    </Price>
+    </Amount>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -64,12 +79,12 @@ const amountColumn = (buySide) => ({
   minWidth: 50
 })
 
-const feeAmountColumn = (buySide) => ({
+const feeAmountColumn = buySide => ({
   Header: "Fee",
   Cell: ({ original }) => (
-    <Price color={original.t === buySide ? "buy" : "sell"} noflash bare>
+    <Amount color={original.t === buySide ? "buy" : "sell"} noflash bare>
       {original.fa}
-    </Price>
+    </Amount>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
@@ -88,17 +103,14 @@ const feeCurrencyColumn = {
   minWidth: 50
 }
 
-const columns = (buySide) => ([
+const columns = (coin, buySide) => [
   orderTypeColumn(buySide),
   dateColumn,
-  priceColumn(buySide),
-  amountColumn(buySide),
+  priceColumn(coin, buySide),
+  amountColumn(coin, buySide),
   feeAmountColumn(buySide),
   feeCurrencyColumn
-])
-
-const bidBuyColumns = columns("BID")
-const askBuyColumns = columns("ASK")
+]
 
 const TradeHistory = props => (
   <ReactTable
@@ -106,7 +118,11 @@ const TradeHistory = props => (
     getTrProps={(state, rowInfo, column) => ({
       className: rowInfo.original.t === props.buySide ? "oco-buy" : "oco-sell"
     })}
-    columns={props.buySide === "BID" ? bidBuyColumns : askBuyColumns}
+    columns={
+      props.buySide === "BID"
+        ? columns(props.coin, "BID")
+        : columns(props.coin, "ASK")
+    }
     showPagination={false}
     resizable={false}
     className="-striped"

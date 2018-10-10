@@ -12,7 +12,7 @@ import { Icon } from "semantic-ui-react"
 import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
-import { isValidNumber, formatMoney } from "../util/numberUtils"
+import { isValidNumber, formatNumber } from "../util/numberUtils"
 import FormButtonBar from "../components/primitives/FormButtonBar"
 
 class SetReferencePriceContainer extends Component {
@@ -86,12 +86,16 @@ class SetReferencePriceContainer extends Component {
 }
 
 function mapStateToProps(state) {
+  const coinMetadata =
+    state.coins.meta && state.ui.referencePriceCoin
+      ? state.coins.meta[state.ui.referencePriceCoin.key]
+      : undefined
   return {
     coin: state.ui.referencePriceCoin,
     referencePrice: state.ui.referencePriceCoin
-      ? formatMoney(
+      ? formatNumber(
           state.coins.referencePrices[state.ui.referencePriceCoin.key],
-          state.ui.referencePriceCoin.counter,
+          coinMetadata ? coinMetadata.priceScale : 8,
           ""
         )
       : null

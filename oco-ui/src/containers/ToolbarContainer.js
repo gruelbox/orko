@@ -11,7 +11,7 @@ import Span from "../components/primitives/Span"
 
 import Ticker from "../components/Ticker"
 
-import { formatMoney } from "../util/numberUtils"
+import { formatNumber } from "../util/numberUtils"
 import * as authActions from "../store/auth/actions"
 import { getSelectedCoinTicker } from "../selectors/coins"
 
@@ -178,7 +178,11 @@ const ToolbarContainer = props => {
     document.title = "Not connected"
   } else if (props.ticker && props.coin) {
     document.title =
-      formatMoney(props.ticker.last, props.coin.counter, "No price") +
+      formatNumber(
+        props.ticker.last,
+        props.coinMetadata ? props.coinMetadata.priceScale : 8,
+        "No price"
+      ) +
       " " +
       props.coin.base +
       "/" +
@@ -189,10 +193,14 @@ const ToolbarContainer = props => {
   return props.mobile ? <Mobile {...props} /> : <Normal {...props} />
 }
 
-export default connect(state => ({
+export default connect((state, props) => ({
   errors: state.error.errorBackground,
   userName: state.auth.userName,
   connected: state.socket.connected,
   updateFocusedField: state.focus.fn,
-  ticker: getSelectedCoinTicker(state)
+  ticker: getSelectedCoinTicker(state),
+  coinMetadata:
+    props.coin && state.coins.meta
+      ? state.coins.meta[props.coin.key]
+      : undefined
 }))(ToolbarContainer)

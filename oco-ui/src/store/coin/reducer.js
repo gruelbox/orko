@@ -18,7 +18,7 @@ export default function reduce(state = initialState, action = {}) {
         {
           balance: {
             [action.payload.currency]: action.payload.balance
-          } 
+          }
         },
         { deep: true }
       )
@@ -28,13 +28,22 @@ export default function reduce(state = initialState, action = {}) {
       })
     case types.ADD_TRADE:
       return Immutable.merge(state, {
-        trades: state.trades ? Immutable([action.payload].concat(state.trades.slice(0, 48))) : Immutable([action.payload])
+        trades: state.trades
+          ? Immutable([action.payload].concat(state.trades.slice(0, 48)))
+          : Immutable([action.payload])
       })
     case types.ADD_USER_TRADE:
-      if (!!action.payload.id && state.userTradeHistory.some(t => t.id === action.payload.id))
-        return state;
+      if (
+        !!action.payload.id &&
+        state.userTradeHistory.some(t => t.id === action.payload.id)
+      )
+        return state
       return Immutable.merge(state, {
-        userTradeHistory: state.userTradeHistory ? Immutable([action.payload].concat(state.userTradeHistory.slice(0, 48))) : Immutable([action.payload])
+        userTradeHistory: state.userTradeHistory
+          ? Immutable(
+              [action.payload].concat(state.userTradeHistory.slice(0, 48))
+            )
+          : Immutable([action.payload])
       })
     case types.CLEAR_BALANCES:
       return Immutable.merge(state, {

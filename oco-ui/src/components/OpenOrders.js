@@ -4,6 +4,7 @@ import ReactTable from "react-table"
 import Href from "../components/primitives/Href"
 import * as dateUtils from "../util/dateUtils"
 import Price from "../components/primitives/Price"
+import Amount from "../components/primitives/Amount"
 
 const textStyle = {
   textAlign: "left"
@@ -33,23 +34,20 @@ const orderTypeColumn = {
 const runningAtColumn = {
   id: "runningAt",
   Header: "At",
-  Cell: ({ original }) => (
-    original.runningAt === "SERVER"
-      ? (
-          <Icon
-            fitted
-            name="desktop"
-            title="On server. Slightly delayed execution which may cause slippage, but does not lock the balance."
-          />
-        )
-      : (
-          <Icon
-            fitted
-            name="server"
-            title="On exchange. Will execute immediately but locks up the balance."
-          />
-        )
-  ),
+  Cell: ({ original }) =>
+    original.runningAt === "SERVER" ? (
+      <Icon
+        fitted
+        name="desktop"
+        title="On server. Slightly delayed execution which may cause slippage, but does not lock the balance."
+      />
+    ) : (
+      <Icon
+        fitted
+        name="server"
+        title="On exchange. Will execute immediately but locks up the balance."
+      />
+    ),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
@@ -60,17 +58,23 @@ const createdDateColumn = {
   id: "createdDate",
   accessor: "timestamp",
   Header: "Created",
-  Cell: ({ original }) => original.timestamp ? dateUtils.formatDate(original.timestamp) : "Unknown",
+  Cell: ({ original }) =>
+    original.timestamp ? dateUtils.formatDate(original.timestamp) : "Unknown",
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
   minWidth: 80
 }
 
-const limitPriceColumn = {
+const limitPriceColumn = coin => ({
   Header: "Limit",
   Cell: ({ original }) => (
-    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+    <Price
+      color={original.type === "BID" ? "buy" : "sell"}
+      noflash
+      bare
+      coin={coin}
+    >
       {original.limitPrice}
     </Price>
   ),
@@ -79,13 +83,18 @@ const limitPriceColumn = {
   sortable: false,
   resizable: true,
   minWidth: 50
-}
+})
 
-const stopPriceColumn = {
+const stopPriceColumn = coin => ({
   id: "stopPrice",
   Header: "Trigger",
   Cell: ({ original }) => (
-    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+    <Price
+      color={original.type === "BID" ? "buy" : "sell"}
+      noflash
+      bare
+      coin={coin}
+    >
       {original.stopPrice ? original.stopPrice : "--"}
     </Price>
   ),
@@ -94,35 +103,45 @@ const stopPriceColumn = {
   sortable: false,
   resizable: true,
   minWidth: 50
-}
+})
 
-const amountColumn = {
+const amountColumn = coin => ({
   Header: "Amount",
   Cell: ({ original }) => (
-    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+    <Amount
+      color={original.type === "BID" ? "buy" : "sell"}
+      noflash
+      bare
+      coin={coin}
+    >
       {original.originalAmount}
-    </Price>
+    </Amount>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
   resizable: true,
   minWidth: 50
-}
+})
 
-const filledColumn = {
+const filledColumn = coin => ({
   Header: "Filled",
   Cell: ({ original }) => (
-    <Price color={original.type === "BID" ? "buy" : "sell"} noflash bare>
+    <Amount
+      color={original.type === "BID" ? "buy" : "sell"}
+      noflash
+      bare
+      coin={coin}
+    >
       {original.cumulativeAmount}
-    </Price>
+    </Amount>
   ),
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
   resizable: true,
   minWidth: 50
-}
+})
 
 const cancelColumn = (onCancelExchange, onCancelServer) => ({
   id: "close",
@@ -159,10 +178,10 @@ const OpenOrders = props => (
       orderTypeColumn,
       runningAtColumn,
       createdDateColumn,
-      limitPriceColumn,
-      stopPriceColumn,
-      amountColumn,
-      filledColumn
+      limitPriceColumn(props.coin),
+      stopPriceColumn(props.coin),
+      amountColumn(props.coin),
+      filledColumn(props.coin)
     ]}
     showPagination={false}
     resizable={false}

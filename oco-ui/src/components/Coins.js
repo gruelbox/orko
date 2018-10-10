@@ -49,7 +49,7 @@ const priceColumn = {
   id: "price",
   Header: "Price",
   Cell: ({ original }) => (
-    <Price counter={original.counter} bare>
+    <Price coin={original} bare>
       {original.ticker ? original.ticker.last : undefined}
     </Price>
   ),

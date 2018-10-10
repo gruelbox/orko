@@ -1,10 +1,10 @@
 import * as coinActions from "../coin/actions"
 import * as notificationActions from "../notifications/actions"
-import * as socketClient from '../../worker/socket.client.js'
+import * as socketClient from "../../worker/socket.client.js"
 import * as tickerActions from "../ticker/actions"
 import * as socketActions from "../socket/actions"
 import { locationToCoin } from "../../selectors/coins"
-import { batchActions } from 'redux-batched-actions'
+import { batchActions } from "redux-batched-actions"
 
 var store
 
@@ -46,9 +46,12 @@ export function initialise(s, history) {
 
   history.listen(location => {
     console.log("Resubscribing following coin change")
-    socketClient.changeSubscriptions(subscribedCoins(), locationToCoin(location))
+    socketClient.changeSubscriptions(
+      subscribedCoins(),
+      locationToCoin(location)
+    )
     socketClient.resubscribe()
-	store.dispatch(coinActions.setUserTrades(null))
+    store.dispatch(coinActions.setUserTrades(null))
     bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
     bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(null))
     bufferAction(ACTION_KEY_TRADE, coinActions.clearTrades())
@@ -64,10 +67,24 @@ export function initialise(s, history) {
       store.dispatch(notificationActions.localError("Socket disconnected"))
     }
   })
-  socketClient.onError(message => store.dispatch(notificationActions.localError(message)))
-  socketClient.onNotification(message => store.dispatch(notificationActions.add(message)))
-  socketClient.onTicker((coin, ticker) => bufferAction(ACTION_KEY_TICKER + "/" + coin.key, tickerActions.setTicker(coin, ticker)))
-  socketClient.onBalance((exchange, currency, balance) => bufferAction(ACTION_KEY_BALANCE + "/" + exchange + "/" + currency, coinActions.setBalance(exchange, currency, balance)))
+  socketClient.onError(message =>
+    store.dispatch(notificationActions.localError(message))
+  )
+  socketClient.onNotification(message =>
+    store.dispatch(notificationActions.add(message))
+  )
+  socketClient.onTicker((coin, ticker) =>
+    bufferAction(
+      ACTION_KEY_TICKER + "/" + coin.key,
+      tickerActions.setTicker(coin, ticker)
+    )
+  )
+  socketClient.onBalance((exchange, currency, balance) =>
+    bufferAction(
+      ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
+      coinActions.setBalance(exchange, currency, balance)
+    )
+  )
 
   const sameCoin = (left, right) => left && right && left.key === right.key
 

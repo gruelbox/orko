@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.exchange;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,7 @@ import javax.ws.rs.core.Response;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
+import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
@@ -78,34 +80,60 @@ public class ExchangeResource implements WebResource {
   /**
    * Lists all currency pairs on the specified exchange.
    *
-   * @param exchange The exchange.
+   * @param exchangeName The exchange.
    * @return The supported currency pairs.
    */
   @GET
   @Timed
   @Path("{exchange}/pairs")
   @RolesAllowed(Roles.TRADER)
-  public Collection<Pair> pairs(@PathParam("exchange") String exchange) {
-    return exchanges.get(exchange)
+  public Collection<Pair> pairs(@PathParam("exchange") String exchangeName) {
+    return exchanges.get(exchangeName)
         .getExchangeMetaData()
         .getCurrencyPairs()
         .keySet()
         .stream()
-        .map(currencyPair -> {
-          Pair pair = new Pair();
-          pair.counter = currencyPair.counter.getCurrencyCode();
-          pair.base = currencyPair.base.getCurrencyCode();
-          return pair;
-        })
+        .map(Pair::new)
         .collect(Collectors.toSet());
   }
 
-
   public static class Pair {
+
     @JsonProperty public String counter;
     @JsonProperty public String base;
+
+    public Pair(CurrencyPair currencyPair) {
+      this.counter = currencyPair.counter.getCurrencyCode();
+      this.base = currencyPair.base.getCurrencyCode();
+    }
   }
 
+  @GET
+  @Timed
+  @Path("{exchange}/pairs/{base}-{counter}")
+  @RolesAllowed(Roles.TRADER)
+  public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) {
+    CurrencyPair currencyPair = new CurrencyPair(base, counter);
+    return new PairMetaData(
+      exchanges.get(exchangeName)
+        .getExchangeMetaData()
+        .getCurrencyPairs()
+        .get(currencyPair)
+    );
+  }
+
+  public static class PairMetaData {
+
+    @JsonProperty public BigDecimal maximumAmount;
+    @JsonProperty public BigDecimal minimumAmount;
+    @JsonProperty public Integer priceScale;
+
+    public PairMetaData(CurrencyPairMetaData currencyPairMetaData) {
+      this.minimumAmount = currencyPairMetaData.getMinimumAmount();
+      this.maximumAmount = currencyPairMetaData.getMaximumAmount();
+      this.priceScale = currencyPairMetaData.getPriceScale();
+    }
+  }
 
   /**
    * Fetches all open orders on the specified exchange. Often not supported.
