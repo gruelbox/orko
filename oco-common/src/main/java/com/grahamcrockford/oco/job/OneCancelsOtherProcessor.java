@@ -70,7 +70,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   @Override
   public boolean start() {
     if (!exchangeService.exchangeSupportsPair(job.tickTrigger().exchange(), job.tickTrigger().currencyPair())) {
-      statusUpdateService.status(job.id(), FAILURE_PERMANENT, "Cancelling job as currency no longer supported: " + job);
+      statusUpdateService.status(job.id(), FAILURE_PERMANENT);
+      notificationService.error("Cancelling job as currency no longer supported: " + job);
       return false;
     }
     exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);

@@ -105,11 +105,13 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     final TickerSpec ex = job.tickTrigger();
 
     if (ticker.getAsk() == null) {
-      statusUpdateService.status(job.id(), FAILURE_PERMANENT, String.format("Market %s/%s/%s has no sellers!", ex.exchange(), ex.base(), ex.counter()));
+      statusUpdateService.status(job.id(), FAILURE_PERMANENT);
+      notificationService.error(String.format("Market %s/%s/%s has no sellers!", ex.exchange(), ex.base(), ex.counter()));
       return;
     }
     if (ticker.getBid() == null) {
-      statusUpdateService.status(job.id(), FAILURE_PERMANENT,String.format("Market %s/%s/%s has no buyers!", ex.exchange(), ex.base(), ex.counter()));
+      statusUpdateService.status(job.id(), FAILURE_PERMANENT);
+      notificationService.error(String.format("Market %s/%s/%s has no buyers!", ex.exchange(), ex.base(), ex.counter()));
       return;
     }
 
