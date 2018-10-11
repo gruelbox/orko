@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.notification.Notification;
+import com.grahamcrockford.oco.notification.NotificationLevel;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobBuilder;
 import com.grahamcrockford.oco.spi.JobControl;
@@ -21,7 +22,10 @@ import com.grahamcrockford.oco.spi.JobProcessor;
 public abstract class Alert implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_Alert.Builder();
+    return new AutoValue_Alert.Builder()
+
+
+        .notification(Notification.create("", NotificationLevel.INFO)); // TODO remove when production upgraded
   }
 
   @AutoValue.Builder
@@ -32,6 +36,21 @@ public abstract class Alert implements Job {
     @Id
     public abstract Builder id(String value);
     public abstract Builder notification(Notification notification);
+
+ // TODO remove when production upgraded
+    abstract Notification notification();
+
+    // TODO remove when production upgraded
+    public Builder message(String message) {
+      notification(Notification.create(message, notification().level()));
+      return this;
+    }
+    // TODO remove when production upgraded
+    public Builder level(NotificationLevel level) {
+      notification(Notification.create(notification().message(), level));
+      return this;
+    }
+
     @Override
     public abstract Alert build();
   }
@@ -47,6 +66,7 @@ public abstract class Alert implements Job {
   public abstract String id();
 
   @JsonProperty
+  @Nullable // TODO remove when production upgraded
   public abstract Notification notification();
 
   @Override
