@@ -62,7 +62,8 @@ export default class JobShort extends React.Component {
         job.bigDecimals.stopPrice +
         " then sell at " +
         job.bigDecimals.limitPrice +
-        " trailing at " + job.bigDecimals.lastSyncPrice
+        " trailing at " +
+        job.bigDecimals.lastSyncPrice
       )
     } else if (
       job.jobType === jobTypes.SOFT_TRAILING_STOP &&
@@ -75,10 +76,13 @@ export default class JobShort extends React.Component {
         job.bigDecimals.stopPrice +
         " then buy at " +
         job.bigDecimals.limitPrice +
-        " trailing at " + job.bigDecimals.lastSyncPrice
+        " trailing at " +
+        job.bigDecimals.lastSyncPrice
       )
     } else if (job.jobType === jobTypes.ALERT) {
       return "Send alert"
+    } else if (job.jobType === jobTypes.STATUS_UPDATE) {
+      return "Status update"
     } else {
       return "Complex (" + job.jobType + ")"
     }

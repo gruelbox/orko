@@ -15,8 +15,13 @@ export const getMarketTradeHistory = state => state.coin.trades
 
 export const getTopOfOrderBook = getOrderbook // Moved to worker
 
-export const locationToCoin = (location) => {
-  if (location && location.pathname && location.pathname.startsWith("/coin/") && location.pathname.length > 6) {
+export const locationToCoin = location => {
+  if (
+    location &&
+    location.pathname &&
+    location.pathname.startsWith("/coin/") &&
+    location.pathname.length > 6
+  ) {
     return coinFromKey(location.pathname.substring(6))
   } else {
     return null
@@ -28,22 +33,19 @@ export const getSelectedCoin = createSelector([getRouterLocation], location =>
 )
 
 function jobTriggerMatchesCoin(job, coin) {
-  return job.tickTrigger.exchange === coin.exchange &&
-          job.tickTrigger.base === coin.base &&
-          job.tickTrigger.counter === coin.counter
+  return (
+    job.tickTrigger.exchange === coin.exchange &&
+    job.tickTrigger.base === coin.base &&
+    job.tickTrigger.counter === coin.counter
+  )
 }
 
 export const getOrdersForSelectedCoin = createSelector(
   [getOrders, getStopJobs, getSelectedCoin],
   (orders, stopJobs, selectedCoin) => {
+    if (!selectedCoin) return null
 
-    if (!selectedCoin)
-      return null
-
-    if (!orders)
-      return orders
-
-    const exchange = orders.allOpenOrders
+    if (!orders) return orders
 
     const server = stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
@@ -51,15 +53,25 @@ export const getOrdersForSelectedCoin = createSelector(
         runningAt: "SERVER",
         jobId: job.id,
         type: job.high
-          ? job.high.job.direction === "BUY" ? "BID" : "ASK"
-          : job.low.job.direction === "BUY" ? "BID" : "ASK",
-        stopPrice: job.high ? Number(job.high.thresholdAsString) : Number(job.low.thresholdAsString),
-        limitPrice: job.high ? Number(job.high.job.bigDecimals.limitPrice) : Number(job.low.job.bigDecimals.limitPrice),
-        originalAmount: job.high ? Number(job.high.job.bigDecimals.amount) : Number(job.low.job.bigDecimals.amount),
+          ? job.high.job.direction === "BUY"
+            ? "BID"
+            : "ASK"
+          : job.low.job.direction === "BUY"
+            ? "BID"
+            : "ASK",
+        stopPrice: job.high
+          ? Number(job.high.thresholdAsString)
+          : Number(job.low.thresholdAsString),
+        limitPrice: job.high
+          ? Number(job.high.job.bigDecimals.limitPrice)
+          : Number(job.low.job.bigDecimals.limitPrice),
+        originalAmount: job.high
+          ? Number(job.high.job.bigDecimals.amount)
+          : Number(job.low.job.bigDecimals.amount),
         cumulativeAmount: "--"
       }))
 
-    return exchange.concat(server)
+    return orders.concat(server)
   }
 )
 
@@ -83,7 +95,13 @@ export const getCoinsForDisplay = createSelector(
             job.tickTrigger.base === coin.base &&
             job.tickTrigger.counter === coin.counter
         ),
-        priceChange: referencePrice ? Number(((ticker ? ticker.last : referencePrice) - referencePrice) * 100 / referencePrice).toFixed(2) + "%" : "0.00%"
+        priceChange: referencePrice
+          ? Number(
+              (((ticker ? ticker.last : referencePrice) - referencePrice) *
+                100) /
+                referencePrice
+            ).toFixed(2) + "%"
+          : "0.00%"
       }
     })
 )

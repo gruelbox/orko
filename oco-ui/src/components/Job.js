@@ -1,7 +1,7 @@
 import React, { Component } from "react"
 import { Icon } from "semantic-ui-react"
 
-import * as jobTypes from '../services/jobTypes'
+import * as jobTypes from "../services/jobTypes"
 import JobStage from "./primitives/JobStage"
 import JobStages from "./primitives/JobStages"
 
@@ -49,14 +49,16 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === jobTypes.SOFT_TRAILING_STOP && job.direction === SELL) {
+    } else if (
+      job.jobType === jobTypes.SOFT_TRAILING_STOP &&
+      job.direction === SELL
+    ) {
       return (
         <JobStages>
           <JobStage>
-            <Icon name="eye" /> Watch price {job.tickTrigger.base +
-              "/" +
-              job.tickTrigger.counter}{" "}
-            on {job.tickTrigger.exchange} 
+            <Icon name="eye" /> Watch price{" "}
+            {job.tickTrigger.base + "/" + job.tickTrigger.counter} on{" "}
+            {job.tickTrigger.exchange}
             <JobStages>
               <JobStage>
                 <Icon name="pointing down" />
@@ -83,7 +85,10 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
-    } else if (job.jobType === jobTypes.SOFT_TRAILING_STOP && job.direction === BUY) {
+    } else if (
+      job.jobType === jobTypes.SOFT_TRAILING_STOP &&
+      job.direction === BUY
+    ) {
       return (
         <JobStages>
           <JobStage>
@@ -120,7 +125,17 @@ export default class Job extends Component {
       return (
         <JobStages>
           <JobStage>
-            <Icon name="computer" />Send a telegram message: '{job.message}'
+            <Icon name="computer" />
+            Send a telegram message: '{job.notification.message}'
+          </JobStage>
+        </JobStages>
+      )
+    } else if (job.jobType === jobTypes.STATUS_UPDATE) {
+      return (
+        <JobStages>
+          <JobStage>
+            <Icon name="computer" />
+            Status update
           </JobStage>
         </JobStages>
       )

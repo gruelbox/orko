@@ -140,15 +140,16 @@ class JobRunner {
       if (!status.compareAndSet(JobStatus.CREATED, JobStatus.STARTING))
         throw new IllegalStateException("Job lifecycle status indicates re-use of lifetime manager: " + job);
       LOGGER.info(job + " starting...");
-      if (!processor.start()) {
+
+      boolean stayedResident = processor.start();
+      if (!stayedResident) {
+        LOGGER.info(job + " finished immediately, cleaning up");
         jobAccess.delete(job.id());
         processor.stop();
         status.set(JobStatus.STOPPED);
-        LOGGER.debug(job + " finished immediately");
+        LOGGER.info(job + " cleaned up");
       } else {
-        status.set(JobStatus.RUNNING);
-        eventBus.register(this);
-        LOGGER.debug(job + " started");
+        register();
       }
     }
 
@@ -165,13 +166,11 @@ class JobRunner {
 
     @Subscribe
     public void stop(StopEvent stop) {
-      LOGGER.info(job + " stopping due to shutdown");
-      if (!stopAndUnregister()) {
-        LOGGER.debug("Stop of job which is already shutting down: " + job);
-        return;
+      LOGGER.debug(job + " stopping due to shutdown");
+      if (stopAndUnregister()) {
+        jobLocker.releaseLock(job.id(), uuid);
+        LOGGER.debug(job + " stopped due to shutdown");
       }
-      jobLocker.releaseLock(job.id(), uuid);
-      LOGGER.debug(job + " stopped due to shutdown");
     }
 
     @Override
@@ -188,22 +187,35 @@ class JobRunner {
 
     @Override
     public void finish() {
-      LOGGER.debug(job + " finishing...");
+      LOGGER.info(job + " finishing...");
       if (!stopAndUnregister()) {
-        LOGGER.debug("Finish of job which is already shutting down: " + job);
+        LOGGER.warn("Finish of job which is already shutting down: " + job);
         return;
       }
       jobAccess.delete(job.id());
       LOGGER.info(job + " finished");
     }
 
-    private boolean stopAndUnregister() {
-      if (!status.compareAndSet(JobStatus.RUNNING, JobStatus.STOPPING))
+    private synchronized void register() {
+      if (status.compareAndSet(JobStatus.STARTING, JobStatus.RUNNING)) {
+        status.set(JobStatus.RUNNING);
+        eventBus.register(this);
+        LOGGER.info(job + " started");
+      }
+    }
+
+    private synchronized boolean stopAndUnregister() {
+      if (status.compareAndSet(JobStatus.RUNNING, JobStatus.STOPPING)) {
+        processor.stop();
+        eventBus.unregister(this);
+        status.set(JobStatus.STOPPED);
+        return true;
+      } else if (status.compareAndSet(JobStatus.STARTING, JobStatus.STOPPED)) {
+        return true;
+      } else {
+        LOGGER.debug("Stop of job which is already shutting down: " + job);
         return false;
-      processor.stop();
-      eventBus.unregister(this);
-      status.set(JobStatus.STOPPED);
-      return true;
+      }
     }
 
     @Override

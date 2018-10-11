@@ -26,6 +26,7 @@ import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
@@ -39,7 +40,8 @@ public class TestLimitOrderJobProcessor {
   private static final CurrencyPair CURRENCY_PAIR = new CurrencyPair(BASE, COUNTER);
   private static final String EXCHANGE = "fooex";
 
-  @Mock private NotificationService telegramService;
+  @Mock private StatusUpdateService statusUpdateService;
+  @Mock private NotificationService notificationService;
   @Mock private ExchangeService exchangeService;
 
   @Mock private Exchange exchange;
@@ -74,7 +76,7 @@ public class TestLimitOrderJobProcessor {
         .direction(Direction.SELL)
         .build();
 
-    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory);
+    LimitOrderJobProcessor processor = newProcessor(job);
     boolean result = processor.start();
     processor.stop();
 
@@ -99,7 +101,7 @@ public class TestLimitOrderJobProcessor {
         .direction(Direction.BUY)
         .build();
 
-    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory);
+    LimitOrderJobProcessor processor = newProcessor(job);
     boolean result = processor.start();
     processor.stop();
 
@@ -123,7 +125,7 @@ public class TestLimitOrderJobProcessor {
         .direction(Direction.BUY)
         .build();
 
-    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory);
+    LimitOrderJobProcessor processor = newProcessor(job);
     boolean result = processor.start();
     processor.stop();
 
@@ -150,7 +152,7 @@ public class TestLimitOrderJobProcessor {
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(IOError.class);
 
-    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory);
+    LimitOrderJobProcessor processor = newProcessor(job);
     boolean result = processor.start();
     processor.stop();
 
@@ -177,7 +179,7 @@ public class TestLimitOrderJobProcessor {
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(IOError.class);
 
-    LimitOrderJobProcessor processor = new LimitOrderJobProcessor(job, jobControl, telegramService, tradeServiceFactory);
+    LimitOrderJobProcessor processor = newProcessor(job);
     boolean result = processor.start();
     processor.stop();
 
@@ -187,19 +189,23 @@ public class TestLimitOrderJobProcessor {
     verifyDidNothingElse();
   }
 
+  private LimitOrderJobProcessor newProcessor(LimitOrderJob job) {
+    return new LimitOrderJobProcessor(job, jobControl, statusUpdateService, notificationService, tradeServiceFactory);
+  }
+
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
   private void verifyDidNothingElse() {
-    verifyNoMoreInteractions(telegramService, tradeService, jobControl);
+    verifyNoMoreInteractions(notificationService, tradeService, jobControl);
   }
 
   private void verifySentError() {
-    verify(telegramService).error(Mockito.anyString(), Mockito.any(IOError.class));
+    verify(notificationService).error(Mockito.anyString(), Mockito.any(IOError.class));
   }
 
   private void verifySentMessage() {
-    verify(telegramService).info(Mockito.anyString());
+    verify(notificationService).alert(Mockito.anyString());
   }
 
   private void verifyLimitSell() throws IOException {

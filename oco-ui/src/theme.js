@@ -104,16 +104,25 @@ const globalCss = `
     }
 
     .oco-emphasis {
-        color: ${theme.colors.emphasis} !important;
-        text-shadow: 0px 0px 5px ${darken(0.2, theme.colors.emphasis)};
+      color: ${theme.colors.emphasis} !important;
+      text-shadow: 0px 0px 5px ${darken(0.2, theme.colors.emphasis)};
     }
 
     .oco-buy {
-        color: ${theme.colors.buy};
+      color: ${theme.colors.buy};
     }
 
     .oco-sell {
-        color: ${theme.colors.sell};
+      color: ${theme.colors.sell};
+    }
+
+    .oco-CANCELED {
+      opacity: 0.4;
+    }
+
+    .oco-PENDING_NEW {
+      opacity: 0.6;
+      box-shadow: 0px 0px 20px ${theme.colors.emphasis} inset;
     }
 
     .ReactTable {

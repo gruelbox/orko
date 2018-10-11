@@ -26,7 +26,10 @@ import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.job.OneCancelsOther.ThresholdAndJob;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
+import com.grahamcrockford.oco.notification.Notification;
+import com.grahamcrockford.oco.notification.NotificationLevel;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
@@ -48,7 +51,8 @@ public class TestOneCancelsOtherProcessor {
       .build();
 
   @Mock private JobSubmitter enqueuer;
-  @Mock private NotificationService telegramService;
+  @Mock private StatusUpdateService statusUpdateService;
+  @Mock private NotificationService notificationService;
 
   @Mock private Exchange exchange;
   @Mock private MarketDataService marketDataService;
@@ -108,7 +112,9 @@ public class TestOneCancelsOtherProcessor {
           .bid(LOW_PRICE)
           .build()));
 
-    verify(telegramService).info(Mockito.anyString());
+    ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationService).send(notificationCaptor.capture());
+    Assert.assertEquals(NotificationLevel.ALERT, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job1);
     verify(jobControl).finish();
     verifyDidNothingElse();
@@ -133,6 +139,9 @@ public class TestOneCancelsOtherProcessor {
             .bid(LOW_PRICE)
             .build()));
 
+    ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationService).send(notificationCaptor.capture());
+    Assert.assertEquals(NotificationLevel.INFO, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job1);
     verify(jobControl).finish();
     verifyDidNothingElse();
@@ -198,7 +207,9 @@ public class TestOneCancelsOtherProcessor {
           .bid(HIGH_PRICE)
           .build()));
 
-    verify(telegramService).info(Mockito.anyString());
+    ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationService).send(notificationCaptor.capture());
+    Assert.assertEquals(NotificationLevel.ALERT, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job2);
     verify(jobControl).finish();
     verifyDidNothingElse();
@@ -223,6 +234,9 @@ public class TestOneCancelsOtherProcessor {
           .bid(HIGH_PRICE)
           .build()));
 
+    ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+    verify(notificationService).send(notificationCaptor.capture());
+    Assert.assertEquals(NotificationLevel.INFO, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job2);
     verify(jobControl).finish();
     verifyDidNothingElse();
@@ -260,15 +274,15 @@ public class TestOneCancelsOtherProcessor {
         .build();
     OneCancelsOtherProcessor processor = createProcessor(job);
     Assert.assertFalse(processor.start());
-    verify(telegramService).error(Mockito.anyString());
+    verify(notificationService).error(Mockito.anyString());
   }
 
   private OneCancelsOtherProcessor createProcessor(OneCancelsOther job) {
-    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, telegramService, exchangeEventRegistry, exchangeService);
+    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, statusUpdateService, notificationService, exchangeEventRegistry, exchangeService);
   }
 
   private void verifyDidNothingElse() {
     verify(exchangeService).exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER));
-    verifyNoMoreInteractions(exchangeEventRegistry, telegramService, enqueuer, jobControl, exchangeService);
+    verifyNoMoreInteractions(exchangeEventRegistry, notificationService, enqueuer, jobControl, exchangeService);
   }
 }

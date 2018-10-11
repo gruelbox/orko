@@ -18,7 +18,6 @@ import javax.ws.rs.core.Response;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.oco.auth.Roles;
-import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.submit.JobAccess;
 import com.grahamcrockford.oco.submit.JobAccess.JobDoesNotExistException;
@@ -38,13 +37,11 @@ public class JobResource implements WebResource {
 
   private final JobSubmitter jobSubmitter;
   private final JobAccess jobAccess;
-  private final NotificationService notificationService;
 
   @Inject
-  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter, NotificationService notificationService) {
+  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter) {
     this.jobAccess = jobAccess;
     this.jobSubmitter = jobSubmitter;
-    this.notificationService = notificationService;
   }
 
   @GET
@@ -59,7 +56,6 @@ public class JobResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public Job put(Job job) throws AuthenticationException {
     Job created = jobSubmitter.submitNewUnchecked(job);
-    notificationService.info("Requested: " + created + " (" + created.id() + ")");
     return created;
   }
 
@@ -87,8 +83,6 @@ public class JobResource implements WebResource {
   @Timed
   @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
-    Job job = jobAccess.load(id);
     jobAccess.delete(id);
-    notificationService.info("Deleted: " + job + " (" + id + ")");
   }
 }

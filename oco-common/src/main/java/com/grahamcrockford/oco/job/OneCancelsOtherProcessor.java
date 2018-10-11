@@ -1,5 +1,9 @@
 package com.grahamcrockford.oco.job;
 
+import static com.grahamcrockford.oco.notification.NotificationStatus.FAILURE_PERMANENT;
+import static com.grahamcrockford.oco.notification.NotificationStatus.FAILURE_TRANSIENT;
+import static com.grahamcrockford.oco.notification.NotificationStatus.SUCCESS;
+
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +15,10 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
+import com.grahamcrockford.oco.notification.Notification;
+import com.grahamcrockford.oco.notification.NotificationLevel;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.submit.JobSubmitter;
@@ -31,6 +38,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   );
 
   private final JobSubmitter jobSubmitter;
+  private final StatusUpdateService statusUpdateService;
   private final NotificationService notificationService;
   private final ExchangeEventRegistry exchangeEventRegistry;
 
@@ -39,16 +47,21 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
   private final ExchangeService exchangeService;
 
+  private volatile boolean done;
+
+
   @AssistedInject
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
                            @Assisted JobControl jobControl,
                            JobSubmitter jobSubmitter,
+                           StatusUpdateService statusUpdateService,
                            NotificationService notificationService,
                            ExchangeEventRegistry exchangeEventRegistry,
                            ExchangeService exchangeService) {
     this.job = job;
     this.jobControl = jobControl;
     this.jobSubmitter = jobSubmitter;
+    this.statusUpdateService = statusUpdateService;
     this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.exchangeService = exchangeService;
@@ -57,6 +70,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   @Override
   public boolean start() {
     if (!exchangeService.exchangeSupportsPair(job.tickTrigger().exchange(), job.tickTrigger().currencyPair())) {
+      statusUpdateService.status(job.id(), FAILURE_PERMANENT);
       notificationService.error("Cancelling job as currency no longer supported: " + job);
       return false;
     }
@@ -69,7 +83,25 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
   }
 
-  private void tick(TickerEvent tickerEvent) {
+  private synchronized void tick(TickerEvent tickerEvent) {
+    try {
+      if (!done)
+        tickInner(tickerEvent);
+    } catch (Throwable t) {
+      String message = String.format(
+        "One-cancels-other on %s %s/%s market temporarily failed with error: %s",
+        job.tickTrigger().exchange(),
+        job.tickTrigger().base(),
+        job.tickTrigger().counter(),
+        t.getMessage()
+      );
+      LOGGER.error(message, t);
+      statusUpdateService.status(job.id(), FAILURE_TRANSIENT);
+      notificationService.error(message, t);
+    }
+  }
+
+  private void tickInner(TickerEvent tickerEvent) {
 
     final Ticker ticker = tickerEvent.ticker();
     final TickerSpec ex = job.tickTrigger();
@@ -86,39 +118,47 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
     if (job.low() != null && ticker.getBid().compareTo(job.low().threshold()) <= 0) {
 
-      if (job.verbose()) {
-        notificationService.info(String.format(
-          "Job [%s] on [%s/%s/%s]: bid price (%s) hit low threshold (%s). Triggering low action.",
-          job.id(),
-          ex.exchange(),
-          ex.base(),
-          ex.counter(),
-          ticker.getBid(),
-          job.low().threshold()
-        ));
-      }
+      notificationService.send(
+        Notification.create(
+          String.format(
+            "One-cancels-other on %s %s/%s market hit low threshold (%s < %s)",
+            job.tickTrigger().exchange(),
+            job.tickTrigger().base(),
+            job.tickTrigger().counter(),
+            ticker.getBid(),
+            job.low().threshold()
+          ),
+          job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
+        )
+      );
 
       // This may throw, in which case retry of the job should kick in
       jobSubmitter.submitNewUnchecked(job.low().job());
+      statusUpdateService.status(job.id(), SUCCESS);
+      done = true;
       jobControl.finish();
       return;
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
-      if (job.verbose()) {
-        notificationService.info(String.format(
-          "Job [%s] on [%s/%s/%s]: bid price (%s) hit high threshold (%s). Triggering high action.",
-          job.id(),
-          ex.exchange(),
-          ex.base(),
-          ex.counter(),
-          ticker.getBid(),
-          job.high().threshold()
-        ));
-      }
+      notificationService.send(
+        Notification.create(
+          String.format(
+            "One-cancels-other on %s %s/%s market hit high threshold (%s > %s)",
+            job.tickTrigger().exchange(),
+            job.tickTrigger().base(),
+            job.tickTrigger().counter(),
+            ticker.getBid(),
+            job.high().threshold()
+          ),
+          job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
+        )
+      );
 
       // This may throw, in which case retry of the job should kick in
       jobSubmitter.submitNewUnchecked(job.high().job());
+      statusUpdateService.status(job.id(), SUCCESS);
+      done = true;
       jobControl.finish();
       return;
 

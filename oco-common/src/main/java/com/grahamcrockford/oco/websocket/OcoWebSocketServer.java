@@ -45,7 +45,8 @@ import com.grahamcrockford.oco.marketdata.MarketDataType;
 import com.grahamcrockford.oco.marketdata.SerializableTrade;
 import com.grahamcrockford.oco.marketdata.TradeEvent;
 import com.grahamcrockford.oco.marketdata.TradeHistoryEvent;
-import com.grahamcrockford.oco.notification.NotificationEvent;
+import com.grahamcrockford.oco.notification.Notification;
+import com.grahamcrockford.oco.notification.StatusUpdate;
 import com.grahamcrockford.oco.signal.UserTradeEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.util.SafelyDispose;
@@ -279,10 +280,14 @@ public final class OcoWebSocketServer {
     );
   }
 
+  @Subscribe
+  void onNotification(Notification notification) {
+    send(notification, Nature.NOTIFICATION);
+  }
 
   @Subscribe
-  void onNotification(NotificationEvent notificationEvent) {
-    send(notificationEvent, Nature.NOTIFICATION);
+  void onStatusUpdate(StatusUpdate statusUpdate) {
+    send(statusUpdate, Nature.STATUS_UPDATE);
   }
 
   /**

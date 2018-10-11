@@ -15,19 +15,25 @@ const textStyle = {
   textAlign: "left"
 }
 
+const iconStyle = {
+  textAlign: "center"
+}
+
 const columns = [
   {
     id: "icon",
     Header: null,
     accessor: "notificationType",
     Cell: ({ original }) =>
-      original.notificationType === "ERROR" ? (
+      original.level === "ERROR" ? (
         <Icon fitted name="warning sign" />
+      ) : original.level === "ALERT" ? (
+        <Icon fitted name="check circle outline" />
       ) : (
         <Icon fitted name="info" />
       ),
-    headerStyle: textStyle,
-    style: textStyle,
+    headerStyle: iconStyle,
+    style: iconStyle,
     resizable: true,
     width: 32
   },
@@ -65,7 +71,7 @@ const NotificationsContainer = ({ notifications, dispatch }) => (
           title="Clear notifications"
           onClick={() => dispatch(notificationActions.clear())}
         >
-          <Icon name="close" />
+          <Icon name="trash" />
         </Href>
       </Span>
     )}
@@ -75,9 +81,13 @@ const NotificationsContainer = ({ notifications, dispatch }) => (
       getTrProps={(state, rowInfo, column) => ({
         style: {
           color:
-            rowInfo.original.notificationType === "ERROR"
+            rowInfo.original.level === "ERROR"
               ? theme.colors.alert
-              : undefined
+              : rowInfo.original.level === "ALERT"
+                ? theme.colors.emphasis
+                : rowInfo.original.level === "TRACE"
+                  ? theme.colors.deemphasis
+                  : undefined
         }
       })}
       columns={columns}
