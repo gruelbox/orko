@@ -1,12 +1,11 @@
-import * as types from './actionTypes';
+import * as types from "./actionTypes"
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function() {
   if (!Notification) {
-    return;
+    return
   }
-  if (Notification.permission !== "granted")
-    Notification.requestPermission();
-});
+  if (Notification.permission !== "granted") Notification.requestPermission()
+})
 
 var lastMessage = null
 
@@ -23,7 +22,7 @@ export function trace(message) {
     dispatch({
       type: types.ADD,
       payload: {
-        notificationType: "TRACE",
+        level: "TRACE",
         message
       }
     })
@@ -33,13 +32,15 @@ export function trace(message) {
 function local(message, level) {
   return (dispatch, getState, socket) => {
     if (lastMessage !== message) {
-      notify("OKO Client", message)
+      if (level === "ALERT" || level === "ERROR") {
+        notify("OKO Client", message)
+      }
       lastMessage = message
     }
     dispatch({
       type: types.ADD,
       payload: {
-        notificationType: level,
+        level: level,
         message
       }
     })
@@ -48,8 +49,39 @@ function local(message, level) {
 
 export function add(notification) {
   return (dispatch, getState, socket) => {
-    notify("OKO Server", notification.message)
+    if (notification.level === "ALERT" || notification.level === "ERROR") {
+      notify("OKO Server", notification.message)
+    }
     dispatch({ type: types.ADD, payload: notification })
+  }
+}
+
+export function addStatusCallback(requestId, callback) {
+  return (dispatch, getState, socket) => {
+    const registration = getState().notifications.statusCallbacks[requestId]
+    if (registration) {
+      if (callback) callback(registration.status)
+      dispatch({ type: types.COMPLETE_CALLBACK, payload: requestId })
+    } else {
+      dispatch({
+        type: types.REQUEST_CALLBACK,
+        payload: { requestId, callback }
+      })
+    }
+  }
+}
+
+export function statusUpdate(update) {
+  return (dispatch, getState, socket) => {
+    const registration = getState().notifications.statusCallbacks[
+      update.requestId
+    ]
+    if (registration) {
+      if (registration.callback) registration.callback(update)
+      dispatch({ type: types.COMPLETE_CALLBACK, payload: update.requestId })
+    } else {
+      dispatch({ type: types.DEFER_CALLBACK, payload: update })
+    }
   }
 }
 
@@ -58,11 +90,10 @@ export function clear() {
 }
 
 function notify(title, message) {
-  if (Notification.permission !== "granted")
-    Notification.requestPermission()
+  if (Notification.permission !== "granted") Notification.requestPermission()
   else {
     var n = new Notification(title, { body: message })
-    setTimeout(n.close.bind(n), 5000);
+    setTimeout(n.close.bind(n), 5000)
     n.onclick = () => n.close()
   }
 }

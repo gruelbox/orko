@@ -2,7 +2,7 @@ package com.grahamcrockford.oco.notification;
 
 import com.google.inject.ImplementedBy;
 
-@ImplementedBy(TransientNotificationServiceImpl.class)
+@ImplementedBy(NotificationServiceImpl.class)
 public interface TransientNotificationService extends NotificationService {
 
 }

@@ -1,5 +1,11 @@
 package com.grahamcrockford.oco.notification;
 
+import static com.grahamcrockford.oco.notification.NotificationLevel.ERROR;
+import static com.grahamcrockford.oco.notification.NotificationLevel.ALERT;
+
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -8,6 +14,8 @@ import io.dropwizard.lifecycle.Managed;
 
 @Singleton
 final class TelegramNotificationsTask implements Managed {
+
+  private static final Set<NotificationLevel> SEND_FOR = ImmutableSet.of(ERROR, ALERT);
 
   private final TelegramService telegramService;
   private final EventBus eventBus;
@@ -29,7 +37,9 @@ final class TelegramNotificationsTask implements Managed {
   }
 
   @Subscribe
-  void notify(NotificationEvent event) {
-    telegramService.sendMessage(event.message());
+  void notify(Notification notification) {
+    if (SEND_FOR.contains(notification.level())) {
+      telegramService.sendMessage(notification.message());
+    }
   }
 }

@@ -10,21 +10,16 @@ import com.google.auto.value.AutoValue;
  */
 @AutoValue
 @JsonDeserialize
-public abstract class NotificationEvent {
+public abstract class Notification {
 
   @JsonCreator
-  public static NotificationEvent create(String message, NotificationType notificationType) {
-    return new AutoValue_NotificationEvent(message, notificationType);
+  public static Notification create(@JsonProperty("message") String message, @JsonProperty("level") NotificationLevel level) {
+    return new AutoValue_Notification(message, level);
   }
 
   @JsonProperty
   public abstract String message();
 
   @JsonProperty
-  public abstract NotificationType notificationType();
-
-  public enum NotificationType {
-    INFO,
-    ERROR
-  }
+  public abstract NotificationLevel level();
 }

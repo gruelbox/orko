@@ -10,30 +10,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
-import com.grahamcrockford.oco.notification.Notification;
+import com.grahamcrockford.oco.notification.StatusUpdate;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobBuilder;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
 
 @AutoValue
-@JsonDeserialize(builder = Alert.Builder.class)
-public abstract class Alert implements Job {
+@JsonDeserialize(builder = StatusUpdateJob.Builder.class)
+public abstract class StatusUpdateJob implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_Alert.Builder();
+    return new AutoValue_StatusUpdateJob.Builder();
   }
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder<Alert> {
-    @JsonCreator private static Builder create() { return Alert.builder(); }
+  public static abstract class Builder implements JobBuilder<StatusUpdateJob> {
+    @JsonCreator private static Builder create() { return StatusUpdateJob.builder(); }
     @Override
     @Id
     public abstract Builder id(String value);
-    public abstract Builder notification(Notification notification);
+    public abstract Builder statusUpdate(StatusUpdate statusUpdate);
     @Override
-    public abstract Alert build();
+    public abstract StatusUpdateJob build();
   }
 
   @Override
@@ -47,11 +47,11 @@ public abstract class Alert implements Job {
   public abstract String id();
 
   @JsonProperty
-  public abstract Notification notification();
+  public abstract StatusUpdate statusUpdate();
 
   @Override
   public String toString() {
-    return String.format("send " + notification().level().toString().toLowerCase() + " '%s'", notification().message());
+    return String.format("send status update: %s", statusUpdate());
   }
 
   @JsonIgnore
@@ -60,10 +60,10 @@ public abstract class Alert implements Job {
     return Processor.Factory.class;
   }
 
-  public interface Processor extends JobProcessor<Alert> {
-    public interface Factory extends JobProcessor.Factory<Alert> {
+  public interface Processor extends JobProcessor<StatusUpdateJob> {
+    public interface Factory extends JobProcessor.Factory<StatusUpdateJob> {
       @Override
-      Processor create(Alert job, JobControl jobControl);
+      Processor create(StatusUpdateJob job, JobControl jobControl);
     }
   }
 }

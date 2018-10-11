@@ -31,5 +31,6 @@ abstract class OcoWebSocketOutgoingMessage {
     USER_TRADE_HISTORY,
     BALANCE,
     NOTIFICATION,
+    STATUS_UPDATE
   }
 }

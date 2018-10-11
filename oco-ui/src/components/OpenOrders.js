@@ -146,20 +146,22 @@ const filledColumn = coin => ({
 const cancelColumn = (onCancelExchange, onCancelServer) => ({
   id: "close",
   Header: () => null,
-  Cell: ({ original }) => (
-    <Href
-      onClick={() => {
-        if (original.runningAt === "SERVER") {
-          onCancelServer(original.jobId)
-        } else {
-          onCancelExchange(original.id, original.type)
-        }
-      }}
-      title="Cancel order"
-    >
-      <Icon fitted name="close" />
-    </Href>
-  ),
+  Cell: ({ original }) =>
+    original.status === "CANCELED" ||
+    original.status === "PENDING_NEW" ? null : (
+      <Href
+        onClick={() => {
+          if (original.runningAt === "SERVER") {
+            onCancelServer(original.jobId)
+          } else {
+            onCancelExchange(original.id, original.type)
+          }
+        }}
+        title="Cancel order"
+      >
+        <Icon fitted name="close" />
+      </Href>
+    ),
   headerStyle: textStyle,
   style: textStyle,
   width: 32,
@@ -171,7 +173,10 @@ const OpenOrders = props => (
   <ReactTable
     data={props.orders}
     getTrProps={(state, rowInfo, column) => ({
-      className: rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell"
+      className:
+        (rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell") +
+        " oco-" +
+        rowInfo.original.status
     })}
     columns={[
       cancelColumn(props.onCancelExchange, props.onCancelServer),

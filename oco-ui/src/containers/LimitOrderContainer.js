@@ -6,6 +6,7 @@ import LimitOrder from "../components/LimitOrder"
 
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
+import * as coinActions from "../store/coin/actions"
 import * as jobTypes from "../services/jobTypes"
 import { isValidNumber } from "../util/numberUtils"
 
@@ -38,7 +39,7 @@ class LimitOrderContainer extends React.Component {
     )
   }
 
-  createJob = (direction) => {
+  createJob = direction => {
     const tickTrigger = {
       exchange: this.props.coin.exchange,
       counter: this.props.coin.counter,
@@ -56,8 +57,10 @@ class LimitOrderContainer extends React.Component {
     }
   }
 
-  onSubmit = async (direction) => {
-    this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
+  onSubmit = async direction => {
+    this.props.dispatch(
+      jobActions.submitJob(this.createJob(direction), this.onStatus)
+    )
     this.setState(current => ({
       job: Immutable.merge(current.job, {
         amount: ""
@@ -65,11 +68,21 @@ class LimitOrderContainer extends React.Component {
     }))
   }
 
+  onStatus = update => {
+    if (update.status === "SUCCESS") {
+      this.props.dispatch(coinActions.addOrder(update.payload))
+    }
+  }
+
   render() {
     const limitPriceValid =
-      this.state.job.limitPrice && isValidNumber(this.state.job.limitPrice) && this.state.job.limitPrice > 0
+      this.state.job.limitPrice &&
+      isValidNumber(this.state.job.limitPrice) &&
+      this.state.job.limitPrice > 0
     const amountValid =
-      this.state.job.amount && isValidNumber(this.state.job.amount) && this.state.job.amount > 0
+      this.state.job.amount &&
+      isValidNumber(this.state.job.amount) &&
+      this.state.job.amount > 0
 
     return (
       <LimitOrder

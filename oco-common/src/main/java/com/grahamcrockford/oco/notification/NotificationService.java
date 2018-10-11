@@ -1,26 +1,49 @@
 package com.grahamcrockford.oco.notification;
 
+import static com.grahamcrockford.oco.notification.NotificationLevel.ALERT;
+import static com.grahamcrockford.oco.notification.NotificationLevel.ERROR;
+import static com.grahamcrockford.oco.notification.NotificationLevel.INFO;
 import com.google.inject.ImplementedBy;
 
 /**
- * Service for notifying the user of an important event. Asynchronous.
+ * Service for notifying the user of an important event.
  */
-@ImplementedBy(RetryingNotificationService.class)
+@ImplementedBy(RetryingMessageService.class)
 public interface NotificationService {
 
   /**
-   * Sends a notification message asynchronously.
+   * Sends the notification.
    *
-   * @param message the message.
+   * @param notification
    */
-  void info(String message);
+  void send(Notification notification);
 
   /**
    * Sends a notification message asynchronously.
    *
    * @param message the message.
    */
-  void error(String message);
+  default void info(String message) {
+    send(Notification.create(message, INFO));
+  }
+
+  /**
+   * Sends a notification message asynchronously.
+   *
+   * @param message the message.
+   */
+  default void alert(String message) {
+    send(Notification.create(message, ALERT));
+  }
+
+  /**
+   * Sends a notification message asynchronously.
+   *
+   * @param message the message.
+   */
+  default void error(String message) {
+    send(Notification.create(message, ERROR));
+  }
 
   /**
    * Sends a notification message asynchronously.

@@ -42,6 +42,6 @@ class UserTradeNotifier implements Managed {
       e.trade().getOriginalAmount(),
       e.trade().getPrice()
     );
-    notificationService.info(message);
+    notificationService.alert(message);
   }
 }

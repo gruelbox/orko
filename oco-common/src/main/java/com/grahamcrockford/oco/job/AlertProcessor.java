@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.grahamcrockford.oco.job.Alert.AlertLevel;
 import com.grahamcrockford.oco.notification.TransientNotificationService;
 import com.grahamcrockford.oco.spi.JobControl;
 
@@ -21,11 +20,7 @@ class AlertProcessor implements Alert.Processor {
 
   @Override
   public boolean start() {
-    if (job.level().equals(AlertLevel.INFO)) {
-      notificationService.info(job.message());
-    } else {
-      notificationService.error(job.message());
-    }
+    notificationService.send(job.notification());
     return false;
   }
 

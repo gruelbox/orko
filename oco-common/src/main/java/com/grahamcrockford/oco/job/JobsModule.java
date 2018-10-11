@@ -10,5 +10,6 @@ public class JobsModule extends AbstractModule {
     install(new OrderStateNotifierProcessor.Module());
     install(new SoftTrailingStopProcessor.Module());
     install(new AlertProcessor.Module());
+    install(new StatusUpdateJobProcessor.Module());
   }
 }

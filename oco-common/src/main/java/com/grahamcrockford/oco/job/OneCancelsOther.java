@@ -69,10 +69,10 @@ public abstract class OneCancelsOther implements Job {
   @Override
   public String toString() {
     if (high() == null) {
-      return String.format("when price drops below %s on %s, %s", low().threshold(), tickTrigger(), low().job());
+      return String.format("when price drops below %s on %s, execute: %s", low().threshold(), tickTrigger(), low().job());
     } else {
       if (low() == null) {
-        return String.format("when price rises above %s on %s, %s", high().threshold(), tickTrigger(), high().job());
+        return String.format("when price rises above %s on %s, execute: %s", high().threshold(), tickTrigger(), high().job());
       } else {
         return String.format("one-cancels-other (high: %s, low: %s) on %s", high().threshold(), low().threshold(), tickTrigger());
       }

@@ -37,7 +37,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.Balance;
-import com.grahamcrockford.oco.notification.NotificationService;
 import com.grahamcrockford.oco.wiring.WebResource;
 
 /**
@@ -53,14 +52,12 @@ public class ExchangeResource implements WebResource {
   private final ExchangeService exchanges;
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
-  private final NotificationService notificationService;
 
   @Inject
-  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, NotificationService notificationService) {
+  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
-    this.notificationService = notificationService;
   }
 
 
@@ -271,7 +268,6 @@ public class ExchangeResource implements WebResource {
               .cancelOrder(new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType))
           )
           .build();
-      notificationService.info("Cancelled order: " + id);
       return response;
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
@@ -320,7 +316,6 @@ public class ExchangeResource implements WebResource {
       Response response = Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(id))
           .build();
-      notificationService.info("Cancelled order: " + id);
       return response;
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();

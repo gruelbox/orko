@@ -61,10 +61,12 @@ export function initialise(s, history) {
   socketClient.onConnectionStateChange(connected => {
     store.dispatch(socketActions.setConnectionState(connected))
     if (connected) {
-      store.dispatch(notificationActions.localMessage("Socket connected"))
+      if (!store.socket || store.socket.connected !== connected)
+        store.dispatch(notificationActions.localMessage("Socket connected"))
       resubscribe()
     } else {
-      store.dispatch(notificationActions.localError("Socket disconnected"))
+      if (!store.socket || store.socket.connected !== connected)
+        store.dispatch(notificationActions.localError("Socket disconnected"))
     }
   })
   socketClient.onError(message =>
@@ -72,6 +74,9 @@ export function initialise(s, history) {
   )
   socketClient.onNotification(message =>
     store.dispatch(notificationActions.add(message))
+  )
+  socketClient.onStatusUpdate(message =>
+    store.dispatch(notificationActions.statusUpdate(message))
   )
   socketClient.onTicker((coin, ticker) =>
     bufferAction(
@@ -94,7 +99,10 @@ export function initialise(s, history) {
   })
   socketClient.onOrders((coin, orders) => {
     if (sameCoin(coin, selectedCoin()))
-      bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(orders))
+      bufferAction(
+        ACTION_KEY_ORDERS,
+        coinActions.setOrders(orders.allOpenOrders)
+      )
   })
   socketClient.onTrade((coin, trade) => {
     if (sameCoin(coin, selectedCoin()))

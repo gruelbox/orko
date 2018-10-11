@@ -1,5 +1,6 @@
 package com.grahamcrockford.oco.notification;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
@@ -18,6 +19,8 @@ class TelegramService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
+  private static AtomicBoolean warnedNotConfigured = new AtomicBoolean();
+
   private final WebTarget telegramTarget;
   private final TelegramConfiguration configuration;
 
@@ -31,7 +34,8 @@ class TelegramService {
 
   public void sendMessage(String message) {
     if (telegramTarget == null) {
-      LOGGER.warn("Telegram message suppressed. Not configured.");
+      if (warnedNotConfigured.compareAndSet(false, true))
+        LOGGER.warn("Telegram message suppressed. Not configured.");
       return;
     }
     final Response response = telegramTarget

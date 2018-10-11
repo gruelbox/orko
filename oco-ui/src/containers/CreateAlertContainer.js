@@ -11,7 +11,6 @@ import * as jobTypes from "../services/jobTypes"
 import { isValidNumber } from "../util/numberUtils"
 
 class CreateAlertContainer extends React.Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -44,9 +43,13 @@ class CreateAlertContainer extends React.Component {
 
   createJob = () => {
     const highPriceValid =
-      this.state.job.highPrice && isValidNumber(this.state.job.highPrice) && this.state.job.highPrice > 0
+      this.state.job.highPrice &&
+      isValidNumber(this.state.job.highPrice) &&
+      this.state.job.highPrice > 0
     const lowPriceValid =
-      this.state.job.lowPrice && isValidNumber(this.state.job.lowPrice) && this.state.job.lowPrice > 0
+      this.state.job.lowPrice &&
+      isValidNumber(this.state.job.lowPrice) &&
+      this.state.job.lowPrice > 0
 
     const tickTrigger = {
       exchange: this.props.coin.exchange,
@@ -63,12 +66,17 @@ class CreateAlertContainer extends React.Component {
             thresholdAsString: String(this.state.job.lowPrice),
             job: {
               jobType: jobTypes.ALERT,
-              message:
-                "Price of " +
-                this.props.coin.name +
-                " dropped below " +
-                this.state.job.lowPrice +
-                ((this.state.job.message !== "") ? ": " + this.state.job.message : "")
+              notification: {
+                message:
+                  "Price of " +
+                  this.props.coin.name +
+                  " dropped below " +
+                  this.state.job.lowPrice +
+                  (this.state.job.message !== ""
+                    ? ": " + this.state.job.message
+                    : ""),
+                level: "ALERT"
+              }
             }
           }
         : null,
@@ -77,12 +85,17 @@ class CreateAlertContainer extends React.Component {
             thresholdAsString: String(this.state.job.highPrice),
             job: {
               jobType: "Alert",
-              message:
-                "Price of " +
-                this.props.coin.name +
-                " rose above " +
-                this.state.job.highPrice +
-                ((this.state.job.message !== "") ? ": " + this.state.job.message : "")
+              notification: {
+                message:
+                  "Price of " +
+                  this.props.coin.name +
+                  " rose above " +
+                  this.state.job.highPrice +
+                  (this.state.job.message !== ""
+                    ? ": " + this.state.job.message
+                    : ""),
+                level: "ALERT"
+              }
             }
           }
         : null

@@ -62,17 +62,17 @@ export default function reduce(state = initialState, action = {}) {
         userTradeHistory: action.payload
       })
     case types.CANCEL_ORDER:
-      return Immutable.merge(
-        state,
-        {
-          orders: {
-            allOpenOrders: state.orders.allOpenOrders.filter(
-              o => o.id !== action.payload
-            )
-          }
-        },
-        { deep: true }
-      )
+      const index = state.orders.findIndex(o => o.id === action.payload)
+      if (index === -1) return state
+      const orders = Immutable.asMutable(state.orders, { deep: true })
+      orders[index].status = "CANCELED"
+      return Immutable.merge(state, {
+        orders
+      })
+    case types.ADD_ORDER:
+      return Immutable.merge(state, {
+        orders: state.orders.concat(action.payload)
+      })
     default:
       return state
   }
