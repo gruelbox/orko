@@ -209,9 +209,6 @@ public class ExchangeServiceImpl implements ExchangeService {
     if (friendlyName.equals("gdax-sandbox"))
       return GDAXStreamingExchange.class;
 
-    if (friendlyName.equals("cryptopia"))
-      return FixedCryptopiaExchange.class;
-
     Optional<Class<? extends StreamingExchange>> streamingResult = STREAMING_EXCHANGE_TYPES.get()
         .stream()
         .filter(c -> c.getSimpleName().replace("StreamingExchange", "").toLowerCase().equals(friendlyName))
