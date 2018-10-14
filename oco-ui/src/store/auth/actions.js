@@ -30,11 +30,15 @@ export function connect() {
       if (token) {
         dispatch(notificationActions.trace("Connecting using token"))
       } else {
-        dispatch(notificationActions.trace("Not attempting connect, require token"))
+        dispatch(
+          notificationActions.trace("Not attempting connect, require token")
+        )
         return
       }
     } else {
-      dispatch(notificationActions.trace("Connecting - no authentication configured"))
+      dispatch(
+        notificationActions.trace("Connecting - no authentication configured")
+      )
     }
     dispatch(coinActions.fetch())
     dispatch(coinActions.fetchReferencePrices())
@@ -73,7 +77,10 @@ export function fetchOktaConfig() {
   return wrappedRequest(
     () => authService.config(),
     config => ({ type: types.SET_OKTA_CONFIG, payload: config }),
-    error => notificationActions.localError("Could not fetch authentication data: " + error.message),
+    error =>
+      notificationActions.localError(
+        "Could not fetch authentication data: " + error.message
+      ),
     () => connect()
   )
 }
@@ -108,7 +115,11 @@ export function invalidateLogin() {
 
 export function handleHttpResponse(response) {
   if (response.status === 403) {
-    return { type: types.WHITELIST_UPDATE, error: true, payload: new Error("Whitelisting expired") }
+    return {
+      type: types.WHITELIST_UPDATE,
+      error: true,
+      payload: new Error("Whitelisting expired")
+    }
   } else if (response.status === 401) {
     return invalidateLogin()
   }
@@ -158,11 +169,18 @@ export async function dispatchWrappedRequest(
         dispatch(authAction)
       } else {
         // Otherwise, it's an unexpected error
-        throw new Error(
-          response.statusText
+        var errorMessage = null
+        try {
+          errorMessage = (await response.json()).message
+        } catch (err) {
+          // No-op
+        }
+        if (!errorMessage) {
+          errorMessage = response.statusText
             ? response.statusText
             : "Server error (" + response.status + ")"
-        )
+        }
+        throw new Error(errorMessage)
       }
     } else {
       if (jsonHandler) dispatch(jsonHandler(await response.json()))

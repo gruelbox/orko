@@ -15,7 +15,8 @@ export function submitJob(job, callback) {
 
 function addJob(job, callback) {
   return async (dispatch, getState) => {
-    dispatch(notificationActions.addStatusCallback(job.id, callback))
+    if (callback)
+      dispatch(notificationActions.addStatusCallback(job.id, callback))
     dispatch({ type: types.ADD_JOB, payload: job })
   }
 }

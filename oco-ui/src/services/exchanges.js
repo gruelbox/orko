@@ -1,4 +1,4 @@
-import { get, put, del } from "./fetchUtil"
+import { get, put, del, post } from "./fetchUtil"
 
 class ExchangesService {
   async fetchSubscriptions(token) {
@@ -7,6 +7,14 @@ class ExchangesService {
 
   async addSubscription(token, ticker) {
     return await put("subscriptions", token, ticker)
+  }
+
+  async submitOrder(token, exchange, order) {
+    return await post(
+      "exchanges/" + exchange + "/orders",
+      token,
+      JSON.stringify(order)
+    )
   }
 
   async fetchReferencePrices(token) {

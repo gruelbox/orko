@@ -3,6 +3,7 @@ package com.grahamcrockford.oco.exchange;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,8 +12,10 @@ import java.util.stream.Stream;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -22,11 +25,14 @@ import javax.ws.rs.core.Response;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
+import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
+import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.grahamcrockford.oco.auth.Roles;
 import com.grahamcrockford.oco.marketdata.Balance;
@@ -151,6 +158,47 @@ public class ExchangeResource implements WebResource {
           .build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
+    }
+  }
+
+
+  /**
+   * Submits a new order.
+   *
+   * @param exchange The exchange to submit to.
+   * @return
+   * @throws IOException
+   */
+  @POST
+  @Path("{exchange}/orders")
+  @Timed
+  @RolesAllowed(Roles.TRADER)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response postOrder(@PathParam("exchange") String exchange, Map<String, String> order) throws IOException {
+    if (order.containsKey("stopPrice") || !order.containsKey("limitPrice"))
+      return Response.status(400).entity(ImmutableMap.of("message", "Only limit orders supported at the moment")).build();
+
+    TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
+
+    try {
+      String id = tradeService.placeLimitOrder(
+        new LimitOrder(
+          OrderType.valueOf(order.get("type")),
+          new BigDecimal(order.get("amount")),
+          new CurrencyPair(order.get("base"), order.get("counter")),
+          null,
+          new Date(),
+          new BigDecimal(order.get("limitPrice"))
+        ));
+      return Response.ok()
+          .entity(ImmutableMap.of("id", id))
+          .build();
+    } catch (NotAvailableFromExchangeException e) {
+      return Response.status(503).build();
+    } catch (Exception e) {
+      LOGGER.error("Failed to submit order", e);
+      return Response.status(500).entity(ImmutableMap.of("message", "Failed to submit order. " + e.getMessage())).build();
     }
   }
 

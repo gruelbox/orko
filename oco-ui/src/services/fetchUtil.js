@@ -8,6 +8,10 @@ export function put(url, token, content) {
   return fetch(new Request("/api/" + url, action("PUT", token, content)))
 }
 
+export function post(url, token, content) {
+  return fetch(new Request("/api/" + url, action("POST", token, content)))
+}
+
 export function del(url, token, content) {
   return fetch(new Request("/api/" + url, action("DELETE", token, content)))
 }

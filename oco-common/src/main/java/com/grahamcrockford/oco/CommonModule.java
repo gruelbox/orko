@@ -21,7 +21,11 @@ class CommonModule extends AbstractModule {
   protected void configure() {
     Multibinder.newSetBinder(binder(), Service.class);
     Multibinder.newSetBinder(binder(), Managed.class);
-    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class);
+    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
+      .addBinding()
+      .toInstance(environment -> {
+        environment.jersey().register(new JerseyMappingErrorLoggingExceptionHandler());
+      });
     Multibinder.newSetBinder(binder(), HealthCheck.class);
     Multibinder.newSetBinder(binder(), WebResource.class);
     install(new WiringModule());

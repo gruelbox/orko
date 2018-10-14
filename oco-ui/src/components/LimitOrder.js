@@ -12,7 +12,7 @@ const LimitOrder = props => {
   const onChange = props.onChange
     ? (prop, value) =>
         props.onChange(
-          Immutable.merge(props.job, {
+          Immutable.merge(props.order, {
             [prop]: value
           })
         )
@@ -23,21 +23,21 @@ const LimitOrder = props => {
       <div>
         <Input
           id="limitPrice"
-          error={props.job.limitPrice && !props.limitPriceValid}
+          error={props.order.limitPrice && !props.limitPriceValid}
           label="Limit price"
           type="number"
           placeholder="Enter price..."
-          value={props.job.limitPrice ? props.job.limitPrice : ""}
+          value={props.order.limitPrice ? props.order.limitPrice : ""}
           onChange={e => onChange("limitPrice", e.target.value)}
           onFocus={e => props.onFocus("limitPrice")}
         />
         <Input
           id="amount"
-          error={props.job.amount && !props.amountValid}
+          error={props.order.amount && !props.amountValid}
           label="Amount"
           type="number"
           placeholder="Enter amount..."
-          value={props.job.amount ? props.job.amount : ""}
+          value={props.order.amount ? props.order.amount : ""}
           onChange={e => onChange("amount", e.target.value)}
           onFocus={e => props.onFocus("amount")}
         />
