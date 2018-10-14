@@ -22,7 +22,13 @@ import com.grahamcrockford.oco.spi.JobBuilder;
 public abstract class TestingJob implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_TestingJob.Builder().runAsync(false).update(false).stayResident(false);
+    return new AutoValue_TestingJob.Builder()
+        .runAsync(false)
+        .update(false)
+        .stayResident(false)
+        .failOnStart(false)
+        .failOnStop(false)
+        .failOnTick(false);
   }
 
   @AutoValue.Builder
@@ -37,6 +43,9 @@ public abstract class TestingJob implements Job {
     public abstract Builder runAsync(boolean runAsync);
     public abstract Builder stayResident(boolean stayResident);
     public abstract Builder update(boolean update);
+    public abstract Builder failOnStart(boolean failOnStart);
+    public abstract Builder failOnStop(boolean failOnStop);
+    public abstract Builder failOnTick(boolean failOnTick);
 
     public abstract Builder startLatch(CountDownLatch startLatch);
     public abstract Builder completionLatch(CountDownLatch completionLatch);
@@ -58,6 +67,9 @@ public abstract class TestingJob implements Job {
   public abstract boolean runAsync();
   public abstract boolean stayResident();
   public abstract boolean update();
+  public abstract boolean failOnStart();
+  public abstract boolean failOnStop();
+  public abstract boolean failOnTick();
 
   @Nullable
   public abstract CountDownLatch startLatch();

@@ -8,6 +8,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
@@ -26,15 +27,17 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
   }
 
   @Override
-  public boolean start() {
+  public Status start() {
+    if (job.failOnStart())
+      throw new IllegalStateException("Fail on start");
     if (job.runAsync()) {
       asyncEventBus.register(this);
-      return true;
+      return Status.RUNNING;
     } else {
       if (job.startLatch() != null) {
         job.startLatch().countDown();
       }
-      return false;
+      return Status.SUCCESS;
     }
   }
 
@@ -42,8 +45,13 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
   private void tick(KeepAliveEvent tick) {
     if (job.startLatch() != null)
       job.startLatch().countDown();
-    if (!job.stayResident())
-      jobControl.finish();
+    if (job.failOnTick()) {
+      jobControl.finish(Status.FAILURE_PERMANENT);
+      return;
+    }
+    if (!job.stayResident()) {
+      jobControl.finish(Status.SUCCESS);
+    }
     if (job.update())
       jobControl.replace(job.toBuilder().update(false).build());
   }
@@ -55,6 +63,8 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
     }
     if (job.completionLatch() != null)
       job.completionLatch().countDown();
+    if (job.failOnStop())
+      throw new IllegalStateException("Fail on stop");
   }
 
   public interface Factory extends JobProcessor.Factory<TestingJob> { }

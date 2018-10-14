@@ -5,6 +5,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.spi.JobControl;
 
 @Deprecated
@@ -22,14 +23,9 @@ class OrderStateNotifierProcessor implements OrderStateNotifier.Processor {
   }
 
   @Override
-  public boolean start() {
+  public Status start() {
     notificationService.info("Discarded deprecated job: " + job);
-    return false;
-  }
-
-  @Override
-  public void stop() {
-    // No-op
+    return Status.FAILURE_PERMANENT;
   }
 
   public static final class Module extends AbstractModule {

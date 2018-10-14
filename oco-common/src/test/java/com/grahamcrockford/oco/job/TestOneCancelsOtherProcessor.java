@@ -29,6 +29,7 @@ import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.Notification;
 import com.grahamcrockford.oco.notification.NotificationLevel;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
@@ -82,7 +83,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     tickerConsumerCaptor.getValue().accept(
@@ -104,7 +105,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     tickerConsumerCaptor.getValue().accept(
@@ -116,7 +117,7 @@ public class TestOneCancelsOtherProcessor {
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.ALERT, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job1);
-    verify(jobControl).finish();
+    verify(jobControl).finish(Status.SUCCESS);
     verifyDidNothingElse();
   }
 
@@ -131,7 +132,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     tickerConsumerCaptor.getValue().accept(
@@ -143,7 +144,7 @@ public class TestOneCancelsOtherProcessor {
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.INFO, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job1);
-    verify(jobControl).finish();
+    verify(jobControl).finish(Status.SUCCESS);
     verifyDidNothingElse();
   }
 
@@ -157,7 +158,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     tickerConsumerCaptor.getValue().accept(
@@ -178,7 +179,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     tickerConsumerCaptor.getValue().accept(
@@ -199,7 +200,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     tickerConsumerCaptor.getValue().accept(
@@ -211,7 +212,7 @@ public class TestOneCancelsOtherProcessor {
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.ALERT, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job2);
-    verify(jobControl).finish();
+    verify(jobControl).finish(Status.SUCCESS);
     verifyDidNothingElse();
   }
 
@@ -226,7 +227,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     tickerConsumerCaptor.getValue().accept(
@@ -238,7 +239,7 @@ public class TestOneCancelsOtherProcessor {
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.INFO, notificationCaptor.getValue().level());
     verify(enqueuer).submitNewUnchecked(job2);
-    verify(jobControl).finish();
+    verify(jobControl).finish(Status.SUCCESS);
     verifyDidNothingElse();
   }
 
@@ -251,7 +252,7 @@ public class TestOneCancelsOtherProcessor {
         .build();
 
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
 
     verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
@@ -273,7 +274,7 @@ public class TestOneCancelsOtherProcessor {
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .build();
     OneCancelsOtherProcessor processor = createProcessor(job);
-    Assert.assertFalse(processor.start());
+    assertFailed(processor.start());
     verify(notificationService).error(Mockito.anyString());
   }
 
@@ -284,5 +285,13 @@ public class TestOneCancelsOtherProcessor {
   private void verifyDidNothingElse() {
     verify(exchangeService).exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER));
     verifyNoMoreInteractions(exchangeEventRegistry, notificationService, enqueuer, jobControl, exchangeService);
+  }
+
+  private void assertRunning(Status status) {
+    Assert.assertEquals(Status.RUNNING, status);
+  }
+
+  private void assertFailed(Status status) {
+    Assert.assertEquals(Status.FAILURE_PERMANENT, status);
   }
 }

@@ -30,6 +30,7 @@ import com.grahamcrockford.oco.job.SoftTrailingStop.Builder;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
@@ -379,12 +380,16 @@ public class TestSoftTrailingStopProcessorSell {
 
   @SuppressWarnings("unchecked")
   private void start(SoftTrailingStop job, SoftTrailingStopProcessor processor) {
-    Assert.assertTrue(processor.start());
+    assertRunning(processor.start());
     verify(exchangeEventRegistry).registerTicker(Mockito.eq(job.tickTrigger()), Mockito.eq(job.id()), Mockito.any(Consumer.class));
   }
 
   private SoftTrailingStopProcessor processor(SoftTrailingStop job) {
     return new SoftTrailingStopProcessor(job, jobControl, statusUpdateService, notificationService, exchangeService, enqueuer, exchangeEventRegistry);
+  }
+
+  private void assertRunning(Status status) {
+    Assert.assertEquals(Status.RUNNING, status);
   }
 
   private void verifyResyncedPriceTo(SoftTrailingStop job, BigDecimal syncPrice) throws IOException {
@@ -431,7 +436,7 @@ public class TestSoftTrailingStopProcessorSell {
   }
 
   private void verifyFinished() {
-    verify(jobControl).finish();
+    verify(jobControl).finish(Status.SUCCESS);
   }
 
   private Ticker everythingAt(BigDecimal price) {

@@ -1,8 +1,6 @@
 package com.grahamcrockford.oco.job;
 
-import static com.grahamcrockford.oco.notification.NotificationStatus.FAILURE_PERMANENT;
-import static com.grahamcrockford.oco.notification.NotificationStatus.SUCCESS;
-
+import static com.grahamcrockford.oco.notification.Status.FAILURE_PERMANENT;
 import java.util.Date;
 
 import org.knowm.xchange.dto.Order;
@@ -15,6 +13,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 
@@ -47,14 +46,14 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
    * We do preparatory work in the start method - retries are safe.
    */
   @Override
-  public boolean start() {
+  public Status start() {
     this.tradeService = tradeServiceFactory.getForExchange(job.tickTrigger().exchange());
     this.order = new LimitOrder(
         job.direction() == Direction.SELL ? Order.OrderType.ASK : Order.OrderType.BID,
         job.amount(), job.tickTrigger().currencyPair(),
         null, new Date(), job.limitPrice()
     );
-    return false;
+    return Status.SUCCESS;
   }
 
 
@@ -71,13 +70,13 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       reportFailed(job, e);
       return;
     }
-    reportSuccess(job, new LimitOrder(order.getType(), order.getOriginalAmount(), order.getCumulativeAmount(), order.getCurrencyPair(), xChangeOrderId, new Date(), job.limitPrice()));
+    reportSuccess(job, xChangeOrderId);
   }
 
-  private void reportSuccess(final LimitOrderJob job, LimitOrder limitOrder) {
+  private void reportSuccess(final LimitOrderJob job, String xChangeOrderId) {
     String message = String.format(
         "Order %s placed on %s %s/%s market: %s %s at %s",
-        limitOrder.getId(),
+        xChangeOrderId,
         job.tickTrigger().exchange(),
         job.tickTrigger().base(),
         job.tickTrigger().counter(),
@@ -85,7 +84,6 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
         job.amount().toPlainString(),
         job.limitPrice().toPlainString()
       );
-    statusUpdateService.status(job.id(), SUCCESS, limitOrder);
     notificationService.alert(message);
   }
 

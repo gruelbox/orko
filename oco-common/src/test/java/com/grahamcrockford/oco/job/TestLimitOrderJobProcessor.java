@@ -26,6 +26,7 @@ import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
@@ -77,7 +78,7 @@ public class TestLimitOrderJobProcessor {
         .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
-    boolean result = processor.start();
+    Status result = processor.start();
     processor.stop();
 
     verifyLimitSell();
@@ -102,7 +103,7 @@ public class TestLimitOrderJobProcessor {
         .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
-    boolean result = processor.start();
+    Status result = processor.start();
     processor.stop();
 
     verifyLimitBuy();
@@ -126,7 +127,7 @@ public class TestLimitOrderJobProcessor {
         .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
-    boolean result = processor.start();
+    Status result = processor.start();
     processor.stop();
 
     verifyLimitBuy();
@@ -153,7 +154,7 @@ public class TestLimitOrderJobProcessor {
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(IOError.class);
 
     LimitOrderJobProcessor processor = newProcessor(job);
-    boolean result = processor.start();
+    Status result = processor.start();
     processor.stop();
 
     verifyLimitSell();
@@ -180,7 +181,7 @@ public class TestLimitOrderJobProcessor {
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(IOError.class);
 
     LimitOrderJobProcessor processor = newProcessor(job);
-    boolean result = processor.start();
+    Status result = processor.start();
     processor.stop();
 
     verifyLimitBuy();
@@ -226,8 +227,8 @@ public class TestLimitOrderJobProcessor {
     Assert.assertEquals(Order.OrderType.BID, captor.getValue().getType());
   }
 
-  private void verifyFinished(boolean result) {
-    Assert.assertFalse(result);
+  private void verifyFinished(Status status) {
+    Assert.assertEquals(Status.SUCCESS, status);
   }
 
   private String newTradeId() {

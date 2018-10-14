@@ -19,20 +19,20 @@ public interface StatusUpdateService {
    * Sends a message indicating the status of an asynchronous request.
    *
    * @param requestId The id of the asynchronous request.
-   * @param notificationStatus The current request status.
+   * @param status The current request status.
    */
-  default void status(String requestId, NotificationStatus notificationStatus) {
-    send(StatusUpdate.create(requestId, notificationStatus, null));
+  default void status(String requestId, Status status) {
+    send(StatusUpdate.create(requestId, status, null));
   }
 
   /**
    * Sends a message indicating the status of an asynchronous request.
    *
    * @param requestId The id of the asynchronous request.
-   * @param notificationStatus The current request status.
+   * @param status The current request status.
    * @param payload The object processed.
    */
-  default void status(String requestId, NotificationStatus notificationStatus, Object payload) {
-    send(StatusUpdate.create(requestId, notificationStatus, payload));
+  default void status(String requestId, Status status, Object payload) {
+    send(StatusUpdate.create(requestId, status, payload));
   }
 }

@@ -1,5 +1,8 @@
 package com.grahamcrockford.oco.guardian;
 
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -16,6 +19,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -27,6 +31,8 @@ import com.grahamcrockford.oco.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
 import com.grahamcrockford.oco.marketdata.MarketDataSubscriptionManager;
+import com.grahamcrockford.oco.notification.Status;
+import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.JobProcessor;
@@ -47,6 +53,7 @@ public class TestJobExecutionIntegration {
   @Mock private ExchangeService exchangeService;
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private AccountServiceFactory accountServiceFactory;
+  @Mock private StatusUpdateService statusUpdateService;
 
   private EventBus asyncEventBus;
   private JobRunner jobSubmitter;
@@ -77,7 +84,7 @@ public class TestJobExecutionIntegration {
     config.setLoopSeconds(1);
 
     executor = Executors.newCachedThreadPool();
-    jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus);
+    jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus, statusUpdateService);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(exchangeService, config, tradeServiceFactory, accountServiceFactory, new EventBus());
@@ -110,6 +117,73 @@ public class TestJobExecutionIntegration {
     Assert.assertTrue(completion1.await(WAIT_SECONDS, TimeUnit.SECONDS));
     Assert.assertTrue(completion2.await(WAIT_SECONDS, TimeUnit.SECONDS));
     Assert.assertTrue(completion3.await(WAIT_SECONDS, TimeUnit.SECONDS));
+  }
+
+
+  /**
+   * Ensures that an exception thrown during startup is treated as transient
+   * @throws InterruptedException
+   */
+  @Test
+  public void testFailOnStart() throws InterruptedException {
+    CountDownLatch completion = new CountDownLatch(1);
+    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).failOnStart(true).build(), false);
+    start();
+    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+    verify(statusUpdateService).status(JOB1, Status.FAILURE_TRANSIENT);
+    verifyNoMoreInteractions(statusUpdateService);
+  }
+
+
+  /**
+   * Ensures that an exception thrown during stop is handled
+   * @throws InterruptedException
+   */
+  @Test
+  public void testFailOnStopNonResident() throws InterruptedException {
+    CountDownLatch completion = new CountDownLatch(1);
+    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).failOnStop(true).build(), false);
+    start();
+    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+    verify(statusUpdateService).status(JOB1, Status.SUCCESS);
+    verifyNoMoreInteractions(statusUpdateService);
+  }
+
+
+  /**
+   * Ensures that an exception thrown during stop is handled
+   * @throws InterruptedException
+   */
+  @Test
+  public void testFailOnStopResident() throws InterruptedException {
+    CountDownLatch completion = new CountDownLatch(1);
+    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).runAsync(true).stayResident(false).failOnStop(true).build(), false);
+    start();
+    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+
+
+    InOrder inOrder = inOrder(statusUpdateService);
+    inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
+    inOrder.verify(statusUpdateService).status(JOB1, Status.SUCCESS);
+    verifyNoMoreInteractions(statusUpdateService);
+  }
+
+
+  /**
+   * Ensures that we correctly handle a mid-run abort
+   * @throws InterruptedException
+   */
+  @Test
+  public void testFailOnTick() throws InterruptedException {
+    CountDownLatch completion = new CountDownLatch(1);
+    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).runAsync(true).stayResident(true).failOnTick(true).build(), false);
+    start();
+    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+
+    InOrder inOrder = inOrder(statusUpdateService);
+    inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
+    inOrder.verify(statusUpdateService).status(JOB1, Status.FAILURE_PERMANENT);
+    verifyNoMoreInteractions(statusUpdateService);
   }
 
 

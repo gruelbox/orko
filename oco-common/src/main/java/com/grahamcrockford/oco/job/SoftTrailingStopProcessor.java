@@ -1,8 +1,8 @@
 package com.grahamcrockford.oco.job;
 
-import static com.grahamcrockford.oco.notification.NotificationStatus.FAILURE_PERMANENT;
-import static com.grahamcrockford.oco.notification.NotificationStatus.FAILURE_TRANSIENT;
-import static com.grahamcrockford.oco.notification.NotificationStatus.SUCCESS;
+import static com.grahamcrockford.oco.notification.Status.FAILURE_PERMANENT;
+import static com.grahamcrockford.oco.notification.Status.FAILURE_TRANSIENT;
+import static com.grahamcrockford.oco.notification.Status.SUCCESS;
 import static java.math.RoundingMode.HALF_UP;
 
 import java.math.BigDecimal;
@@ -23,6 +23,7 @@ import com.grahamcrockford.oco.job.LimitOrderJob.Direction;
 import com.grahamcrockford.oco.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
@@ -71,9 +72,9 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   }
 
   @Override
-  public boolean start() {
+  public Status start() {
     exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
-    return true;
+    return Status.RUNNING;
   }
 
   @Override
@@ -142,8 +143,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
           .limitPrice(job.limitPrice())
           .build());
 
-      statusUpdateService.status(job.id(), SUCCESS, job);
-      jobControl.finish();
+      jobControl.finish(SUCCESS);
       done = true;
       return;
     }

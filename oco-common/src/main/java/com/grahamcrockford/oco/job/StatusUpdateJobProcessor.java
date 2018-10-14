@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.notification.TransientStatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 
@@ -19,13 +20,9 @@ class StatusUpdateJobProcessor implements StatusUpdateJob.Processor {
   }
 
   @Override
-  public boolean start() {
+  public Status start() {
     statusUpdateService.send(job.statusUpdate());
-    return false;
-  }
-
-  @Override
-  public void stop() {
+    return Status.SUCCESS;
   }
 
   public static final class Module extends AbstractModule {

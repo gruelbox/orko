@@ -13,7 +13,7 @@ public abstract class StatusUpdate {
 
   @JsonCreator
   public static StatusUpdate create(@JsonProperty("requestId") String requestId,
-                                    @JsonProperty("status") NotificationStatus status,
+                                    @JsonProperty("status") Status status,
                                     @JsonProperty("payload") Object payload) {
     return new AutoValue_StatusUpdate(requestId, status, payload);
   }
@@ -22,7 +22,7 @@ public abstract class StatusUpdate {
   public abstract String requestId();
 
   @JsonProperty
-  public abstract NotificationStatus status();
+  public abstract Status status();
 
   @Nullable
   @JsonProperty

@@ -1,6 +1,7 @@
 package com.grahamcrockford.oco.notification;
 
-public enum NotificationStatus {
+public enum Status {
+  RUNNING,
   SUCCESS,
   FAILURE_PERMANENT,
   FAILURE_TRANSIENT

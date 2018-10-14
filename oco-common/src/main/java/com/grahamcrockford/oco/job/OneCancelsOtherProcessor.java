@@ -1,8 +1,7 @@
 package com.grahamcrockford.oco.job;
 
-import static com.grahamcrockford.oco.notification.NotificationStatus.FAILURE_PERMANENT;
-import static com.grahamcrockford.oco.notification.NotificationStatus.FAILURE_TRANSIENT;
-import static com.grahamcrockford.oco.notification.NotificationStatus.SUCCESS;
+import static com.grahamcrockford.oco.notification.Status.FAILURE_TRANSIENT;
+import static com.grahamcrockford.oco.notification.Status.SUCCESS;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ import com.grahamcrockford.oco.marketdata.TickerEvent;
 import com.grahamcrockford.oco.notification.Notification;
 import com.grahamcrockford.oco.notification.NotificationLevel;
 import com.grahamcrockford.oco.notification.NotificationService;
+import com.grahamcrockford.oco.notification.Status;
 import com.grahamcrockford.oco.notification.StatusUpdateService;
 import com.grahamcrockford.oco.spi.JobControl;
 import com.grahamcrockford.oco.spi.TickerSpec;
@@ -68,14 +68,13 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   }
 
   @Override
-  public boolean start() {
+  public Status start() {
     if (!exchangeService.exchangeSupportsPair(job.tickTrigger().exchange(), job.tickTrigger().currencyPair())) {
-      statusUpdateService.status(job.id(), FAILURE_PERMANENT);
       notificationService.error("Cancelling job as currency no longer supported: " + job);
-      return false;
+      return Status.FAILURE_PERMANENT;
     }
     exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
-    return true;
+    return Status.RUNNING;
   }
 
   @Override
@@ -134,9 +133,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
       // This may throw, in which case retry of the job should kick in
       jobSubmitter.submitNewUnchecked(job.low().job());
-      statusUpdateService.status(job.id(), SUCCESS);
       done = true;
-      jobControl.finish();
+      jobControl.finish(SUCCESS);
       return;
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
@@ -157,9 +155,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
       // This may throw, in which case retry of the job should kick in
       jobSubmitter.submitNewUnchecked(job.high().job());
-      statusUpdateService.status(job.id(), SUCCESS);
       done = true;
-      jobControl.finish();
+      jobControl.finish(SUCCESS);
       return;
 
     }
