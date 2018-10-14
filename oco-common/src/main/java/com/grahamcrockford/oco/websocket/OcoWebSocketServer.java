@@ -299,8 +299,8 @@ public final class OcoWebSocketServer {
     try {
       if (session.isOpen())
         session.getBasicRemote().sendText(message(nature, object));
-    } catch (IOException e) {
-      LOGGER.info("Failed to send " + nature + " to socket", e);
+    } catch (Throwable e) {
+      LOGGER.info("Failed to send " + nature + " to socket (" + e.getMessage() + ")");
     }
   }
 
