@@ -1,5 +1,5 @@
 import { keyframes, css } from "styled-components"
-import { lighten, darken, rgba } from "polished"
+import { lighten, darken, rgba, transparentize } from "polished"
 import { injectGlobal } from "styled-components"
 
 const theme = {
@@ -121,8 +121,10 @@ const globalCss = `
     }
 
     .oco-PENDING_NEW {
-      opacity: 0.6;
-      box-shadow: 0px 0px 20px ${theme.colors.emphasis} inset;
+      box-shadow: 0px 0px 40px ${transparentize(
+        0.6,
+        theme.colors.emphasis
+      )} inset;
     }
 
     .ReactTable {

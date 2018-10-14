@@ -147,8 +147,7 @@ const cancelColumn = (onCancelExchange, onCancelServer) => ({
   id: "close",
   Header: () => null,
   Cell: ({ original }) =>
-    original.status === "CANCELED" ||
-    original.status === "PENDING_NEW" ? null : (
+    original.status === "CANCELED" ? null : (
       <Href
         onClick={() => {
           if (original.runningAt === "SERVER") {

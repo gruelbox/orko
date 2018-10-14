@@ -33,9 +33,16 @@ export function submitOrder(exchange, order) {
     auth => exchangesService.submitOrder(auth.token, exchange, order),
     response =>
       coinActions.addOrder({
-        ...order,
+        currencyPair: {
+          base: order.base,
+          counter: order.counter
+        },
+        originalAmount: order.amount,
         id: response.id,
-        status: "PENDING_NEW"
+        status: "PENDING_NEW",
+        type: order.type,
+        limitPrice: order.limitPrice,
+        cumulativeAmount: 0
       }),
     error =>
       errorActions.setForeground("Could not submit order: " + error.message)
