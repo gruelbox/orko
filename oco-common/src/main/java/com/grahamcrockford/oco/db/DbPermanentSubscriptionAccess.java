@@ -83,7 +83,7 @@ class DbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
 
   @Override
   public void setReferencePrice(TickerSpec tickerSpec, BigDecimal price) {
-    collection.get().update(DBQuery.is("_id", tickerSpec.key()), DbSubscription2.create(tickerSpec.key(), tickerSpec, price.toPlainString()), true, false);
+    collection.get().update(DBQuery.is("_id", tickerSpec.key()), DbSubscription2.create(tickerSpec.key(), tickerSpec, price == null ? null : price.toPlainString()), true, false);
   }
 
   @Override
