@@ -1,1 +1,1 @@
-web: npm run production
+web: cd orko-ui && npm start
