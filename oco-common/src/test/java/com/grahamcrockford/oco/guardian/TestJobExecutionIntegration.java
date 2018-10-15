@@ -26,7 +26,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.exchange.ExchangeService;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
@@ -80,7 +80,7 @@ public class TestJobExecutionIntegration {
 
     when(jobAccess.list()).thenReturn(activeJobs);
 
-    OcoConfiguration config = new OcoConfiguration();
+    OrkoConfiguration config = new OrkoConfiguration();
     config.setLoopSeconds(1);
 
     executor = Executors.newCachedThreadPool();

@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.websocket.WebSocketBundleInit;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import io.dropwizard.Application;
@@ -22,7 +22,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 
-public class AllInOneApplication extends Application<OcoConfiguration> {
+public class AllInOneApplication extends Application<OrkoConfiguration> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AllInOneApplication.class);
 
@@ -38,11 +38,11 @@ public class AllInOneApplication extends Application<OcoConfiguration> {
 
   @Override
   public String getName() {
-    return "Background Trade Control";
+    return "Orko all-in-one application";
   }
 
   @Override
-  public void initialize(final Bootstrap<OcoConfiguration> bootstrap) {
+  public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         bootstrap.getConfigurationSourceProvider(),
@@ -54,7 +54,7 @@ public class AllInOneApplication extends Application<OcoConfiguration> {
   }
 
   @Override
-  public void run(final OcoConfiguration configuration, final Environment environment) {
+  public void run(final OrkoConfiguration configuration, final Environment environment) {
 
     // Jersey client
     final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());

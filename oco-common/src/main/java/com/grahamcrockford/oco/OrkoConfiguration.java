@@ -19,7 +19,7 @@ import com.grahamcrockford.oco.notification.TelegramConfiguration;
 /**
  * Runtime config. Should really be broken up.
  */
-public class OcoConfiguration extends Configuration {
+public class OrkoConfiguration extends Configuration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -60,7 +60,7 @@ public class OcoConfiguration extends Configuration {
 
   private Map<String, ExchangeConfiguration> exchanges;
 
-  public OcoConfiguration() {
+  public OrkoConfiguration() {
     super();
   }
 

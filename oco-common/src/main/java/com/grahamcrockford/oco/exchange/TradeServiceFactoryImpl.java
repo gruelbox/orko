@@ -6,16 +6,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.service.trade.TradeService;
 
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 
 class TradeServiceFactoryImpl implements TradeServiceFactory {
 
   private final ExchangeService exchangeService;
-  private final OcoConfiguration configuration;
+  private final OrkoConfiguration configuration;
   private final PaperTradeService.Factory paperTradeServiceFactory;
 
   @Inject
-  TradeServiceFactoryImpl(ExchangeService exchangeService, OcoConfiguration configuration, PaperTradeService.Factory paperTradeServiceFactory) {
+  TradeServiceFactoryImpl(ExchangeService exchangeService, OrkoConfiguration configuration, PaperTradeService.Factory paperTradeServiceFactory) {
     this.exchangeService = exchangeService;
     this.configuration = configuration;
     this.paperTradeServiceFactory = paperTradeServiceFactory;

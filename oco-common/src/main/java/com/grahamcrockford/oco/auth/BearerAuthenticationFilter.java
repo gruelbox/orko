@@ -28,12 +28,12 @@ class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BearerAuthenticationFilter.class);
 
-  private final OcoAuthenticator authenticator;
-  private final OcoAuthorizer authorizer;
+  private final OrkoAuthenticator authenticator;
+  private final OrkoAuthorizer authorizer;
 
 
   @Inject
-  BearerAuthenticationFilter(OcoAuthenticator authenticator, OcoAuthorizer authorizer) {
+  BearerAuthenticationFilter(OrkoAuthenticator authenticator, OrkoAuthorizer authorizer) {
     this.authenticator = authenticator;
     this.authorizer = authorizer;
   }

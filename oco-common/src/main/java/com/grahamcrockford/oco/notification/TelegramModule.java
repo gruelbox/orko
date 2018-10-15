@@ -3,7 +3,7 @@ package com.grahamcrockford.oco.notification;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 
 import io.dropwizard.lifecycle.Managed;
 
@@ -14,7 +14,7 @@ public class TelegramModule extends AbstractModule {
   }
 
   @Provides
-  TelegramConfiguration telegramConfig(OcoConfiguration configuration) {
+  TelegramConfiguration telegramConfig(OrkoConfiguration configuration) {
     return configuration.getTelegram();
   }
 }

@@ -15,16 +15,16 @@ import org.knowm.xchange.service.trade.params.TradeHistoryParams;
 import org.knowm.xchange.service.trade.params.WithdrawFundsParams;
 
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 
 class AccountServiceFactoryImpl implements AccountServiceFactory {
 
   private final ExchangeService exchangeService;
-  private final OcoConfiguration configuration;
+  private final OrkoConfiguration configuration;
   private final AccountService dummyService;
 
   @Inject
-  AccountServiceFactoryImpl(ExchangeService exchangeService, OcoConfiguration configuration) {
+  AccountServiceFactoryImpl(ExchangeService exchangeService, OrkoConfiguration configuration) {
     this.exchangeService = exchangeService;
     this.configuration = configuration;
     this.dummyService = new AccountService() {

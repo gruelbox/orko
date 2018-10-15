@@ -7,7 +7,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.spi.Job;
 import com.grahamcrockford.oco.spi.KeepAliveEvent;
 import com.grahamcrockford.oco.submit.JobAccess;
@@ -20,17 +20,17 @@ class GuardianLoop extends AbstractExecutionThreadService {
   private final JobAccess advancedOrderAccess;
   private final JobRunner jobSubmitter;
   private final EventBus eventBus;
-  private final OcoConfiguration ocoConfiguration;
+  private final OrkoConfiguration orkoConfiguration;
 
   @Inject
   GuardianLoop(JobAccess jobaccess,
                JobRunner jobRunner,
                EventBus eventBus,
-               OcoConfiguration ocoConfiguration) {
+               OrkoConfiguration orkoConfiguration) {
     this.advancedOrderAccess = jobaccess;
     this.jobSubmitter = jobRunner;
     this.eventBus = eventBus;
-    this.ocoConfiguration = ocoConfiguration;
+    this.orkoConfiguration = orkoConfiguration;
   }
 
   @Override
@@ -43,7 +43,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
         lockAndStartInactiveJobs();
 
         try {
-          Thread.sleep(ocoConfiguration.getLoopSeconds() * 1000);
+          Thread.sleep(orkoConfiguration.getLoopSeconds() * 1000);
         } catch (InterruptedException e) {
           LOGGER.info("Shutting down " + this);
           break;

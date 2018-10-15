@@ -7,7 +7,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.wiring.EnvironmentInitialiser;
 import com.grahamcrockford.oco.wiring.WebResource;
 import com.okta.jwt.JwtHelper;
@@ -32,15 +32,15 @@ public class AuthModule extends AbstractModule {
   }
 
   @Provides
-  AuthConfiguration authConfiguration(OcoConfiguration ocoConfiguration) {
-    return ocoConfiguration.getAuth();
+  AuthConfiguration authConfiguration(OrkoConfiguration orkoConfiguration) {
+    return orkoConfiguration.getAuth();
   }
 
   @Provides
   @Singleton
-  OcoAuthenticator authenticator(AuthConfiguration configuration, Environment environment) {
+  OrkoAuthenticator authenticator(AuthConfiguration configuration, Environment environment) {
 
-    OcoAuthenticator uncached;
+    OrkoAuthenticator uncached;
     try {
       JwtHelper helper = new JwtHelper()
         .setIssuerUrl(configuration.okta.issuer)
@@ -69,7 +69,7 @@ public class AuthModule extends AbstractModule {
 
   @Provides
   @Singleton
-  OcoAuthorizer authorizer() {
+  OrkoAuthorizer authorizer() {
     return (principal, role) -> true;
   }
 }

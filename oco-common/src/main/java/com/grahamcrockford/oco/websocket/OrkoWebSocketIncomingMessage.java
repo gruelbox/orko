@@ -12,12 +12,12 @@ import com.google.auto.value.AutoValue;
 
 @AutoValue
 @JsonDeserialize
-abstract class OcoWebSocketIncomingMessage {
+abstract class OrkoWebSocketIncomingMessage {
 
   @JsonCreator
-  static OcoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
+  static OrkoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
                                             @JsonProperty("tickers") Collection<TickerSpec> tickers) {
-    return new AutoValue_OcoWebSocketIncomingMessage(command, tickers);
+    return new AutoValue_OrkoWebSocketIncomingMessage(command, tickers);
   }
 
   @JsonProperty

@@ -33,7 +33,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.util.CheckedExceptions;
 
@@ -63,7 +63,7 @@ public class ExchangeServiceImpl implements ExchangeService {
       .stream()
       .collect(Collectors.toList()));
 
-  private final OcoConfiguration configuration;
+  private final OrkoConfiguration configuration;
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
@@ -150,7 +150,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Inject
   @VisibleForTesting
-  public ExchangeServiceImpl(OcoConfiguration configuration) {
+  public ExchangeServiceImpl(OrkoConfiguration configuration) {
     this.configuration = configuration;
   }
 

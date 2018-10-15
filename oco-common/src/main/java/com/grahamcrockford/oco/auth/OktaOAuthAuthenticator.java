@@ -11,7 +11,7 @@ import com.okta.jwt.JwtVerifier;
 
 import io.dropwizard.auth.AuthenticationException;
 
-class OktaOAuthAuthenticator implements OcoAuthenticator {
+class OktaOAuthAuthenticator implements OrkoAuthenticator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OktaOAuthAuthenticator.class);
 

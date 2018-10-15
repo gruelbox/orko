@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.submit.JobSubmitter;
 import com.rabbitmq.client.ConnectionFactory;
 
@@ -25,7 +25,7 @@ public class MqModule extends AbstractModule {
   }
 
   @Provides
-  MqConfiguration config(OcoConfiguration config) {
+  MqConfiguration config(OrkoConfiguration config) {
     return config.getMq();
   }
 

@@ -50,7 +50,7 @@ import com.grahamcrockford.oco.notification.StatusUpdate;
 import com.grahamcrockford.oco.signal.UserTradeEvent;
 import com.grahamcrockford.oco.spi.TickerSpec;
 import com.grahamcrockford.oco.util.SafelyDispose;
-import com.grahamcrockford.oco.websocket.OcoWebSocketOutgoingMessage.Nature;
+import com.grahamcrockford.oco.websocket.OrkoWebSocketOutgoingMessage.Nature;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -62,12 +62,12 @@ import io.reactivex.disposables.Disposable;
 @ExceptionMetered
 @ServerEndpoint("/ws")
 @RolesAllowed(Roles.TRADER)
-public final class OcoWebSocketServer {
+public final class OrkoWebSocketServer {
 
   private static final int READY_TIMEOUT = 5000;
-  private static final Logger LOGGER = LoggerFactory.getLogger(OcoWebSocketServer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OrkoWebSocketServer.class);
 
-  private final String eventRegistryClientId = OcoWebSocketServer.class.getSimpleName() + "/" + UUID.randomUUID().toString();
+  private final String eventRegistryClientId = OrkoWebSocketServer.class.getSimpleName() + "/" + UUID.randomUUID().toString();
 
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
@@ -90,7 +90,7 @@ public final class OcoWebSocketServer {
 
   @OnMessage
   public void myOnMsg(final javax.websocket.Session session, String message) {
-    OcoWebSocketIncomingMessage request = null;
+    OrkoWebSocketIncomingMessage request = null;
     try {
 
       LOGGER.debug("Received websocket message: {}", message);
@@ -177,10 +177,10 @@ public final class OcoWebSocketServer {
     injector.injectMembers(this);
   }
 
-  private OcoWebSocketIncomingMessage decodeRequest(String message) {
-    OcoWebSocketIncomingMessage request;
+  private OrkoWebSocketIncomingMessage decodeRequest(String message) {
+    OrkoWebSocketIncomingMessage request;
     try {
-      request = objectMapper.readValue(message, OcoWebSocketIncomingMessage.class);
+      request = objectMapper.readValue(message, OrkoWebSocketIncomingMessage.class);
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid request", e);
     }
@@ -306,7 +306,7 @@ public final class OcoWebSocketServer {
 
   private String message(Nature nature, Object data) {
     try {
-      return objectMapper.writeValueAsString(OcoWebSocketOutgoingMessage.create(nature, data));
+      return objectMapper.writeValueAsString(OrkoWebSocketOutgoingMessage.create(nature, data));
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }

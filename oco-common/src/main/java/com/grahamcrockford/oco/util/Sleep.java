@@ -1,14 +1,14 @@
 package com.grahamcrockford.oco.util;
 
 import com.google.inject.Inject;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 
 public class Sleep {
 
-  private final OcoConfiguration configuration;
+  private final OrkoConfiguration configuration;
 
   @Inject
-  public Sleep(OcoConfiguration configuration) {
+  public Sleep(OrkoConfiguration configuration) {
     this.configuration = configuration;
   }
 

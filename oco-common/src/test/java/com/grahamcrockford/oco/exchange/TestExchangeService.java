@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.knowm.xchange.bittrex.BittrexExchange;
 import org.knowm.xchange.kucoin.KucoinExchange;
 
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.exchange.ExchangeServiceImpl;
 
 import info.bitrich.xchangestream.bitfinex.BitfinexStreamingExchange;
@@ -18,7 +18,7 @@ public class TestExchangeService {
 
   @Before
   public void setup() {
-    exchangeService = new ExchangeServiceImpl(new OcoConfiguration());
+    exchangeService = new ExchangeServiceImpl(new OrkoConfiguration());
   }
 
   @Test

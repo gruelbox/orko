@@ -4,8 +4,8 @@ import javax.ws.rs.client.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
-import com.grahamcrockford.oco.OcoApplicationModule;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoApplicationModule;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.auth.AuthModule;
 import com.grahamcrockford.oco.exchange.ExchangeResourceModule;
 import com.grahamcrockford.oco.guardian.GuardianModule;
@@ -20,10 +20,10 @@ import io.dropwizard.setup.Environment;
  */
 class AllInOneModule extends AbstractModule {
 
-  private final OcoApplicationModule appModule;
+  private final OrkoApplicationModule appModule;
 
-  public AllInOneModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
-    this.appModule = new OcoApplicationModule(configuration, objectMapper, client, environment);
+  public AllInOneModule(OrkoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
+    this.appModule = new OrkoApplicationModule(configuration, objectMapper, client, environment);
   }
 
   @Override

@@ -18,10 +18,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grahamcrockford.oco.spi.TickerSpec;
-import com.grahamcrockford.oco.websocket.OcoWebSocketIncomingMessage.Command;
+import com.grahamcrockford.oco.websocket.OrkoWebSocketIncomingMessage.Command;
 
 @ClientEndpoint
-class OcoWebsocketClient implements AutoCloseable {
+class OrkoWebsocketClient implements AutoCloseable {
 
   private final Consumer<Map<String, Object>> consumer;
   private final ObjectMapper objectMapper;
@@ -29,7 +29,7 @@ class OcoWebsocketClient implements AutoCloseable {
   private Session session;
 
 
-  public OcoWebsocketClient(URI endpointURI,
+  public OrkoWebsocketClient(URI endpointURI,
                             ObjectMapper objectMapper,
                             Consumer<Map<String, Object>> consumer) {
     this.objectMapper = objectMapper;
@@ -59,7 +59,7 @@ class OcoWebsocketClient implements AutoCloseable {
 
   private void sendCommand(Command command, Collection<TickerSpec> specs) {
     try {
-      OcoWebSocketIncomingMessage request = OcoWebSocketIncomingMessage.create(command, specs);
+      OrkoWebSocketIncomingMessage request = OrkoWebSocketIncomingMessage.create(command, specs);
       String message = objectMapper.writeValueAsString(request);
       this.session.getAsyncRemote().sendText(message);
     } catch (JsonProcessingException e) {

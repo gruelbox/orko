@@ -23,7 +23,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
-import com.grahamcrockford.oco.OcoConfiguration;
+import com.grahamcrockford.oco.OrkoConfiguration;
 import com.grahamcrockford.oco.exchange.AccountServiceFactory;
 import com.grahamcrockford.oco.exchange.ExchangeServiceImpl;
 import com.grahamcrockford.oco.exchange.TradeServiceFactory;
@@ -61,12 +61,12 @@ public class TestMarketDataIntegration {
 
     ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
 
-    OcoConfiguration ocoConfiguration = new OcoConfiguration();
-    ocoConfiguration.setLoopSeconds(2);
-    ExchangeServiceImpl exchangeServiceImpl = new ExchangeServiceImpl(ocoConfiguration);
+    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
+    orkoConfiguration.setLoopSeconds(2);
+    ExchangeServiceImpl exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
       exchangeServiceImpl,
-      ocoConfiguration,
+      orkoConfiguration,
       mock(TradeServiceFactory.class),
       mock(AccountServiceFactory.class),
       new EventBus()

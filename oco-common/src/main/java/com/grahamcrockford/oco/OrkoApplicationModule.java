@@ -8,14 +8,14 @@ import com.google.inject.servlet.ServletModule;
 
 import io.dropwizard.setup.Environment;
 
-public class OcoApplicationModule extends AbstractModule {
+public class OrkoApplicationModule extends AbstractModule {
 
   private final ObjectMapper objectMapper;
-  private final OcoConfiguration configuration;
+  private final OrkoConfiguration configuration;
   private final Client jerseyClient;
   private final Environment environment;
 
-  public OcoApplicationModule(OcoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
+  public OrkoApplicationModule(OrkoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
     this.configuration = configuration;
     this.objectMapper = objectMapper;
     this.jerseyClient = client;
@@ -27,7 +27,7 @@ public class OcoApplicationModule extends AbstractModule {
     install(new ServletModule());
     install(new CommonModule());
     bind(ObjectMapper.class).toInstance(objectMapper);
-    bind(OcoConfiguration.class).toInstance(configuration);
+    bind(OrkoConfiguration.class).toInstance(configuration);
     bind(Client.class).toInstance(jerseyClient);
     bind(Environment.class).toInstance(environment);
   }

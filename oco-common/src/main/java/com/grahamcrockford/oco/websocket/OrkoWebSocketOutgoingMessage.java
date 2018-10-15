@@ -7,12 +7,12 @@ import com.google.auto.value.AutoValue;
 
 @AutoValue
 @JsonDeserialize
-abstract class OcoWebSocketOutgoingMessage {
+abstract class OrkoWebSocketOutgoingMessage {
 
   @JsonCreator
-  static OcoWebSocketOutgoingMessage create(@JsonProperty("nature") Nature nature,
+  static OrkoWebSocketOutgoingMessage create(@JsonProperty("nature") Nature nature,
                                             @JsonProperty("data") Object data) {
-    return new AutoValue_OcoWebSocketOutgoingMessage(nature, data);
+    return new AutoValue_OrkoWebSocketOutgoingMessage(nature, data);
   }
 
   @JsonProperty

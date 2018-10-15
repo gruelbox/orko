@@ -16,15 +16,15 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
-class OcoWebsocketHealthCheck extends HealthCheck {
+class OrkoWebsocketHealthCheck extends HealthCheck {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OcoWebsocketHealthCheck.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OrkoWebsocketHealthCheck.class);
 
   private final ObjectMapper objectMapper;
   private final Provider<HttpServletRequest> request;
 
   @Inject
-  OcoWebsocketHealthCheck(ObjectMapper objectMapper, Provider<HttpServletRequest> request) {
+  OrkoWebsocketHealthCheck(ObjectMapper objectMapper, Provider<HttpServletRequest> request) {
     this.objectMapper = objectMapper;
     this.request = request;
   }
@@ -54,7 +54,7 @@ class OcoWebsocketHealthCheck extends HealthCheck {
       AtomicInteger binanceTickersReceived = new AtomicInteger();
       AtomicInteger unknownTickersReceived = new AtomicInteger();
 
-      try (OcoWebsocketClient clientEndPoint = new OcoWebsocketClient(uri, objectMapper, event -> {
+      try (OrkoWebsocketClient clientEndPoint = new OrkoWebsocketClient(uri, objectMapper, event -> {
         @SuppressWarnings("unchecked")
         Map<String, Object> spec = (Map<String, Object>) event.get("spec");
         switch ((String)spec.get("exchange")) {
