@@ -92,9 +92,13 @@ const globalCss = `
     }
     body {
       color: ${theme.colors.fore};
-      font-family: ${theme.fonts.sans}
+      font-family: ${theme.fonts.sans};
     }
-
+    h1 {
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
     i {
       color: inherit !important;
     }

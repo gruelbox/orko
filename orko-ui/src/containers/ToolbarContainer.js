@@ -22,12 +22,19 @@ const ToolbarBox = styled.div`
   height: 56px;
 `
 
+const Logo = () => (
+  <div>
+    <h1>Orko</h1>
+  </div>
+)
+
 const TickerSocketState = ({ connected }) => {
   return (
     <Span
       title={connected ? "Socket connected" : "Socket down"}
       color={connected ? "white" : "red"}
-      mx={2}
+      ml="auto"
+      mr={2}
       fontWeight="bold"
     >
       <Icon name="wifi" />
@@ -50,7 +57,7 @@ const HomeLink = () => (
 
 const ViewSettings = ({ onClick }) => (
   <Href
-    ml="auto"
+    mx={2}
     onClick={onClick}
     color="heading"
     title="View settings"
@@ -129,7 +136,7 @@ const Normal = ({
 }) => (
   <ToolbarBox p={0}>
     <HomeLink />
-    <TickerSocketState connected={connected} />
+    <Logo />
     <Coin coin={coin} />
     <RemainingSpace mx={2}>
       <Ticker
@@ -142,6 +149,7 @@ const Normal = ({
         }}
       />
     </RemainingSpace>
+    <TickerSocketState connected={connected} />
     <ViewSettings onClick={onShowViewSettings} />
     <SignOutLink
       userName={userName}
