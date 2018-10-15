@@ -18,10 +18,15 @@ import com.grahamcrockford.oco.spi.TickerSpec;
 public class InMemoryPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryPermanentSubscriptionAccess.class);
-
-  //private static final TickerSpec HOT = TickerSpec.builder().base("HOT").counter("BTC").exchange("binance").build();
-
   private final ConcurrentMap<TickerSpec, Optional<BigDecimal>> subscriptions = Maps.newConcurrentMap();
+
+  InMemoryPermanentSubscriptionAccess() {
+    subscriptions.put(TickerSpec.builder().base("BTC").counter("USDT").exchange("binance").build(), Optional.empty());
+    subscriptions.put(TickerSpec.builder().base("ETH").counter("USDT").exchange("binance").build(), Optional.empty());
+    subscriptions.put(TickerSpec.builder().base("NEO").counter("USDT").exchange("binance").build(), Optional.empty());
+    subscriptions.put(TickerSpec.builder().base("XRP").counter("USDT").exchange("binance").build(), Optional.empty());
+    subscriptions.put(TickerSpec.builder().base("ETH").counter("BTC").exchange("binance").build(), Optional.empty());
+  }
 
   @Override
   public void add(TickerSpec spec) {

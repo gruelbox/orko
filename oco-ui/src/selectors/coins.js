@@ -101,7 +101,7 @@ export const getCoinsForDisplay = createSelector(
                 100) /
                 referencePrice
             ).toFixed(2) + "%"
-          : "0.00%"
+          : "--"
       }
     })
 )
