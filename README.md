@@ -1,4 +1,14 @@
-# oco
+# Orko
+
+Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage
+your portfolio, even if it is spread across multiple exchanges, all from one screen.  It supports powerful background processes allowing you
+to set up stop losses, take profit orders, trailing stops and more, even on exchanges that don't support these types of advanced orders, as well
+as price and profit/loss level alerts.
+
+It is under active development and is gradually being extended to the point where you will also be able to schedule and monitor complex
+scripted strategies. It aims to be a one-stop-shop for online cryptocurrency trading.
+
+
 Just let me try it out
 ---
 ```
@@ -7,10 +17,10 @@ sudo apt-get install maven
 mvn clean package -Dmaven.test.skip=true
 
 // Run the single-app server
-java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./example-developer-mode-config-allinone.yml
+java -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server ./example-developer-mode-config-allinone.yml
 
 // Build the UI
-cd oco-ui
+cd orko-ui
 sudo apt-get install npm
 npm install
 
@@ -48,7 +58,7 @@ Once you have the connection details, you can set the appropriate section in you
 Then run the backend pointing to this config file instead:
 
 ```
-java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config.yml
+java -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server ./my-config.yml
 
 ```
 
@@ -123,10 +133,10 @@ Backend setup:
     1. Install Maven (`sudo apt-get install maven`)
     1. Run `mvn clean package` to build the application
     1. Next:
-        1. EITHER Start the all-in-one application with `java -cp oco-all-in-one/target/classes:oco-all-in-one/target/dependency/* com.grahamcrockford.oco.allinone.AllInOneApplication server ./my-config-all-in-one.yml`.
+        1. EITHER Start the all-in-one application with `java -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server ./my-config-all-in-one.yml`.
         1. OR:
-            1. Start the worker application with `java -cp oco-worker/target/classes:oco-worker/target/dependency/* com.grahamcrockford.oco.worker.WorkerApplication server ./my-config-worker.yml`.
-            1. Start the web application with `java -cp oco-web/target/classes:oco-web/target/dependency/* com.grahamcrockford.oco.web.WebApplication server ./my-config-web.yml`.
+            1. Start the worker application with `java -cp orkoo-worker/target/classes:orko-worker/target/dependency/* com.grahamcrockford.orko.worker.WorkerApplication server ./my-config-worker.yml`.
+            1. Start the web application with `java -cp orko-web/target/classes:orko-web/target/dependency/* com.grahamcrockford.orko.web.WebApplication server ./my-config-web.yml`.
 1. Or:
     1. Install Eclipse
     1. Install the m2e-apt plugin from the marketplace
@@ -188,7 +198,7 @@ On the backend, set up the environment variables in addition to those already co
 | `BITTREX_SECRET` |our Bittrex secret. May be left blank for paper trading. |
 | `KUCOIN_API_KEY`          | Your Kucoin API key. May be left blank for paper trading. | 
 | `KUCOIN_SECRET`           | Your Kucoin secret. May be left blank for paper trading. |
-| `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/oco-0.0.1-SNAPSHOT.jar com.grahamcrockford.oco.cli.GenerateSecretKey`) - more on this below.  Can be left blank (in which case 2FA whitelisting is disabled) but must be defined.  Strongly recommended to be enabled.|
+| `AUTH_TOKEN`                | Your 2FA secret key (generated with `java -cp target/orko-0.0.1-SNAPSHOT.jar com.grahamcrockford.orko.cli.GenerateSecretKey`) - more on this below.  Can be left blank (in which case 2FA whitelisting is disabled) but must be defined.  Strongly recommended to be enabled.|
 | `OKTA_BASEURL`           | Will be provided during Okta setup (see below) |
 | `OKTA_CLIENTID`           | Will be provided during Okta setup (see below) |
 | `OKTA_ISSUER`           |  Will be provided during Okta setup (see below) |
@@ -209,9 +219,9 @@ On the front end, set up as follows:
 
 We now need to worry about security.
 
-On Heroku, we will deploy oco-worker as a worker dyno, which is never visible to the outside world. So far so good.  oco-ui is a static Javascript application, therefore security is meaningless - everything is in the open anyway.  We just have to make sure there are no secrets stored in either the JS or, to be super-safe, on the nginx server it's hosted on.  Therefore, all our security is focused on the Web API application, oco-web.
+On Heroku, we will deploy orko-worker as a worker dyno, which is never visible to the outside world. So far so good.  orko-ui is a static Javascript application, therefore security is meaningless - everything is in the open anyway.  We just have to make sure there are no secrets stored in either the JS or, to be super-safe, on the nginx server it's hosted on.  Therefore, all our security is focused on the Web API application, orko-web.
 
-oco-web hosts REST endpoints and a single web socket.  Both are protected at the servlet container level; they will return HTTP status 401 if a suitable authorization header isn't included.  This takes one of two forms.
+orko-web hosts REST endpoints and a single web socket.  Both are protected at the servlet container level; they will return HTTP status 401 if a suitable authorization header isn't included.  This takes one of two forms.
 
 For the HTTP endpoints, the fairly standard:
 
@@ -239,7 +249,7 @@ The other element is that we will return 402 if the origin IP address isn't on a
 
 So, first, let's create a 2FA key:
 
-1. Generate a new 2FA secret using `java -cp oco-web/target/oco-web.jar com.grahamcrockford.oco.web.cli.GenerateSecretKey`
+1. Generate a new 2FA secret using `java -cp orko-web/target/orko-web.jar com.grahamcrockford.orko.web.cli.GenerateSecretKey`
 1. Store that somewhere safe and enter it into Google Authenticator on your phone.
 1. If you don't want to set up a Java environment, give me a shout and I'll generate a keypair for you.
 1. Set the `AUTH_TOKEN` environment variable accordingly.

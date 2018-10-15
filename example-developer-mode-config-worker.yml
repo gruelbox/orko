@@ -1,6 +1,6 @@
 loopSeconds: 3
 auth:
-#  secretKey: Generate this using com.grahamcrockford.oco.cli.GenerateSecretKey when you move to production
+#  secretKey: Generate this using com.grahamcrockford.orko.cli.GenerateSecretKey when you move to production
   proxied: false #  Set this to true if you edploy to Heroku
   whitelistExpirySeconds: 14400
 database:
@@ -41,5 +41,5 @@ server:
   maxThreads: 16
 logging:
   loggers:
-    "com.grahamcrockford.oco": INFO
+    "com.grahamcrockford.orko": INFO
     "si.mazi.rescu": ERROR

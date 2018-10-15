@@ -8,15 +8,15 @@
 	</prerequisites>
 
 	<groupId>com.grahamcrockford</groupId>
-	<artifactId>oco-parent</artifactId>
+	<artifactId>orko-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>oco-worker</module>
-		<module>oco-common</module>
-		<module>oco-web</module>
-		<module>oco-all-in-one</module>
+		<module>orko-worker</module>
+		<module>orko-common</module>
+		<module>orko-web</module>
+		<module>orko-all-in-one</module>
 	</modules>
 
 	<repositories>
@@ -34,22 +34,22 @@
 		<profile>
 			<id>web</id>
 			<modules>
-				<module>oco-common</module>
-				<module>oco-web</module>
+				<module>orko-common</module>
+				<module>orko-web</module>
 			</modules>
 		</profile>
 		<profile>
 			<id>worker</id>
 			<modules>
-				<module>oco-common</module>
-				<module>oco-worker</module>
+				<module>orko-common</module>
+				<module>orko-worker</module>
 			</modules>
 		</profile>
 		<profile>
 			<id>all-in-one</id>
 			<modules>
-				<module>oco-common</module>
-				<module>oco-all-in-one</module>
+				<module>orko-common</module>
+				<module>orko-all-in-one</module>
 			</modules>
 		</profile>
 		<profile>
@@ -92,7 +92,7 @@
 		</profile>
 	</profiles>
 
-	<name>OCO</name>
+	<name>Orko</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

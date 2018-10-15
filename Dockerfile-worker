@@ -6,8 +6,8 @@ RUN mvn -P worker clean package -Dmaven.test.skip=true
 
 # production environment
 FROM openjdk:8
-COPY --from=builder /usr/src/myapp/oco-worker/target/lib /usr/share/app/lib
-COPY --from=builder /usr/src/myapp/oco-worker/target/oco-worker.jar /usr/share/app/app.jar
+COPY --from=builder /usr/src/myapp/orko-worker/target/lib /usr/share/app/lib
+COPY --from=builder /usr/src/myapp/orko-worker/target/orko-worker.jar /usr/share/app/app.jar
 COPY --from=builder /usr/src/myapp/docker-config.yml /usr/share/app/config.yml
 CMD java -classpath "/usr/share/app/lib" -jar /usr/share/app/app.jar server /usr/share/app/config.yml
 EXPOSE 8080

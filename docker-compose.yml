@@ -16,20 +16,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-web
-    image: llcoolg/oco-web:0.0.1-SNAPSHOT
+    image: llcoolg/orko-web:0.0.1-SNAPSHOT
     networks:
       - webnet
   worker:
     build:
       context: .
       dockerfile: Dockerfile-worker
-    image: llcoolg/oco-worker:0.0.1-SNAPSHOT
+    image: llcoolg/orko-worker:0.0.1-SNAPSHOT
     networks:
       - webnet
   ui:
     build:
-      context: ./oco-ui
-    image: llcoolg/oco-ui:latest
+      context: ./orko-ui
+    image: llcoolg/orko-ui:latest
     ports:
       - '80:80'
     networks:

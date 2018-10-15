@@ -12,7 +12,7 @@ pipelines:
     - parallel:
       - step:
           script:
-            - cd oco-ui
+            - cd orko-ui
             - npm install gulp
             - npm run build
       - step:
