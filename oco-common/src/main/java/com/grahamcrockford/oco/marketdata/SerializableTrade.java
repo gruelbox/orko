@@ -6,6 +6,7 @@ import java.util.Date;
 import javax.annotation.Nullable;
 
 import org.knowm.xchange.dto.Order.OrderType;
+import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.UserTrade;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -14,6 +15,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.auto.value.AutoValue;
 import com.grahamcrockford.oco.spi.TickerSpec;
 
+/**
+ * API version of {@link Trade}, which might change and is in any case not serializable.
+ */
 @AutoValue
 @JsonDeserialize
 public abstract class SerializableTrade {
