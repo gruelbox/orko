@@ -24,10 +24,16 @@ class SetReferencePriceContainer extends Component {
     this.setState({ price: e.target.value })
   }
 
-  onSubmit = coinContainer => {
+  onSubmit = () => {
     this.props.dispatch(
       coinsActions.setReferencePrice(this.props.coin, this.state.price)
     )
+    this.props.dispatch(uiActions.closeReferencePrice())
+    this.setState({ price: "" })
+  }
+
+  onClear = () => {
+    this.props.dispatch(coinsActions.setReferencePrice(this.props.coin, null))
     this.props.dispatch(uiActions.closeReferencePrice())
     this.setState({ price: "" })
   }
@@ -74,6 +80,7 @@ class SetReferencePriceContainer extends Component {
               onFocus={this.onFocus}
             />
             <FormButtonBar>
+              <Button onClick={this.onClear}>Clear</Button>
               <Button disabled={!ready} onClick={this.onSubmit}>
                 Set
               </Button>
@@ -90,15 +97,13 @@ function mapStateToProps(state) {
     state.coins.meta && state.ui.referencePriceCoin
       ? state.coins.meta[state.ui.referencePriceCoin.key]
       : undefined
+  const priceScale = coinMetadata ? coinMetadata.priceScale : 8
+  const referencePrice = state.ui.referencePriceCoin
+    ? state.coins.referencePrices[state.ui.referencePriceCoin.key]
+    : null
   return {
     coin: state.ui.referencePriceCoin,
-    referencePrice: state.ui.referencePriceCoin
-      ? formatNumber(
-          state.coins.referencePrices[state.ui.referencePriceCoin.key],
-          coinMetadata ? coinMetadata.priceScale : 8,
-          ""
-        )
-      : null
+    referencePrice: formatNumber(referencePrice, priceScale, "")
   }
 }
 
