@@ -19,7 +19,6 @@ import com.grahamcrockford.orko.exchange.ExchangeService;
 import com.grahamcrockford.orko.marketdata.PermanentSubscriptionAccess;
 import com.grahamcrockford.orko.notification.NotificationService;
 import com.grahamcrockford.orko.spi.TickerSpec;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 
@@ -31,9 +30,6 @@ class DbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbPermanentSubscriptionAccess.class);
 
-  @Deprecated
-  private final Supplier<JacksonDBCollection<DbSubscription, String>> oldCollection = Suppliers.memoize(this::oldCollection);
-
   private final Supplier<JacksonDBCollection<DbSubscription2, String>> collection = Suppliers.memoize(this::collection);
 
   private final MongoClient mongoClient;
@@ -43,7 +39,6 @@ class DbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
   DbPermanentSubscriptionAccess(MongoClient mongoClient, DbConfiguration configuration, ExchangeService exchangeService, NotificationService notificationService) {
     this.mongoClient = mongoClient;
     this.configuration = configuration;
-    migrate();
     all().forEach(sub -> {
       try {
         if (!exchangeService.exchangeSupportsPair(sub.exchange(), sub.currencyPair())) {
@@ -54,16 +49,6 @@ class DbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
         LOGGER.error("Failed to check exchange for existence of ticker: " + sub, e);
       }
     });
-  }
-
-  @Deprecated
-  private void migrate() {
-    FluentIterable.from(oldCollection.get().find())
-        .transform((DbSubscription sub) -> sub.spec())
-        .transform((TickerSpec spec) -> DbSubscription2.create(spec))
-        .toSet()
-        .forEach((DbSubscription2 sub) -> collection.get().update(DBQuery.is("_id", sub.id()), sub, true, false));
-    oldCollection.get().remove(new BasicDBObject());
   }
 
   @Override
@@ -92,11 +77,6 @@ class DbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
     ImmutableMap<TickerSpec, DbSubscription2> indexed = Maps.uniqueIndex(subscriptions, (DbSubscription2 v) -> v.spec());
     Map<TickerSpec, DbSubscription2> noNulls = Maps.filterValues(indexed, v -> v.referencePrice() != null);
     return Maps.transformValues(noNulls, sub -> new BigDecimal(sub.referencePrice()));
-  }
-
-  private JacksonDBCollection<DbSubscription, String> oldCollection() {
-    DBCollection collection = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("subscription");
-    return JacksonDBCollection.wrap(collection, DbSubscription.class, String.class);
   }
 
   private JacksonDBCollection<DbSubscription2, String> collection() {

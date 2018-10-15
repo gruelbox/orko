@@ -96,7 +96,7 @@ const globalCss = `
     }
     h1 {
       color: white;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
     }
     i {
