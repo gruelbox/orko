@@ -24,7 +24,7 @@ const ToolbarBox = styled.div`
 
 const Logo = () => (
   <div>
-    <h1>Orko</h1>
+    <h1><Span color="sell">O</Span>r<Span color="buy">k</Span>o</h1>
   </div>
 )
 
