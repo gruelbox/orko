@@ -24,7 +24,10 @@ const ToolbarBox = styled.div`
 
 const Logo = () => (
   <div>
-    <h1><Span color="sell">O</Span>r<Span color="buy">k</Span>o</h1>
+    <h1 style={{ textShadow: "0 0 10px #FF0000" }}>
+      <Span color="sell">O</Span>
+      rko
+    </h1>
   </div>
 )
 

@@ -1,13 +1,11 @@
-import styled from 'styled-components';
-import { fontSize, color, fontWeight, space } from 'styled-system';
+import styled from "styled-components"
+import { fontSize, color, fontWeight, space } from "styled-system"
 
-const Span = styled.span.attrs({
-  fontSize: 1
-})`
+const Span = styled.span`
   ${color}
   ${fontSize}
   ${fontWeight}
   ${space}
-`;
+`
 
-export default Span;
+export default Span
