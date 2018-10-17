@@ -4,8 +4,7 @@ auth:
   proxied: false #  Set this to true if you deploy to Heroku
   whitelistExpirySeconds: 14400
 database:
-  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017 # Your mongoDB connection details.
-  mongoDatabase: oco # MongoDB database name.
+  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017/yourdb # Your mongoDB connection details.
   lockSeconds: 10
 # telegram:
 #   botToken: YOU
@@ -13,20 +12,26 @@ database:
 mq:
   clientURI: amqp://localhost
 exchanges:
-#  gdax-sandbox:
-#    apiKey: 
-#    secretKey: 
-#    passphrase: 
-#  gdax:
-#    apiKey: 
-#    secretKey: 
-#    passphrase: 
-#  binance:
-#    apiKey:
-#    secretKey: 
-#  kucoin:
-#    apiKey: 
-#    secretKey:
+  gdax-sandbox:
+    apiKey: 
+    secretKey: 
+    passphrase: 
+  gdax:
+    apiKey: 
+    secretKey: 
+    passphrase: 
+  binance:
+    apiKey: 
+    secretKey:
+  kucoin:
+    apiKey: 
+    secretKey: 
+  cryptopia:
+    apiKey: 
+    secretKey: 
+  bitfinex:
+    apiKey: 
+    secretKey: 
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms

@@ -1,8 +1,13 @@
 package com.grahamcrockford.orko.db;
 
+import java.net.URI;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DbConfiguration {
@@ -12,12 +17,6 @@ public class DbConfiguration {
    */
   @NotNull
   private String mongoClientURI;
-
-  /**
-   * The name of the mongo database.
-   */
-  @NotNull
-  private String mongoDatabase;
 
   /**
    * How long database locks should persist for, in seconds.  Too short and
@@ -43,14 +42,16 @@ public class DbConfiguration {
     this.mongoClientURI = mongoClientURI;
   }
 
-  @JsonProperty
+  @JsonIgnore
   public String getMongoDatabase() {
-    return mongoDatabase;
-  }
-
-  @JsonProperty
-  public void setMongoDatabase(String mongoDatabase) {
-    this.mongoDatabase = mongoDatabase;
+    if (StringUtils.isEmpty(mongoClientURI))
+      return null;
+    URI uri = URI.create(mongoClientURI);
+    if (!uri.getScheme().equals("mongodb"))
+      throw new IllegalArgumentException("Unsupported mongodb client URI: " + mongoClientURI);
+    if (StringUtils.isEmpty(uri.getPath()) || uri.getPath().length() < 2)
+      throw new IllegalArgumentException("Unsupported mongodb client URI: " + mongoClientURI);
+    return uri.getPath().substring(1);
   }
 
   @JsonProperty

@@ -3,8 +3,7 @@ auth:
   proxied: false
   whitelistExpirySeconds: 7200
 database:
-  mongoClientURI: mongodb://jsmith:some-initial-password@db:27017
-  mongoDatabase: oco
+  mongoClientURI: mongodb://jsmith:some-initial-password@db:27017/oco
   lockSeconds: 30
 mq:
   clientURI: amqp://mq
