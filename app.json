@@ -1,0 +1,101 @@
+{
+  "name": "orko",
+  "scripts": {
+  },
+  "env": {
+    "AUTH_TOKEN": {
+      "required": true
+    },
+    "BINANCE_API_KEY": {
+      "required": true
+    },
+    "BINANCE_SECRET": {
+      "required": true
+    },
+    "BITFINEX_API_KEY": {
+      "required": true
+    },
+    "BITFINEX_SECRET": {
+      "required": true
+    },
+    "BITTREX_API_KEY": "",
+    "BITTREX_SECRET": "",
+    "CRYPTOPIA_API_KEY": "",
+    "CRYPTOPIA_SECRET": "",
+    "GDAX_API_KEY": {
+      "required": true
+    },
+    "GDAX_PASSPHRASE": {
+      "required": true
+    },
+    "GDAX_SANDBOX_API_KEY": {
+      "required": true
+    },
+    "GDAX_SANDBOX_PASSPHRASE": {
+      "required": true
+    },
+    "GDAX_SANDBOX_SECRET": {
+      "required": true
+    },
+    "GDAX_SECRET": {
+      "required": true
+    },
+    "JAVA_OPTS": {
+      "required": true
+    },
+    "KUCOIN_API_KEY": {
+      "required": true
+    },
+    "KUCOIN_SECRET": {
+      "required": true
+    },
+    "LOCK_SECONDS": {
+      "required": true
+    },
+    "LOG_LEVEL": {
+      "required": true
+    },
+    "LOOP_SECONDS": {
+      "required": true
+    },
+    "MAVEN_CUSTOM_GOALS": {
+      "required": true
+    },
+    "MAVEN_CUSTOM_OPTS": {
+      "required": true
+    },
+    "OKTA_BASEURL": {
+      "required": true
+    },
+    "OKTA_CLIENTID": {
+      "required": true
+    },
+    "OKTA_ISSUER": {
+      "required": true
+    },
+    "PROXIED": {
+      "required": true
+    },
+    "TELEGRAM_BOT_TOKEN": {
+      "required": true
+    },
+    "TELEGRAM_CHAT_ID": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "mongolab",
+    "papertrail",
+    "snyk"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/java"
+    }
+  ]
+}
