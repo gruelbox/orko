@@ -33,7 +33,7 @@ function local(message, level) {
   return (dispatch, getState, socket) => {
     if (lastMessage !== message) {
       if (level === "ALERT" || level === "ERROR") {
-        notify("OKO Client", message)
+        notify("Orko Client", message)
       }
       lastMessage = message
     }
@@ -50,7 +50,7 @@ function local(message, level) {
 export function add(notification) {
   return (dispatch, getState, socket) => {
     if (notification.level === "ALERT" || notification.level === "ERROR") {
-      notify("OKO Server", notification.message)
+      notify("Orko Server", notification.message)
     }
     dispatch({ type: types.ADD, payload: notification })
   }
