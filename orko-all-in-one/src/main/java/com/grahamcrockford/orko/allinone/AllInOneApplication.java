@@ -3,10 +3,12 @@ package com.grahamcrockford.orko.allinone;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.servlet.FilterRegistration;
 import javax.ws.rs.client.Client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -16,6 +18,7 @@ import com.grahamcrockford.orko.websocket.WebSocketBundleInit;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
 import io.dropwizard.Application;
+import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -44,6 +47,7 @@ public class AllInOneApplication extends Application<OrkoConfiguration> {
 
   @Override
   public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
+    bootstrap.addBundle(new AssetsBundle("/assets/", "/", "index.html"));
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         bootstrap.getConfigurationSourceProvider(),
@@ -56,6 +60,11 @@ public class AllInOneApplication extends Application<OrkoConfiguration> {
 
   @Override
   public void run(final OrkoConfiguration configuration, final Environment environment) {
+
+    FilterRegistration.Dynamic registration = environment.servlets()
+        .addFilter("UrlRewriteFilter", new UrlRewriteFilter());
+    registration.addMappingForUrlPatterns(null, true, "/*");
+    registration.setInitParameter("confPath", "urlrewrite.xml");
 
     // Jersey client
     final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
