@@ -93,7 +93,7 @@
 							<outputDirectory>${basedir}/../orko-all-in-one/src/main/resources/assets</outputDirectory>
 							<resources>
 								<resource>
-									<directory>/build</directory>
+									<directory>${basedir}/build</directory>
 									<filtering>true</filtering>
 								</resource>
 							</resources>
