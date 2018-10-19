@@ -9,6 +9,7 @@ mq:
   clientURI: amqp://mq
 server:
   type: simple
+  rootPath: /api/
   applicationContextPath: /
   connector:
     type: http
