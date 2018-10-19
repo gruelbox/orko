@@ -94,7 +94,7 @@
 							<resources>
 								<resource>
 									<directory>${basedir}/build</directory>
-									<filtering>true</filtering>
+									<filtering>false</filtering>
 								</resource>
 							</resources>
 						</configuration>
