@@ -39,7 +39,7 @@ exchanges:
     secretKey: ${CRYPTOPIA_SECRET}
 server:
   type: simple
-  applicationContextPath: /
+  applicationContextPath: /api/
   connector:
     type: http
     port: 8080
