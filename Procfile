@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server example-config.yml
+web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server heroku-config.yml
