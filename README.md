@@ -1,49 +1,26 @@
 # Orko
 
-Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage
-your portfolio, even if it is spread across multiple exchanges, all from one screen. It supports powerful background processes allowing you
-to set up stop losses, take profit orders, trailing stops and more, even on exchanges that don't support these types of advanced orders, as well
-as price and profit/loss level alerts.
+Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen. It supports powerful background processes allowing you to set up stop losses, take profit orders, trailing stops and more, even on exchanges that don't support these types of advanced orders, as well as price and profit/loss level alerts.
 
-It is under active development and is gradually being extended to the point where you will also be able to schedule and monitor complex
-scripted strategies. It aims to be a one-stop-shop for online cryptocurrency trading.
+It is under active development and is gradually being extended to the point where you will also be able to schedule and monitor complex scripted strategies. It aims to be a one-stop-shop for online cryptocurrency trading.
 
 ## Just let me try it out
 
 ```
-// Build the server
 sudo apt-get install maven
 mvn clean package -Dmaven.test.skip=true
-
-// Run the single-app server
-java -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server ./example-developer-mode-config-allinone.yml
-
-// Build the UI
-cd orko-ui
-sudo apt-get install npm
-npm install
-
-// Run the UI
-HTTPS=true npm start
+./start.sh
 ```
-
-This should start the application in a local web browser. If it doesn't, navigate to https://localhost:3000.
+Navigate to http://localhost:8080 to view the application.
 
 Note that:
 
-- Since it uses self-sign certificate, you may need to accept some browser warnings.
-- This uses in-memory storage only. Any jobs you create will not be saved so will be lost on restart. To enable persistent storage, you need a MongoDB database (more on this below).
-- It has none of your exchange details, so no balance or trade history information is available, and all trading is paper-trading.
+- This uses in-memory storage only. Any jobs you create will not be saved so will be lost on restart. To enable persistent storage, you need a MongoDB database (more on this below). I'm intending to implement a lighterweight option so this step isn't necessary in the future.
+- It has none of your exchange details, so no balance or trade history information is available, and all trading is paper-trading. We'll add these in a moment.
 
 ## Add your exchange account details
 
-By default there are no exchange account details, so trading isn't enabled. To remedy this, copy `example-developer-mode-config-allinone.yml` to a new file (e.g. `my-config.yml`), then, to the relevant section, add the API keys details for the exchanges you use.
-
-Then run the backend pointing to this config file instead:
-
-```
-java -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server ./my-config.yml
-```
+By default there are no exchange account details, so trading isn't enabled. To remedy this, modify `orko-all-in-one/example-config.yml`. To the relevant section, add the API keys details for the exchanges you use. Then run again.
 
 ## Set up Telegram so you can get notifications on your phone
 
@@ -55,7 +32,7 @@ While notifications are shown in the UI, it's handy to get them away from your s
 1. Use the following URL to get the ID of your channel: https://api.telegram.org/YOURBOTID:YOURTOKEN/getChat?chat_id=@YourChannelName
 1. Once you've noted down the channel ID, make your channel private from the app so no-one else can access it (you can't use the above API to ge the IP of a private channel).
 
-Once you have the connection details, you can set the appropriate section in your `my-config.yml` file. Uncomment (remove the # symbols) from the following lines, replacing the values with the token and chat id you noted down.
+Once you have the connection details, you can set the appropriate section in your `example-config.yml` file. Uncomment (remove the # symbols) from the following lines, replacing the values with the token and chat id you noted down.
 
 ```
 # telegram:
