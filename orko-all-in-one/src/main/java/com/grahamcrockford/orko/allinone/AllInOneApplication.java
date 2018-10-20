@@ -61,10 +61,16 @@ public class AllInOneApplication extends Application<OrkoConfiguration> {
   @Override
   public void run(final OrkoConfiguration configuration, final Environment environment) {
 
-    FilterRegistration.Dynamic registration = environment.servlets()
+    // Rewrite all UI URLs to index.html
+    FilterRegistration.Dynamic urlRewriteFilter = environment.servlets()
         .addFilter("UrlRewriteFilter", new UrlRewriteFilter());
-    registration.addMappingForUrlPatterns(null, true, "/*");
-    registration.setInitParameter("confPath", "urlrewrite.xml");
+    urlRewriteFilter.addMappingForUrlPatterns(null, true, "/*");
+    urlRewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
+    
+    // Enforce HTTPS
+    FilterRegistration.Dynamic httpsEnforcer = environment.servlets()
+        .addFilter("HttpsEnforcer", new HttpsEnforcer());
+    httpsEnforcer.addMappingForUrlPatterns(null, true, "/*");
 
     // Jersey client
     final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());
