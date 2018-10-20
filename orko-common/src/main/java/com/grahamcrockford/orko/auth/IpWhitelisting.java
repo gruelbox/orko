@@ -36,19 +36,14 @@ class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-
     if (StringUtils.isEmpty(configuration.secretKey))
       return true;
-
     String sourceIp = sourceIp();
-    String whitelistedIp = ipWhitelistAccess.getIp();
-
-    if (sourceIp().equals(ipWhitelistAccess.getIp()))
-      return true;
-
-    LOGGER.error("Access attempt from [{}] did not match whitelist: [{}]", sourceIp, whitelistedIp);
-    return false;
-
+    if (!ipWhitelistAccess.exists(sourceIp)) {
+      LOGGER.error("Access attempt from [{}] not whitelisted", sourceIp);
+      return false;
+    }
+    return true;
   }
 
   public boolean whiteListRequestIp(int token) {
@@ -60,7 +55,7 @@ class IpWhitelisting {
       LOGGER.error("Whitelist attempt failed from: " + ip);
       return false;
     }
-    ipWhitelistAccess.setIp(ip);
+    ipWhitelistAccess.add(ip);
     LOGGER.info("Whitelisted ip: " + ip);
     return true;
   }

@@ -26,8 +26,6 @@ import com.mongodb.MongoException;
 @Singleton
 class IpWhitelistAccess {
 
-  private static final int SINGLETON_OBJECT_ID = 1;
-
   private static final Logger LOGGER = LoggerFactory.getLogger(IpWhitelistAccess.class);
 
   private final Supplier<DBCollection> collection = Suppliers.memoize(this::createCollection);
@@ -42,7 +40,7 @@ class IpWhitelistAccess {
     this.authConfiguration = authConfiguration;
   }
 
-  public void setIp(String ip) {
+  public void add(String ip) {
     Preconditions.checkNotNull(ip);
     checkHaveDb();
     try {
@@ -56,37 +54,34 @@ class IpWhitelistAccess {
   private void update(String ip) {
     collection.get().update(
       new BasicDBObject()
-        .append("uid", SINGLETON_OBJECT_ID),
+        .append("ip", ip),
        new BasicDBObject("$set", new BasicDBObject()
-           .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))
-           .append("ip", ip)),
+           .append("ts", Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC)))),
       true,
       false
     );
   }
 
-  public void delete(String sourceIp) {
+  public void delete(String ip) {
     checkHaveDb();
-    collection.get().remove(new BasicDBObject().append("uid", SINGLETON_OBJECT_ID));
+    collection.get().remove(new BasicDBObject().append("ip", ip));
   }
 
-  public String getIp() {
+  public boolean exists(String ip) {
     checkHaveDb();
-    DBObject result = collection.get().findOne(new BasicDBObject().append("uid", SINGLETON_OBJECT_ID));
-    if (result == null)
-      return null;
-    return (String) result.get("ip");
+    DBObject result = collection.get().findOne(new BasicDBObject().append("ip", ip));
+    return result != null;
   }
 
   private DBCollection createCollection() {
-    DBCollection collection = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("ipwl");
+    DBCollection collection = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("ipw2");
     createUniqueIndex(collection);
     createTtlIndex(collection);
     return collection;
   }
 
   private void createUniqueIndex(DBCollection collection) {
-    BasicDBObject index = new BasicDBObject().append("uid", 1);
+    BasicDBObject index = new BasicDBObject().append("ip", 1);
     BasicDBObject indexOpts = new BasicDBObject()
         .append("name", "unq")
         .append("unique", true);
