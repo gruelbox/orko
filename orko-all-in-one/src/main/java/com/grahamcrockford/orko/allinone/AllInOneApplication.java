@@ -66,11 +66,13 @@ public class AllInOneApplication extends Application<OrkoConfiguration> {
         .addFilter("UrlRewriteFilter", new UrlRewriteFilter());
     urlRewriteFilter.addMappingForUrlPatterns(null, true, "/*");
     urlRewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-    
+
     // Enforce HTTPS
-    FilterRegistration.Dynamic httpsEnforcer = environment.servlets()
-        .addFilter("HttpsEnforcer", new HttpsEnforcer());
-    httpsEnforcer.addMappingForUrlPatterns(null, true, "/*");
+    if (configuration.getAuth().httpsOnly) {
+      FilterRegistration.Dynamic httpsEnforcer = environment.servlets()
+          .addFilter("HttpsEnforcer", new HttpsEnforcer());
+      httpsEnforcer.addMappingForUrlPatterns(null, true, "/*");
+    }
 
     // Jersey client
     final Client jerseyClient = new JerseyClientBuilder(environment).using(configuration.getJerseyClientConfiguration()).build(getName());

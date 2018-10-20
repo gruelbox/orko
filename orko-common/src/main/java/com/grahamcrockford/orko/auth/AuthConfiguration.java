@@ -29,5 +29,7 @@ public class AuthConfiguration {
   @NotNull
   public boolean proxied;
 
+  public boolean httpsOnly;
+
   public String authCachePolicy = "maximumSize=10000, expireAfterAccess=10m";
 }

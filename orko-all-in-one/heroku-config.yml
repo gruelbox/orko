@@ -1,5 +1,6 @@
 loopSeconds: ${LOOP_SECONDS}
 auth:
+  httpsOnly: true
   proxied: ${PROXIED}
   whitelistExpirySeconds: 14400
   secretKey: ${AUTH_TOKEN}
