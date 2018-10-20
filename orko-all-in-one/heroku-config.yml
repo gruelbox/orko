@@ -2,7 +2,7 @@ loopSeconds: ${LOOP_SECONDS}
 auth:
   httpsOnly: true
   proxied: ${PROXIED}
-  whitelistExpirySeconds: 14400
+  whitelistExpirySeconds: ${WHITELIST_EXPIRY_SECONDS}
   secretKey: ${AUTH_TOKEN}
   okta:
     baseUrl: ${OKTA_BASEURL}
