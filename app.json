@@ -6,16 +6,36 @@
     "AUTH_TOKEN": {
       "required": true
     },
-    "BINANCE_API_KEY": "",
-    "BINANCE_SECRET": "",
-    "BITFINEX_API_KEY": "",
-    "BITFINEX_SECRET": "",
-    "BITTREX_API_KEY": "",
-    "BITTREX_SECRET": "",
-    "CRYPTOPIA_API_KEY": "",
-    "CRYPTOPIA_SECRET": "",
-    "GDAX_API_KEY": "",
-    "GDAX_PASSPHRASE": "",
+    "BINANCE_API_KEY": {
+      "required": false
+    },
+    "BINANCE_SECRET": {
+      "required": false
+    },
+    "BITFINEX_API_KEY": {
+      "required": false
+    },
+    "BITFINEX_SECRET": {
+      "required": false
+    },
+    "BITTREX_API_KEY": {
+      "required": false
+    },
+    "BITTREX_SECRET": {
+      "required": false
+    },
+    "CRYPTOPIA_API_KEY": {
+      "required": false
+    },
+    "CRYPTOPIA_SECRET": {
+      "required": false
+    },
+    "GDAX_API_KEY": {
+      "required": false
+    },
+    "GDAX_PASSPHRASE": {
+      "required": false
+    },
     "GDAX_SANDBOX_API_KEY": {
       "required": true
     },
@@ -29,8 +49,12 @@
     "JAVA_OPTS": {
       "required": true
     },
-    "KUCOIN_API_KEY": "",
-    "KUCOIN_SECRET": "",
+    "KUCOIN_API_KEY": {
+      "required": false
+    },
+    "KUCOIN_SECRET": {
+      "required": false
+    },
     "LOCK_SECONDS": {
       "required": true
     },
