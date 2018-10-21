@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { fontSize, color, fontWeights, spacing } from "styled-system"
+import { fontSize, color, fontWeight, space } from "styled-system"
 
 const Form = styled.form.attrs({})`
   display: flex;
@@ -9,8 +9,8 @@ const Form = styled.form.attrs({})`
   height: 100%;
   ${color}
   ${fontSize}
-  ${fontWeights}
-  ${spacing}
+  ${fontWeight}
+  ${space}
 `
 
 export default Form

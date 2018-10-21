@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { space, padding, fontSize, color, fontWeight } from 'styled-system'
+import { space, fontSize, color, fontWeight } from 'styled-system'
 
 
 const Tab = styled.button`
@@ -19,7 +19,6 @@ const Tab = styled.button`
   }
   display: ${props => props.visible === false ? "none" : "inline"};
   ${color}
-  ${padding}
   ${fontSize}
   ${fontWeight}
   ${space}
