@@ -45,7 +45,9 @@
     "GDAX_SANDBOX_SECRET": {
       "required": true
     },
-    "GDAX_SECRET": "",
+    "GDAX_SECRET": {
+      "required": false
+    },
     "JAVA_OPTS": {
       "required": true
     },
