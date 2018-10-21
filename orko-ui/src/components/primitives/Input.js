@@ -1,6 +1,6 @@
 import React from "react"
 import styled from "styled-components"
-import { fontSize, padding, color, fontWeight, space } from "styled-system"
+import { fontSize, color, fontWeight, space } from "styled-system"
 
 const RawInput = styled.input.attrs({
   fontSize: 2,
@@ -44,7 +44,6 @@ const RawLabel = styled.label.attrs({
   ${fontSize}
   ${fontWeight}
   ${space}
-  ${padding}
 `
 
 const RawFieldSet = styled.fieldset`
@@ -52,7 +51,7 @@ const RawFieldSet = styled.fieldset`
   border: none;
   width: 140px;
   flex: ${props => props.flex};
-  ${space} ${padding};
+  ${space}
 `
 
 const Input = props => (

@@ -16,6 +16,7 @@ const NewWindowChartContent = ({coin, url}) => (
     <Para>
       <a
         target="_blank"
+        rel="noopener noreferrer"
         href={url}
       >
         Open in {coin.exchange}
