@@ -1,4 +1,4 @@
-import Worker from "./socket.worker.js"
+//import Worker from "./socket.worker.js"
 import runtimeEnv from "@mars/heroku-js-runtime-env"
 import * as socketEvents from "./socketEvents"
 import * as serverMessages from "./socketMessages"
@@ -20,8 +20,8 @@ var subscribedCoins = []
 var selectedCoin = null
 var connected = false
 
-const worker = new Worker()
-worker.onmessage = m => receive(JSON.parse(m.data))
+//const worker = new Worker()
+//worker.onmessage = m => receive(JSON.parse(m.data))
 
 export function onError(handler) {
   handleError = handler
@@ -71,16 +71,16 @@ export function connect(token) {
   if (connected) throw Error("Already connected")
   const root = runtimeEnv().REACT_APP_WS_URL
   console.log("Connecting to socket", root)
-  worker.postMessage({
-    eventType: socketEvents.CONNECT,
-    payload: { token, root }
-  })
+  //worker.postMessage({
+  //  eventType: socketEvents.CONNECT,
+  //  payload: { token, root }
+  //})
 }
 
 export function disconnect() {
   if (connected) {
     console.log("Disconnecting socket")
-    worker.postMessage({ eventType: socketEvents.DISCONNECT })
+    //worker.postMessage({ eventType: socketEvents.DISCONNECT })
   }
 }
 
@@ -133,10 +133,10 @@ function webCoinToServerCoin(coin) {
 }
 
 function send(message) {
-  worker.postMessage({
-    eventType: socketEvents.MESSAGE,
-    payload: message
-  })
+  //worker.postMessage({
+  //  eventType: socketEvents.MESSAGE,
+   // payload: message
+  //})
 }
 
 function receive(event) {

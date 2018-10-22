@@ -3,58 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@babel/core": "7.1.0",
     "@mars/heroku-js-runtime-env": "^3.0.2",
     "@okta/okta-signin-widget": "^2.13.0",
-    "@svgr/webpack": "2.4.1",
-    "babel-core": "7.0.0-bridge.0",
-    "babel-eslint": "9.0.0",
-    "babel-jest": "23.6.0",
-    "babel-loader": "8.0.4",
-    "babel-plugin-named-asset-import": "^0.2.2",
-    "babel-preset-react-app": "^5.0.4",
-    "bfj": "6.1.1",
-    "case-sensitive-paths-webpack-plugin": "2.1.2",
-    "chalk": "2.4.1",
-    "css-loader": "1.0.0",
-    "dotenv": "6.0.0",
-    "dotenv-expand": "4.2.0",
-    "eslint": "5.6.0",
-    "eslint-config-react-app": "^3.0.4",
-    "eslint-loader": "2.1.1",
-    "eslint-plugin-flowtype": "2.50.1",
-    "eslint-plugin-import": "2.14.0",
-    "eslint-plugin-jsx-a11y": "6.1.2",
-    "eslint-plugin-react": "7.11.1",
     "fetch": "^1.1.0",
-    "file-loader": "2.0.0",
-    "fs-extra": "7.0.0",
-    "html-webpack-plugin": "4.0.0-alpha.2",
     "http-proxy-middleware": "^0.19.0",
-    "identity-obj-proxy": "3.0.0",
     "immutable": "^3.8.2",
-    "jest": "23.6.0",
-    "jest-pnp-resolver": "1.0.1",
-    "jest-resolve": "23.6.0",
-    "mini-css-extract-plugin": "0.4.3",
-    "optimize-css-assets-webpack-plugin": "5.0.1",
-    "pnp-webpack-plugin": "1.1.0",
     "polished": "^1.9.3",
-    "postcss-flexbugs-fixes": "4.1.0",
-    "postcss-loader": "3.0.0",
-    "postcss-preset-env": "6.0.6",
-    "postcss-safe-parser": "4.0.1",
     "prop-types": "^15.6.2",
     "react": "^16.5.2",
     "react-addons-css-transition-group": "^15.6.2",
-    "react-app-polyfill": "^0.1.3",
-    "react-dev-utils": "^6.0.5",
     "react-dom": "^16.5.2",
     "react-grid-layout": "^0.16.6",
     "react-page-visibility": "^3.0.0",
     "react-redux": "^5.0.7",
     "react-router-dom": "^4.3.1",
     "react-router-redux": "^5.0.0-alpha.9",
+    "react-scripts": "2.0.5",
     "react-table": "^6.8.6",
     "recompose": "^0.30.0",
     "reconnecting-websocket": "^4.1.10",
@@ -62,28 +26,20 @@
     "redux-batched-actions": "^0.4.1",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
-    "resolve": "1.8.1",
-    "sass-loader": "7.1.0",
     "seamless-immutable": "^7.1.4",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.83.0",
-    "style-loader": "0.23.0",
     "styled-components": "^4.0.2",
-    "styled-system": "^3.1.11",
-    "terser-webpack-plugin": "1.1.0",
-    "url-loader": "1.1.1",
-    "webpack": "4.19.1",
-    "webpack-dev-server": "3.1.9",
-    "webpack-manifest-plugin": "2.0.4",
-    "workbox-webpack-plugin": "3.6.2"
+    "styled-system": "^3.1.11"
   },
   "devDependencies": {
     "worker-loader": "^2.0.0"
   },
   "scripts": {
-    "start": "node scripts/start.js",
-    "build": "node scripts/build.js",
-    "test": "node scripts/test.js"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -93,46 +49,5 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ],
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}"
-    ],
-    "resolver": "jest-pnp-resolver",
-    "setupFiles": [
-      "react-app-polyfill/jsdom"
-    ],
-    "testMatch": [
-      "<rootDir>/src/**/__tests__/**/*.{js,jsx}",
-      "<rootDir>/src/**/?(*.)(spec|test).{js,jsx}"
-    ],
-    "testEnvironment": "jsdom",
-    "testURL": "http://localhost",
-    "transform": {
-      "^.+\\.(js|jsx)$": "<rootDir>/node_modules/babel-jest",
-      "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
-      "^(?!.*\\.(js|jsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
-    },
-    "transformIgnorePatterns": [
-      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$",
-      "^.+\\.module\\.(css|sass|scss)$"
-    ],
-    "moduleNameMapper": {
-      "^react-native$": "react-native-web",
-      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
-    },
-    "moduleFileExtensions": [
-      "web.js",
-      "js",
-      "json",
-      "web.jsx",
-      "jsx",
-      "node"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "react-app"
-    ]
-  }
+  ]
 }
