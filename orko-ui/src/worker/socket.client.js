@@ -1,7 +1,6 @@
-//import Worker from "./socket.worker.js"
 import runtimeEnv from "@mars/heroku-js-runtime-env"
-import * as socketEvents from "./socketEvents"
-import * as serverMessages from "./socketMessages"
+import * as socketMessages from "./socketMessages"
+import ReconnectingWebSocket from "reconnecting-websocket"
 import { augmentCoin, coin as createCoin } from "../util/coinUtils"
 
 var handleError = message => {}
@@ -20,8 +19,8 @@ var subscribedCoins = []
 var selectedCoin = null
 var connected = false
 
-//const worker = new Worker()
-//worker.onmessage = m => receive(JSON.parse(m.data))
+var socket
+var timer
 
 export function onError(handler) {
   handleError = handler
@@ -71,16 +70,34 @@ export function connect(token) {
   if (connected) throw Error("Already connected")
   const root = runtimeEnv().REACT_APP_WS_URL
   console.log("Connecting to socket", root)
-  //worker.postMessage({
-  //  eventType: socketEvents.CONNECT,
-  //  payload: { token, root }
-  //})
+  socket = ws("ws", token, root)
+  socket.onopen = () => {
+    connected = true
+    console.log("Socket (re)connected")
+    handleConnectionStateChange(true)
+    resubscribe()
+  }
+  socket.onclose = () => {
+    connected = false
+    console.log("Socket connection temporarily lost")
+    handleConnectionStateChange(false)
+  }
+  socket.onmessage = evt => {
+    try {
+      receive(preProcess(JSON.parse(evt.data)))
+    } catch (e) {
+      console.log("Invalid message from server", evt.data)
+    }
+  }
+  timer = setInterval(() => send({ command: socketMessages.READY }), 3000)
 }
 
 export function disconnect() {
   if (connected) {
     console.log("Disconnecting socket")
-    //worker.postMessage({ eventType: socketEvents.DISCONNECT })
+    socket.close(undefined, "Shutdown", { keepClosed: true })
+    connected = false
+    clearInterval(timer)
   }
 }
 
@@ -98,30 +115,30 @@ export function resubscribe() {
     ? [webCoinToServerCoin(selectedCoin)]
     : []
   send({
-    command: serverMessages.CHANGE_TICKERS,
+    command: socketMessages.CHANGE_TICKERS,
     tickers: subscribedCoins.map(coin => webCoinToServerCoin(coin))
   })
   send({
-    command: serverMessages.CHANGE_OPEN_ORDERS,
+    command: socketMessages.CHANGE_OPEN_ORDERS,
     tickers: serverSelectedCoinTickers
   })
   send({
-    command: serverMessages.CHANGE_ORDER_BOOK,
+    command: socketMessages.CHANGE_ORDER_BOOK,
     tickers: serverSelectedCoinTickers
   })
   send({
-    command: serverMessages.CHANGE_TRADES,
+    command: socketMessages.CHANGE_TRADES,
     tickers: serverSelectedCoinTickers
   })
   send({
-    command: serverMessages.CHANGE_USER_TRADE_HISTORY,
+    command: socketMessages.CHANGE_USER_TRADE_HISTORY,
     tickers: serverSelectedCoinTickers
   })
   send({
-    command: serverMessages.CHANGE_BALANCE,
+    command: socketMessages.CHANGE_BALANCE,
     tickers: serverSelectedCoinTickers
   })
-  send({ command: serverMessages.UPDATE_SUBSCRIPTIONS })
+  send({ command: socketMessages.UPDATE_SUBSCRIPTIONS })
 }
 
 function webCoinToServerCoin(coin) {
@@ -132,34 +149,17 @@ function webCoinToServerCoin(coin) {
   }
 }
 
-function send(message) {
-  //worker.postMessage({
-  //  eventType: socketEvents.MESSAGE,
-   // payload: message
-  //})
-}
-
-function receive(event) {
-  if (!event) {
+function receive(message) {
+  if (!message) {
     handleError("Empty event from server")
-  } else if (event.eventType === socketEvents.OPEN) {
-    console.log("Socket (re)connected")
-    connected = true
-    handleConnectionStateChange(true)
-    resubscribe()
-  } else if (event.eventType === socketEvents.CLOSE) {
-    console.log("Socket connection temporarily lost")
-    connected = false
-    handleConnectionStateChange(false)
-  } else if (event.eventType === socketEvents.MESSAGE) {
-    const message = event.payload
+  } else {
     switch (message.nature) {
-      case serverMessages.ERROR:
+      case socketMessages.ERROR:
         console.log("Error from socket")
         handleError(message.data)
         break
 
-      case serverMessages.TICKER:
+      case socketMessages.TICKER:
         handleTicker(
           createCoin(
             message.data.spec.exchange,
@@ -170,30 +170,30 @@ function receive(event) {
         )
         break
 
-      case serverMessages.OPEN_ORDERS:
+      case socketMessages.OPEN_ORDERS:
         handleOrders(augmentCoin(message.data.spec), message.data.openOrders)
         break
 
-      case serverMessages.ORDERBOOK:
+      case socketMessages.ORDERBOOK:
         handleOrderBook(augmentCoin(message.data.spec), message.data.orderBook)
         break
 
-      case serverMessages.TRADE:
+      case socketMessages.TRADE:
         handleTrade(augmentCoin(message.data.spec), message.data.trade)
         break
 
-      case serverMessages.USER_TRADE:
+      case socketMessages.USER_TRADE:
         handleUserTrade(augmentCoin(message.data.spec), message.data.trade)
         break
 
-      case serverMessages.USER_TRADE_HISTORY:
+      case socketMessages.USER_TRADE_HISTORY:
         handleUserTradeHistory(
           augmentCoin(message.data.spec),
           message.data.trades
         )
         break
 
-      case serverMessages.BALANCE:
+      case socketMessages.BALANCE:
         handleBalance(
           message.data.exchange,
           message.data.currency,
@@ -201,18 +201,66 @@ function receive(event) {
         )
         break
 
-      case serverMessages.NOTIFICATION:
+      case socketMessages.NOTIFICATION:
         handleNotification(message.data)
         break
 
-      case serverMessages.STATUS_UPDATE:
+      case socketMessages.STATUS_UPDATE:
         handleStatusUpdate(message.data)
         break
 
       default:
         handleError("Unknown message type from server: " + message.nature)
     }
+  }
+}
+
+function send(message) {
+  if (connected) socket.send(JSON.stringify(message))
+}
+
+/**
+ * Processor-heavy preprocessing we want to do on the incoming message
+ * prior to transmitting to the main thread.
+ */
+function preProcess(obj) {
+  switch (obj.nature) {
+    case socketMessages.ORDERBOOK:
+      const ORDERBOOK_SIZE = 16
+      const orderBook = obj.data.orderBook
+      if (orderBook.asks.length > ORDERBOOK_SIZE) {
+        orderBook.asks = orderBook.asks.slice(0, 16)
+      }
+      if (orderBook.bids.length > ORDERBOOK_SIZE) {
+        orderBook.bids = orderBook.bids.slice(0, 16)
+      }
+      return obj
+
+    case socketMessages.USER_TRADE_HISTORY:
+      obj.data.trades = obj.data.trades.sort((a, b) => b.d - a.d)
+      return obj
+
+    case socketMessages.USER_TRADE:
+      obj.data.trade.t = obj.data.trade.t === "BID" ? "ASK" : "BID"
+      return obj
+
+    default:
+      return obj
+  }
+}
+
+function ws(url, token, root) {
+  var fullUrl
+  if (root) {
+    fullUrl = root + "/" + url
   } else {
-    handleError("Unknown event from server: " + JSON.stringify(event))
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+    fullUrl = protocol + "//" + window.location.host + "/" + url
+  }
+  console.log("Connecting", fullUrl)
+  if (token) {
+    return new ReconnectingWebSocket(fullUrl, ["auth", token])
+  } else {
+    return new ReconnectingWebSocket(fullUrl)
   }
 }
