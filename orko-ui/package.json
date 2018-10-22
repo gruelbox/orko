@@ -32,9 +32,6 @@
     "styled-components": "^4.0.2",
     "styled-system": "^3.1.11"
   },
-  "devDependencies": {
-    "worker-loader": "^2.0.0"
-  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
