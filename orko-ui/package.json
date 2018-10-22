@@ -33,13 +33,12 @@
     "styled-system": "^3.1.11"
   },
   "devDependencies": {
-    "react-app-rewired": "^1.6.2",
     "worker-loader": "^2.0.0"
   },
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
-    "test": "react-app-rewired test",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
