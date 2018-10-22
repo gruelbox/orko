@@ -9,17 +9,14 @@ var timer
 /**
  * Listen to and act on messages from the main thread
  */
-self.addEventListener("message", ({ data }) => {
+self.addEventListener('message', ({data}) => {
   switch (data.eventType) {
     case socketEvents.CONNECT:
       socket = connect(data.payload)
-      timer = self.setInterval(
-        () => send({ command: socketMessages.READY }),
-        3000
-      )
+      timer = setInterval(() => send({command: socketMessages.READY}), 3000)
       break
     case socketEvents.DISCONNECT:
-      self.clearInterval(timer)
+      clearInterval(timer)
       disconnect(socket)
       break
     case socketEvents.MESSAGE:
@@ -31,22 +28,22 @@ self.addEventListener("message", ({ data }) => {
 })
 
 function send(message) {
-  if (connected) socket.send(JSON.stringify(message))
+  if (connected)
+    socket.send(JSON.stringify(message))
 }
 
-const messageStart =
-  '{ "eventType": "' + socketEvents.MESSAGE + '", "payload": '
+const messageStart = "{ \"eventType\": \"" + socketEvents.MESSAGE + "\", \"payload\": "
 
-function connect({ token, root }) {
+function connect({token, root}) {
   console.log("Received connect request", root)
   var socket = ws("ws", token, root)
   socket.onopen = () => {
     connected = true
-    postMessage('{ "eventType": "' + socketEvents.OPEN + '" }')
+    postMessage("{ \"eventType\": \"" + socketEvents.OPEN + "\" }")
   }
   socket.onclose = () => {
     connected = false
-    postMessage('{ "eventType": "' + socketEvents.CLOSE + '" }')
+    postMessage("{ \"eventType\": \"" + socketEvents.CLOSE + "\" }")
   }
   socket.onmessage = evt => {
     try {
@@ -66,7 +63,9 @@ function connect({ token, root }) {
 function preProcess(data) {
   const obj = JSON.parse(data)
   switch (obj.nature) {
+
     case socketMessages.ORDERBOOK:
+
       const ORDERBOOK_SIZE = 16
       const orderBook = obj.data.orderBook
       var modified = false
@@ -85,10 +84,12 @@ function preProcess(data) {
       }
 
     case socketMessages.USER_TRADE_HISTORY:
+
       obj.data.trades = obj.data.trades.sort((a, b) => b.d - a.d)
       return JSON.stringify(obj)
 
     case socketMessages.USER_TRADE:
+
       obj.data.trade.t = obj.data.trade.t === "BID" ? "ASK" : "BID"
       return JSON.stringify(obj)
 
