@@ -126,6 +126,7 @@
     <rabbitmq.version>5.2.0</rabbitmq.version>
     <mongo.version>3.7.0</mongo.version>
     <mongojack.version>2.8.2</mongojack.version>
+    <mapdb.version>3.0.7</mapdb.version>
     <reflections.version>0.9.11</reflections.version>
     <googleauth.version>1.1.5</googleauth.version>
     <okta-jwt-verifier-version>0.3.0</okta-jwt-verifier-version>
@@ -142,20 +143,11 @@
     <mockito.version>1.10.19</mockito.version>
   </properties>
 
-  <!--<build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-plugin-version}</version>
-        <configuration>
-          <parallel>classes</parallel>
-		  <useUnlimitedThreads>true</useUnlimitedThreads>
-		  <perCoreThreadCount>true</perCoreThreadCount>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>-->
+  <!--<build> <plugins> <plugin> <groupId>org.apache.maven.plugins</groupId> 
+    <artifactId>maven-surefire-plugin</artifactId> <version>${maven-surefire-plugin-version}</version> 
+    <configuration> <parallel>classes</parallel> <useUnlimitedThreads>true</useUnlimitedThreads> 
+    <perCoreThreadCount>true</perCoreThreadCount> </configuration> </plugin> 
+    </plugins> </build> -->
 
   <dependencyManagement>
     <dependencies>
@@ -302,6 +294,11 @@
         <groupId>org.mongojack</groupId>
         <artifactId>mongojack</artifactId>
         <version>${mongojack.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.mapdb</groupId>
+          <artifactId>mapdb</artifactId>
+          <version>${mapdb.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject.extensions</groupId>

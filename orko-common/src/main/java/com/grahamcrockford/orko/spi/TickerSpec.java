@@ -20,6 +20,11 @@ public abstract class TickerSpec {
     return new AutoValue_TickerSpec.Builder();
   }
 
+  public static TickerSpec fromKey(String key) {
+    String[] split = key.split("/");
+    return builder().exchange(split[0]).counter(split[1]).base(split[2]).build();
+  }
+
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
   public abstract static class Builder {

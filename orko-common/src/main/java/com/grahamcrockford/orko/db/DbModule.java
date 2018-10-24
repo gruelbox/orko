@@ -2,6 +2,7 @@ package com.grahamcrockford.orko.db;
 
 import javax.annotation.Nullable;
 
+import org.mapdb.DBMaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,8 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.orko.OrkoConfiguration;
+import com.grahamcrockford.orko.auth.IpWhitelistAccess;
+import com.grahamcrockford.orko.db.DbConfiguration.DbType;
 import com.grahamcrockford.orko.marketdata.PermanentSubscriptionAccess;
 import com.grahamcrockford.orko.submit.JobAccess;
 import com.grahamcrockford.orko.submit.JobLocker;
@@ -37,15 +40,30 @@ public class DbModule extends AbstractModule {
   }
 
   @Provides
-  @Singleton
-  MongoClientTask mongoClientTask(@Nullable DbConfiguration configuration, ObjectMapper objectMapper) {
-    return new MongoClientTask(configuration, objectMapper);
+  DbType dbType(@Nullable DbConfiguration configuration) {
+    if (configuration == null)  {
+      return DbType.MAP_DB_TEMPORARY;
+    }
+    return configuration.getDbType();
   }
 
   @Provides
   @Singleton
-  MongoClient mongoClient(@Nullable DbConfiguration configuration, MongoClientTask mongoClientTask) {
-    if (configuration == null)  {
+  org.mapdb.DBMaker.Maker mapDB(@Nullable DbConfiguration configuration, DbType dbType) {
+    switch (dbType) {
+      case MAP_DB_FILE:
+        return DBMaker.fileDB(configuration.getMapDbFile()).fileMmapEnable().transactionEnable();
+      case MAP_DB_TEMPORARY:
+        return DBMaker.tempFileDB();
+      default:
+        return null;
+    }
+  }
+
+  @Provides
+  @Singleton
+  MongoClient mongoClient(@Nullable DbConfiguration configuration, DbType dbType, MongoClientTask mongoClientTask) {
+    if (dbType != DbType.MONGO)  {
       return null;
     }
     MongoClient mongoClient = null;
@@ -62,29 +80,43 @@ public class DbModule extends AbstractModule {
 
   @Provides
   @Singleton
-  JobAccess jobAccess(@Nullable DbConfiguration configuration, Provider<DbJobAccess> dbJobAccess, Provider<InMemoryJobAccess> inMemoryJobAccess) {
-    if (configuration == null) {
-      LOGGER.warn("Falling back to in-memory storage as no database is configured");
-      return inMemoryJobAccess.get();
-    }
-    return dbJobAccess.get();
+  MongoClientTask mongoClientTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
+    return new MongoClientTask(configuration, dbType, objectMapper);
   }
 
   @Provides
   @Singleton
-  JobLocker jobLocker(@Nullable DbConfiguration configuration, Provider<DbJobLocker> dbJobLocker, Provider<InMemoryJobAccess> inMemoryJobAccess) {
-    if (configuration == null) {
-      return inMemoryJobAccess.get();
+  JobAccess jobAccess(DbType dbType, Provider<DbJobAccess> mongo, Provider<InMemoryJobAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
     }
-    return dbJobLocker.get();
+    return mongo.get();
   }
 
   @Provides
   @Singleton
-  PermanentSubscriptionAccess permanentSubscriptionAccess(@Nullable DbConfiguration configuration, Provider<DbPermanentSubscriptionAccess> db, Provider<InMemoryPermanentSubscriptionAccess> inMemory) {
-    if (configuration == null) {
-      return inMemory.get();
+  JobLocker jobLocker(DbType dbType, Provider<DbJobLocker> mongo, Provider<InMemoryJobAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
     }
-    return db.get();
+    return mongo.get();
+  }
+
+  @Provides
+  @Singleton
+  PermanentSubscriptionAccess permanentSubscriptionAccess(DbType dbType,  Provider<MongoPermanentSubscriptionAccess> mongo, Provider<MapDbPermanentSubscriptionAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
+    }
+    return mongo.get();
+  }
+
+  @Provides
+  @Singleton
+  IpWhitelistAccess ipWhitelistAccess(DbType dbType, Provider<MongoIpWhitelistAccess> mongo, Provider<MapDbIpWhitelistAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
+    }
+    return mongo.get();
   }
 }
