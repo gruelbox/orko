@@ -55,8 +55,6 @@ import io.reactivex.disposables.Disposable;
  */
 public final class PaperTradeService implements TradeService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PaperTradeService.class);
-
   private final AtomicLong orderCounter = new AtomicLong();
   private final ConcurrentMap<Long, LimitOrder> openOrders = new ConcurrentHashMap<>();
   private final ConcurrentMap<Long, Date> placedDates = new ConcurrentHashMap<>();
