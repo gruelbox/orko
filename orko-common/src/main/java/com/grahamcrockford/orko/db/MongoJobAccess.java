@@ -22,7 +22,7 @@ import com.mongodb.MongoClient;
  * Direct access to the data store.
  */
 @Singleton
-class DbJobAccess implements JobAccess {
+class MongoJobAccess implements JobAccess {
 
   private final Supplier<JacksonDBCollection<Envelope, String>> collection = Suppliers.memoize(this::collection);
 
@@ -31,7 +31,7 @@ class DbJobAccess implements JobAccess {
   private final DbConfiguration configuration;
 
   @Inject
-  DbJobAccess(MongoClient mongoClient, JobLocker jobLocker, DbConfiguration configuration) {
+  MongoJobAccess(MongoClient mongoClient, JobLocker jobLocker, DbConfiguration configuration) {
     this.mongoClient = mongoClient;
     this.jobLocker = jobLocker;
     this.configuration = configuration;

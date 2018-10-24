@@ -4,18 +4,19 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.db.DbConfiguration.DbType;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 
 import io.dropwizard.lifecycle.Managed;
 
 @Singleton
-final class MongoClientTask implements Managed {
+final class MongoDbClientLifecycleTask implements Managed {
 
   private final MongoClient mongoClient;
 
-  MongoClientTask(@Nullable DbConfiguration configuration, ObjectMapper objectMapper) {
-    this.mongoClient = configuration == null ? null : new MongoClient(new MongoClientURI(configuration.getMongoClientURI()));
+  MongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
+    this.mongoClient = dbType == DbType.MONGO ? new MongoClient(new MongoClientURI(configuration.getMongoClientURI())) : null;
   }
 
   @Override

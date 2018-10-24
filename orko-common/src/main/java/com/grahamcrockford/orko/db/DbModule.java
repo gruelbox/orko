@@ -12,6 +12,8 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.orko.OrkoConfiguration;
+import com.grahamcrockford.orko.auth.IpWhitelistAccess;
+import com.grahamcrockford.orko.db.DbConfiguration.DbType;
 import com.grahamcrockford.orko.marketdata.PermanentSubscriptionAccess;
 import com.grahamcrockford.orko.submit.JobAccess;
 import com.grahamcrockford.orko.submit.JobLocker;
@@ -27,7 +29,7 @@ public class DbModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(MongoClientTask.class);
+    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(MongoDbClientLifecycleTask.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(DbEnvironment.class);
   }
 
@@ -37,21 +39,23 @@ public class DbModule extends AbstractModule {
   }
 
   @Provides
-  @Singleton
-  MongoClientTask mongoClientTask(@Nullable DbConfiguration configuration, ObjectMapper objectMapper) {
-    return new MongoClientTask(configuration, objectMapper);
+  DbType dbType(@Nullable DbConfiguration configuration) {
+    if (configuration == null)  {
+      return DbType.MAP_DB_MEMORY;
+    }
+    return configuration.getDbType();
   }
 
   @Provides
   @Singleton
-  MongoClient mongoClient(@Nullable DbConfiguration configuration, MongoClientTask mongoClientTask) {
-    if (configuration == null)  {
+  MongoClient mongoClient(@Nullable DbConfiguration configuration, DbType dbType, MongoDbClientLifecycleTask mongoDbClientLifecycleTask) {
+    if (dbType != DbType.MONGO)  {
       return null;
     }
     MongoClient mongoClient = null;
     while (mongoClient == null) {
       try {
-        mongoClient = mongoClientTask.getMongoClient();
+        mongoClient = mongoDbClientLifecycleTask.getMongoClient();
       } catch (Exception e) {
         LOGGER.error("Failed to create Mongo client", e);
         CheckedExceptions.runUnchecked(() -> Thread.sleep(10000));
@@ -62,29 +66,43 @@ public class DbModule extends AbstractModule {
 
   @Provides
   @Singleton
-  JobAccess jobAccess(@Nullable DbConfiguration configuration, Provider<DbJobAccess> dbJobAccess, Provider<InMemoryJobAccess> inMemoryJobAccess) {
-    if (configuration == null) {
-      LOGGER.warn("Falling back to in-memory storage as no database is configured");
-      return inMemoryJobAccess.get();
-    }
-    return dbJobAccess.get();
+  MongoDbClientLifecycleTask mongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
+    return new MongoDbClientLifecycleTask(configuration, dbType, objectMapper);
   }
 
   @Provides
   @Singleton
-  JobLocker jobLocker(@Nullable DbConfiguration configuration, Provider<DbJobLocker> dbJobLocker, Provider<InMemoryJobAccess> inMemoryJobAccess) {
-    if (configuration == null) {
-      return inMemoryJobAccess.get();
+  JobAccess jobAccess(DbType dbType, Provider<MongoJobAccess> mongo, Provider<MapDbJobAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
     }
-    return dbJobLocker.get();
+    return mongo.get();
   }
 
   @Provides
   @Singleton
-  PermanentSubscriptionAccess permanentSubscriptionAccess(@Nullable DbConfiguration configuration, Provider<DbPermanentSubscriptionAccess> db, Provider<InMemoryPermanentSubscriptionAccess> inMemory) {
-    if (configuration == null) {
-      return inMemory.get();
+  JobLocker jobLocker(DbType dbType, Provider<MongoJobLocker> mongo, Provider<MapDbJobAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
     }
-    return db.get();
+    return mongo.get();
+  }
+
+  @Provides
+  @Singleton
+  PermanentSubscriptionAccess permanentSubscriptionAccess(DbType dbType,  Provider<MongoPermanentSubscriptionAccess> mongo, Provider<MapDbPermanentSubscriptionAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
+    }
+    return mongo.get();
+  }
+
+  @Provides
+  @Singleton
+  IpWhitelistAccess ipWhitelistAccess(DbType dbType, Provider<MongoIpWhitelistAccess> mongo, Provider<MapDbIpWhitelistAccess> mapDb) {
+    if (dbType != DbType.MONGO) {
+      return mapDb.get();
+    }
+    return mongo.get();
   }
 }

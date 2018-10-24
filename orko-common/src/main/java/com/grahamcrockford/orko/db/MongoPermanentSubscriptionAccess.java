@@ -26,9 +26,9 @@ import jersey.repackaged.com.google.common.collect.ImmutableMap;
 import jersey.repackaged.com.google.common.collect.Maps;
 
 @Singleton
-class DbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
+class MongoPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DbPermanentSubscriptionAccess.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MongoPermanentSubscriptionAccess.class);
 
   private final Supplier<JacksonDBCollection<DbSubscription2, String>> collection = Suppliers.memoize(this::collection);
 
@@ -36,7 +36,7 @@ class DbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
   private final DbConfiguration configuration;
 
   @Inject
-  DbPermanentSubscriptionAccess(MongoClient mongoClient, DbConfiguration configuration, ExchangeService exchangeService, NotificationService notificationService) {
+  MongoPermanentSubscriptionAccess(MongoClient mongoClient, DbConfiguration configuration, ExchangeService exchangeService, NotificationService notificationService) {
     this.mongoClient = mongoClient;
     this.configuration = configuration;
     all().forEach(sub -> {

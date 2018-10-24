@@ -22,3 +22,9 @@
 /orko-ui/.settings
 /orko-ui/node
 /orko-all-in-one/src/main/resources/assets
+/orko-all-in-one/ipwl.db
+/orko-all-in-one/ipwl.db.wal.0
+/orko-all-in-one/jobs.db
+/orko-all-in-one/jobs.db.wal.0
+/orko-all-in-one/subscriptions.db
+/orko-all-in-one/subscriptions.db.wal.0

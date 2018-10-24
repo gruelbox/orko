@@ -4,7 +4,7 @@ Orko is a web application which provides a unified UI and web service API to num
 
 It is under active development and is gradually being extended to the point where you will also be able to schedule and monitor complex scripted strategies. It aims to be a one-stop-shop for online cryptocurrency trading.
 
-## Just let me try it out
+## Quick start
 
 ```
 sudo apt-get install maven
@@ -15,12 +15,14 @@ Navigate to http://localhost:8080 to view the application.
 
 Note that:
 
-- This uses in-memory storage only. Any jobs you create will not be saved so will be lost on restart. To enable persistent storage, you need a MongoDB database (more on this below). I'm intending to implement a lighterweight option so this step isn't necessary in the future.
-- It has none of your exchange details, so no balance or trade history information is available, and all trading is paper-trading. We'll add these in a moment.
+- This uses local files (in the current directory) to hold state. It's not hugely robust and doesn't support multiple instances. For a production deployment, a standalone database is recommended.  For more information on this, see below.
+- Without your exchange details, no balance or trade history information is available, and all trading is paper-trading. We'll add these in a moment.
+- There's no out-of-the-box support for SSL.  All details are sent in the clear, so don't deploy this anywhere public. To make it secure to deploy, either wrap it in an Apache/nginx proxy or publish to a turnkey platform like Heroku (more on this below).
+- Authentication features are all disabled.  We talk through enabling these in the Heroku setup instructions below.
 
 ## Add your exchange account details
 
-By default there are no exchange account details, so trading isn't enabled. To remedy this, modify `orko-all-in-one/example-config.yml`. To the relevant section, add the API keys details for the exchanges you use. Then run again.
+By default there are no exchange account details, so trading isn't enabled. To remedy this, modify `orko-all-in-one/example-config.yml`. To the relevant sections, add the API keys details for the exchanges you use. Leave any exchanges you don't have API details for blank.  Then run again.
 
 ## Set up Telegram so you can get notifications on your phone
 
@@ -44,18 +46,12 @@ Then restart. The application will now use this bot to send you notifications on
 
 ## Enable persistent storage
 
-TODO consider defaulting to an embedded mongo: https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo
-TODO TO FLESH OUT WITH INSTALLATION INSTRUCTIONS
-
 In order to be able to shut down and start up the application, or run multiple instances of the application for fault tolerance, you need a real database.
 
-Install MongoDB.
-
-Create a DB and set up an admin user:
-
+1. Install MongoDB.
+2. Create a DB and set up an admin user:
 `db.createUser({user: "jsmith", pwd: "some-initial-password", roles: [{role: "readWrite", db: "yourdb" }]})`
-
-Then uncomment this section in the config file, replacing the details accordingly.
+3. Uncomment this section in the config file, replacing the details accordingly.
 
 ```
 #database:
@@ -65,10 +61,12 @@ Then uncomment this section in the config file, replacing the details accordingl
 
 ## How to deploy to Heroku
 
-Once you've got it working locally, you probably want to deploy it somewhere it's not going to fall over. I like Heroku. The Hobby account is cheap at $7/pm per server if running constantly, SSL is provided out of the box and continuous deployment is sexy as fuck.
+I personally run the application on Heroku. The Hobby account is cheap at $7/pm per server if running constantly, SSL is provided out of the box and the continuous deployment features are great.
+
+It's all preconfigured to work there out of the box.
 
 1. Create a Heroku account
-1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, and create a new, empty Java application.
+1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, and create a new, empty Java application. TODO script this.
 1. You'll need Hobby Tier, which means a credit card. It's free until you pass a certain number of minutes running per month. If you want to be a skinflint, just take it down when you're not using it.
 1. Add the mLab MongoDB addon (required)
 1. Add the Papertrail addon (optional, but by far the easiest way to handle logs)
@@ -109,35 +107,11 @@ Set up the environment variables in addition to those already configured by the 
 | `MAVEN_CUSTOM_OPTS`       | `--update-snapshots -DskipTests=true -T 1C`                                                                                                                                                                                                                                             |
 | `MAVEN_CUSTOM_GOALS`      | `clean package`                                                                                                                                                                                                                                                                   |
 
-We now need to worry about security.
+We now need to worry about security.  This is (optionally) double-layered.  The first is a conventional JWT provided by Okta (more on this in a moment).  Without a valid JWT, all service and web socket connections will be rejected with an HTTP 401.
 
-The application hosts REST endpoints and a single web socket. Both are protected at the servlet container level; they will return HTTP status 401 if a suitable authorization header isn't included. This takes one of two forms.
+The second is a dynamic IP whitelisting.  You must `POST` a valid Google Authenticator code to `/api/auth/{code}` which will whitelist your originating IP for a fixed period.  All other entry points will return an HTTP 402 until this is done.  Too over-the-top for you?  You can turn either of these layers off, but we'll get them both set up here.
 
-For the HTTP endpoints, the fairly standard:
-
-```
-authorization: Bearer MYJSONWEBTOKEN
-```
-
-For the Websockets, the entirely nonstandard:
-
-```
-Sec-WebSocket-Protocol: auth, MYJSONWEBTOKEBN
-```
-
-This latter is due to the fact that it's the only way to pass a JWT in the standard Javascript `WebSocket` constructor:
-
-```
-new WebSocket('wss://localhost:8080/ws', ['auth', 'MYJSONWEBTOKEBN'])
-```
-
-Call me paranoid, but I didn't like the idea of an attacker being able to open a websocket at all without authentication (which is a protocol I have complete control over and which means I need to trust my own state management code to be sure an attacker can't do stuff) - I preferred the idea of stopping them at the level of a much more restrictive protocol where I can just trust Java servlet filters to do their job.
-
-Mostly you don't need to worry about this, because it's delegated to Okta - more on this in a moment.
-
-The other element is that we will return 402 if the origin IP address isn't on a whitelist. To avoid this being too restrictive, we provide a single REST entry point (`/auth`) which you can use to whitelist your IP address at any time, by passing a valid Google authenticator code. Only a single IP address can be whitelisted at any one time and whitelisting expires.
-
-So, first, let's create a 2FA key:
+First, let's create a 2FA key:
 
 1. Generate a new 2FA secret using `java -cp orko-web/target/orko-web.jar com.grahamcrockford.orko.web.cli.GenerateSecretKey`
 1. Store that somewhere safe and enter it into Google Authenticator on your phone.
@@ -164,4 +138,4 @@ git remote add heroku git@heroku.com:your-app-name.git
 
 1. Then simply push to the heroku remote.
 
-That's it!
+That's it!  Visit https://your-app-name.herokuapp.com to go through secuity and log in.
