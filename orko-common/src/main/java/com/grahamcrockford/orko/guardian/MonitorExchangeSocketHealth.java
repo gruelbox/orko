@@ -12,9 +12,12 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
 import com.grahamcrockford.orko.notification.NotificationService;
 import com.grahamcrockford.orko.spi.TickerSpec;
+import com.grahamcrockford.orko.util.SafelyClose;
+import com.grahamcrockford.orko.util.SafelyDispose;
 
 import io.dropwizard.lifecycle.Managed;
 import io.reactivex.Observable;
@@ -26,27 +29,25 @@ final class MonitorExchangeSocketHealth implements Managed {
   private static final Logger LOGGER = LoggerFactory.getLogger(MonitorExchangeSocketHealth.class);
 
   private final ExchangeEventRegistry exchangeEventRegistry;
-  private final String subscriberId;
   private final AtomicLong lastTradeTime = new AtomicLong();
-  private volatile Disposable subscription;
+  private volatile Disposable disposable;
   private volatile Disposable poll;
   private final NotificationService notificationService;
+  private ExchangeEventSubscription subscription;
 
   @Inject
   MonitorExchangeSocketHealth(ExchangeEventRegistry exchangeEventRegistry, NotificationService notificationService) {
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.notificationService = notificationService;
-    this.subscriberId = getClass().getName();
   }
 
   @Override
   public void start() throws Exception {
     lastTradeTime.set(currentTimeMillis());
-    exchangeEventRegistry.changeSubscriptions(
-      subscriberId,
+    subscription = exchangeEventRegistry.subscribe(
       MarketDataSubscription.create(TickerSpec.builder().exchange("binance").base("BTC").counter("USDT").build(), TRADES)
     );
-    subscription = exchangeEventRegistry.getTrades(subscriberId).forEach(t -> lastTradeTime.set(currentTimeMillis()));
+    disposable = subscription.getTrades().forEach(t -> lastTradeTime.set(currentTimeMillis()));
     poll = Observable.interval(10, TimeUnit.MINUTES).subscribe(i -> runOneIteration());
   }
 
@@ -61,8 +62,7 @@ final class MonitorExchangeSocketHealth implements Managed {
 
   @Override
   public void stop() throws Exception {
-    poll.dispose();
-    subscription.dispose();
-    exchangeEventRegistry.clearSubscriptions(subscriberId);
+    SafelyDispose.of(poll, disposable);
+    SafelyClose.the(subscription);
   }
 }

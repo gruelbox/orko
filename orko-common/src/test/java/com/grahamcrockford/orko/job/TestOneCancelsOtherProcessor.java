@@ -1,13 +1,12 @@
 package com.grahamcrockford.orko.job;
 
-import static org.mockito.Matchers.eq;
+import static com.grahamcrockford.orko.marketdata.MarketDataType.TICKER;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.function.Consumer;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,6 +24,8 @@ import org.mockito.MockitoAnnotations;
 import com.grahamcrockford.orko.exchange.ExchangeService;
 import com.grahamcrockford.orko.job.OneCancelsOther.ThresholdAndJob;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
 import com.grahamcrockford.orko.marketdata.TickerEvent;
 import com.grahamcrockford.orko.notification.Notification;
 import com.grahamcrockford.orko.notification.NotificationLevel;
@@ -35,6 +36,8 @@ import com.grahamcrockford.orko.spi.Job;
 import com.grahamcrockford.orko.spi.JobControl;
 import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.submit.JobSubmitter;
+
+import io.reactivex.Flowable;
 
 public class TestOneCancelsOtherProcessor {
 
@@ -60,16 +63,21 @@ public class TestOneCancelsOtherProcessor {
   @Mock private JobControl jobControl;
   @Mock private ExchangeEventRegistry exchangeEventRegistry;
   @Mock private ExchangeService exchangeService;
+  @Mock private ExchangeEventSubscription subscription;
 
   @Mock private Job job1;
   @Mock private Job job2;
 
-  @Captor private ArgumentCaptor<Consumer<TickerEvent>> tickerConsumerCaptor;
+  @Captor private ArgumentCaptor<io.reactivex.functions.Consumer<? super TickerEvent>> tickerConsumerCaptor;
+  private Flowable<TickerEvent> tickerData;
 
   @Before
   public void before() throws IOException {
     MockitoAnnotations.initMocks(this);
     when(exchangeService.exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER))).thenReturn(true);
+    when(exchangeEventRegistry.subscribe(Mockito.any(MarketDataSubscription.class)))
+      .thenReturn(subscription);
+    when(subscription.getTickers()).thenAnswer((args) -> tickerData);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -82,18 +90,18 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
+    tickerData = Flowable.just(
+      TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(LOW_PRICE)
+        .build())
+    );
+
     OneCancelsOtherProcessor processor = createProcessor(job);
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
-        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
-          .bid(LOW_PRICE)
-          .build()));
-
+    verifySubscribed(job);
+    verifyGotTickers();
     verifyDidNothingElse();
   }
-
 
   @Test
   public void testAtLow() throws Exception {
@@ -104,14 +112,16 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
-    OneCancelsOtherProcessor processor = createProcessor(job);
-    assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
+    tickerData = Flowable.just(
         TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
           .bid(LOW_PRICE)
-          .build()));
+          .build())
+      );
+
+    OneCancelsOtherProcessor processor = createProcessor(job);
+    assertRunning(processor.start());
+    verifySubscribed(job);
+    verifyGotTickers();
 
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
@@ -131,14 +141,16 @@ public class TestOneCancelsOtherProcessor {
         .verbose(false)
         .build();
 
+    tickerData = Flowable.just(
+        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+          .bid(LOW_PRICE)
+          .build())
+      );
+
     OneCancelsOtherProcessor processor = createProcessor(job);
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
-        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
-            .bid(LOW_PRICE)
-            .build()));
+    verifySubscribed(job);
+    verifyGotTickers();
 
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
@@ -157,15 +169,16 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
+    tickerData = Flowable.just(
+      TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(LOW_PRICE.add(BigDecimal.ONE))
+        .build())
+    );
+
     OneCancelsOtherProcessor processor = createProcessor(job);
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
-        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
-          .bid(LOW_PRICE.add(BigDecimal.ONE))
-          .build()));
-
+    verifySubscribed(job);
+    verifyGotTickers();
     verifyDidNothingElse();
   }
 
@@ -178,15 +191,16 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
+    tickerData = Flowable.just(
+      TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(HIGH_PRICE.subtract(BigDecimal.ONE))
+        .build())
+    );
+
     OneCancelsOtherProcessor processor = createProcessor(job);
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
-        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
-          .bid(HIGH_PRICE.subtract(BigDecimal.ONE))
-          .build()));
-
+    verifySubscribed(job);
+    verifyGotTickers();
     verifyDidNothingElse();
   }
 
@@ -199,14 +213,16 @@ public class TestOneCancelsOtherProcessor {
         .high(ThresholdAndJob.create(HIGH_PRICE, job2))
         .build();
 
+    tickerData = Flowable.just(
+      TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(HIGH_PRICE)
+        .build())
+    );
+
     OneCancelsOtherProcessor processor = createProcessor(job);
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
-        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
-          .bid(HIGH_PRICE)
-          .build()));
+    verifySubscribed(job);
+    verifyGotTickers();
 
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
@@ -226,14 +242,16 @@ public class TestOneCancelsOtherProcessor {
         .verbose(false)
         .build();
 
+    tickerData = Flowable.just(
+      TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(HIGH_PRICE)
+        .build())
+    );
+
     OneCancelsOtherProcessor processor = createProcessor(job);
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
-        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
-          .bid(HIGH_PRICE)
-          .build()));
+    verifySubscribed(job);
+    verifyGotTickers();
 
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
@@ -251,17 +269,16 @@ public class TestOneCancelsOtherProcessor {
         .low(ThresholdAndJob.create(LOW_PRICE, job1))
         .build();
 
+    tickerData = Flowable.just(
+      TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(HIGH_PRICE)
+        .build())
+    );
+
     OneCancelsOtherProcessor processor = createProcessor(job);
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    verify(exchangeEventRegistry).registerTicker(eq(job.tickTrigger()), eq(JOB_ID), tickerConsumerCaptor.capture());
-
-    tickerConsumerCaptor.getValue().accept(
-        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
-          .bid(HIGH_PRICE)
-          .build()));
-
+    verifySubscribed(job);
+    verifyGotTickers();
     verifyDidNothingElse();
   }
 
@@ -284,7 +301,15 @@ public class TestOneCancelsOtherProcessor {
 
   private void verifyDidNothingElse() {
     verify(exchangeService).exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER));
-    verifyNoMoreInteractions(exchangeEventRegistry, notificationService, enqueuer, jobControl, exchangeService);
+    verifyNoMoreInteractions(exchangeEventRegistry, notificationService, enqueuer, jobControl, exchangeService, subscription);
+  }
+
+  private void verifyGotTickers() {
+    verify(subscription).getTickers();
+  }
+
+  private void verifySubscribed(OneCancelsOther job) {
+    verify(exchangeEventRegistry).subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
   }
 
   private void assertRunning(Status status) {

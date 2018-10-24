@@ -1,5 +1,6 @@
 package com.grahamcrockford.orko.job;
 
+import static com.grahamcrockford.orko.marketdata.MarketDataType.TICKER;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -28,6 +29,8 @@ import com.grahamcrockford.orko.exchange.ExchangeService;
 import com.grahamcrockford.orko.job.LimitOrderJob.Direction;
 import com.grahamcrockford.orko.job.SoftTrailingStop.Builder;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
 import com.grahamcrockford.orko.marketdata.TickerEvent;
 import com.grahamcrockford.orko.notification.NotificationService;
 import com.grahamcrockford.orko.notification.Status;
@@ -35,6 +38,8 @@ import com.grahamcrockford.orko.notification.StatusUpdateService;
 import com.grahamcrockford.orko.spi.JobControl;
 import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.submit.JobSubmitter;
+
+import io.reactivex.Flowable;
 
 public class TestSoftTrailingStopProcessorBuy {
 
@@ -65,13 +70,18 @@ public class TestSoftTrailingStopProcessorBuy {
   @Mock private JobControl jobControl;
   @Mock private CurrencyPairMetaData currencyPairMetaData;
   @Mock private ExchangeEventRegistry exchangeEventRegistry;
+  @Mock private ExchangeEventSubscription subscription;
 
   @Captor private ArgumentCaptor<Consumer<Ticker>> tickerConsumerCaptor;
+  private Flowable<TickerEvent> tickerData;
 
   @Before
   public void before() throws IOException {
     MockitoAnnotations.initMocks(this);
     when(currencyPairMetaData.getPriceScale()).thenReturn(PRICE_SCALE);
+    when(exchangeEventRegistry.subscribe(Mockito.any(MarketDataSubscription.class)))
+      .thenReturn(subscription);
+    when(subscription.getTickers()).thenAnswer((args) -> tickerData);
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -81,13 +91,13 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
         .last(ENTRY_PRICE)
         .ask(ENTRY_PRICE.add(PENNY))
         .timestamp(new Date())
         .build()));
+
+    start(job, processor);
 
     verifySentError();
     verifyWillRepeatWithoutChange();
@@ -99,13 +109,13 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
         .last(ENTRY_PRICE)
         .ask(ENTRY_PRICE.add(PENNY))
         .timestamp(new Date())
         .build()));
+
+    start(job, processor);
 
     verifySentError();
     verifyWillRepeatWithoutChange();
@@ -119,8 +129,9 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), everythingAt(STOP_PRICE.subtract(PENNY))));
+
     start(job, processor);
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), everythingAt(STOP_PRICE.subtract(PENNY))));
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -131,10 +142,10 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     Ticker ticker = everythingAt(STOP_PRICE);
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
@@ -147,13 +158,13 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
         .bid(STOP_PRICE.subtract(PENNY).subtract(PENNY))
         .last(STOP_PRICE)
         .ask(STOP_PRICE.subtract(PENNY))
         .timestamp(new Date()).build()));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -164,14 +175,14 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = new Ticker.Builder()
         .bid(STOP_PRICE.subtract(PENNY).subtract(PENNY))
         .last(STOP_PRICE)
         .ask(STOP_PRICE)
         .timestamp(new Date()).build();
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
@@ -184,10 +195,10 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = everythingAt(ADJUSTED_STOP_PRICE.subtract(PENNY));
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -199,10 +210,10 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = everythingAt(ADJUSTED_STOP_PRICE);
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
@@ -215,14 +226,14 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = new Ticker.Builder()
         .bid(ADJUSTED_STOP_PRICE.subtract(PENNY).subtract(PENNY))
         .last(ADJUSTED_STOP_PRICE)
         .ask(ADJUSTED_STOP_PRICE.subtract(PENNY))
         .timestamp(new Date()).build();
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -233,14 +244,14 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = new Ticker.Builder()
         .bid(ADJUSTED_STOP_PRICE.subtract(PENNY).subtract(PENNY))
         .last(ADJUSTED_STOP_PRICE)
         .ask(ADJUSTED_STOP_PRICE)
         .timestamp(new Date()).build();
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
@@ -256,10 +267,10 @@ public class TestSoftTrailingStopProcessorBuy {
         .build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = everythingAt(new BigDecimal("156.67"));
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -273,10 +284,10 @@ public class TestSoftTrailingStopProcessorBuy {
         .build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = everythingAt(new BigDecimal("156.68"));
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyLimitBuyAt(ticker, new BigDecimal("160"));
     verifyFinished();
@@ -291,10 +302,10 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = everythingAt(ENTRY_PRICE);
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -304,10 +315,11 @@ public class TestSoftTrailingStopProcessorBuy {
   public void testActiveAdjustPriceRise() throws Exception {
     SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
-    start(job, processor);
 
     final Ticker ticker = everythingAt(ENTRY_PRICE.add(PENNY));
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -318,14 +330,14 @@ public class TestSoftTrailingStopProcessorBuy {
     final SoftTrailingStop job = baseJob().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = new Ticker.Builder()
         .bid(ENTRY_PRICE.subtract(PENNY).subtract(PENNY))
         .last(ENTRY_PRICE)
         .ask(ENTRY_PRICE.subtract(PENNY))
         .timestamp(new Date()).build();
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyResyncedPriceTo(job, ENTRY_PRICE.subtract(PENNY));
     verifyDidNothingElse();
@@ -336,10 +348,10 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = everythingAt(LOWER_ENTRY_PRICE);
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -350,10 +362,10 @@ public class TestSoftTrailingStopProcessorBuy {
     SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = everythingAt(LOWER_ENTRY_PRICE.add(PENNY));
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
@@ -364,14 +376,14 @@ public class TestSoftTrailingStopProcessorBuy {
     final SoftTrailingStop job = jobAlreadyAdjusted().build();
     SoftTrailingStopProcessor processor = processor(job);
 
-    start(job, processor);
-
     final Ticker ticker = new Ticker.Builder()
         .bid(LOWER_ENTRY_PRICE.subtract(PENNY).subtract(PENNY))
         .last(LOWER_ENTRY_PRICE)
         .ask(LOWER_ENTRY_PRICE.subtract(PENNY))
         .timestamp(new Date()).build();
-    processor.tickInner(TickerEvent.create(job.tickTrigger(), ticker));
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), ticker));
+
+    start(job, processor);
 
     verifyResyncedPriceTo(job, LOWER_ENTRY_PRICE.subtract(PENNY));
     verifyDidNothingElse();
@@ -379,14 +391,18 @@ public class TestSoftTrailingStopProcessorBuy {
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
-  @SuppressWarnings("unchecked")
   private void start(SoftTrailingStop job, SoftTrailingStopProcessor processor) {
     assertRunning(processor.start());
-    verify(exchangeEventRegistry).registerTicker(
-        Mockito.eq(job.tickTrigger()),
-        Mockito.eq(job.id()),
-        Mockito.any(Consumer.class)
-    );
+    verifySubscribed(job);
+    verifyGotTickers();
+  }
+
+  private void verifyGotTickers() {
+    verify(subscription).getTickers();
+  }
+
+  private void verifySubscribed(SoftTrailingStop job) {
+    verify(exchangeEventRegistry).subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
   }
 
   private void assertRunning(Status status) {

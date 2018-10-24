@@ -27,6 +27,7 @@ import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.exchange.AccountServiceFactory;
 import com.grahamcrockford.orko.exchange.ExchangeServiceImpl;
 import com.grahamcrockford.orko.exchange.TradeServiceFactory;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.grahamcrockford.orko.spi.TickerSpec;
 
 import ch.qos.logback.classic.Level;
@@ -45,8 +46,7 @@ public class TestMarketDataIntegration {
   private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange("bitfinex").build();
   private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange("gdax").build();
   private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange("bittrex").build();
-  private static final TickerSpec kucoin = TickerSpec.builder().base("BTC").counter("USDT").exchange("kucoin").build();
-  private static final Set<MarketDataSubscription> subscriptions = FluentIterable.of(kucoin, binance, bitfinex, gdax, bittrex)
+  private static final Set<MarketDataSubscription> subscriptions = FluentIterable.of(binance, bitfinex, gdax, bittrex)
     .transformAndConcat(spec -> ImmutableSet.of(
       MarketDataSubscription.create(spec, MarketDataType.TICKER),
       MarketDataSubscription.create(spec, MarketDataType.ORDERBOOK)
@@ -115,7 +115,9 @@ public class TestMarketDataIntegration {
           latchesBySubscriber.get(sub).get(1).countDown();
         })
       )).toSet();
-      latchesBySubscriber.forEach((sub, latches) -> {
+      latchesBySubscriber.entrySet().stream().parallel().forEach(entry -> {
+        MarketDataSubscription sub = entry.getKey();
+        List<CountDownLatch> latches = entry.getValue();
         try {
           assertTrue("Missing two responses (A) for " + sub, latches.get(0).await(120, TimeUnit.SECONDS));
           System.out.println("Found responses (A) for " + sub);
@@ -153,37 +155,49 @@ public class TestMarketDataIntegration {
 
 
   @Test
-  public void testEventBusSubscriptionDifferentSubscriber() throws InterruptedException {
-    exchangeEventBus.changeSubscriptions("ME", subscriptions);
-    try {
-      AtomicBoolean called = new AtomicBoolean();
-      Disposable disposable = exchangeEventBus.getTickers("NOTME").subscribe(t -> called.set(true));
-      Thread.sleep(10000);
-      assertFalse(called.get());
-      disposable.dispose();
-    } finally {
-      exchangeEventBus.clearSubscriptions("ME");
+  public void testEventBusSubscriptionDifferentSubscriberInner() throws InterruptedException {
+    try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
+      try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
+        AtomicBoolean called = new AtomicBoolean();
+        Disposable disposable = otherSubscription.getTickers().subscribe(t -> called.set(true));
+        Thread.sleep(10000);
+        assertFalse(called.get());
+        disposable.dispose();
+      }
+    }
+  }
+
+
+  @Test
+  public void testEventBusSubscriptionDifferentSubscriberOuter() throws InterruptedException {
+    try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
+      try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
+        AtomicBoolean called = new AtomicBoolean();
+        Disposable disposable = otherSubscription.getTickers().subscribe(t -> called.set(true));
+        Thread.sleep(10000);
+        assertFalse(called.get());
+        disposable.dispose();
+      }
     }
   }
 
 
   @Test
   public void testEventBusSubscriptionSameSubscriber() throws InterruptedException {
-    exchangeEventBus.changeSubscriptions("ME", subscriptions);
-    try {
+    try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       CountDownLatch called1 = new CountDownLatch(2);
       CountDownLatch called2 = new CountDownLatch(2);
       CountDownLatch called3 = new CountDownLatch(2);
-      Disposable disposable1 = exchangeEventBus.getTickers("ME").throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
+      Disposable disposable1 = subscription.getTickers().throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
         System.out.println(Thread.currentThread().getId() + " (A) received ticker: " + t);
         called1.countDown();
       });
-      Disposable disposable2 = exchangeEventBus.getTickers("ME").throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
+      Disposable disposable2 = subscription.getTickers().throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
         System.out.println(Thread.currentThread().getId() + " (B) received ticker: " + t);
         Thread.sleep(2000);
         called2.countDown();
       });
-      Disposable disposable3 = exchangeEventBus.getOrderBooks("ME").throttleLast(1, TimeUnit.SECONDS).subscribe(t -> {
+      Disposable disposable3 = subscription.getOrderBooks().throttleLast(1, TimeUnit.SECONDS).subscribe(t -> {
         System.out.println(Thread.currentThread().getId() + " (C) received order book: " + t.getClass().getSimpleName());
         called3.countDown();
       });
@@ -193,25 +207,21 @@ public class TestMarketDataIntegration {
       disposable1.dispose();
       disposable2.dispose();
       disposable3.dispose();
-    } finally {
-      exchangeEventBus.clearSubscriptions("ME");
     }
   }
 
 
   @Test
   public void testEventBusMultipleSubscribersSameTicker() throws InterruptedException {
-    exchangeEventBus.changeSubscriptions("1", ImmutableSet.of(MarketDataSubscription.create(binance, TICKER)));
-    try {
-      exchangeEventBus.changeSubscriptions("2", ImmutableSet.of(MarketDataSubscription.create(binance, TICKER)));
-      try {
+    try (ExchangeEventSubscription subscription1 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
+      try (ExchangeEventSubscription subscription2 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
         CountDownLatch called1 = new CountDownLatch(2);
         CountDownLatch called2 = new CountDownLatch(2);
-        Disposable disposable1 = exchangeEventBus.getTickers("1").subscribe(t -> {
+        Disposable disposable1 = subscription1.getTickers().subscribe(t -> {
           System.out.println(Thread.currentThread().getId() + " (A) received: " + t);
           called1.countDown();
         });
-        Disposable disposable2 = exchangeEventBus.getTickers("2").subscribe(t -> {
+        Disposable disposable2 = subscription2.getTickers().subscribe(t -> {
           System.out.println(Thread.currentThread().getId() + " (B) received: " + t);
           called2.countDown();
         });
@@ -219,25 +229,18 @@ public class TestMarketDataIntegration {
         assertTrue(called2.await(20, SECONDS));
         disposable1.dispose();
         disposable2.dispose();
-      } finally {
-        exchangeEventBus.clearSubscriptions("2");
       }
-    } finally {
-      exchangeEventBus.clearSubscriptions("1");
     }
   }
 
 
   @Test
   public void test5CharacterTicker() throws InterruptedException {
-    exchangeEventBus.changeSubscriptions("1", ImmutableSet.of(MarketDataSubscription.create(binanceOddTicker, TICKER)));
-    try {
+    try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(MarketDataSubscription.create(binanceOddTicker, TICKER))) {
       CountDownLatch called = new CountDownLatch(2);
-      Disposable disposable = exchangeEventBus.getTickers("1").subscribe(t -> called.countDown());
+      Disposable disposable = subscription.getTickers().subscribe(t -> called.countDown());
       assertTrue(called.await(30, SECONDS));
       disposable.dispose();
-    } finally {
-      exchangeEventBus.clearSubscriptions("1");
     }
   }
 }

@@ -8,7 +8,6 @@ import static com.grahamcrockford.orko.marketdata.MarketDataType.TRADES;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
 
 import java.io.IOException;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -40,6 +39,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.grahamcrockford.orko.auth.Roles;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
 import com.grahamcrockford.orko.marketdata.MarketDataType;
 import com.grahamcrockford.orko.marketdata.SerializableTrade;
@@ -49,6 +49,7 @@ import com.grahamcrockford.orko.notification.Notification;
 import com.grahamcrockford.orko.notification.StatusUpdate;
 import com.grahamcrockford.orko.signal.UserTradeEvent;
 import com.grahamcrockford.orko.spi.TickerSpec;
+import com.grahamcrockford.orko.util.SafelyClose;
 import com.grahamcrockford.orko.util.SafelyDispose;
 import com.grahamcrockford.orko.websocket.OrkoWebSocketOutgoingMessage.Nature;
 
@@ -67,17 +68,17 @@ public final class OrkoWebSocketServer {
   private static final int READY_TIMEOUT = 5000;
   private static final Logger LOGGER = LoggerFactory.getLogger(OrkoWebSocketServer.class);
 
-  private final String eventRegistryClientId = OrkoWebSocketServer.class.getSimpleName() + "/" + UUID.randomUUID().toString();
-
   @Inject private ExchangeEventRegistry exchangeEventRegistry;
   @Inject private ObjectMapper objectMapper;
   @Inject private EventBus eventBus;
 
   private volatile Session session;
-  private volatile Disposable subscription;
+  private volatile Disposable disposable;
+  private volatile ExchangeEventSubscription subscription;
   private final AtomicLong lastReadyTime = new AtomicLong();
 
   private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
+
 
   @OnOpen
   public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
@@ -156,15 +157,11 @@ public final class OrkoWebSocketServer {
   @OnClose
   public synchronized void myOnClose(final javax.websocket.Session session, CloseReason cr) {
     LOGGER.info("Closing socket ({})", cr.toString());
-    if (subscription != null)
-      subscription.dispose();
-    subscription = null;
+    SafelyDispose.of(disposable);
+    disposable = null;
     marketDataSubscriptions.set(ImmutableSet.of());
-    try {
-      exchangeEventRegistry.clearSubscriptions(eventRegistryClientId);
-    } catch (Throwable t) {
-      LOGGER.error("Error unregistering socket from ticker", t);
-    }
+    SafelyClose.the(subscription);
+    subscription = null;
   }
 
   @OnError
@@ -188,27 +185,30 @@ public final class OrkoWebSocketServer {
   }
 
   private synchronized void updateSubscriptions(Session session) {
-    if (subscription != null)
-      subscription.dispose();
-    exchangeEventRegistry.changeSubscriptions(eventRegistryClientId, marketDataSubscriptions.get());
-    subscription = new Disposable() {
+    SafelyDispose.of(disposable);
+    if (subscription == null) {
+      subscription = exchangeEventRegistry.subscribe(marketDataSubscriptions.get());
+    } else {
+      subscription = subscription.replace(marketDataSubscriptions.get());
+    }
+    disposable = new Disposable() {
 
       // Apply a 1-second throttle on a PER TICKER basis
-      private final Disposable tickers = Flowable.fromIterable(exchangeEventRegistry.getTickersSplit(eventRegistryClientId))
+      private final Disposable tickers = Flowable.fromIterable(subscription.getTickersSplit())
           .map(f -> f.filter(o -> isReady()).throttleLast(1, TimeUnit.SECONDS))
           .flatMap(f -> f)
           .subscribe(e -> send(e, Nature.TICKER));
 
       // Trade history should only be sent with long periods between each. The rest of the time the user trades
       // stream should be used.
-      private final Disposable userTradeHistory = Flowable.fromIterable(exchangeEventRegistry.getUserTradeHistorySplit(eventRegistryClientId))
+      private final Disposable userTradeHistory = Flowable.fromIterable(subscription.getUserTradeHistorySplit())
           .map(f -> f.filter(o -> isReady()).throttleLast(5, TimeUnit.SECONDS))
           .flatMap(f -> f)
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
 
       // Trades are unthrottled - the assumption is that you need the lot
-      private final Disposable trades = exchangeEventRegistry.getTrades(eventRegistryClientId)
+      private final Disposable trades = subscription.getTrades()
           .filter(o -> isReady())
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.TRADE));
@@ -220,15 +220,15 @@ public final class OrkoWebSocketServer {
           .subscribe(e -> send(e, Nature.USER_TRADE));
 
       // For all others apply throttles globally
-      private final Disposable openOrders = exchangeEventRegistry.getOpenOrders(eventRegistryClientId)
+      private final Disposable openOrders = subscription.getOpenOrders()
           .filter(o -> isReady())
           .throttleLast(1, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.OPEN_ORDERS));
-      private final Disposable orderBook = exchangeEventRegistry.getOrderBooks(eventRegistryClientId)
+      private final Disposable orderBook = subscription.getOrderBooks()
           .filter(o -> isReady())
           .throttleLast(2, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
-      private final Disposable balance = exchangeEventRegistry.getBalance(eventRegistryClientId)
+      private final Disposable balance = subscription.getBalance()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.BALANCE));
 

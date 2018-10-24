@@ -19,7 +19,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.grahamcrockford.orko.spi.TickerSpec;
+import com.grahamcrockford.orko.util.SafelyClose;
 
 import io.dropwizard.lifecycle.Managed;
 
@@ -31,6 +33,8 @@ class PermanentSubscriptionManager implements Managed {
   private final PermanentSubscriptionAccess permanentSubscriptionAccess;
   private final ExchangeEventRegistry exchangeEventRegistry;
 
+  private volatile ExchangeEventSubscription subscription;
+
   @Inject
   PermanentSubscriptionManager(PermanentSubscriptionAccess permanentSubscriptionAccess,
                                ExchangeEventRegistry exchangeEventRegistry) {
@@ -40,18 +44,19 @@ class PermanentSubscriptionManager implements Managed {
 
   @Override
   public void start() throws Exception {
+    subscription = exchangeEventRegistry.subscribe();
     update();
   }
 
   @Override
   public void stop() throws Exception {
-    // No-op
+    SafelyClose.the(subscription);
   }
 
   private void update() {
     Set<MarketDataSubscription> all = FluentIterable.from(permanentSubscriptionAccess.all()).transformAndConcat(this::subscriptionsFor).toSet();
     LOGGER.info("Updating permanent subscriptions to {}", all);
-    exchangeEventRegistry.changeSubscriptions(getClass().getSimpleName(), all);
+    subscription = subscription.replace(all);
   }
 
   public void add(TickerSpec spec) {

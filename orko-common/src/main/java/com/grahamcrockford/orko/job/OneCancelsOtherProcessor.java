@@ -1,5 +1,6 @@
 package com.grahamcrockford.orko.job;
 
+import static com.grahamcrockford.orko.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.orko.notification.Status.FAILURE_TRANSIENT;
 import static com.grahamcrockford.orko.notification.Status.SUCCESS;
 
@@ -13,6 +14,8 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.orko.exchange.ExchangeService;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
 import com.grahamcrockford.orko.marketdata.TickerEvent;
 import com.grahamcrockford.orko.notification.Notification;
 import com.grahamcrockford.orko.notification.NotificationLevel;
@@ -22,6 +25,10 @@ import com.grahamcrockford.orko.notification.StatusUpdateService;
 import com.grahamcrockford.orko.spi.JobControl;
 import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.submit.JobSubmitter;
+import com.grahamcrockford.orko.util.SafelyClose;
+import com.grahamcrockford.orko.util.SafelyDispose;
+
+import io.reactivex.disposables.Disposable;
 
 class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
@@ -41,13 +48,13 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private final StatusUpdateService statusUpdateService;
   private final NotificationService notificationService;
   private final ExchangeEventRegistry exchangeEventRegistry;
-
   private final OneCancelsOther job;
   private final JobControl jobControl;
-
   private final ExchangeService exchangeService;
 
   private volatile boolean done;
+  private volatile ExchangeEventSubscription subscription;
+  private volatile Disposable disposable;
 
 
   @AssistedInject
@@ -73,13 +80,15 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
       notificationService.error("Cancelling job as currency no longer supported: " + job);
       return Status.FAILURE_PERMANENT;
     }
-    exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
+    subscription = exchangeEventRegistry.subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
+    disposable = subscription.getTickers().subscribe(this::tick);
     return Status.RUNNING;
   }
 
   @Override
   public void stop() {
-    exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
+    SafelyDispose.of(disposable);
+    SafelyClose.the(subscription);
   }
 
   private synchronized void tick(TickerEvent tickerEvent) {

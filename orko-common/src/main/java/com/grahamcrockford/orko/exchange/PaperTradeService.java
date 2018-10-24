@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,9 +41,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
 import com.grahamcrockford.orko.marketdata.TickerEvent;
 import com.grahamcrockford.orko.spi.TickerSpec;
+import com.grahamcrockford.orko.util.SafelyDispose;
 
 import io.reactivex.disposables.Disposable;
 
@@ -61,16 +62,15 @@ public final class PaperTradeService implements TradeService {
   private final ConcurrentMap<Long, Date> placedDates = new ConcurrentHashMap<>();
 
   private final String exchange;
-  private final ExchangeEventRegistry exchangeEventRegistry;
 
   private final Random random = new Random();
 
-  private final String eventRegistryClientId = PaperTradeService.class.getSimpleName() + "/" + UUID.randomUUID().toString();
-  private volatile Disposable subscription;
+  private volatile Disposable disposable;
+  private volatile ExchangeEventSubscription subscription;
 
   private PaperTradeService(String exchange, ExchangeEventRegistry exchangeEventRegistry) {
     this.exchange = exchange;
-    this.exchangeEventRegistry = exchangeEventRegistry;
+    this.subscription = exchangeEventRegistry.subscribe();
   }
 
   @Override
@@ -121,15 +121,8 @@ public final class PaperTradeService implements TradeService {
   }
 
   private void updateTickerRegistry() {
-    if (subscription != null) {
-      try {
-        subscription.dispose();
-      } catch (Exception e) {
-        LOGGER.error("Error unsubscribing to ticker stream", e);
-      }
-    }
-    exchangeEventRegistry.changeSubscriptions(
-      eventRegistryClientId,
+    SafelyDispose.of(disposable);
+    subscription = subscription.replace(
       FluentIterable.from(openOrders.values()).transform(o -> MarketDataSubscription.create(
           TickerSpec.builder()
             .exchange(exchange)
@@ -139,7 +132,7 @@ public final class PaperTradeService implements TradeService {
           TICKER
       )).toSet()
     );
-    subscription = exchangeEventRegistry.getTickers(eventRegistryClientId).subscribe(this::updateAgainstMarket);
+    disposable = subscription.getTickers().subscribe(this::updateAgainstMarket);
   }
 
   private boolean isOpen(LimitOrder o) {

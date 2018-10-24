@@ -1,5 +1,6 @@
 package com.grahamcrockford.orko.job;
 
+import static com.grahamcrockford.orko.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.orko.notification.Status.FAILURE_PERMANENT;
 import static com.grahamcrockford.orko.notification.Status.FAILURE_TRANSIENT;
 import static com.grahamcrockford.orko.notification.Status.SUCCESS;
@@ -15,13 +16,14 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.orko.exchange.ExchangeService;
 import com.grahamcrockford.orko.job.LimitOrderJob.Direction;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
+import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
 import com.grahamcrockford.orko.marketdata.TickerEvent;
 import com.grahamcrockford.orko.notification.NotificationService;
 import com.grahamcrockford.orko.notification.Status;
@@ -29,6 +31,10 @@ import com.grahamcrockford.orko.notification.StatusUpdateService;
 import com.grahamcrockford.orko.spi.JobControl;
 import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.submit.JobSubmitter;
+import com.grahamcrockford.orko.util.SafelyClose;
+import com.grahamcrockford.orko.util.SafelyDispose;
+
+import io.reactivex.disposables.Disposable;
 
 class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
@@ -54,6 +60,9 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   private final ExchangeEventRegistry exchangeEventRegistry;
   private volatile boolean done;
 
+  private volatile ExchangeEventSubscription subscription;
+  private volatile Disposable disposable;
+
 
   @Inject
   public SoftTrailingStopProcessor(@Assisted SoftTrailingStop job,
@@ -74,13 +83,15 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
   @Override
   public Status start() {
-    exchangeEventRegistry.registerTicker(job.tickTrigger(), job.id(), this::tick);
+    subscription = exchangeEventRegistry.subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
+    disposable = subscription.getTickers().subscribe(this::tick);
     return Status.RUNNING;
   }
 
   @Override
   public void stop() {
-    exchangeEventRegistry.unregisterTicker(job.tickTrigger(), job.id());
+    SafelyDispose.of(disposable);
+    SafelyClose.the(subscription);
   }
 
   private synchronized void tick(TickerEvent tickerEvent) {
@@ -100,8 +111,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     }
   }
 
-  @VisibleForTesting
-  void tickInner(TickerEvent tickerEvent) {
+  private void tickInner(TickerEvent tickerEvent) {
 
     final Ticker ticker = tickerEvent.ticker();
     final TickerSpec ex = job.tickTrigger();
