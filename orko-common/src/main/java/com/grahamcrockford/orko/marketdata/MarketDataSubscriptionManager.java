@@ -587,6 +587,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                 return newMostRecent;
               });
             });
+          break;
         case OPEN_ORDERS:
           tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
           OpenOrdersParams openOrdersParams = openOrdersParams(subscription, tradeService);

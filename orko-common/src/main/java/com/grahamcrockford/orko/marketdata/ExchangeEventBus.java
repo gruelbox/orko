@@ -4,6 +4,7 @@ import static com.grahamcrockford.orko.marketdata.MarketDataType.BALANCE;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.TICKER;
+import static com.grahamcrockford.orko.marketdata.MarketDataType.TRADES;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
 
 import java.util.Set;
@@ -123,7 +124,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
     @Override
     public Flowable<TradeEvent> getTrades() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(TICKER);
+      Set<TickerSpec> subscriptions = subscriptionsFor(TRADES);
       return marketDataSubscriptionManager.getTrades()
           .filter(e -> subscriptions.contains(e.spec()))
           .onBackpressureLatest();
