@@ -136,10 +136,26 @@
     <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     <maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
     <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
+    <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
     <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
     <jacoco.version>0.8.1</jacoco.version>
     <mockito.version>1.10.19</mockito.version>
   </properties>
+
+  <!--<build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin-version}</version>
+        <configuration>
+          <parallel>classes</parallel>
+		  <useUnlimitedThreads>true</useUnlimitedThreads>
+		  <perCoreThreadCount>true</perCoreThreadCount>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>-->
 
   <dependencyManagement>
     <dependencies>

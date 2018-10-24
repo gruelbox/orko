@@ -8,7 +8,7 @@ It is under active development and is gradually being extended to the point wher
 
 ```
 sudo apt-get install maven
-mvn clean package -Dmaven.test.skip=true
+./build.sh
 ./start.sh
 ```
 Navigate to http://localhost:8080 to view the application.
@@ -106,7 +106,7 @@ Set up the environment variables in addition to those already configured by the 
 | `OKTA_ISSUER`             | Will be provided during Okta setup (see below)                                                                                                                                                                                                                                    |
 | `JAVA_OPTS`               | `-server -Xmx185m -Xms185m -Xss256k -XX:MaxMetaspaceSize=80m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced`                                                                                                                                       |
 | `LOG_LEVEL`               | `INFO` (or `DEBUG` if you need it)                                                                                                                                                                                                                                                |
-| `MAVEN_CUSTOM_OPTS`       | `--update-snapshots -DskipTests=true`                                                                                                                                                                                                                                             |
+| `MAVEN_CUSTOM_OPTS`       | `--update-snapshots -DskipTests=true -T 1C`                                                                                                                                                                                                                                             |
 | `MAVEN_CUSTOM_GOALS`      | `clean package`                                                                                                                                                                                                                                                                   |
 
 We now need to worry about security.
