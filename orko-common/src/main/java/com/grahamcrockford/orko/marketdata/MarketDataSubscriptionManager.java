@@ -8,7 +8,6 @@ import static java.util.Collections.emptySet;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -81,7 +80,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * Maintains subscriptions to multiple exchanges' market data, using web sockets where it can
  * and polling where it can't, but this is abstracted away. All clients have access to reactive
- * streams of data to which they are subscribed.
+ * streams of data which are persistent and recover in the event of disconnections/reconnections.
  */
 @Singleton
 @VisibleForTesting
@@ -167,76 +166,39 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
   /**
-   * Gets the stream of a subscription.  Typed by the caller in
-   * an unsafe manner for convenience.
+   * Gets the stream of subscribed tickers, starting with any cached tickers.
    *
-   * @param sub The subscription
    * @return The stream.
    */
-  @SuppressWarnings("unchecked")
-  public <T> Flowable<T> getSubscription(MarketDataSubscription sub) {
-    switch (sub.type()) {
-      case OPEN_ORDERS:
-        return (Flowable<T>) getOpenOrders(sub.spec());
-      case ORDERBOOK:
-        return (Flowable<T>) getOrderBook(sub.spec());
-      case TICKER:
-        return (Flowable<T>) getTicker(sub.spec());
-      case TRADES:
-        return (Flowable<T>) getTrades(sub.spec());
-      case USER_TRADE_HISTORY:
-        return (Flowable<T>) getUserTradeHistory(sub.spec());
-      case BALANCE:
-        return (Flowable<T>) getBalance(sub.spec());
-      default:
-        throw new IllegalArgumentException("Unknown market data type");
-    }
+  public Flowable<TickerEvent> getTickers() {
+    return tickers.getAll();
   }
 
 
   /**
-   * Gets a stream of tickers, starting with any cached tickers.
+   * Gets the stream of subscribed open order lists.
    *
-   * @param spec The ticker specification.
-   * @return The ticker stream.
+   * @return The stream.
    */
-  public Flowable<TickerEvent> getTicker(TickerSpec spec) {
-    return tickers.get(spec);
-  }
-
-
-  /**
-   * Gets a stream of open order lists.
-   *
-   * @param spec The ticker specification.
-   */
-  public Flowable<OpenOrdersEvent> getOpenOrders(TickerSpec spec) {
-    return openOrders.get(spec);
+  public Flowable<OpenOrdersEvent> getOpenOrders() {
+    return openOrders.getAll();
   }
 
 
   /**
    * Gets a stream containing updates to the order book.
    *
-   * @param spec The ticker specification.
+   * @return The stream.
    */
-  public Flowable<OrderBookEvent> getOrderBook(TickerSpec spec) {
-    return orderbook.get(spec);
+  public Flowable<OrderBookEvent> getOrderBooks() {
+    return orderbook.getAll();
   }
 
 
   /**
    * Gets a stream of trades.
    *
-   * @param spec The ticker specification.
-   */
-  public Flowable<TradeEvent> getTrades(TickerSpec spec) {
-    return trades.get(spec);
-  }
-
-
-  /**
-   * Gets a stream of trades.
+   * @return The stream.
    */
   public Flowable<TradeEvent> getTrades() {
     return trades.getAll();
@@ -246,23 +208,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   /**
    * Gets a stream with updates to the recent trade history.
    *
-   * @param spec The ticker specification.
+   *  @return The stream.
    */
-  public Flowable<TradeHistoryEvent> getUserTradeHistory(TickerSpec spec) {
-    return userTradeHistory.get(spec);
+  public Flowable<TradeHistoryEvent> getUserTradeHistory() {
+    return userTradeHistory.getAll();
   }
 
 
   /**
    * Gets a stream with updates to the balance.
    *
-   * @param spec The ticker specification.
+   * @return The stream.
    */
-  public Flowable<BalanceEvent> getBalance(TickerSpec spec) {
-    return balance.get(
-      spec.exchange() + "/" + spec.base(),
-      spec.exchange() + "/" + spec.counter()
-    );
+  public Flowable<BalanceEvent> getBalances() {
+    return balance.getAll();
   }
 
 
@@ -724,11 +683,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private final Flowable<T> flowable;
     private final AtomicReference<FlowableEmitter<T>> emitter = new AtomicReference<>();
     private final ConcurrentMap<U, T> latest = Maps.newConcurrentMap();
-    private final Function<T, U> keyFunction;
     private final boolean caching;
 
     Subscription(Function<T, U> keyFunction, boolean caching) {
-      this.keyFunction = keyFunction;
       this.caching = caching;
       Flowable<T> flow = Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING);
       if (caching)
@@ -749,11 +706,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       if (caching)
         flow = flow.startWith(Flowable.defer(() -> Flowable.fromIterable(latest.values())));
       return flow;
-    }
-
-    Flowable<T> get(@SuppressWarnings("unchecked") U... keys) {
-      List<U> asList = Arrays.asList(keys);
-      return getAll().filter(t -> asList.contains(keyFunction.apply(t)));
     }
 
     void emit(T e) {

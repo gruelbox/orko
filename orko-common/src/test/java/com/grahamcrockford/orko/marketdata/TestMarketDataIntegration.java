@@ -30,6 +30,7 @@ import com.grahamcrockford.orko.exchange.TradeServiceFactory;
 import com.grahamcrockford.orko.spi.TickerSpec;
 
 import ch.qos.logback.classic.Level;
+import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 import jersey.repackaged.com.google.common.collect.Maps;
@@ -107,10 +108,10 @@ public class TestMarketDataIntegration {
         sub -> ImmutableList.of(new CountDownLatch(2), new CountDownLatch(2))
       );
       Set<Disposable> disposables = FluentIterable.from(subscriptions).transformAndConcat(sub -> ImmutableSet.<Disposable>of(
-        marketDataSubscriptionManager.getSubscription(sub).subscribe(t -> {
+        getSubscription(marketDataSubscriptionManager, sub).subscribe(t -> {
           latchesBySubscriber.get(sub).get(0).countDown();
         }),
-        marketDataSubscriptionManager.getSubscription(sub).subscribe(t -> {
+        getSubscription(marketDataSubscriptionManager, sub).subscribe(t -> {
           latchesBySubscriber.get(sub).get(1).countDown();
         })
       )).toSet();
@@ -127,6 +128,26 @@ public class TestMarketDataIntegration {
       disposables.forEach(Disposable::dispose);
     } finally {
       marketDataSubscriptionManager.updateSubscriptions(emptySet());
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> Flowable<T> getSubscription(MarketDataSubscriptionManager manager, MarketDataSubscription sub) {
+    switch (sub.type()) {
+      case OPEN_ORDERS:
+        return (Flowable<T>) manager.getOpenOrders().filter(o -> o.spec().equals(sub.spec()));
+      case ORDERBOOK:
+        return (Flowable<T>) manager.getOrderBooks().filter(o -> o.spec().equals(sub.spec()));
+      case TICKER:
+        return (Flowable<T>) manager.getTickers().filter(o -> o.spec().equals(sub.spec()));
+      case TRADES:
+        return (Flowable<T>) manager.getTrades().filter(o -> o.spec().equals(sub.spec()));
+      case USER_TRADE_HISTORY:
+        return (Flowable<T>) manager.getUserTradeHistory().filter(o -> o.spec().equals(sub.spec()));
+      case BALANCE:
+        return (Flowable<T>) manager.getBalances().filter(b -> b.currency().equals(sub.spec().base()) || b.currency().equals(sub.spec().counter()));
+      default:
+        throw new IllegalArgumentException("Unknown market data type");
     }
   }
 

@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,42 +86,72 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
   @Override
   public Flowable<TickerEvent> getTickers(String subscriberId) {
-    return getCombinedStream(subscriberId, MarketDataType.TICKER, marketDataSubscriptionManager::getTicker);
+    Set<TickerSpec> subscriptions = safeGetSubscriptions(subscriberId, TICKER);
+    return marketDataSubscriptionManager.getTickers()
+        .filter(e -> subscriptions.contains(e.spec()))
+        .onBackpressureLatest();
   }
 
   @Override
   public Iterable<Flowable<TickerEvent>> getTickersSplit(String subscriberId) {
-    return getStreams(subscriberId, MarketDataType.TICKER, marketDataSubscriptionManager::getTicker);
+    Set<TickerSpec> subscriptions = safeGetSubscriptions(subscriberId, TICKER);
+    return FluentIterable
+        .from(subscriptions)
+        .transform(spec -> marketDataSubscriptionManager.getTickers()
+            .filter(e -> e.spec().equals(spec))
+            .onBackpressureLatest());
   }
 
   @Override
   public Flowable<OpenOrdersEvent> getOpenOrders(String subscriberId) {
-    return getCombinedStream(subscriberId, MarketDataType.OPEN_ORDERS, marketDataSubscriptionManager::getOpenOrders);
+    Set<TickerSpec> subscriptions = safeGetSubscriptions(subscriberId, TICKER);
+    return marketDataSubscriptionManager.getOpenOrders()
+        .filter(e -> subscriptions.contains(e.spec()))
+        .onBackpressureLatest();
   }
 
   @Override
   public Flowable<OrderBookEvent> getOrderBooks(String subscriberId) {
-    return getCombinedStream(subscriberId, MarketDataType.ORDERBOOK, marketDataSubscriptionManager::getOrderBook);
+    Set<TickerSpec> subscriptions = safeGetSubscriptions(subscriberId, TICKER);
+    return marketDataSubscriptionManager.getOrderBooks()
+        .filter(e -> subscriptions.contains(e.spec()))
+        .onBackpressureLatest();
   }
 
   @Override
   public Flowable<TradeEvent> getTrades(String subscriberId) {
-    return getCombinedStream(subscriberId, MarketDataType.TRADES, marketDataSubscriptionManager::getTrades);
+    Set<TickerSpec> subscriptions = safeGetSubscriptions(subscriberId, TICKER);
+    return marketDataSubscriptionManager.getTrades()
+        .filter(e -> subscriptions.contains(e.spec()))
+        .onBackpressureLatest();
   }
 
   @Override
   public Flowable<TradeHistoryEvent> getUserTradeHistory(String subscriberId) {
-    return getCombinedStream(subscriberId, MarketDataType.USER_TRADE_HISTORY, marketDataSubscriptionManager::getUserTradeHistory);
+    Set<TickerSpec> subscriptions = safeGetSubscriptions(subscriberId, TICKER);
+    return marketDataSubscriptionManager.getUserTradeHistory()
+        .filter(e -> subscriptions.contains(e.spec()))
+        .onBackpressureLatest();
   }
 
   @Override
   public Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit(String subscriberId) {
-    return getStreams(subscriberId, MarketDataType.USER_TRADE_HISTORY, marketDataSubscriptionManager::getUserTradeHistory);
+    Set<TickerSpec> subscriptions = safeGetSubscriptions(subscriberId, TICKER);
+    return FluentIterable
+        .from(subscriptions)
+        .transform(spec -> marketDataSubscriptionManager.getUserTradeHistory()
+            .filter(e -> e.spec().equals(spec))
+            .onBackpressureLatest());
   }
 
   @Override
   public Flowable<BalanceEvent> getBalance(String subscriberId) {
-    return getCombinedStream(subscriberId, MarketDataType.BALANCE, marketDataSubscriptionManager::getBalance);
+    ImmutableSet<String> currenciesSubscribed = FluentIterable.from(safeGetSubscriptions(subscriberId, TICKER))
+      .transformAndConcat(s -> ImmutableSet.of(s.base(), s.counter()))
+      .toSet();
+    return marketDataSubscriptionManager.getBalances()
+        .filter(e -> currenciesSubscribed.contains(e.currency()))
+        .onBackpressureLatest();
   }
 
   @Override
@@ -149,17 +178,13 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     clearSubscriptions(subscriberId);
   }
 
-  private <T> Flowable<T> getCombinedStream(String subscriberId, MarketDataType marketDataType, Function<TickerSpec, Flowable<T>> source) {
-    return Flowable.merge(getStreams(subscriberId, marketDataType, source));
-  }
-
-  private <T> Iterable<Flowable<T>> getStreams(String subscriberId, MarketDataType marketDataType, Function<TickerSpec, Flowable<T>> source) {
+  private Set<TickerSpec> safeGetSubscriptions(String subscriberId, MarketDataType marketDataType) {
     long stamp = rwLock.readLock();
     try {
-      return FluentIterable
-          .from(subscriptionsBySubscriber.get(subscriberId))
+      return FluentIterable.from(subscriptionsBySubscriber.get(subscriberId))
           .filter(s -> s.type().equals(marketDataType))
-          .transform(sub -> source.apply(sub.spec()).onBackpressureLatest());
+          .transform(MarketDataSubscription::spec)
+          .toSet();
     } finally {
       rwLock.unlockRead(stamp);
     }
