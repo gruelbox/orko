@@ -4,12 +4,9 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-
 import org.mapdb.DB;
-import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
-import org.mapdb.DBMaker.Maker;
+import org.mapdb.HTreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,61 +20,49 @@ import com.grahamcrockford.orko.spi.TickerSpec;
 public class MapDbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MapDbPermanentSubscriptionAccess.class);
-  private final Maker dbMaker;
   private final BigDecimal NO_VALUE = new BigDecimal(-999);
+  private final HTreeMap<String, BigDecimal> subscriptions;
+  private final DB db;
 
+  @SuppressWarnings("unchecked")
   @Inject
-  MapDbPermanentSubscriptionAccess(DBMaker.Maker dbMaker) {
-    this.dbMaker = dbMaker;
+  MapDbPermanentSubscriptionAccess(MapDbMakerFactory dbMakerFactory) {
+    this.db = dbMakerFactory.create("subscriptions").make();
+    this.subscriptions = db.hashMap("subscription", Serializer.STRING, Serializer.JAVA).createOrOpen();
   }
 
   @Override
   public void add(TickerSpec spec) {
     LOGGER.info("Adding permanent subscription to {}", spec);
-    try (DB db = dbMaker.make()) {
-      subscriptions(db).putIfAbsent(spec.key(), NO_VALUE);
-      db.commit();
-    }
+    subscriptions.putIfAbsent(spec.key(), NO_VALUE);
+    db.commit();
   }
 
   @Override
   public void remove(TickerSpec spec) {
     LOGGER.info("Removing permanent subscription to {}", spec);
-    try (DB db = dbMaker.make()) {
-      subscriptions(db).remove(spec.key());
-      db.commit();
-    }
+    subscriptions.remove(spec.key());
+    db.commit();
   }
 
   @Override
   public Set<TickerSpec> all() {
-    try (DB db = dbMaker.make()) {
-      return FluentIterable.from(subscriptions(db).keySet()).transform(TickerSpec::fromKey).toSet();
-    }
+    return FluentIterable.from(subscriptions.keySet()).transform(TickerSpec::fromKey).toSet();
   }
 
   @Override
   public void setReferencePrice(TickerSpec tickerSpec, BigDecimal price) {
     LOGGER.info("Set reference price for {} to {}", tickerSpec, price);
-    try (DB db = dbMaker.make()) {
-      subscriptions(db).put(tickerSpec.key(), price == null ? NO_VALUE : price);
-      db.commit();
-    }
+    subscriptions.put(tickerSpec.key(), price == null ? NO_VALUE : price);
+    db.commit();
   }
 
   @Override
   public Map<TickerSpec, BigDecimal> getReferencePrices() {
     Map<TickerSpec, BigDecimal> result = new HashMap<TickerSpec, BigDecimal>();
-    try (DB db = dbMaker.make()) {
-      subscriptions(db).entrySet().stream()
-        .filter(e -> !e.getValue().equals(NO_VALUE))
-        .forEach(e -> result.put(TickerSpec.fromKey(e.getKey()), e.getValue()));
-    }
+    subscriptions.entrySet().stream()
+      .filter(e -> !e.getValue().equals(NO_VALUE))
+      .forEach(e -> result.put(TickerSpec.fromKey(e.getKey()), e.getValue()));
     return result;
-  }
-
-  @SuppressWarnings("unchecked")
-  private ConcurrentMap<String, BigDecimal> subscriptions(DB db) {
-    return db.hashMap("subscription", Serializer.STRING, Serializer.JAVA).createOrOpen();
   }
 }

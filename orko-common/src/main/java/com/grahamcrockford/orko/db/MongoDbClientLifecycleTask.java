@@ -11,11 +11,11 @@ import com.mongodb.MongoClientURI;
 import io.dropwizard.lifecycle.Managed;
 
 @Singleton
-final class MongoClientTask implements Managed {
+final class MongoDbClientLifecycleTask implements Managed {
 
   private final MongoClient mongoClient;
 
-  MongoClientTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
+  MongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
     this.mongoClient = dbType == DbType.MONGO ? new MongoClient(new MongoClientURI(configuration.getMongoClientURI())) : null;
   }
 

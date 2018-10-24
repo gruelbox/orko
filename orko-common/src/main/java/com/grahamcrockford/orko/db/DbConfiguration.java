@@ -21,7 +21,7 @@ public class DbConfiguration {
    * MapDB file.
    */
   @NotNull
-  private String mapDbFile;
+  private String mapDbFileDir;
 
   /**
    * How long database locks should persist for, in seconds.  Too short and
@@ -38,13 +38,13 @@ public class DbConfiguration {
   }
 
   @JsonProperty
-  public String getMapDbFile() {
-    return mapDbFile;
+  public String getMapDbFileDir() {
+    return mapDbFileDir;
   }
 
   @JsonProperty
-  public void setMapDbFile(String mapDbFile) {
-    this.mapDbFile = mapDbFile;
+  public void setMapDbFileDir(String mapDbFileDir) {
+    this.mapDbFileDir = mapDbFileDir;
   }
 
   @JsonProperty
@@ -74,15 +74,15 @@ public class DbConfiguration {
     if (StringUtils.isNotEmpty(getMongoClientURI()))  {
       return DbType.MONGO;
     }
-    if (StringUtils.isNotEmpty(getMapDbFile()))  {
+    if (StringUtils.isNotEmpty(getMapDbFileDir()))  {
       return DbType.MAP_DB_FILE;
     }
-    return DbType.MAP_DB_TEMPORARY;
+    return DbType.MAP_DB_MEMORY;
   }
 
   public enum DbType {
     MONGO,
-    MAP_DB_TEMPORARY,
+    MAP_DB_MEMORY,
     MAP_DB_FILE
   }
 

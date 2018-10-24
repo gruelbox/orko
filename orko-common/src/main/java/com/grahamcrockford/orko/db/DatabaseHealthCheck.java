@@ -32,7 +32,7 @@ class DatabaseHealthCheck extends HealthCheck {
   @Override
   protected Result check() throws Exception {
     if (mongoClient == null) {
-      return Result.unhealthy("Using in-memory database");
+      return Result.healthy("MongoDB not in use");
     }
     MongoCollection<Document> collection = mongoClient.getDatabase(dbConfiguration.getMongoDatabase()).getCollection("healthCheck");
     collection.count();

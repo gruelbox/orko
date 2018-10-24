@@ -2,7 +2,6 @@ package com.grahamcrockford.orko.db;
 
 import javax.annotation.Nullable;
 
-import org.mapdb.DBMaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +29,7 @@ public class DbModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(MongoClientTask.class);
+    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(MongoDbClientLifecycleTask.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(DbEnvironment.class);
   }
 
@@ -42,34 +41,21 @@ public class DbModule extends AbstractModule {
   @Provides
   DbType dbType(@Nullable DbConfiguration configuration) {
     if (configuration == null)  {
-      return DbType.MAP_DB_TEMPORARY;
+      return DbType.MAP_DB_MEMORY;
     }
     return configuration.getDbType();
   }
 
   @Provides
   @Singleton
-  org.mapdb.DBMaker.Maker mapDB(@Nullable DbConfiguration configuration, DbType dbType) {
-    switch (dbType) {
-      case MAP_DB_FILE:
-        return DBMaker.fileDB(configuration.getMapDbFile()).fileMmapEnable().transactionEnable();
-      case MAP_DB_TEMPORARY:
-        return DBMaker.tempFileDB();
-      default:
-        return null;
-    }
-  }
-
-  @Provides
-  @Singleton
-  MongoClient mongoClient(@Nullable DbConfiguration configuration, DbType dbType, MongoClientTask mongoClientTask) {
+  MongoClient mongoClient(@Nullable DbConfiguration configuration, DbType dbType, MongoDbClientLifecycleTask mongoDbClientLifecycleTask) {
     if (dbType != DbType.MONGO)  {
       return null;
     }
     MongoClient mongoClient = null;
     while (mongoClient == null) {
       try {
-        mongoClient = mongoClientTask.getMongoClient();
+        mongoClient = mongoDbClientLifecycleTask.getMongoClient();
       } catch (Exception e) {
         LOGGER.error("Failed to create Mongo client", e);
         CheckedExceptions.runUnchecked(() -> Thread.sleep(10000));
@@ -80,13 +66,13 @@ public class DbModule extends AbstractModule {
 
   @Provides
   @Singleton
-  MongoClientTask mongoClientTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
-    return new MongoClientTask(configuration, dbType, objectMapper);
+  MongoDbClientLifecycleTask mongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
+    return new MongoDbClientLifecycleTask(configuration, dbType, objectMapper);
   }
 
   @Provides
   @Singleton
-  JobAccess jobAccess(DbType dbType, Provider<DbJobAccess> mongo, Provider<InMemoryJobAccess> mapDb) {
+  JobAccess jobAccess(DbType dbType, Provider<MongoJobAccess> mongo, Provider<MapDbJobAccess> mapDb) {
     if (dbType != DbType.MONGO) {
       return mapDb.get();
     }
@@ -95,7 +81,7 @@ public class DbModule extends AbstractModule {
 
   @Provides
   @Singleton
-  JobLocker jobLocker(DbType dbType, Provider<DbJobLocker> mongo, Provider<InMemoryJobAccess> mapDb) {
+  JobLocker jobLocker(DbType dbType, Provider<MongoJobLocker> mongo, Provider<MapDbJobAccess> mapDb) {
     if (dbType != DbType.MONGO) {
       return mapDb.get();
     }

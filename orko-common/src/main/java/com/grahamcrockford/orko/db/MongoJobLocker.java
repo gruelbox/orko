@@ -21,16 +21,16 @@ import com.mongodb.MongoException;
 import com.mongodb.WriteResult;
 
 @Singleton
-class DbJobLocker implements JobLocker {
+class MongoJobLocker implements JobLocker {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DbJobLocker.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MongoJobLocker.class);
 
   private final Supplier<DBCollection> lock = Suppliers.memoize(this::createLockCollection);
   private final MongoClient mongoClient;
   private final DbConfiguration configuration;
 
   @Inject
-  DbJobLocker(MongoClient mongoClient, DbConfiguration configuration) {
+  MongoJobLocker(MongoClient mongoClient, DbConfiguration configuration) {
     this.mongoClient = mongoClient;
     this.configuration = configuration;
   }

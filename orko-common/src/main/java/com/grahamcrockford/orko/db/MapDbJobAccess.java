@@ -1,10 +1,16 @@
 package com.grahamcrockford.orko.db;
 
+import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import org.mapdb.DB;
+import org.mapdb.Serializer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.FluentIterable;
@@ -18,21 +24,23 @@ import com.grahamcrockford.orko.spi.KeepAliveEvent;
 import com.grahamcrockford.orko.submit.JobAccess;
 import com.grahamcrockford.orko.submit.JobLocker;
 
-import jersey.repackaged.com.google.common.collect.Maps;
-
 /**
- * In-memory implementation of {@link JobAccess} and {@link JobLocker}, so you can try
- * the application out without having to set up Mongo.
+ * MapDb implementation of {@link JobAccess} and {@link JobLocker}, for single-node applications only.
  */
 @Singleton
-class InMemoryJobAccess implements JobAccess, JobLocker {
+class MapDbJobAccess implements JobAccess, JobLocker {
 
-  private final ConcurrentMap<String, Job> jobs = Maps.newConcurrentMap();
+  private final ConcurrentMap<String, String> jobs;
   private final Set<String> running = Sets.newConcurrentHashSet();
   private final Cache<String, UUID> locks = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.SECONDS).build();
+  private final ObjectMapper objectMapper;
+  private final DB db;
 
   @Inject
-  InMemoryJobAccess(EventBus eventBus) {
+  MapDbJobAccess(EventBus eventBus, MapDbMakerFactory dbMakerFactory, ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+    this.db = dbMakerFactory.create("jobs").make();
+    this.jobs = db.hashMap("jobs", Serializer.STRING, Serializer.STRING).createOrOpen();
     eventBus.register(this);
   }
 
@@ -43,10 +51,11 @@ class InMemoryJobAccess implements JobAccess, JobLocker {
 
   @Override
   public void insert(Job job) throws JobAlreadyExistsException {
-    if (jobs.putIfAbsent(job.id(), job) != null) {
+    if (jobs.putIfAbsent(job.id(), serialise(job)) != null) {
       throw new JobAlreadyExistsException();
     }
     running.add(job.id());
+    db.commit();
   }
 
   @Override
@@ -54,7 +63,8 @@ class InMemoryJobAccess implements JobAccess, JobLocker {
     if (!running.contains(job.id())) {
       throw new JobDoesNotExistException();
     }
-    jobs.put(job.id(), job);
+    jobs.put(job.id(), serialise(job));
+    db.commit();
   }
 
   @Override
@@ -62,12 +72,12 @@ class InMemoryJobAccess implements JobAccess, JobLocker {
     if (!running.contains(id)) {
       throw new JobDoesNotExistException();
     }
-    return jobs.get(id);
+    return deserialise(jobs.get(id));
   }
 
   @Override
   public Iterable<Job> list() {
-    return FluentIterable.from(jobs.values()).filter(job -> running.contains(job.id())).toSet();
+    return FluentIterable.from(jobs.values()).transform(this::deserialise).filter(job -> running.contains(job.id())).toSet();
   }
 
   @Override
@@ -75,13 +85,31 @@ class InMemoryJobAccess implements JobAccess, JobLocker {
     if (!running.remove(jobId)) {
       throw new JobDoesNotExistException();
     }
+    db.commit();
     releaseAnyLock(jobId);
   }
 
   @Override
   public void deleteAll() {
     running.clear();
+    db.commit();
     releaseAllLocks();
+  }
+
+  private String serialise(Job job) {
+    try {
+      return objectMapper.writeValueAsString(job);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Job deserialise(String content) {
+    try {
+      return objectMapper.readValue(content, Job.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
