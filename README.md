@@ -45,14 +45,14 @@ Once you have the connection details, you can set the appropriate section in you
 
 Then restart. The application will now use this bot to send you notifications on your private channel. You can add more people to the channel if you like.
 
-## Enable persistent storage
+## Use a standalone MongoDB database
 
-In order to be able to shut down and start up the application, or run multiple instances of the application for fault tolerance, you need a real database.
+MongoDB is a much more reliable database engine and recommended if you're going to run the application for real trading.  To set it up:
 
 1. Install MongoDB.
 2. Create a DB and set up an admin user:
 `db.createUser({user: "jsmith", pwd: "some-initial-password", roles: [{role: "readWrite", db: "yourdb" }]})`
-3. Uncomment this section in the config file, replacing the details accordingly.
+3. Uncomment this section in the config file, replacing the details accordingly:
 
 ```
 #database:
