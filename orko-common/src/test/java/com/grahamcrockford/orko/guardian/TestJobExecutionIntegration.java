@@ -55,7 +55,7 @@ public class TestJobExecutionIntegration {
   @Mock private AccountServiceFactory accountServiceFactory;
   @Mock private StatusUpdateService statusUpdateService;
 
-  private EventBus asyncEventBus;
+  private EventBus eventBus;
   private JobRunner jobSubmitter;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
@@ -69,12 +69,12 @@ public class TestJobExecutionIntegration {
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    asyncEventBus = new EventBus();
+    eventBus = new EventBus();
 
     when(injector.getInstance(TestingJobProcessor.Factory.class)).thenReturn(new TestingJobProcessor.Factory() {
       @Override
       public JobProcessor<TestingJob> create(TestingJob job, JobControl jobControl) {
-        return new TestingJobProcessor(job, jobControl, asyncEventBus);
+        return new TestingJobProcessor(job, jobControl, eventBus);
       }
     });
 
@@ -84,9 +84,9 @@ public class TestJobExecutionIntegration {
     config.setLoopSeconds(1);
 
     executor = Executors.newCachedThreadPool();
-    jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, asyncEventBus, statusUpdateService);
-    guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
-    guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, asyncEventBus, config);
+    jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService);
+    guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, eventBus, config);
+    guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, eventBus, config);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(exchangeService, config, tradeServiceFactory, accountServiceFactory, new EventBus());
   }
 
@@ -222,7 +222,7 @@ public class TestJobExecutionIntegration {
     Assert.assertFalse(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
 
     // Mimic shutdown
-    asyncEventBus.post(StopEvent.INSTANCE);
+    eventBus.post(StopEvent.INSTANCE);
 
     // Should die
     Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
@@ -245,7 +245,7 @@ public class TestJobExecutionIntegration {
     Assert.assertFalse(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
 
     // Mimic shutdown
-    asyncEventBus.post(StopEvent.INSTANCE);
+    eventBus.post(StopEvent.INSTANCE);
 
     // Should die
     Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));

@@ -18,6 +18,7 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
   private final TestingJob job;
   private final EventBus asyncEventBus;
   private final JobControl jobControl;
+  private volatile boolean done;
 
   @Inject
   public TestingJobProcessor(@Assisted TestingJob job, @Assisted JobControl jobControl, EventBus asyncEventBus) {
@@ -42,14 +43,18 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
   }
 
   @Subscribe
-  private void tick(KeepAliveEvent tick) {
+  private synchronized void tick(KeepAliveEvent tick) {
+    if (done)
+      return;
     if (job.startLatch() != null)
       job.startLatch().countDown();
     if (job.failOnTick()) {
+      done = true;
       jobControl.finish(Status.FAILURE_PERMANENT);
       return;
     }
     if (!job.stayResident()) {
+      done = true;
       jobControl.finish(Status.SUCCESS);
     }
     if (job.update())
