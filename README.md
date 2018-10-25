@@ -52,12 +52,13 @@ MongoDB is a much more reliable database engine and recommended if you're going 
 1. Install MongoDB.
 2. Create a DB and set up an admin user:
 `db.createUser({user: "jsmith", pwd: "some-initial-password", roles: [{role: "readWrite", db: "yourdb" }]})`
-3. Uncomment this section in the config file, replacing the details accordingly:
+3. Update the relevant section in your config file:
 
 ```
-#database:
-#  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017/yourdb # Your mongoDB connection details.
-#  lockSeconds: 10
+database:
+# mongoDbFileDir: COMMENT THIS OUT
+  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017/yourdb # Your mongoDB connection details.
+  lockSeconds: 10
 ```
 
 ## How to deploy to Heroku
