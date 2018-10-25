@@ -13,10 +13,10 @@ jobs:
           keys:
           - v1-dependencies-{{ checksum "pom.xml" }}
           - v1-dependencies-
-      - run: mvn clean package -T 1C -DskipSlowTests=true
+      - run: mvn dependency:go-offline 
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
-      - run: mvn integration-test
+      - run: mvn integration-test -T 1C -DskipSlowTests=true
 
