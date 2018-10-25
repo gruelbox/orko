@@ -1,5 +1,6 @@
 package com.grahamcrockford.orko.marketdata;
 
+import static com.grahamcrockford.orko.TestingUtils.skipIfSlowTestsDisabled;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.TRADES;
@@ -42,7 +43,6 @@ import jersey.repackaged.com.google.common.collect.Maps;
  * Stack tests for {@link MarketDataSubscriptionManager}. Actually connects to exchanges.
  */
 public class TestMarketDataIntegration {
-
   private static final TickerSpec binance = TickerSpec.builder().base("BTC").counter("USDT").exchange("binance").build();
   private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange("bitfinex").build();
   private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange("gdax").build();
@@ -107,6 +107,9 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscriptionsDirect() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
     try {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber = Maps.toMap(
@@ -141,6 +144,9 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscriptionsViaEventBus() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber = Maps.toMap(
         subscriptions,
@@ -213,6 +219,9 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testEventBusSubscriptionDifferentSubscriberInner() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
       try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
         AtomicBoolean called = new AtomicBoolean();
@@ -227,6 +236,9 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testEventBusSubscriptionDifferentSubscriberOuter() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
         AtomicBoolean called = new AtomicBoolean();
@@ -241,6 +253,9 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testEventBusSubscriptionSameSubscriber() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       CountDownLatch called1 = new CountDownLatch(2);
       CountDownLatch called2 = new CountDownLatch(2);
@@ -265,9 +280,11 @@ public class TestMarketDataIntegration {
     }
   }
 
-
   @Test
   public void testEventBusMultipleSubscribersSameTicker() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     try (ExchangeEventSubscription subscription1 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
       try (ExchangeEventSubscription subscription2 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
         CountDownLatch called1 = new CountDownLatch(2);
