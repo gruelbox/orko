@@ -13,6 +13,15 @@ export default function reduce(state = initialState, action = {}) {
     case types.SET:
       return Immutable.merge(state, { coins: action.payload })
     case types.SET_META:
+      // TODO there must be some underlying reason for this. Possible XChange bug
+      if (
+        action.payload.coin.key === "binance/BTC/ICX" &&
+        action.payload.meta.priceScale === 5
+      ) {
+        action.payload.meta.priceScale = 8
+        console.log("Fixed erroneous price scale for ICX from server")
+      }
+
       return Immutable.merge(
         state,
         {
