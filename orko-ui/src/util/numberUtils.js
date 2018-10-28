@@ -1,4 +1,4 @@
-export const isValidNumber = val => !isNaN(val) && val !== ""
+export const isValidNumber = val => !isNaN(val) && val !== "" && val !== null
 
 export const formatNumber = (x, scale, undefinedValue) => {
   if (!isValidNumber(x)) return undefinedValue

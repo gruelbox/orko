@@ -111,6 +111,7 @@ class Amount extends React.PureComponent {
   }
 
   render() {
+    const noValue = this.props.noValue ? this.props.noValue : <Loading fitted />
     if (this.props.bare) {
       return (
         <BareAmountValue
@@ -123,11 +124,7 @@ class Amount extends React.PureComponent {
         >
           {this.props.children === "--"
             ? "--"
-            : formatNumber(
-                this.props.children,
-                this.props.scale,
-                <Loading fitted />
-              )}
+            : formatNumber(this.props.children, this.props.scale, noValue)}
         </BareAmountValue>
       )
     } else {
@@ -149,11 +146,7 @@ class Amount extends React.PureComponent {
           >
             {this.props.children === "--"
               ? "--"
-              : formatNumber(
-                  this.props.children,
-                  this.props.scale,
-                  <Loading fitted />
-                )}
+              : formatNumber(this.props.children, this.props.scale, noValue)}
           </AmountValue>
         </Container>
       )

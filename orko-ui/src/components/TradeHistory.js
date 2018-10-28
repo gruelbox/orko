@@ -82,7 +82,12 @@ const amountColumn = (coin, buySide) => ({
 const feeAmountColumn = buySide => ({
   Header: "Fee",
   Cell: ({ original }) => (
-    <Amount color={original.t === buySide ? "buy" : "sell"} noflash bare>
+    <Amount
+      color={original.t === buySide ? "buy" : "sell"}
+      noflash
+      bare
+      noValue="--"
+    >
       {original.fa}
     </Amount>
   ),
