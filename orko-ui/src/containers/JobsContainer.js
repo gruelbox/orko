@@ -1,6 +1,6 @@
 import React from "react"
 import { connect } from "react-redux"
-import PageVisibility from 'react-page-visibility'
+import PageVisibility from "react-page-visibility"
 import RenderIf from "../components/RenderIf"
 
 import * as jobActions from "../store/job/actions"
@@ -11,9 +11,6 @@ import Para from "../components/primitives/Para"
 import Loading from "../components/primitives/Loading"
 import JobShort from "../components/JobShort"
 import Tab from "../components/primitives/Tab"
-
-
-const TICK_TIME = 5000
 
 class JobsContainer extends React.Component {
   constructor(props) {
@@ -26,22 +23,7 @@ class JobsContainer extends React.Component {
   }
 
   handleVisibilityChange = visible => {
-    this.setState({ visible });
-  }
-
-  tick = () => {
-    if (this.state.visible) {
-      this.props.dispatch(jobActions.fetchJobs())
-    }
-  }
-
-  componentDidMount() {
-    this.tick()
-    this.interval = setInterval(this.tick, TICK_TIME)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
+    this.setState({ visible })
   }
 
   componentWillReceiveProps(nextProps) {
@@ -55,7 +37,8 @@ class JobsContainer extends React.Component {
   render() {
     const onRemove = this.onRemove
     const complexOnly = this.state.selected === "onlycomplex"
-    const show = job => !complexOnly || (!jobUtils.isAlert(job) && !jobUtils.isStop(job))
+    const show = job =>
+      !complexOnly || (!jobUtils.isAlert(job) && !jobUtils.isStop(job))
     const rawJobs = this.props.jobs.filter(job => show(job))
     var jobs
     if (this.state.loading) {

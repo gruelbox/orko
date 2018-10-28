@@ -5,6 +5,7 @@ import * as tickerActions from "../ticker/actions"
 import * as socketActions from "../socket/actions"
 import { locationToCoin } from "../../selectors/coins"
 import { batchActions } from "redux-batched-actions"
+import * as jobActions from "../job/actions"
 
 var store
 
@@ -35,15 +36,16 @@ function bufferAction(key, action) {
 export function initialise(s, history) {
   store = s
 
+  // Buffer and dispatch as a batch all the actions from the socket once a second
   const actionDispatch = () => {
     const batch = Object.values(actionBuffer)
     actionBuffer = {}
     store.dispatch(batchActions(batch))
   }
-
-  // Buffer and dispatch as a batch all the actions from the socket once a second
   setInterval(actionDispatch, 1000)
 
+  // When the coin selected changes, send resubscription messages and clear any
+  // coin-specific state
   history.listen(location => {
     console.log("Resubscribing following coin change")
     const coin = locationToCoin(location)
@@ -56,6 +58,8 @@ export function initialise(s, history) {
     bufferAction(ACTION_KEY_BALANCE, coinActions.clearBalances())
     actionDispatch()
   })
+
+  // Sync the store state of the socket with the socket itself
   socketClient.onConnectionStateChange(connected => {
     store.dispatch(socketActions.setConnectionState(connected))
     if (connected) {
@@ -67,6 +71,8 @@ export function initialise(s, history) {
         store.dispatch(notificationActions.localError("Socket disconnected"))
     }
   })
+
+  // Dispatch notifications etc to the store
   socketClient.onError(message =>
     store.dispatch(notificationActions.localError(message))
   )
@@ -76,6 +82,9 @@ export function initialise(s, history) {
   socketClient.onStatusUpdate(message =>
     store.dispatch(notificationActions.statusUpdate(message))
   )
+
+  // Dispatch market data to the store
+  const sameCoin = (left, right) => left && right && left.key === right.key
   socketClient.onTicker((coin, ticker) =>
     bufferAction(
       ACTION_KEY_TICKER + "/" + coin.key,
@@ -88,9 +97,6 @@ export function initialise(s, history) {
       coinActions.setBalance(exchange, currency, balance)
     )
   )
-
-  const sameCoin = (left, right) => left && right && left.key === right.key
-
   socketClient.onOrderBook((coin, orderBook) => {
     if (sameCoin(coin, selectedCoin()))
       bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(orderBook))
@@ -114,6 +120,13 @@ export function initialise(s, history) {
     if (sameCoin(coin, selectedCoin()))
       store.dispatch(coinActions.setUserTrades(trades))
   })
+
+  // Fetch and dispatch the job details on the server.
+  // TODO this should really move to the socket, but for the time being
+  // we'll fetch it on an interval.
+  setInterval(() => {
+    store.dispatch(jobActions.fetchJobs())
+  }, 5000)
 }
 
 export function connect() {
