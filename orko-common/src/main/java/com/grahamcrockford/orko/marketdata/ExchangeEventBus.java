@@ -150,11 +150,11 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
     @Override
     public Flowable<BalanceEvent> getBalance() {
-      ImmutableSet<String> currenciesSubscribed = FluentIterable.from(subscriptionsFor(BALANCE))
-        .transformAndConcat(s -> ImmutableSet.of(s.base(), s.counter()))
+      ImmutableSet<String> exchangeCurrenciesSubscribed = FluentIterable.from(subscriptionsFor(BALANCE))
+        .transformAndConcat(s -> ImmutableSet.of(s.exchange() + "/" + s.base(), s.exchange() + "/" + s.counter()))
         .toSet();
       return marketDataSubscriptionManager.getBalances()
-          .filter(e -> currenciesSubscribed.contains(e.currency()))
+          .filter(e -> exchangeCurrenciesSubscribed.contains(e.exchange() + "/" + e.currency()))
           .onBackpressureLatest();
     }
 

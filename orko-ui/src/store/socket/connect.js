@@ -91,12 +91,19 @@ export function initialise(s, history) {
       tickerActions.setTicker(coin, ticker)
     )
   )
-  socketClient.onBalance((exchange, currency, balance) =>
-    bufferAction(
-      ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
-      coinActions.setBalance(exchange, currency, balance)
-    )
-  )
+  socketClient.onBalance((exchange, currency, balance) => {
+    const coin = selectedCoin()
+    if (
+      coin &&
+      coin.exchange === exchange &&
+      (coin.base === currency || coin.counter === currency)
+    ) {
+      bufferAction(
+        ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
+        coinActions.setBalance(exchange, currency, balance)
+      )
+    }
+  })
   socketClient.onOrderBook((coin, orderBook) => {
     if (sameCoin(coin, selectedCoin()))
       bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(orderBook))

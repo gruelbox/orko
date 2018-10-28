@@ -168,14 +168,15 @@ function mapStateToProps(state, props) {
     props.deriveScale && props.coin
       ? state.coins.meta[props.coin.key]
       : undefined
+  const scale = meta ? props.deriveScale(meta) : -1
   return {
     title: props.onClick ? undefined : "Copy amount to target field",
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn
-        ? value => state.focus.fn(formatNumber(value, -1, ""))
+        ? value => state.focus.fn(formatNumber(value, scale, ""))
         : nullOnCLick,
-    scale: meta ? props.deriveScale(meta) : -1
+    scale
   }
 }
 

@@ -125,7 +125,7 @@ class Price extends React.PureComponent {
             ? "--"
             : formatNumber(
                 this.props.children,
-                this.props.meta ? this.props.meta.priceScale : 8,
+                this.props.scale,
                 <Loading fitted />
               )}
         </BarePriceValue>
@@ -151,7 +151,7 @@ class Price extends React.PureComponent {
               ? "--"
               : formatNumber(
                   this.props.children,
-                  this.props.meta ? this.props.meta.priceScale : 8,
+                  this.props.scale,
                   <Loading fitted />
                 )}
           </PriceValue>
@@ -165,15 +165,15 @@ const nullOnCLick = number => {}
 
 function mapStateToProps(state, props) {
   const meta = props.coin ? state.coins.meta[props.coin.key] : undefined
+  const scale = meta ? meta.priceScale : 8
   return {
     title: props.onClick ? undefined : "Copy price to target field",
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn
-        ? value =>
-            state.focus.fn(formatNumber(value, meta ? meta.priceScale : 8, ""))
+        ? value => state.focus.fn(formatNumber(value, scale, ""))
         : nullOnCLick,
-    meta
+    scale
   }
 }
 

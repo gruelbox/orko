@@ -66,7 +66,9 @@ export const Balance = props => {
           name="Can buy"
           onClick={props.onClickNumber}
           coin={coin}
-          deriveScale={meta => scaleOfValue(meta.minimumAmount)}
+          deriveScale={meta =>
+            meta.minimumAmount ? scaleOfValue(meta.minimumAmount) : 8
+          }
         >
           {noCounterBalance || noTicker
             ? undefined
