@@ -77,7 +77,7 @@ public class CheckedExceptions {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       Throwables.throwIfUnchecked(t);
       throw new RuntimeException(t);
     }
@@ -98,7 +98,7 @@ public class CheckedExceptions {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       Throwables.throwIfUnchecked(t);
       throw new RuntimeException(t);
     }
@@ -119,7 +119,7 @@ public class CheckedExceptions {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       Throwables.throwIfUnchecked(t);
       throw new RuntimeException(t);
     }

@@ -28,7 +28,7 @@ public abstract class OneCancelsOther implements Job {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder<OneCancelsOther> {
+  public abstract static class Builder implements JobBuilder<OneCancelsOther> {
     @JsonCreator private static Builder create() { return OneCancelsOther.builder(); }
     @Override
     @Id
@@ -81,12 +81,12 @@ public abstract class OneCancelsOther implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<Processor.Factory> processorFactory() {
-    return Processor.Factory.class;
+  public final Class<Processor.ProcessorFactory> processorFactory() {
+    return Processor.ProcessorFactory.class;
   }
 
   public interface Processor extends JobProcessor<OneCancelsOther> {
-    public interface Factory extends JobProcessor.Factory<OneCancelsOther> {
+    public interface ProcessorFactory extends JobProcessor.Factory<OneCancelsOther> {
       @Override
       Processor create(OneCancelsOther job, JobControl jobControl);
     }

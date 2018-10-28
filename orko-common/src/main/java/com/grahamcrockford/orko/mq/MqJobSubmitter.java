@@ -75,7 +75,10 @@ class MqJobSubmitter implements JobSubmitter {
       if (!success.get())
         throw new PublishFailedException("Message not delivered");
 
-    } catch (IOException | TimeoutException | InterruptedException e) {
+    } catch (IOException | TimeoutException e) {
+      throw new PublishFailedException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       throw new PublishFailedException(e);
     }
   }

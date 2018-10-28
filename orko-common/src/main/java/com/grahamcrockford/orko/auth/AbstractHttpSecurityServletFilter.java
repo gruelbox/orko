@@ -45,10 +45,7 @@ abstract class AbstractHttpSecurityServletFilter implements Filter {
 
     if (filterHttpRequest(httpRequest, httpResponse, chain)) {
       chain.doFilter(request, response);
-      return;
     }
-
-    return;
   }
 
   protected abstract boolean filterHttpRequest(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException;

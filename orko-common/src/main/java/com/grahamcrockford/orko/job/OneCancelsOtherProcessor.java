@@ -95,7 +95,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     try {
       if (!done)
         tickInner(tickerEvent);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       String message = String.format(
         "One-cancels-other on %s %s/%s market temporarily failed with error: %s",
         job.tickTrigger().exchange(),
@@ -144,7 +144,6 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
       jobSubmitter.submitNewUnchecked(job.low().job());
       done = true;
       jobControl.finish(SUCCESS);
-      return;
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
@@ -166,7 +165,6 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
       jobSubmitter.submitNewUnchecked(job.high().job());
       done = true;
       jobControl.finish(SUCCESS);
-      return;
 
     }
   }
@@ -176,7 +174,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     protected void configure() {
       install(new FactoryModuleBuilder()
           .implement(OneCancelsOther.Processor.class, OneCancelsOtherProcessor.class)
-          .build(OneCancelsOther.Processor.Factory.class));
+          .build(OneCancelsOther.Processor.ProcessorFactory.class));
     }
   }
 }

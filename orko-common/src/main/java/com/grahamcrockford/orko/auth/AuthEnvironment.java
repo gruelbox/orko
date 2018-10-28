@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
+import com.grahamcrockford.orko.websocket.WebSocketModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
 import io.dropwizard.server.AbstractServerFactory;
@@ -40,23 +41,25 @@ class AuthEnvironment implements EnvironmentInitialiser {
     AbstractServerFactory serverFactory = (AbstractServerFactory) appConfiguration.getServerFactory();
     String rootPath = serverFactory.getJerseyRootPath().orElse("/") + "*";
 
+    String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
+
     // Apply IP whitelisting outside the authentication stack so we can provide a different response
-    if (StringUtils.isNotEmpty(authConfiguration.secretKey)) {
+    if (StringUtils.isNotEmpty(authConfiguration.getSecretKey())) {
       environment.servlets().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter)
-        .addMappingForUrlPatterns(null, true, rootPath, "/ws/*");
+        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter)
-        .addMappingForUrlPatterns(null, true, rootPath, "/ws/*");
+        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
     }
 
     // Interceptor to convert protocol header into Bearer for use in websocket comms
     // And finally validate the JWT
-    if (authConfiguration.okta != null && StringUtils.isNotEmpty(authConfiguration.okta.issuer)) {
+    if (authConfiguration.getOkta() != null && StringUtils.isNotEmpty(authConfiguration.getOkta().getIssuer())) {
       environment.servlets().addFilter(ProtocolToBearerTranslationFilter.class.getSimpleName(), protocolToBearerTranslationFilter.get())
-        .addMappingForUrlPatterns(null, true, rootPath, "/ws/*");
+        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.servlets().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())
-        .addMappingForUrlPatterns(null, true, rootPath, "/ws/*");
+        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())
-        .addMappingForUrlPatterns(null, true, rootPath, "/ws/*");
+        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
     }
   }
 }

@@ -21,26 +21,28 @@ public class HttpsEnforcer implements Filter {
   public static final String X_FORWARDED_PROTO = "X-Forwarded-Proto";
 
   @Override
-  public void init(FilterConfig filterConfig) throws ServletException {}
+  public void init(FilterConfig filterConfig) throws ServletException {
+    // No-op
+  }
 
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
     HttpServletRequest request = (HttpServletRequest) servletRequest;
     HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-    if (request.getHeader(X_FORWARDED_PROTO) != null) {
-      if (request.getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
-        String pathInfo = (request.getPathInfo() != null) ? request.getPathInfo() : "";
-        String redirect = "https://" + request.getServerName() + pathInfo;
-        LOGGER.error("Unsecured access redirected to [{}]", redirect);
-        response.sendRedirect(redirect);
-        return;
-      }
+    if (request.getHeader(X_FORWARDED_PROTO) != null && request.getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
+      String pathInfo = (request.getPathInfo() != null) ? request.getPathInfo() : "";
+      String redirect = "https://" + request.getServerName() + pathInfo;
+      LOGGER.error("Unsecured access redirected to [{}]", redirect);
+      response.sendRedirect(redirect);
+      return;
     }
 
     filterChain.doFilter(request, response);
   }
 
   @Override
-  public void destroy() { }
+  public void destroy() {
+    // No-op
+  }
 }

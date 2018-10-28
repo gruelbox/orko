@@ -30,7 +30,7 @@ public abstract class Alert implements Job {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder<Alert> {
+  public abstract static class Builder implements JobBuilder<Alert> {
     @JsonCreator private static Builder create() { return Alert.builder(); }
     @Override
     @Id
@@ -76,12 +76,12 @@ public abstract class Alert implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<Processor.Factory> processorFactory() {
-    return Processor.Factory.class;
+  public final Class<Processor.ProcessorFactory> processorFactory() {
+    return Processor.ProcessorFactory.class;
   }
 
   public interface Processor extends JobProcessor<Alert> {
-    public interface Factory extends JobProcessor.Factory<Alert> {
+    public interface ProcessorFactory extends JobProcessor.Factory<Alert> {
       @Override
       Processor create(Alert job, JobControl jobControl);
     }

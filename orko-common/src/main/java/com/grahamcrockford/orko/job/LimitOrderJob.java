@@ -30,7 +30,7 @@ public abstract class LimitOrderJob implements Job {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder<LimitOrderJob> {
+  public abstract static class Builder implements JobBuilder<LimitOrderJob> {
 
     @JsonCreator private static Builder create() { return LimitOrderJob.builder(); }
 
@@ -84,8 +84,8 @@ public abstract class LimitOrderJob implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<Processor.Factory> processorFactory() {
-    return Processor.Factory.class;
+  public final Class<Processor.ProcessorFactory> processorFactory() {
+    return Processor.ProcessorFactory.class;
   }
 
   public enum Direction {
@@ -93,7 +93,7 @@ public abstract class LimitOrderJob implements Job {
   }
 
   public interface Processor extends JobProcessor<LimitOrderJob> {
-    public interface Factory extends JobProcessor.Factory<LimitOrderJob> {
+    public interface ProcessorFactory extends JobProcessor.Factory<LimitOrderJob> {
       @Override
       Processor create(LimitOrderJob job, JobControl jobControl);
     }

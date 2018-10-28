@@ -20,7 +20,7 @@ import com.grahamcrockford.orko.spi.TickerSpec;
 public class MapDbPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MapDbPermanentSubscriptionAccess.class);
-  private final BigDecimal NO_VALUE = new BigDecimal(-999);
+  private static final BigDecimal NO_VALUE = new BigDecimal(-999);
   private final HTreeMap<String, BigDecimal> subscriptions;
   private final DB db;
 

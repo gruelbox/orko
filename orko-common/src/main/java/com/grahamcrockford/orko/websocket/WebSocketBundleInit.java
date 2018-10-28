@@ -18,7 +18,7 @@ public class WebSocketBundleInit {
 
   public void init(WebsocketBundle websocketBundle) {
     final ServerEndpointConfig config = ServerEndpointConfig.Builder
-        .create(OrkoWebSocketServer.class, "/ws")
+        .create(OrkoWebSocketServer.class, WebSocketModule.ENTRY_POINT)
         .build();
     config.getUserProperties().put(Injector.class.getName(), injector);
     websocketBundle.addEndpoint(config);

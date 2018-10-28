@@ -43,10 +43,10 @@ public class AuthModule extends AbstractModule {
     OrkoAuthenticator uncached;
     try {
       JwtHelper helper = new JwtHelper()
-        .setIssuerUrl(configuration.okta.issuer)
-        .setClientId(configuration.okta.clientId);
+        .setIssuerUrl(configuration.getOkta().getIssuer())
+        .setClientId(configuration.getOkta().getClientId());
 
-      String audience = configuration.okta.audience;
+      String audience = configuration.getOkta().getAudience();
       if (StringUtils.isNotEmpty(audience)) {
         helper.setAudience(audience);
       }
@@ -60,7 +60,7 @@ public class AuthModule extends AbstractModule {
     CachingAuthenticator<String, AccessTokenPrincipal> cached = new CachingAuthenticator<String, AccessTokenPrincipal>(
       environment.metrics(),
       uncached,
-      CacheBuilderSpec.parse(configuration.authCachePolicy)
+      CacheBuilderSpec.parse(configuration.getAuthCachePolicy())
     );
 
     return credentials -> cached.authenticate(credentials);

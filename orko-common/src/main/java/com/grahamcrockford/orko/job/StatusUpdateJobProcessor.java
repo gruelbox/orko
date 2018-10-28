@@ -30,7 +30,7 @@ class StatusUpdateJobProcessor implements StatusUpdateJob.Processor {
     protected void configure() {
       install(new FactoryModuleBuilder()
           .implement(StatusUpdateJob.Processor.class, StatusUpdateJobProcessor.class)
-          .build(StatusUpdateJob.Processor.Factory.class));
+          .build(StatusUpdateJob.Processor.ProcessorFactory.class));
     }
   }
 }

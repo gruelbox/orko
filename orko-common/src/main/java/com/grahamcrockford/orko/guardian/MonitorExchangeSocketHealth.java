@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.exchange.Exchanges;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.grahamcrockford.orko.marketdata.MarketDataSubscription;
@@ -45,7 +46,7 @@ final class MonitorExchangeSocketHealth implements Managed {
   public void start() throws Exception {
     lastTradeTime.set(currentTimeMillis());
     subscription = exchangeEventRegistry.subscribe(
-      MarketDataSubscription.create(TickerSpec.builder().exchange("binance").base("BTC").counter("USDT").build(), TRADES)
+      MarketDataSubscription.create(TickerSpec.builder().exchange(Exchanges.BINANCE).base("BTC").counter("USDT").build(), TRADES)
     );
     disposable = subscription.getTrades().forEach(t -> lastTradeTime.set(currentTimeMillis()));
     poll = Observable.interval(10, TimeUnit.MINUTES).subscribe(i -> runOneIteration());

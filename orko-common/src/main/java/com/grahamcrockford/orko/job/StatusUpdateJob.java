@@ -26,7 +26,7 @@ public abstract class StatusUpdateJob implements Job {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder<StatusUpdateJob> {
+  public abstract static class Builder implements JobBuilder<StatusUpdateJob> {
     @JsonCreator private static Builder create() { return StatusUpdateJob.builder(); }
     @Override
     @Id
@@ -56,12 +56,12 @@ public abstract class StatusUpdateJob implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<Processor.Factory> processorFactory() {
-    return Processor.Factory.class;
+  public final Class<Processor.ProcessorFactory> processorFactory() {
+    return Processor.ProcessorFactory.class;
   }
 
   public interface Processor extends JobProcessor<StatusUpdateJob> {
-    public interface Factory extends JobProcessor.Factory<StatusUpdateJob> {
+    public interface ProcessorFactory extends JobProcessor.Factory<StatusUpdateJob> {
       @Override
       Processor create(StatusUpdateJob job, JobControl jobControl);
     }

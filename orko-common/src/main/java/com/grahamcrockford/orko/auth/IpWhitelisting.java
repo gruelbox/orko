@@ -36,7 +36,7 @@ class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-    if (StringUtils.isEmpty(configuration.secretKey))
+    if (StringUtils.isEmpty(configuration.getSecretKey()))
       return true;
     String sourceIp = sourceIp();
     if (!ipWhitelistAccess.exists(sourceIp)) {
@@ -47,11 +47,11 @@ class IpWhitelisting {
   }
 
   public boolean whiteListRequestIp(int token) {
-    if (StringUtils.isEmpty(configuration.secretKey))
+    if (StringUtils.isEmpty(configuration.getSecretKey()))
       return true;
 
     String ip = sourceIp();
-    if (!googleAuthenticator.authorize(configuration.secretKey, token)) {
+    if (!googleAuthenticator.authorize(configuration.getSecretKey(), token)) {
       LOGGER.error("Whitelist attempt failed from: " + ip);
       return false;
     }
@@ -69,7 +69,7 @@ class IpWhitelisting {
 
   private String sourceIp() {
     HttpServletRequest req = request.get();
-    if (configuration.proxied) {
+    if (configuration.isProxied()) {
       return req.getHeader("X-Forwarded-For").split(",")[0];
     } else {
       return req.getRemoteAddr();

@@ -21,7 +21,7 @@ class MapDbIpWhitelistAccess implements IpWhitelistAccess {
   MapDbIpWhitelistAccess(MapDbMakerFactory dbMakerFactory, AuthConfiguration authConfiguration) {
     this.db = dbMakerFactory.create("ipwl").make();
     this.ips = db.hashMap("ipwl", Serializer.STRING, Serializer.LONG)
-        .expireAfterUpdate(authConfiguration.whitelistExpirySeconds, TimeUnit.SECONDS)
+        .expireAfterUpdate(authConfiguration.getWhitelistExpirySeconds(), TimeUnit.SECONDS)
         .createOrOpen();
   }
 

@@ -63,6 +63,7 @@ import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.exchange.AccountServiceFactory;
 import com.grahamcrockford.orko.exchange.ExchangeService;
+import com.grahamcrockford.orko.exchange.Exchanges;
 import com.grahamcrockford.orko.exchange.TradeServiceFactory;
 import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.util.SafelyDispose;
@@ -103,12 +104,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final Multimap<String, Disposable> disposablesPerExchange = HashMultimap.create();
   private final Set<MarketDataSubscription> unavailableSubscriptions = Sets.newConcurrentHashSet();
 
-  private final Subscription<TickerEvent, TickerSpec> tickers;
-  private final Subscription<OpenOrdersEvent, TickerSpec> openOrders;
-  private final Subscription<OrderBookEvent, TickerSpec> orderbook;
-  private final Subscription<TradeEvent, TickerSpec> trades;
-  private final Subscription<TradeHistoryEvent, TickerSpec> userTradeHistory;
-  private final Subscription<BalanceEvent, String> balance;
+  private final PersistentPublisher<TickerEvent, TickerSpec> tickersOut;
+  private final PersistentPublisher<OpenOrdersEvent, TickerSpec> openOrdersOut;
+  private final PersistentPublisher<OrderBookEvent, TickerSpec> orderbookOut;
+  private final PersistentPublisher<TradeEvent, TickerSpec> tradesOut;
+  private final PersistentPublisher<TradeHistoryEvent, TickerSpec> userTradeHistoryOut;
+  private final PersistentPublisher<BalanceEvent, String> balanceOut;
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
@@ -132,12 +133,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       pollsPerExchange.put(e, ImmutableSet.of());
     });
 
-    this.tickers = new Subscription<>(TickerEvent::spec, true);
-    this.openOrders = new Subscription<>(OpenOrdersEvent::spec, true);
-    this.orderbook = new Subscription<>(OrderBookEvent::spec, true);
-    this.trades = new Subscription<>(TradeEvent::spec, false);
-    this.userTradeHistory = new Subscription<>(TradeHistoryEvent::spec, true);
-    this.balance = new Subscription<>((BalanceEvent e) -> e.exchange() + "/" + e.currency(), true);
+    this.tickersOut = new PersistentPublisher<>(TickerEvent::spec, true);
+    this.openOrdersOut = new PersistentPublisher<>(OpenOrdersEvent::spec, true);
+    this.orderbookOut = new PersistentPublisher<>(OrderBookEvent::spec, true);
+    this.tradesOut = new PersistentPublisher<>(TradeEvent::spec, false);
+    this.userTradeHistoryOut = new PersistentPublisher<>(TradeHistoryEvent::spec, true);
+    this.balanceOut = new PersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.currency(), true);
   }
 
 
@@ -171,7 +172,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The stream.
    */
   public Flowable<TickerEvent> getTickers() {
-    return tickers.getAll();
+    return tickersOut.getAll();
   }
 
 
@@ -181,7 +182,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The stream.
    */
   public Flowable<OpenOrdersEvent> getOpenOrders() {
-    return openOrders.getAll();
+    return openOrdersOut.getAll();
   }
 
 
@@ -191,7 +192,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The stream.
    */
   public Flowable<OrderBookEvent> getOrderBooks() {
-    return orderbook.getAll();
+    return orderbookOut.getAll();
   }
 
 
@@ -201,7 +202,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The stream.
    */
   public Flowable<TradeEvent> getTrades() {
-    return trades.getAll().filter(t -> !UserTrade.class.isInstance(t));
+    return tradesOut.getAll().filter(t -> !UserTrade.class.isInstance(t));
   }
 
 
@@ -211,7 +212,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    *  @return The stream.
    */
   public Flowable<TradeHistoryEvent> getUserTradeHistory() {
-    return userTradeHistory.getAll();
+    return userTradeHistoryOut.getAll();
   }
 
 
@@ -221,7 +222,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The stream.
    */
   public Flowable<BalanceEvent> getBalances() {
-    return balance.getAll();
+    return balanceOut.getAll();
   }
 
 
@@ -257,13 +258,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         // Clear cached tickers and order books for anything we've unsubscribed so that we don't feed out-of-date data
         Sets.difference(oldSubscriptions, subscriptions)
           .forEach(s -> {
-            tickers.removeFromCache(s.spec());
-            orderbook.removeFromCache(s.spec());
-            openOrders.removeFromCache(s.spec());
-            trades.removeFromCache(s.spec());
-            userTradeHistory.removeFromCache(s.spec());
-            balance.removeFromCache(s.spec().exchange() + "/" + s.spec().base());
-            balance.removeFromCache(s.spec().exchange() + "/" + s.spec().counter());
+            tickersOut.removeFromCache(s.spec());
+            orderbookOut.removeFromCache(s.spec());
+            openOrdersOut.removeFromCache(s.spec());
+            tradesOut.removeFromCache(s.spec());
+            userTradeHistoryOut.removeFromCache(s.spec());
+            balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().base());
+            balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().counter());
           });
 
         // Add new subscriptions if we have any
@@ -337,16 +338,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           case ORDERBOOK:
             return streaming.getOrderBook(sub.spec().currencyPair())
                 .map(t -> OrderBookEvent.create(sub.spec(), t))
-                .subscribe(orderbook::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
+                .subscribe(orderbookOut::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
           case TICKER:
             LOGGER.debug("Subscribing to {}", sub.spec());
             return streaming.getTicker(sub.spec().currencyPair())
                 .map(t -> TickerEvent.create(sub.spec(), t))
-                .subscribe(tickers::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
+                .subscribe(tickersOut::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
           case TRADES:
             return streaming.getTrades(sub.spec().currencyPair())
                 .map(t -> TradeEvent.create(sub.spec(), t))
-                .subscribe(trades::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
+                .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
           default:
             throw new IllegalStateException("Unexpected market data type: " + sub.type());
         }
@@ -410,7 +411,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private void pollExchange(String exchangeName) {
     Thread.currentThread().setName(getClass().getSimpleName() + "-" + exchangeName);
-    long defaultSleep = configuration.getLoopSeconds() * 1000;
+    long defaultSleep = (long) configuration.getLoopSeconds() * 1000;
     while (!phaser.isTerminated()) {
 
       // Before we check for the presence of polls, determine which phase
@@ -431,8 +432,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
 
       // Work out how often we can poll the exchange safely.
-      Set<MarketDataSubscription> polls = FluentIterable.from(pollsPerExchange.get(exchangeName))
-          .filter(s -> !unavailableSubscriptions.contains(s)).toSet();
+      Set<MarketDataSubscription> polls = activePollsForExchange(exchangeName);
       long interApiSleep = sleepTime(exchangeName, defaultSleep, polls.isEmpty() ? 10 : polls.size());
 
       // Pause after a resubscription since it probably counts as an API call and thus
@@ -490,12 +490,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       if (!balanceCurrencies.isEmpty()) {
         try {
           fetchBalances(exchangeName, balanceCurrencies)
-            .forEach(b -> balance.emit(BalanceEvent.create(exchangeName, b.currency(), b)));
+            .forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b)));
         } catch (NotAvailableFromExchangeException e) {
           LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
           Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
-        } catch (Throwable e) {
-          if ("kucoin".equals(exchangeName)) {
+        } catch (Exception e) {
+          if (Exchanges.KUCOIN.equals(exchangeName)) {
             // Kucoin does this literally all the time, so to save our logs, just write the message
             LOGGER.error("Error fetching balance on " + exchangeName + " (" + e.getMessage() + ")");
           } else {
@@ -509,6 +509,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
 
     }
+  }
+
+
+  private ImmutableSet<MarketDataSubscription> activePollsForExchange(String exchangeName) {
+    return FluentIterable.from(pollsPerExchange.get(exchangeName))
+        .filter(s -> !unavailableSubscriptions.contains(s)).toSet();
   }
 
   private boolean sleep(String exchangeName, long sleepTime) {
@@ -551,62 +557,25 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void fetchAndBroadcast(MarketDataSubscription subscription) {
     try {
-      TradeService tradeService;
       TickerSpec spec = subscription.spec();
       MarketDataService marketDataService = exchangeService.get(spec.exchange()).getMarketDataService();
       switch (subscription.type()) {
         case TICKER:
-          tickers.emit(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
+          pollAndEmitTicker(spec, marketDataService);
           break;
         case ORDERBOOK:
-          if (spec.exchange().equals("cryptopia")) {
-            // TODO submit a PR to xChange for this
-            long longValue = Integer.valueOf(ORDERBOOK_DEPTH).longValue();
-            orderbook.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), longValue, longValue)));
-          } else {
-            orderbook.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), ORDERBOOK_DEPTH, ORDERBOOK_DEPTH)));
-          }
+          pollAndEmitOrderbook(spec, marketDataService);
           break;
         case TRADES:
-          marketDataService.getTrades(subscription.spec().currencyPair())
-            .getTrades()
-            .stream()
-            .forEach(t -> {
-              mostRecentTrades.compute(subscription.spec(), (k, previousTiming) -> {
-                Instant thisTradeTiming = t.getTimestamp().toInstant();
-                Instant newMostRecent = previousTiming;
-                if (previousTiming == null) {
-                  newMostRecent = thisTradeTiming;
-                } else if (thisTradeTiming.isAfter(previousTiming)) {
-                  newMostRecent = thisTradeTiming;
-                  trades.emit(TradeEvent.create(subscription.spec(), t));
-                }
-                return newMostRecent;
-              });
-            });
+          pollAndEmitTrades(subscription, marketDataService);
           break;
         case OPEN_ORDERS:
-          tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-          OpenOrdersParams openOrdersParams = openOrdersParams(subscription, tradeService);
-          OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
-
-          // TODO GDAX PR required
-          if (subscription.spec().exchange().equals("gdax")) {
-            ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
-            ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
-            fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
-          }
-
-          openOrders.emit(OpenOrdersEvent.create(spec, fetched));
+          pollAndEmitOpenOrders(subscription, spec);
           break;
         case USER_TRADE_HISTORY:
-          tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-          TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription, tradeService);
-          ImmutableList<UserTrade> trades = ImmutableList.copyOf(tradeService.getTradeHistory(tradeHistoryParams).getUserTrades());
-          userTradeHistory.emit(TradeHistoryEvent.create(spec, trades));
+          pollAndEmitUserTradeHistory(subscription, spec);
           break;
         default:
           throw new IllegalStateException("Market data type " + subscription.type() + " not supported in this way");
@@ -614,8 +583,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     } catch (NotAvailableFromExchangeException e) {
       LOGGER.warn(subscription.type() + " not available on " + subscription.spec().exchange());
       unavailableSubscriptions.add(subscription);
-    } catch (Throwable e) {
-      if ("kucoin".equals(subscription.spec().exchange())) {
+    } catch (Exception e) {
+      if (Exchanges.KUCOIN.equals(subscription.spec().exchange())) {
         // Kucoin does this literally all the time, so to save our logs, just write the message
         LOGGER.error("Error fetching market data: " + subscription + " (" + e.getMessage() + ")");
       } else {
@@ -624,12 +593,67 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
   }
 
+  private void pollAndEmitUserTradeHistory(MarketDataSubscription subscription, TickerSpec spec) throws IOException {
+    TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
+    TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription, tradeService);
+    ImmutableList<UserTrade> trades = ImmutableList.copyOf(tradeService.getTradeHistory(tradeHistoryParams).getUserTrades());
+    userTradeHistoryOut.emit(TradeHistoryEvent.create(spec, trades));
+  }
+
+  @SuppressWarnings("unchecked")
+  private void pollAndEmitOpenOrders(MarketDataSubscription subscription, TickerSpec spec) throws IOException {
+    TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
+    OpenOrdersParams openOrdersParams = openOrdersParams(subscription, tradeService);
+    OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
+
+    // TODO GDAX PR required
+    if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+      ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
+      ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
+      fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
+    }
+
+    openOrdersOut.emit(OpenOrdersEvent.create(spec, fetched));
+  }
+
+  private void pollAndEmitTrades(MarketDataSubscription subscription, MarketDataService marketDataService) throws IOException {
+    marketDataService.getTrades(subscription.spec().currencyPair())
+      .getTrades()
+      .stream()
+      .forEach(t -> {
+        mostRecentTrades.compute(subscription.spec(), (k, previousTiming) -> {
+          Instant thisTradeTiming = t.getTimestamp().toInstant();
+          Instant newMostRecent = previousTiming;
+          if (previousTiming == null) {
+            newMostRecent = thisTradeTiming;
+          } else if (thisTradeTiming.isAfter(previousTiming)) {
+            newMostRecent = thisTradeTiming;
+            tradesOut.emit(TradeEvent.create(subscription.spec(), t));
+          }
+          return newMostRecent;
+        });
+      });
+  }
+
+  private void pollAndEmitOrderbook(TickerSpec spec, MarketDataService marketDataService) throws IOException {
+    if (spec.exchange().equals(Exchanges.CRYPTOPIA)) {
+      // TODO submit a PR to xChange for this
+      long longValue = ORDERBOOK_DEPTH;
+      orderbookOut.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), longValue, longValue)));
+    } else {
+      orderbookOut.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), ORDERBOOK_DEPTH, ORDERBOOK_DEPTH)));
+    }
+  }
+
+  private void pollAndEmitTicker(TickerSpec spec, MarketDataService marketDataService) throws IOException {
+    tickersOut.emit(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
+  }
 
   private TradeHistoryParams tradeHistoryParams(MarketDataSubscription subscription, TradeService tradeService) {
     TradeHistoryParams params;
 
     // TODO fix with pull request
-    if (subscription.spec().exchange().startsWith("gdax")) {
+    if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
       params = new TradeHistoryParamCurrencyPair() {
 
         private CurrencyPair pair;
@@ -680,13 +704,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     return exchange instanceof StreamingExchange;
   }
 
-  private final class Subscription<T, U> {
+  private final class PersistentPublisher<T, U> {
     private final Flowable<T> flowable;
     private final AtomicReference<FlowableEmitter<T>> emitter = new AtomicReference<>();
     private final ConcurrentMap<U, T> latest = Maps.newConcurrentMap();
     private final boolean caching;
 
-    Subscription(Function<T, U> keyFunction, boolean caching) {
+    PersistentPublisher(Function<T, U> keyFunction, boolean caching) {
       this.caching = caching;
       Flowable<T> flow = Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING);
       if (caching)

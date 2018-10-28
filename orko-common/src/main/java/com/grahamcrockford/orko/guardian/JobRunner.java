@@ -238,7 +238,7 @@ class JobRunner {
       Status result;
       try {
         result = processor.start();
-      } catch (Throwable e) {
+      } catch (Exception e) {
         LOGGER.error("Error in start() for job [{}].", e);
         result = Status.FAILURE_TRANSIENT;
       }
@@ -248,7 +248,7 @@ class JobRunner {
     private void safeStop() {
       try {
         processor.stop();
-      } catch (Throwable e) {
+      } catch (Exception e) {
         LOGGER.error("Error in stop() for job [{}]. Cleanup may not be complete.", e);
       }
     }

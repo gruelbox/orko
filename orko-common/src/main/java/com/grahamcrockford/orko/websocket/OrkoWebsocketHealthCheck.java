@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.grahamcrockford.orko.exchange.Exchanges;
 import com.grahamcrockford.orko.spi.TickerSpec;
 
 class OrkoWebsocketHealthCheck extends HealthCheck {
@@ -45,7 +46,7 @@ class OrkoWebsocketHealthCheck extends HealthCheck {
                         "." +
                         request.get().getServerPort() +
                         request.get().getContextPath() +
-                        "/ws");
+                        WebSocketModule.ENTRY_POINT);
 
       result.withDetail("uri", uri);
 
@@ -58,13 +59,13 @@ class OrkoWebsocketHealthCheck extends HealthCheck {
         @SuppressWarnings("unchecked")
         Map<String, Object> spec = (Map<String, Object>) event.get("spec");
         switch ((String)spec.get("exchange")) {
-          case "binance":
+          case Exchanges.BINANCE:
             binanceTickersReceived.incrementAndGet();
             break;
-          case "gdax":
+          case Exchanges.GDAX:
             gdaxTickersReceived.incrementAndGet();
             break;
-          case "bitfinex":
+          case Exchanges.BITFINEX:
             bitfinexTickersReceived.incrementAndGet();
             break;
           default:
@@ -74,9 +75,9 @@ class OrkoWebsocketHealthCheck extends HealthCheck {
       })) {
         clientEndPoint.changeTickers(
           ImmutableList.of(
-            TickerSpec.builder().exchange("bitfinex").counter("USD").base("BTC").build(),
-            TickerSpec.builder().exchange("gdax").counter("USD").base("BTC").build(),
-            TickerSpec.builder().exchange("binance").counter("USDT").base("BTC").build()
+            TickerSpec.builder().exchange(Exchanges.BITFINEX).counter("USD").base("BTC").build(),
+            TickerSpec.builder().exchange(Exchanges.GDAX).counter("USD").base("BTC").build(),
+            TickerSpec.builder().exchange(Exchanges.BINANCE).counter("USDT").base("BTC").build()
           )
         );
         Thread.sleep(30000);
@@ -88,7 +89,7 @@ class OrkoWebsocketHealthCheck extends HealthCheck {
           .withDetail("binanceTickersReceived", binanceTickersReceived.get())
           .build();
 
-    } catch (Throwable ex) {
+    } catch (Exception ex) {
       LOGGER.error("Error in healthcheck", ex);
       return result.withDetail("errorDescription", ex.getClass().getSimpleName() + ": " + ex.getMessage()).unhealthy(ex).build();
     }

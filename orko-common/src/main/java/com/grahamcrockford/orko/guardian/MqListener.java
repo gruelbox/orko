@@ -92,7 +92,7 @@ class MqListener extends AbstractIdleService {
         () -> channel.basicAck(envelope.getDeliveryTag(), false),
         () -> channel.basicReject(envelope.getDeliveryTag(), true)
       );
-    } catch (Throwable t) {
+    } catch (Exception t) {
       notificationService.error("Job failed: " + job.id(), t);
     }
   }

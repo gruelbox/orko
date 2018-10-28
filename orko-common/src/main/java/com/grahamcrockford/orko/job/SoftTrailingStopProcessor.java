@@ -98,7 +98,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     try {
       if (!done)
         tickInner(tickerEvent);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       String message = String.format(
         "Trailing stop on %s %s/%s market temporarily failed with error: %s",
         job.tickTrigger().exchange(),
@@ -202,7 +202,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     protected void configure() {
       install(new FactoryModuleBuilder()
           .implement(SoftTrailingStop.Processor.class, SoftTrailingStopProcessor.class)
-          .build(SoftTrailingStop.Processor.Factory.class));
+          .build(SoftTrailingStop.Processor.ProcessorFactory.class));
     }
   }
 }

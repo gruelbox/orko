@@ -24,6 +24,9 @@ import com.mongodb.MongoClient;
 @Singleton
 class MongoJobAccess implements JobAccess {
 
+  private static final String ID_FIELD = "_id";
+  private static final String PROCESSED_FIELD = "processed";
+
   private final Supplier<JacksonDBCollection<Envelope, String>> collection = Suppliers.memoize(this::collection);
 
   private final MongoClient mongoClient;
@@ -54,7 +57,7 @@ class MongoJobAccess implements JobAccess {
    */
   @Override
   public void update(Job job) {
-    collection.get().update(DBQuery.is("_id", job.id()), Envelope.live(job));
+    collection.get().update(DBQuery.is(ID_FIELD, job.id()), Envelope.live(job));
   }
 
   /**
@@ -75,7 +78,7 @@ class MongoJobAccess implements JobAccess {
    */
   @Override
   public Iterable<Job> list() {
-    return FluentIterable.from(collection.get().find(DBQuery.is("processed", false))).transform(Envelope::job);
+    return FluentIterable.from(collection.get().find(DBQuery.is(PROCESSED_FIELD, false))).transform(Envelope::job);
   }
 
   /**
@@ -83,7 +86,7 @@ class MongoJobAccess implements JobAccess {
    */
   @Override
   public void delete(String jobId) {
-    collection.get().update(DBQuery.is("_id", jobId), Envelope.dead(jobId));
+    collection.get().update(DBQuery.is(ID_FIELD, jobId), Envelope.dead(jobId));
     jobLocker.releaseAnyLock(jobId);
   }
 
@@ -93,22 +96,22 @@ class MongoJobAccess implements JobAccess {
   @Override
   public void deleteAll() {
     collection.get().update(
-      new BasicDBObject().append("processed", false),
-      new BasicDBObject().append("job", null).append("processed", true)
+      new BasicDBObject().append(PROCESSED_FIELD, false),
+      new BasicDBObject().append("job", null).append(PROCESSED_FIELD, true)
     );
     jobLocker.releaseAllLocks();
   }
 
   private JacksonDBCollection<Envelope, String> collection() {
-    DBCollection collection = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("job");
-    createProcessedIndex(collection);
-    return JacksonDBCollection.wrap(collection, Envelope.class, String.class);
+    DBCollection result = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("job");
+    createProcessedIndex(result);
+    return JacksonDBCollection.wrap(result, Envelope.class, String.class);
   }
 
   private void createProcessedIndex(DBCollection collection) {
     BasicDBObject index = new BasicDBObject();
-    index.put("processed", -1);
-    index.put("_id", 1);
+    index.put(PROCESSED_FIELD, -1);
+    index.put(ID_FIELD, 1);
     BasicDBObject indexOpts = new BasicDBObject();
     indexOpts.put("unique", false);
     collection.createIndex(index, indexOpts);

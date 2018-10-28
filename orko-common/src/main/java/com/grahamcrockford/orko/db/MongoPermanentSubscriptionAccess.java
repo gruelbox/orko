@@ -80,7 +80,7 @@ class MongoPermanentSubscriptionAccess implements PermanentSubscriptionAccess {
   }
 
   private JacksonDBCollection<DbSubscription2, String> collection() {
-    DBCollection collection = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("subscription2");
-    return JacksonDBCollection.wrap(collection, DbSubscription2.class, String.class);
+    DBCollection result = mongoClient.getDB(configuration.getMongoDatabase()).getCollection("subscription2");
+    return JacksonDBCollection.wrap(result, DbSubscription2.class, String.class);
   }
 }

@@ -45,37 +45,6 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     return subscription;
   }
 
-  private boolean subscribe(MarketDataSubscription subscription) {
-    LOGGER.debug("... subscribing {}", subscription);
-    boolean newGlobally = allSubscriptions.computeIfAbsent(subscription, s -> new AtomicInteger(0)).incrementAndGet() == 1;
-    if (newGlobally)
-      LOGGER.debug("   ... new global subscription");
-    return newGlobally;
-  }
-
-  private boolean unsubscribe(MarketDataSubscription subscription) {
-    LOGGER.debug("... unsubscribing {}", subscription);
-    AtomicInteger refCount = allSubscriptions.get(subscription);
-    if (refCount == null) {
-      LOGGER.warn("   ... Refcount is unset for live subscription: {}", subscription);
-      return true;
-    }
-    int newRefCount = refCount.decrementAndGet();
-    LOGGER.debug("   ... refcount set to {}", newRefCount);
-    if (newRefCount == 0) {
-      LOGGER.debug("   ... removing global subscription");
-      allSubscriptions.remove(subscription);
-      return true;
-    } else {
-      LOGGER.debug("   ... other subscribers still holding it open");
-      return false;
-    }
-  }
-
-  private void updateSubscriptions() {
-    marketDataSubscriptionManager.updateSubscriptions(allSubscriptions.keySet());
-  }
-
   private final class SubscriptionImpl implements ExchangeEventRegistry.ExchangeEventSubscription {
 
     private final Set<MarketDataSubscription> subscriptions;
@@ -90,17 +59,16 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
     @Override
     public Flowable<TickerEvent> getTickers() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(TICKER);
+      Set<TickerSpec> filtered = subscriptionsFor(TICKER);
       return marketDataSubscriptionManager.getTickers()
-          .filter(e -> subscriptions.contains(e.spec()))
+          .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
 
     @Override
     public Iterable<Flowable<TickerEvent>> getTickersSplit() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(TICKER);
       return FluentIterable
-          .from(subscriptions)
+          .from(subscriptionsFor(TICKER))
           .transform(spec -> marketDataSubscriptionManager.getTickers()
               .filter(e -> e.spec().equals(spec))
               .onBackpressureLatest());
@@ -108,41 +76,40 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
     @Override
     public Flowable<OpenOrdersEvent> getOpenOrders() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(OPEN_ORDERS);
+      Set<TickerSpec> filtered = subscriptionsFor(OPEN_ORDERS);
       return marketDataSubscriptionManager.getOpenOrders()
-          .filter(e -> subscriptions.contains(e.spec()))
+          .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
 
     @Override
     public Flowable<OrderBookEvent> getOrderBooks() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(ORDERBOOK);
+      Set<TickerSpec> filtered = subscriptionsFor(ORDERBOOK);
       return marketDataSubscriptionManager.getOrderBooks()
-          .filter(e -> subscriptions.contains(e.spec()))
+          .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
 
     @Override
     public Flowable<TradeEvent> getTrades() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(TRADES);
+      Set<TickerSpec> filtered = subscriptionsFor(TRADES);
       return marketDataSubscriptionManager.getTrades()
-          .filter(e -> subscriptions.contains(e.spec()))
+          .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
 
     @Override
     public Flowable<TradeHistoryEvent> getUserTradeHistory() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(USER_TRADE_HISTORY);
+      Set<TickerSpec> filtered = subscriptionsFor(USER_TRADE_HISTORY);
       return marketDataSubscriptionManager.getUserTradeHistory()
-          .filter(e -> subscriptions.contains(e.spec()))
+          .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
 
     @Override
     public Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit() {
-      Set<TickerSpec> subscriptions = subscriptionsFor(USER_TRADE_HISTORY);
       return FluentIterable
-          .from(subscriptions)
+          .from(subscriptionsFor(USER_TRADE_HISTORY))
           .transform(spec -> marketDataSubscriptionManager.getUserTradeHistory()
               .filter(e -> e.spec().equals(spec))
               .onBackpressureLatest());
@@ -164,6 +131,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
         updateSubscriptions();
     }
 
+    private void updateSubscriptions() {
+      marketDataSubscriptionManager.updateSubscriptions(allSubscriptions.keySet());
+    }
+
     private boolean unsubscribeAll() {
       boolean updated = false;
       for (MarketDataSubscription sub : subscriptions) {
@@ -180,6 +151,33 @@ class ExchangeEventBus implements ExchangeEventRegistry {
           updated = true;
       }
       return updated;
+    }
+
+    private boolean subscribe(MarketDataSubscription subscription) {
+      LOGGER.debug("... subscribing {}", subscription);
+      boolean newGlobally = allSubscriptions.computeIfAbsent(subscription, s -> new AtomicInteger(0)).incrementAndGet() == 1;
+      if (newGlobally)
+        LOGGER.debug("   ... new global subscription");
+      return newGlobally;
+    }
+
+    private boolean unsubscribe(MarketDataSubscription subscription) {
+      LOGGER.debug("... unsubscribing {}", subscription);
+      AtomicInteger refCount = allSubscriptions.get(subscription);
+      if (refCount == null) {
+        LOGGER.warn("   ... Refcount is unset for live subscription: {}", subscription);
+        return true;
+      }
+      int newRefCount = refCount.decrementAndGet();
+      LOGGER.debug("   ... refcount set to {}", newRefCount);
+      if (newRefCount == 0) {
+        LOGGER.debug("   ... removing global subscription");
+        allSubscriptions.remove(subscription);
+        return true;
+      } else {
+        LOGGER.debug("   ... other subscribers still holding it open");
+        return false;
+      }
     }
 
     private Set<TickerSpec> subscriptionsFor(MarketDataType marketDataType) {

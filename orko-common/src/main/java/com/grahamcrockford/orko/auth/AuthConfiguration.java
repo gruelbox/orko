@@ -2,23 +2,25 @@ package com.grahamcrockford.orko.auth;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class AuthConfiguration {
 
   /**
    * Okta configuration.
    */
-  public OktaConfiguration okta;
+  private OktaConfiguration okta;
 
   /**
    * If set, is the 2FA secret key for IP whitelisting. If disabled, so is IP
    * whitelisting.
    */
-  public String secretKey;
+  private String secretKey;
 
   /**
    * How long whitelisting should live for.
    */
-  public Integer whitelistExpirySeconds = 28800;
+  private int whitelistExpirySeconds = 28800;
 
   /**
    * Set to {@code true} on Heroku so it uses the `X-Forwarded-For` header to
@@ -27,9 +29,68 @@ public class AuthConfiguration {
    * someone could easily spoof their IP and bypass your 2FA.
    */
   @NotNull
-  public boolean proxied;
+  private boolean proxied;
 
-  public boolean httpsOnly;
+  private boolean httpsOnly;
 
-  public String authCachePolicy = "maximumSize=10000, expireAfterAccess=10m";
+  private String authCachePolicy = "maximumSize=10000, expireAfterAccess=10m";
+
+  public OktaConfiguration getOkta() {
+    return okta;
+  }
+
+  @JsonProperty
+  public void setOkta(OktaConfiguration okta) {
+    this.okta = okta;
+  }
+
+  @JsonProperty
+  public String getSecretKey() {
+    return secretKey;
+  }
+
+  @JsonProperty
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
+  }
+
+  @JsonProperty
+  public Integer getWhitelistExpirySeconds() {
+    return whitelistExpirySeconds;
+  }
+
+  @JsonProperty
+  public void setWhitelistExpirySeconds(Integer whitelistExpirySeconds) {
+    this.whitelistExpirySeconds = whitelistExpirySeconds;
+  }
+
+  @JsonProperty
+  public boolean isProxied() {
+    return proxied;
+  }
+
+  @JsonProperty
+  public void setProxied(boolean proxied) {
+    this.proxied = proxied;
+  }
+
+  @JsonProperty
+  public boolean isHttpsOnly() {
+    return httpsOnly;
+  }
+
+  @JsonProperty
+  public void setHttpsOnly(boolean httpsOnly) {
+    this.httpsOnly = httpsOnly;
+  }
+
+  @JsonProperty
+  public String getAuthCachePolicy() {
+    return authCachePolicy;
+  }
+
+  @JsonProperty
+  public void setAuthCachePolicy(String authCachePolicy) {
+    this.authCachePolicy = authCachePolicy;
+  }
 }

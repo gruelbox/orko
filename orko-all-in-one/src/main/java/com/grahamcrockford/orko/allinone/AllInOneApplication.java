@@ -68,7 +68,7 @@ public class AllInOneApplication extends Application<OrkoConfiguration> {
     urlRewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
 
     // Enforce HTTPS
-    if (configuration.getAuth().httpsOnly) {
+    if (configuration.getAuth().isHttpsOnly()) {
       FilterRegistration.Dynamic httpsEnforcer = environment.servlets()
           .addFilter("HttpsEnforcer", new HttpsEnforcer());
       httpsEnforcer.addMappingForUrlPatterns(null, true, "/*");

@@ -32,7 +32,7 @@ class AlertProcessor implements Alert.Processor {
     protected void configure() {
       install(new FactoryModuleBuilder()
           .implement(Alert.Processor.class, AlertProcessor.class)
-          .build(Alert.Processor.Factory.class));
+          .build(Alert.Processor.ProcessorFactory.class));
     }
   }
 }

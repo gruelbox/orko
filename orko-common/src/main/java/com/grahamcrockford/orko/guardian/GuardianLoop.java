@@ -37,21 +37,22 @@ class GuardianLoop extends AbstractExecutionThreadService {
   public void run() {
     Thread.currentThread().setName("Guardian loop");
     LOGGER.info(this + " started");
-    while (isRunning()) {
+    while (isRunning() && !Thread.currentThread().isInterrupted()) {
       try {
 
         lockAndStartInactiveJobs();
 
         try {
-          Thread.sleep(orkoConfiguration.getLoopSeconds() * 1000);
+          Thread.sleep((long) orkoConfiguration.getLoopSeconds() * 1000);
         } catch (InterruptedException e) {
           LOGGER.info("Shutting down " + this);
+          Thread.currentThread().interrupt();
           break;
         }
 
         eventBus.post(KeepAliveEvent.INSTANCE);
 
-      } catch (Throwable e) {
+      } catch (Exception e) {
         LOGGER.error("Error in keep-alive loop", e);
       }
     }
@@ -66,7 +67,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
       foundJobs = true;
       try {
         locksFailed = !jobSubmitter.runExisting(job);
-      } catch (Throwable e) {
+      } catch (Exception e) {
         LOGGER.error("Failed to start job [" + job + "]", e);
       }
     }

@@ -61,7 +61,7 @@ import io.reactivex.disposables.Disposable;
 @Metered
 @Timed
 @ExceptionMetered
-@ServerEndpoint("/ws")
+@ServerEndpoint(WebSocketModule.ENTRY_POINT)
 @RolesAllowed(Roles.TRADER)
 public final class OrkoWebSocketServer {
 
@@ -130,7 +130,6 @@ public final class OrkoWebSocketServer {
     } catch (Exception e) {
       LOGGER.error("Error processing message: " + message, e);
       session.getAsyncRemote().sendText(message(Nature.ERROR, "Error processing message"));
-      return;
     }
   }
 
@@ -299,7 +298,7 @@ public final class OrkoWebSocketServer {
     try {
       if (session.isOpen())
         session.getBasicRemote().sendText(message(nature, object));
-    } catch (Throwable e) {
+    } catch (Exception e) {
       LOGGER.info("Failed to send " + nature + " to socket (" + e.getMessage() + ")");
     }
   }
@@ -328,7 +327,7 @@ public final class OrkoWebSocketServer {
     void onUserTrade(UserTradeEvent e) {
       try {
         emitter.onNext(e);
-      } catch (Throwable t) {
+      } catch (Exception t) {
         emitter.onError(t);
       }
     }

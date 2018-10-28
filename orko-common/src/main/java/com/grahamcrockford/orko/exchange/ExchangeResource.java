@@ -235,12 +235,17 @@ public class ExchangeResource implements WebResource {
           .flatMap(p -> {
             try {
               Thread.sleep(200);
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+              throw new RuntimeException(e);
+            }
+            try {
               return exchange
                 .getTradeService()
                 .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(p))
                 .getOpenOrders()
                 .stream();
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
               throw new RuntimeException(e);
             }
           })
@@ -310,13 +315,12 @@ public class ExchangeResource implements WebResource {
                               @QueryParam("orderType") org.knowm.xchange.dto.Order.OrderType orderType) throws IOException {
     try {
       // KucoinCancelOrderParams is the superset - pair, id and order type. Should work with pretty much any exchange.
-      Response response = Response.ok()
-          .entity(
-            tradeServiceFactory.getForExchange(exchange)
-              .cancelOrder(new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType))
-          )
-          .build();
-      return response;
+      return Response.ok()
+        .entity(
+          tradeServiceFactory.getForExchange(exchange)
+            .cancelOrder(new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType))
+        )
+        .build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
@@ -361,10 +365,9 @@ public class ExchangeResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public Response cancelOrder(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
     try {
-      Response response = Response.ok()
-          .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(id))
-          .build();
-      return response;
+      return Response.ok()
+        .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(id))
+        .build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }

@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.Provides;
@@ -66,8 +65,8 @@ public class DbModule extends AbstractModule {
 
   @Provides
   @Singleton
-  MongoDbClientLifecycleTask mongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
-    return new MongoDbClientLifecycleTask(configuration, dbType, objectMapper);
+  MongoDbClientLifecycleTask mongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType) {
+    return new MongoDbClientLifecycleTask(configuration, dbType);
   }
 
   @Provides

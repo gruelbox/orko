@@ -2,7 +2,6 @@ package com.grahamcrockford.orko.db;
 
 import javax.annotation.Nullable;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.db.DbConfiguration.DbType;
 import com.mongodb.MongoClient;
@@ -15,7 +14,7 @@ final class MongoDbClientLifecycleTask implements Managed {
 
   private final MongoClient mongoClient;
 
-  MongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType, ObjectMapper objectMapper) {
+  MongoDbClientLifecycleTask(@Nullable DbConfiguration configuration, DbType dbType) {
     this.mongoClient = dbType == DbType.MONGO ? new MongoClient(new MongoClientURI(configuration.getMongoClientURI())) : null;
   }
 

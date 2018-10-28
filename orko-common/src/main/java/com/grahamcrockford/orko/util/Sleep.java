@@ -13,7 +13,7 @@ public class Sleep {
   }
 
   public void sleep() throws InterruptedException {
-    Thread.sleep(configuration.getLoopSeconds() * 1000);
+    Thread.sleep((long) configuration.getLoopSeconds() * 1000);
   }
 
 }

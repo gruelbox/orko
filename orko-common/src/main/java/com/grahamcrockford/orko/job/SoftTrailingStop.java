@@ -33,7 +33,7 @@ public abstract class SoftTrailingStop implements Job {
 
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
-  public static abstract class Builder implements JobBuilder<SoftTrailingStop> {
+  public abstract static class Builder implements JobBuilder<SoftTrailingStop> {
 
     @JsonCreator private static Builder create() { return SoftTrailingStop.builder(); }
 
@@ -109,12 +109,12 @@ public abstract class SoftTrailingStop implements Job {
 
   @JsonIgnore
   @Override
-  public final Class<Processor.Factory> processorFactory() {
-    return Processor.Factory.class;
+  public final Class<Processor.ProcessorFactory> processorFactory() {
+    return Processor.ProcessorFactory.class;
   }
 
   public interface Processor extends JobProcessor<SoftTrailingStop> {
-    public interface Factory extends JobProcessor.Factory<SoftTrailingStop> {
+    public interface ProcessorFactory extends JobProcessor.Factory<SoftTrailingStop> {
       @Override
       Processor create(SoftTrailingStop job, JobControl jobControl);
     }

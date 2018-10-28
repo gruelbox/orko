@@ -68,7 +68,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     String xChangeOrderId;
     try {
       xChangeOrderId = tradeService.placeLimitOrder(order);
-    } catch (Throwable e) {
+    } catch (Exception e) {
       reportFailed(job, e);
       return;
     }
@@ -109,7 +109,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     protected void configure() {
       install(new FactoryModuleBuilder()
           .implement(LimitOrderJob.Processor.class, LimitOrderJobProcessor.class)
-          .build(LimitOrderJob.Processor.Factory.class));
+          .build(LimitOrderJob.Processor.ProcessorFactory.class));
     }
   }
 }

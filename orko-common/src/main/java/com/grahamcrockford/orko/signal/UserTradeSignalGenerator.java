@@ -19,6 +19,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.exchange.Exchanges;
 import com.grahamcrockford.orko.marketdata.TradeEvent;
 import com.grahamcrockford.orko.marketdata.TradeHistoryEvent;
 import com.grahamcrockford.orko.spi.TickerSpec;
@@ -29,7 +30,7 @@ import io.dropwizard.lifecycle.Managed;
 class UserTradeSignalGenerator implements Managed {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTradeSignalGenerator.class);
-  private static final Set<String> NATIVELY_SUPPORTED_EXCHANGES = ImmutableSet.of("gdax", "gdax-sandbox", "binance");
+  private static final Set<String> NATIVELY_SUPPORTED_EXCHANGES = ImmutableSet.of(Exchanges.GDAX, Exchanges.GDAX_SANDBOX, Exchanges.BINANCE);
 
   private final EventBus eventBus;
   private final ConcurrentMap<TickerSpec, Instant> latestTimestamps = new ConcurrentHashMap<>();

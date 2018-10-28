@@ -29,6 +29,7 @@ import com.google.common.eventbus.EventBus;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.exchange.AccountServiceFactory;
 import com.grahamcrockford.orko.exchange.ExchangeServiceImpl;
+import com.grahamcrockford.orko.exchange.Exchanges;
 import com.grahamcrockford.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.util.SafelyDispose;
@@ -43,10 +44,10 @@ import jersey.repackaged.com.google.common.collect.Maps;
  * Stack tests for {@link MarketDataSubscriptionManager}. Actually connects to exchanges.
  */
 public class TestMarketDataIntegration {
-  private static final TickerSpec binance = TickerSpec.builder().base("BTC").counter("USDT").exchange("binance").build();
-  private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange("bitfinex").build();
-  private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange("gdax").build();
-  private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange("bittrex").build();
+  private static final TickerSpec binance = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BINANCE).build();
+  private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.BITFINEX).build();
+  private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.GDAX).build();
+  private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BITTREX).build();
   private static final Set<MarketDataSubscription> subscriptions = FluentIterable.concat(
       FluentIterable.of(binance, bitfinex, gdax, bittrex)
         .transformAndConcat(spec -> ImmutableSet.of(
@@ -54,7 +55,7 @@ public class TestMarketDataIntegration {
           MarketDataSubscription.create(spec, ORDERBOOK)
         )),
       ImmutableSet.of(
-        MarketDataSubscription.create(TickerSpec.builder().base("ETH").counter("USDT").exchange("binance").build(), TRADES)
+        MarketDataSubscription.create(TickerSpec.builder().base("ETH").counter("USDT").exchange(Exchanges.BINANCE).build(), TRADES)
       )
     )
     .toSet();
