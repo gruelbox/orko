@@ -17,10 +17,7 @@ export default function reduce(state = initialState, action = {}) {
         state,
         {
           meta: {
-            [action.payload.coin.key]: {
-              ...action.payload.meta,
-              amountScale: action.payload.meta.priceScale === 8 ? 0 : 8
-            }
+            [action.payload.coin.key]: action.payload.meta
           }
         },
         { deep: true }

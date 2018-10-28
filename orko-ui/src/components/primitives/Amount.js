@@ -125,7 +125,7 @@ class Amount extends React.PureComponent {
             ? "--"
             : formatNumber(
                 this.props.children,
-                this.props.meta ? this.props.meta.amountScale : 8,
+                this.props.scale,
                 <Loading fitted />
               )}
         </BareAmountValue>
@@ -151,7 +151,7 @@ class Amount extends React.PureComponent {
               ? "--"
               : formatNumber(
                   this.props.children,
-                  this.props.meta ? this.props.meta.amountScale : 8,
+                  this.props.scale,
                   <Loading fitted />
                 )}
           </AmountValue>
@@ -164,16 +164,18 @@ class Amount extends React.PureComponent {
 const nullOnCLick = number => {}
 
 function mapStateToProps(state, props) {
-  const meta = props.coin ? state.coins.meta[props.coin.key] : undefined
+  const meta =
+    props.deriveScale && props.coin
+      ? state.coins.meta[props.coin.key]
+      : undefined
   return {
     title: props.onClick ? undefined : "Copy amount to target field",
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn
-        ? value =>
-            state.focus.fn(formatNumber(value, meta ? meta.amountScale : 8, ""))
+        ? value => state.focus.fn(formatNumber(value, -1, ""))
         : nullOnCLick,
-    meta
+    scale: meta ? props.deriveScale(meta) : -1
   }
 }
 

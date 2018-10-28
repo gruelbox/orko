@@ -10,10 +10,15 @@ const Container = styled.div`
   height: 100%;
 `
 
+const LOG_10 = Math.log(10)
+const log10 = x => Math.log(1 / x) / LOG_10
+const scaleOfValue = x => Math.floor(log10(x))
+
 export const Balance = props => {
   const coin = props.coin
 
   const noBalances = !props.balance || !props.coin
+  const noTicker = !props.ticker
 
   const noBaseBalance =
     noBalances || (!props.balance[coin.base] && props.balance[coin.base] !== 0)
@@ -61,8 +66,9 @@ export const Balance = props => {
           name="Can buy"
           onClick={props.onClickNumber}
           coin={coin}
+          deriveScale={meta => scaleOfValue(meta.minimumAmount)}
         >
-          {noCounterBalance || !props.ticker
+          {noCounterBalance || noTicker
             ? undefined
             : props.balance[coin.counter].available / props.ticker.ask}
         </Amount>
