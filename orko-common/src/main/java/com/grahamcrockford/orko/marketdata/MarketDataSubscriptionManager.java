@@ -201,7 +201,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The stream.
    */
   public Flowable<TradeEvent> getTrades() {
-    return trades.getAll();
+    return trades.getAll().filter(t -> !UserTrade.class.isInstance(t));
   }
 
 
