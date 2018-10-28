@@ -13,7 +13,7 @@ import Ticker from "../components/Ticker"
 
 import { formatNumber } from "../util/numberUtils"
 import * as authActions from "../store/auth/actions"
-import { getSelectedCoinTicker } from "../selectors/coins"
+import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
 
 const ToolbarBox = styled.div`
   display: flex;
@@ -210,6 +210,7 @@ export default connect((state, props) => ({
   connected: state.socket.connected,
   updateFocusedField: state.focus.fn,
   ticker: getSelectedCoinTicker(state),
+  coin: getSelectedCoin(state),
   coinMetadata:
     props.coin && state.coins.meta
       ? state.coins.meta[props.coin.key]

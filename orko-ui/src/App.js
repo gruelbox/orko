@@ -10,9 +10,9 @@ import { compose, createStore, applyMiddleware, combineReducers } from "redux"
 import createHistory from "history/createBrowserHistory"
 import {
   ConnectedRouter,
-  routerReducer,
+  connectRouter,
   routerMiddleware
-} from "react-router-redux"
+} from "connected-react-router"
 
 import { enableBatching } from "redux-batched-actions"
 
@@ -25,18 +25,11 @@ import AuthContainer from "./containers/AuthContainer"
 import Framework from "./Framework"
 
 const history = createHistory()
-const reduxRouterMiddleware = routerMiddleware(history)
 
 const store = createStore(
-  enableBatching(
-    combineReducers({
-      ...reducers,
-      router: routerReducer
-    })
-  ),
+  enableBatching(connectRouter(history)(combineReducers(reducers))),
   compose(
-    applyMiddleware(reduxRouterMiddleware),
-    applyMiddleware(thunk.withExtraArgument(socket))
+    applyMiddleware(routerMiddleware(history), thunk.withExtraArgument(socket))
   )
 )
 

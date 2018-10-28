@@ -46,10 +46,8 @@ export function initialise(s, history) {
 
   history.listen(location => {
     console.log("Resubscribing following coin change")
-    socketClient.changeSubscriptions(
-      subscribedCoins(),
-      locationToCoin(location)
-    )
+    const coin = locationToCoin(location)
+    socketClient.changeSubscriptions(subscribedCoins(), coin)
     socketClient.resubscribe()
     store.dispatch(coinActions.setUserTrades(null))
     bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))

@@ -7,6 +7,7 @@ import LimitOrder from "../components/LimitOrder"
 import * as focusActions from "../store/focus/actions"
 import * as exchangesActions from "../store/exchanges/actions"
 import { isValidNumber } from "../util/numberUtils"
+import { getSelectedCoin } from "../selectors/coins"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -78,7 +79,8 @@ class LimitOrderContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    auth: state.auth
+    auth: state.auth,
+    coin: getSelectedCoin(state)
   }
 }
 

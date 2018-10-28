@@ -1,5 +1,4 @@
 import React from "react"
-
 import Section from "../components/primitives/Section"
 import Tab from "../components/primitives/Tab"
 import OpenOrdersContainer from "./OpenOrdersContainer"
@@ -8,7 +7,6 @@ import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
 
 class OrdersContainer extends React.Component {
-
   constructor(props) {
     super(props)
     this.state = { selected: "open" }
@@ -36,12 +34,17 @@ class OrdersContainer extends React.Component {
       <GetPageVisibility>
         {visible => (
           <RenderIf condition={visible}>
-            <Section nopadding id="orders" heading="Orders" buttons={this.buttons}>
-              {
-                this.state.selected === "open"
-                  ? <OpenOrdersContainer coin={this.props.coin}/>
-                  : <UserTradeHistoryContainer coin={this.props.coin}/>
-              }
+            <Section
+              nopadding
+              id="orders"
+              heading="Orders"
+              buttons={this.buttons}
+            >
+              {this.state.selected === "open" ? (
+                <OpenOrdersContainer />
+              ) : (
+                <UserTradeHistoryContainer />
+              )}
             </Section>
           </RenderIf>
         )}

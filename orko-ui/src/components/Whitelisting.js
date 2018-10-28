@@ -1,7 +1,6 @@
 import React, { Component } from "react"
 import { Modal, Icon, Form, Input, Button, Message } from "semantic-ui-react"
 import FixedModal from "./primitives/FixedModal"
-import PropTypes from "prop-types"
 
 export default class Whitelisting extends Component {
   constructor(props) {
@@ -19,7 +18,8 @@ export default class Whitelisting extends Component {
     return (
       <FixedModal>
         <Modal.Header>
-          <Icon name="lock" />Challenge
+          <Icon name="lock" />
+          Challenge
         </Modal.Header>
         <Modal.Content>
           <Form error={this.props.error !== null}>
@@ -44,13 +44,4 @@ export default class Whitelisting extends Component {
       </FixedModal>
     )
   }
-}
-
-Whitelisting.propTypes = {
-  onApply: PropTypes.func,
-  error: PropTypes.string
-}
-
-Whitelisting.defaultProps = {
-  onApply: () => {}
 }

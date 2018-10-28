@@ -22,10 +22,8 @@ import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
-import Chart from "./components/Chart"
+import ChartContainer from "./containers/ChartContainer"
 import ViewSettings from "./components/ViewSettings"
-
-import WithCoinParameter from "./WithCoinParameter"
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
@@ -160,20 +158,15 @@ export default class Framework extends React.Component {
   render() {
     const { isMobile } = this.state
 
-    const Tools = ({ coin }) => (
+    const Tools = () => (
       <ToolbarContainer
-        coin={coin}
         mobile={isMobile}
         onShowViewSettings={this.onToggleViewSettings}
         panels={this.state.panels}
       />
     )
-    const Market = ({ coin }) => (
-      <MarketContainer coin={coin} allowAnimate={!isMobile} />
-    )
-    const ManageAlerts = ({ coin }) => (
-      <ManageAlertsContainer coin={coin} mobile={isMobile} />
-    )
+    const Market = () => <MarketContainer allowAnimate={!isMobile} />
+    const ManageAlerts = () => <ManageAlertsContainer mobile={isMobile} />
 
     const Settings = () =>
       this.state.showSettings ? (
@@ -188,7 +181,7 @@ export default class Framework extends React.Component {
       )
 
     const header = [
-      <WithCoinParameter key="toolbar" component={Tools} />,
+      <Tools key="tools" />,
       <Route
         key="addCoin"
         exact
@@ -198,7 +191,7 @@ export default class Framework extends React.Component {
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
       <PositioningWrapper key="dialogs" mobile={isMobile}>
         <Settings />
-        <WithCoinParameter key="managealerts" component={ManageAlerts} />
+        <ManageAlerts />
         <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
       </PositioningWrapper>
     ]
@@ -206,22 +199,22 @@ export default class Framework extends React.Component {
     const panelsRenderers = {
       chart: () => (
         <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-          <WithCoinParameter component={Chart} />
+          <ChartContainer />
         </LayoutBox>
       ),
       openOrders: () => (
         <LayoutBox key="openOrders" bg="backgrounds.1">
-          <WithCoinParameter component={OrdersContainer} />
+          <OrdersContainer />
         </LayoutBox>
       ),
       balance: () => (
         <LayoutBox key="balance" bg="backgrounds.1">
-          <WithCoinParameter component={BalanceContainer} />
+          <BalanceContainer />
         </LayoutBox>
       ),
       tradeSelector: () => (
         <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-          <WithCoinParameter component={TradingContainer} />
+          <TradingContainer />
         </LayoutBox>
       ),
       coins: () => (
@@ -236,7 +229,7 @@ export default class Framework extends React.Component {
       ),
       marketData: () => (
         <LayoutBox key="marketData" bg="backgrounds.1">
-          <WithCoinParameter component={Market} />
+          <Market />
         </LayoutBox>
       ),
       notifications: () => (
@@ -258,13 +251,13 @@ export default class Framework extends React.Component {
                 menuItem: "Chart",
                 render: () => (
                   <LayoutBox key="chart" bg="backgrounds.1" expand height={500}>
-                    <WithCoinParameter component={Chart} />
+                    <ChartContainer />
                   </LayoutBox>
                 )
               },
               {
                 menuItem: "Book",
-                render: () => <WithCoinParameter component={Market} />
+                render: () => <Market />
               },
               {
                 menuItem: "Trading",

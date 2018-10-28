@@ -4,7 +4,7 @@ import Loading from "../components/primitives/Loading"
 import OpenOrders from "../components/OpenOrders"
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
-import { getOrdersForSelectedCoin } from "../selectors/coins"
+import { getOrdersForSelectedCoin, getSelectedCoin } from "../selectors/coins"
 
 class OpenOrdersContainer extends React.Component {
   onCancelExchange = (id, orderType) => {
@@ -32,7 +32,8 @@ class OpenOrdersContainer extends React.Component {
 
 function mapStateToProps(state, props) {
   return {
-    orders: getOrdersForSelectedCoin(state)
+    orders: getOrdersForSelectedCoin(state),
+    coin: getSelectedCoin(state)
   }
 }
 

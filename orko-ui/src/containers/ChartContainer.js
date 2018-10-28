@@ -1,14 +1,14 @@
 import React from "react"
-import TradeSelector from "../components/TradeSelector"
+import Chart from "../components/Chart"
 import { getSelectedCoin } from "../selectors/coins"
 import { connect } from "react-redux"
 
-class TradingContainer extends React.Component {
+class ChartContainer extends React.Component {
   render() {
-    return <TradeSelector coin={this.props.coin} />
+    return <Chart coin={this.props.coin} />
   }
 }
 
 export default connect((state, props) => ({
   coin: getSelectedCoin(state)
-}))(TradingContainer)
+}))(ChartContainer)

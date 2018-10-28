@@ -7,6 +7,7 @@ import StopTakeProfit from "../components/StopTakeProfit"
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
+import { getSelectedCoin } from "../selectors/coins"
 
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {
@@ -46,14 +47,13 @@ class StopTakeProfitContainer extends React.Component {
   }
 
   createJob = () => {
-    
     const tickTrigger = {
       exchange: this.props.coin.exchange,
       counter: this.props.coin.counter,
       base: this.props.coin.base
     }
 
-    const limitOrder = (limitPrice) => ({
+    const limitOrder = limitPrice => ({
       jobType: jobTypes.LIMIT_ORDER,
       direction: this.state.job.direction,
       tickTrigger,
@@ -83,7 +83,11 @@ class StopTakeProfitContainer extends React.Component {
         ? {
             thresholdAsString: this.state.job.lowPrice,
             job: this.state.job.lowTrailing
-              ? trailingOrder(this.state.job.lowPrice, this.state.job.initialTrailingStop, this.state.job.lowLimitPrice)
+              ? trailingOrder(
+                  this.state.job.lowPrice,
+                  this.state.job.initialTrailingStop,
+                  this.state.job.lowLimitPrice
+                )
               : limitOrder(this.state.job.lowLimitPrice)
           }
         : null,
@@ -91,7 +95,11 @@ class StopTakeProfitContainer extends React.Component {
         ? {
             thresholdAsString: this.state.job.highPrice,
             job: this.state.job.highTrailing
-              ? trailingOrder(this.state.job.highPrice, this.state.job.initialTrailingStop, this.state.job.highLimitPrice)
+              ? trailingOrder(
+                  this.state.job.highPrice,
+                  this.state.job.initialTrailingStop,
+                  this.state.job.highLimitPrice
+                )
               : limitOrder(this.state.job.highLimitPrice)
           }
         : null
@@ -116,7 +124,8 @@ class StopTakeProfitContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    auth: state.auth
+    auth: state.auth,
+    coin: getSelectedCoin(state)
   }
 }
 

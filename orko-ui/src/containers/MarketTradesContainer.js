@@ -2,7 +2,7 @@ import React from "react"
 import { connect } from "react-redux"
 import TradeHistory from "../components/TradeHistory"
 import Loading from "../components/primitives/Loading"
-import { getMarketTradeHistory } from "../selectors/coins"
+import { getMarketTradeHistory, getSelectedCoin } from "../selectors/coins"
 
 class MarketTradesContainer extends React.Component {
   render() {
@@ -20,7 +20,8 @@ class MarketTradesContainer extends React.Component {
 
 function mapStateToProps(state, props) {
   return {
-    tradeHistory: getMarketTradeHistory(state)
+    tradeHistory: getMarketTradeHistory(state),
+    coin: getSelectedCoin(state)
   }
 }
 

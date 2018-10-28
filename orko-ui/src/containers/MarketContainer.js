@@ -1,12 +1,10 @@
 import React from "react"
-
 import Section from "../components/primitives/Section"
 import Tab from "../components/primitives/Tab"
-import OrderBook from "./OrderBook"
+import OrderBookContainer from "./OrderBookContainer"
 import MarketTradesContainer from "./MarketTradesContainer"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
-
 import { getValueFromLS, saveValueToLS } from "../util/localStorage"
 
 const LOCAL_STORAGE_KEY = "MarketContainer.animate"
@@ -52,7 +50,6 @@ export default class MarketContainer extends React.Component {
   )
 
   render() {
-    const { coin } = this.props
     return (
       <GetPageVisibility>
         {visible => (
@@ -65,9 +62,9 @@ export default class MarketContainer extends React.Component {
               buttons={this.buttons}
             >
               {this.state.selected === "book" ? (
-                <OrderBook coin={coin} animate={this.state.animate} />
+                <OrderBookContainer animate={this.state.animate} />
               ) : (
-                <MarketTradesContainer coin={this.props.coin} />
+                <MarketTradesContainer />
               )}
             </Section>
           </RenderIf>

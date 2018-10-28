@@ -2,27 +2,9 @@ import React from "react"
 import { connect } from "react-redux"
 import Balance from "../components/Balance"
 import Section from "../components/primitives/Section"
-import { getSelectedCoinTicker } from "../selectors/coins"
-import { areEqualShallow } from "../util/objectUtils"
+import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
 
 class BalanceContainer extends React.Component {
-  shouldComponentUpdate(nextProps) {
-    if (this.props.balance && !nextProps.balance) {
-      return true
-    }
-    if (!this.props.balance && nextProps.balance) {
-      return true
-    }
-    if (
-      this.props.balance &&
-      nextProps.balance &&
-      !areEqualShallow(this.props.balance, nextProps.balance)
-    ) {
-      return true
-    }
-    return false
-  }
-
   render() {
     return (
       <Section id="balance" heading="Balances">
@@ -36,7 +18,11 @@ class BalanceContainer extends React.Component {
   }
 }
 
-export default connect(state => ({
-  balance: state.coin.balance,
-  ticker: getSelectedCoinTicker(state)
-}))(BalanceContainer)
+export default connect(state => {
+  const coin = getSelectedCoin(state)
+  return {
+    balance: state.coin.balance,
+    ticker: getSelectedCoinTicker(state),
+    coin
+  }
+})(BalanceContainer)
