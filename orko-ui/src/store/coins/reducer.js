@@ -18,7 +18,7 @@ export default function reduce(state = initialState, action = {}) {
         action.payload.coin.key === "binance/BTC/ICX" &&
         action.payload.meta.priceScale === 5
       ) {
-        action.payload.meta.priceScale = 8
+        action.payload.meta.priceScale = 7
         console.log("Fixed erroneous price scale for ICX from server")
       }
 
