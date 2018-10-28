@@ -5,6 +5,17 @@ Orko is a web application which provides a unified UI and web service API to num
 
 It is under active development and is gradually being extended to the point where you will also be able to schedule and monitor complex scripted strategies. It aims to be a one-stop-shop for online cryptocurrency trading.
 
+## Status
+ALPHA. This means specifically:
+
+- I trust you a great deal. <3
+- No actual releases. You must check out the code and build yourself (instructions below)
+- All builds are snapshots with version 0.0.1-SNAPSHOT. Don't expect version numbers to tell you anything.
+- No compatibility is guaranteed between local database versions (you may need to delete local database files between upgrades), although compatibility *is* guaranteed with Mongo databases, so live installations online will be safe between versions
+- Features may appear/disappear or get changed or combined without warning.
+- The UI and web APIs may change drastically without warning
+- All this means there's limited automated testing. Expect occasional regressions.
+
 ## Quick start
 
 ```
