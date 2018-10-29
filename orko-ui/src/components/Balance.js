@@ -42,14 +42,13 @@ export const Balance = ({ coin, balance, ticker, onClickNumber }) => {
         </Amount>
         <Amount
           name="Sale value at bid"
-          deriveScale={counterScale}
           fontSize={1}
           onClick={onClickNumber}
           coin={coin}
         >
           {noBaseBalance || noTicker
             ? undefined
-            : balance[coin.base].total * ticker.bid}
+            : +Number(balance[coin.base].total * ticker.bid).toFixed(8)}
         </Amount>
         <Amount
           name={coin.counter + " balance"}
