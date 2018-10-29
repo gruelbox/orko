@@ -14,65 +14,69 @@ const LOG_10 = Math.log(10)
 const log10 = x => Math.log(1 / x) / LOG_10
 const scaleOfValue = x => Math.floor(log10(x))
 
-export const Balance = props => {
-  const coin = props.coin
-
-  const noBalances = !props.balance || !props.coin
-  const noTicker = !props.ticker
+export const Balance = ({ coin, balance, ticker, onClickNumber }) => {
+  const noBalances = !balance || !coin
+  const noTicker = !ticker
 
   const noBaseBalance =
-    noBalances || (!props.balance[coin.base] && props.balance[coin.base] !== 0)
+    noBalances || (!balance[coin.base] && balance[coin.base] !== 0)
   const noCounterBalance =
-    noBalances ||
-    (!props.balance[coin.counter] && props.balance[coin.counter] !== 0)
+    noBalances || (!balance[coin.counter] && balance[coin.counter] !== 0)
+
+  const counterScale = meta =>
+    meta.minimumAmount ? scaleOfValue(meta.minimumAmount) : 8
 
   if (coin) {
     return (
       <Container>
-        <Amount
-          fontSize={1}
-          name="Total"
-          onClick={props.onClickNumber}
-          coin={coin}
-        >
-          {noBaseBalance ? undefined : props.balance[coin.base].total}
+        <Amount name="Balance" fontSize={1} onClick={onClickNumber} coin={coin}>
+          {noBaseBalance ? undefined : balance[coin.base].total}
         </Amount>
         <Amount
+          name="Can sell"
           fontSize={1}
-          name="Available"
-          onClick={props.onClickNumber}
+          onClick={onClickNumber}
           coin={coin}
         >
-          {noBaseBalance ? undefined : props.balance[coin.base].available}
+          {noBaseBalance ? undefined : balance[coin.base].available}
         </Amount>
         <Amount
+          name="Sale value at bid"
+          deriveScale={counterScale}
           fontSize={1}
+          onClick={onClickNumber}
           coin={coin}
-          name={coin.counter + " total"}
-          onClick={props.onClickNumber}
         >
-          {noCounterBalance ? undefined : props.balance[coin.counter].total}
+          {noBaseBalance || noTicker
+            ? undefined
+            : balance[coin.base].total * ticker.bid}
         </Amount>
         <Amount
+          name={coin.counter + " balance"}
           fontSize={1}
+          onClick={onClickNumber}
           coin={coin}
+        >
+          {noCounterBalance ? undefined : balance[coin.counter].total}
+        </Amount>
+        <Amount
           name={coin.counter + " available"}
-          onClick={props.onClickNumber}
+          fontSize={1}
+          onClick={onClickNumber}
+          coin={coin}
         >
-          {noCounterBalance ? undefined : props.balance[coin.counter].available}
+          {noCounterBalance ? undefined : balance[coin.counter].available}
         </Amount>
         <Amount
-          fontSize={1}
           name="Can buy"
-          onClick={props.onClickNumber}
+          deriveScale={counterScale}
+          fontSize={1}
+          onClick={onClickNumber}
           coin={coin}
-          deriveScale={meta =>
-            meta.minimumAmount ? scaleOfValue(meta.minimumAmount) : 8
-          }
         >
           {noCounterBalance || noTicker
             ? undefined
-            : props.balance[coin.counter].available / props.ticker.ask}
+            : balance[coin.counter].available / ticker.ask}
         </Amount>
       </Container>
     )
