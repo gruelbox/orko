@@ -18,3 +18,5 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "pom.xml" }}
+      - store_artifacts:
+          path: /home/circleci/repo/orko-common/target/surefire-reports
