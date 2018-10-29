@@ -88,6 +88,7 @@ class Amount extends React.PureComponent {
         movement = "down"
       }
       if (movement) {
+        clearTimeout(this.timeout)
         this.setState(
           { movement: movement },
           () =>
