@@ -13,6 +13,10 @@ export function localError(message) {
   return local(message, "ERROR")
 }
 
+export function localAlert(message) {
+  return local(message, "ALERT")
+}
+
 export function localMessage(message) {
   return local(message, "INFO")
 }

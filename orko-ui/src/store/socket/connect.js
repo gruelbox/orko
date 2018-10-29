@@ -8,8 +8,8 @@ import { batchActions } from "redux-batched-actions"
 import * as jobActions from "../job/actions"
 
 var store
-
 var actionBuffer = {}
+var initialising = true
 
 function authToken() {
   return store.getState().auth.token
@@ -61,14 +61,20 @@ export function initialise(s, history) {
 
   // Sync the store state of the socket with the socket itself
   socketClient.onConnectionStateChange(connected => {
-    store.dispatch(socketActions.setConnectionState(connected))
-    if (connected) {
-      if (!store.socket || store.socket.connected !== connected)
-        store.dispatch(notificationActions.localMessage("Socket connected"))
-      resubscribe()
-    } else {
-      if (!store.socket || store.socket.connected !== connected)
+    const prevState = store.getState().socket.connected
+    if (prevState !== connected) {
+      store.dispatch(socketActions.setConnectionState(connected))
+      if (connected) {
+        if (initialising) {
+          store.dispatch(notificationActions.localMessage("Socket connected"))
+          initialising = false
+        } else {
+          store.dispatch(notificationActions.localAlert("Socket reconnected"))
+        }
+        resubscribe()
+      } else {
         store.dispatch(notificationActions.localError("Socket disconnected"))
+      }
     }
   })
 
