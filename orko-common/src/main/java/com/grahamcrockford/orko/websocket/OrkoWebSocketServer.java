@@ -19,6 +19,7 @@ import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.CloseReason.CloseCodes;
 import javax.websocket.server.ServerEndpoint;
 
 import org.slf4j.Logger;
@@ -52,7 +53,6 @@ import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.util.SafelyClose;
 import com.grahamcrockford.orko.util.SafelyDispose;
 import com.grahamcrockford.orko.websocket.OrkoWebSocketOutgoingMessage.Nature;
-
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -194,42 +194,49 @@ public final class OrkoWebSocketServer {
 
       // Apply a 1-second throttle on a PER TICKER basis
       private final Disposable tickers = Flowable.fromIterable(subscription.getTickersSplit())
-          .map(f -> f.filter(o -> isReady()).throttleLast(1, TimeUnit.SECONDS))
+          .map(f -> f.throttleLast(1, TimeUnit.SECONDS))
           .flatMap(f -> f)
           .subscribe(e -> send(e, Nature.TICKER));
 
       // Trade history should only be sent with long periods between each. The rest of the time the user trades
       // stream should be used.
       private final Disposable userTradeHistory = Flowable.fromIterable(subscription.getUserTradeHistorySplit())
-          .map(f -> f.filter(o -> isReady()).throttleLast(5, TimeUnit.SECONDS))
+          .map(f -> f.throttleLast(5, TimeUnit.SECONDS))
           .flatMap(f -> f)
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
 
       // Trades are unthrottled - the assumption is that you need the lot
       private final Disposable trades = subscription.getTrades()
-          .filter(o -> isReady())
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.TRADE));
       private final Disposable userTrades = Observable.create((ObservableEmitter<UserTradeEvent> emitter) -> { new UserTradesSubscriber(emitter); })
           .share()
-          .filter(o -> isReady())
           .filter(e -> marketDataSubscriptions.get().contains(MarketDataSubscription.create(e.spec(), USER_TRADE_HISTORY)))
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.USER_TRADE));
 
       // For all others apply throttles globally
       private final Disposable openOrders = subscription.getOpenOrders()
-          .filter(o -> isReady())
           .throttleLast(1, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.OPEN_ORDERS));
       private final Disposable orderBook = subscription.getOrderBooks()
-          .filter(o -> isReady())
           .throttleLast(2, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
       private final Disposable balance = subscription.getBalance()
-          .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.BALANCE));
+
+      private final Disposable readyCheck = Observable.interval(20, TimeUnit.SECONDS)
+          .subscribe(e -> {
+            if (session.isOpen() && !isReady()) {
+              try {
+                LOGGER.info("Client went away. Closing connection");
+                session.close(new CloseReason(CloseCodes.GOING_AWAY, "Client went away"));
+              } catch (Exception ex) {
+                LOGGER.warn("Error closing session. Probably already closed (" + ex.getMessage() + ")");
+              }
+            }
+          });
 
       @Override
       public boolean isDisposed() {
@@ -239,12 +246,13 @@ public final class OrkoWebSocketServer {
             trades.isDisposed() &&
             userTrades.isDisposed() &&
             userTradeHistory.isDisposed() &&
-            balance.isDisposed();
+            balance.isDisposed() &&
+            readyCheck.isDisposed();
       }
 
       @Override
       public void dispose() {
-        SafelyDispose.of(openOrders, orderBook, tickers, trades, userTrades, userTradeHistory, balance);
+        SafelyDispose.of(readyCheck, openOrders, orderBook, tickers, trades, userTrades, userTradeHistory, balance);
       }
     };
   }
