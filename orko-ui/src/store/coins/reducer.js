@@ -17,6 +17,9 @@ export default function reduce(state = initialState, action = {}) {
       if (action.payload.coin.key === "binance/BTC/ICX" || action.payload.coin.key === "binance/BTC/NANO") {
         action.payload.meta.priceScale = 7
       }
+      if (action.payload.coin.key === "binance/BTC/ADA") {
+        action.payload.meta.priceScale = 8
+      }
 
       return Immutable.merge(
         state,
