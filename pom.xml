@@ -64,6 +64,17 @@
       <build>
         <pluginManagement>
           <plugins>
+            
+            <!-- Hopefully temporary fix for CircleCI build (https://stackoverflow.com/questions/50661648/spring-boot-fails-to-run-maven-surefire-plugin-classnotfoundexception-org-apache/50661649#50661649) -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>${maven-surefire-plugin-version}</version>
+              <configuration>
+                <useSystemClassLoader>false</useSystemClassLoader>
+              </configuration>
+            </plugin>
+            
             <plugin>
               <groupId>org.eclipse.m2e</groupId>
               <artifactId>lifecycle-mapping</artifactId>
