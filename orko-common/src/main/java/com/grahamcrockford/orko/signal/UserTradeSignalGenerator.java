@@ -3,7 +3,6 @@ package com.grahamcrockford.orko.signal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -14,12 +13,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.grahamcrockford.orko.exchange.Exchanges;
 import com.grahamcrockford.orko.marketdata.TradeEvent;
 import com.grahamcrockford.orko.marketdata.TradeHistoryEvent;
 import com.grahamcrockford.orko.spi.TickerSpec;
@@ -30,7 +27,6 @@ import io.dropwizard.lifecycle.Managed;
 class UserTradeSignalGenerator implements Managed {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserTradeSignalGenerator.class);
-  private static final Set<String> NATIVELY_SUPPORTED_EXCHANGES = ImmutableSet.of(Exchanges.GDAX, Exchanges.GDAX_SANDBOX, Exchanges.BINANCE);
 
   private final EventBus eventBus;
   private final ConcurrentMap<TickerSpec, Instant> latestTimestamps = new ConcurrentHashMap<>();
@@ -60,45 +56,47 @@ class UserTradeSignalGenerator implements Managed {
    * quietly added to an exchange without updating
    * {@link #NATIVELY_SUPPORTED_EXCHANGES}.
    *
-   * @param e The trade event.
+   * @param tradeEvent The trade event.
    */
   @Subscribe
-  void onTrade(TradeEvent e) {
-    if (e.trade() instanceof UserTrade && cache(e.trade().getId())) {
-      LOGGER.info("Got streamed user trade: " + e);
-      eventBus.post(UserTradeEvent.create(e.spec(), (UserTrade) e.trade()));
+  void onTrade(TradeEvent tradeEvent) {
+    if (tradeEvent.trade() instanceof UserTrade && cache(tradeEvent.trade().getId())) {
+      LOGGER.info("Got streamed user trade: " + tradeEvent);
+      eventBus.post(UserTradeEvent.create(tradeEvent.spec(), (UserTrade) tradeEvent.trade()));
     }
   }
 
   /**
-   * For exchanges without streaming support for {@link UserTrade}s, checks
-   * the trade history for new trades and reposts them.
+   * For exchanges without streaming support for {@link UserTrade}s, or in
+   * case we miss them for any reason, checks the trade history for new
+   * trades and reposts them.
    *
-   * @param e Trade history event.
+   * @param tradeHistoryEvent Trade history event.
    */
   @Subscribe
-  void onTradeHistory(TradeHistoryEvent e) {
+  void onTradeHistory(TradeHistoryEvent tradeHistoryEvent) {
 
-    if (NATIVELY_SUPPORTED_EXCHANGES.contains(e.spec().exchange()))
-      return;
+    List<UserTradeEvent> toPost = new ArrayList<>(tradeHistoryEvent.trades().size());
 
-    List<UserTradeEvent> toPost = new ArrayList<>(e.trades().size());
+    latestTimestamps.compute(tradeHistoryEvent.spec(), (tickerSpec, mostRecentPublishTime) -> {
 
-    latestTimestamps.compute(e.spec(), (k, latest) -> {
-      if (latest == null)
-        latest = startTime;
-      Instant mostRecentInBatch = latest;
-      for (UserTrade t : e.trades()) {
-        Instant i = t.getTimestamp().toInstant();
-        if (i.isAfter(latest)) {
-          if (cache(t.getId())) {
-            toPost.add(UserTradeEvent.create(e.spec(), t));
+      if (mostRecentPublishTime == null)
+        mostRecentPublishTime = startTime;
+
+      Instant mostRecentInBatch = mostRecentPublishTime;
+      for (UserTrade userTrade : tradeHistoryEvent.trades()) {
+        Instant instant = userTrade.getTimestamp().toInstant();
+        if (instant.isAfter(mostRecentPublishTime)) {
+          if (cache(userTrade.getId())) {
+            LOGGER.info("Got polled user trade: " + userTrade);
+            toPost.add(UserTradeEvent.create(tradeHistoryEvent.spec(), userTrade));
           }
-          if (mostRecentInBatch == null || i.isAfter(mostRecentInBatch)) {
-            mostRecentInBatch = i;
+          if (mostRecentInBatch == null || instant.isAfter(mostRecentInBatch)) {
+            mostRecentInBatch = instant;
           }
         }
       }
+
       return mostRecentInBatch;
     });
 
@@ -106,6 +104,10 @@ class UserTradeSignalGenerator implements Managed {
   }
 
   private boolean cache(String id) {
-    return recentTradeIds.asMap().putIfAbsent(id, Boolean.TRUE) == null;
+    boolean result = recentTradeIds.asMap().putIfAbsent(id, Boolean.TRUE) == null;
+    if (result) {
+      LOGGER.info("Skipped reporting trade {} as already reported");
+    }
+    return result;
   }
 }
