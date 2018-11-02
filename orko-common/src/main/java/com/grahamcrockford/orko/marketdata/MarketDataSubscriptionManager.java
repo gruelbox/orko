@@ -107,13 +107,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final Multimap<String, Disposable> disposablesPerExchange = HashMultimap.create();
   private final Set<MarketDataSubscription> unavailableSubscriptions = Sets.newConcurrentHashSet();
 
-  private final PersistentPublisher<TickerEvent, TickerSpec> tickersOut;
-  private final PersistentPublisher<OpenOrdersEvent, TickerSpec> openOrdersOut;
-  private final PersistentPublisher<OrderBookEvent, TickerSpec> orderbookOut;
-  private final PersistentPublisher<TradeEvent, TickerSpec> tradesOut;
-  private final PersistentPublisher<TradeHistoryEvent, TickerSpec> userTradeHistoryOut;
-  private final PersistentPublisher<BalanceEvent, String> balanceOut;
-  private final PersistentPublisher<ExecutionReportBinanceUserTransaction, Boolean> binanceExecutionReportsOut;
+  private final CachingPersistentPublisher<TickerEvent, TickerSpec> tickersOut;
+  private final CachingPersistentPublisher<OpenOrdersEvent, TickerSpec> openOrdersOut;
+  private final CachingPersistentPublisher<OrderBookEvent, TickerSpec> orderbookOut;
+  private final PersistentPublisher<TradeEvent> tradesOut;
+  private final CachingPersistentPublisher<TradeHistoryEvent, TickerSpec> userTradeHistoryOut;
+  private final CachingPersistentPublisher<BalanceEvent, String> balanceOut;
+  private final PersistentPublisher<ExecutionReportBinanceUserTransaction> binanceExecutionReportsOut;
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
@@ -137,13 +137,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       pollsPerExchange.put(e, ImmutableSet.of());
     });
 
-    this.tickersOut = new PersistentPublisher<>(TickerEvent::spec, true);
-    this.openOrdersOut = new PersistentPublisher<>(OpenOrdersEvent::spec, true);
-    this.orderbookOut = new PersistentPublisher<>(OrderBookEvent::spec, true);
-    this.tradesOut = new PersistentPublisher<>(TradeEvent::spec, false);
-    this.userTradeHistoryOut = new PersistentPublisher<>(TradeHistoryEvent::spec, true);
-    this.balanceOut = new PersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.currency(), true);
-    this.binanceExecutionReportsOut = new PersistentPublisher<>(x -> true, false);
+    this.tickersOut = new CachingPersistentPublisher<>(TickerEvent::spec);
+    this.openOrdersOut = new CachingPersistentPublisher<>(OpenOrdersEvent::spec);
+    this.orderbookOut = new CachingPersistentPublisher<>(OrderBookEvent::spec);
+    this.tradesOut = new PersistentPublisher<>();
+    this.userTradeHistoryOut = new CachingPersistentPublisher<>(TradeHistoryEvent::spec);
+    this.balanceOut = new CachingPersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.currency());
+    this.binanceExecutionReportsOut = new PersistentPublisher<>();
   }
 
 
@@ -731,38 +731,53 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     return exchange instanceof StreamingExchange;
   }
 
-  private final class PersistentPublisher<T, U> {
+  private class PersistentPublisher<T> {
     private final Flowable<T> flowable;
     private final AtomicReference<FlowableEmitter<T>> emitter = new AtomicReference<>();
-    private final ConcurrentMap<U, T> latest = Maps.newConcurrentMap();
-    private final boolean caching;
 
-    PersistentPublisher(Function<T, U> keyFunction, boolean caching) {
-      this.caching = caching;
-      Flowable<T> flow = Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING);
-      if (caching)
-        flow = flow.doOnNext(e -> latest.put(keyFunction.apply(e), e));
-      this.flowable = flow
+    PersistentPublisher() {
+      this.flowable = setup(Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING))
           .share()
           .onBackpressureLatest()
           .observeOn(Schedulers.computation());
       this.flowable.subscribe(eventBus::post);
     }
 
+    Flowable<T> setup(Flowable<T> base) {
+      return base;
+    }
+
+    Flowable<T> getAll() {
+      return flowable;
+    }
+
+    final void emit(T e) {
+      if (emitter.get() != null)
+        emitter.get().onNext(e);
+    }
+  }
+
+  private final class CachingPersistentPublisher<T, U> extends PersistentPublisher<T> {
+    private final ConcurrentMap<U, T> latest = Maps.newConcurrentMap();
+    private final Function<T, U> keyFunction;
+
+    CachingPersistentPublisher(Function<T, U> keyFunction) {
+      super();
+      this.keyFunction = keyFunction;
+    }
+
+    @Override
+    Flowable<T> setup(Flowable<T> base) {
+      return base.doOnNext(e -> latest.put(this.keyFunction.apply(e), e));
+    }
+
     void removeFromCache(U key) {
       latest.remove(key);
     }
 
+    @Override
     Flowable<T> getAll() {
-      Flowable<T> flow = flowable;
-      if (caching)
-        flow = flow.startWith(Flowable.defer(() -> Flowable.fromIterable(latest.values())));
-      return flow;
-    }
-
-    void emit(T e) {
-      if (emitter.get() != null)
-        emitter.get().onNext(e);
+      return super.getAll().startWith(Flowable.defer(() -> Flowable.fromIterable(latest.values())));
     }
   }
 }
