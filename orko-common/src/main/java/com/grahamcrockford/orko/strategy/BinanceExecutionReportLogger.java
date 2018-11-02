@@ -1,11 +1,9 @@
 package com.grahamcrockford.orko.strategy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.marketdata.MarketDataSubscriptionManager;
+import com.grahamcrockford.orko.notification.NotificationService;
 import com.grahamcrockford.orko.util.SafelyDispose;
 
 import info.bitrich.xchangestream.binance.dto.ExecutionReportBinanceUserTransaction;
@@ -15,14 +13,14 @@ import io.reactivex.disposables.Disposable;
 @Singleton
 class BinanceExecutionReportLogger implements Managed {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BinanceExecutionReportLogger.class);
-
   private final MarketDataSubscriptionManager marketDataSubscriptionManager;
   private Disposable disposable;
+  private final NotificationService notificationService;
 
   @Inject
-  BinanceExecutionReportLogger(MarketDataSubscriptionManager marketDataSubscriptionManager) {
+  BinanceExecutionReportLogger(MarketDataSubscriptionManager marketDataSubscriptionManager, NotificationService notificationService) {
     this.marketDataSubscriptionManager = marketDataSubscriptionManager;
+    this.notificationService = notificationService;
   }
 
   @Override
@@ -37,12 +35,12 @@ class BinanceExecutionReportLogger implements Managed {
 
   private void onExecutionReport(ExecutionReportBinanceUserTransaction e) {
     if (e.getTradeId() == -1) {
-      LOGGER.info("Binance execution report: {} order [{}] on {} at {}",
-          e.getExecutionType(), e.getOrderId(), e.getCurrencyPair(), e.getOrderPrice());
+      notificationService.info(String.format("Binance execution report: %s order [%d] on %s at %s",
+          e.getExecutionType(), e.getOrderId(), e.getCurrencyPair(), e.getOrderPrice()));
     } else {
-      LOGGER.info("Binance execution report: {} order [{}] on {} at {} (tradeId={}, {} of {} at {})",
+      notificationService.info(String.format("Binance execution report: %s order [%d] on %s at %s (tradeId=%d, %s of %s at %s)",
           e.getExecutionType(), e.getOrderId(), e.getCurrencyPair(), e.getOrderPrice(),
-          e.getTradeId(), e.getLastExecutedQuantity(), e.getOrderQuantity(), e.getLastExecutedPrice());
+          e.getTradeId(), e.getLastExecutedQuantity(), e.getOrderQuantity(), e.getLastExecutedPrice()));
     }
   }
 }
