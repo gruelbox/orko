@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
@@ -68,6 +69,8 @@ import com.grahamcrockford.orko.exchange.TradeServiceFactory;
 import com.grahamcrockford.orko.spi.TickerSpec;
 import com.grahamcrockford.orko.util.SafelyDispose;
 
+import info.bitrich.xchangestream.binance.BinanceStreamingMarketDataService;
+import info.bitrich.xchangestream.binance.dto.ExecutionReportBinanceUserTransaction;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
@@ -110,6 +113,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final PersistentPublisher<TradeEvent, TickerSpec> tradesOut;
   private final PersistentPublisher<TradeHistoryEvent, TickerSpec> userTradeHistoryOut;
   private final PersistentPublisher<BalanceEvent, String> balanceOut;
+  private final PersistentPublisher<ExecutionReportBinanceUserTransaction, Boolean> binanceExecutionReportsOut;
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
@@ -139,6 +143,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.tradesOut = new PersistentPublisher<>(TradeEvent::spec, false);
     this.userTradeHistoryOut = new PersistentPublisher<>(TradeHistoryEvent::spec, true);
     this.balanceOut = new PersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.currency(), true);
+    this.binanceExecutionReportsOut = new PersistentPublisher<>(x -> true, false);
   }
 
 
@@ -227,6 +232,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
   /**
+   * Gets a stream with binance execution reports.
+   *
+   * @return The stream.
+   */
+  public Flowable<ExecutionReportBinanceUserTransaction> getBinanceExecutionReports() {
+    return binanceExecutionReportsOut.getAll();
+  }
+
+
+  /**
    * Actually performs the subscription changes. Occurs synchronously in the
    * poll loop.
    */
@@ -261,7 +276,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             tickersOut.removeFromCache(s.spec());
             orderbookOut.removeFromCache(s.spec());
             openOrdersOut.removeFromCache(s.spec());
-            tradesOut.removeFromCache(s.spec());
             userTradeHistoryOut.removeFromCache(s.spec());
             balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().base());
             balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().counter());
@@ -331,6 +345,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     subscribeExchange((StreamingExchange)exchange, streamingSubscriptions, exchangeName);
 
     StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
+
     disposablesPerExchange.putAll(
       exchangeName,
       FluentIterable.from(streamingSubscriptions).transform(sub -> {
@@ -353,6 +368,18 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         }
       })
     );
+
+    if (Exchanges.BINANCE.equals(exchangeName) && !StringUtils.isEmpty(configuration.getExchanges().get(Exchanges.BINANCE).getApiKey())) {
+      BinanceStreamingMarketDataService binance = (BinanceStreamingMarketDataService) streaming;
+      disposablesPerExchange.put(
+        exchangeName,
+        binance.getRawExecutionReports()
+          .subscribe(
+            binanceExecutionReportsOut::emit,
+            e -> LOGGER.error("Error in binance execution report stream", e)
+          )
+      );
+    }
   }
 
   private void subscribeExchange(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptionsForExchange, String exchangeName) {
