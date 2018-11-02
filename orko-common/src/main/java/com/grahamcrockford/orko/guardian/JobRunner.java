@@ -153,16 +153,16 @@ class JobRunner {
       if (!replacement || !result.equals(Status.RUNNING))
         statusUpdateService.status(job.id(), result);
       if (result.equals(Status.SUCCESS) || result.equals(Status.FAILURE_PERMANENT)) {
-        LOGGER.info(job + " finished immediately ({}), cleaning up", result);
+        LOGGER.debug("{} finished immediately ({}), cleaning up", job, result);
         jobAccess.delete(job.id());  //  TODO think - what happens if something goes wrong here?
         safeStop();
         status.set(JobStatus.STOPPED);
-        LOGGER.info(job + " cleaned up");
+        LOGGER.debug("{} cleaned up", job);
       } else if (result.equals(Status.FAILURE_TRANSIENT)) {
-        LOGGER.info(job + " temporary failure. Sending back to queue for retry");
+        LOGGER.warn(job + " temporary failure. Sending back to queue for retry");
         processor.stop();
         status.set(JobStatus.STOPPED);
-        LOGGER.info(job + " cleaned up");
+        LOGGER.debug("{} cleaned up", job);
       } else {
         register();
       }
@@ -173,31 +173,31 @@ class JobRunner {
       if (!status.get().equals(JobStatus.RUNNING))
         return;
       if (!jobLocker.updateLock(job.id(), uuid)) {
-        LOGGER.debug(job + " stopping due to loss of lock...");
+        LOGGER.debug("{} stopping due to loss of lock...", job);
         if (stopAndUnregister())
-          LOGGER.debug(job + " stopped due to loss of lock");
+          LOGGER.debug("{} stopped due to loss of lock", job);
       }
     }
 
     @Subscribe
     public void stop(StopEvent stop) {
-      LOGGER.debug(job + " stopping due to shutdown");
+      LOGGER.debug("{} stopping due to shutdown", job);
       if (stopAndUnregister()) {
         jobLocker.releaseLock(job.id(), uuid);
-        LOGGER.debug(job + " stopped due to shutdown");
+        LOGGER.debug("{} stopped due to shutdown", job);
       }
     }
 
     @Override
     public void replace(Job newVersion) {
-      LOGGER.debug(job + " replacing...");
+      LOGGER.debug("{} replacing...", job);
       if (!stopAndUnregister()) {
-        LOGGER.debug("Replacement of job which is already shutting down: " + job);
+        LOGGER.warn("Replacement of job which is already shutting down: " + job);
         return;
       }
       jobAccess.update(newVersion);
       new JobLifetimeManager(newVersion).start(true);
-      LOGGER.debug(newVersion + " replaced");
+      LOGGER.debug("{} replaced", newVersion);
     }
 
     @Override
@@ -205,7 +205,7 @@ class JobRunner {
       LOGGER.info(job + " finishing ({})...", status);
       statusUpdateService.status(job.id(), status);
       if (!stopAndUnregister()) {
-        LOGGER.warn("Finish of job which is already shutting down: " + job);
+        LOGGER.warn("Finish of job which is already shutting down: {}", job);
         return;
       }
       jobAccess.delete(job.id());
@@ -229,7 +229,7 @@ class JobRunner {
       } else if (status.compareAndSet(JobStatus.STARTING, JobStatus.STOPPED)) {
         return true;
       } else {
-        LOGGER.debug("Stop of job which is already shutting down: " + job);
+        LOGGER.debug("Stop of job which is already shutting down: {}", job);
         return false;
       }
     }
