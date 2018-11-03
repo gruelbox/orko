@@ -204,15 +204,16 @@ const ToolbarContainer = props => {
   return props.mobile ? <Mobile {...props} /> : <Normal {...props} />
 }
 
-export default connect((state, props) => ({
-  errors: state.error.errorBackground,
-  userName: state.auth.userName,
-  connected: state.socket.connected,
-  updateFocusedField: state.focus.fn,
-  ticker: getSelectedCoinTicker(state),
-  coin: getSelectedCoin(state),
-  coinMetadata:
-    props.coin && state.coins.meta
-      ? state.coins.meta[props.coin.key]
-      : undefined
-}))(ToolbarContainer)
+export default connect((state, props) => {
+  const coin = getSelectedCoin(state)
+  return {
+    errors: state.error.errorBackground,
+    userName: state.auth.userName,
+    connected: state.socket.connected,
+    updateFocusedField: state.focus.fn,
+    ticker: getSelectedCoinTicker(state),
+    coin,
+    coinMetadata:
+      coin && state.coins.meta ? state.coins.meta[coin.key] : undefined
+  }
+})(ToolbarContainer)
