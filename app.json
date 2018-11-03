@@ -1,15 +1,8 @@
 {
   "name": "orko",
-  "scripts": {
-  },
+  "scripts": {},
   "env": {
     "AUTH_TOKEN": {
-      "required": true
-    },
-    "BITTREX_API_KEY": {
-      "required": true
-    },
-    "BITTREX_SECRET": {
       "required": true
     },
     "JAVA_OPTS": {
@@ -21,15 +14,6 @@
       "required": true
     },
     "MONGODB_URI_TESTING": {
-      "required": true
-    },
-    "OKTA_BASEURL": {
-      "required": true
-    },
-    "OKTA_CLIENTID": {
-      "required": true
-    },
-    "OKTA_ISSUER": {
       "required": true
     },
     "PAPERTRAIL_API_TOKEN": {
@@ -47,11 +31,7 @@
       "quantity": 1
     }
   },
-  "addons": [
-    "mongolab",
-    "papertrail",
-    "snyk"
-  ],
+  "addons": ["mongolab", "papertrail", "snyk"],
   "buildpacks": [
     {
       "url": "heroku/java"
