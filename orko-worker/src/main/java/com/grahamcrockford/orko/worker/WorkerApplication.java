@@ -41,7 +41,7 @@ public class WorkerApplication extends Application<OrkoConfiguration> {
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         bootstrap.getConfigurationSourceProvider(),
-        new EnvironmentVariableSubstitutor()
+        new EnvironmentVariableSubstitutor(false)
       )
     );
   }

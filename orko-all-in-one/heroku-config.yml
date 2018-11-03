@@ -1,8 +1,8 @@
-loopSeconds: ${LOOP_SECONDS}
+loopSeconds: ${LOOP_SECONDS:-15}
 auth:
   httpsOnly: true
-  proxied: ${PROXIED}
-  whitelistExpirySeconds: ${WHITELIST_EXPIRY_SECONDS}
+  proxied: true
+  whitelistExpirySeconds: ${WHITELIST_EXPIRY_SECONDS:-86400}
   secretKey: ${AUTH_TOKEN}
   okta:
     baseUrl: ${OKTA_BASEURL}
@@ -13,7 +13,7 @@ telegram:
   chatId: ${TELEGRAM_CHAT_ID}
 database:
   mongoClientURI: ${MONGODB_URI}
-  lockSeconds: ${LOCK_SECONDS}
+  lockSeconds: ${LOCK_SECONDS:-45}
 exchanges:
   gdax-sandbox:
     apiKey: ${GDAX_SANDBOX_API_KEY}
@@ -54,8 +54,8 @@ jerseyClient:
   connectionRequestTimeout: 15000ms
 logging: 
   loggers:
-    "com.grahamcrockford.orko": ${LOG_LEVEL}
-    "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL}
-    "info.bitrich.xchangestream.binance": ${LOG_LEVEL}
-    "info.bitrich.xchangestream.gdax": ${LOG_LEVEL}
+    "com.grahamcrockford.orko": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.binance": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}
     "si.mazi.rescu": ERROR
