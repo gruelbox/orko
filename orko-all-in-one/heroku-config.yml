@@ -16,28 +16,28 @@ database:
   lockSeconds: ${LOCK_SECONDS:-45}
 exchanges:
   gdax-sandbox:
-    apiKey: ${GDAX_SANDBOX_API_KEY}
-    secretKey: ${GDAX_SANDBOX_SECRET}
-    passphrase: ${GDAX_SANDBOX_PASSPHRASE}
+    apiKey: ${GDAX_SANDBOX_API_KEY:-}
+    secretKey: ${GDAX_SANDBOX_SECRET:-}
+    passphrase: ${GDAX_SANDBOX_PASSPHRASE:-}
   gdax:
-    apiKey: ${GDAX_API_KEY}
-    secretKey: ${GDAX_SECRET}
-    passphrase: ${GDAX_PASSPHRASE}
+    apiKey: ${GDAX_API_KEY:-}
+    secretKey: ${GDAX_SECRET:-}
+    passphrase: ${GDAX_PASSPHRASE:-}
   binance:
-    apiKey: ${BINANCE_API_KEY}
-    secretKey: ${BINANCE_SECRET}
+    apiKey: ${BINANCE_API_KEY:-}
+    secretKey: ${BINANCE_SECRET:-}
   kucoin:
-    apiKey: ${KUCOIN_API_KEY}
-    secretKey: ${KUCOIN_SECRET}
+    apiKey: ${KUCOIN_API_KEY:-}
+    secretKey: ${KUCOIN_SECRET:-}
   bitfinex:
-    apiKey: ${BITFINEX_API_KEY}
-    secretKey: ${BITFINEX_SECRET}
+    apiKey: ${BITFINEX_API_KEY:-}
+    secretKey: ${BITFINEX_SECRET:-}
   bittrex:
-    apiKey: ${BITTREX_API_KEY}
-    secretKey: ${BITTREX_SECRET}
+    apiKey: ${BITTREX_API_KEY:-}
+    secretKey: ${BITTREX_SECRET:-}
   cryptopia:
-    apiKey: ${CRYPTOPIA_API_KEY}
-    secretKey: ${CRYPTOPIA_SECRET}
+    apiKey: ${CRYPTOPIA_API_KEY:-}
+    secretKey: ${CRYPTOPIA_SECRET:-}
 server:
   type: simple
   rootPath: /api/
