@@ -1,38 +1,17 @@
 {
   "name": "orko",
-  "scripts": {
-  },
+  "scripts": {},
   "env": {
     "AUTH_TOKEN": {
-      "required": true
-    },
-    "BITTREX_API_KEY": {
-      "required": true
-    },
-    "BITTREX_SECRET": {
       "required": true
     },
     "JAVA_OPTS": {
       "required": true
     },
-    "MAVEN_CUSTOM_GOALS": "clean package",
-    "MAVEN_CUSTOM_OPTS": "-T 1C --update-snapshots -DskipTests=true",
-    "MONGODB_URI": {
+    "MAVEN_CUSTOM_GOALS": {
       "required": true
     },
-    "MONGODB_URI_TESTING": {
-      "required": true
-    },
-    "OKTA_BASEURL": {
-      "required": true
-    },
-    "OKTA_CLIENTID": {
-      "required": true
-    },
-    "OKTA_ISSUER": {
-      "required": true
-    },
-    "PAPERTRAIL_API_TOKEN": {
+    "MAVEN_CUSTOM_OPTS": {
       "required": true
     },
     "TELEGRAM_BOT_TOKEN": {
@@ -47,11 +26,7 @@
       "quantity": 1
     }
   },
-  "addons": [
-    "mongolab",
-    "papertrail",
-    "snyk"
-  ],
+  "addons": ["mongolab", "papertrail", "snyk"],
   "buildpacks": [
     {
       "url": "heroku/java"
