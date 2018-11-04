@@ -12,8 +12,6 @@ import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 import com.grahamcrockford.orko.wiring.WebResource;
 import com.okta.jwt.JwtHelper;
 import com.okta.jwt.JwtVerifier;
-import com.warrenstrange.googleauth.GoogleAuthenticator;
-import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 
 import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.setup.Environment;
@@ -22,11 +20,7 @@ public class AuthModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(GoogleAuthenticator.class).toInstance(
-        new GoogleAuthenticator(
-          new GoogleAuthenticatorConfig.GoogleAuthenticatorConfigBuilder().build()
-        )
-      );
+    install(new GoogleAuthenticatorModule());
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(AuthResource.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
   }
