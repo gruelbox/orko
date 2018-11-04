@@ -1,6 +1,6 @@
 # Orko
 
-[![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master)
+[![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master) [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen. It supports powerful background processes allowing you to set up stop losses, take profit orders, trailing stops and more, even on exchanges that don't support these types of advanced orders, as well as price and profit/loss level alerts.
 
@@ -77,26 +77,58 @@ database:
 
 ## How to deploy to Heroku
 
+### Introduction
+
 I personally run the application on Heroku. The Hobby account is cheap at $7/pm per server if running constantly, SSL is provided out of the box and the continuous deployment features are great.
 
-It's all preconfigured to work there out of the box.
+The application is all preconfigured to work out of the box.
+
+### Get security set up
+
+Unfortunately, the internet is full of nasty people who are going to use access to your exchange accounts to do nefarious things. You don't want that.
+
+Security is (optionally) double-layered:
+
+- The first layer is a conventional JWT provided by Okta (more on this in a moment). Without a valid JWT, all service and web socket connections will be rejected with an HTTP 401.
+- The second layer is a dynamic IP whitelisting. The UI must supply a valid Google Authenticator code to the backend which will whitelist the originating IP for a fixed period. All other entry points will return an HTTP 402 until this is done.
+
+You need an Okta account to handle the JWT authentication:
+
+1. Create a basic (free) account at https://www.okta.com/
+1. Add any 2FA or whatever you feel appropriate to this account.
+1. Create new application of type Single Page App (SPA), allowing both ID token and Access Token
+1. Set your Login redirect URI and Initiate login URI to the address of your front-end server.
+1. Note down the client ID and set it in your backend app's environment variables.
+1. Go to the Sign On tab and note the `Issuer` and `Client id`. You will need these shortly.
+
+Now create a 2FA key:
+
+1. Generate a new 2FA secret using `./generate-key.sh` (you need to have done a build first using `./build.sh`).
+1. Note it down - we'll need it when configuring the application.
+1. Enter it into Google Authenticator on your phone.
+
+### Get set up on Heroku
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://bitbucket.org/badgerwithagun/orko)
 
 1. Create a Heroku account
-1. Using the approach detailed in the getting started guide for Java at https://devcenter.heroku.com/articles/getting-started-with-java#set-up, and create a new, empty Java application. TODO script this.
+1. Install Heroku (links are here: https://devcenter.heroku.com/articles/getting-started-with-java#set-up)
+1. `cd` into the directory where you've cloned the Orko code (the same directory as this README).
+1. Run: `heroku create` to create a new Heroku application.
 1. You'll need Hobby Tier, which means a credit card. It's free until you pass a certain number of minutes running per month. If you want to be a skinflint, just take it down when you're not using it.
 1. Add the mLab MongoDB addon (required)
 1. Add the Papertrail addon (optional, but by far the easiest way to handle logs)
 
 Set up the environment variables in addition to those already configured by the add-ons you've provisioned:
 
-| Variable             | Set to                                                                                                                                                                                                                                                                  |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN` | The bot API token. Can be left blank, in which case Telegram notifications won't be used, but must be defined. Note that at the moment, there are no other notifications (even on-screen) so it's a bit of a nightmare to use without phone notifiations. Turn them on. |
-| `TELEGRAM_CHAT_ID`   | The chat ID. Must be defined but may be blank if `TELEGRAM_BOT_TOKEN` is.                                                                                                                                                                                               |
-| `AUTH_TOKEN`         | Your 2FA secret key (generated with `./generate-key.sh` after building) - more on this below. Can be left blank (in which case 2FA whitelisting is disabled) but must be defined. Strongly recommended to be enabled.                                                   |
-| `OKTA_BASEURL`       | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |
-| `OKTA_CLIENTID`      | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |
-| `OKTA_ISSUER`        | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |  |
+| Variable             | Set to                                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN` | The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used. |
+| `TELEGRAM_CHAT_ID`   | The Telegram chat ID. May be omitted if `TELEGRAM_BOT_TOKEN` is.                                |
+| `AUTH_TOKEN`         | Your 2FA secret key. Can be omitted if you don't want this additional layer of security.        |
+| `OKTA_BASEURL`       | The Okta issuer.                                                                                |
+| `OKTA_CLIENTID`      | The Okta client ID.                                                                             |
+| `OKTA_ISSUER`        | The Okta issuer appended with `/oauth2/default`                                                 |
 
 Optionally, you can add any of these to add authenticated support for exchanges where you have API keys:
 
@@ -129,35 +161,10 @@ The following are defaulted or automatically set up, so you can ignore them unle
 | `MAVEN_CUSTOM_OPTS`        | `-Pproduction --update-snapshots -DskipTests=true -T 1C`                                                                                    |
 | `MAVEN_CUSTOM_GOALS`       | `clean package`                                                                                                                             |
 
-We now need to worry about security. This is (optionally) double-layered. The first is a conventional JWT provided by Okta (more on this in a moment). Without a valid JWT, all service and web socket connections will be rejected with an HTTP 401.
-
-The second is a dynamic IP whitelisting. You must `POST` a valid Google Authenticator code to `/api/auth/{code}` which will whitelist your originating IP for a fixed period. All other entry points will return an HTTP 402 until this is done. Too over-the-top for you? You can turn either of these layers off, but we'll get them both set up here.
-
-First, let's create a 2FA key:
-
-1. Generate a new 2FA secret using `./generate-key.sh` (you need to have done a build first using `./build.sh`).
-1. Store that somewhere safe and enter it into Google Authenticator on your phone.
-1. If you don't want to set up a Java environment, give me a shout and I'll generate a keypair for you.
-1. Set the `AUTH_TOKEN` environment variable accordingly.
-
-Now you need an Okta account to handle the JWT authentication:
-
-1. Create a basic (free) account at https://www.okta.com/
-1. Add any 2FA or whatever you feel appropriate to this account.
-1. Create new application of type Single Page App (SPA), allowing both ID token and Access Token
-1. Set your Login redirect URI and Initiate login URI to the address of your front-end server.
-1. Note down the client ID and set it in your backend app's environment variables.
-1. Go to the Sign On tab and note the Issuer. Set the `OKTA_BASEURL` and `OKTA_ISSUER` variables to this. For the `OKTA_ISSUER` variable, append it with `/oauth2/default`.
-
-Now you're ready to deploy.
-
-1. You should have already installed Heroku CLI.
-1. From a clean checkout of this code, add the heroku remote:
+Now you're ready to deploy. Just type:
 
 ```
-git remote add heroku git@heroku.com:your-app-name.git
+git push heroku
 ```
-
-1. Then simply push to the heroku remote.
 
 That's it! Visit https://your-app-name.herokuapp.com to go through secuity and log in.
