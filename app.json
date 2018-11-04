@@ -8,15 +8,10 @@
     "JAVA_OPTS": {
       "required": true
     },
-    "MAVEN_CUSTOM_GOALS": "clean package",
-    "MAVEN_CUSTOM_OPTS": "-T 1C --update-snapshots -DskipTests=true",
-    "MONGODB_URI": {
+    "MAVEN_CUSTOM_GOALS": {
       "required": true
     },
-    "MONGODB_URI_TESTING": {
-      "required": true
-    },
-    "PAPERTRAIL_API_TOKEN": {
+    "MAVEN_CUSTOM_OPTS": {
       "required": true
     },
     "TELEGRAM_BOT_TOKEN": {
