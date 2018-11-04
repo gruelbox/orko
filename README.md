@@ -89,38 +89,40 @@ It's all preconfigured to work there out of the box.
 
 Set up the environment variables in addition to those already configured by the add-ons you've provisioned:
 
-| Variable                  | Set to                                                                                                                                                                                                                                                                  |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN`      | The bot API token. Can be left blank, in which case Telegram notifications won't be used, but must be defined. Note that at the moment, there are no other notifications (even on-screen) so it's a bit of a nightmare to use without phone notifiations. Turn them on. |
-| `TELEGRAM_CHAT_ID`        | The chat ID. Must be defined but may be blank if `TELEGRAM_BOT_TOKEN` is.                                                                                                                                                                                               |
-| `AUTH_TOKEN`              | Your 2FA secret key (generated with `./generate-key.sh` after building) - more on this below. Can be left blank (in which case 2FA whitelisting is disabled) but must be defined. Strongly recommended to be enabled.                                                   |
-| `OKTA_BASEURL`            | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |
-| `OKTA_CLIENTID`           | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |
-| `OKTA_ISSUER`             | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |  |
-| `CRYPTOPIA_API_KEY`       | Your Cryptopia API key. May be left blank for paper trading.                                                                                                                                                                                                            |
-| `CRYPTOPIA_SECRET`        | Your Cryptopia API secret. May be left blank for paper trading.                                                                                                                                                                                                         |
-| `GDAX_SANDBOX_API_KEY`    | Your API key from the GDAX sandbox (https://public.sandbox.gdax.com). If left blank, paper trading will be used.                                                                                                                                                        |
-| `GDAX_SANDBOX_SECRET`     | Your secret from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading.                                                                                                                                                               |
-| `GDAX_SANDBOX_PASSPHRASE` | Your passphrase from the GDAX sandbox (https://public.sandbox.gdax.com). May be left blank for paper trading.                                                                                                                                                           |
-| `GDAX_API_KEY`            | Your GDAX API key. May be left blank for paper trading.                                                                                                                                                                                                                 |
-| `GDAX_SECRET`             | Your GDAX secret. May be left blank for paper trading.                                                                                                                                                                                                                  |
-| `GDAX_PASSPHRASE`         | Your GDAX passphrase. May be left blank for paper trading.                                                                                                                                                                                                              |
-| `BINANCE_API_KEY`         | Your Binance API key. May be left blank for paper trading.                                                                                                                                                                                                              |
-| `BINANCE_SECRET`          | Your Binance secret. May be left blank for paper trading.                                                                                                                                                                                                               |
-| `BITFINEX_API_KEY`        | Your BitFinex API key. May be left blank for paper trading.                                                                                                                                                                                                             |
-| `BITFINEX_SECRET`         | Your Binance secret. May be left blank for paper trading.                                                                                                                                                                                                               |
-| `BITTREX_API_KEY`         | our Bittrex API key. May be left blank for paper trading.                                                                                                                                                                                                               |
-| `BITTREX_SECRET`          | our Bittrex secret. May be left blank for paper trading.                                                                                                                                                                                                                |
-| `KUCOIN_API_KEY`          | Your Kucoin API key. May be left blank for paper trading.                                                                                                                                                                                                               |
-| `KUCOIN_SECRET`           | Your Kucoin secret. May be left blank for paper trading.                                                                                                                                                                                                                |
+| Variable             | Set to                                                                                                                                                                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN` | The bot API token. Can be left blank, in which case Telegram notifications won't be used, but must be defined. Note that at the moment, there are no other notifications (even on-screen) so it's a bit of a nightmare to use without phone notifiations. Turn them on. |
+| `TELEGRAM_CHAT_ID`   | The chat ID. Must be defined but may be blank if `TELEGRAM_BOT_TOKEN` is.                                                                                                                                                                                               |
+| `AUTH_TOKEN`         | Your 2FA secret key (generated with `./generate-key.sh` after building) - more on this below. Can be left blank (in which case 2FA whitelisting is disabled) but must be defined. Strongly recommended to be enabled.                                                   |
+| `OKTA_BASEURL`       | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |
+| `OKTA_CLIENTID`      | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |
+| `OKTA_ISSUER`        | Will be provided during Okta setup (see below)                                                                                                                                                                                                                          |  |
 
-For reference, the following are defaulted or automatically set up, so you can ignore them unless you need them:
+Optionally, you can add any of these to add authenticated support for exchanges where you have API keys:
 
-| Variable                   | Set to                                                                                                                                      |
+| Variable            | Set to                     |
+| ------------------- | -------------------------- |
+| `CRYPTOPIA_API_KEY` | Your Cryptopia API key.    |
+| `CRYPTOPIA_SECRET`  | Your Cryptopia API secret. |
+| `GDAX_API_KEY`      | Your GDAX API key.         |
+| `GDAX_SECRET`       | Your GDAX secret.          |
+| `GDAX_PASSPHRASE`   | Your GDAX passphrase.      |
+| `BINANCE_API_KEY`   | Your Binance API key.      |
+| `BINANCE_SECRET`    | Your Binance secret.       |
+| `BITFINEX_API_KEY`  | Your BitFinex API key.     |
+| `BITFINEX_SECRET`   | Your Binance secret.       |
+| `BITTREX_API_KEY`   | Your Bittrex API key.      |
+| `BITTREX_SECRET`    | Your Bittrex secret.       |
+| `KUCOIN_API_KEY`    | Your Kucoin API key.       |
+| `KUCOIN_SECRET`     | Your Kucoin secret.        |
+
+The following are defaulted or automatically set up, so you can ignore them unless you need to change the defaults:
+
+| Variable                   | Default                                                                                                                                     |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | `LOOP_SECONDS`             | 15                                                                                                                                          |
 | `LOCK_SECONDS`             | 45                                                                                                                                          |
-| `MONGODB_URI`              | Should already have been set up for you by the add-on.                                                                                      |
+| `MONGODB_URI`              | Should already have been set up for you by the MongoDB add-on.                                                                              |
 | `WHITELIST_EXPIRY_SECONDS` | How long an IP whitelisting should last. 86400 (24 hours) is a good default.                                                                |
 | `JAVA_OPTS`                | `-server -Xmx185m -Xms185m -Xss256k -XX:MaxMetaspaceSize=80m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced` |
 | `LOG_LEVEL`                | `INFO` (or `DEBUG` if you need it)                                                                                                          |
