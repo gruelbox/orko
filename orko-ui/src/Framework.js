@@ -160,13 +160,13 @@ export default class Framework extends React.Component {
   }
 
   render() {
-    const { isMobile } = this.state
+    const { isMobile, panels } = this.state
 
     const Tools = () => (
       <ToolbarContainer
         mobile={isMobile}
         onShowViewSettings={this.onToggleViewSettings}
-        panels={this.state.panels}
+        panels={panels}
       />
     )
     const Market = () => <MarketContainer allowAnimate={!isMobile} />
@@ -175,7 +175,7 @@ export default class Framework extends React.Component {
     const Settings = () =>
       this.state.showSettings ? (
         <ViewSettings
-          panels={this.state.panels}
+          panels={panels}
           onChangePanels={this.onChangePanels}
           onClose={this.onToggleViewSettings}
           onReset={this.onResetLayout}
@@ -296,7 +296,7 @@ export default class Framework extends React.Component {
           {header}
           <ResponsiveReactGridLayout
             breakpoints={{ lg: 1630, md: 900, sm: 0 }}
-            cols={{ lg: 20, md: 8, sm: 2 }}
+            cols={{ lg: 20, md: 16, sm: 2 }}
             rowHeight={24}
             layouts={this.state.layouts.asMutable()}
             onLayoutChange={this.onLayoutChange}
