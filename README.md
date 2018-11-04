@@ -110,7 +110,7 @@ Now create a 2FA key:
 ### Get set up on Heroku
 
 1. Create a Heroku account
-1. Click [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
+1. Click [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://bitbucket.org/badgerwithagun/orko)
 1. You'll need Hobby Tier, which means a credit card. It's free until you pass a certain number of minutes running per month. If you want to be a skinflint, just take it down when you're not using it.
 
 Set up the environment variables in addition to those already configured by the add-ons you've provisioned:

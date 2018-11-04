@@ -35,7 +35,7 @@
       "quantity": 1
     }
   },
-  "addons": ["mongolab", "papertrail", "snyk"],
+  "addons": ["mongolab", "papertrail"],
   "buildpacks": [
     {
       "url": "heroku/java"
