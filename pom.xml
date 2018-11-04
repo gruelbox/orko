@@ -13,10 +13,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>orko-worker</module>
     <module>orko-common</module>
-    <module>orko-web</module>
-    <module>orko-ui</module>
     <module>orko-all-in-one</module>
   </modules>
 
@@ -47,7 +44,14 @@
       </modules>
     </profile>
     <profile>
-      <id>all-in-one</id>
+      <id>webdev</id>
+      <modules>
+        <module>orko-common</module>
+        <module>orko-all-in-one</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>production</id>
       <modules>
         <module>orko-common</module>
         <module>orko-ui</module>
@@ -56,6 +60,12 @@
     </profile>
     <profile>
       <id>only-eclipse</id>
+      <modules>
+        <module>orko-common</module>
+        <module>orko-web</module>
+        <module>orko-worker</module>
+        <module>orko-all-in-one</module>
+      </modules>
       <activation>
         <property>
           <name>m2e.version</name>
