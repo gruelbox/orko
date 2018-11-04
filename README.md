@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master)
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
+
 Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen. It supports powerful background processes allowing you to set up stop losses, take profit orders, trailing stops and more, even on exchanges that don't support these types of advanced orders, as well as price and profit/loss level alerts.
 
 It is under active development and is gradually being extended to the point where you will also be able to schedule and monitor complex scripted strategies. It aims to be a one-stop-shop for online cryptocurrency trading.
@@ -109,11 +111,20 @@ Now create a 2FA key:
 
 ### Get set up on Heroku
 
-1. Create a Heroku account
-1. Click [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://bitbucket.org/badgerwithagun/orko)
-1. You'll need Hobby Tier, which means a credit card. It's free until you pass a certain number of minutes running per month. If you want to be a skinflint, just take it down when you're not using it.
+Note that the following settings will result in an application running on the Heroku Free Tier, which will shut down your application after a few minutes of inactivity. This is OK for a demo, but totally unsuitable for running in real life, since monitoring the market in the background is the whole point! If you want to use the application. you'll need Hobby Tier, which means a credit card. If you want to be a skinflint, just take it down when you're not using it.
 
-Set up the environment variables in addition to those already configured by the add-ons you've provisioned:
+Let's get started. Create a Heroku account and [install Heroku CLI locally](https://devcenter.heroku.com/articles/heroku-cli).
+
+Now, from the the directory where you've cloned this repository (the same directly as this README):
+
+```
+> heroku create
+> git push heroku master
+```
+
+Add the following addons: **Papertrail** and **M-labs MongoDB**.
+
+Set up the following environment variables in addition to those already configured by the add-ons you've provisioned:
 
 | Variable             | Set to                                                                                          |
 | -------------------- | ----------------------------------------------------------------------------------------------- |
@@ -154,11 +165,5 @@ The following are defaulted or automatically set up, so you can ignore them unle
 | `LOG_LEVEL`                | `INFO` (or `DEBUG` if you need it)                                                                                                          |
 | `MAVEN_CUSTOM_OPTS`        | `-Pproduction --update-snapshots -DskipTests=true -T 1C`                                                                                    |
 | `MAVEN_CUSTOM_GOALS`       | `clean package`                                                                                                                             |
-
-Now you're ready to deploy. Just type:
-
-```
-git push heroku
-```
 
 That's it! Visit https://your-app-name.herokuapp.com to go through secuity and log in.
