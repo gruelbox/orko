@@ -1,6 +1,6 @@
 # Orko
 
-[![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master) [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+[![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master)
 
 Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen. It supports powerful background processes allowing you to set up stop losses, take profit orders, trailing stops and more, even on exchanges that don't support these types of advanced orders, as well as price and profit/loss level alerts.
 
@@ -109,15 +109,9 @@ Now create a 2FA key:
 
 ### Get set up on Heroku
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://bitbucket.org/badgerwithagun/orko)
-
 1. Create a Heroku account
-1. Install Heroku (links are here: https://devcenter.heroku.com/articles/getting-started-with-java#set-up)
-1. `cd` into the directory where you've cloned the Orko code (the same directory as this README).
-1. Run: `heroku create` to create a new Heroku application.
+1. Click [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
 1. You'll need Hobby Tier, which means a credit card. It's free until you pass a certain number of minutes running per month. If you want to be a skinflint, just take it down when you're not using it.
-1. Add the mLab MongoDB addon (required)
-1. Add the Papertrail addon (optional, but by far the easiest way to handle logs)
 
 Set up the environment variables in addition to those already configured by the add-ons you've provisioned:
 
