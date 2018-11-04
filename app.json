@@ -3,22 +3,31 @@
   "scripts": {},
   "env": {
     "AUTH_TOKEN": {
+      "description": "2FA authentication secret.",
       "required": true
     },
-    "JAVA_OPTS": {
+    "OKTA_BASEURL": {
+      "description": "The issuer from your Okta account.",
       "required": true
     },
-    "MAVEN_CUSTOM_GOALS": {
+    "OKTA_CLIENTID": {
+      "description": "The client id from your Okta account.",
       "required": true
     },
-    "MAVEN_CUSTOM_OPTS": {
+    "OKTA_ISSUER": {
+      "description": "The issue from your Okta account, with '/oauth2/default' at the end.",
       "required": true
     },
+    "JAVA_OPTS": "-server -Xmx185m -Xms185m -Xss256k -XX:MaxMetaspaceSize=80m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced",
+    "MAVEN_CUSTOM_GOALS": "clean package",
+    "MAVEN_CUSTOM_OPTS": "-Pproduction --update-snapshots -DskipTests=true -T 1C",
     "TELEGRAM_BOT_TOKEN": {
-      "required": true
+      "description": "The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used.",
+      "required": false
     },
     "TELEGRAM_CHAT_ID": {
-      "required": true
+      "description": "The Telegram chat ID. May be omitted if TELEGRAM_BOT_TOKEN is.",
+      "required": false
     }
   },
   "formation": {
