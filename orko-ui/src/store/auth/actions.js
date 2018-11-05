@@ -28,7 +28,7 @@ export function connect() {
     var { config, token } = getState().auth
     if (config && config.clientId) {
       if (token) {
-        dispatch(notificationActions.trace("Connecting using token"))
+        dispatch(notificationActions.trace("Connecting using Okta"))
       } else {
         dispatch(
           notificationActions.trace("Not attempting connect, require token")
@@ -36,9 +36,7 @@ export function connect() {
         return
       }
     } else {
-      dispatch(
-        notificationActions.trace("Connecting - no authentication configured")
-      )
+      dispatch(notificationActions.trace("Connecting using main auth"))
     }
     dispatch(coinActions.fetch())
     dispatch(coinActions.fetchReferencePrices())

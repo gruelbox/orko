@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth;
+package com.grahamcrockford.orko.auth.ipwhitelisting;
 
 public interface IpWhitelistAccess {
 

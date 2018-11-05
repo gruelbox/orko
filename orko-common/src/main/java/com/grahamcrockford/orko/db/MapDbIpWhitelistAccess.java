@@ -9,7 +9,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
-import com.grahamcrockford.orko.auth.IpWhitelistAccess;
+import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistAccess;
 
 @Singleton
 class MapDbIpWhitelistAccess implements IpWhitelistAccess {
@@ -21,7 +21,7 @@ class MapDbIpWhitelistAccess implements IpWhitelistAccess {
   MapDbIpWhitelistAccess(MapDbMakerFactory dbMakerFactory, AuthConfiguration authConfiguration) {
     this.db = dbMakerFactory.create("ipwl").make();
     this.ips = db.hashMap("ipwl", Serializer.STRING, Serializer.LONG)
-        .expireAfterUpdate(authConfiguration.getWhitelistExpirySeconds(), TimeUnit.SECONDS)
+        .expireAfterUpdate(authConfiguration.getIpWhitelisting().getWhitelistExpirySeconds(), TimeUnit.SECONDS)
         .createOrOpen();
   }
 

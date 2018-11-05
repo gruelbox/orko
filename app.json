@@ -3,24 +3,55 @@
   "scripts": {},
   "env": {
     "AUTH_TOKEN": {
-      "description": "2FA authentication secret.",
+      "description": "2FA authentication secret for dynamic IP whitelisting. For your own good, this is required.",
       "required": true
     },
     "OKTA_BASEURL": {
-      "description": "The issuer from your Okta account.",
-      "required": true
+      "description": "Set if using Okta for authentication (otherwise leave blank). The issuer from your Okta account.",
+      "required": false
     },
     "OKTA_CLIENTID": {
-      "description": "The client id from your Okta account.",
-      "required": true
+      "description": "Set if using Okta for authentication (otherwise leave blank). The client id from your Okta account.",
+      "required": false
     },
     "OKTA_ISSUER": {
-      "description": "The issue from your Okta account, with '/oauth2/default' at the end.",
-      "required": true
+      "description": "Set if using Okta for authentication (otherwise leave blank). The issue from your Okta account, with '/oauth2/default' at the end.",
+      "required": false
     },
-    "JAVA_OPTS": "-server -Xmx185m -Xms185m -Xss256k -XX:MaxMetaspaceSize=80m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced",
-    "MAVEN_CUSTOM_GOALS": "clean package",
-    "MAVEN_CUSTOM_OPTS": "-Pproduction --update-snapshots -DskipTests=true -T 1C",
+    "SIMPLE_AUTH_USERNAME": {
+      "description": "For self-hosted authentication (otherwise leave blank). A username to require for login.",
+      "required": false
+    },
+    "SIMPLE_AUTH_PASSWORD": {
+      "description": "For self-hosted authentication (otherwise leave blank). A password to require for login.",
+      "required": false
+    },
+    "SIMPLE_AUTH_SECRET": {
+      "description": "For self-hosted authentication (otherwise leave blank). A long, random string of characters of any type.",
+      "required": false,
+      "generator": "secret"
+    },
+    "SIMPLE_AUTH_SECOND_FACTOR": {
+      "description": "For self-hosted authentication (otherwise leave blank). You may either set this to the same value as AUTH_TOKEN, in which case there will be a single 2FA step for your application, or if you want to be super-secure, use a completely different 2FA code.",
+      "required": false
+    },
+    "SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES": {
+      "description": "For self-hosted authentication (otherwise leave blank). The time before each token issued will expire and the user will be forced to log in again, in minutes.",
+      "required": false,
+      "value": "1440"
+    },
+    "JAVA_OPTS": {
+      "description": "You generally shouldn't need to change any of this. It's been well tuned for a Hobby Heroku instance.",
+      "value": "-server -Xmx185m -Xms185m -Xss256k -XX:MaxMetaspaceSize=80m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced"
+    },
+    "MAVEN_CUSTOM_GOALS": {
+      "description": "Used by the Heroku buildpack. Do not change.",
+      "value": "clean package"
+    },
+    "MAVEN_CUSTOM_OPTS": {
+      "description": "Used by the Heroku buildpack. Do not change.",
+      "value": "-Pproduction --update-snapshots -DskipTests=true -T 1C"
+    },
     "TELEGRAM_BOT_TOKEN": {
       "description": "The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used.",
       "required": false

@@ -28,6 +28,7 @@ class AuthContainer extends Component {
     } else if (!this.props.auth.loggedIn && this.props.auth.config) {
       return (
         <Credentials
+          error={this.props.auth.error}
           config={this.props.auth.config}
           onGotToken={(token, userName) =>
             this.props.dispatch(actions.setToken(token, userName))

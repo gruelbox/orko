@@ -3,24 +3,15 @@ package com.grahamcrockford.orko.auth;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistingConfiguration;
+import com.grahamcrockford.orko.auth.jwt.JwtConfiguration;
+import com.grahamcrockford.orko.auth.okta.OktaConfiguration;
 
 public class AuthConfiguration {
 
-  /**
-   * Okta configuration.
-   */
   private OktaConfiguration okta;
-
-  /**
-   * If set, is the 2FA secret key for IP whitelisting. If disabled, so is IP
-   * whitelisting.
-   */
-  private String secretKey;
-
-  /**
-   * How long whitelisting should live for.
-   */
-  private int whitelistExpirySeconds = 28800;
+  private JwtConfiguration jwt;
+  private IpWhitelistingConfiguration ipWhitelisting;
 
   /**
    * Set to {@code true} on Heroku so it uses the `X-Forwarded-For` header to
@@ -45,42 +36,22 @@ public class AuthConfiguration {
   }
 
   @JsonProperty
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  @JsonProperty
-  public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
-  }
-
-  @JsonProperty
-  public Integer getWhitelistExpirySeconds() {
-    return whitelistExpirySeconds;
-  }
-
-  @JsonProperty
-  public void setWhitelistExpirySeconds(Integer whitelistExpirySeconds) {
-    this.whitelistExpirySeconds = whitelistExpirySeconds;
-  }
-
-  @JsonProperty
   public boolean isProxied() {
     return proxied;
   }
 
   @JsonProperty
-  public void setProxied(boolean proxied) {
+  void setProxied(boolean proxied) {
     this.proxied = proxied;
   }
 
   @JsonProperty
-  public boolean isHttpsOnly() {
+  boolean isHttpsOnly() {
     return httpsOnly;
   }
 
   @JsonProperty
-  public void setHttpsOnly(boolean httpsOnly) {
+  void setHttpsOnly(boolean httpsOnly) {
     this.httpsOnly = httpsOnly;
   }
 
@@ -90,7 +61,27 @@ public class AuthConfiguration {
   }
 
   @JsonProperty
-  public void setAuthCachePolicy(String authCachePolicy) {
+  void setAuthCachePolicy(String authCachePolicy) {
     this.authCachePolicy = authCachePolicy;
+  }
+
+  @JsonProperty
+  public JwtConfiguration getJwt() {
+    return jwt;
+  }
+
+  @JsonProperty
+  public void setJwt(JwtConfiguration jwt) {
+    this.jwt = jwt;
+  }
+
+  @JsonProperty
+  public IpWhitelistingConfiguration getIpWhitelisting() {
+    return ipWhitelisting;
+  }
+
+  @JsonProperty
+  public void setIpWhitelisting(IpWhitelistingConfiguration ipWhitelisting) {
+    this.ipWhitelisting = ipWhitelisting;
   }
 }

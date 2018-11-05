@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth;
+package com.grahamcrockford.orko.auth.ipwhitelisting;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 
 /**
@@ -36,7 +37,7 @@ class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-    if (StringUtils.isEmpty(configuration.getSecretKey()))
+    if (configuration.getIpWhitelisting() != null &&  StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey()))
       return true;
     String sourceIp = sourceIp();
     if (!ipWhitelistAccess.exists(sourceIp)) {
@@ -47,11 +48,11 @@ class IpWhitelisting {
   }
 
   public boolean whiteListRequestIp(int token) {
-    if (StringUtils.isEmpty(configuration.getSecretKey()))
+    if (configuration.getIpWhitelisting() != null &&  StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey()))
       return true;
 
     String ip = sourceIp();
-    if (!googleAuthenticator.authorize(configuration.getSecretKey(), token)) {
+    if (!googleAuthenticator.authorize(configuration.getIpWhitelisting().getSecretKey(), token)) {
       LOGGER.error("Whitelist attempt failed from: " + ip);
       return false;
     }

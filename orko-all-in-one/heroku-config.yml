@@ -2,8 +2,15 @@ loopSeconds: ${LOOP_SECONDS:-15}
 auth:
   httpsOnly: true
   proxied: true
-  whitelistExpirySeconds: ${WHITELIST_EXPIRY_SECONDS:-86400}
-  secretKey: ${AUTH_TOKEN:-}
+  ipWhitelisting:
+    whitelistExpirySeconds: ${WHITELIST_EXPIRY_SECONDS:-86400}
+    secretKey: ${AUTH_TOKEN:-}
+  jwt:
+    userName: ${SIMPLE_AUTH_USERNAME:-}
+    password: ${SIMPLE_AUTH_PASSWORD:-}
+    secret: ${SIMPLE_AUTH_SECRET:-}
+    secondFactorSecret: ${SIMPLE_AUTH_SECOND_FACTOR:-}
+    expirationMinutes: ${SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES:-1440}
   okta:
     baseUrl: ${OKTA_BASEURL:-}
     issuer: ${OKTA_ISSUER:-}

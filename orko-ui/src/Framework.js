@@ -70,13 +70,10 @@ const basePanels = Immutable([
 const baseLayouts = Immutable({
   lg: [
     { i: "coins", x: 0, y: 100, w: 4, h: 22 },
-    { i: "notifications", x: 0, y: 200, w: 6, h: 9 },
-
+    { i: "notifications", x: 0, y: 200, w: 4, h: 9 },
     { i: "chart", x: 4, y: 100, w: 9, h: 18 },
     { i: "balance", x: 4, y: 200, w: 9, h: 4 },
-
-    { i: "tradeSelector", x: 6, y: 300, w: 7, h: 9 },
-
+    { i: "tradeSelector", x: 4, y: 300, w: 9, h: 9 },
     { i: "marketData", x: 13, y: 100, w: 7, h: 11 },
     { i: "openOrders", x: 13, y: 200, w: 7, h: 11 },
     { i: "jobs", x: 13, y: 300, w: 7, h: 9 }

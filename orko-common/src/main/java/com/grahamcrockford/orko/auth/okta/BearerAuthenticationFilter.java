@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth;
+package com.grahamcrockford.orko.auth.okta;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -8,12 +8,15 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AbstractHttpSecurityServletFilter;
+import com.grahamcrockford.orko.auth.Roles;
 
 import io.dropwizard.auth.AuthenticationException;
 
@@ -25,8 +28,6 @@ import io.dropwizard.auth.AuthenticationException;
 @Singleton
 @Priority(102)
 class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
-
-  static final String AUTHORIZATION = "authorization";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BearerAuthenticationFilter.class);
 
@@ -45,7 +46,7 @@ class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
     String fullPath = request.getContextPath() + request.getServletPath() + request.getPathInfo();
 
-    String authorization = request.getHeader(AUTHORIZATION);
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (authorization == null || !authorization.startsWith("Bearer ") || authorization.length() <= 7) {
       LOGGER.warn(fullPath + ": invalid auth header: " + authorization);
       response.sendError(401);
