@@ -32,7 +32,7 @@ public class JwtEnvironment implements EnvironmentInitialiser {
       environment.servlets().addFilter(JwtAuthenticationFilter.class.getSimpleName(), jwtAuthenticationFilter.get())
         .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(JwtAuthenticationFilter.class.getSimpleName(), jwtAuthenticationFilter.get())
-        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
+        .addMappingForUrlPatterns(null, true, "/*");
     }
   }
 }

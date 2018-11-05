@@ -38,7 +38,7 @@ public class OktaEnvironment implements EnvironmentInitialiser {
       environment.servlets().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())
         .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())
-        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
+        .addMappingForUrlPatterns(null, true, "/*");
     }
   }
 }

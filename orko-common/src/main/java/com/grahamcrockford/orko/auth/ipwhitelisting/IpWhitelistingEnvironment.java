@@ -41,7 +41,7 @@ public class IpWhitelistingEnvironment implements EnvironmentInitialiser {
       environment.servlets().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter)
         .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter)
-        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
+        .addMappingForUrlPatterns(null, true, "/*");
     }
   }
 }
