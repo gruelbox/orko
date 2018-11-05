@@ -16,7 +16,7 @@ import com.google.common.base.Suppliers;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
-import com.grahamcrockford.orko.auth.IpWhitelistAccess;
+import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistAccess;
 import com.grahamcrockford.orko.db.DbConfiguration;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;

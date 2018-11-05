@@ -8,6 +8,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.orko.OrkoConfiguration;
+import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 import com.grahamcrockford.orko.wiring.WebResource;
 import com.okta.jwt.JwtHelper;
@@ -21,6 +22,7 @@ public class AuthModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new GoogleAuthenticatorModule());
+    install(new IpWhitelistingModule());
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(AuthResource.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
   }

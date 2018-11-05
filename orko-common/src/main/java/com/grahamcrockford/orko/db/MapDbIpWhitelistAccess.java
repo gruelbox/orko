@@ -9,7 +9,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
-import com.grahamcrockford.orko.auth.IpWhitelistAccess;
+import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistAccess;
 
 @Singleton
 class MapDbIpWhitelistAccess implements IpWhitelistAccess {

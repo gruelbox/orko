@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class AbstractHttpSecurityServletFilter implements Filter {
+public abstract class AbstractHttpSecurityServletFilter implements Filter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHttpSecurityServletFilter.class);
 

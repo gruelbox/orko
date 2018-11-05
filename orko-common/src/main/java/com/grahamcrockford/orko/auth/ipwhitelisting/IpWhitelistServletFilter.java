@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth;
+package com.grahamcrockford.orko.auth.ipwhitelisting;
 
 import java.io.IOException;
 
@@ -11,6 +11,8 @@ import javax.ws.rs.core.Response;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AbstractHttpSecurityServletFilter;
+import com.grahamcrockford.orko.auth.AuthResource;
 
 /**
  * Container-level filter which only allows access to {@link AuthResource} if
