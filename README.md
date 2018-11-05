@@ -161,40 +161,11 @@ Optionally, you can add any of these to add authenticated support for exchanges 
 | `KUCOIN_API_KEY`    | Your Kucoin API key.       |
 | `KUCOIN_SECRET`     | Your Kucoin secret.        |
 
-The following are defaulted or automatically set up, so you can ignore them unless you need to change the defaults:
-
-| Variable                   | Default                                                                                                                                     |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LOOP_SECONDS`             | 15                                                                                                                                          |
-| `LOCK_SECONDS`             | 45                                                                                                                                          |
-| `MONGODB_URI`              | Should already have been set up for you by the MongoDB add-on.                                                                              |
-| `WHITELIST_EXPIRY_SECONDS` | How long an IP whitelisting should last. 86400 (24 hours) is a good default.                                                                |
-| `JAVA_OPTS`                | `-server -Xmx185m -Xms185m -Xss256k -XX:MaxMetaspaceSize=80m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced` |
-| `LOG_LEVEL`                | `INFO` (or `DEBUG` if you need it)                                                                                                          |
-| `MAVEN_CUSTOM_OPTS`        | `-Pproduction --update-snapshots -DskipTests=true -T 1C`                                                                                    |
-| `MAVEN_CUSTOM_GOALS`       | `clean package`                                                                                                                             |
+There are some [more settings](https://github.com/badgerwithagun/orko/wiki/Optional-Heroku-settings) if you want to start tweaking.
 
 That's it! Visit https://your-app-name.herokuapp.com to go through secuity and log in.
 
 ### Delegate your security
 
-If you don't trust home-grown JWT issuance or storing credentials on Heroku, you can optionally delegate authentication to Okta:
+If you don't trust home-grown JWT issuance or storing credentials on Heroku, you can optionally [delegate authentication to Okta](https://github.com/badgerwithagun/orko/wiki/Delegated-authentication-with-Okta).
 
-1. Create a basic (free) account at https://www.okta.com/
-1. Add any 2FA or whatever you feel appropriate to this account.
-1. Create new application of type Single Page App (SPA), allowing both ID token and Access Token
-1. Set your Login redirect URI and Initiate login URI to the address of your front-end server.
-1. Note down the client ID and set it in your backend app's environment variables.
-1. Go to the Sign On tab and note the `Issuer` and `Client id`.
-1. Now change your Heroku environment variables as follows:
-
-| Variable                           | Set to                                                                                   |
-| ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| `AUTH_TOKEN`                       | Your 2FA secret key. Can be omitted if you don't want this additional layer of security. |
-| `OKTA_BASEURL`                     | The Okta issuer.                                                                         |
-| `OKTA_CLIENTID`                    | The Okta client ID.                                                                      |
-| `OKTA_ISSUER`                      | The Okta issuer appended with `/oauth2/default`                                          |
-| `SIMPLE_AUTH_USERNAME`             | REMOVE THIS                                                                              |
-| `SIMPLE_AUTH_PASSWORD`             | REMOVE THIS                                                                              |
-| `SIMPLE_AUTH_SECRET`               | REMOVE THIS                                                                              |
-| `SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES` | REMOVE THIS                                                                              |
