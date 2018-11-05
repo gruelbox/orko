@@ -25,13 +25,12 @@ import com.google.inject.Singleton;
 @Priority(101)
 class ProtocolToBearerTranslationFilter extends AbstractHttpSecurityServletFilter {
 
-  private static final String PROTOCOL = "sec-websocket-protocol";
   private static final Logger LOGGER = LoggerFactory.getLogger(ProtocolToBearerTranslationFilter.class);
 
   @Override
   protected boolean filterHttpRequest(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-    String protocol = request.getHeader(PROTOCOL);
+    String protocol = request.getHeader(Headers.SEC_WEBSOCKET_PROTOCOL);
     if (protocol == null || !protocol.startsWith("auth, ") || protocol.length() < 7) {
       return true;
     }
@@ -47,9 +46,9 @@ class ProtocolToBearerTranslationFilter extends AbstractHttpSecurityServletFilte
           @Override
           public String getHeader(String name) {
             String lowerCase = name.toLowerCase();
-            if (BearerAuthenticationFilter.AUTHORIZATION.equals(lowerCase)) {
+            if (Headers.AUTHORIZATION.equals(lowerCase)) {
               return "Bearer " + accessToken;
-            } else if (PROTOCOL.equals(lowerCase)) {
+            } else if (Headers.SEC_WEBSOCKET_PROTOCOL.equals(lowerCase)) {
               return null;
             } else {
               return super.getHeader(name);
@@ -59,7 +58,7 @@ class ProtocolToBearerTranslationFilter extends AbstractHttpSecurityServletFilte
           @Override
           public Enumeration<String> getHeaders(String name) {
             String lowerCase = name.toLowerCase();
-            if (PROTOCOL.equals(lowerCase)) {
+            if (Headers.SEC_WEBSOCKET_PROTOCOL.equals(lowerCase)) {
               return new EmptyEnumeration();
             } else {
               return super.getHeaders(name);

@@ -26,8 +26,6 @@ import io.dropwizard.auth.AuthenticationException;
 @Priority(102)
 class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
-  static final String AUTHORIZATION = "authorization";
-
   private static final Logger LOGGER = LoggerFactory.getLogger(BearerAuthenticationFilter.class);
 
   private final OrkoAuthenticator authenticator;
@@ -45,7 +43,7 @@ class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
     String fullPath = request.getContextPath() + request.getServletPath() + request.getPathInfo();
 
-    String authorization = request.getHeader(AUTHORIZATION);
+    String authorization = request.getHeader(Headers.AUTHORIZATION);
     if (authorization == null || !authorization.startsWith("Bearer ") || authorization.length() <= 7) {
       LOGGER.warn(fullPath + ": invalid auth header: " + authorization);
       response.sendError(401);
