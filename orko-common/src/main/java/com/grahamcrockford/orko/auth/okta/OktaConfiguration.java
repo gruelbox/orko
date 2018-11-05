@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth;
+package com.grahamcrockford.orko.auth.okta;
 
 import javax.validation.constraints.NotNull;
 

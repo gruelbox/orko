@@ -8,6 +8,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.codahale.metrics.annotation.Timed;
+import com.grahamcrockford.orko.auth.okta.OktaConfiguration;
 import com.grahamcrockford.orko.wiring.WebResource;
 
 @Path("/auth")

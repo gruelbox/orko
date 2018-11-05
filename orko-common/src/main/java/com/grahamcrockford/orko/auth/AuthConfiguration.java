@@ -3,6 +3,7 @@ package com.grahamcrockford.orko.auth;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grahamcrockford.orko.auth.okta.OktaConfiguration;
 
 public class AuthConfiguration {
 

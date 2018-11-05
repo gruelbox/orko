@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.spi.AccessTokenPrincipal;
+import com.grahamcrockford.orko.auth.spi.OrkoAuthenticator;
+import com.grahamcrockford.orko.auth.spi.OrkoAuthorizer;
 
 import io.dropwizard.auth.AuthenticationException;
 

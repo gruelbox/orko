@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth;
+package com.grahamcrockford.orko.auth.spi;
 
 import java.security.Principal;
 
@@ -8,7 +8,7 @@ public class AccessTokenPrincipal implements Principal {
 
   private final Jwt accessToken;
 
-  AccessTokenPrincipal(Jwt accessToken) {
+  public AccessTokenPrincipal(Jwt accessToken) {
       this.accessToken = accessToken;
   }
 
