@@ -29,6 +29,14 @@
 			<artifactId>orko-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+          <groupId>io.dropwizard</groupId>
+          <artifactId>dropwizard-assets</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tuckey</groupId>
+            <artifactId>urlrewritefilter</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>

@@ -37,67 +37,28 @@
       <groupId>com.liveperson</groupId>
       <artifactId>dropwizard-websockets</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-assets</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tuckey</groupId>
+      <artifactId>urlrewritefilter</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.okta.jwt</groupId>
       <artifactId>okta-jwt-verifier</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.bitbucket.b_c</groupId>
-        <artifactId>jose4j</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-core</artifactId>
+      <groupId>org.bitbucket.b_c</groupId>
+      <artifactId>jose4j</artifactId>
     </dependency>
     <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
-      <artifactId>xchange-stream-core</artifactId>
+      <groupId>com.warrenstrange</groupId>
+      <artifactId>googleauth</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-gdax</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
-      <artifactId>xchange-gdax</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-binance</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
-      <artifactId>xchange-binance</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-kucoin</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-cryptopia</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-bitfinex</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
-      <artifactId>xchange-bitfinex</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-bittrex</artifactId>
-    </dependency>
-
+    
     <dependency>
       <groupId>org.mongojack</groupId>
       <artifactId>mongojack</artifactId>
@@ -127,7 +88,10 @@
       <groupId>com.google.inject.extensions</groupId>
       <artifactId>guice-servlet</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>one.util</groupId>
+      <artifactId>streamex</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.auto.value</groupId>
       <artifactId>auto-value</artifactId>
@@ -140,15 +104,6 @@
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.warrenstrange</groupId>
-      <artifactId>googleauth</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>one.util</groupId>
-      <artifactId>streamex</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.mockito</groupId>
@@ -158,6 +113,58 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.knowm.xchange</groupId>
+      <artifactId>xchange-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.knowm.xchange</groupId>
+      <artifactId>xchange-gdax</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.knowm.xchange</groupId>
+      <artifactId>xchange-binance</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.knowm.xchange</groupId>
+      <artifactId>xchange-kucoin</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.knowm.xchange</groupId>
+      <artifactId>xchange-cryptopia</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.knowm.xchange</groupId>
+      <artifactId>xchange-bitfinex</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.knowm.xchange</groupId>
+      <artifactId>xchange-bittrex</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <artifactId>xchange-stream-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <artifactId>xchange-gdax</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <artifactId>xchange-binance</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <artifactId>xchange-bitfinex</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.github.badgerwithagun</groupId>
+      <artifactId>dropwizard-web-security</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>

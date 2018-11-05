@@ -19,8 +19,8 @@
 
   <repositories>
     <repository>
-      <id>xchange-stream-mvn-repo</id>
-      <url>https://raw.github.com/badgerwithagun/xchange-stream/mvn-repo/</url>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>always</updatePolicy>
@@ -73,7 +73,7 @@
       </activation>
       <build>
         <pluginManagement>
-          <plugins>            
+          <plugins>
             <plugin>
               <groupId>org.eclipse.m2e</groupId>
               <artifactId>lifecycle-mapping</artifactId>
@@ -124,10 +124,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <dropwizard.version>1.3.5</dropwizard.version>
+    <dropwizard.version>1.3.7</dropwizard.version>
 
     <xchange.version>4.3.11</xchange.version>
-    <xchange.stream.version>4.3.12-SNAPSHOT</xchange.stream.version>
+    <xchange.stream.version>develop-plus-SNAPSHOT</xchange.stream.version>
 
     <streamex.version>0.6.7</streamex.version>
     <guice.version>4.2.1</guice.version>
@@ -142,6 +142,7 @@
     <okta-jwt-verifier-version>0.3.0</okta-jwt-verifier-version>
     <jose4j.version>0.6.4</jose4j.version>
     <dropwizard-websockets-version>1.3.2</dropwizard-websockets-version>
+    <dropwizard.web.security.version>1.1.0</dropwizard.web.security.version>
     <urlrewritefilter.version>4.0.4</urlrewritefilter.version>
 
     <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
@@ -178,76 +179,6 @@
         <groupId>javax.ws.rs</groupId>
         <artifactId>javax.ws.rs-api</artifactId>
         <version>2.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-core</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>info.bitrich.xchange-stream</groupId>
-        <artifactId>xchange-stream-core</artifactId>
-        <version>${xchange.stream.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>info.bitrich.xchange-stream</groupId>
-        <artifactId>xchange-binance</artifactId>
-        <version>${xchange.stream.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>info.bitrich.xchange-stream</groupId>
-        <artifactId>xchange-bitfinex</artifactId>
-        <version>${xchange.stream.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>info.bitrich.xchange-stream</groupId>
-        <artifactId>xchange-okcoin</artifactId>
-        <version>${xchange.stream.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>info.bitrich.xchange-stream</groupId>
-        <artifactId>xchange-gdax</artifactId>
-        <version>${xchange.stream.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-binance</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-kucoin</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-gdax</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-cryptopia</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-bitfinex</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-bittrex</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-bitmex</artifactId>
-        <version>${xchange.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.knowm.xchange</groupId>
-        <artifactId>xchange-okcoin</artifactId>
-        <version>${xchange.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -307,9 +238,9 @@
         <version>${mongojack.version}</version>
       </dependency>
       <dependency>
-          <groupId>org.mapdb</groupId>
-          <artifactId>mapdb</artifactId>
-          <version>${mapdb.version}</version>
+        <groupId>org.mapdb</groupId>
+        <artifactId>mapdb</artifactId>
+        <version>${mapdb.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject.extensions</groupId>
@@ -332,15 +263,88 @@
         <version>${okta-jwt-verifier-version}</version>
       </dependency>
       <dependency>
-          <groupId>org.bitbucket.b_c</groupId>
-          <artifactId>jose4j</artifactId>
-          <version>${jose4j.version}</version>
+        <groupId>org.bitbucket.b_c</groupId>
+        <artifactId>jose4j</artifactId>
+        <version>${jose4j.version}</version>
       </dependency>
       <dependency>
         <groupId>com.liveperson</groupId>
         <artifactId>dropwizard-websockets</artifactId>
         <version>${dropwizard-websockets-version}</version>
       </dependency>
+      
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-core</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-binance</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-kucoin</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-gdax</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-cryptopia</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-bitfinex</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-bittrex</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-bitmex</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.knowm.xchange</groupId>
+        <artifactId>xchange-okcoin</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+        <artifactId>xchange-stream-core</artifactId>
+        <version>${xchange.stream.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+        <artifactId>xchange-binance</artifactId>
+        <version>${xchange.stream.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+        <artifactId>xchange-bitfinex</artifactId>
+        <version>${xchange.stream.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+        <artifactId>xchange-gdax</artifactId>
+        <version>${xchange.stream.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.badgerwithagun</groupId>
+        <artifactId>dropwizard-web-security</artifactId>
+        <version>${dropwizard.web.security.version}</version>
+      </dependency>
+      
     </dependencies>
   </dependencyManagement>
 </project>

@@ -12,6 +12,9 @@ import com.grahamcrockford.orko.db.DbConfiguration;
 import com.grahamcrockford.orko.exchange.ExchangeConfiguration;
 import com.grahamcrockford.orko.mq.MqConfiguration;
 import com.grahamcrockford.orko.notification.TelegramConfiguration;
+import com.palantir.websecurity.WebSecurityConfigurable;
+import com.palantir.websecurity.WebSecurityConfiguration;
+
 import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.server.AbstractServerFactory;
@@ -19,7 +22,7 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Runtime config. Should really be broken up.
  */
-public class OrkoConfiguration extends Configuration {
+public class OrkoConfiguration extends Configuration implements WebSecurityConfigurable {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -137,5 +140,15 @@ public class OrkoConfiguration extends Configuration {
   public String getRootPath() {
     AbstractServerFactory serverFactory = (AbstractServerFactory) getServerFactory();
     return serverFactory.getJerseyRootPath().orElse("/") + "*";
+  }
+
+  @JsonProperty("webSecurity")
+  @NotNull
+  @Valid
+  private final WebSecurityConfiguration webSecurity = WebSecurityConfiguration.DEFAULT;
+
+  @Override
+  public WebSecurityConfiguration getWebSecurityConfiguration() {
+      return this.webSecurity;
   }
 }
