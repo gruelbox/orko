@@ -6,10 +6,12 @@ import com.google.common.cache.CacheBuilderSpec;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.grahamcrockford.orko.auth.spi.AccessTokenPrincipal;
 import com.grahamcrockford.orko.auth.spi.OrkoAuthenticator;
 import com.grahamcrockford.orko.auth.spi.OrkoAuthorizer;
+import com.grahamcrockford.orko.wiring.WebResource;
 import com.okta.jwt.JwtHelper;
 import com.okta.jwt.JwtVerifier;
 
@@ -17,6 +19,11 @@ import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.setup.Environment;
 
 public class OktaModule extends AbstractModule {
+
+  @Override
+  protected void configure() {
+    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(OktaResource.class);
+  }
 
   @Provides
   @Singleton

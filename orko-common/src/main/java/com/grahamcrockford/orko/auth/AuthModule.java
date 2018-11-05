@@ -7,7 +7,6 @@ import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.grahamcrockford.orko.auth.okta.OktaModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
-import com.grahamcrockford.orko.wiring.WebResource;
 
 public class AuthModule extends AbstractModule {
 
@@ -16,7 +15,6 @@ public class AuthModule extends AbstractModule {
     install(new GoogleAuthenticatorModule());
     install(new IpWhitelistingModule());
     install(new OktaModule());
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(AuthResource.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
   }
 

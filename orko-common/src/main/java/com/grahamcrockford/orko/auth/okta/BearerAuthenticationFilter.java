@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth;
+package com.grahamcrockford.orko.auth.okta;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AbstractHttpSecurityServletFilter;
+import com.grahamcrockford.orko.auth.Headers;
+import com.grahamcrockford.orko.auth.Roles;
 import com.grahamcrockford.orko.auth.spi.AccessTokenPrincipal;
 import com.grahamcrockford.orko.auth.spi.OrkoAuthenticator;
 import com.grahamcrockford.orko.auth.spi.OrkoAuthorizer;
