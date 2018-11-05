@@ -4,6 +4,7 @@ import javax.inject.Inject;
 
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistingEnvironment;
 import com.grahamcrockford.orko.auth.jwt.JwtEnvironment;
 import com.grahamcrockford.orko.auth.okta.OktaEnvironment;
@@ -19,17 +20,20 @@ class AuthEnvironment implements EnvironmentInitialiser {
   private final OktaEnvironment oktaEnvironment;
   private final JwtEnvironment jwtEnvironment;
   private final Provider<ProtocolToBearerTranslationFilter> protocolToBearerTranslationFilter;
+  private final OrkoConfiguration appConfiguration;
 
 
   @Inject
   AuthEnvironment(IpWhitelistingEnvironment ipWhitelistingEnvironment,
                   OktaEnvironment oktaEnvironment,
                   JwtEnvironment jwtEnvironment,
-                  Provider<ProtocolToBearerTranslationFilter> protocolToBearerTranslationFilter) {
+                  Provider<ProtocolToBearerTranslationFilter> protocolToBearerTranslationFilter,
+                  OrkoConfiguration appConfiguration) {
     this.ipWhitelistingEnvironment = ipWhitelistingEnvironment;
     this.oktaEnvironment = oktaEnvironment;
     this.jwtEnvironment = jwtEnvironment;
     this.protocolToBearerTranslationFilter = protocolToBearerTranslationFilter;
+    this.appConfiguration = appConfiguration;
   }
 
   @Override
@@ -39,9 +43,10 @@ class AuthEnvironment implements EnvironmentInitialiser {
     ipWhitelistingEnvironment.init(environment);
 
     // Interceptor to convert protocol header into Bearer for use in websocket comms
+    String rootPath = appConfiguration.getRootPath();
     String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
     environment.servlets().addFilter(ProtocolToBearerTranslationFilter.class.getSimpleName(), protocolToBearerTranslationFilter.get())
-      .addMappingForUrlPatterns(null, true, websocketEntryFilter);
+      .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
 
     // Finally Okta
     oktaEnvironment.init(environment);

@@ -3,36 +3,40 @@
   "scripts": {},
   "env": {
     "AUTH_TOKEN": {
-      "description": "2FA authentication secret. For your own good, this is required.",
+      "description": "2FA authentication secret for dynamic IP whitelisting. For your own good, this is required.",
       "required": true
     },
     "OKTA_BASEURL": {
-      "description": "If using Okta for authentication (otherwise leave blank). The issuer from your Okta account.",
+      "description": "Set if using Okta for authentication (otherwise leave blank). The issuer from your Okta account.",
       "required": false
     },
     "OKTA_CLIENTID": {
-      "description": "If using Okta for authentication (otherwise leave blank). The client id from your Okta account.",
+      "description": "Set if using Okta for authentication (otherwise leave blank). The client id from your Okta account.",
       "required": false
     },
     "OKTA_ISSUER": {
-      "description": "If using Okta for authentication (otherwise leave blank). The issue from your Okta account, with '/oauth2/default' at the end.",
+      "description": "Set if using Okta for authentication (otherwise leave blank). The issue from your Okta account, with '/oauth2/default' at the end.",
       "required": false
     },
     "SIMPLE_AUTH_USERNAME": {
-      "description": "If using self-hosted authentication (otherwise leave blank). A username to require for login.",
+      "description": "For self-hosted authentication (otherwise leave blank). A username to require for login.",
       "required": false
     },
     "SIMPLE_AUTH_PASSWORD": {
-      "description": "If using self-hosted authentication (otherwise leave blank). A password to require for login.",
+      "description": "For self-hosted authentication (otherwise leave blank). A password to require for login.",
       "required": false
     },
     "SIMPLE_AUTH_SECRET": {
-      "description": "If using self-hosted authentication (otherwise leave blank). A long, random string of characters of any type.",
+      "description": "For self-hosted authentication (otherwise leave blank). A long, random string of characters of any type.",
       "required": false,
       "generator": "secret"
     },
+    "SIMPLE_AUTH_SECOND_FACTOR": {
+      "description": "For self-hosted authentication (otherwise leave blank). You may either set this to the same value as AUTH_TOKEN, in which case there will be a single 2FA step for your application, or if you want to be super-secure, use a completely different 2FA code.",
+      "required": false
+    },
     "SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES": {
-      "description": "If using self-hosted authentication (otherwise leave blank). The time before each token issued will expire and the user will be forced to log in again, in minutes.",
+      "description": "For self-hosted authentication (otherwise leave blank). The time before each token issued will expire and the user will be forced to log in again, in minutes.",
       "required": false,
       "value": "1440"
     },

@@ -6,6 +6,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
@@ -17,6 +19,8 @@ import io.dropwizard.auth.PrincipalImpl;
 
 @Singleton
 class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LoginAuthenticator.class);
 
   private final AuthConfiguration authConfiguration;
   private final GoogleAuthenticator googleAuthenticator;
@@ -35,6 +39,7 @@ class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
     if (valid(credentials)) {
       return Optional.of(new PrincipalImpl(credentials.getUsername()));
     }
+    LOGGER.warn("Invalid login attempt by [" + credentials.getUsername() + "]");
     return Optional.empty();
   }
 
@@ -45,11 +50,11 @@ class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
   }
 
   private boolean passesSecondFactor(LoginRequest credentials) {
-    if (StringUtils.isEmpty(authConfiguration.getSecretKey()))
+    if (StringUtils.isEmpty(authConfiguration.getJwt().getSecondFactorSecret()))
       return true;
     if (credentials.getSecondFactor() == null) {
       return false;
     }
-    return googleAuthenticator.authorize(authConfiguration.getSecretKey(), credentials.getSecondFactor());
+    return googleAuthenticator.authorize(authConfiguration.getJwt().getSecondFactorSecret(), credentials.getSecondFactor());
   }
 }

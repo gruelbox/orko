@@ -37,7 +37,7 @@ class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-    if (StringUtils.isEmpty(configuration.getSecretKey()))
+    if (configuration.getIpWhitelisting() != null &&  StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey()))
       return true;
     String sourceIp = sourceIp();
     if (!ipWhitelistAccess.exists(sourceIp)) {
@@ -48,11 +48,11 @@ class IpWhitelisting {
   }
 
   public boolean whiteListRequestIp(int token) {
-    if (StringUtils.isEmpty(configuration.getSecretKey()))
+    if (configuration.getIpWhitelisting() != null &&  StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey()))
       return true;
 
     String ip = sourceIp();
-    if (!googleAuthenticator.authorize(configuration.getSecretKey(), token)) {
+    if (!googleAuthenticator.authorize(configuration.getIpWhitelisting().getSecretKey(), token)) {
       LOGGER.error("Whitelist attempt failed from: " + ip);
       return false;
     }

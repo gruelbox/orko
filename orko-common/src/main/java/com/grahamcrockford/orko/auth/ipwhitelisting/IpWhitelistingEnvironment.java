@@ -37,7 +37,7 @@ public class IpWhitelistingEnvironment implements EnvironmentInitialiser {
     String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
 
     // Apply IP whitelisting outside the authentication stack so we can provide a different response
-    if (StringUtils.isNotEmpty(authConfiguration.getSecretKey())) {
+    if (authConfiguration.getIpWhitelisting() != null && StringUtils.isNotEmpty(authConfiguration.getIpWhitelisting().getSecretKey())) {
       environment.servlets().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter)
         .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter)

@@ -115,15 +115,16 @@ Add the following addons: **Papertrail** and **M-labs MongoDB**.
 
 Set up the following environment variables in addition to those already configured by the add-ons you've provisioned:
 
-| Variable                           | Set to                                                                                                                            |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN`               | The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used.                                   |
-| `TELEGRAM_CHAT_ID`                 | The Telegram chat ID. May be omitted if `TELEGRAM_BOT_TOKEN` is.                                                                  |
-| `AUTH_TOKEN`                       | Your 2FA secret key. Can be omitted if you don't want this additional layer of security.                                          |
-| `SIMPLE_AUTH_USERNAME`             | The username you want to use when logging in.                                                                                     |
-| `SIMPLE_AUTH_PASSWORD`             | The password you want to use when logging in.                                                                                     |
-| `SIMPLE_AUTH_SECRET`               | A long, randomised string of characters to act as the cryptocraphic seed for issued tokens.                                       |
-| `SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES` | he time before each token issued will expire and the user will be forced to log in again, in minutes. 1440 is a sensible default. |
+| Variable                           | Set to                                                                                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TELEGRAM_BOT_TOKEN`               | The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used.                                                        |
+| `TELEGRAM_CHAT_ID`                 | The Telegram chat ID. May be omitted if `TELEGRAM_BOT_TOKEN` is.                                                                                       |
+| `AUTH_TOKEN`                       | Your 2FA secret key used when whitelisting an IP. Can be omitted if you don't want this additional layer of security.                                  |
+| `SIMPLE_AUTH_USERNAME`             | The username you want to use when logging in.                                                                                                          |
+| `SIMPLE_AUTH_PASSWORD`             | The password you want to use when logging in.                                                                                                          |
+| `SIMPLE_AUTH_SECRET`               | A long, randomised string of characters to act as the cryptocraphic seed for issued tokens.                                                            |
+| `SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES` | The time before each token issued will expire and the user will be forced to log in again, in minutes. 1440 is a sensible default.                     |
+| `SIMPLE_AUTH_SECOND_FACTOR`        | A 2FA secret key used when logging in. Can either be same value as AUTH_TOKEN, or if you want to be super-secure, use a completely different 2FA code. |
 
 Optionally, you can add any of these to add authenticated support for exchanges where you have API keys:
 

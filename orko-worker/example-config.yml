@@ -1,9 +1,20 @@
 loopSeconds: 3
 auth:
-  httpsOnly: false
-#  secretKey: Generate this using com.grahamcrockford.orko.cli.GenerateSecretKey when you move to production
-  proxied: false #  Set this to true if you edploy to Heroku
-  whitelistExpirySeconds: 14400
+  httpsOnly: true
+  proxied: true
+#  ipWhitelisting:
+#    whitelistExpirySeconds: 86400
+#    secretKey: YOURTOKEN
+#  jwt:
+#    userName: joe
+#    password: bloggs
+#    secret: CHANGEME
+#    secondFactorSecret: YOURTOKEN
+#    expirationMinutes: 1440
+#  okta:
+#    baseUrl: SEE
+#    issuer: THE
+#    clientId: README
 database:
   mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017/yourdb # Your mongoDB connection details.
   lockSeconds: 10

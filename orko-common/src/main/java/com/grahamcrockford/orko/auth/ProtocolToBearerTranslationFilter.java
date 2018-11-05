@@ -46,10 +46,9 @@ class ProtocolToBearerTranslationFilter extends AbstractHttpSecurityServletFilte
 
           @Override
           public String getHeader(String name) {
-            String lowerCase = name.toLowerCase();
-            if (HttpHeaders.AUTHORIZATION.equals(lowerCase)) {
+            if (HttpHeaders.AUTHORIZATION.equalsIgnoreCase(name)) {
               return "Bearer " + accessToken;
-            } else if (Headers.SEC_WEBSOCKET_PROTOCOL.equals(lowerCase)) {
+            } else if (Headers.SEC_WEBSOCKET_PROTOCOL.equalsIgnoreCase(name)) {
               return null;
             } else {
               return super.getHeader(name);
@@ -58,8 +57,7 @@ class ProtocolToBearerTranslationFilter extends AbstractHttpSecurityServletFilte
 
           @Override
           public Enumeration<String> getHeaders(String name) {
-            String lowerCase = name.toLowerCase();
-            if (Headers.SEC_WEBSOCKET_PROTOCOL.equals(lowerCase)) {
+            if (Headers.SEC_WEBSOCKET_PROTOCOL.equalsIgnoreCase(name)) {
               return new EmptyEnumeration();
             } else {
               return super.getHeaders(name);
