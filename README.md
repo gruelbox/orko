@@ -20,7 +20,7 @@ Orko is designed to solve a range of problems with existing solutions:
 ## What Orko does differently
 
 - Orko is a **strictly single-tenant** application. That is, each instance of the application services one, and only one user. You manage that application - the developers of Orko have no access to it. That means your API keys are never shared. You can run it on your own hardware in your own home or trust it to a cloud provider account to which only you have access.
-- Orko's code is open source, so it's hard for anyone to add exploit code which could put you at risk. If you're really paranoid, you can fork the code to make sure it doesn't change, then audit it line-by-line. You don;t have to trust your valuable API keys to unknown code.
+- Orko's code is open source, so it's hard for anyone to add exploit code which could put you at risk. If you're really paranoid, you can fork the code to make sure it doesn't change, then audit it line-by-line. You don't have to trust your valuable API keys to unknown code.
 - You can change it and improve it (and we'd be really grateful if you shared it with the rest of the community by submitting a [pull request](https://github.com/badgerwithagun/orko/pulls)).
 - It's really easy to deploy and run. If you have a [Heroku](https://heroku.com/) account, You can deploy it [with just a few clicks](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko), or download it and run it in just a few commands.
 - It's being constantly improved and extended. What you have here is a very early version, with only a fraction of the features we're intending to add, but it has been used as our main trading UI for over a year as it has been developed.
