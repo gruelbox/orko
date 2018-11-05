@@ -12,7 +12,6 @@ import com.grahamcrockford.orko.auth.okta.BearerAuthenticationFilter;
 import com.grahamcrockford.orko.websocket.WebSocketModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
-import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.setup.Environment;
 
 @Singleton
@@ -33,11 +32,9 @@ public class OktaEnvironment implements EnvironmentInitialiser {
 
   @Override
   public void init(Environment environment) {
-    AbstractServerFactory serverFactory = (AbstractServerFactory) appConfiguration.getServerFactory();
-    String rootPath = serverFactory.getJerseyRootPath().orElse("/") + "*";
-    String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
-
     if (authConfiguration.getOkta() != null && StringUtils.isNotEmpty(authConfiguration.getOkta().getIssuer())) {
+      String rootPath = appConfiguration.getRootPath();
+      String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
       environment.servlets().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())
         .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())

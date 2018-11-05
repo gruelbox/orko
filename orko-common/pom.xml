@@ -43,8 +43,8 @@
       <artifactId>okta-jwt-verifier</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.toastshaman</groupId>
-      <artifactId>dropwizard-auth-jwt</artifactId>
+        <groupId>org.bitbucket.b_c</groupId>
+        <artifactId>jose4j</artifactId>
     </dependency>
 
     <dependency>

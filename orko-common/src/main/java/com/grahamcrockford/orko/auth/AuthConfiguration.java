@@ -3,6 +3,7 @@ package com.grahamcrockford.orko.auth;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grahamcrockford.orko.auth.jwt.JwtConfiguration;
 import com.grahamcrockford.orko.auth.okta.OktaConfiguration;
 
 public class AuthConfiguration {
@@ -11,6 +12,11 @@ public class AuthConfiguration {
    * Okta configuration.
    */
   private OktaConfiguration okta;
+
+  /**
+   * JWT configuration.
+   */
+  private JwtConfiguration jwt;
 
   /**
    * If set, is the 2FA secret key for IP whitelisting. If disabled, so is IP
@@ -93,5 +99,15 @@ public class AuthConfiguration {
   @JsonProperty
   public void setAuthCachePolicy(String authCachePolicy) {
     this.authCachePolicy = authCachePolicy;
+  }
+
+  @JsonProperty
+  public JwtConfiguration getJwt() {
+    return jwt;
+  }
+
+  @JsonProperty
+  public void setJwt(JwtConfiguration jwt) {
+    this.jwt = jwt;
   }
 }

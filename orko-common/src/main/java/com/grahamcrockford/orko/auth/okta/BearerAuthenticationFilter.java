@@ -8,6 +8,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.auth.AbstractHttpSecurityServletFilter;
-import com.grahamcrockford.orko.auth.Headers;
 import com.grahamcrockford.orko.auth.Roles;
-import com.grahamcrockford.orko.auth.spi.AccessTokenPrincipal;
-import com.grahamcrockford.orko.auth.spi.OrkoAuthenticator;
-import com.grahamcrockford.orko.auth.spi.OrkoAuthorizer;
 
 import io.dropwizard.auth.AuthenticationException;
 
@@ -49,7 +46,7 @@ class BearerAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
     String fullPath = request.getContextPath() + request.getServletPath() + request.getPathInfo();
 
-    String authorization = request.getHeader(Headers.AUTHORIZATION);
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (authorization == null || !authorization.startsWith("Bearer ") || authorization.length() <= 7) {
       LOGGER.warn(fullPath + ": invalid auth header: " + authorization);
       response.sendError(401);

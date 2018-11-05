@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ class ProtocolToBearerTranslationFilter extends AbstractHttpSecurityServletFilte
           @Override
           public String getHeader(String name) {
             String lowerCase = name.toLowerCase();
-            if (Headers.AUTHORIZATION.equals(lowerCase)) {
+            if (HttpHeaders.AUTHORIZATION.equals(lowerCase)) {
               return "Bearer " + accessToken;
             } else if (Headers.SEC_WEBSOCKET_PROTOCOL.equals(lowerCase)) {
               return null;

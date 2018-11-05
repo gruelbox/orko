@@ -37,8 +37,7 @@ public abstract class AbstractHttpSecurityServletFilter implements Filter {
 
     if ("/favicon.ico".equals(httpRequest.getServletPath()) ||
         "/favicon.ico".equals(httpRequest.getPathInfo()) ||
-        "/auth".equals(httpRequest.getPathInfo()) ||
-        "/auth/config".equals(httpRequest.getPathInfo())) {
+        (httpRequest.getPathInfo() != null && httpRequest.getPathInfo().startsWith("/auth"))) {
       chain.doFilter(request, response);
       return;
     }

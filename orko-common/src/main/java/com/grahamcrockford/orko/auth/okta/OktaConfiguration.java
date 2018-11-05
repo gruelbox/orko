@@ -18,42 +18,42 @@ public class OktaConfiguration {
   private String audience;
 
   @JsonProperty
-  public String getBaseUrl() {
+  String getBaseUrl() {
     return baseUrl;
   }
 
   @JsonProperty
-  public void setBaseUrl(String baseUrl) {
+  void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
   }
 
   @JsonProperty
-  public String getClientId() {
+  String getClientId() {
     return clientId;
   }
 
   @JsonProperty
-  public void setClientId(String clientId) {
+  void setClientId(String clientId) {
     this.clientId = clientId;
   }
 
   @JsonProperty
-  public String getIssuer() {
+  String getIssuer() {
     return issuer;
   }
 
   @JsonProperty
-  public void setIssuer(String issuer) {
+  void setIssuer(String issuer) {
     this.issuer = issuer;
   }
 
   @JsonProperty
-  public String getAudience() {
+  String getAudience() {
     return audience;
   }
 
   @JsonProperty
-  public void setAudience(String audience) {
+  void setAudience(String audience) {
     this.audience = audience;
   }
 }

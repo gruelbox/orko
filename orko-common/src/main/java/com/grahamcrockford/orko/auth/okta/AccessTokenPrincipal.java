@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth.spi;
+package com.grahamcrockford.orko.auth.okta;
 
 import java.security.Principal;
 

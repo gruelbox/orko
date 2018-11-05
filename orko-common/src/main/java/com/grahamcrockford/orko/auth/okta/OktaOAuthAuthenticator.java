@@ -5,8 +5,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.grahamcrockford.orko.auth.spi.AccessTokenPrincipal;
-import com.grahamcrockford.orko.auth.spi.OrkoAuthenticator;
 import com.okta.jwt.JoseException;
 import com.okta.jwt.Jwt;
 import com.okta.jwt.JwtVerifier;
