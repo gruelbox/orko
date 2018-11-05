@@ -23,7 +23,7 @@ class JwtAuthenticatorAuthorizer implements Authenticator<JwtContext, Authentica
       JwtClaims claims = context.getJwtClaims();
       return Optional.of(new AuthenticatedUser(claims.getSubject(), (String) claims.getClaimValue("roles")));
     } catch (Exception e) {
-      LOGGER.warn("JWT invalid ({})", e.getMessage(), e);
+      LOGGER.warn("JWT invalid ({})", e.getMessage());
       return Optional.empty();
     }
   }

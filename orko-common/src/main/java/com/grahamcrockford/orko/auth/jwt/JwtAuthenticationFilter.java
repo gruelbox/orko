@@ -70,7 +70,7 @@ class JwtAuthenticationFilter extends AbstractHttpSecurityServletFilter {
         return false;
       }
     } catch (InvalidJwtException e) {
-      LOGGER.warn(fullPath + ": invalid token", e);
+      LOGGER.warn(fullPath + ": invalid token");
       response.sendError(401);
       return false;
     }

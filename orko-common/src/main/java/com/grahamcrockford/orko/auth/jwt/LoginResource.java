@@ -32,19 +32,19 @@ import io.dropwizard.jersey.caching.CacheControl;
 public class LoginResource implements WebResource {
 
   private final AuthConfiguration authConfiguration;
-  private final BasicAuthenticator basicAuthenticator;
+  private final LoginAuthenticator loginAuthenticator;
 
   @Inject
-  LoginResource(AuthConfiguration authConfiguration, BasicAuthenticator basicAuthenticator) {
+  LoginResource(AuthConfiguration authConfiguration, LoginAuthenticator loginAuthenticator) {
     this.authConfiguration = authConfiguration;
-    this.basicAuthenticator = basicAuthenticator;
+    this.loginAuthenticator = loginAuthenticator;
   }
 
 	@POST
 	@Path("/login")
 	@CacheControl(noCache = true, noStore = true, maxAge = 0)
 	public final Response doLogin(LoginRequest basicCredentials) throws AuthenticationException, JoseException {
-	  Optional<PrincipalImpl> principal = basicAuthenticator.authenticate(basicCredentials);
+	  Optional<PrincipalImpl> principal = loginAuthenticator.authenticate(basicCredentials);
 	  if (principal.isPresent()) {
 	    return Response.ok().entity(new LoginResponse(buildToken(principal.get()).getCompactSerialization())).build();
 	  } else {
@@ -56,7 +56,7 @@ public class LoginResource implements WebResource {
 		final JwtClaims claims = new JwtClaims();
 		claims.setSubject(user.getName());
 		claims.setStringClaim("roles", Roles.TRADER);
-		claims.setExpirationTimeMinutesInTheFuture(60);
+		claims.setExpirationTimeMinutesInTheFuture(authConfiguration.getJwt().getExpirationMinutes());
 		claims.setIssuedAtToNow();
 		claims.setGeneratedJwtId();
 

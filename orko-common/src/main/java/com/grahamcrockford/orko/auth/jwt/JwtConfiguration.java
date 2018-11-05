@@ -9,6 +9,7 @@ public class JwtConfiguration {
   private String secret;
   private String userName;
   private String password;
+  private int expirationMinutes = 60 * 24;
 
   @JsonProperty
   String getSecret() {
@@ -43,5 +44,15 @@ public class JwtConfiguration {
   @JsonProperty
   void setPassword(String password) {
     this.password = password;
+  }
+
+  @JsonProperty
+  public int getExpirationMinutes() {
+    return expirationMinutes;
+  }
+
+  @JsonProperty
+  public void setExpirationMinutes(int expirationMinutes) {
+    this.expirationMinutes = expirationMinutes;
   }
 }

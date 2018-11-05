@@ -85,25 +85,14 @@ I personally run the application on Heroku. The Hobby account is cheap at $7/pm 
 
 The application is all preconfigured to work out of the box.
 
-### Get security set up
-
-Unfortunately, the internet is full of nasty people who are going to use access to your exchange accounts to do nefarious things. You don't want that.
+### Create a 2FA key
 
 Security is (optionally) double-layered:
 
-- The first layer is a conventional JWT provided by Okta (more on this in a moment). Without a valid JWT, all service and web socket connections will be rejected with an HTTP 401.
+- The first layer is a conventional login/JWT. We're going to set this up in the simplest possible way, but you can optionally delegate this to Okta.
 - The second layer is a dynamic IP whitelisting. The UI must supply a valid Google Authenticator code to the backend which will whitelist the originating IP for a fixed period. All other entry points will return an HTTP 402 until this is done.
 
-You need an Okta account to handle the JWT authentication:
-
-1. Create a basic (free) account at https://www.okta.com/
-1. Add any 2FA or whatever you feel appropriate to this account.
-1. Create new application of type Single Page App (SPA), allowing both ID token and Access Token
-1. Set your Login redirect URI and Initiate login URI to the address of your front-end server.
-1. Note down the client ID and set it in your backend app's environment variables.
-1. Go to the Sign On tab and note the `Issuer` and `Client id`. You will need these shortly.
-
-Now create a 2FA key:
+Generating the key is done offline for additional security.
 
 1. Generate a new 2FA secret using `./generate-key.sh` (you need to have done a build first using `./build.sh`).
 1. Note it down - we'll need it when configuring the application.
@@ -126,14 +115,15 @@ Add the following addons: **Papertrail** and **M-labs MongoDB**.
 
 Set up the following environment variables in addition to those already configured by the add-ons you've provisioned:
 
-| Variable             | Set to                                                                                          |
-| -------------------- | ----------------------------------------------------------------------------------------------- |
-| `TELEGRAM_BOT_TOKEN` | The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used. |
-| `TELEGRAM_CHAT_ID`   | The Telegram chat ID. May be omitted if `TELEGRAM_BOT_TOKEN` is.                                |
-| `AUTH_TOKEN`         | Your 2FA secret key. Can be omitted if you don't want this additional layer of security.        |
-| `OKTA_BASEURL`       | The Okta issuer.                                                                                |
-| `OKTA_CLIENTID`      | The Okta client ID.                                                                             |
-| `OKTA_ISSUER`        | The Okta issuer appended with `/oauth2/default`                                                 |
+| Variable                           | Set to                                                                                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `TELEGRAM_BOT_TOKEN`               | The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used.                                   |
+| `TELEGRAM_CHAT_ID`                 | The Telegram chat ID. May be omitted if `TELEGRAM_BOT_TOKEN` is.                                                                  |
+| `AUTH_TOKEN`                       | Your 2FA secret key. Can be omitted if you don't want this additional layer of security.                                          |
+| `SIMPLE_AUTH_USERNAME`             | The username you want to use when logging in.                                                                                     |
+| `SIMPLE_AUTH_PASSWORD`             | The password you want to use when logging in.                                                                                     |
+| `SIMPLE_AUTH_SECRET`               | A long, randomised string of characters to act as the cryptocraphic seed for issued tokens.                                       |
+| `SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES` | he time before each token issued will expire and the user will be forced to log in again, in minutes. 1440 is a sensible default. |
 
 Optionally, you can add any of these to add authenticated support for exchanges where you have API keys:
 
@@ -167,3 +157,26 @@ The following are defaulted or automatically set up, so you can ignore them unle
 | `MAVEN_CUSTOM_GOALS`       | `clean package`                                                                                                                             |
 
 That's it! Visit https://your-app-name.herokuapp.com to go through secuity and log in.
+
+### Delegate your security
+
+If you don't trust home-grown JWT issuance or storing credentials on Heroku, you can optionally delegate authentication to Okta:
+
+1. Create a basic (free) account at https://www.okta.com/
+1. Add any 2FA or whatever you feel appropriate to this account.
+1. Create new application of type Single Page App (SPA), allowing both ID token and Access Token
+1. Set your Login redirect URI and Initiate login URI to the address of your front-end server.
+1. Note down the client ID and set it in your backend app's environment variables.
+1. Go to the Sign On tab and note the `Issuer` and `Client id`.
+1. Now change your Heroku environment variables as follows:
+
+| Variable                           | Set to                                                                                   |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `AUTH_TOKEN`                       | Your 2FA secret key. Can be omitted if you don't want this additional layer of security. |
+| `OKTA_BASEURL`                     | The Okta issuer.                                                                         |
+| `OKTA_CLIENTID`                    | The Okta client ID.                                                                      |
+| `OKTA_ISSUER`                      | The Okta issuer appended with `/oauth2/default`                                          |
+| `SIMPLE_AUTH_USERNAME`             | REMOVE THIS                                                                              |
+| `SIMPLE_AUTH_PASSWORD`             | REMOVE THIS                                                                              |
+| `SIMPLE_AUTH_SECRET`               | REMOVE THIS                                                                              |
+| `SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES` | REMOVE THIS                                                                              |
