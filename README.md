@@ -14,6 +14,8 @@ Usage and setup instructions are under construction on [the wiki](https://github
 
 ## Quick start (local install)
 
+Clone this repository, then from the root directory:
+
 ```
 sudo apt-get install maven
 ./build.sh
