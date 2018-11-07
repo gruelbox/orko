@@ -33,3 +33,14 @@ Okta is preconfigured and optimised to run securely on [Heroku](https://www.hero
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
 
 If that doesn't work, or you don't trust it, you can [install the application manually](https://github.com/badgerwithagun/orko/wiki/Manual-installation-on-Heroku).
+
+## Donations
+
+Okta was created and is maintained free of charge for you to use. If it helps you, please consider a donation to fund the project.
+
+| Ticker  |  Name        | Address |
+|---------|--------------|---------|
+| BTC     | Bitcoin      | TBC     |
+| ETH     | Ethereum     | TBC     |
+| BCH     | Bitcoin Cash | TBC     |
+| NANO    | Nano         | xrb_3ix1cmsbpsgjbxq3bx9xt1x7ezhe8u9pqtkq5bnpmbjtw5nymf5ph5duxfpg |
