@@ -1,6 +1,7 @@
 package com.grahamcrockford.orko.guardian;
 
 import static com.grahamcrockford.orko.marketdata.MarketDataType.TRADES;
+import static io.reactivex.schedulers.Schedulers.single;
 import static java.lang.System.currentTimeMillis;
 
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,9 @@ final class MonitorExchangeSocketHealth implements Managed {
       MarketDataSubscription.create(TickerSpec.builder().exchange(Exchanges.BINANCE).base("BTC").counter("USDT").build(), TRADES)
     );
     disposable = subscription.getTrades().forEach(t -> lastTradeTime.set(currentTimeMillis()));
-    poll = Observable.interval(10, TimeUnit.MINUTES).subscribe(i -> runOneIteration());
+    poll = Observable.interval(10, TimeUnit.MINUTES)
+        .observeOn(single())
+        .subscribe(i -> runOneIteration());
   }
 
   private void runOneIteration() {

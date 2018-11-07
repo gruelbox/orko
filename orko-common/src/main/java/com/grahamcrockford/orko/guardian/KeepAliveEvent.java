@@ -1,6 +1,6 @@
-package com.grahamcrockford.orko.spi;
+package com.grahamcrockford.orko.guardian;
 
-public final class KeepAliveEvent {
+final class KeepAliveEvent {
 
   public static final KeepAliveEvent INSTANCE = new KeepAliveEvent();
 

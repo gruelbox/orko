@@ -9,7 +9,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.spi.Job;
-import com.grahamcrockford.orko.spi.KeepAliveEvent;
 import com.grahamcrockford.orko.submit.JobAccess;
 
 @Singleton
