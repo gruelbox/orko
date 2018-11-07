@@ -5,15 +5,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import com.google.inject.Guice;
-import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
+import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 public class GenerateSecretKey {
 
   public static void main(String[] args) throws IOException {
 
-    final GoogleAuthenticator auth = Guice.createInjector(new GoogleAuthenticatorModule())
-      .getInstance(GoogleAuthenticator.class);
+    final IGoogleAuthenticator auth = Guice.createInjector(new GoogleAuthenticatorModule())
+      .getInstance(IGoogleAuthenticator.class);
 
     final GoogleAuthenticatorKey key = auth.createCredentials();
 

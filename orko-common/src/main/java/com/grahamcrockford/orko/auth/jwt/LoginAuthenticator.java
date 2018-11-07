@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
-import com.warrenstrange.googleauth.GoogleAuthenticator;
+import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
@@ -23,10 +23,10 @@ class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
   private static final Logger LOGGER = LoggerFactory.getLogger(LoginAuthenticator.class);
 
   private final AuthConfiguration authConfiguration;
-  private final GoogleAuthenticator googleAuthenticator;
+  private final IGoogleAuthenticator googleAuthenticator;
 
   @Inject
-  LoginAuthenticator(AuthConfiguration authConfiguration, GoogleAuthenticator googleAuthenticator) {
+  LoginAuthenticator(AuthConfiguration authConfiguration, IGoogleAuthenticator googleAuthenticator) {
     this.authConfiguration = authConfiguration;
     this.googleAuthenticator = googleAuthenticator;
   }

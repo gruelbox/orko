@@ -41,7 +41,7 @@ public class AuthConfiguration {
   }
 
   @JsonProperty
-  void setProxied(boolean proxied) {
+  public void setProxied(boolean proxied) {
     this.proxied = proxied;
   }
 

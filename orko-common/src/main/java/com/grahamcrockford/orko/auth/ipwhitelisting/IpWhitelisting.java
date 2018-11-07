@@ -1,7 +1,6 @@
 package com.grahamcrockford.orko.auth.ipwhitelisting;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +9,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
-import com.warrenstrange.googleauth.GoogleAuthenticator;
+import com.grahamcrockford.orko.auth.Headers;
+import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 /**
  * Only one IP can be whitelisted at a time and requires 2FA.
@@ -21,13 +21,13 @@ class IpWhitelisting {
   private static final Logger LOGGER = LoggerFactory.getLogger(IpWhitelisting.class);
 
   private final Provider<HttpServletRequest> request;
-  private final GoogleAuthenticator googleAuthenticator;
+  private final IGoogleAuthenticator googleAuthenticator;
   private final AuthConfiguration configuration;
   private final IpWhitelistAccess ipWhitelistAccess;
 
   @Inject
   IpWhitelisting(Provider<HttpServletRequest> request,
-                 GoogleAuthenticator googleAuthenticator,
+                 IGoogleAuthenticator googleAuthenticator,
                  AuthConfiguration configuration,
                  IpWhitelistAccess ipWhitelistAccess) {
     this.request = request;
@@ -37,7 +37,7 @@ class IpWhitelisting {
   }
 
   public boolean authoriseIp() {
-    if (configuration.getIpWhitelisting() != null &&  StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey()))
+    if (isDisabled())
       return true;
     String sourceIp = sourceIp();
     if (!ipWhitelistAccess.exists(sourceIp)) {
@@ -48,7 +48,7 @@ class IpWhitelisting {
   }
 
   public boolean whiteListRequestIp(int token) {
-    if (configuration.getIpWhitelisting() != null &&  StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey()))
+    if (isDisabled())
       return true;
 
     String ip = sourceIp();
@@ -62,6 +62,8 @@ class IpWhitelisting {
   }
 
   public boolean deWhitelistIp() {
+    if (isDisabled())
+      return false;
     if (!authoriseIp())
       return false;
     ipWhitelistAccess.delete(sourceIp());
@@ -71,9 +73,13 @@ class IpWhitelisting {
   private String sourceIp() {
     HttpServletRequest req = request.get();
     if (configuration.isProxied()) {
-      return req.getHeader("X-Forwarded-For").split(",")[0];
+      return req.getHeader(Headers.X_FORWARDED_FOR).split(",")[0];
     } else {
       return req.getRemoteAddr();
     }
+  }
+
+  private boolean isDisabled() {
+    return configuration.getIpWhitelisting() == null || StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey());
   }
 }
