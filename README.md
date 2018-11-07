@@ -2,11 +2,15 @@
 
 [![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master)
 
-Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.  [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko)
+Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.  [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko).
 
 ## Status
 
 Early alpha. Please use with caution.  [What does this mean?](https://github.com/badgerwithagun/orko/wiki/Project-status)
+
+## User Guide
+
+Usage and setup instructions are under construction on [the wiki](https://github.com/badgerwithagun/orko/wiki).
 
 ## Quick start (local install)
 
@@ -22,7 +26,7 @@ Note that this mode has numerous limitations.  You need to do some more setup to
 
 ## Deploy on Heroku
 
-I personally run the application on Heroku. The Hobby account is cheap at $7/pm per server if running constantly, SSL is provided out of the box and the continuous deployment features are great. Best of all, the application is all preconfigured to work out of the box. 
+Okta is preconfigured and optimised to run securely on [Heroku](https://www.heroku.com/). The Hobby account is cheap at $7/pm per server if running constantly.  To instantly deploy your own instance of the application, just click the button below.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
 
