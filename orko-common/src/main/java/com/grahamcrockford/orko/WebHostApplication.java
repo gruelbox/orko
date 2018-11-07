@@ -10,6 +10,8 @@ import com.google.inject.Module;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.websocket.WebSocketBundleInit;
 import com.palantir.websecurity.WebSecurityBundle;
+import com.palantir.websecurity.WebSecurityConfiguration;
+
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -24,7 +26,7 @@ public abstract class WebHostApplication extends BaseApplication {
   @Override
   public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
     bootstrap.addBundle(new AssetsBundle("/assets/", "/", "index.html"));
-    bootstrap.addBundle(new WebSecurityBundle());
+    bootstrap.addBundle(new WebSecurityBundle(WebSecurityConfiguration.builder().contentSecurityPolicy("frame-ancestors 'self';").build()));
     super.initialize(bootstrap);
     websocketBundle = new WebsocketBundle(new Class[] {});
     bootstrap.addBundle(websocketBundle);
