@@ -174,8 +174,4 @@ public class TestIpWhitelisting {
     ipWhitelistingConfiguration.setSecretKey(SECRET_KEY);
     configuration.setIpWhitelisting(ipWhitelistingConfiguration);
   }
-
-  private void proxied() {
-
-  }
 }
