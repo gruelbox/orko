@@ -47,27 +47,27 @@ public class TestIpWhitelistingResource {
   public void testDeleteFail() {
     when(ipWhitelisting.deWhitelistIp()).thenReturn(false);
     Response result = resources.target("/auth").request().delete();
-    assertEquals(403, result.getStatus());
+    assertEquals(Response.Status.FORBIDDEN.getStatusCode(), result.getStatus());
   }
 
   @Test
   public void testDeleteSuccess() {
     when(ipWhitelisting.deWhitelistIp()).thenReturn(true);
     Response result = resources.target("/auth").request().delete();
-    assertEquals(200, result.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), result.getStatus());
   }
 
   @Test
   public void testPutFail() {
     when(ipWhitelisting.whiteListRequestIp(1234)).thenReturn(false);
     Response result = resources.target("/auth").queryParam("token", 1234).request().put(Entity.entity("", MediaType.TEXT_PLAIN));
-    assertEquals(403, result.getStatus());
+    assertEquals(Response.Status.FORBIDDEN.getStatusCode(), result.getStatus());
   }
 
   @Test
   public void testPutSuccess() {
     when(ipWhitelisting.whiteListRequestIp(1234)).thenReturn(true);
     Response result = resources.target("/auth").queryParam("token", 1234).request().put(Entity.entity("", MediaType.TEXT_PLAIN));
-    assertEquals(200, result.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), result.getStatus());
   }
 }
