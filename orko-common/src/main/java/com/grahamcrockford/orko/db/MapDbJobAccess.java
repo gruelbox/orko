@@ -1,5 +1,8 @@
 package com.grahamcrockford.orko.db;
 
+import static io.reactivex.schedulers.Schedulers.single;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
@@ -16,13 +19,14 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.spi.Job;
-import com.grahamcrockford.orko.spi.KeepAliveEvent;
 import com.grahamcrockford.orko.submit.JobAccess;
 import com.grahamcrockford.orko.submit.JobLocker;
+
+import io.reactivex.Observable;
 
 /**
  * MapDb implementation of {@link JobAccess} and {@link JobLocker}, for single-node applications only.
@@ -37,16 +41,14 @@ class MapDbJobAccess implements JobAccess, JobLocker {
   private final DB db;
 
   @Inject
-  MapDbJobAccess(EventBus eventBus, MapDbMakerFactory dbMakerFactory, ObjectMapper objectMapper) {
+  MapDbJobAccess(EventBus eventBus, MapDbMakerFactory dbMakerFactory, ObjectMapper objectMapper, OrkoConfiguration configuration) {
     this.objectMapper = objectMapper;
     this.db = dbMakerFactory.create("jobs").make();
     this.jobs = db.hashMap("jobs", Serializer.STRING, Serializer.STRING).createOrOpen();
     eventBus.register(this);
-  }
-
-  @Subscribe
-  void keepAlive(KeepAliveEvent keepAliveEvent) {
-    locks.cleanUp();
+    Observable.interval(configuration.getLoopSeconds(), SECONDS)
+      .observeOn(single())
+      .subscribe(x -> locks.cleanUp());
   }
 
   @Override

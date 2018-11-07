@@ -11,7 +11,6 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.grahamcrockford.orko.notification.Status;
 import com.grahamcrockford.orko.spi.JobControl;
 import com.grahamcrockford.orko.spi.JobProcessor;
-import com.grahamcrockford.orko.spi.KeepAliveEvent;
 
 class TestingJobProcessor implements JobProcessor<TestingJob> {
 

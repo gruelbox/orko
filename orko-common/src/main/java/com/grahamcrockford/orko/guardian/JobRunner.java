@@ -16,7 +16,6 @@ import com.grahamcrockford.orko.notification.StatusUpdateService;
 import com.grahamcrockford.orko.spi.Job;
 import com.grahamcrockford.orko.spi.JobControl;
 import com.grahamcrockford.orko.spi.JobProcessor;
-import com.grahamcrockford.orko.spi.KeepAliveEvent;
 import com.grahamcrockford.orko.submit.JobAccess;
 import com.grahamcrockford.orko.submit.JobAccess.JobAlreadyExistsException;
 import com.grahamcrockford.orko.submit.JobLocker;
