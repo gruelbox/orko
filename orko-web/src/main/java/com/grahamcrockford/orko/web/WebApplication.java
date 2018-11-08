@@ -21,6 +21,6 @@ public class WebApplication extends WebHostApplication {
 
   @Override
   protected Module createApplicationModule(OrkoConfiguration configuration, Environment environment, Client jerseyClient) {
-    return new WebModule();
+    return new WebModule(configuration);
   }
 }

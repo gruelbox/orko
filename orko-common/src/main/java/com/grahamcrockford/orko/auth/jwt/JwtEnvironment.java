@@ -2,8 +2,6 @@ package com.grahamcrockford.orko.auth.jwt;
 
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
@@ -26,7 +24,7 @@ public class JwtEnvironment implements EnvironmentInitialiser {
 
   @Override
   public void init(Environment environment) {
-    if (appConfiguration.getAuth().getJwt() != null && StringUtils.isNotEmpty(appConfiguration.getAuth().getJwt().getSecret())) {
+    if (appConfiguration.getAuth().getJwt() != null && appConfiguration.getAuth().getJwt().isEnabled()) {
       String rootPath = appConfiguration.getRootPath();
       String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
       environment.servlets().addFilter(JwtAuthenticationFilter.class.getSimpleName(), jwtAuthenticationFilter.get())

@@ -20,6 +20,6 @@ public class AllInOneApplication extends WebHostApplication {
 
   @Override
   protected Module createApplicationModule(OrkoConfiguration configuration, Environment environment, Client jerseyClient) {
-    return new AllInOneModule();
+    return new AllInOneModule(configuration);
   }
 }

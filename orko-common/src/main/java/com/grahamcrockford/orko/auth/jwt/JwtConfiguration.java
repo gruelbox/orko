@@ -1,5 +1,7 @@
 package com.grahamcrockford.orko.auth.jwt;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
@@ -65,5 +67,9 @@ public class JwtConfiguration {
   @JsonProperty
   public void setSecondFactorSecret(String secondFactorSecret) {
     this.secondFactorSecret = secondFactorSecret;
+  }
+
+  public boolean isEnabled() {
+    return StringUtils.isNotEmpty(secret);
   }
 }

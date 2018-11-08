@@ -84,6 +84,6 @@ class IpWhitelisting {
   }
 
   private boolean isDisabled() {
-    return configuration.getIpWhitelisting() == null || StringUtils.isEmpty(configuration.getIpWhitelisting().getSecretKey());
+    return configuration.getIpWhitelisting() == null || !configuration.getIpWhitelisting().isEnabled();
   }
 }

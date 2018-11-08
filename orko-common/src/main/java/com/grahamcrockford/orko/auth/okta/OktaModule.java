@@ -17,9 +17,17 @@ import io.dropwizard.setup.Environment;
 
 public class OktaModule extends AbstractModule {
 
+  private final AuthConfiguration auth;
+
+  public OktaModule(AuthConfiguration auth) {
+    this.auth = auth;
+  }
+
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(OktaResource.class);
+    if (auth.getOkta() != null && auth.getOkta().isEnabled()) {
+      Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(OktaResource.class);
+    }
   }
 
   @Provides

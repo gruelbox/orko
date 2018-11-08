@@ -27,6 +27,6 @@ public class OktaResource implements WebResource {
   @Path("/config")
   @Timed
   public OktaConfiguration getConfig() {
-    return authConfiguration.getOkta() == null ? new OktaConfiguration() : authConfiguration.getOkta();
+    return authConfiguration.getOkta();
   }
 }

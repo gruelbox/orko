@@ -13,9 +13,18 @@ import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.grahamcrockford.orko.wiring.WebResource;
 
 public class JwtModule extends AbstractModule {
+
+  private final AuthConfiguration auth;
+
+  public JwtModule(AuthConfiguration auth) {
+    this.auth = auth;
+  }
+
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(LoginResource.class);
+    if (auth.getJwt() != null && auth.getJwt().isEnabled()) {
+      Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(LoginResource.class);
+    }
   }
 
   @Singleton

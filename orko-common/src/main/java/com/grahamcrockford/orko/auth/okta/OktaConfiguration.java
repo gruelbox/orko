@@ -2,6 +2,8 @@ package com.grahamcrockford.orko.auth.okta;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class OktaConfiguration {
@@ -55,5 +57,9 @@ public class OktaConfiguration {
   @JsonProperty
   void setAudience(String audience) {
     this.audience = audience;
+  }
+
+  public boolean isEnabled() {
+    return StringUtils.isNotEmpty(issuer);
   }
 }

@@ -2,8 +2,6 @@ package com.grahamcrockford.orko.auth.okta;
 
 import javax.inject.Inject;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
@@ -32,7 +30,7 @@ public class OktaEnvironment implements EnvironmentInitialiser {
 
   @Override
   public void init(Environment environment) {
-    if (authConfiguration.getOkta() != null && StringUtils.isNotEmpty(authConfiguration.getOkta().getIssuer())) {
+    if (authConfiguration.getOkta() != null && authConfiguration.getOkta().isEnabled()) {
       String rootPath = appConfiguration.getRootPath();
       String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
       environment.servlets().addFilter(BearerAuthenticationFilter.class.getSimpleName(), bearerAuthenticationFilter.get())

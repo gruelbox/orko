@@ -11,13 +11,21 @@ import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
 public class AuthModule extends AbstractModule {
 
+  private final OrkoConfiguration configuration;
+
+  public AuthModule(OrkoConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
   @Override
   protected void configure() {
-    install(new GoogleAuthenticatorModule());
-    install(new IpWhitelistingModule());
-    install(new OktaModule());
-    install(new JwtModule());
-    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
+    if (configuration.getAuth() != null) {
+      install(new GoogleAuthenticatorModule());
+      install(new IpWhitelistingModule(configuration.getAuth()));
+      install(new OktaModule(configuration.getAuth()));
+      install(new JwtModule(configuration.getAuth()));
+      Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
+    }
   }
 
   @Provides

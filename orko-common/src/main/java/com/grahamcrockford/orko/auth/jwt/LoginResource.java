@@ -6,9 +6,11 @@ import static org.jose4j.jws.AlgorithmIdentifiers.HMAC_SHA256;
 import java.util.Optional;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -17,6 +19,7 @@ import org.jose4j.jwt.JwtClaims;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 
+import com.codahale.metrics.annotation.Timed;
 import com.google.inject.Inject;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.grahamcrockford.orko.auth.Roles;
@@ -51,6 +54,13 @@ public class LoginResource implements WebResource {
 	    return Response.status(Status.FORBIDDEN).entity(new LoginResponse()).build();
 	  }
 	}
+
+  @GET
+  @Path("/config")
+  @Timed
+  public Object getConfig() {
+    return new Object();
+  }
 
 	private JsonWebSignature buildToken(PrincipalImpl user) {
 		final JwtClaims claims = new JwtClaims();

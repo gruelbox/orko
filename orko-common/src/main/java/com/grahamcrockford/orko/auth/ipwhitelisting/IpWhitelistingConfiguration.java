@@ -1,5 +1,7 @@
 package com.grahamcrockford.orko.auth.ipwhitelisting;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class IpWhitelistingConfiguration {
@@ -25,5 +27,9 @@ public class IpWhitelistingConfiguration {
   @JsonProperty
   public void setWhitelistExpirySeconds(Integer whitelistExpirySeconds) {
     this.whitelistExpirySeconds = whitelistExpirySeconds;
+  }
+
+  public boolean isEnabled() {
+    return  StringUtils.isNotEmpty(secretKey);
   }
 }
