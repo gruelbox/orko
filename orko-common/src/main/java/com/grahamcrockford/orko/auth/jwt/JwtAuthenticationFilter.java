@@ -32,7 +32,7 @@ import com.grahamcrockford.orko.auth.Roles;
 class JwtAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-  private static final String COOKIE = "authtoken";
+  static final String COOKIE = "accessToken";
   private static final String PREFIX = "Bearer";
 
   private final JwtAuthenticatorAuthorizer authenticator;

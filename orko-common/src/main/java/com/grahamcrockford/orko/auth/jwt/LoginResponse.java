@@ -4,20 +4,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LoginResponse {
 
-  @JsonProperty("token")
-  public String token;
-
   @JsonProperty("success")
 	private final boolean success;
 
-  public LoginResponse(String token) {
-		this.token = token;
+  @JsonProperty("expiryMinutes")
+  private final Integer expiryMinutes;
+
+  public LoginResponse(int expiryMinutes) {
+		this.expiryMinutes = expiryMinutes;
 		this.success = true;
 	}
 
 	public LoginResponse() {
-    this.token = null;
+    this.expiryMinutes = null;
     this.success = false;
   }
-
 }

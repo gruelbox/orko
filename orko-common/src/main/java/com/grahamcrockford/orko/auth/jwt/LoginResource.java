@@ -10,7 +10,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -43,17 +44,32 @@ public class LoginResource implements WebResource {
     this.loginAuthenticator = loginAuthenticator;
   }
 
-	@POST
-	@Path("/login")
-	@CacheControl(noCache = true, noStore = true, maxAge = 0)
-	public final Response doLogin(LoginRequest basicCredentials) throws AuthenticationException, JoseException {
-	  Optional<PrincipalImpl> principal = loginAuthenticator.authenticate(basicCredentials);
-	  if (principal.isPresent()) {
-	    return Response.ok().entity(new LoginResponse(buildToken(principal.get()).getCompactSerialization())).build();
-	  } else {
-	    return Response.status(Status.FORBIDDEN).entity(new LoginResponse()).build();
-	  }
-	}
+  @GET
+  @Path("/login")
+  @CacheControl(noCache = true, noStore = true, maxAge = 0)
+  public final Response getLogin(@QueryParam("username") String username, @QueryParam("password") String password, @QueryParam("secondfactor") int secondFactor) throws AuthenticationException, JoseException {
+    return doLogin(new LoginRequest(username, password, secondFactor));
+  }
+
+  @POST
+  @Path("/login")
+  @CacheControl(noCache = true, noStore = true, maxAge = 0)
+  public final Response doLogin(LoginRequest basicCredentials) throws AuthenticationException, JoseException {
+    Optional<PrincipalImpl> principal = loginAuthenticator.authenticate(basicCredentials);
+    if (principal.isPresent()) {
+      String token = buildToken(principal.get()).getCompactSerialization();
+      return Response.ok().cookie(cookie(token))
+          .entity(new LoginResponse(authConfiguration.getJwt().getExpirationMinutes())).build();
+    } else {
+      return Response.status(Status.FORBIDDEN).entity(new LoginResponse()).build();
+    }
+  }
+
+  private NewCookie cookie(String token) {
+    return new NewCookie(JwtAuthenticationFilter.COOKIE, token, "/", null, 1, null,
+        authConfiguration.getJwt().getExpirationMinutes() * 60, null, authConfiguration.isHttpsOnly(),
+        authConfiguration.isHttpsOnly());
+  }
 
   @GET
   @Path("/config")
@@ -62,18 +78,18 @@ public class LoginResource implements WebResource {
     return new Object();
   }
 
-	private JsonWebSignature buildToken(PrincipalImpl user) {
-		final JwtClaims claims = new JwtClaims();
-		claims.setSubject(user.getName());
-		claims.setStringClaim("roles", Roles.TRADER);
-		claims.setExpirationTimeMinutesInTheFuture(authConfiguration.getJwt().getExpirationMinutes());
-		claims.setIssuedAtToNow();
-		claims.setGeneratedJwtId();
+  private JsonWebSignature buildToken(PrincipalImpl user) {
+    final JwtClaims claims = new JwtClaims();
+    claims.setSubject(user.getName());
+    claims.setStringClaim("roles", Roles.TRADER);
+    claims.setExpirationTimeMinutesInTheFuture(authConfiguration.getJwt().getExpirationMinutes());
+    claims.setIssuedAtToNow();
+    claims.setGeneratedJwtId();
 
-		final JsonWebSignature jws = new JsonWebSignature();
-		jws.setPayload(claims.toJson());
-		jws.setAlgorithmHeaderValue(HMAC_SHA256);
-		jws.setKey(new HmacKey(authConfiguration.getJwt().getSecretBytes()));
-		return jws;
-	}
+    final JsonWebSignature jws = new JsonWebSignature();
+    jws.setPayload(claims.toJson());
+    jws.setAlgorithmHeaderValue(HMAC_SHA256);
+    jws.setKey(new HmacKey(authConfiguration.getJwt().getSecretBytes()));
+    return jws;
+  }
 }
