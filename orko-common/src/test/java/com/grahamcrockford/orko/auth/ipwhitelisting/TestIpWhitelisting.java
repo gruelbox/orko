@@ -147,6 +147,15 @@ public class TestIpWhitelisting {
     verify(ipWhitelistAccess).add(MOST_RECENT_FORWARD);
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testWhitelistProxiedNoForwardHeader() {
+    enabled();
+    when(request.getHeader(Headers.X_FORWARDED_FOR)).thenReturn(null);
+    configuration.setProxied(true);
+    when(googleAuthenticator.authorize(SECRET_KEY, 1234)).thenReturn(true);
+    ontest.whiteListRequestIp(1234);
+  }
+
   @Test
   public void testDeWhitelistIpDoesNotExist() {
     enabled();

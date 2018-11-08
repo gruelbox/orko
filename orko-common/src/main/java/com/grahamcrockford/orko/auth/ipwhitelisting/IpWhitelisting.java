@@ -73,7 +73,11 @@ class IpWhitelisting {
   private String sourceIp() {
     HttpServletRequest req = request.get();
     if (configuration.isProxied()) {
-      return req.getHeader(Headers.X_FORWARDED_FOR).split(",")[0];
+      String header = req.getHeader(Headers.X_FORWARDED_FOR);
+      if (StringUtils.isEmpty(header)) {
+        throw new IllegalStateException("Configured to assume application is behind a proxy but the forward header has not been provided.");
+      }
+      return header.split(",")[0];
     } else {
       return req.getRemoteAddr();
     }
