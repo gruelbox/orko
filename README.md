@@ -40,7 +40,6 @@ Okta was created and is maintained free of charge for you to use. If it helps yo
 
 | Ticker  |  Name        | Address |
 |---------|--------------|---------|
-| BTC     | Bitcoin      | TBC     |
+| BTC     | Bitcoin      | bc1qvuhym7rux57ctx2z4fsyg4lzz3gyj0l3mwge9r (SEGWIT ONLY) |
 | ETH     | Ethereum     | TBC     |
-| BCH     | Bitcoin Cash | TBC     |
 | NANO    | Nano         | xrb_3ix1cmsbpsgjbxq3bx9xt1x7ezhe8u9pqtkq5bnpmbjtw5nymf5ph5duxfpg |
