@@ -3,6 +3,7 @@ package com.grahamcrockford.orko.auth.jwt;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.jose4j.jws.AlgorithmIdentifiers.HMAC_SHA256;
 
+import java.util.Map;
 import java.util.Optional;
 
 import javax.ws.rs.Consumes;
@@ -20,6 +21,7 @@ import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.grahamcrockford.orko.auth.CookieHandlers;
@@ -54,8 +56,8 @@ public class LoginResource implements WebResource {
   @POST
   @Path("/login")
   @CacheControl(noCache = true, noStore = true, maxAge = 0)
-  public final Response doLogin(LoginRequest basicCredentials) throws AuthenticationException, JoseException {
-    Optional<PrincipalImpl> principal = loginAuthenticator.authenticate(basicCredentials);
+  public final Response doLogin(LoginRequest loginRequest) throws AuthenticationException, JoseException {
+    Optional<PrincipalImpl> principal = loginAuthenticator.authenticate(loginRequest);
     if (principal.isPresent()) {
       String token = buildToken(principal.get()).getCompactSerialization();
       return Response.ok().cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
@@ -68,8 +70,8 @@ public class LoginResource implements WebResource {
   @GET
   @Path("/config")
   @Timed
-  public Object getConfig() {
-    return new Object();
+  public Map<String, String> getConfig() {
+    return ImmutableMap.of();
   }
 
   private JsonWebSignature buildToken(PrincipalImpl user) {

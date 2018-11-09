@@ -1,16 +1,12 @@
-import Immutable from 'seamless-immutable';
-import * as types from './actionTypes';
+import Immutable from "seamless-immutable"
+import * as types from "./actionTypes"
+import Cookies from "cookies-js"
 
-const LOCAL_STORAGE_KEY = 'auth';
-
-const loaded = localStorage.getItem(LOCAL_STORAGE_KEY);
-const data = loaded ? JSON.parse(loaded) : null;
+const ACCESS_TOKEN = "accessToken"
 
 const initialState = Immutable({
   whitelisted: false,
-  loggedIn: !!data,
-  token: data ? data.token : null,
-  userName: data ? data.userName : null,
+  loggedIn: !!Cookies.get(ACCESS_TOKEN),
   config: null,
   loading: true
 })
@@ -21,45 +17,37 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         whitelisted: action.payload === true,
         error: action.error ? action.payload.message : null,
-        loading: false,
-        loggedIn: !action.error && (action.payload === true) // Slightly tricksy. Triggers a round of API calls
-                                                             // which will invalidate the login if it's not working.
+        loading: false
       })
     case types.SET_OKTA_CONFIG:
       return Immutable.merge(state, {
-        config: action.payload,
+        config: action.payload
       })
-    case types.SET_TOKEN:
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify({
-          token: action.payload.token,
-          userName: action.payload.userName,
+    case types.LOGIN:
+      if (action.payload.token) {
+        Cookies.set(ACCESS_TOKEN, action.payload.token, {
+          path: "/",
+          expires: action.payload.expiry,
+          secure: window.location.protocol === "https:"
         })
-      )
+      }
       return Immutable.merge(state, {
         loggedIn: true,
         error: null,
-        token: action.payload.token,
-        userName: action.payload.userName,
         loading: false
       })
     case types.INVALIDATE_LOGIN:
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      Cookies.expire(ACCESS_TOKEN)
       return Immutable.merge(state, {
         loggedIn: false,
         error: "Not logged in or login expired",
-        token: null,
-        userName: null,
         loading: false
       })
     case types.LOGOUT:
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      Cookies.expire(ACCESS_TOKEN)
       return Immutable.merge(state, {
         loggedIn: false,
         error: null,
-        token: null,
-        userName: null,
         loading: false
       })
     default:

@@ -6,7 +6,7 @@ import * as notificationActions from "../notifications/actions"
 
 export function submitJob(job, callback) {
   return authActions.wrappedRequest(
-    auth => jobService.submitJob(job, auth.token),
+    auth => jobService.submitJob(job),
     job => addJob(job, callback),
     error =>
       errorActions.setForeground("Could not submit job: " + error.message)
@@ -23,7 +23,7 @@ function addJob(job, callback) {
 
 export function fetchJobs() {
   return authActions.wrappedRequest(
-    auth => jobService.fetchJobs(auth.token),
+    auth => jobService.fetchJobs(),
     jobs => ({ type: types.SET_JOBS, payload: jobs }),
     error =>
       notificationActions.localMessage("Could not fetch jobs: " + error.message)
@@ -32,7 +32,7 @@ export function fetchJobs() {
 
 export function deleteJob(job) {
   return authActions.wrappedRequest(
-    auth => jobService.deleteJob(job, auth.token),
+    auth => jobService.deleteJob(job),
     null,
     error =>
       errorActions.setForeground("Failed to delete job: " + error.message),

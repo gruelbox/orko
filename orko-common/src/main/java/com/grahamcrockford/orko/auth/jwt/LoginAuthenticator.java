@@ -39,12 +39,17 @@ class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
     if (valid(credentials)) {
       return Optional.of(new PrincipalImpl(credentials.getUsername()));
     }
-    LOGGER.warn("Invalid login attempt by [" + credentials.getUsername() + "]");
+    if (credentials == null) {
+      LOGGER.warn("Invalid login attempt (no credentials)");
+    } else {
+      LOGGER.warn("Invalid login attempt by [" + credentials.getUsername() + "]");
+    }
     return Optional.empty();
   }
 
   private boolean valid(LoginRequest credentials) {
-    return authConfiguration.getJwt().getUserName().equals(credentials.getUsername()) &&
+    return credentials != null &&
+           authConfiguration.getJwt().getUserName().equals(credentials.getUsername()) &&
            authConfiguration.getJwt().getPassword().equals(credentials.getPassword()) &&
            passesSecondFactor(credentials);
   }

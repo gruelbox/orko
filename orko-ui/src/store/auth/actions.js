@@ -1,60 +1,79 @@
 import * as types from "./actionTypes"
 import authService from "../../services/auth"
 import * as notificationActions from "../notifications/actions"
+import * as errorActions from "../error/actions"
 import * as coinActions from "../coins/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
+    dispatch(notificationActions.trace("Checking whitelist"))
+    var result
     try {
-      dispatch(notificationActions.trace("Checking whitelist"))
-      const result = await authService.checkWhiteList()
-      dispatch({ type: types.WHITELIST_UPDATE, payload: Boolean(result) })
-      if (result) {
-        dispatch(notificationActions.trace("Verified whitelist"))
-        dispatch(fetchOktaConfig())
-      } else {
-        dispatch(notificationActions.trace("Whitelist rejected, disconnecting"))
-        socket.disconnect()
-      }
+      result = await authService.checkWhiteList()
     } catch (error) {
       dispatch(notificationActions.trace("Error checking whitelist"))
-      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
+      dispatch({
+        type: types.WHITELIST_UPDATE,
+        error: true,
+        payload: error
+      })
+      return
+    }
+    dispatch({ type: types.WHITELIST_UPDATE, payload: Boolean(result) })
+    if (result) {
+      dispatch(notificationActions.trace("Verified whitelist"))
+      dispatch(attemptConnect())
+    } else {
+      dispatch(notificationActions.trace("Whitelist rejected, disconnecting"))
+      socket.disconnect()
     }
   }
 }
 
-export function connect() {
-  return async (dispatch, getState, socket) => {
-    var { config, token } = getState().auth
-    if (config && config.clientId) {
-      if (token) {
-        dispatch(notificationActions.trace("Connecting using Okta"))
-      } else {
-        dispatch(
-          notificationActions.trace("Not attempting connect, require token")
-        )
-        return
-      }
+export function attemptConnect() {
+  return async (dispatch, getState) => {
+    dispatch(notificationActions.trace("Attempting connection"))
+    var success = await authService.checkLoggedIn()
+    if (success) {
+      dispatch(notificationActions.trace("Logged in"))
+      dispatch({ type: types.LOGIN, payload: {} })
+      dispatch(connect())
     } else {
-      dispatch(notificationActions.trace("Connecting using main auth"))
+      dispatch(notificationActions.trace("Not logged in"))
+      dispatch(fetchOktaConfig())
     }
-    dispatch(coinActions.fetch())
-    dispatch(coinActions.fetchReferencePrices())
-    socket.connect()
+  }
+}
+
+function connect() {
+  return async (dispatch, getState, socket) => {
+    var { config } = getState().auth
+    if (config && config.clientId) {
+      await dispatch(notificationActions.trace("Connecting using Okta"))
+    } else {
+      await dispatch(notificationActions.trace("Connecting using main auth"))
+    }
+    await dispatch(coinActions.fetch())
+    await dispatch(coinActions.fetchReferencePrices())
+    await socket.connect()
   }
 }
 
 export function whitelist(token) {
-  return async (dispatch, getState, socket) => {
+  return (dispatch, getState, socket) => {
     try {
       dispatch(notificationActions.trace("Attempting whitelist"))
-      await authService.whitelist(token)
+      authService.whitelist(token)
       dispatch(notificationActions.trace("Accepted whitelist"))
       dispatch({ type: types.WHITELIST_UPDATE, payload: true })
-      dispatch(fetchOktaConfig())
+      dispatch(attemptConnect())
     } catch (error) {
       dispatch(notificationActions.trace("Error attempting whitelist"))
-      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
+      dispatch({
+        type: types.WHITELIST_UPDATE,
+        error: true,
+        payload: error
+      })
     }
   }
 }
@@ -63,51 +82,56 @@ export function clearWhitelist() {
   return async (dispatch, getState, socket) => {
     try {
       await authService.clearWhiteList()
-      dispatch({ type: types.WHITELIST_UPDATE, payload: false })
-      socket.disconnect()
     } catch (error) {
-      dispatch({ type: types.WHITELIST_UPDATE, error: true, payload: error })
+      dispatch(errorActions.setForeground(error.message))
+      return
     }
+    await dispatch({ type: types.WHITELIST_UPDATE, payload: false })
+    await socket.disconnect()
+    dispatch(checkWhiteList())
   }
 }
 
-export function fetchOktaConfig() {
-  return wrappedRequest(
-    () => authService.config(),
-    config => ({ type: types.SET_OKTA_CONFIG, payload: config }),
-    error =>
+function fetchOktaConfig() {
+  return async (dispatch, getState, socket) => {
+    dispatch(notificationActions.trace("Fetching auth config"))
+    try {
+      const config = await authService.config()
+      dispatch(notificationActions.trace("Successfully fetched auth config"))
+      dispatch({ type: types.SET_OKTA_CONFIG, payload: config })
+    } catch (error) {
       notificationActions.localError(
         "Could not fetch authentication data: " + error.message
-      ),
-    () => connect()
-  )
+      )
+      return
+    }
+  }
 }
 
 export function logout() {
   return (dispatch, getState, socket) => {
     dispatch({ type: types.LOGOUT })
     socket.disconnect()
+    dispatch(checkWhiteList())
   }
 }
 
-export function setToken(token, userName) {
+export function login(details) {
   return async (dispatch, getState, socket) => {
-    dispatch(notificationActions.trace("Setting token for " + userName))
-    dispatch({
-      type: types.SET_TOKEN,
-      payload: {
-        token,
-        userName
-      }
+    await dispatch(notificationActions.trace("Logged in successfully"))
+    await dispatch({
+      type: types.LOGIN,
+      payload: details
     })
-    dispatch(connect())
+    await dispatch(connect())
   }
 }
 
 export function invalidateLogin() {
-  return (dispatch, getState, socket) => {
-    dispatch({ type: types.INVALIDATE_LOGIN })
-    socket.disconnect()
+  return async (dispatch, getState, socket) => {
+    await dispatch({ type: types.INVALIDATE_LOGIN })
+    await socket.disconnect()
+    dispatch(checkWhiteList())
   }
 }
 

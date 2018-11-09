@@ -11,10 +11,6 @@ var store
 var actionBuffer = {}
 var initialising = true
 
-function authToken() {
-  return store.getState().auth.token
-}
-
 function subscribedCoins() {
   return store.getState().coins.coins
 }
@@ -143,7 +139,7 @@ export function initialise(s, history) {
 }
 
 export function connect() {
-  socketClient.connect(authToken())
+  socketClient.connect()
 }
 
 export function resubscribe() {

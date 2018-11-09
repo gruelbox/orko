@@ -23,13 +23,13 @@ class IpWhitelisting {
   private final Provider<HttpServletRequest> request;
   private final IGoogleAuthenticator googleAuthenticator;
   private final AuthConfiguration configuration;
-  private final IpWhitelistAccess ipWhitelistAccess;
+  private final Provider<IpWhitelistAccess> ipWhitelistAccess;
 
   @Inject
   IpWhitelisting(Provider<HttpServletRequest> request,
                  IGoogleAuthenticator googleAuthenticator,
                  AuthConfiguration configuration,
-                 IpWhitelistAccess ipWhitelistAccess) {
+                 Provider<IpWhitelistAccess> ipWhitelistAccess) {
     this.request = request;
     this.googleAuthenticator = googleAuthenticator;
     this.configuration = configuration;
@@ -40,7 +40,7 @@ class IpWhitelisting {
     if (isDisabled())
       return true;
     String sourceIp = sourceIp();
-    if (!ipWhitelistAccess.exists(sourceIp)) {
+    if (!ipWhitelistAccess.get().exists(sourceIp)) {
       LOGGER.error("Access attempt from [{}] not whitelisted", sourceIp);
       return false;
     }
@@ -56,7 +56,7 @@ class IpWhitelisting {
       LOGGER.error("Whitelist attempt failed from: " + ip);
       return false;
     }
-    ipWhitelistAccess.add(ip);
+    ipWhitelistAccess.get().add(ip);
     LOGGER.info("Whitelisted ip: " + ip);
     return true;
   }
@@ -66,7 +66,7 @@ class IpWhitelisting {
       return false;
     if (!authoriseIp())
       return false;
-    ipWhitelistAccess.delete(sourceIp());
+    ipWhitelistAccess.get().delete(sourceIp());
     return true;
   }
 

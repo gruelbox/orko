@@ -2,7 +2,7 @@ import React, { Component } from "react"
 import { connect } from "react-redux"
 import * as actions from "../store/auth/actions"
 import * as errorActions from "../store/error/actions"
-import { Loader } from "semantic-ui-react"
+import { Loader, Dimmer } from "semantic-ui-react"
 import Whitelisting from "../components/Whitelisting"
 import Credentials from "../components/Credentials"
 
@@ -17,7 +17,11 @@ class AuthContainer extends Component {
 
   render() {
     if (this.props.auth.loading) {
-      return <Loader active={true} />
+      return (
+        <Dimmer>
+          <Loader active={true} />
+        </Dimmer>
+      )
     } else if (!this.props.auth.whitelisted) {
       return (
         <Whitelisting
@@ -30,9 +34,7 @@ class AuthContainer extends Component {
         <Credentials
           error={this.props.auth.error}
           config={this.props.auth.config}
-          onGotToken={(token, userName) =>
-            this.props.dispatch(actions.setToken(token, userName))
-          }
+          onSuccess={details => this.props.dispatch(actions.login(details))}
           onError={error =>
             this.props.dispatch(
               errorActions.setForeground("Login error: " + error)
@@ -41,9 +43,13 @@ class AuthContainer extends Component {
         />
       )
     } else if (!this.props.auth.loggedIn && !this.props.auth.config) {
-      return <Loader active={true} />
+      return (
+        <Dimmer>
+          <Loader active={true} />
+        </Dimmer>
+      )
     } else {
-      return this.props.children
+      return null
     }
   }
 }

@@ -28,7 +28,11 @@ export default class Login extends Component {
   login = () => {
     authService
       .simpleLogin(this.state)
-      .then(token => this.props.onSuccess(token, "USER"))
+      .then(expiry =>
+        this.props.onSuccess({
+          expiry
+        })
+      )
       .catch(error => this.props.onError(error.message))
   }
 

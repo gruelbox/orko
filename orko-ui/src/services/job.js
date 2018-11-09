@@ -1,23 +1,21 @@
-import { put, get, del } from './fetchUtil';
+import { put, get, del } from "./fetchUtil"
 
 class JobService {
-  
-  async submitJob(job, token) {
-    return await put('jobs', token, JSON.stringify(job));
+  async submitJob(job) {
+    return await put("jobs", JSON.stringify(job))
   }
 
-  async deleteJob(job, token) {
-    return await del('jobs/' + job.id, token);
+  async deleteJob(job) {
+    return await del("jobs/" + job.id)
   }
 
-  async fetchJobs(token) {
-    return await get('jobs', token);
+  async fetchJobs() {
+    return await get("jobs")
   }
 
-  async fetchJob(jobId, token) {
-    return await get('jobs/' + jobId, token);
+  async fetchJob(jobId) {
+    return await get("jobs/" + jobId)
   }
-
 }
 
-export default new JobService();
+export default new JobService()

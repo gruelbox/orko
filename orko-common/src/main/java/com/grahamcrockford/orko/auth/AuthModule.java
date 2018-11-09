@@ -21,7 +21,7 @@ public class AuthModule extends AbstractModule {
   protected void configure() {
     if (configuration.getAuth() != null) {
       install(new GoogleAuthenticatorModule());
-      install(new IpWhitelistingModule(configuration.getAuth()));
+      install(new IpWhitelistingModule());
       install(new OktaModule(configuration.getAuth()));
       install(new JwtModule(configuration.getAuth()));
       Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);

@@ -48,7 +48,7 @@ export function cancelOrder(coin, orderId, orderType) {
 
 function doCancelOrder(coin, orderId, orderType) {
   return authActions.wrappedRequest(
-    auth => exchangesService.cancelOrder(coin, orderId, orderType, auth.token),
+    auth => exchangesService.cancelOrder(coin, orderId, orderType),
     null,
     error =>
       errorActions.setForeground("Could not cancel order: " + error.message)

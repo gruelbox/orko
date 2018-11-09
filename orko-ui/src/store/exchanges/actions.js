@@ -7,7 +7,7 @@ import * as coinActions from "../coin/actions"
 
 export function fetchExchanges() {
   return authActions.wrappedRequest(
-    auth => exchangesService.fetchExchanges(auth.token),
+    auth => exchangesService.fetchExchanges(),
     exchanges => ({ type: types.SET_EXCHANGES, payload: exchanges }),
     error =>
       errorActions.setForeground("Could not fetch exchanges: " + error.message)
@@ -16,7 +16,7 @@ export function fetchExchanges() {
 
 export function fetchPairs(exchange) {
   return authActions.wrappedRequest(
-    auth => exchangesService.fetchPairs(exchange, auth.token),
+    auth => exchangesService.fetchPairs(exchange),
     json => ({
       type: types.SET_PAIRS,
       payload: json.map(p => augmentCoin(p, exchange))
@@ -30,7 +30,7 @@ export function fetchPairs(exchange) {
 
 export function submitOrder(exchange, order) {
   return authActions.wrappedRequest(
-    auth => exchangesService.submitOrder(auth.token, exchange, order),
+    auth => exchangesService.submitOrder(exchange, order),
     response =>
       coinActions.addOrder({
         currencyPair: {
