@@ -1,4 +1,9 @@
+import Cookies from "cookies-js"
+
 const defaultSettings = { method: "GET", mode: "cors", redirect: "follow" }
+
+const ACCESS_TOKEN = "accessToken"
+const X_XSRF_TOKEN = "X-XSRF-TOKEN"
 
 export function get(url) {
   return fetch(new Request("/api/" + url, action("GET")))
@@ -22,6 +27,7 @@ function action(method, content) {
     body: content,
     method: method,
     headers: new Headers({
+      [X_XSRF_TOKEN]: Cookies.get(ACCESS_TOKEN),
       "Content-type": "application/json"
     })
   }

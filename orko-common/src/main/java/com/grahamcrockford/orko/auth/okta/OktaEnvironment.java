@@ -6,6 +6,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
+import com.grahamcrockford.orko.auth.XsrfProtectionFilter;
 import com.grahamcrockford.orko.auth.okta.OktaAuthenticationFilter;
 import com.grahamcrockford.orko.websocket.WebSocketModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
@@ -33,6 +34,12 @@ public class OktaEnvironment implements EnvironmentInitialiser {
     if (authConfiguration.getOkta() != null && authConfiguration.getOkta().isEnabled()) {
       String rootPath = appConfiguration.getRootPath();
       String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
+
+      environment.servlets().addFilter(XsrfProtectionFilter.class.getSimpleName(), new XsrfProtectionFilter())
+        .addMappingForUrlPatterns(null, true, rootPath);
+      environment.admin().addFilter(XsrfProtectionFilter.class.getSimpleName(), new XsrfProtectionFilter())
+        .addMappingForUrlPatterns(null, true, "/*");
+
       environment.servlets().addFilter(OktaAuthenticationFilter.class.getSimpleName(), oktaAuthenticationFilter.get())
         .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
       environment.admin().addFilter(OktaAuthenticationFilter.class.getSimpleName(), oktaAuthenticationFilter.get())
