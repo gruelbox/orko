@@ -11,7 +11,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -23,6 +22,7 @@ import org.jose4j.lang.JoseException;
 import com.codahale.metrics.annotation.Timed;
 import com.google.inject.Inject;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
+import com.grahamcrockford.orko.auth.CookieHandlers;
 import com.grahamcrockford.orko.auth.Roles;
 import com.grahamcrockford.orko.wiring.WebResource;
 
@@ -58,17 +58,11 @@ public class LoginResource implements WebResource {
     Optional<PrincipalImpl> principal = loginAuthenticator.authenticate(basicCredentials);
     if (principal.isPresent()) {
       String token = buildToken(principal.get()).getCompactSerialization();
-      return Response.ok().cookie(cookie(token))
+      return Response.ok().cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
           .entity(new LoginResponse(authConfiguration.getJwt().getExpirationMinutes())).build();
     } else {
       return Response.status(Status.FORBIDDEN).entity(new LoginResponse()).build();
     }
-  }
-
-  private NewCookie cookie(String token) {
-    return new NewCookie(JwtAuthenticationFilter.COOKIE, token, "/", null, 1, null,
-        authConfiguration.getJwt().getExpirationMinutes() * 60, null, authConfiguration.isHttpsOnly(),
-        authConfiguration.isHttpsOnly());
   }
 
   @GET
