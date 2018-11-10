@@ -1,12 +1,8 @@
 package com.grahamcrockford.orko.auth.jwt.login;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.jose4j.jws.AlgorithmIdentifiers.HMAC_SHA256;
-
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -16,9 +12,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.jose4j.jws.JsonWebSignature;
-import org.jose4j.jwt.JwtClaims;
-import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 
 import com.codahale.metrics.annotation.Timed;
@@ -40,11 +33,13 @@ public class LoginResource implements WebResource {
 
   private final AuthConfiguration authConfiguration;
   private final JwtLoginVerifier jwtLoginVerifier;
+  private final TokenIssuer tokenIssuer;
 
   @Inject
-  LoginResource(AuthConfiguration authConfiguration, JwtLoginVerifier jwtLoginVerifier) {
+  LoginResource(AuthConfiguration authConfiguration, JwtLoginVerifier jwtLoginVerifier, TokenIssuer tokenIssuer) {
     this.authConfiguration = authConfiguration;
     this.jwtLoginVerifier = jwtLoginVerifier;
+    this.tokenIssuer = tokenIssuer;
   }
 
   @GET
@@ -60,7 +55,7 @@ public class LoginResource implements WebResource {
   public final Response doLogin(LoginRequest loginRequest) throws AuthenticationException, JoseException {
     Optional<PrincipalImpl> principal = jwtLoginVerifier.authenticate(loginRequest);
     if (principal.isPresent()) {
-      String token = buildToken(principal.get()).getCompactSerialization();
+      String token = tokenIssuer.buildToken(principal.get(), Roles.TRADER).getCompactSerialization();
       return Response.ok().cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
           .entity(new LoginResponse(authConfiguration.getJwt().getExpirationMinutes())).build();
     } else {
@@ -73,21 +68,5 @@ public class LoginResource implements WebResource {
   @Timed
   public Map<String, String> getConfig() {
     return ImmutableMap.of();
-  }
-
-  private JsonWebSignature buildToken(PrincipalImpl user) {
-    final JwtClaims claims = new JwtClaims();
-    claims.setSubject(user.getName());
-    claims.setStringClaim("roles", Roles.TRADER);
-    claims.setStringClaim("xsrf", UUID.randomUUID().toString());
-    claims.setExpirationTimeMinutesInTheFuture(authConfiguration.getJwt().getExpirationMinutes());
-    claims.setIssuedAtToNow();
-    claims.setGeneratedJwtId();
-
-    final JsonWebSignature jws = new JsonWebSignature();
-    jws.setPayload(claims.toJson());
-    jws.setAlgorithmHeaderValue(HMAC_SHA256);
-    jws.setKey(new HmacKey(authConfiguration.getJwt().getSecretBytes()));
-    return jws;
   }
 }
