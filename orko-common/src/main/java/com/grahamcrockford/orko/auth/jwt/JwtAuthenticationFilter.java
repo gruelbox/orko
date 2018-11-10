@@ -17,7 +17,7 @@ import com.grahamcrockford.orko.auth.TokenAuthenticationFilter;
  */
 @Singleton
 @Priority(102)
-class JwtAuthenticationFilter extends TokenAuthenticationFilter<AuthenticatedUser> {
+class JwtAuthenticationFilter extends TokenAuthenticationFilter {
 
   private final JwtAuthenticatorAuthorizer authenticator;
   private final Provider<Optional<JwtContext>> jwtContext;
@@ -32,10 +32,5 @@ class JwtAuthenticationFilter extends TokenAuthenticationFilter<AuthenticatedUse
   @Override
   protected Optional<AuthenticatedUser> extractPrincipal(String token) {
     return jwtContext.get().map(context -> authenticator.authenticate(context).orElse(null));
-  }
-
-  @Override
-  protected boolean authorize(AuthenticatedUser principal, String role) {
-    return authenticator.authorize(principal, role);
   }
 }

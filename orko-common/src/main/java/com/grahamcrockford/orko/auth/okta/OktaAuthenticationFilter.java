@@ -18,7 +18,7 @@ import io.dropwizard.auth.AuthenticationException;
  */
 @Singleton
 @Priority(102)
-class OktaAuthenticationFilter extends TokenAuthenticationFilter<AuthenticatedUser> {
+class OktaAuthenticationFilter extends TokenAuthenticationFilter {
 
   private final OktaAuthenticator authenticator;
 
@@ -34,10 +34,5 @@ class OktaAuthenticationFilter extends TokenAuthenticationFilter<AuthenticatedUs
     } catch (AuthenticationException e) {
       return Optional.empty();
     }
-  }
-
-  @Override
-  protected boolean authorize(AuthenticatedUser principal, String role) {
-    return true;
   }
 }

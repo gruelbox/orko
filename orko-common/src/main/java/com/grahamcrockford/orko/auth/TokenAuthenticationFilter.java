@@ -1,7 +1,6 @@
 package com.grahamcrockford.orko.auth;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.Optional;
 
 import javax.servlet.FilterChain;
@@ -17,17 +16,18 @@ import com.google.inject.name.Named;
 import com.grahamcrockford.orko.auth.AbstractHttpSecurityServletFilter;
 import com.grahamcrockford.orko.auth.Roles;
 
-public abstract class TokenAuthenticationFilter<T extends Principal> extends AbstractHttpSecurityServletFilter {
+public abstract class TokenAuthenticationFilter extends AbstractHttpSecurityServletFilter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
 
-  protected abstract Optional<T> extractPrincipal(String token);
-
-  protected abstract boolean authorize(T principal, String role);
+  protected abstract Optional<AuthenticatedUser> extractPrincipal(String token);
 
   @Inject
   @Named(AuthModule.ACCESS_TOKEN_KEY)
   private Provider<Optional<String>> accessToken;
+
+  @Inject
+  private AuthenticatedUserAuthorizer authenticatedUserAuthorizer;
 
 
   @Override
@@ -42,13 +42,13 @@ public abstract class TokenAuthenticationFilter<T extends Principal> extends Abs
       return false;
     }
 
-    Optional<T> principal = extractPrincipal(token.get());
+    Optional<AuthenticatedUser> principal = extractPrincipal(token.get());
     if (!principal.isPresent()) {
       response.sendError(401);
       return false;
     }
 
-    if (!authorize(principal.get(), Roles.TRADER)) {
+    if (!authenticatedUserAuthorizer.authorize(principal.get(), Roles.TRADER)) {
       LOGGER.warn(fullPath + ": user [" + principal.get().getName() + "] not authorised");
       response.sendError(401);
       return false;
