@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth.jwt;
+package com.grahamcrockford.orko.auth.jwt.login;
 
 import java.util.Optional;
 
@@ -18,15 +18,15 @@ import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.PrincipalImpl;
 
 @Singleton
-class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
+class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LoginAuthenticator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JwtLoginVerifier.class);
 
   private final AuthConfiguration authConfiguration;
   private final IGoogleAuthenticator googleAuthenticator;
 
   @Inject
-  LoginAuthenticator(AuthConfiguration authConfiguration, IGoogleAuthenticator googleAuthenticator) {
+  JwtLoginVerifier(AuthConfiguration authConfiguration, IGoogleAuthenticator googleAuthenticator) {
     this.authConfiguration = authConfiguration;
     this.googleAuthenticator = googleAuthenticator;
   }
@@ -39,12 +39,17 @@ class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
     if (valid(credentials)) {
       return Optional.of(new PrincipalImpl(credentials.getUsername()));
     }
-    LOGGER.warn("Invalid login attempt by [" + credentials.getUsername() + "]");
+    if (credentials == null) {
+      LOGGER.warn("Invalid login attempt (no credentials)");
+    } else {
+      LOGGER.warn("Invalid login attempt by [" + credentials.getUsername() + "]");
+    }
     return Optional.empty();
   }
 
   private boolean valid(LoginRequest credentials) {
-    return authConfiguration.getJwt().getUserName().equals(credentials.getUsername()) &&
+    return credentials != null &&
+           authConfiguration.getJwt().getUserName().equals(credentials.getUsername()) &&
            authConfiguration.getJwt().getPassword().equals(credentials.getPassword()) &&
            passesSecondFactor(credentials);
   }

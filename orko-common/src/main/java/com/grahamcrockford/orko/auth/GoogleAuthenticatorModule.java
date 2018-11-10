@@ -5,7 +5,7 @@ import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
-class GoogleAuthenticatorModule extends AbstractModule {
+public class GoogleAuthenticatorModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(IGoogleAuthenticator.class).toInstance(

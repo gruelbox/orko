@@ -1,40 +1,56 @@
+import Cookies from "cookies-js"
+
 const defaultSettings = { method: "GET", mode: "cors", redirect: "follow" }
 
-export function get(url, token) {
-  return fetch(new Request("/api/" + url, action("GET", token)))
+const ACCESS_TOKEN = "accessToken"
+const X_XSRF_TOKEN = "x-xsrf-token"
+
+var xsrfToken
+
+export function accessToken() {
+  return Cookies.get(ACCESS_TOKEN)
 }
 
-export function put(url, token, content) {
-  return fetch(new Request("/api/" + url, action("PUT", token, content)))
+export function setAccessToken(token, expires, httpsOnly) {
+  Cookies.set(ACCESS_TOKEN, token, {
+    path: "/",
+    expires,
+    secure: window.location.protocol === "https:"
+  })
 }
 
-export function post(url, token, content) {
-  return fetch(new Request("/api/" + url, action("POST", token, content)))
+export function setXsrfToken(token) {
+  xsrfToken = token
 }
 
-export function del(url, token, content) {
-  return fetch(new Request("/api/" + url, action("DELETE", token, content)))
+export function get(url) {
+  return fetch(new Request("/api/" + url, action("GET")))
 }
 
-function action(method, token, content) {
-  if (token)
-    return {
-      ...defaultSettings,
-      body: content,
-      method: method,
-      credentials: "include",
-      headers: new Headers({
-        Authorization: "Bearer " + token,
-        "Content-type": "application/json"
-      })
-    }
-  else
-    return {
-      ...defaultSettings,
-      body: content,
-      method: method,
-      headers: new Headers({
-        "Content-type": "application/json"
-      })
-    }
+export function put(url, content) {
+  return fetch(new Request("/api/" + url, action("PUT", content)))
+}
+
+export function post(url, content) {
+  return fetch(new Request("/api/" + url, action("POST", content)))
+}
+
+export function del(url, content) {
+  return fetch(new Request("/api/" + url, action("DELETE", content)))
+}
+
+function action(method, content) {
+  return {
+    ...defaultSettings,
+    body: content,
+    method: method,
+    headers: xsrfToken
+      ? new Headers({
+          [X_XSRF_TOKEN]: xsrfToken,
+          "Content-type": "application/json"
+        })
+      : new Headers({
+          "Content-type": "application/json"
+        })
+  }
 }

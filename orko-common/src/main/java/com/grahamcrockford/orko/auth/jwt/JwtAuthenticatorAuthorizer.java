@@ -8,12 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AuthenticatedUser;
 
 import io.dropwizard.auth.Authenticator;
-import io.dropwizard.auth.Authorizer;
 
 @Singleton
-class JwtAuthenticatorAuthorizer implements Authenticator<JwtContext, AuthenticatedUser>, Authorizer<AuthenticatedUser> {
+class JwtAuthenticatorAuthorizer implements Authenticator<JwtContext, AuthenticatedUser> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticatorAuthorizer.class);
 
@@ -26,14 +26,5 @@ class JwtAuthenticatorAuthorizer implements Authenticator<JwtContext, Authentica
       LOGGER.warn("JWT invalid ({})", e.getMessage());
       return Optional.empty();
     }
-  }
-
-  @Override
-  public boolean authorize(AuthenticatedUser authenticatedUser, String role) {
-    if (authenticatedUser == null) {
-      LOGGER.warn("No user provided for authorization");
-      return false;
-    }
-    return authenticatedUser.getRoles().contains(role);
   }
 }

@@ -10,10 +10,21 @@ class AuthService {
     return result === "true"
   }
 
+  async checkLoggedIn() {
+    const response = await get("exchanges")
+    return response.ok
+  }
+
   async whitelist(token) {
     const response = await put("auth?token=" + token)
     if (!response.ok) {
-      throw new Error("Whitelisting failed (" + response.statusText + ")")
+      var message
+      try {
+        message = response.text()
+      } catch (error) {
+        message = response.statusText
+      }
+      throw new Error("Whitelisting failed (" + message + ")")
     }
     return true
   }
@@ -22,13 +33,13 @@ class AuthService {
     const response = await del("auth")
     if (!response.ok) {
       throw new Error(
-        "Failed to clear whitelisting (" + response.statusText + ")"
+        "Failed to clear whitelisting (" + (await response.text()) + ")"
       )
     }
   }
 
   async simpleLogin(credentials) {
-    const response = await post("auth/login", null, JSON.stringify(credentials))
+    const response = await post("auth/login", JSON.stringify(credentials))
     if (!response.ok) {
       throw new Error("Login failed (" + response.statusText + ")")
     }
@@ -36,11 +47,12 @@ class AuthService {
     if (!received.success) {
       throw new Error("Login failed")
     }
-    return received.token
+    return received.expiryMinutes
   }
 
   async config() {
-    return await get("auth/config")
+    const result = await get("auth/config")
+    return await result.json()
   }
 }
 

@@ -1,27 +1,26 @@
 import { get, put, del, post } from "./fetchUtil"
 
 class ExchangesService {
-  async fetchSubscriptions(token) {
-    return await get("subscriptions", token)
+  async fetchSubscriptions() {
+    return await get("subscriptions")
   }
 
-  async addSubscription(token, ticker) {
-    return await put("subscriptions", token, ticker)
+  async addSubscription(ticker) {
+    return await put("subscriptions", ticker)
   }
 
-  async submitOrder(token, exchange, order) {
+  async submitOrder(exchange, order) {
     return await post(
       "exchanges/" + exchange + "/orders",
-      token,
       JSON.stringify(order)
     )
   }
 
-  async fetchReferencePrices(token) {
-    return await get("subscriptions/referencePrices", token)
+  async fetchReferencePrices() {
+    return await get("subscriptions/referencePrices")
   }
 
-  async setReferencePrice(token, coin, price) {
+  async setReferencePrice(coin, price) {
     return await put(
       "subscriptions/referencePrices/" +
         coin.exchange +
@@ -29,44 +28,29 @@ class ExchangesService {
         coin.base +
         "-" +
         coin.counter,
-      token,
       price
     )
   }
 
-  async removeSubscription(token, ticker) {
-    return await del("subscriptions", token, ticker)
+  async removeSubscription(ticker) {
+    return await del("subscriptions", ticker)
   }
 
-  async fetchExchanges(token) {
-    return await get("exchanges", token)
+  async fetchExchanges() {
+    return await get("exchanges")
   }
 
-  async fetchPairs(exchange, token) {
-    return await get("exchanges/" + exchange + "/pairs", token)
+  async fetchPairs(exchange) {
+    return await get("exchanges/" + exchange + "/pairs")
   }
 
-  async fetchMetadata(coin, token) {
+  async fetchMetadata(coin) {
     return await get(
-      "exchanges/" + coin.exchange + "/pairs/" + coin.base + "-" + coin.counter,
-      token
+      "exchanges/" + coin.exchange + "/pairs/" + coin.base + "-" + coin.counter
     )
   }
 
-  async fetchTicker(coin, token) {
-    return await get(
-      "exchanges/" +
-        coin.exchange +
-        "/markets/" +
-        coin.base +
-        "-" +
-        coin.counter +
-        "/ticker",
-      token
-    )
-  }
-
-  async fetchOrders(coin, token) {
+  async fetchTicker(coin) {
     return await get(
       "exchanges/" +
         coin.exchange +
@@ -74,24 +58,34 @@ class ExchangesService {
         coin.base +
         "-" +
         coin.counter +
-        "/orders",
-      token
+        "/ticker"
     )
   }
 
-  async fetchBalance(coin, token) {
+  async fetchOrders(coin) {
+    return await get(
+      "exchanges/" +
+        coin.exchange +
+        "/markets/" +
+        coin.base +
+        "-" +
+        coin.counter +
+        "/orders"
+    )
+  }
+
+  async fetchBalance(coin) {
     return await get(
       "exchanges/" +
         coin.exchange +
         "/balance/" +
         coin.base +
         "," +
-        coin.counter,
-      token
+        coin.counter
     )
   }
 
-  async cancelOrder(coin, id, orderType, token) {
+  async cancelOrder(coin, id, orderType) {
     return await del(
       "exchanges/" +
         coin.exchange +
@@ -102,8 +96,7 @@ class ExchangesService {
         "/orders/" +
         id +
         "?orderType=" +
-        orderType,
-      token
+        orderType
     )
   }
 }

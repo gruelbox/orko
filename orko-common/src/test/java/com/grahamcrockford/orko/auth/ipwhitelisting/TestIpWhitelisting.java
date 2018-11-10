@@ -36,7 +36,7 @@ public class TestIpWhitelisting {
 
     when(request.getRemoteAddr()).thenReturn(ORIGIN);
 
-    ontest = new IpWhitelisting(Providers.of(request), googleAuthenticator, configuration, ipWhitelistAccess);
+    ontest = new IpWhitelisting(Providers.of(request), googleAuthenticator, configuration, Providers.of(ipWhitelistAccess));
   }
 
   @Test

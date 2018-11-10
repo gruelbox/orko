@@ -24,13 +24,13 @@ public class JwtConfiguration {
     this.secret = secret;
   }
 
-  byte[] getSecretBytes() {
+  public byte[] getSecretBytes() {
     Preconditions.checkNotNull(secret);
     return secret.getBytes(Charsets.UTF_8);
   }
 
   @JsonProperty
-  String getUserName() {
+  public String getUserName() {
     return userName;
   }
 
@@ -40,7 +40,7 @@ public class JwtConfiguration {
   }
 
   @JsonProperty
-  String getPassword() {
+  public String getPassword() {
     return password;
   }
 

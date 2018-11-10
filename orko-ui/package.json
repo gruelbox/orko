@@ -6,6 +6,7 @@
     "@mars/heroku-js-runtime-env": "^3.0.2",
     "@okta/okta-signin-widget": "^2.13.0",
     "connected-react-router": "^4.5.0",
+    "cookies-js": "^1.2.3",
     "fetch": "^1.1.0",
     "http-proxy-middleware": "^0.19.0",
     "immutable": "^3.8.2",

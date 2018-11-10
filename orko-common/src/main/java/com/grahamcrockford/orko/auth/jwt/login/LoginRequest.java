@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth.jwt;
+package com.grahamcrockford.orko.auth.jwt.login;
 
 import static java.util.Objects.requireNonNull;
 
@@ -11,12 +11,13 @@ public class LoginRequest {
   private final String password;
   private final Integer secondFactor;
 
-
   @JsonCreator
-  public LoginRequest(@JsonProperty("username") String username, @JsonProperty("password") String password, @JsonProperty("secondFactor") Integer secondFactor) {
-      this.secondFactor = secondFactor;
-      this.username = requireNonNull(username);
-      this.password = requireNonNull(password);
+  public LoginRequest(@JsonProperty("username") String username,
+                      @JsonProperty("password") String password,
+                      @JsonProperty("secondFactor") Integer secondFactor) {
+    this.secondFactor = secondFactor;
+    this.username = requireNonNull(username);
+    this.password = requireNonNull(password);
   }
 
   public String getUsername() {

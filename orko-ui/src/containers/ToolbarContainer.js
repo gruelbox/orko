@@ -71,7 +71,7 @@ const ViewSettings = ({ onClick }) => (
   </Href>
 )
 
-const SignOutLink = ({ onClick, userName }) => (
+const SignOutLink = ({ onClick }) => (
   <Href
     ml={2}
     color="heading"
@@ -132,7 +132,6 @@ const Normal = ({
   coin,
   connected,
   errors,
-  userName,
   updateFocusedField,
   onShowViewSettings,
   dispatch
@@ -154,10 +153,7 @@ const Normal = ({
     </RemainingSpace>
     <TickerSocketState connected={connected} />
     <ViewSettings onClick={onShowViewSettings} />
-    <SignOutLink
-      userName={userName}
-      onClick={() => dispatch(authActions.logout())}
-    />
+    <SignOutLink onClick={() => dispatch(authActions.logout())} />
     <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
   </ToolbarBox>
 )
@@ -167,7 +163,6 @@ const Mobile = ({
   coin,
   connected,
   errors,
-  userName,
   updateFocusedField,
   onResetLayout,
   dispatch
@@ -176,10 +171,7 @@ const Mobile = ({
     <HomeLink />
     <TickerSocketState connected={connected} />
     <Coin coin={coin} />
-    <SignOutLink
-      userName={userName}
-      onClick={() => dispatch(authActions.logout())}
-    />
+    <SignOutLink onClick={() => dispatch(authActions.logout())} />
     <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
   </ToolbarBox>
 )
@@ -208,7 +200,6 @@ export default connect((state, props) => {
   const coin = getSelectedCoin(state)
   return {
     errors: state.error.errorBackground,
-    userName: state.auth.userName,
     connected: state.socket.connected,
     updateFocusedField: state.focus.fn,
     ticker: getSelectedCoinTicker(state),

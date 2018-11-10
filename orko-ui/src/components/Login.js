@@ -2,6 +2,8 @@ import React, { Component } from "react"
 import { Modal, Icon, Form, Input, Button, Message } from "semantic-ui-react"
 import FixedModal from "./primitives/FixedModal"
 import authService from "../services/auth"
+import { accessToken, setXsrfToken } from "../services/fetchUtil"
+import { parseJwt } from "../util/jwt"
 
 export default class Login extends Component {
   constructor(props) {
@@ -28,7 +30,16 @@ export default class Login extends Component {
   login = () => {
     authService
       .simpleLogin(this.state)
-      .then(token => this.props.onSuccess(token, "USER"))
+      .then(expiry => {
+        try {
+          setXsrfToken(parseJwt(accessToken()).xsrf)
+        } catch (error) {
+          throw new Error("Malformed access token")
+        }
+        this.props.onSuccess({
+          expiry
+        })
+      })
       .catch(error => this.props.onError(error.message))
   }
 

@@ -15,22 +15,36 @@ public class JwtEnvironment implements EnvironmentInitialiser {
 
   private final OrkoConfiguration appConfiguration;
   private final Provider<JwtAuthenticationFilter> jwtAuthenticationFilter;
+  private final Provider<JwtXsrfProtectionFilter> jwtXsrfProtectionFilter;
 
   @Inject
-  JwtEnvironment(OrkoConfiguration appConfiguration, Provider<JwtAuthenticationFilter> jwtAuthenticationFilter) {
+  JwtEnvironment(OrkoConfiguration appConfiguration,
+                 Provider<JwtAuthenticationFilter> jwtAuthenticationFilter,
+                 Provider<JwtXsrfProtectionFilter> jwtXsrfProtectionFilter) {
     this.appConfiguration = appConfiguration;
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    this.jwtXsrfProtectionFilter = jwtXsrfProtectionFilter;
   }
 
   @Override
   public void init(Environment environment) {
+
     if (appConfiguration.getAuth().getJwt() != null && appConfiguration.getAuth().getJwt().isEnabled()) {
       String rootPath = appConfiguration.getRootPath();
       String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
-      environment.servlets().addFilter(JwtAuthenticationFilter.class.getSimpleName(), jwtAuthenticationFilter.get())
-        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
-      environment.admin().addFilter(JwtAuthenticationFilter.class.getSimpleName(), jwtAuthenticationFilter.get())
+
+      JwtXsrfProtectionFilter xsrfFilter = jwtXsrfProtectionFilter.get();
+      environment.servlets().addFilter(JwtXsrfProtectionFilter.class.getSimpleName(), xsrfFilter)
+        .addMappingForUrlPatterns(null, true, rootPath);
+      environment.admin().addFilter(JwtXsrfProtectionFilter.class.getSimpleName(), xsrfFilter)
         .addMappingForUrlPatterns(null, true, "/*");
+
+      JwtAuthenticationFilter authFilter = jwtAuthenticationFilter.get();
+      environment.servlets().addFilter(JwtAuthenticationFilter.class.getSimpleName(), authFilter)
+        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
+      environment.admin().addFilter(JwtAuthenticationFilter.class.getSimpleName(), authFilter)
+        .addMappingForUrlPatterns(null, true, "/*");
+
     }
   }
 }

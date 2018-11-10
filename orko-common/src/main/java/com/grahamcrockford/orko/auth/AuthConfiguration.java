@@ -46,7 +46,7 @@ public class AuthConfiguration {
   }
 
   @JsonProperty
-  boolean isHttpsOnly() {
+  public boolean isHttpsOnly() {
     return httpsOnly;
   }
 

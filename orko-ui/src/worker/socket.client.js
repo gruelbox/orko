@@ -66,11 +66,11 @@ export function onBalance(handler) {
   handleBalance = handler
 }
 
-export function connect(token) {
+export function connect() {
   if (connected) throw Error("Already connected")
   const root = runtimeEnv().REACT_APP_WS_URL
   console.log("Connecting to socket", root)
-  socket = ws("ws", token, root)
+  socket = ws("ws", root)
   socket.onopen = () => {
     connected = true
     console.log("Socket (re)connected")
@@ -249,7 +249,7 @@ function preProcess(obj) {
   }
 }
 
-function ws(url, token, root) {
+function ws(url, root) {
   var fullUrl
   if (root) {
     fullUrl = root + "/" + url
@@ -258,9 +258,5 @@ function ws(url, token, root) {
     fullUrl = protocol + "//" + window.location.host + "/" + url
   }
   console.log("Connecting", fullUrl)
-  if (token) {
-    return new ReconnectingWebSocket(fullUrl, ["auth", token])
-  } else {
-    return new ReconnectingWebSocket(fullUrl)
-  }
+  return new ReconnectingWebSocket(fullUrl)
 }

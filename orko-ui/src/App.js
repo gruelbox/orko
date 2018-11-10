@@ -43,11 +43,10 @@ export default class App extends Component {
           <>
             <GlobalStyle />
             <ErrorContainer />
-            <AuthContainer>
-              <ConnectedRouter history={history}>
-                <Framework />
-              </ConnectedRouter>
-            </AuthContainer>
+            <ConnectedRouter history={history}>
+              <Framework />
+            </ConnectedRouter>
+            <AuthContainer />
           </>
         </ReduxProvider>
       </ThemeProvider>
