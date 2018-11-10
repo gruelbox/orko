@@ -10,7 +10,7 @@ import com.google.common.collect.FluentIterable;
 
 public enum CookieHandlers {
 
-  ACCESS_TOKEN("accessToken");
+  ACCESS_TOKEN(AuthModule.ACCESS_TOKEN_KEY);
 
   private final String name;
 

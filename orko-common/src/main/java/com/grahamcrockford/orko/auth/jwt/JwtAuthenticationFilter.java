@@ -3,11 +3,11 @@ package com.grahamcrockford.orko.auth.jwt;
 import java.util.Optional;
 
 import javax.annotation.Priority;
-import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtContext;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AuthenticatedUser;
 import com.grahamcrockford.orko.auth.TokenAuthenticationFilter;
 
 /**
@@ -20,23 +20,18 @@ import com.grahamcrockford.orko.auth.TokenAuthenticationFilter;
 class JwtAuthenticationFilter extends TokenAuthenticationFilter<AuthenticatedUser> {
 
   private final JwtAuthenticatorAuthorizer authenticator;
-  private final JwtConsumer jwtConsumer;
+  private final Provider<Optional<JwtContext>> jwtContext;
 
   @Inject
-  JwtAuthenticationFilter(JwtAuthenticatorAuthorizer authenticator, JwtConsumer jwtConsumer) {
+  JwtAuthenticationFilter(JwtAuthenticatorAuthorizer authenticator, Provider<Optional<JwtContext>> jwtContext) {
     this.authenticator = authenticator;
-    this.jwtConsumer = jwtConsumer;
+    this.jwtContext = jwtContext;
   }
 
 
   @Override
-  protected Optional<AuthenticatedUser> extractPrincipal(String token) throws TokenValidationException {
-    try {
-      JwtContext jwtContext = jwtConsumer.process(token);
-      return authenticator.authenticate(jwtContext);
-    } catch (InvalidJwtException e) {
-      throw new TokenValidationException(e);
-    }
+  protected Optional<AuthenticatedUser> extractPrincipal(String token) {
+    return jwtContext.get().map(context -> authenticator.authenticate(context).orElse(null));
   }
 
   @Override

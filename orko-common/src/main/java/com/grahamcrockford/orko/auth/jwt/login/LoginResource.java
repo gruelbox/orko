@@ -1,10 +1,11 @@
-package com.grahamcrockford.orko.auth.jwt;
+package com.grahamcrockford.orko.auth.jwt.login;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.jose4j.jws.AlgorithmIdentifiers.HMAC_SHA256;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -38,12 +39,12 @@ import io.dropwizard.jersey.caching.CacheControl;
 public class LoginResource implements WebResource {
 
   private final AuthConfiguration authConfiguration;
-  private final LoginAuthenticator loginAuthenticator;
+  private final JwtLoginVerifier jwtLoginVerifier;
 
   @Inject
-  LoginResource(AuthConfiguration authConfiguration, LoginAuthenticator loginAuthenticator) {
+  LoginResource(AuthConfiguration authConfiguration, JwtLoginVerifier jwtLoginVerifier) {
     this.authConfiguration = authConfiguration;
-    this.loginAuthenticator = loginAuthenticator;
+    this.jwtLoginVerifier = jwtLoginVerifier;
   }
 
   @GET
@@ -57,7 +58,7 @@ public class LoginResource implements WebResource {
   @Path("/login")
   @CacheControl(noCache = true, noStore = true, maxAge = 0)
   public final Response doLogin(LoginRequest loginRequest) throws AuthenticationException, JoseException {
-    Optional<PrincipalImpl> principal = loginAuthenticator.authenticate(loginRequest);
+    Optional<PrincipalImpl> principal = jwtLoginVerifier.authenticate(loginRequest);
     if (principal.isPresent()) {
       String token = buildToken(principal.get()).getCompactSerialization();
       return Response.ok().cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
@@ -78,6 +79,7 @@ public class LoginResource implements WebResource {
     final JwtClaims claims = new JwtClaims();
     claims.setSubject(user.getName());
     claims.setStringClaim("roles", Roles.TRADER);
+    claims.setStringClaim("xsrf", UUID.randomUUID().toString());
     claims.setExpirationTimeMinutesInTheFuture(authConfiguration.getJwt().getExpirationMinutes());
     claims.setIssuedAtToNow();
     claims.setGeneratedJwtId();

@@ -1,8 +1,14 @@
 package com.grahamcrockford.orko.auth;
 
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
+import com.google.inject.servlet.RequestScoped;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.grahamcrockford.orko.auth.jwt.JwtModule;
@@ -12,6 +18,8 @@ import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 public class AuthModule extends AbstractModule {
 
   private final OrkoConfiguration configuration;
+
+  public static final String ACCESS_TOKEN_KEY = "accessToken";
 
   public AuthModule(OrkoConfiguration configuration) {
     this.configuration = configuration;
@@ -31,5 +39,12 @@ public class AuthModule extends AbstractModule {
   @Provides
   AuthConfiguration authConfiguration(OrkoConfiguration orkoConfiguration) {
     return orkoConfiguration.getAuth();
+  }
+
+  @RequestScoped
+  @Provides
+  @Named(ACCESS_TOKEN_KEY)
+  Optional<String> accessToken(HttpServletRequest httpServletRequest) {
+    return CookieHandlers.ACCESS_TOKEN.read(httpServletRequest);
   }
 }

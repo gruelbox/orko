@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth.jwt;
+package com.grahamcrockford.orko.auth.jwt.login;
 
 import java.util.Optional;
 
@@ -18,15 +18,15 @@ import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.PrincipalImpl;
 
 @Singleton
-class LoginAuthenticator implements Authenticator<LoginRequest, PrincipalImpl> {
+class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LoginAuthenticator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JwtLoginVerifier.class);
 
   private final AuthConfiguration authConfiguration;
   private final IGoogleAuthenticator googleAuthenticator;
 
   @Inject
-  LoginAuthenticator(AuthConfiguration authConfiguration, IGoogleAuthenticator googleAuthenticator) {
+  JwtLoginVerifier(AuthConfiguration authConfiguration, IGoogleAuthenticator googleAuthenticator) {
     this.authConfiguration = authConfiguration;
     this.googleAuthenticator = googleAuthenticator;
   }

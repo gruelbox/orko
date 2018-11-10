@@ -5,7 +5,6 @@ import javax.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
-import com.grahamcrockford.orko.auth.XsrfProtectionFilter;
 import com.grahamcrockford.orko.websocket.WebSocketModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
@@ -16,11 +15,15 @@ public class JwtEnvironment implements EnvironmentInitialiser {
 
   private final OrkoConfiguration appConfiguration;
   private final Provider<JwtAuthenticationFilter> jwtAuthenticationFilter;
+  private final Provider<JwtXsrfProtectionFilter> jwtXsrfProtectionFilter;
 
   @Inject
-  JwtEnvironment(OrkoConfiguration appConfiguration, Provider<JwtAuthenticationFilter> jwtAuthenticationFilter) {
+  JwtEnvironment(OrkoConfiguration appConfiguration,
+                 Provider<JwtAuthenticationFilter> jwtAuthenticationFilter,
+                 Provider<JwtXsrfProtectionFilter> jwtXsrfProtectionFilter) {
     this.appConfiguration = appConfiguration;
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    this.jwtXsrfProtectionFilter = jwtXsrfProtectionFilter;
   }
 
   @Override
@@ -30,14 +33,16 @@ public class JwtEnvironment implements EnvironmentInitialiser {
       String rootPath = appConfiguration.getRootPath();
       String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
 
-      environment.servlets().addFilter(XsrfProtectionFilter.class.getSimpleName(), new XsrfProtectionFilter())
+      JwtXsrfProtectionFilter xsrfFilter = jwtXsrfProtectionFilter.get();
+      environment.servlets().addFilter(JwtXsrfProtectionFilter.class.getSimpleName(), xsrfFilter)
         .addMappingForUrlPatterns(null, true, rootPath);
-      environment.admin().addFilter(XsrfProtectionFilter.class.getSimpleName(), new XsrfProtectionFilter())
+      environment.admin().addFilter(JwtXsrfProtectionFilter.class.getSimpleName(), xsrfFilter)
         .addMappingForUrlPatterns(null, true, "/*");
 
-      environment.servlets().addFilter(JwtAuthenticationFilter.class.getSimpleName(), jwtAuthenticationFilter.get())
+      JwtAuthenticationFilter authFilter = jwtAuthenticationFilter.get();
+      environment.servlets().addFilter(JwtAuthenticationFilter.class.getSimpleName(), authFilter)
         .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
-      environment.admin().addFilter(JwtAuthenticationFilter.class.getSimpleName(), jwtAuthenticationFilter.get())
+      environment.admin().addFilter(JwtAuthenticationFilter.class.getSimpleName(), authFilter)
         .addMappingForUrlPatterns(null, true, "/*");
 
     }

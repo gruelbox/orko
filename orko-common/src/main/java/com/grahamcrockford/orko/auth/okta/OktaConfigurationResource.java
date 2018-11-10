@@ -14,12 +14,12 @@ import com.grahamcrockford.orko.wiring.WebResource;
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
-public class OktaResource implements WebResource {
+public class OktaConfigurationResource implements WebResource {
 
   private final AuthConfiguration authConfiguration;
 
   @Inject
-  OktaResource(AuthConfiguration authConfiguration) {
+  OktaConfigurationResource(AuthConfiguration authConfiguration) {
     this.authConfiguration = authConfiguration;
   }
 

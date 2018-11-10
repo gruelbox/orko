@@ -6,6 +6,7 @@ import javax.annotation.Priority;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AuthenticatedUser;
 import com.grahamcrockford.orko.auth.TokenAuthenticationFilter;
 
 import io.dropwizard.auth.AuthenticationException;
@@ -17,29 +18,26 @@ import io.dropwizard.auth.AuthenticationException;
  */
 @Singleton
 @Priority(102)
-class OktaAuthenticationFilter extends TokenAuthenticationFilter<AccessTokenPrincipal> {
+class OktaAuthenticationFilter extends TokenAuthenticationFilter<AuthenticatedUser> {
 
-  private final OrkoAuthenticator authenticator;
-  private final OrkoAuthorizer authorizer;
-
+  private final OktaAuthenticator authenticator;
 
   @Inject
-  OktaAuthenticationFilter(OrkoAuthenticator authenticator, OrkoAuthorizer authorizer) {
+  OktaAuthenticationFilter(OktaAuthenticator authenticator) {
     this.authenticator = authenticator;
-    this.authorizer = authorizer;
   }
 
   @Override
-  protected Optional<AccessTokenPrincipal> extractPrincipal(String token) throws TokenValidationException {
+  protected Optional<AuthenticatedUser> extractPrincipal(String token) {
     try {
       return authenticator.authenticate(token);
     } catch (AuthenticationException e) {
-      throw new TokenValidationException(e);
+      return Optional.empty();
     }
   }
 
   @Override
-  protected boolean authorize(AccessTokenPrincipal principal, String role) {
-    return authorizer.authorize(principal, role);
+  protected boolean authorize(AuthenticatedUser principal, String role) {
+    return true;
   }
 }

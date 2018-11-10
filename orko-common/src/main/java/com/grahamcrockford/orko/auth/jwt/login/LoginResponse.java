@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth.jwt;
+package com.grahamcrockford.orko.auth.jwt.login;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

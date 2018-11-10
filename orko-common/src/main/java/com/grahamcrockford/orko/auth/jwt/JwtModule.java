@@ -1,20 +1,32 @@
 package com.grahamcrockford.orko.auth.jwt;
 
+import java.util.Optional;
+
+import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.keys.HmacKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
+import com.google.inject.servlet.RequestScoped;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
+import com.grahamcrockford.orko.auth.AuthModule;
+import com.grahamcrockford.orko.auth.jwt.login.LoginResource;
 import com.grahamcrockford.orko.wiring.WebResource;
 
 public class JwtModule extends AbstractModule {
 
   private final AuthConfiguration auth;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(JwtModule.class);
 
   public JwtModule(AuthConfiguration auth) {
     this.auth = auth;
@@ -38,5 +50,18 @@ public class JwtModule extends AbstractModule {
       .setVerificationKey(new HmacKey(authConfiguration.getJwt().getSecretBytes())) // verify the signature with the public key
       .setRelaxVerificationKeyValidation() // relaxes key length requirement
       .build();
+  }
+
+  @RequestScoped
+  @Provides
+  Optional<JwtContext> jwtContext(JwtConsumer jwtConsumer, @Named(AuthModule.ACCESS_TOKEN_KEY) Optional<String> accessToken) {
+    if (!accessToken.isPresent())
+      return Optional.empty();
+    try {
+      return Optional.of(jwtConsumer.process(accessToken.get()));
+    } catch (InvalidJwtException e) {
+      LOGGER.warn("Invalid JWT (" + e.getMessage() + ")");
+      return Optional.empty();
+    }
   }
 }

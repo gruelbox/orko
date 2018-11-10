@@ -1,4 +1,4 @@
-package com.grahamcrockford.orko.auth.jwt;
+package com.grahamcrockford.orko.auth;
 
 import java.security.Principal;
 import java.util.Set;
@@ -8,12 +8,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 
-class AuthenticatedUser implements Principal {
+public class AuthenticatedUser implements Principal {
 
 	private final String name;
 	private final Set<String> roles;
 
-  AuthenticatedUser(String name, String roles) {
+	public AuthenticatedUser(String name, String roles) {
 		this.name = name;
 		this.roles = StringUtils.isEmpty(roles)
 		    ? ImmutableSet.of()

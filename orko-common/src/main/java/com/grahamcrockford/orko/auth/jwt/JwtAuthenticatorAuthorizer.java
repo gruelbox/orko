@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
+import com.grahamcrockford.orko.auth.AuthenticatedUser;
 
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.Authorizer;

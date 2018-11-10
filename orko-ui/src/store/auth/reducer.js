@@ -24,13 +24,6 @@ export default function reduce(state = initialState, action = {}) {
         config: action.payload
       })
     case types.LOGIN:
-      if (action.payload.token) {
-        Cookies.set(ACCESS_TOKEN, action.payload.token, {
-          path: "/",
-          expires: action.payload.expiry,
-          secure: window.location.protocol === "https:"
-        })
-      }
       return Immutable.merge(state, {
         loggedIn: true,
         error: null,
