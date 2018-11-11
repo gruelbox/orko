@@ -26,7 +26,7 @@ public abstract class WebHostApplication extends BaseApplication {
   @Override
   public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
     bootstrap.addBundle(new AssetsBundle("/assets/", "/", "index.html"));
-    bootstrap.addBundle(new WebSecurityBundle(WebSecurityConfiguration.builder().contentSecurityPolicy("frame-ancestors 'self';").build()));
+    bootstrap.addBundle(new WebSecurityBundle(WebSecurityConfiguration.builder().build()));
     super.initialize(bootstrap);
     websocketBundle = new WebsocketBundle(new Class[] {});
     bootstrap.addBundle(websocketBundle);

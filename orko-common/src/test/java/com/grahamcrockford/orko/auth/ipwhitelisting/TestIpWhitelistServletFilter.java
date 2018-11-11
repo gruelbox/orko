@@ -32,8 +32,7 @@ public class TestIpWhitelistServletFilter {
     ServletRequest wrongRequest = mock(ServletRequest.class);
     ServletResponse wrongResponse = mock(ServletResponse.class);
     ipWhitelistServletFilter.doFilter(wrongRequest, wrongResponse, chain);
-    verify(chain).doFilter(wrongRequest, wrongResponse);
-    verifyZeroInteractions(ipWhitelisting, wrongRequest, wrongResponse);
+    verifyZeroInteractions(chain, ipWhitelisting, wrongRequest, wrongResponse);
   }
 
   @Test
