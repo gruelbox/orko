@@ -27,6 +27,7 @@ public class AuthModule extends AbstractModule {
   @Override
   protected void configure() {
     if (configuration.getAuth() != null) {
+      install(new HttpsEnforcementModule());
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());
       install(new OktaModule(configuration.getAuth()));

@@ -3,7 +3,6 @@ package com.grahamcrockford.orko.web;
 import com.google.inject.AbstractModule;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.auth.AuthModule;
-import com.grahamcrockford.orko.auth.EnforceHerokuHttpsModule;
 import com.grahamcrockford.orko.exchange.ExchangeResourceModule;
 import com.grahamcrockford.orko.mq.MqModule;
 import com.grahamcrockford.orko.websocket.WebSocketModule;
@@ -25,6 +24,5 @@ class WebModule extends AbstractModule {
     install(new AuthModule(configuration));
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
-    install(new EnforceHerokuHttpsModule());
   }
 }

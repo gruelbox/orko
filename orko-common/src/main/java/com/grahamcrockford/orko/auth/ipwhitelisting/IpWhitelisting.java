@@ -1,6 +1,7 @@
 package com.grahamcrockford.orko.auth.ipwhitelisting;
 
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,8 @@ class IpWhitelisting {
     if (configuration.isProxied()) {
       String header = req.getHeader(Headers.X_FORWARDED_FOR);
       if (StringUtils.isEmpty(header)) {
-        throw new IllegalStateException("Configured to assume application is behind a proxy but the forward header has not been provided.");
+        throw new IllegalStateException("Configured to assume application is behind a proxy but the forward header has not been provided. "
+            + "Headers available: " + Headers.listForRequest(req).toList());
       }
       return header.split(",")[0];
     } else {

@@ -3,7 +3,6 @@ package com.grahamcrockford.orko.auth;
 import java.io.IOException;
 import java.util.Optional;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,7 +30,7 @@ public abstract class TokenAuthenticationFilter extends AbstractHttpSecurityServ
 
 
   @Override
-  protected final boolean filterHttpRequest(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+  protected final boolean filterHttpRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
     String fullPath = request.getContextPath() + request.getServletPath() + request.getPathInfo();
 
