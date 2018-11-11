@@ -36,8 +36,6 @@ public class JwtEnvironment implements EnvironmentInitialiser {
       JwtXsrfProtectionFilter xsrfFilter = jwtXsrfProtectionFilter.get();
       environment.servlets().addFilter(JwtXsrfProtectionFilter.class.getSimpleName(), xsrfFilter)
         .addMappingForUrlPatterns(null, true, rootPath);
-      environment.admin().addFilter(JwtXsrfProtectionFilter.class.getSimpleName(), xsrfFilter)
-        .addMappingForUrlPatterns(null, true, "/*");
 
       JwtAuthenticationFilter authFilter = jwtAuthenticationFilter.get();
       environment.servlets().addFilter(JwtAuthenticationFilter.class.getSimpleName(), authFilter)
