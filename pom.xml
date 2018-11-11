@@ -142,7 +142,6 @@
     <okta-jwt-verifier-version>0.3.0</okta-jwt-verifier-version>
     <jose4j.version>0.6.4</jose4j.version>
     <dropwizard-websockets-version>1.3.2</dropwizard-websockets-version>
-    <dropwizard.web.security.version>1.1.0</dropwizard.web.security.version>
     <urlrewritefilter.version>4.0.4</urlrewritefilter.version>
 
     <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
@@ -338,11 +337,6 @@
         <groupId>com.github.badgerwithagun.xchange-stream</groupId>
         <artifactId>xchange-gdax</artifactId>
         <version>${xchange.stream.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.github.badgerwithagun</groupId>
-        <artifactId>dropwizard-web-security</artifactId>
-        <version>${dropwizard.web.security.version}</version>
       </dependency>
       
     </dependencies>

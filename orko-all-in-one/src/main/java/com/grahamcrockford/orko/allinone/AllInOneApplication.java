@@ -5,6 +5,7 @@ import javax.ws.rs.client.Client;
 import com.google.inject.Module;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.WebHostApplication;
+
 import io.dropwizard.setup.Environment;
 
 public class AllInOneApplication extends WebHostApplication {

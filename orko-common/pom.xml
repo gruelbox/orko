@@ -164,11 +164,6 @@
       <groupId>com.github.badgerwithagun.xchange-stream</groupId>
       <artifactId>xchange-bitfinex</artifactId>
     </dependency>
-    
-    <dependency>
-      <groupId>com.github.badgerwithagun</groupId>
-      <artifactId>dropwizard-web-security</artifactId>
-    </dependency>
 
   </dependencies>
 

@@ -9,7 +9,6 @@ import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.grahamcrockford.orko.websocket.WebSocketModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
-import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.setup.Environment;
 
 @Singleton
@@ -30,15 +29,9 @@ public class IpWhitelistingEnvironment implements EnvironmentInitialiser {
 
   @Override
   public void init(Environment environment) {
-
-    AbstractServerFactory serverFactory = (AbstractServerFactory) appConfiguration.getServerFactory();
-    String rootPath = serverFactory.getJerseyRootPath().orElse("/") + "*";
-    String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
-
-    // Apply IP whitelisting outside the authentication stack so we can provide a different response
     if (authConfiguration.getIpWhitelisting() != null && authConfiguration.getIpWhitelisting().isEnabled()) {
       environment.servlets().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter.get())
-        .addMappingForUrlPatterns(null, true, rootPath, websocketEntryFilter);
+        .addMappingForUrlPatterns(null, true, appConfiguration.getRootPath(), WebSocketModule.ENTRY_POINT + "/*");
       environment.admin().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter.get())
         .addMappingForUrlPatterns(null, true, "/*");
     }

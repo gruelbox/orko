@@ -11,7 +11,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class AbstractHttpServletFilter implements Filter {
+public abstract class AbstractHttpServletFilter implements Filter {
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -26,9 +26,7 @@ public class AbstractHttpServletFilter implements Filter {
     doFilter((HttpServletRequest) request, (HttpServletResponse) response, chain);
   }
 
-  public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-
-  }
+  public abstract void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException;
 
   @Override
   public void destroy() {
