@@ -45,6 +45,7 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
           + "font-src 'self' https://fonts.gstatic.com data:; "
           + "script-src 'self' https://s3.tradingview.com; "
           + "img-src 'self' data:; "
+          + "frame-src 'self' https://s3.tradingview.com; "
           + "connect-src 'self' " + wssUri.toString() + "; "
           + "frame-ancestors 'self';";
     });
