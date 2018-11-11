@@ -5,6 +5,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Enumeration;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Before;
@@ -151,6 +153,16 @@ public class TestIpWhitelisting {
   public void testWhitelistProxiedNoForwardHeader() {
     enabled();
     when(request.getHeader(Headers.X_FORWARDED_FOR)).thenReturn(null);
+    when(request.getHeaderNames()).thenReturn(new Enumeration<String>() {
+      @Override
+      public String nextElement() {
+        return null;
+      }
+      @Override
+      public boolean hasMoreElements() {
+        return false;
+      }
+    });
     configuration.setProxied(true);
     when(googleAuthenticator.authorize(SECRET_KEY, 1234)).thenReturn(true);
     ontest.whiteListRequestIp(1234);
