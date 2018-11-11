@@ -28,9 +28,9 @@ public abstract class WebHostApplication extends BaseApplication {
     bootstrap.addBundle(new AssetsBundle("/assets/", "/", "index.html"));
     bootstrap.addBundle(new WebSecurityBundle(WebSecurityConfiguration.builder()
         .contentSecurityPolicy("default-src 'self'; "
-                             + "style-src 'self' 'unsafe-inline' 'https://fonts.googleapis.com'; "
-                             + "font-src 'self' 'https://fonts.googleapis.com'; "
-                             + "script-src 'self' 'unsafe-inline' 'https://s3.tradingview.com'; "
+                             + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                             + "font-src 'self' https://fonts.googleapis.com; "
+                             + "script-src 'self' 'unsafe-inline' https://s3.tradingview.com; "
                              + "frame-ancestors 'self';")
         .build()));
     super.initialize(bootstrap);
