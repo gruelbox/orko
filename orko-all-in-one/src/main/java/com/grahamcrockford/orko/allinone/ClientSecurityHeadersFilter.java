@@ -40,13 +40,14 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
           authConfiguration.get().isHttpsOnly() ? "wss" : "ws",
           httpServletRequest.get().getServerName(),
           httpServletRequest.get().getServerPort());
-      return "default-src 'self'; "
+      return "default-src 'none'; "
           + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
           + "font-src 'self' https://fonts.gstatic.com data:; "
-          + "script-src 'self' https://s3.tradingview.com; "
+          + "script-src 'self' https://*.tradingview.com; "
           + "img-src 'self' data:; "
-          + "frame-src 'self' https://s3.tradingview.com; "
+          + "frame-src 'self' https://*.tradingview.com; "
           + "connect-src 'self' " + wssUri.toString() + "; "
+          + "manifest-src 'self'; "
           + "frame-ancestors 'self';";
     });
   }

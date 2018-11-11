@@ -20,6 +20,6 @@ class AllInOneEnvironment implements EnvironmentInitialiser {
   @Override
   public void init(Environment environment) {
     environment.servlets().addFilter(ClientSecurityHeadersFilter.class.getSimpleName(), clientSecurityHeadersFilter)
-      .addMappingForUrlPatterns(null, true, "/", "/index.html");
+      .addMappingForUrlPatterns(null, true, "/*");
   }
 }
