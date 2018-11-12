@@ -87,6 +87,14 @@
       </modules>
     </profile>
     <profile>
+      <id>release</id>
+      <modules>
+        <module>orko-common</module>
+        <module>orko-ui</module>
+        <module>orko-all-in-one</module>
+      </modules>
+    </profile>
+    <profile>
       <id>only-eclipse</id>
       <modules>
         <module>orko-common</module>
@@ -403,14 +411,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${license.maven.plugin.version}</version>
-          <configuration>
-            <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
-            <processStartTag>========================LICENSE_START=================================</processStartTag>
-            <processEndTag>=========================LICENSE_END==================================</processEndTag>
-            <includes>
-              <includes>**/*.java</includes>
-            </includes>
-          </configuration>
           <executions>
             <execution>
               <id>download-licenses</id>
@@ -426,6 +426,13 @@
               <phase>process-sources</phase>
               <configuration>
                 <licenseName>agpl_v3</licenseName>
+                <processStartTag>========================LICENSE_START=================================</processStartTag>
+                <processEndTag>=========================LICENSE_END==================================</processEndTag>
+                <includes>
+                  <includes>**/*.java</includes>
+                </includes>
+                <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+                <emptyLineAfterHeader>true</emptyLineAfterHeader>
                 <roots>
                   <root>src/main/java</root>
                   <root>src/test/java</root>

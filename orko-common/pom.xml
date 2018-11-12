@@ -58,7 +58,7 @@
       <groupId>com.warrenstrange</groupId>
       <artifactId>googleauth</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.mongojack</groupId>
       <artifactId>mongojack</artifactId>
@@ -147,7 +147,7 @@
       <groupId>org.knowm.xchange</groupId>
       <artifactId>xchange-bittrex</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>com.github.badgerwithagun.xchange-stream</groupId>
       <artifactId>xchange-stream-core</artifactId>
@@ -166,6 +166,20 @@
     </dependency>
 
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
@@ -194,10 +208,6 @@
             </manifest>
           </archive>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>license-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
