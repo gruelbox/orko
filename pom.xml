@@ -10,7 +10,7 @@
   <url>http://github.com/badgerwithagun/orko</url>
   <description>Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.</description>
   <inceptionYear>2018</inceptionYear>
-  
+
   <scm>
     <connection>scm:git:https://github.com/badgerwithagun/orko.git</connection>
     <developerConnection>scm:git:git@github.com:badgerwithagun/orko.git</developerConnection>
@@ -55,10 +55,10 @@
     <repository>
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
-<!--       <snapshots> -->
-<!--         <enabled>true</enabled> -->
-<!--         <updatePolicy>always</updatePolicy> -->
-<!--       </snapshots> -->
+      <!-- <snapshots> -->
+      <!-- <enabled>true</enabled> -->
+      <!-- <updatePolicy>always</updatePolicy> -->
+      <!-- </snapshots> -->
     </repository>
   </repositories>
 
@@ -177,7 +177,7 @@
     <guice.version>4.2.1</guice.version>
     <guava.version>27.0-jre</guava.version>
     <autovalue.version>1.6.2</autovalue.version>
-    <rabbitmq.version>5.2.0</rabbitmq.version>
+    <rabbitmq.version>5.4.3</rabbitmq.version>
     <mongo.version>3.7.0</mongo.version>
     <mongojack.version>2.8.2</mongojack.version>
     <mapdb.version>3.0.7</mapdb.version>
@@ -439,7 +439,7 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>${maven-checkstyle-plugin.version}</version>
-           <dependencies>
+          <dependencies>
             <dependency>
               <groupId>com.puppycrawl.tools</groupId>
               <artifactId>checkstyle</artifactId>
@@ -468,6 +468,17 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${license.maven.plugin.version}</version>
+          <configuration>
+            <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+            <processStartTag>============LICENSE_START=======================================================</processStartTag>
+            <processEndTag>============LICENSE_END=========================================================</processEndTag>
+            <sectionDelimiter>================================================================================</sectionDelimiter>
+            <licenseName>agpl_v3</licenseName>
+            <canUpdateCopyright>true</canUpdateCopyright>
+            <canUpdateDescription>true</canUpdateDescription>
+            <canUpdateLicense>true</canUpdateLicense>
+            <emptyLineAfterHeader>true</emptyLineAfterHeader>
+          </configuration>
           <executions>
             <execution>
               <id>download-licenses</id>
@@ -482,14 +493,9 @@
               </goals>
               <phase>process-sources</phase>
               <configuration>
-                <licenseName>agpl_v3</licenseName>
-                <processStartTag>========================LICENSE_START=================================</processStartTag>
-                <processEndTag>=========================LICENSE_END==================================</processEndTag>
                 <includes>
                   <includes>**/*.java</includes>
                 </includes>
-                <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
-                <emptyLineAfterHeader>true</emptyLineAfterHeader>
                 <roots>
                   <root>src/main/java</root>
                   <root>src/test/java</root>
