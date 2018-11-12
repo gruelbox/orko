@@ -27,18 +27,20 @@ import com.grahamcrockford.orko.submit.JobAccess;
 import com.grahamcrockford.orko.submit.JobLocker;
 
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 /**
  * MapDb implementation of {@link JobAccess} and {@link JobLocker}, for single-node applications only.
  */
 @Singleton
-class MapDbJobAccess implements JobAccess, JobLocker {
+class MapDbJobAccess implements JobAccess, JobLocker, AutoCloseable {
 
   private final ConcurrentMap<String, String> jobs;
   private final Set<String> running = Sets.newConcurrentHashSet();
   private final Cache<String, UUID> locks = CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.SECONDS).build();
   private final ObjectMapper objectMapper;
   private final DB db;
+  private final Disposable interval;
 
   @Inject
   MapDbJobAccess(EventBus eventBus, MapDbMakerFactory dbMakerFactory, ObjectMapper objectMapper, OrkoConfiguration configuration) {
@@ -46,9 +48,14 @@ class MapDbJobAccess implements JobAccess, JobLocker {
     this.db = dbMakerFactory.create("jobs").make();
     this.jobs = db.hashMap("jobs", Serializer.STRING, Serializer.STRING).createOrOpen();
     eventBus.register(this);
-    Observable.interval(configuration.getLoopSeconds(), SECONDS)
+    interval = Observable.interval(configuration.getLoopSeconds(), SECONDS)
       .observeOn(single())
       .subscribe(x -> locks.cleanUp());
+  }
+
+  @Override
+  public void close() throws Exception {
+    interval.dispose();
   }
 
   @Override

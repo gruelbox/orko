@@ -426,6 +426,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       throw new RuntimeException(e1);
     }
     updateSubscriptions(emptySet());
+    this.tickersOut.dispose();
+    this.openOrdersOut.dispose();
+    this.orderbookOut .dispose();
+    this.tradesOut.dispose();
+    this.userTradeHistoryOut.dispose();
+    this.balanceOut.dispose();
+    this.binanceExecutionReportsOut.dispose();
     LOGGER.info(this + " stopped");
   }
 
@@ -731,16 +738,17 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     return exchange instanceof StreamingExchange;
   }
 
-  private class PersistentPublisher<T> {
+  private class PersistentPublisher<T> implements Disposable {
     private final Flowable<T> flowable;
     private final AtomicReference<FlowableEmitter<T>> emitter = new AtomicReference<>();
+    private final Disposable subscription;
 
     PersistentPublisher() {
       this.flowable = setup(Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING))
           .share()
           .onBackpressureLatest()
           .observeOn(Schedulers.computation());
-      this.flowable.subscribe(eventBus::post);
+      subscription = this.flowable.subscribe(eventBus::post);
     }
 
     Flowable<T> setup(Flowable<T> base) {
@@ -754,6 +762,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     final void emit(T e) {
       if (emitter.get() != null)
         emitter.get().onNext(e);
+    }
+
+    @Override
+    public void dispose() {
+      subscription.dispose();
+    }
+
+    @Override
+    public boolean isDisposed() {
+      return subscription.isDisposed();
     }
   }
 

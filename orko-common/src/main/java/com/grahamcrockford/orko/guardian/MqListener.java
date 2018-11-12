@@ -83,7 +83,7 @@ class MqListener extends AbstractIdleService {
       job = objectMapper.readValue(body, Job.class);
     } catch (Exception e)  {
       notificationService.error("Job serialisation error", e);
-      throw new RuntimeException("Failed to parse message body: " + body);
+      throw new RuntimeException("Failed to parse message body");
     }
     LOGGER.info("{} processing job {}", MqListener.this, job.id());
     try {

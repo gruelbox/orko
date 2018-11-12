@@ -3,6 +3,7 @@ package com.grahamcrockford.orko.auth;
 import static com.grahamcrockford.orko.auth.Headers.X_FORWARDED_PROTO;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterRegistration;
@@ -15,6 +16,7 @@ import org.eclipse.jetty.util.URIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.multibindings.Multibinder;
@@ -51,11 +53,15 @@ class HttpsEnforcementModule extends AbstractModule {
     }
   }
 
-  private static final class HttpsEnforcer extends AbstractHttpServletFilter {
+  @VisibleForTesting
+  static final class HttpsEnforcer extends AbstractHttpServletFilter {
+
+    private static final String CONTENT_SECURITY_HEADER = "max-age=63072000; includeSubDomains; preload";
+    private static final Pattern CR_OR_LF = Pattern.compile("\\r|\\n");
 
     private final boolean proxied;
 
-    public HttpsEnforcer(boolean proxied) {
+    HttpsEnforcer(boolean proxied) {
       this.proxied = proxied;
     }
 
@@ -80,7 +86,7 @@ class HttpsEnforcementModule extends AbstractModule {
           return;
         }
       }
-      response.addHeader(Headers.STRICT_CONTENT_SECURITY, "max-age=63072000; includeSubDomains; preload");
+      response.addHeader(Headers.STRICT_CONTENT_SECURITY, CONTENT_SECURITY_HEADER);
       filterChain.doFilter(request, response);
     }
 
@@ -92,9 +98,16 @@ class HttpsEnforcementModule extends AbstractModule {
         url.append("?");
         url.append(request.getQueryString());
       }
-      String redirect = url.toString();
+      String redirect = sanitize(url.toString());
       LOGGER.error("Unsecured access (url={}) redirected to [{}]", request.getRequestURL(), redirect);
       response.sendRedirect(redirect);
+    }
+
+    String sanitize(String url) {
+      if (CR_OR_LF.matcher(url).find()) {
+        throw new IllegalArgumentException("Attempted response split attack. Redirect URL = " + url);
+      }
+      return url;
     }
   }
 }
