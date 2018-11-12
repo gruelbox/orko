@@ -1,64 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<prerequisites>
-		<maven>3.0.0</maven>
-	</prerequisites>
+  <modelVersion>4.0.0</modelVersion>
+  <prerequisites>
+    <maven>3.0.0</maven>
+  </prerequisites>
 
-	<artifactId>orko-worker</artifactId>
-	<packaging>jar</packaging>
+  <artifactId>orko-worker</artifactId>
+  <packaging>jar</packaging>
 
-	<parent>
-        <groupId>com.grahamcrockford</groupId>
-        <artifactId>orko-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
+  <parent>
+    <groupId>com.grahamcrockford</groupId>
+    <artifactId>orko-parent</artifactId>
+    <version>0.1.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
 
-	<name>Orko Worker</name>
-	
-	<properties>
-		<mainClass>com.grahamcrockford.orko.worker.WorkerApplication</mainClass>
-	</properties>
+  <name>Orko Worker</name>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.grahamcrockford</groupId>
-			<artifactId>orko-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
-	
-	<build>
-		<finalName>${project.artifactId}</finalName>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven.compiler.plugin.version}</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>${maven-dependency-plugin-version}</version>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<prependGroupId>true</prependGroupId>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+  <properties>
+    <mainClass>com.grahamcrockford.orko.worker.WorkerApplication</mainClass>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.grahamcrockford</groupId>
+      <artifactId>orko-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>

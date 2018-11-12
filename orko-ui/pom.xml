@@ -8,7 +8,7 @@
   <parent>
     <groupId>com.grahamcrockford</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -65,6 +65,15 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>${maven.jar.plugin.version}</version>
       </plugin>
+      <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <configuration>
+            <includes>
+              <includes>**/*.js</includes>
+            </includes>
+          </configuration>
+        </plugin>
     </plugins>
   </build>
 </project>
