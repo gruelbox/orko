@@ -10,6 +10,12 @@
   <url>http://github.com/badgerwithagun/orko</url>
   <description>Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.</description>
   <inceptionYear>2018</inceptionYear>
+  
+  <scm>
+    <connection>scm:git:https://github.com/badgerwithagun/orko.git</connection>
+    <developerConnection>scm:git:git@github.com:badgerwithagun/orko.git</developerConnection>
+    <url>https://github.com/badgerwithagun/orko</url>
+  </scm>
 
   <issueManagement>
     <system>GitHub</system>
@@ -49,10 +55,10 @@
     <repository>
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-      </snapshots>
+<!--       <snapshots> -->
+<!--         <enabled>true</enabled> -->
+<!--         <updatePolicy>always</updatePolicy> -->
+<!--       </snapshots> -->
     </repository>
   </repositories>
 
@@ -163,7 +169,7 @@
     <dropwizard.version>1.3.7</dropwizard.version>
 
     <xchange.version>4.3.11</xchange.version>
-    <xchange.stream.version>develop-plus-SNAPSHOT</xchange.stream.version>
+    <xchange.stream.version>4.3.11.orko.1</xchange.stream.version>
 
     <streamex.version>0.6.7</streamex.version>
     <guice.version>4.2.1</guice.version>
