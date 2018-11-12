@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This configuration file was written by the eclipse-cs plugin configuration editor
+-->
+<!--
+    Checkstyle-Configuration: Easing in
+    Description: none
+-->
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+    <property name="severity" value="warning"/>
+    <property name="charset" value="UTF-8"/>
+    <module name="TreeWalker">
+        <module name="JavadocMethod">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="JavadocType">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="JavadocVariable">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="JavadocStyle">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ConstantName">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="TypeName">
+            <!-- The default for this is ^[A-Z][a-zA-Z0-9]*$ which allows normal Java type names (starts with a capital, then camel case with numbers allowed.) -->
+            <!-- This regexp is composed of two parts, ORed together like so:  ^((part-1)|(part-2))$  -->
+            <!-- 1. The default as above: [A-Z][a-zA-Z0-9]* -->
+            <!-- 2. A special rule for transaction codes, which are of the form X00_SomeText or X00_SOME_TEXT or XX0_SomeText or XXX_SomeText:  [A-Z][A-Z0-9]{2}_[A-Z][a-zA-Z0-9_]* -->
+            <property name="format" value="^(([A-Z][a-zA-Z0-9]*)|([A-Z][A-Z0-9]{2}_[A-Z][a-zA-Z0-9_]*))$"/>
+        </module>
+        <module name="AvoidStarImport"/>
+        <module name="IllegalImport"/>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="LineLength">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="MethodLength">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ParameterNumber">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="EmptyForIteratorPad">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="MethodParamPad">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="NoWhitespaceAfter">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="NoWhitespaceBefore">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="OperatorWrap">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ParenPad">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="TypecastParenPad">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="WhitespaceAfter">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="WhitespaceAround">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier">
+            <property name="severity" value="ignore"/>
+            <property name="tokens" value="VARIABLE_DEF,ANNOTATION_FIELD_DEF"/>
+        </module>
+        <module name="AvoidNestedBlocks">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="EmptyBlock">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="LeftCurly">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="NeedBraces">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="RightCurly">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="AvoidInlineConditionals">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="EmptyStatement">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="EqualsHashCode"/>
+        <module name="HiddenField">
+            <property name="severity" value="ignore"/>
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <property name="ignoreSetter" value="true"/>
+        </module>
+        <module name="IllegalInstantiation"/>
+        <module name="InnerAssignment"/>
+        <module name="MagicNumber">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="MissingSwitchDefault">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="DesignForExtension">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="FinalClass"/>
+        <module name="HideUtilityClassConstructor">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="VisibilityModifier">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ArrayTypeStyle"/>
+        <module name="FinalParameters">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="severity" value="ignore"/>
+            <property name="format" value="\s+$"/>
+            <property name="message" value="Line has trailing spaces."/>
+        </module>
+        <module name="TodoComment">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="UpperEll"/>
+        <module name="FallThrough"/>
+        <module name="FinalLocalVariable">
+            <property name="severity" value="ignore"/>
+            <property name="tokens" value="PARAMETER_DEF"/>
+        </module>
+        <module name="IllegalCatch">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="IllegalThrows">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="IllegalType">
+            <property name="severity" value="ignore"/>
+            <property name="tokens" value="METHOD_DEF,PARAMETER_DEF,VARIABLE_DEF"/>
+            <property name="legalAbstractClassNames" value="AbstractCommand"/>
+        </module>
+        <module name="ModifiedControlVariable"/>
+        <module name="ParameterAssignment">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="StringLiteralEquality"/>
+        <module name="UnnecessaryParentheses"/>
+        <module name="MissingCtor">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="BooleanExpressionComplexity">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ClassDataAbstractionCoupling">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ClassFanOutComplexity">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="CyclomaticComplexity">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="JavaNCSS">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="NPathComplexity">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="EmptyForInitializerPad"/>
+        <module name="DefaultComesLast"/>
+        <module name="DeclarationOrder">
+          <property name="severity" value="ignore"/>
+        </module>
+        <module name="ExplicitInitialization"/>
+        <module name="PackageDeclaration"/>
+        <module name="RequireThis">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ReturnCount">
+            <property name="severity" value="ignore"/>
+            <property name="max" value="5"/>
+        </module>
+        <module name="SuperClone"/>
+        <module name="SuperFinalize"/>
+    </module>
+    <module name="FileLength">
+        <property name="severity" value="ignore"/>
+    </module>
+    <module name="FileTabCharacter">
+      <property name="eachLine" value="true"/>
+    </module>
+    <module name="NewlineAtEndOfFile">
+        <property name="severity" value="ignore"/>
+    </module>
+    <module name="Translation">
+        <property name="severity" value="ignore"/>
+    </module>
+    <module name="SuppressWithPlainTextCommentFilter">
+        <property name="offCommentFormat" value="//CHECKSTYLE:OFF"/>
+        <property name="onCommentFormat" value="//CHECKSTYLE:ON"/>
+    </module>
+</module>

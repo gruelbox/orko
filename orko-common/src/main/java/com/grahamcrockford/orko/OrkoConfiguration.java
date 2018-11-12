@@ -12,6 +12,7 @@ import com.grahamcrockford.orko.db.DbConfiguration;
 import com.grahamcrockford.orko.exchange.ExchangeConfiguration;
 import com.grahamcrockford.orko.mq.MqConfiguration;
 import com.grahamcrockford.orko.notification.TelegramConfiguration;
+
 import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.server.AbstractServerFactory;

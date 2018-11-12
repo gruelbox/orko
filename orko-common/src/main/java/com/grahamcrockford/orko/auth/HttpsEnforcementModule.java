@@ -3,6 +3,7 @@ package com.grahamcrockford.orko.auth;
 import static com.grahamcrockford.orko.auth.Headers.X_FORWARDED_PROTO;
 
 import java.io.IOException;
+
 import javax.servlet.FilterChain;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletException;

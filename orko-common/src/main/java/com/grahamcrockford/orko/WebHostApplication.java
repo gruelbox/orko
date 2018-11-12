@@ -7,8 +7,8 @@ import javax.ws.rs.client.Client;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 import com.google.inject.Module;
-import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.websocket.WebSocketBundleInit;
+
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;

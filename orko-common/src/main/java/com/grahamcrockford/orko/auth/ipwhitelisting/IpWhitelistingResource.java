@@ -12,7 +12,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.codahale.metrics.annotation.Timed;
-import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelisting;
 import com.grahamcrockford.orko.wiring.WebResource;
 
 @Path("/auth")

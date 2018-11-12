@@ -10,24 +10,22 @@ import com.google.common.collect.ImmutableSet;
 
 public class AuthenticatedUser implements Principal {
 
-	private final String name;
-	private final Set<String> roles;
+  private final String name;
+  private final Set<String> roles;
 
-	public AuthenticatedUser(String name, String roles) {
-		this.name = name;
-		this.roles = StringUtils.isEmpty(roles)
-		    ? ImmutableSet.of()
-		    : ImmutableSet.copyOf(Splitter.on(",").split(roles));
-	}
+  public AuthenticatedUser(String name, String roles) {
+    this.name = name;
+    this.roles = StringUtils.isEmpty(roles) ? ImmutableSet.of() : ImmutableSet.copyOf(Splitter.on(",").split(roles));
+  }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+  @Override
+  public String getName() {
+    return name;
+  }
 
-	public Set<String> getRoles() {
-		return roles;
-	}
+  public Set<String> getRoles() {
+    return roles;
+  }
 
   @Override
   public int hashCode() {

@@ -12,8 +12,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
-import com.grahamcrockford.orko.OrkoApplicationModule;
-import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
 import io.dropwizard.Application;

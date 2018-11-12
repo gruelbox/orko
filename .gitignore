@@ -33,3 +33,15 @@
 /jobs.db
 /jobs.db.wal.0
 /subscriptions.db
+/orko-all-in-one/.checkstyle
+/orko-all-in-one/.fbExcludeFilterFile
+/orko-all-in-one/.settings/edu.umd.cs.findbugs.core.prefs
+/orko-common/.checkstyle
+/orko-common/.fbExcludeFilterFile
+/orko-common/.settings/edu.umd.cs.findbugs.core.prefs
+/orko-web/.checkstyle
+/orko-web/.fbExcludeFilterFile
+/orko-web/.settings/edu.umd.cs.findbugs.core.prefs
+/orko-worker/.checkstyle
+/orko-worker/.fbExcludeFilterFile
+/orko-worker/.settings/edu.umd.cs.findbugs.core.prefs

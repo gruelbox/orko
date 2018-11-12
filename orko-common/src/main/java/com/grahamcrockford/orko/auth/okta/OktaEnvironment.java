@@ -6,7 +6,6 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.grahamcrockford.orko.OrkoConfiguration;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
-import com.grahamcrockford.orko.auth.okta.OktaAuthenticationFilter;
 import com.grahamcrockford.orko.websocket.WebSocketModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 

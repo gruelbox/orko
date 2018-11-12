@@ -3,6 +3,7 @@ package com.grahamcrockford.orko.exchange;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import com.grahamcrockford.orko.OrkoConfiguration;
 
 public class TestExchangeService {

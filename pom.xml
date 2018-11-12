@@ -193,6 +193,9 @@
     <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
     <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
     <license.maven.plugin.version>1.16</license.maven.plugin.version>
+    <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
+    <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+    <checkstyle.version>8.12</checkstyle.version>
     <jacoco.version>0.8.1</jacoco.version>
     <mockito.version>1.10.19</mockito.version>
   </properties>
@@ -410,6 +413,52 @@
               <configuration>
                 <prependGroupId>true</prependGroupId>
               </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>${findbugs-maven-plugin.version}</version>
+          <configuration>
+            <excludeFilterFile>../etc/findbugs-exclude.xml</excludeFilterFile>
+          </configuration>
+          <executions>
+            <execution>
+              <id>sca-findbugs</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${maven-checkstyle-plugin.version}</version>
+           <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>${checkstyle.version}</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <configLocation>../etc/checkstyle.xml</configLocation>
+            <encoding>UTF-8</encoding>
+            <consoleOutput>true</consoleOutput>
+            <failsOnError>true</failsOnError>
+            <violationSeverity>warning</violationSeverity>
+            <linkXRef>false</linkXRef>
+          </configuration>
+          <executions>
+            <execution>
+              <id>sca-checkstyle</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
             </execution>
           </executions>
         </plugin>

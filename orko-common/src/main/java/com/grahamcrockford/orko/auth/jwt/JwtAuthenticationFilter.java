@@ -3,7 +3,9 @@ package com.grahamcrockford.orko.auth.jwt;
 import java.util.Optional;
 
 import javax.annotation.Priority;
+
 import org.jose4j.jwt.consumer.JwtContext;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;

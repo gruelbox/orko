@@ -11,6 +11,7 @@ import org.jose4j.keys.HmacKey;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
+
 import io.dropwizard.auth.PrincipalImpl;
 
 public class TokenIssuer {

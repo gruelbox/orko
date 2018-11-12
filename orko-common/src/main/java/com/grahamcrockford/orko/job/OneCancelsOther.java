@@ -93,7 +93,7 @@ public abstract class OneCancelsOther implements Job {
   }
 
   @AutoValue
-  public static abstract class ThresholdAndJob {
+  public abstract static class ThresholdAndJob {
 
     public static ThresholdAndJob create(BigDecimal threshold, Job job) {
       return new AutoValue_OneCancelsOther_ThresholdAndJob(threshold, job);

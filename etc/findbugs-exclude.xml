@@ -1,0 +1,41 @@
+<FindBugsFilter>
+     <Match>
+       <Bug code="SnVI" />
+     </Match>
+     <Match>
+       <Bug code="EI" />
+     </Match>
+     <Match>
+       <Bug code="EI2" />
+     </Match>
+     <Match>
+       <Bug code="Nm" />
+     </Match>
+     <Match>
+       <!-- Doesn't work with Java 7 - see ANTBUILD-189 -->
+       <Bug code="NP" pattern="NP_ALWAYS_NULL" />
+     </Match>
+     <Match>
+       <Bug code="Se" />
+     </Match>
+     <Match>
+       <Bug code="SIC" />
+     </Match>
+     <Match>
+       <!-- We sometimes use public fields as an API, and these rules
+            need the fields to be read/written in the scope of the analysis -->
+       <Bug code="UrF" />
+     </Match>
+     <Match>
+       <Bug code="UuF" />
+     </Match>
+     <Match>
+       <Bug code="UwF" />
+     </Match>
+     <Match>
+       <Class name="org.starstandard.star._5.ObjectFactory" />
+     </Match>
+     <Match>
+       <Class name="org.openapplications.oagis._9.ObjectFactory" />
+     </Match>
+</FindBugsFilter>

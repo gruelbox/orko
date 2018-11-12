@@ -1,8 +1,10 @@
 package com.grahamcrockford.orko.auth.jwt.login;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+
 import java.util.Map;
 import java.util.Optional;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;

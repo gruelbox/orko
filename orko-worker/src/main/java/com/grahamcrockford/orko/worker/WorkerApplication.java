@@ -5,6 +5,7 @@ import javax.ws.rs.client.Client;
 import com.google.inject.Module;
 import com.grahamcrockford.orko.BaseApplication;
 import com.grahamcrockford.orko.OrkoConfiguration;
+
 import io.dropwizard.setup.Environment;
 
 public class WorkerApplication extends BaseApplication {
