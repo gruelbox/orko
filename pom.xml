@@ -469,15 +469,13 @@
           <artifactId>license-maven-plugin</artifactId>
           <version>${license.maven.plugin.version}</version>
           <configuration>
-            <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
-            <processStartTag>============LICENSE_START=======================================================</processStartTag>
-            <processEndTag>============LICENSE_END=========================================================</processEndTag>
+            <processStartTag>===License======================================================================</processStartTag>
+            <processEndTag>===End=of=license===============================================================</processEndTag>
             <sectionDelimiter>================================================================================</sectionDelimiter>
             <licenseName>agpl_v3</licenseName>
             <canUpdateCopyright>true</canUpdateCopyright>
             <canUpdateDescription>true</canUpdateDescription>
             <canUpdateLicense>true</canUpdateLicense>
-            <emptyLineAfterHeader>true</emptyLineAfterHeader>
           </configuration>
           <executions>
             <execution>
