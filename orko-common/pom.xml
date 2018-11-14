@@ -52,7 +52,7 @@
       <artifactId>xchange-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
       <artifactId>xchange-stream-core</artifactId>
     </dependency>
 
@@ -61,7 +61,7 @@
       <artifactId>xchange-gdax</artifactId>
     </dependency>
     <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
       <artifactId>xchange-gdax</artifactId>
     </dependency>
 
@@ -70,7 +70,7 @@
       <artifactId>xchange-binance</artifactId>
     </dependency>
     <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
       <artifactId>xchange-binance</artifactId>
     </dependency>
 
@@ -89,7 +89,7 @@
       <artifactId>xchange-bitfinex</artifactId>
     </dependency>
     <dependency>
-      <groupId>info.bitrich.xchange-stream</groupId>
+      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
       <artifactId>xchange-bitfinex</artifactId>
     </dependency>
 
