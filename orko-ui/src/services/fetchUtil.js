@@ -5,7 +5,7 @@ const defaultSettings = { method: "GET", mode: "cors", redirect: "follow" }
 const ACCESS_TOKEN = "accessToken"
 const X_XSRF_TOKEN = "x-xsrf-token"
 
-var xsrfToken
+var xsrfToken = localStorage.getItem(X_XSRF_TOKEN)
 
 export function accessToken() {
   return Cookies.get(ACCESS_TOKEN)
@@ -21,6 +21,7 @@ export function setAccessToken(token, expires, httpsOnly) {
 
 export function setXsrfToken(token) {
   xsrfToken = token
+  localStorage.setItem(X_XSRF_TOKEN, token)
 }
 
 export function get(url) {

@@ -14,6 +14,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.jose4j.jwt.JwtClaims;
 import org.jose4j.lang.JoseException;
 
 import com.codahale.metrics.annotation.Timed;
@@ -57,9 +58,13 @@ public class LoginResource implements WebResource {
   public final Response doLogin(LoginRequest loginRequest) throws AuthenticationException, JoseException {
     Optional<PrincipalImpl> principal = jwtLoginVerifier.authenticate(loginRequest);
     if (principal.isPresent()) {
-      String token = tokenIssuer.buildToken(principal.get(), Roles.TRADER).getCompactSerialization();
-      return Response.ok().cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
-          .entity(new LoginResponse(authConfiguration.getJwt().getExpirationMinutes())).build();
+      JwtClaims claims = tokenIssuer.buildClaims(principal.get(), Roles.TRADER);
+      String token = tokenIssuer.claimsToToken(claims).getCompactSerialization();
+      String xsrf = (String) claims.getClaimValue(TokenIssuer.XSRF_CLAIM);
+      return Response.ok()
+          .cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
+          .entity(new LoginResponse(authConfiguration.getJwt().getExpirationMinutes(), xsrf))
+          .build();
     } else {
       return Response.status(Status.FORBIDDEN).entity(new LoginResponse()).build();
     }

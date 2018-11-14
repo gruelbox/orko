@@ -9,14 +9,19 @@ public class LoginResponse {
 
   @JsonProperty("expiryMinutes")
   private final Integer expiryMinutes;
+  
+  @JsonProperty("xsrf")
+  private final String xsrf;
 
-  public LoginResponse(int expiryMinutes) {
+  public LoginResponse(int expiryMinutes, String xsrf) {
     this.expiryMinutes = expiryMinutes;
+	this.xsrf = xsrf;
     this.success = true;
   }
 
   public LoginResponse() {
     this.expiryMinutes = null;
     this.success = false;
+    this.xsrf = null;
   }
 }

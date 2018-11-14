@@ -16,6 +16,8 @@ import io.dropwizard.auth.PrincipalImpl;
 
 public class TokenIssuer {
 
+  public static final String XSRF_CLAIM = "xsrf";
+  
   private final byte[] secret;
   private final int expiry;
 
@@ -39,7 +41,7 @@ public class TokenIssuer {
     final JwtClaims claims = new JwtClaims();
     claims.setSubject(user.getName());
     claims.setStringClaim("roles", roles);
-    claims.setStringClaim("xsrf", UUID.randomUUID().toString());
+    claims.setStringClaim(XSRF_CLAIM, UUID.randomUUID().toString());
     claims.setExpirationTimeMinutesInTheFuture(expiry);
     claims.setIssuedAtToNow();
     claims.setGeneratedJwtId();

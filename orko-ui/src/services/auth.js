@@ -47,7 +47,7 @@ class AuthService {
     if (!received.success) {
       throw new Error("Login failed")
     }
-    return received.expiryMinutes
+    return received
   }
 
   async config() {

@@ -34,6 +34,6 @@ public enum CookieHandlers {
   public NewCookie create(String token, AuthConfiguration authConfiguration) {
     return new NewCookie(getName(), token, "/", null, 1, null,
         authConfiguration.getJwt().getExpirationMinutes() * 60, null,
-        authConfiguration.isHttpsOnly(), false);
+        authConfiguration.isHttpsOnly(), true);
   }
 }
