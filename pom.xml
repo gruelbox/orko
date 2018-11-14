@@ -19,7 +19,7 @@
 
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/ToastShaman/dropwizard-auth-jwt/issues</url>
+    <url>https://circleci.com/gh/badgerwithagun/orko/issues</url>
   </issueManagement>
 
   <ciManagement>
@@ -171,7 +171,7 @@
     <dropwizard.version>1.3.7</dropwizard.version>
 
     <xchange.version>4.3.11</xchange.version>
-    <xchange.stream.version>4.3.11.orko.1</xchange.stream.version>
+    <xchange.stream.version>4.3.11.orko.3</xchange.stream.version>
 
     <streamex.version>0.6.7</streamex.version>
     <guice.version>4.2.1</guice.version>
