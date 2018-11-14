@@ -9,7 +9,7 @@
 
   <groupId>com.grahamcrockford</groupId>
   <artifactId>orko-parent</artifactId>
-  <version>0.1.0.2</version>
+  <version>0.1.0.3</version>
   <packaging>pom</packaging>
 
   <modules>
