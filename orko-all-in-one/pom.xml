@@ -77,7 +77,7 @@
                 <configuration>
                   <url>https://download.sqreen.io</url>
                   <fromFile>java/sqreen.jar</fromFile>
-                  <toFile>${project.build.directory}/../sqreen.jar</toFile>
+                  <toFile>${project.build.directory}/../../sqreen.jar</toFile>
                 </configuration>
               </execution>
             </executions>
