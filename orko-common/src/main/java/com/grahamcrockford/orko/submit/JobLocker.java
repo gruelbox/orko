@@ -2,11 +2,14 @@ package com.grahamcrockford.orko.submit;
 
 import java.util.UUID;
 
+import com.google.inject.ImplementedBy;
+
 /**
  * Allows exclusive access to jobs to be obtained and released, allowing
  * multiple threads or JVMs to compete for the available work without
  * double processing.
  */
+@ImplementedBy(JobLockerImpl.class)
 public interface JobLocker {
 
   /**

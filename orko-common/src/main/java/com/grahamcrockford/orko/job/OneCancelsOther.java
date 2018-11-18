@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 
 import javax.annotation.Nullable;
 
-import org.mongojack.Id;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -31,7 +29,6 @@ public abstract class OneCancelsOther implements Job {
   public abstract static class Builder implements JobBuilder<OneCancelsOther> {
     @JsonCreator private static Builder create() { return OneCancelsOther.builder(); }
     @Override
-    @Id
     public abstract Builder id(String value);
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
     public abstract Builder low(ThresholdAndJob thresholdAndJob);
@@ -48,7 +45,6 @@ public abstract class OneCancelsOther implements Job {
 
   @Override
   @JsonProperty
-  @Id
   @Nullable
   public abstract String id();
 

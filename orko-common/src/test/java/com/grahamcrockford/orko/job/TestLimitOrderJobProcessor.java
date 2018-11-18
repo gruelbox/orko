@@ -4,7 +4,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.io.IOError;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -136,7 +135,6 @@ public class TestLimitOrderJobProcessor {
     verifyDidNothingElse();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testSellFailed() throws Exception {
     TickerSpec ex = TickerSpec.builder()
@@ -163,7 +161,6 @@ public class TestLimitOrderJobProcessor {
     verifyDidNothingElse();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testBuyFailed() throws Exception {
     TickerSpec ex = TickerSpec.builder()
@@ -202,7 +199,7 @@ public class TestLimitOrderJobProcessor {
   }
 
   private void verifySentError() {
-    verify(notificationService).error(Mockito.anyString(), Mockito.any(IOError.class));
+    verify(notificationService).error(Mockito.anyString(), Mockito.any(RuntimeException.class));
   }
 
   private void verifySentMessage() {

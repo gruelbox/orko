@@ -1,5 +1,8 @@
 package com.grahamcrockford.orko.auth.ipwhitelisting;
 
+import com.google.inject.ImplementedBy;
+
+@ImplementedBy(IpWhitelistAccessImpl.class)
 public interface IpWhitelistAccess {
 
   void add(String ip);

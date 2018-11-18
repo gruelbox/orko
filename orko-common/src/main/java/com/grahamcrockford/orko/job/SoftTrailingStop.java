@@ -1,12 +1,9 @@
 package com.grahamcrockford.orko.job;
 
 import java.math.BigDecimal;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
-
-import org.mongojack.Id;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableMap;
 import com.grahamcrockford.orko.job.LimitOrderJob.Direction;
 import com.grahamcrockford.orko.spi.Job;
 import com.grahamcrockford.orko.spi.JobBuilder;
@@ -38,7 +34,7 @@ public abstract class SoftTrailingStop implements Job {
     @JsonCreator private static Builder create() { return SoftTrailingStop.builder(); }
 
     @Override
-    @Id public abstract Builder id(String value);
+    public abstract Builder id(String value);
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder direction(Direction direction);
@@ -46,15 +42,6 @@ public abstract class SoftTrailingStop implements Job {
     public abstract Builder lastSyncPrice(BigDecimal value);
     public abstract Builder stopPrice(BigDecimal value);
     public abstract Builder limitPrice(BigDecimal value);
-
-    final Builder bigDecimals(Map<String, String> values) {
-      amount(new BigDecimal(values.get("amount")));
-      startPrice(new BigDecimal(values.get("startPrice")));
-      lastSyncPrice(new BigDecimal(values.get("lastSyncPrice")));
-      stopPrice(new BigDecimal(values.get("stopPrice")));
-      limitPrice(new BigDecimal(values.get("limitPrice")));
-      return this;
-    }
 
     abstract BigDecimal startPrice();
     abstract Optional<BigDecimal> lastSyncPrice();
@@ -76,31 +63,15 @@ public abstract class SoftTrailingStop implements Job {
   @Override
   @JsonProperty
   @Nullable
-  @Id
   public abstract String id();
 
-  @JsonProperty
-  public abstract TickerSpec tickTrigger();
-
-  @JsonProperty
-  public abstract Direction direction();
-
-  @JsonIgnore public abstract BigDecimal amount();
-  @JsonIgnore public abstract BigDecimal startPrice();
-  @JsonIgnore public abstract BigDecimal lastSyncPrice();
-  @JsonIgnore public abstract BigDecimal stopPrice();
-  @JsonIgnore public abstract BigDecimal limitPrice();
-
-  @JsonProperty
-  final Map<String, String> bigDecimals() {
-    return ImmutableMap.<String, String>builder()
-        .put("amount", amount().toPlainString())
-        .put("startPrice", startPrice().toPlainString())
-        .put("lastSyncPrice", lastSyncPrice().toPlainString())
-        .put("stopPrice", stopPrice().toPlainString())
-        .put("limitPrice", limitPrice().toPlainString())
-        .build();
-  }
+  @JsonProperty public abstract TickerSpec tickTrigger();
+  @JsonProperty public abstract Direction direction();
+  @JsonProperty public abstract BigDecimal amount();
+  @JsonProperty public abstract BigDecimal startPrice();
+  @JsonProperty public abstract BigDecimal lastSyncPrice();
+  @JsonProperty public abstract BigDecimal stopPrice();
+  @JsonProperty public abstract BigDecimal limitPrice();
 
   @Override
   public String toString() {

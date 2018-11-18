@@ -1,28 +1,28 @@
 package com.grahamcrockford.orko.db;
 
-import java.net.URI;
-
+import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.StringUtils;
+import org.alfasoftware.morf.jdbc.ConnectionResources;
+import org.alfasoftware.morf.jdbc.ConnectionResourcesBean;
+import org.alfasoftware.morf.jdbc.DatabaseType;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DbConfiguration {
 
-  /**
-   * Mongo client URI.
-   */
   @NotNull
-  private String mongoClientURI;
+  @JsonProperty
+  private String jdbcUrl = "jdbc:h2:file:orko.db";
 
-  /**
-   * MapDB file.
-   */
-  @NotNull
-  private String mapDbFileDir;
+  @Nullable
+  @JsonProperty
+  private String username;
+
+  @Nullable
+  @JsonProperty
+  private String password;
 
   /**
    * How long database locks should persist for, in seconds.  Too short and
@@ -32,68 +32,46 @@ public class DbConfiguration {
    */
   @NotNull
   @Min(10L)
-  private int lockSeconds;
-
-  public DbConfiguration() {
-    super();
-  }
-
   @JsonProperty
-  public String getMapDbFileDir() {
-    return mapDbFileDir;
+  private int lockSeconds = 10;
+
+
+  public String getJdbcUrl() {
+    return jdbcUrl;
   }
 
-  @JsonProperty
-  public void setMapDbFileDir(String mapDbFileDir) {
-    this.mapDbFileDir = mapDbFileDir;
+  public void setJdbcUrl(String jdbcUrl) {
+    this.jdbcUrl = jdbcUrl;
   }
 
-  @JsonProperty
-  public String getMongoClientURI() {
-    return mongoClientURI;
+  public String getUsername() {
+    return username;
   }
 
-  @JsonProperty
-  public void setMongoClientURI(String mongoClientURI) {
-    this.mongoClientURI = mongoClientURI;
+  public void setUsername(String username) {
+    this.username = username;
   }
 
-  @JsonIgnore
-  public String getMongoDatabase() {
-    if (StringUtils.isEmpty(mongoClientURI))
-      return null;
-    URI uri = URI.create(mongoClientURI);
-    if (!uri.getScheme().equals("mongodb"))
-      throw new IllegalArgumentException("Unsupported mongodb client URI: " + mongoClientURI);
-    if (StringUtils.isEmpty(uri.getPath()) || uri.getPath().length() < 2)
-      throw new IllegalArgumentException("Unsupported mongodb client URI: " + mongoClientURI);
-    return uri.getPath().substring(1);
+  public String getPassword() {
+    return password;
   }
 
-  @JsonIgnore
-  public DbType getDbType() {
-    if (StringUtils.isNotEmpty(getMongoClientURI()))  {
-      return DbType.MONGO;
-    }
-    if (StringUtils.isNotEmpty(getMapDbFileDir()))  {
-      return DbType.MAP_DB_FILE;
-    }
-    return DbType.MAP_DB_MEMORY;
+  public void setPassword(String password) {
+    this.password = password;
   }
 
-  public enum DbType {
-    MONGO,
-    MAP_DB_MEMORY,
-    MAP_DB_FILE
-  }
-
-  @JsonProperty
   public int getLockSeconds() {
     return lockSeconds;
   }
 
-  @JsonProperty
   public void setLockSeconds(int lockSeconds) {
     this.lockSeconds = lockSeconds;
+  }
+
+  public ConnectionResources toConnectionResources() {
+    ConnectionResourcesBean connectionResourcesBean = new ConnectionResourcesBean(DatabaseType.Registry.parseJdbcUrl(jdbcUrl));
+    connectionResourcesBean.setUserName(username);
+    connectionResourcesBean.setPassword(password);
+    return connectionResourcesBean;
   }
 }
