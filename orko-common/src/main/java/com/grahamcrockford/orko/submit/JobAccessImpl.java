@@ -35,8 +35,8 @@ class JobAccessImpl implements JobAccess, TableContribution {
   private static final org.jooq.Table<Record> TABLE = DSL.table(JOB);
   private static final String ID = "id";
   private static final Field<String> ID_FIELD = DSL.field(ID, String.class);
-  private static final String DATA = "data";
-  private static final Field<String> DATA_FIELD = DSL.field(DATA, String.class);
+  private static final String CONTENT = "content";
+  private static final Field<String> CONTENT_FIELD = DSL.field(CONTENT, String.class);
   private static final String PROCESSED = "processed";
   private static final Field<Boolean> PROCESSED_FIELD = DSL.field(PROCESSED, Boolean.class);
   
@@ -83,7 +83,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
 
   @Override
   public void update(Job job) {
-    int updated = connectionSource.getInTransaction(dsl -> dsl.update(TABLE).set(DATA_FIELD, encode(job)).where(ID_FIELD.eq(job.id())).execute());
+    int updated = connectionSource.getInTransaction(dsl -> dsl.update(TABLE).set(CONTENT_FIELD, encode(job)).where(ID_FIELD.eq(job.id())).execute());
     if (updated == 0) {
       throw new JobDoesNotExistException();
     }
@@ -93,10 +93,10 @@ class JobAccessImpl implements JobAccess, TableContribution {
   public Job load(String id) {
     try {
       return decode(connectionSource.getInTransaction(dsl -> dsl
-          .select(DATA_FIELD)
+          .select(CONTENT_FIELD)
           .from(TABLE)
           .where(ID_FIELD.eq(id).and(PROCESSED_FIELD.eq(false)))
-          .fetchSingle(DATA_FIELD)
+          .fetchSingle(CONTENT_FIELD)
       ));
     } catch (NoDataFoundException e) {
       throw new JobDoesNotExistException();
@@ -106,10 +106,10 @@ class JobAccessImpl implements JobAccess, TableContribution {
   @Override
   public Iterable<Job> list() {
     return connectionSource.getInTransaction(dsl -> dsl
-        .select(DATA_FIELD)
+        .select(CONTENT_FIELD)
         .from(TABLE)
         .where(PROCESSED_FIELD.eq(false))
-        .fetch(DATA_FIELD)
+        .fetch(CONTENT_FIELD)
         .stream()
         .map(this::decode)
         .collect(toList())
@@ -140,7 +140,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
       table(JOB)
         .columns(
           column(ID, DataType.STRING, 45).primaryKey(),
-          column(DATA, DataType.CLOB).nullable(),
+          column(CONTENT, DataType.CLOB).nullable(),
           column(PROCESSED, DataType.BOOLEAN)
         )
         .indexes(
