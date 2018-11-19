@@ -1,5 +1,9 @@
 package com.grahamcrockford.orko.db;
 
+import static org.alfasoftware.morf.upgrade.db.DatabaseUpgradeTableContribution.deployedViewsTable;
+import static org.alfasoftware.morf.upgrade.db.DatabaseUpgradeTableContribution.upgradeAuditTable;
+
+
 import java.util.Set;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
@@ -40,6 +44,7 @@ public class DatabaseAccessModule extends AbstractModule {
   @Singleton
   Schema schema(Set<TableContribution> contributions, Set<View> views) {
     return SchemaUtils.schema(
+      SchemaUtils.schema(deployedViewsTable(), upgradeAuditTable()),
       SchemaUtils.schema(FluentIterable.from(contributions).transformAndConcat(TableContribution::tables)),
       SchemaUtils.schema(views)
     );

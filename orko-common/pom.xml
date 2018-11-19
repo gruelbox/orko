@@ -61,23 +61,27 @@
     </dependency>
 
     <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.alfasoftware</groupId>
+      <groupId>com.github.badgerwithagun.morf</groupId>
       <artifactId>morf-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.alfasoftware</groupId>
+      <groupId>com.github.badgerwithagun.morf</groupId>
       <artifactId>morf-h2</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.alfasoftware</groupId>
+      <groupId>com.github.badgerwithagun.morf</groupId>
       <artifactId>morf-mysql</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.alfasoftware</groupId>
+      <groupId>com.github.badgerwithagun.morf</groupId>
       <artifactId>morf-testsupport</artifactId>
     </dependency>
     <dependency>

@@ -29,7 +29,7 @@ public class ConnectionSource {
   }
 
   public Connection newStandaloneConnection() throws SQLException {
-    return DriverManager.getConnection(dbConfiguration.get().getJdbcUrl(), dbConfiguration.get().getUsername(), dbConfiguration.get().getPassword());
+    return DriverManager.getConnection("jdbc:" + dbConfiguration.get().getConnectionString());
   }
   
   public Connection currentConnection() {

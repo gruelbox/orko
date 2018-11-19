@@ -19,7 +19,7 @@ telegram:
   botToken: ${TELEGRAM_BOT_TOKEN:-}
   chatId: ${TELEGRAM_CHAT_ID:-}
 database:
-  mongoClientURI: ${MONGODB_URI}
+  connectionString: ${JAWSDB_MARIA_URL}
   lockSeconds: ${LOCK_SECONDS:-45}
 exchanges:
   gdax-sandbox:

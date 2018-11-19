@@ -18,7 +18,7 @@ public class DbTesting {
   static {
     CONNECTION_RESOURCES.setDatabaseName("test");
     CONNECTION_RESOURCES.setDatabaseType(H2.IDENTIFIER);
-    DB_CONFIGURATION.setJdbcUrl("jdbc:h2:mem:test");
+    DB_CONFIGURATION.setConnectionString("h2:mem:test");
   };
   private static final ConnectionSource CONNECTION_SOURCE = new ConnectionSource(Providers.of(DB_CONFIGURATION), Providers.of(CONNECTION_RESOURCES));
   

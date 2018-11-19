@@ -16,7 +16,7 @@ auth:
 #    issuer: THE
 #    clientId: README
 database:
-  jdbcUrl: jdbc:h2:file:orko.db
+  connectionString: h2:file:./orko
 # telegram:
 #   botToken: YOU
 #   chatId: REALLYWANTTHIS
