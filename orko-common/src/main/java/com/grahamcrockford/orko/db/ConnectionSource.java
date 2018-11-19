@@ -3,6 +3,7 @@ package com.grahamcrockford.orko.db;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.function.Supplier;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.alfasoftware.morf.jdbc.h2.H2;
@@ -38,9 +39,17 @@ public class ConnectionSource {
     return currentConnection.get();
   }
   
-  public void runInTransaction(Work runnable) {
+  public void transactionally(Runnable runnable) {
+    runInTransaction(dsl -> runnable.run());
+  }
+
+  public <T> T transactionallyGet(Supplier<T> supplier) {
+    return getInTransaction(dsl ->  supplier.get());
+  }
+  
+  public void runInTransaction(Work work) {
     getInTransaction(dsl -> {
-      runnable.work(dsl);
+      work.work(dsl);
       return null;
     });
   }
@@ -53,7 +62,7 @@ public class ConnectionSource {
       currentConnection.set(newStandaloneConnection());
       try {
         currentConnection.get().setAutoCommit(false);
-        T result = supplier.work(DSL.using(currentConnection(), jooqDialect()));
+        T result = getInExistingTransaction(supplier);
         success = true;
         return result;
       } finally {
@@ -67,6 +76,21 @@ public class ConnectionSource {
           connection.close();
         }
       }
+    } catch (SQLException e) {
+      throw new RuntimeSqlException(e);
+    }
+  }
+  
+  public void inExistingTransaction(Work work) {
+    getInExistingTransaction(dsl -> {
+      work.work(dsl);
+      return null;
+    });
+  }
+  
+  public <T> T getInExistingTransaction(ReturningWork<T> supplier) {
+    try {
+      return supplier.work(DSL.using(currentConnection(), jooqDialect()));
     } catch (SQLException e) {
       throw new RuntimeSqlException(e);
     }
