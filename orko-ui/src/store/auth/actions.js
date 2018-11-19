@@ -60,7 +60,7 @@ function connect() {
 }
 
 export function whitelist(token) {
-  return (dispatch, getState, socket) => {
+  return async (dispatch, getState, socket) => {
     try {
       dispatch(notificationActions.trace("Attempting whitelist"))
       await authService.whitelist(token)
