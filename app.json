@@ -54,7 +54,7 @@
       "quantity": 1
     }
   },
-  "addons": ["jawsdb-maria", "papertrail"],
+  "addons": ["jawsdb", "papertrail"],
   "buildpacks": [
     {
       "url": "heroku/java"
