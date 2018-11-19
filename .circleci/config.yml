@@ -3,10 +3,9 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:8-jdk
-      # - image: circleci/postgres:9.4
-    working_directory: ~/repo
-    environment:
-      MAVEN_OPTS: -Xmx3200m
+        working_directory: ~/repo
+        environment:
+         MAVEN_OPTS: -Xmx3200m
     steps:
       - checkout
       - restore_cache:
@@ -20,3 +19,44 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
       - store_artifacts:
           path: /home/circleci/repo/orko-common/target/surefire-reports
+  mysql:
+    docker:
+      - image: circleci/openjdk:8-jdk
+        working_directory: ~/repo
+        environment:
+         MAVEN_OPTS: -Xmx3200m
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: test
+          MYSQL_USER: open
+          MYSQL_PASSWORD: sesame
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            - v1-dependencies-
+      - run:
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+      - run: mvn -Pwebdev clean package -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+      - store_artifacts:
+          path: /home/circleci/repo/orko-common/target/surefire-reports
+workflows:
+  version: 2
+  all:
+    jobs:
+      - build
+      - mysql

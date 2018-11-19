@@ -38,10 +38,10 @@ public class TestIpWhitelistAccess {
     dao.delete("2");
     assertTrue(dao.exists("1"));
     assertFalse(dao.exists("2"));
-    Thread.sleep(1000);
+    Thread.sleep(2000);
     dao.cleanup();
     dao.add("4");
-    Thread.sleep(2100);
+    Thread.sleep(1100);
     dao.cleanup();
     assertFalse(dao.exists("1"));
     assertFalse(dao.exists("3"));
