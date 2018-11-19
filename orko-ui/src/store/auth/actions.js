@@ -63,7 +63,7 @@ export function whitelist(token) {
   return (dispatch, getState, socket) => {
     try {
       dispatch(notificationActions.trace("Attempting whitelist"))
-      authService.whitelist(token)
+      await authService.whitelist(token)
       dispatch(notificationActions.trace("Accepted whitelist"))
       dispatch({ type: types.WHITELIST_UPDATE, payload: true })
       dispatch(attemptConnect())
