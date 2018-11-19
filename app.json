@@ -54,7 +54,7 @@
       "quantity": 1
     }
   },
-  "addons": ["mongolab", "papertrail"],
+  "addons": ["jawsdb-maria", "papertrail"],
   "buildpacks": [
     {
       "url": "heroku/java"
