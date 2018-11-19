@@ -152,6 +152,7 @@ public class CheckedExceptions {
    * @param callable The lambda to wrap.
    * @return The now non-throwing {@link Supplier}.
    */
+  @SuppressWarnings("unchecked")
   public static <T> Supplier<T> uncheck(Callable<T> callable) {
     return (Supplier<T> & Serializable)() -> callUnchecked(callable);
   }

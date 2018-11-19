@@ -12,6 +12,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
+import com.grahamcrockford.orko.db.DatabaseSetup;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 
 import io.dropwizard.Application;
@@ -52,6 +53,7 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
       createApplicationModule(configuration, environment, jerseyClient)
     );
     injector.injectMembers(this);
+    injector.getInstance(DatabaseSetup.class).setup();
 
     GuiceFilter guiceFilter = injector.getInstance(GuiceFilter.class);
     environment.servlets().addFilter("GuiceFilter", guiceFilter).addMappingForUrlPatterns(null, false, "/*");

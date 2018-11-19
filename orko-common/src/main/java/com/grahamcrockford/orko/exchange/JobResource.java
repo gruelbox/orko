@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.grahamcrockford.orko.auth.Roles;
+import com.grahamcrockford.orko.db.ConnectionSource;
 import com.grahamcrockford.orko.spi.Job;
 import com.grahamcrockford.orko.submit.JobAccess;
 import com.grahamcrockford.orko.submit.JobAccess.JobDoesNotExistException;
@@ -37,11 +38,13 @@ public class JobResource implements WebResource {
 
   private final JobSubmitter jobSubmitter;
   private final JobAccess jobAccess;
+  private ConnectionSource connectionSource;
 
   @Inject
-  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter) {
+  JobResource(JobAccess jobAccess, JobSubmitter jobSubmitter, ConnectionSource connectionSource) {
     this.jobAccess = jobAccess;
     this.jobSubmitter = jobSubmitter;
+    this.connectionSource = connectionSource;
   }
 
   @GET

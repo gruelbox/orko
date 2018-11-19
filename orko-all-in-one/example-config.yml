@@ -16,9 +16,7 @@ auth:
 #    issuer: THE
 #    clientId: README
 database:
-  mapDbFileDir: .
-#  mongoClientURI: mongodb://jsmith:some-initial-password@localhost:27017/yourdb # Your mongoDB connection details.
-#  lockSeconds: 10
+  connectionString: h2:file:./orko;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000
 # telegram:
 #   botToken: YOU
 #   chatId: REALLYWANTTHIS

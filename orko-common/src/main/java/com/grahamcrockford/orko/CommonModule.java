@@ -10,6 +10,7 @@ import com.grahamcrockford.orko.marketdata.MarketDataModule;
 import com.grahamcrockford.orko.notification.TelegramModule;
 import com.grahamcrockford.orko.signal.SignalModule;
 import com.grahamcrockford.orko.strategy.StrategyModule;
+import com.grahamcrockford.orko.submit.SubmitModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
 import com.grahamcrockford.orko.wiring.WebResource;
 import com.grahamcrockford.orko.wiring.WiringModule;
@@ -30,6 +31,7 @@ class CommonModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), WebResource.class);
     install(new WiringModule());
     install(new DbModule());
+    install(new SubmitModule());
     install(new MarketDataModule());
     install(new JobsModule());
     install(new TelegramModule());

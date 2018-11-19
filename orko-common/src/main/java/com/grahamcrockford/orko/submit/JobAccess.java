@@ -1,10 +1,12 @@
 package com.grahamcrockford.orko.submit;
 
+import com.google.inject.ImplementedBy;
 import com.grahamcrockford.orko.spi.Job;
 
 /**
  * Allows CRUD access to jobs.
  */
+@ImplementedBy(JobAccessImpl.class)
 public interface JobAccess {
 
   /**

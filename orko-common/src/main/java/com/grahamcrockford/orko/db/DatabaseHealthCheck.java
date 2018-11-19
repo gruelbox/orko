@@ -1,14 +1,10 @@
 package com.grahamcrockford.orko.db;
 
-import javax.annotation.Nullable;
-
-import org.bson.Document;
+import static org.jooq.impl.DSL.val;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 
 /**
  * Just attempts to access the DB.
@@ -18,24 +14,18 @@ import com.mongodb.client.MongoCollection;
 @Singleton
 class DatabaseHealthCheck extends HealthCheck {
 
-  private final MongoClient mongoClient;
-  private final DbConfiguration dbConfiguration;
-
+  private final ConnectionSource connectionSource;
 
   @Inject
-  DatabaseHealthCheck(@Nullable MongoClient mongoClient, @Nullable DbConfiguration dbConfiguration) {
-    this.mongoClient = mongoClient;
-    this.dbConfiguration = dbConfiguration;
+  DatabaseHealthCheck(ConnectionSource connectionSource) {
+    this.connectionSource = connectionSource;
   }
-
 
   @Override
   protected Result check() throws Exception {
-    if (mongoClient == null) {
-      return Result.healthy("MongoDB not in use");
-    }
-    MongoCollection<Document> collection = mongoClient.getDatabase(dbConfiguration.getMongoDatabase()).getCollection("healthCheck");
-    collection.count();
-    return Result.healthy();
+    return connectionSource.getInTransaction(dsl -> {
+      Integer value = dsl.select(val(1)).fetchSingle(0, Integer.class);
+      return value == 1 ? Result.healthy() : Result.unhealthy("Whut");
+    });
   }
 }

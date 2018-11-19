@@ -4,9 +4,6 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.Nullable;
 
-import org.mongojack.Id;
-import org.mongojack.ObjectId;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,7 +34,7 @@ public abstract class TestingJob implements Job {
     @JsonCreator private static Builder create() { return TestingJob.builder(); }
 
     @Override
-    @Id @ObjectId public abstract Builder id(String value);
+    public abstract Builder id(String value);
 
     public abstract Builder runAsync(boolean runAsync);
     public abstract Builder stayResident(boolean stayResident);
@@ -60,7 +57,6 @@ public abstract class TestingJob implements Job {
   @Override
   @JsonProperty
   @Nullable
-  @Id @ObjectId
   public abstract String id();
 
   public abstract boolean runAsync();

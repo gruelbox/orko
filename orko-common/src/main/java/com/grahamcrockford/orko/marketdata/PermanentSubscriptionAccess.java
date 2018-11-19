@@ -4,8 +4,10 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 
+import com.google.inject.ImplementedBy;
 import com.grahamcrockford.orko.spi.TickerSpec;
 
+@ImplementedBy(PermanentSubscriptionAccessImpl.class)
 public interface PermanentSubscriptionAccess {
 
   public void add(TickerSpec spec);

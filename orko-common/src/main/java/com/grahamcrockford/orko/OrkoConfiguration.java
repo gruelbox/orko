@@ -28,7 +28,7 @@ public class OrkoConfiguration extends Configuration {
    */
   @NotNull
   @Min(1L)
-  private int loopSeconds;
+  private int loopSeconds = 15;
 
   /**
    * Authentication configuration
@@ -41,7 +41,7 @@ public class OrkoConfiguration extends Configuration {
    * volatile in-memory storage, which is obviously fine for trying things
    * out but quickly becomes useless in real life.
    */
-  private DbConfiguration database;
+  private DbConfiguration database = new DbConfiguration();
 
   /**
    * Telegram configuration. Currently required for notifications.  Can

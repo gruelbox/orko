@@ -1,5 +1,7 @@
 package com.grahamcrockford.orko.marketdata;
 
+import org.alfasoftware.morf.upgrade.TableContribution;
+
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
@@ -14,5 +16,7 @@ public class MarketDataModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MarketDataSubscriptionManager.class);
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(SubscriptionResource.class);
     Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(PermanentSubscriptionManager.class);
+    
+    Multibinder.newSetBinder(binder(), TableContribution.class).addBinding().to(PermanentSubscriptionAccessImpl.class);
   }
 }
