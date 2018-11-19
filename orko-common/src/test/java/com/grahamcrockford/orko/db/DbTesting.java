@@ -13,7 +13,6 @@ import jersey.repackaged.com.google.common.base.MoreObjects;
 
 public class DbTesting {
   
-  // TODO set up from environment variables
   private static final ConnectionResources CONNECTION_RESOURCES;
   private static final DbConfiguration DB_CONFIGURATION = new DbConfiguration();
   static {
