@@ -32,18 +32,21 @@ public class TestLoginResource {
   private static JwtLoginVerifier jwtLoginVerifier = mock(JwtLoginVerifier.class);
   private static TokenIssuer tokenIssuer = mock(TokenIssuer.class);
   private static RequestUtils requestUtils = mock(RequestUtils.class);
+  private static Blacklisting blacklisting;
   
   static {
     authConfiguration.setAttemptsBeforeBlacklisting(5);
     authConfiguration.setBlacklistingExpirySeconds(3);
+    blacklisting = new Blacklisting(Providers.of(requestUtils), authConfiguration);
   }
 
   @ClassRule public static final ResourceTestRule resources = ResourceTestRule.builder()
-      .addResource(new LoginResource(authConfiguration, jwtLoginVerifier, tokenIssuer, new Blacklisting(Providers.of(requestUtils), authConfiguration))).build();
+      .addResource(new LoginResource(authConfiguration, jwtLoginVerifier, tokenIssuer, blacklisting)).build();
   
   @Before
   public void setup() {
     when(requestUtils.sourceIp()).thenReturn("1.2.3.4");
+    blacklisting.success();
   }
 
   @After
@@ -77,6 +80,7 @@ public class TestLoginResource {
   }
 
   private Response failedLoginAttempt() {
+    blacklisting.cleanUp();
     return resources.target("/auth/login").request().post(Entity.entity(new LoginRequest("", "", 0), MediaType.APPLICATION_JSON));
   }
 }
