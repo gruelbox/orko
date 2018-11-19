@@ -20,9 +20,11 @@ import org.jose4j.lang.JoseException;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.grahamcrockford.orko.auth.CookieHandlers;
 import com.grahamcrockford.orko.auth.Roles;
+import com.grahamcrockford.orko.auth.blacklist.Blacklisting;
 import com.grahamcrockford.orko.wiring.WebResource;
 
 import io.dropwizard.auth.AuthenticationException;
@@ -32,17 +34,20 @@ import io.dropwizard.jersey.caching.CacheControl;
 @Path("auth")
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
+@Singleton
 public class LoginResource implements WebResource {
 
   private final AuthConfiguration authConfiguration;
   private final JwtLoginVerifier jwtLoginVerifier;
   private final TokenIssuer tokenIssuer;
+  private Blacklisting blacklisting;
 
   @Inject
-  LoginResource(AuthConfiguration authConfiguration, JwtLoginVerifier jwtLoginVerifier, TokenIssuer tokenIssuer) {
+  LoginResource(AuthConfiguration authConfiguration, JwtLoginVerifier jwtLoginVerifier, TokenIssuer tokenIssuer, Blacklisting blacklisting) {
     this.authConfiguration = authConfiguration;
     this.jwtLoginVerifier = jwtLoginVerifier;
     this.tokenIssuer = tokenIssuer;
+    this.blacklisting = blacklisting;
   }
 
   @GET
@@ -56,18 +61,26 @@ public class LoginResource implements WebResource {
   @Path("/login")
   @CacheControl(noCache = true, noStore = true, maxAge = 0)
   public final Response doLogin(LoginRequest loginRequest) throws AuthenticationException, JoseException {
+    if (blacklisting.isBlacklisted()) {
+      blacklisting.failure();
+      return Response.status(Status.TOO_MANY_REQUESTS).entity(new LoginResponse()).build();
+    }
+    
     Optional<PrincipalImpl> principal = jwtLoginVerifier.authenticate(loginRequest);
-    if (principal.isPresent()) {
-      JwtClaims claims = tokenIssuer.buildClaims(principal.get(), Roles.TRADER);
-      String token = tokenIssuer.claimsToToken(claims).getCompactSerialization();
-      String xsrf = (String) claims.getClaimValue(TokenIssuer.XSRF_CLAIM);
-      return Response.ok()
-          .cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
-          .entity(new LoginResponse(authConfiguration.getJwt().getExpirationMinutes(), xsrf))
-          .build();
-    } else {
+    if (!principal.isPresent()) {
+      blacklisting.failure();
       return Response.status(Status.FORBIDDEN).entity(new LoginResponse()).build();
     }
+    
+    blacklisting.success();
+          
+    JwtClaims claims = tokenIssuer.buildClaims(principal.get(), Roles.TRADER);
+    String token = tokenIssuer.claimsToToken(claims).getCompactSerialization();
+    String xsrf = (String) claims.getClaimValue(TokenIssuer.XSRF_CLAIM);
+    return Response.ok()
+        .cookie(CookieHandlers.ACCESS_TOKEN.create(token, authConfiguration))
+        .entity(new LoginResponse(authConfiguration.getJwt().getExpirationMinutes(), xsrf))
+        .build();
   }
 
   @GET

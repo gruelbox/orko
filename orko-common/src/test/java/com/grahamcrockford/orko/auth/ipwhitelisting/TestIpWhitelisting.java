@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 import com.google.inject.util.Providers;
 import com.grahamcrockford.orko.auth.AuthConfiguration;
 import com.grahamcrockford.orko.auth.Headers;
+import com.grahamcrockford.orko.auth.RequestUtils;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 public class TestIpWhitelisting {
@@ -40,7 +41,7 @@ public class TestIpWhitelisting {
 
     when(request.getRemoteAddr()).thenReturn(ORIGIN);
 
-    ontest = new IpWhitelisting(Providers.of(request), googleAuthenticator, configuration, Providers.of(ipWhitelistAccess));
+    ontest = new IpWhitelisting(Providers.of(new RequestUtils(request, configuration)), googleAuthenticator, configuration, Providers.of(ipWhitelistAccess));
   }
 
   @Test

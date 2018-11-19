@@ -8,18 +8,16 @@ import com.google.common.base.Preconditions;
 
 public class JwtConfiguration {
 
-  private String secret;
-  private String userName;
-  private String password;
-  private String secondFactorSecret;
-  private int expirationMinutes = 60 * 24;
-
-  @JsonProperty
+  @JsonProperty private String secret;
+  @JsonProperty private String userName;
+  @JsonProperty private String password;
+  @JsonProperty private String secondFactorSecret;
+  @JsonProperty private int expirationMinutes = 60 * 24;
+  
   String getSecret() {
     return secret;
   }
 
-  @JsonProperty
   void setSecret(String secret) {
     this.secret = secret;
   }
@@ -29,43 +27,35 @@ public class JwtConfiguration {
     return secret.getBytes(Charsets.UTF_8);
   }
 
-  @JsonProperty
   public String getUserName() {
     return userName;
   }
-
-  @JsonProperty
+  
   void setUserName(String userName) {
     this.userName = userName;
   }
 
-  @JsonProperty
   public String getPassword() {
     return password;
   }
 
-  @JsonProperty
   void setPassword(String password) {
     this.password = password;
   }
 
-  @JsonProperty
   public int getExpirationMinutes() {
     return expirationMinutes;
   }
 
-  @JsonProperty
-  public void setExpirationMinutes(int expirationMinutes) {
+  void setExpirationMinutes(int expirationMinutes) {
     this.expirationMinutes = expirationMinutes;
   }
-
-  @JsonProperty
+  
   public String getSecondFactorSecret() {
     return secondFactorSecret;
   }
 
-  @JsonProperty
-  public void setSecondFactorSecret(String secondFactorSecret) {
+  void setSecondFactorSecret(String secondFactorSecret) {
     this.secondFactorSecret = secondFactorSecret;
   }
 
