@@ -1,5 +1,6 @@
 package com.grahamcrockford.orko.submit;
 
+import static java.time.LocalDateTime.now;
 import static java.time.ZoneOffset.UTC;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
 import static org.alfasoftware.morf.metadata.SchemaUtils.index;
@@ -61,12 +62,14 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
   
   @Override
   public void start() throws Exception {
-    interval = Observable.interval(configuration.getLoopSeconds(), TimeUnit.SECONDS).observeOn(Schedulers.single()).subscribe(x -> cleanup());
+    interval = Observable.interval(configuration.getLoopSeconds(), TimeUnit.SECONDS)
+        .observeOn(Schedulers.single())
+        .subscribe(x -> cleanup(now()));
   }
   
   @VisibleForTesting
-  void cleanup() {
-    long expiry = LocalDateTime.now().toEpochSecond(UTC);
+  void cleanup(LocalDateTime localDateTime) {
+    long expiry = localDateTime.toEpochSecond(UTC);
     connectionSource.runInTransaction(dsl -> dsl.deleteFrom(TABLE).where(EXPIRES_FIELD.lessOrEqual(expiry)).execute());
   }
 
@@ -77,8 +80,13 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
 
   @Override
   public boolean attemptLock(String jobId, UUID uuid) {
+    return attemptLock(jobId, uuid, LocalDateTime.now());
+  }
+  
+  @VisibleForTesting
+  boolean attemptLock(String jobId, UUID uuid, LocalDateTime dateTime) {
     try {
-      return connectionSource.getInTransaction(dsl -> dsl.insertInto(TABLE).values(jobId, uuid.toString(), newExpiryDate()).execute()) == 1;
+      return connectionSource.getInTransaction(dsl -> dsl.insertInto(TABLE).values(jobId, uuid.toString(), newExpiryDate(dateTime)).execute()) == 1;
     } catch (DataAccessException e) {
       return false;
     }
@@ -86,11 +94,16 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
 
   @Override
   public boolean updateLock(String jobId, UUID uuid) {
-    return connectionSource.getInTransaction(dsl -> dsl.update(TABLE).set(EXPIRES_FIELD, newExpiryDate()).where(fullKeyMatch(jobId, uuid)).execute()) != 0;
+    return updateLock(jobId, uuid, LocalDateTime.now());
   }
   
-  private long newExpiryDate() {
-    return LocalDateTime.now().plusSeconds(configuration.getDatabase().getLockSeconds()).toEpochSecond(UTC);
+  @VisibleForTesting
+  boolean updateLock(String jobId, UUID uuid, LocalDateTime dateTime) {
+    return connectionSource.getInTransaction(dsl -> dsl.update(TABLE).set(EXPIRES_FIELD, newExpiryDate(dateTime)).where(fullKeyMatch(jobId, uuid)).execute()) != 0;
+  }
+  
+  private long newExpiryDate(LocalDateTime dateTime) {
+    return dateTime.plusSeconds(configuration.getDatabase().getLockSeconds()).toEpochSecond(UTC);
   }
 
   @Override
