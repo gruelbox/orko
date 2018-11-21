@@ -18,9 +18,11 @@ class AuthService {
   async whitelist(token) {
     const response = await put("auth?token=" + token)
     if (!response.ok) {
+      if (response.status === 404)
+        throw new Error("Whitelisting failed (invalid token)")
       var message
       try {
-        message = response.text()
+        message = await response.text()
       } catch (error) {
         message = response.statusText
       }

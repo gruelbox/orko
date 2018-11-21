@@ -17,7 +17,6 @@ import com.grahamcrockford.orko.auth.blacklist.Blacklisting;
 import com.grahamcrockford.orko.wiring.WebResource;
 
 @Path("/auth")
-@Produces(MediaType.APPLICATION_JSON)
 @Singleton
 public class IpWhitelistingResource implements WebResource {
 
@@ -32,9 +31,10 @@ public class IpWhitelistingResource implements WebResource {
 
   @DELETE
   @Timed
+  @Produces(MediaType.TEXT_PLAIN)
   public Response auth() {
     if (blacklisting.isBlacklisted())
-      return Response.status(Status.TOO_MANY_REQUESTS).type(MediaType.TEXT_PLAIN).build();
+      return Response.status(Status.TOO_MANY_REQUESTS).entity("Too many requests").type(MediaType.TEXT_PLAIN).build();
       
     if (ipWhitelisting.deWhitelistIp()) {
       return Response.ok().build();
@@ -45,13 +45,14 @@ public class IpWhitelistingResource implements WebResource {
 
   @PUT
   @Timed
+  @Produces(MediaType.TEXT_PLAIN)
   public Response auth(@QueryParam("token") int token) {
     if (blacklisting.isBlacklisted())
-      return Response.status(Status.TOO_MANY_REQUESTS).type(MediaType.TEXT_PLAIN).build();
+      return Response.status(Status.TOO_MANY_REQUESTS).entity("Too many requests").type(MediaType.TEXT_PLAIN).build();
     
     if (!ipWhitelisting.whiteListRequestIp(token)) {
       blacklisting.failure();
-      return Response.status(Status.FORBIDDEN).entity("Invalid").type(MediaType.TEXT_PLAIN).build();
+      return Response.status(Status.FORBIDDEN).entity("Token does not match").type(MediaType.TEXT_PLAIN).build();
     }
     blacklisting.success();
     return Response.ok().entity("Whitelisting successful").type(MediaType.TEXT_PLAIN).build();
@@ -59,6 +60,7 @@ public class IpWhitelistingResource implements WebResource {
 
   @GET
   @Timed
+  @Produces(MediaType.TEXT_PLAIN)
   public boolean check() {
     if (blacklisting.isBlacklisted())
       return false;
