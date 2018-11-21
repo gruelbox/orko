@@ -9,10 +9,13 @@ import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import com.google.inject.servlet.RequestScoped;
 import com.grahamcrockford.orko.OrkoConfiguration;
+import com.grahamcrockford.orko.auth.blacklist.Blacklisting;
 import com.grahamcrockford.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.grahamcrockford.orko.auth.jwt.JwtModule;
 import com.grahamcrockford.orko.auth.okta.OktaModule;
 import com.grahamcrockford.orko.wiring.EnvironmentInitialiser;
+
+import io.dropwizard.lifecycle.Managed;
 
 public class AuthModule extends AbstractModule {
 
@@ -33,6 +36,7 @@ public class AuthModule extends AbstractModule {
       install(new OktaModule(configuration.getAuth()));
       install(new JwtModule(configuration.getAuth()));
       Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
+      Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(Blacklisting.class);
       install(new Testing());
     }
   }

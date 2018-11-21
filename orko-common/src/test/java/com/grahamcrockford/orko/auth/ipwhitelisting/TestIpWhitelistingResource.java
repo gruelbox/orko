@@ -100,6 +100,19 @@ public class TestIpWhitelistingResource {
     when(requestUtils.sourceIp()).thenReturn("1.2.3.5");
     assertEquals(Response.Status.FORBIDDEN.getStatusCode(), loginAttempt().getStatus());
   }
+  
+  @Test
+  public void testDDoS() throws InterruptedException {
+    when(ipWhitelisting.whiteListRequestIp(1234)).thenReturn(false);
+    for (int i = 0 ; i < 100 ; i++) {
+      when(requestUtils.sourceIp()).thenReturn("ip" + i);
+      assertEquals(Response.Status.FORBIDDEN.getStatusCode(), loginAttemptNoCleanup().getStatus());
+    }
+    when(requestUtils.sourceIp()).thenReturn("ip100");
+    assertEquals(Response.Status.TOO_MANY_REQUESTS.getStatusCode(), loginAttemptNoCleanup().getStatus());
+    assertEquals(Response.Status.TOO_MANY_REQUESTS.getStatusCode(), loginAttemptNoCleanup().getStatus());
+    assertEquals(Response.Status.TOO_MANY_REQUESTS.getStatusCode(), loginAttemptNoCleanup().getStatus());
+  }
 
   @Test
   public void testPutSuccess() {
@@ -110,6 +123,10 @@ public class TestIpWhitelistingResource {
   
   private Response loginAttempt() {
     blackListing.cleanUp();
+    return loginAttemptNoCleanup();
+  }
+  
+  private Response loginAttemptNoCleanup() {
     return resources.target("/auth").queryParam("token", 1234).request().put(Entity.entity("", MediaType.TEXT_PLAIN));
   }
 }
