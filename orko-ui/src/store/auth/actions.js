@@ -68,7 +68,7 @@ export function whitelist(token) {
       dispatch({ type: types.WHITELIST_UPDATE, payload: true })
       dispatch(attemptConnect())
     } catch (error) {
-      dispatch(notificationActions.trace("Error attempting whitelist"))
+      dispatch(notificationActions.trace(error.message))
       dispatch({
         type: types.WHITELIST_UPDATE,
         error: true,

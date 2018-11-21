@@ -43,11 +43,13 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, TableContribution, Man
   private static final String IP_WHITELIST = "IpWhitelist";
   private static final org.jooq.Table<Record> IP_WHITELIST_TABLE = DSL.table(IP_WHITELIST);
   
-  private ConnectionSource connectionSource;
-  private AuthConfiguration authConfiguration;
+  private final ConnectionSource connectionSource;
+  private final AuthConfiguration authConfiguration;
+  
+  private final int expiry;
+  private final TimeUnit expiryUnits;
+  
   private Disposable subscription;
-  private int expiry;
-  private TimeUnit expiryUnits;
   
   @Inject
   IpWhitelistAccessImpl(ConnectionSource connectionSource, AuthConfiguration authConfiguration) {

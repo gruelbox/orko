@@ -20,14 +20,17 @@ public class LoginRequest {
     this.password = requireNonNull(password);
   }
 
+  @JsonProperty
   public String getUsername() {
       return username;
   }
 
+  @JsonProperty
   public String getPassword() {
       return password;
   }
 
+  @JsonProperty
   public Integer getSecondFactor() {
     return secondFactor;
   }
