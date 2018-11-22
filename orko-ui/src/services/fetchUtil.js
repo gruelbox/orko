@@ -7,10 +7,6 @@ const X_XSRF_TOKEN = "x-xsrf-token"
 
 var xsrfToken = localStorage.getItem(X_XSRF_TOKEN)
 
-export function accessToken() {
-  return Cookies.get(ACCESS_TOKEN)
-}
-
 export function setAccessToken(token, expires, httpsOnly) {
   Cookies.set(ACCESS_TOKEN, token, {
     path: "/",
@@ -22,6 +18,11 @@ export function setAccessToken(token, expires, httpsOnly) {
 export function setXsrfToken(token) {
   xsrfToken = token
   localStorage.setItem(X_XSRF_TOKEN, token)
+}
+
+export function clearXsrfToken() {
+  xsrfToken = undefined
+  localStorage.removeItem(X_XSRF_TOKEN)
 }
 
 export function get(url) {
