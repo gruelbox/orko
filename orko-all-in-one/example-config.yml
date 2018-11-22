@@ -1,7 +1,7 @@
 loopSeconds: 3
 auth:
-  httpsOnly: true
-  proxied: true
+  httpsOnly: false
+  proxied: false
 #  ipWhitelisting:
 #    whitelistExpirySeconds: 86400
 #    secretKey: YOURTOKEN
