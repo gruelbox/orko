@@ -41,6 +41,7 @@ export function attemptConnect() {
     } else {
       dispatch(notificationActions.trace("Not logged in"))
       dispatch(fetchOktaConfig())
+      dispatch({ type: types.LOGOUT, payload: {} })
     }
   }
 }

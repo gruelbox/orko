@@ -1,12 +1,10 @@
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
-import Cookies from "cookies-js"
-
-const ACCESS_TOKEN = "accessToken"
+import { clearXsrfToken } from "../../services/fetchUtil"
 
 const initialState = Immutable({
   whitelisted: false,
-  loggedIn: !!Cookies.get(ACCESS_TOKEN),
+  loggedIn: true,
   config: null,
   loading: true
 })
@@ -30,14 +28,14 @@ export default function reduce(state = initialState, action = {}) {
         loading: false
       })
     case types.INVALIDATE_LOGIN:
-      Cookies.expire(ACCESS_TOKEN)
+      clearXsrfToken()
       return Immutable.merge(state, {
         loggedIn: false,
         error: "Not logged in or login expired",
         loading: false
       })
     case types.LOGOUT:
-      Cookies.expire(ACCESS_TOKEN)
+      clearXsrfToken()
       return Immutable.merge(state, {
         loggedIn: false,
         error: null,
