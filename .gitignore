@@ -33,3 +33,5 @@
 /orko-worker/.settings/edu.umd.cs.findbugs.core.prefs
 /orko-all-in-one/orko.mv.db
 /orko-all-in-one/orko.trace.db
+/orko.mv.db
+/orko.trace.db
