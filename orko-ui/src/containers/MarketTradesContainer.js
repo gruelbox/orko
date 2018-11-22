@@ -13,6 +13,7 @@ class MarketTradesContainer extends React.Component {
         coin={this.props.coin}
         trades={this.props.tradeHistory}
         buySide="ASK"
+        excludeFees={true}
       />
     )
   }

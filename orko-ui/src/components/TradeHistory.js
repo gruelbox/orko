@@ -108,14 +108,22 @@ const feeCurrencyColumn = {
   minWidth: 50
 }
 
-const columns = (coin, buySide) => [
-  orderTypeColumn(buySide),
-  dateColumn,
-  priceColumn(coin, buySide),
-  amountColumn(coin, buySide),
-  feeAmountColumn(buySide),
-  feeCurrencyColumn
-]
+const columns = (coin, buySide, excludeFees) =>
+  excludeFees
+    ? [
+        orderTypeColumn(buySide),
+        dateColumn,
+        priceColumn(coin, buySide),
+        amountColumn(coin, buySide)
+      ]
+    : [
+        orderTypeColumn(buySide),
+        dateColumn,
+        priceColumn(coin, buySide),
+        amountColumn(coin, buySide),
+        feeAmountColumn(buySide),
+        feeCurrencyColumn
+      ]
 
 const TradeHistory = props => (
   <ReactTable
@@ -125,8 +133,8 @@ const TradeHistory = props => (
     })}
     columns={
       props.buySide === "BID"
-        ? columns(props.coin, "BID")
-        : columns(props.coin, "ASK")
+        ? columns(props.coin, "BID", props.excludeFees)
+        : columns(props.coin, "ASK", props.excludeFees)
     }
     showPagination={false}
     resizable={false}
