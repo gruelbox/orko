@@ -61,8 +61,6 @@ public class TestJobExecutionIntegration {
   private GuardianLoop guardianLoop2;
   private MarketDataSubscriptionManager marketDataSubscriptionManager;
 
-  private ExecutorService executor;
-
   private final Set<Job> activeJobs = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
   @Before
@@ -83,7 +81,6 @@ public class TestJobExecutionIntegration {
     OrkoConfiguration config = new OrkoConfiguration();
     config.setLoopSeconds(1);
 
-    executor = Executors.newCachedThreadPool();
     jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService);
     guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, eventBus, config);
     guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, eventBus, config);
@@ -313,7 +310,5 @@ public class TestJobExecutionIntegration {
     marketDataSubscriptionManager.awaitTerminated();
     guardianLoop1.awaitTerminated();
     guardianLoop2.awaitTerminated();
-    executor.shutdownNow();
-    executor.awaitTermination(30, TimeUnit.SECONDS);
   }
 }
