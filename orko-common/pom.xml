@@ -69,19 +69,19 @@
       <artifactId>amqp-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.badgerwithagun.morf</groupId>
+      <groupId>${morf.groupid}</groupId>
       <artifactId>morf-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.badgerwithagun.morf</groupId>
+      <groupId>${morf.groupid}</groupId>
       <artifactId>morf-h2</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.badgerwithagun.morf</groupId>
+      <groupId>${morf.groupid}</groupId>
       <artifactId>morf-mysql</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.badgerwithagun.morf</groupId>
+      <groupId>${morf.groupid}</groupId>
       <artifactId>morf-testsupport</artifactId>
     </dependency>
     <dependency>
@@ -166,19 +166,19 @@
     </dependency>
 
     <dependency>
-      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <groupId>${xchange.stream.groupid}</groupId>
       <artifactId>xchange-stream-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <groupId>${xchange.stream.groupid}</groupId>
       <artifactId>xchange-gdax</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <groupId>${xchange.stream.groupid}</groupId>
       <artifactId>xchange-binance</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.badgerwithagun.xchange-stream</groupId>
+      <groupId>${xchange.stream.groupid}</groupId>
       <artifactId>xchange-bitfinex</artifactId>
     </dependency>
 
