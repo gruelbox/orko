@@ -2,6 +2,7 @@ package com.grahamcrockford.orko.exchange;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -24,6 +25,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.binance.dto.meta.exchangeinfo.Filter;
+import org.knowm.xchange.binance.service.BinanceMarketDataService;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -116,14 +119,35 @@ public class ExchangeResource implements WebResource {
   @Timed
   @Path("{exchange}/pairs/{base}-{counter}")
   @RolesAllowed(Roles.TRADER)
-  public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) {
+  public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) throws IOException {
+    
+    Exchange exchange = exchanges.get(exchangeName);
     CurrencyPair currencyPair = new CurrencyPair(base, counter);
-    return new PairMetaData(
-      exchanges.get(exchangeName)
-        .getExchangeMetaData()
-        .getCurrencyPairs()
-        .get(currencyPair)
-    );
+    PairMetaData pairMetaData = new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
+    
+    // TODO Pending access to https://github.com/knowm/XChange/pull/2870
+    if (exchangeName.equals(Exchanges.BINANCE)) {
+      BinanceMarketDataService binanceMarketDataService = (BinanceMarketDataService) exchange.getMarketDataService();
+      Arrays.stream(binanceMarketDataService.getExchangeInfo().getSymbols())
+        .filter(s -> s.getSymbol().equals(base + counter))
+        .findFirst()
+        .ifPresent(symbol -> {
+          int pairPrecision = 8;
+          Filter[] filters = symbol.getFilters();
+          for (Filter filter : filters) {
+            if (filter.getFilterType().equals("PRICE_FILTER")) {
+              pairPrecision = Math.min(pairPrecision, new BigDecimal(filter.getTickSize()).stripTrailingZeros().scale());
+            }
+          }
+          if (pairMetaData.priceScale != pairPrecision) {
+            LOGGER.warn("Fixed price scale for {} from {} to {}", currencyPair, pairMetaData.priceScale, pairPrecision);
+            pairMetaData.priceScale = pairPrecision;
+          }
+          
+        });
+    }
+
+    return pairMetaData;
   }
 
   public static class PairMetaData {
