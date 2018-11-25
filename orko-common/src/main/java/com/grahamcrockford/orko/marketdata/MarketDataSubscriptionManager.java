@@ -5,6 +5,8 @@ import static com.grahamcrockford.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.TICKER;
 import static com.grahamcrockford.orko.marketdata.MarketDataType.TRADES;
 import static java.util.Collections.emptySet;
+import static org.knowm.xchange.dto.Order.OrderType.ASK;
+import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -29,6 +31,7 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.account.Wallet;
+import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
@@ -361,6 +364,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                 .subscribe(tickersOut::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
           case TRADES:
             return streaming.getTrades(sub.spec().currencyPair())
+                .map(t -> convertBinanceOrderType(sub, t))
                 .map(t -> TradeEvent.create(sub.spec(), t))
                 .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
           default:
@@ -379,6 +383,24 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             e -> LOGGER.error("Error in binance execution report stream", e)
           )
       );
+    }
+  }
+
+  /**
+   * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
+   */
+  private Trade convertBinanceOrderType(MarketDataSubscription sub, Trade t) {
+    if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
+      return new Trade(
+        t.getType() == BID ? ASK : BID,
+        t.getOriginalAmount(),
+        t.getCurrencyPair(),
+        t.getPrice(),
+        t.getTimestamp(),
+        t.getId()
+      );
+    } else {
+      return t;
     }
   }
 
@@ -486,7 +508,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           if (subscriptionsFailed) {
             phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
           } else {
-            LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase); // TODO REMOVE
+            LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase);
             phaser.awaitAdvanceInterruptibly(phase);
             LOGGER.debug("{} - poll woken up on request", exchangeName);
           }
