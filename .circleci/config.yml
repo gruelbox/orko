@@ -148,15 +148,15 @@ workflows:
   all:
     jobs:
       - checkout_code
-      - bundle_dependencies
+      - bundle_dependencies:
           requires:
             - checkout_code
-      - build
+      - build:
           requires:
             - bundle_dependencies
-      - h2
+      - h2:
           requires:
             - build
-      - mysql
+      - mysql:
           requires:
             - build
