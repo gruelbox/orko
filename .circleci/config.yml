@@ -2,18 +2,6 @@ version: 2
 orbs:
   cypress: cypress-io/cypress@1.0.0
 jobs:
-  checkout_code:
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          MAVEN_OPTS: -Xmx3200m
-    working_directory: ~/orko
-    steps:
-      - checkout
-      - persist_to_workspace:
-          root: ~
-          paths:
-            - orko
   build:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -21,8 +9,7 @@ jobs:
           MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
     steps:
-      - attach_workspace:
-          at: ~
+      - checkout
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -43,18 +30,22 @@ jobs:
             - ~/usr/local/lib/node_modules
           key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
       - persist_to_workspace:
-          root: ~
+          root: ~/orko
           paths:
-            - orko
+            - pom.xml
+            - orko-all-in-one
+            - orko-common
+            - orko-web
+            - orko-worker
   h2-backend-tests:
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
           MAVEN_OPTS: -Xmx3200m
-    working_directory: ~/orko
+    working_directory: ~/orko/build
     steps:
       - attach_workspace:
-          at: ~
+          at: .
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -82,9 +73,10 @@ jobs:
           MYSQL_DATABASE: test
           MYSQL_USER: open
           MYSQL_PASSWORD: sesame
+    working_directory: ~/orko/build
     steps:
       - attach_workspace:
-          at: ~
+          at: .
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -124,10 +116,7 @@ workflows:
   version: 2
   all:
     jobs:
-      - checkout_code
-      - build:
-          requires:
-            - checkout_code
+      - build
       - h2-backend-tests:
           requires:
             - build
