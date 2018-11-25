@@ -32,6 +32,7 @@ jobs:
       - persist_to_workspace:
           root: ~/orko
           paths:
+            - etc
             - pom.xml
             - orko-all-in-one
             - orko-common
@@ -46,6 +47,11 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
       - run: mvn -Pwebdev surefire:test -T 1C -DskipSlowTests=true
       - run:
           name: Save test results
@@ -72,6 +78,11 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
       - run:
           name: Waiting for MySQL to be ready
           command: |
