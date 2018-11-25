@@ -36,6 +36,8 @@ jobs:
             mkdir -p ~/checkstyle/
             find . -type f -regex ".*/target/checkstyle-result.xml" -exec cp {} ~/checkstyle \;
           when: always
+      - store_artifacts:
+          path: ~/checkstyle
       - run:
           name: Saving test results (H2)
           command: |
@@ -60,35 +62,11 @@ jobs:
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/mysql \;
           when: always
       - store_artifacts:
-          path: ~/checkstyle
           path: ~/junit
       - store_test_results:
           path: ~/junit
-  integration-test:
-    docker:
-      - image: cypress/base:8
-        environment:
-          TERM: xterm
-    working_directory: ~/app
-    steps:
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - v1-cypress-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
-            - v1-cypress-{{ .Branch }}
-            - v1-cypress
-      - cypress/run:
-          start: npm start
-      - save_cache:
-          key: v1-deps-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
-          paths:
-            - ~/.cache
 workflows:
   version: 2
   all:
     jobs:
       - build
-      - integration-test:
-          requires:
-            - build
