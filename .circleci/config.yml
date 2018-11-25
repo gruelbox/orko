@@ -46,12 +46,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - restore_cache:
-          keys:
-            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v1-{{ .Branch }}-
-            - maven-repo-v1-
-      - run: mvn -Pwebdev test -T 1C -DskipSlowTests=true
+      - run: mvn -Pwebdev surefire:test -T 1C -DskipSlowTests=true
       - run:
           name: Save test results
           command: |
@@ -77,11 +72,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - restore_cache:
-          keys:
-            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v1-{{ .Branch }}-
-            - maven-repo-v1-
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -92,7 +82,7 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev test -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+      - run: mvn -Pwebdev surefire:test -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
       - run:
           name: Save test results
           command: |
