@@ -42,32 +42,21 @@ jobs:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ~/orko
-  h2:
+  h2-backend-tests:
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
           MAVEN_OPTS: -Xmx3200m
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_ROOT_PASSWORD: rootpw
-          MYSQL_DATABASE: test
-          MYSQL_USER: open
-          MYSQL_PASSWORD: sesame
     working_directory: ~/orko
     steps:
       - restore_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
-      - run:
-          name: Waiting for MySQL to be ready
-          command: |
-            for i in `seq 1 30`;
-            do
-              nc -z 127.0.0.1 3306 && echo Success && exit 0
-              echo -n .
-              sleep 1
-            done
-            echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev test -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
+      - run: mvn -Pwebdev test -T 1C -DskipSlowTests=true
       - run:
           name: Save test results
           command: |
@@ -78,7 +67,7 @@ jobs:
           path: ~/junit
       - store_artifacts:
           path: ~/junit
-  mysql:
+  mysql-backend-tests:
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
@@ -92,6 +81,11 @@ jobs:
     steps:
       - restore_cache:
           key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -130,9 +124,12 @@ workflows:
       - build:
           requires:
             - checkout_code
-      - h2:
+      - h2-backend-tests:
           requires:
             - build
-      - mysql:
+      - mysql-backend-tests:
+          requires:
+            - build
+      - end-to-end:
           requires:
             - build
