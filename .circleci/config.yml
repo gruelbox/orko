@@ -20,7 +20,7 @@ jobs:
             - node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
             - node-v1-{{ .Branch }}-
             - node-v1-
-      - run: mvn -Pproduction clean install -DskipTests=true
+      - run: mvn -Pproduction clean package -DskipTests=true
       - save_cache:
           paths:
             - ~/.m2
@@ -37,6 +37,7 @@ jobs:
             - pom.xml
             - orko-all-in-one
             - orko-common
+            - orko-end-to-end-testing
             - orko-web
             - orko-worker
   h2-backend-tests:
@@ -107,13 +108,22 @@ jobs:
           path: ~/junit/mysql
   end-to-end:
     docker:
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: cypress/base:8
+        environment:
+          TERM: xterm
+    working_directory: ~/app
     steps:
+      - attach_workspace:
+          at: .
       - restore_cache:
           keys:
-            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v1-{{ .Branch }}-
-            - maven-repo-v1-
+            - v1-cypress-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
+            - v1-cypress-{{ .Branch }}
+            - v1-cypress
+      - save_cache:
+          key: v1-deps-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
+          paths:
+            - ~/.cache ## cache both yarn and Cypress!
 workflows:
   version: 2
   all:
