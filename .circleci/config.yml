@@ -9,12 +9,23 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - orko-build-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
+      - restore_cache:
+          keys:
+            - node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
+            - node-v1-{{ .Branch }}-
+            - node-v1-
       - run: mvn de.qaware.maven:go-offline-maven-plugin:1.0.0:resolve-dependencies -Dmaven.repo.local=.m2/repository
       - save_cache:
           paths:
             - ~/.m2
-          key: orko-build-{{ checksum "pom.xml" }}
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+      - save_cache:
+          paths:
+            - ~/usr/local/lib/node_modules
+          key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
       - run: mvn -Pproduction clean package -T 1C -DskipSlowTests=true
       - run:
           name: Save test results
@@ -41,12 +52,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - orko-build-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
       - run: mvn de.qaware.maven:go-offline-maven-plugin:1.0.0:resolve-dependencies -Dmaven.repo.local=.m2/repository
       - save_cache:
           paths:
             - ~/.m2
-          key: orko-build-{{ checksum "pom.xml" }}
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
       - run:
           name: Waiting for MySQL to be ready
           command: |
