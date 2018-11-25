@@ -11,9 +11,9 @@ jobs:
     steps:
       - checkout
       - persist_to_workspace:
-          root: ~/orko
+          root: ~
           paths:
-            - *
+            - orko
   build:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -22,7 +22,7 @@ jobs:
     working_directory: ~/orko
     steps:
       - attach_workspace:
-          at: ~/orko
+          at: ~
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -43,9 +43,9 @@ jobs:
             - ~/usr/local/lib/node_modules
           key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
       - persist_to_workspace:
-          root: ~/orko
+          root: ~
           paths:
-            - *
+            - orko
   h2-backend-tests:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -54,7 +54,7 @@ jobs:
     working_directory: ~/orko
     steps:
       - attach_workspace:
-          at: ~/orko
+          at: ~
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -84,7 +84,7 @@ jobs:
           MYSQL_PASSWORD: sesame
     steps:
       - attach_workspace:
-          at: ~/orko
+          at: ~
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
