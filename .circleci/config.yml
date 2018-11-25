@@ -20,7 +20,7 @@ jobs:
             - node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
             - node-v1-{{ .Branch }}-
             - node-v1-
-      - run: mvn -Pproduction clean package -DskipTests=true
+      - run: mvn -Pproduction clean install -DskipTests=true
       - save_cache:
           paths:
             - ~/.m2
@@ -43,7 +43,7 @@ jobs:
       - image: circleci/openjdk:8-jdk
         environment:
           MAVEN_OPTS: -Xmx3200m
-    working_directory: ~/orko/build
+    working_directory: ~/orko
     steps:
       - attach_workspace:
           at: .
@@ -74,7 +74,7 @@ jobs:
           MYSQL_DATABASE: test
           MYSQL_USER: open
           MYSQL_PASSWORD: sesame
-    working_directory: ~/orko/build
+    working_directory: ~/orko
     steps:
       - attach_workspace:
           at: .
