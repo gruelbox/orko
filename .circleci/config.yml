@@ -28,47 +28,20 @@ jobs:
             - /usr/local/lib/node_modules
             - orko-ui/node_modules
           key: node-v2-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
-      - persist_to_workspace:
-          root: ~/orko
-          paths:
-            - orko-common
-            - orko-all-in-one
-            - orko-end-to-end-testing
-            - start-integration-test.sh
-  integration-test:
-    docker:
-      - image: cypress/base:10
-    parallelism: 1
-    steps:
-      - attach_workspace:
-          at: .
       - restore_cache:
           keys:
-            - cypress-v1-{{ .Branch }}-{{ checksum "package.json" }}
+            - cypress-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
+      - run: java -cp orko-all-in-one/target/classes:orko-all-in-one/target/dependency/* com.grahamcrockford.orko.allinone.AllInOneApplication server ./orko-all-in-one/integration-test-config.yml &
       - run: cd orko-end-to-end-testing && npm ci
-      - run: ./start-integration-test.sh &
-      - run: cd orko-end-to-end-testing && wait-on http://localhost:8080
       - run: cd orko-end-to-end-testing && npx cypress verify
       - save_cache:
-          key: cypress-v1-{{ .Branch }}-{{ checksum "package.json" }}
+          key: cypress-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
           paths:
             - ~/.npm
             - ~/.cache
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project
-            - .cache/Cypress
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: Run Cypress tests
-          command: "cd orko-end-to-end-testing && npx cypress run"
+      - run: cd orko-end-to-end-testing && npx cypress run
 workflows:
   version: 2
   all:
     jobs:
       - build
-      - integration-test:
-          requires:
-            - build
