@@ -15,21 +15,22 @@ jobs:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v1-{{ .Branch }}-
             - maven-repo-v1-
+      - run: mvn de.qaware.maven:go-offline-maven-plugin:1.0.0:resolve-dependencies -Dmaven.repo.local=~/.m2/repository
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
       - restore_cache:
           keys:
             - node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
             - node-v1-{{ .Branch }}-
             - node-v1-
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:1.0.0:resolve-dependencies -Dmaven.repo.local=.m2/repository
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-      - save_cache:
-          paths:
-            - ~/usr/local/lib/node_modules
-          key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
       - run: mvn -Pproduction clean install -DskipTests=true -o
+      - save_cache:
+          paths:
+            - /usr/local/lib/node_modules
+            - orko-ui/node_modules
+          key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
       - persist_to_workspace:
           root: ~/orko
           paths:
@@ -58,12 +59,12 @@ jobs:
           name: Save test results
           command: |
             mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/h2 \;
           when: always
       - store_test_results:
-          path: ~/junit
+          path: ~/junit/h2
       - store_artifacts:
-          path: ~/junit
+          path: ~/junit/h2
   mysql-backend-tests:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -99,12 +100,12 @@ jobs:
           name: Save test results
           command: |
             mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/mysql \;
           when: always
       - store_test_results:
-          path: ~/junit
+          path: ~/junit/mysql
       - store_artifacts:
-          path: ~/junit
+          path: ~/junit/mysql
   end-to-end:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
