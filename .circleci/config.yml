@@ -54,7 +54,7 @@ jobs:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v1-{{ .Branch }}-
             - maven-repo-v1-
-      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -o
+      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true
       - run:
           name: Save test results
           command: |
@@ -95,7 +95,7 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test -o
+      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
       - run:
           name: Save test results
           command: |
@@ -106,24 +106,6 @@ jobs:
           path: ~/junit/mysql
       - store_artifacts:
           path: ~/junit/mysql
-  end-to-end:
-    docker:
-      - image: cypress/base:8
-        environment:
-          TERM: xterm
-    working_directory: ~/app
-    steps:
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - v1-cypress-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
-            - v1-cypress-{{ .Branch }}
-            - v1-cypress
-      - save_cache:
-          key: v1-deps-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
-          paths:
-            - ~/.cache ## cache both yarn and Cypress!
 workflows:
   version: 2
   all:
@@ -133,8 +115,5 @@ workflows:
           requires:
             - build
       - mysql-backend-tests:
-          requires:
-            - build
-      - end-to-end:
           requires:
             - build

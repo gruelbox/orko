@@ -4,10 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <prerequisites>
-    <maven>3.0.0</maven>
-  </prerequisites>
-
+  
   <url>http://github.com/badgerwithagun/orko</url>
   <description>Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.</description>
   <inceptionYear>2018</inceptionYear>
@@ -177,6 +174,7 @@
   <name>Orko</name>
 
   <properties>
+    <min.maven.version>3.0.0</min.maven.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -213,6 +211,7 @@
     <maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
     <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
     <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
+    <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
     <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
     <license.maven.plugin.version>1.16</license.maven.plugin.version>
     <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
@@ -544,5 +543,28 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven.enforcer.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>enforce-maven-version</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[${min_maven_version},)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>
