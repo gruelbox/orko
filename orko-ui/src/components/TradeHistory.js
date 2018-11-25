@@ -5,6 +5,8 @@ import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
 import * as dateUtils from "../util/dateUtils"
 
+const BUY_SIDE = "BID"
+
 const textStyle = {
   textAlign: "left"
 }
@@ -24,29 +26,29 @@ const dateColumn = {
   minWidth: 80
 }
 
-const orderTypeColumn = buySide => ({
+const orderTypeColumn = {
   id: "orderType",
   Header: <Icon fitted name="sort" title="Direction" />,
   accessor: "t",
   Cell: ({ original }) => (
     <Icon
       fitted
-      name={original.t === buySide ? "arrow up" : "arrow down"}
-      title={original.t === buySide ? "Buy" : "Sell"}
+      name={original.t === BUY_SIDE ? "arrow up" : "arrow down"}
+      title={original.t === BUY_SIDE ? "Buy" : "Sell"}
     />
   ),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
   width: 32
-})
+}
 
-const priceColumn = (coin, buySide) => ({
+const priceColumn = coin => ({
   Header: "Price",
   Cell: ({ original }) => (
     <Price
       coin={coin}
-      color={original.t === buySide ? "buy" : "sell"}
+      color={original.t === BUY_SIDE ? "buy" : "sell"}
       noflash
       bare
     >
@@ -60,12 +62,12 @@ const priceColumn = (coin, buySide) => ({
   minWidth: 50
 })
 
-const amountColumn = (coin, buySide) => ({
+const amountColumn = coin => ({
   Header: "Amount",
   Cell: ({ original }) => (
     <Amount
       coin={coin}
-      color={original.t === buySide ? "buy" : "sell"}
+      color={original.t === BUY_SIDE ? "buy" : "sell"}
       noflash
       bare
     >
@@ -79,11 +81,11 @@ const amountColumn = (coin, buySide) => ({
   minWidth: 50
 })
 
-const feeAmountColumn = buySide => ({
+const feeAmountColumn = {
   Header: "Fee",
   Cell: ({ original }) => (
     <Amount
-      color={original.t === buySide ? "buy" : "sell"}
+      color={original.t === BUY_SIDE ? "buy" : "sell"}
       noflash
       bare
       noValue="--"
@@ -96,7 +98,7 @@ const feeAmountColumn = buySide => ({
   sortable: false,
   resizable: true,
   minWidth: 50
-})
+}
 
 const feeCurrencyColumn = {
   Header: "Fee Ccy",
@@ -108,20 +110,15 @@ const feeCurrencyColumn = {
   minWidth: 50
 }
 
-const columns = (coin, buySide, excludeFees) =>
+const columns = (coin, excludeFees) =>
   excludeFees
-    ? [
-        orderTypeColumn(buySide),
-        dateColumn,
-        priceColumn(coin, buySide),
-        amountColumn(coin, buySide)
-      ]
+    ? [orderTypeColumn, dateColumn, priceColumn(coin), amountColumn(coin)]
     : [
-        orderTypeColumn(buySide),
+        orderTypeColumn,
         dateColumn,
-        priceColumn(coin, buySide),
-        amountColumn(coin, buySide),
-        feeAmountColumn(buySide),
+        priceColumn(coin),
+        amountColumn(coin),
+        feeAmountColumn,
         feeCurrencyColumn
       ]
 
@@ -129,13 +126,9 @@ const TradeHistory = props => (
   <ReactTable
     data={props.trades}
     getTrProps={(state, rowInfo, column) => ({
-      className: rowInfo.original.t === props.buySide ? "oco-buy" : "oco-sell"
+      className: rowInfo.original.t === BUY_SIDE ? "oco-buy" : "oco-sell"
     })}
-    columns={
-      props.buySide === "BID"
-        ? columns(props.coin, "BID", props.excludeFees)
-        : columns(props.coin, "ASK", props.excludeFees)
-    }
+    columns={columns(props.coin, props.excludeFees)}
     showPagination={false}
     resizable={false}
     className="-striped"
