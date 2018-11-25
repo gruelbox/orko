@@ -1,18 +1,10 @@
 version: 2
-orbs:
-  cypress: cypress-io/cypress@1.0.0
 jobs:
   build:
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
           MAVEN_OPTS: -Xmx3200m
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_ROOT_PASSWORD: rootpw
-          MYSQL_DATABASE: test
-          MYSQL_USER: open
-          MYSQL_PASSWORD: sesame
     working_directory: ~/orko
     steps:
       - checkout
@@ -26,7 +18,7 @@ jobs:
             - node-v2-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
             - node-v2-{{ .Branch }}-
             - node-v2-
-      - run: mvn -Pproduction clean install -DskipSlowTests=true
+      - run: mvn -Pproduction clean install -DskipTests=true
       - save_cache:
           paths:
             - ~/.m2
@@ -36,43 +28,47 @@ jobs:
             - /usr/local/lib/node_modules
             - orko-ui/node_modules
           key: node-v2-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
-      - run:
-          name: Saving checkstyle reports
-          command: |
-            mkdir -p ~/checkstyle/
-            find . -type f -regex ".*/target/checkstyle-result.xml" -exec cp {} ~/checkstyle \;
-          when: always
-      - store_artifacts:
-          path: ~/checkstyle
-      - run:
-          name: Saving test results (H2)
-          command: |
-            mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/h2 \;
-          when: always
-      - run:
-          name: Waiting for MySQL to be ready
-          command: |
-            for i in `seq 1 30`;
-            do
-              nc -z 127.0.0.1 3306 && echo Success && exit 0
-              echo -n .
-              sleep 1
-            done
-            echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
-      - run:
-          name: Save test results (MySQL)
-          command: |
-            mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/mysql \;
-          when: always
-      - store_artifacts:
-          path: ~/junit
-      - store_test_results:
-          path: ~/junit
+      - persist_to_workspace:
+          root: ~/orko
+          paths:
+            - orko-common
+            - orko-all-in-one
+            - orko-end-to-end-testing
+            - start-integration-test.sh
+  integration-test:
+    docker:
+    - image: cypress/base:10
+    parallelism: 1
+    steps:
+      - attach_workspace:
+          at: .
+    - restore_cache:
+        keys:
+        - cypress-v1-{{ .Branch }}-{{ checksum "package.json" }}
+    - run: cd orko-end-to-end-testing && npm ci
+    - run: ./start-integration-test.sh &
+    - run: cd orko-end-to-end-testing && wait-on http://localhost:8080
+    - run: cd orko-end-to-end-testing && npx cypress verify
+    - save_cache:
+        key: cypress-v1-{{ .Branch }}-{{ checksum "package.json" }}
+        paths:
+        - ~/.npm
+        - ~/.cache
+    - persist_to_workspace:
+        root: ~/
+        paths:
+        - project
+        - .cache/Cypress
+    - attach_workspace:
+        at: ~/
+    - run:
+        name: Run Cypress tests
+        command: 'cd orko-end-to-end-testing && npx cypress run'
 workflows:
   version: 2
   all:
     jobs:
       - build
+      - integration-test:
+          requires:
+            - build

@@ -9,6 +9,7 @@
 **/.settings/org.eclipse.jdt.core.prefs
 **/.settings/org.eclipse.m2e.core.prefs
 **/.settings/org.jboss.tools.maven.apt.prefs
+**/node_modules
 /orko-api/dependency-reduced-pom.xml
 /orko-web/dependency-reduced-pom.xml
 /orko-worker/dependency-reduced-pom.xml

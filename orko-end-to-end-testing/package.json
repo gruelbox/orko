@@ -1,0 +1,19 @@
+{
+  "name": "orko-end-to-end-testing",
+  "version": "1.0.0",
+  "description": "Runs the entire application and performs sanity checks",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "cypress:open": "cypress open"
+  },
+  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "cypress": "^3.1.2",
+    "wait-on": "^3.2.0"
+  },
+  "dependencies": {
+    "otplib": "^10.0.1"
+  }
+}
