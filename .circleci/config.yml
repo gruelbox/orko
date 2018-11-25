@@ -5,20 +5,24 @@ jobs:
   checkout_code:
     docker:
       - image: circleci/openjdk:8-jdk
+        environment:
+          MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
     steps:
       - checkout
-      - save_cache:
-          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - persist_to_workspace:
+          root: ~/orko
           paths:
-            - ~/orko
+            - *
   build:
     docker:
       - image: circleci/openjdk:8-jdk
+        environment:
+          MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
     steps:
-      - restore_cache:
-          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - attach_workspace:
+          at: ~/orko
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -38,10 +42,10 @@ jobs:
           paths:
             - ~/usr/local/lib/node_modules
           key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
-      - save_cache:
-          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - persist_to_workspace:
+          root: ~/orko
           paths:
-            - ~/orko
+            - *
   h2-backend-tests:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -49,8 +53,8 @@ jobs:
           MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
     steps:
-      - restore_cache:
-          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - attach_workspace:
+          at: ~/orko
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -79,8 +83,8 @@ jobs:
           MYSQL_USER: open
           MYSQL_PASSWORD: sesame
     steps:
-      - restore_cache:
-          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - attach_workspace:
+          at: ~/orko
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
