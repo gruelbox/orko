@@ -20,7 +20,7 @@ jobs:
             - node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
             - node-v1-{{ .Branch }}-
             - node-v1-
-      - run: mvn -Pproduction clean install -DskipTests=true
+      - run: mvn de.qaware.maven:go-offline-maven-plugin:1.0.0:resolve-dependencies -Dmaven.repo.local=.m2/repository
       - save_cache:
           paths:
             - ~/.m2
@@ -29,6 +29,7 @@ jobs:
           paths:
             - ~/usr/local/lib/node_modules
           key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
+      - run: mvn -Pproduction clean install -DskipTests=true -o
       - persist_to_workspace:
           root: ~/orko
           paths:
@@ -52,7 +53,7 @@ jobs:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v1-{{ .Branch }}-
             - maven-repo-v1-
-      - run: mvn -Pwebdev surefire:test -T 1C -DskipSlowTests=true
+      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -o
       - run:
           name: Save test results
           command: |
@@ -93,7 +94,7 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev surefire:test -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test -o
       - run:
           name: Save test results
           command: |
