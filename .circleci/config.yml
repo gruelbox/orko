@@ -1,12 +1,24 @@
 version: 2
+orbs:
+  cypress: cypress-io/cypress@1.0.0
 jobs:
-  build:
+  checkout_code:
     docker:
-      - image: circleci/openjdk:8-jdk-browsers
-        environment:
-          MAVEN_OPTS: -Xmx3200m
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/orko
     steps:
       - checkout
+      - save_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/orko
+  bundle_dependencies:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/orko
+    steps:
+      - restore_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
             - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -17,6 +29,7 @@ jobs:
             - node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
             - node-v1-{{ .Branch }}-
             - node-v1-
+      - run: npm install orko-ui
       - run: mvn de.qaware.maven:go-offline-maven-plugin:1.0.0:resolve-dependencies -Dmaven.repo.local=.m2/repository
       - save_cache:
           paths:
@@ -26,7 +39,56 @@ jobs:
           paths:
             - ~/usr/local/lib/node_modules
           key: node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
-      - run: mvn -Pproduction clean package -T 1C -DskipSlowTests=true
+      - restore_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/orko
+    steps:
+      - restore_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
+      - restore_cache:
+          keys:
+            - node-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
+            - node-v1-{{ .Branch }}-
+            - node-v1-
+      - run: mvn -Pproduction clean package -DskipTests=true
+      - save_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/orko
+  h2:
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          MAVEN_OPTS: -Xmx3200m
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: test
+          MYSQL_USER: open
+          MYSQL_PASSWORD: sesame
+    working_directory: ~/orko
+    steps:
+      - restore_cache:
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
+      - run:
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+      - run: mvn -Pwebdev test -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
       - run:
           name: Save test results
           command: |
@@ -49,17 +111,8 @@ jobs:
           MYSQL_USER: open
           MYSQL_PASSWORD: sesame
     steps:
-      - checkout
       - restore_cache:
-          keys:
-            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v1-{{ .Branch }}-
-            - maven-repo-v1-
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:1.0.0:resolve-dependencies -Dmaven.repo.local=.m2/repository
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: v1-repo-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -70,7 +123,7 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev clean package -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+      - run: mvn -Pwebdev test -T 1C -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
       - run:
           name: Save test results
           command: |
@@ -81,9 +134,29 @@ jobs:
           path: ~/junit
       - store_artifacts:
           path: ~/junit
+  end-to-end:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    steps:
+      - restore_cache:
+          keys:
+            - maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v1-{{ .Branch }}-
+            - maven-repo-v1-
 workflows:
   version: 2
   all:
     jobs:
+      - checkout_code
+      - bundle_dependencies
+          requires:
+            - checkout_code
       - build
+          requires:
+            - bundle_dependencies
+      - h2
+          requires:
+            - build
       - mysql
+          requires:
+            - build
