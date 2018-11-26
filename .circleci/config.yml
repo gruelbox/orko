@@ -7,7 +7,7 @@ jobs:
           MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
     steps:
-      - run: apt-get install libxss1
+      - run: sudo apt-get install libxss1
       - checkout
       - restore_cache:
           keys:
