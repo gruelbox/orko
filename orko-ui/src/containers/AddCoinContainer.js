@@ -47,6 +47,8 @@ class AddCoinContainer extends Component {
           <Form onSubmit={this.onSubmit}>
             <Form.Field>
               <Dropdown
+                basic
+                data-orko="selectExchange"
                 placeholder="Select exchange"
                 fluid
                 selection
@@ -62,6 +64,8 @@ class AddCoinContainer extends Component {
             </Form.Field>
             <Form.Field>
               <Dropdown
+                basic
+                data-orko="selectPair"
                 placeholder="Select pair"
                 fluid
                 search
@@ -78,7 +82,7 @@ class AddCoinContainer extends Component {
                 onChange={this.onChangePair}
               />
             </Form.Field>
-            <Button primary disabled={!ready}>
+            <Button primary disabled={!ready} data-orko="submit">
               Add
             </Button>
           </Form>
