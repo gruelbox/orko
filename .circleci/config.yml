@@ -7,7 +7,7 @@ jobs:
           MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
     steps:
-      - run: sudo apt-get install libxss1
+      - run: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
       - checkout
       - restore_cache:
           keys:
@@ -22,7 +22,7 @@ jobs:
       - restore_cache:
           keys:
             - cypress-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
-      - run: mvn -Pintegration-test clean install -DskipSlowTests=true
+      - run: mvn -Pintegration-test clean install -DskipSlowTests=true -T 1C
       - save_cache:
           paths:
             - ~/.m2
