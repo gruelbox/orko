@@ -49,7 +49,7 @@
                 <argument>server</argument>
                 <argument>integration-test-config.yml</argument>
               </arguments>
-              <processLogFile>app.log</processLogFile>
+              <processLogFile>${basedir}/app.log</processLogFile>
             </configuration>
           </execution>
           <execution>
