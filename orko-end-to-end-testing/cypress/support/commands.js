@@ -122,16 +122,19 @@ Cypress.Commands.add("login", options => {
   const data = {
     username: validUser ? LOGIN_USER : LOGIN_USER + "x",
     password: validPassword ? LOGIN_PW : LOGIN_PW + "x",
-    secondFactor: hasToken
-      ? tokenForSecret(validToken ? LOGIN_SECRET : LOGIN_SECRET_INVALID)
-      : ""
+    secondFactor: tokenForSecret(
+      validToken ? LOGIN_SECRET : LOGIN_SECRET_INVALID
+    )
   }
 
   if (visit) cy.visit("/")
 
   cy.get("[data-orko=username]").type(data.username)
   cy.get("[data-orko=password]").type(data.password)
-  cy.get("[data-orko=secondFactor]").type(`${data.secondFactor}{enter}`)
+  if (hasToken) {
+    cy.get("[data-orko=secondFactor]").type(data.secondFactor)
+  }
+  cy.get("[data-orko=submitModal]").click()
 
   if (valid) {
     cy.get("[data-orko=modal]").should("not.exist")

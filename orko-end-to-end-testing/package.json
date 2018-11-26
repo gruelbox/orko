@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run --browser chrome --reporter junit --reporter-options \"mochaFile=target/surefire-reports/mocha-results.xml\"",
+    "cypress:run": "cypress run --reporter junit --reporter-options \"mochaFile=target/mocha-reports/mocha-results.xml\"",
     "cypress:verify": "cypress verify"
   },
   "author": "",

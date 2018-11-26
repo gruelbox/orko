@@ -90,7 +90,7 @@ export default class Login extends Component {
                 />
               </div>
             </Form.Field>
-            <Button data-orko="submit" type="submit" onClick={this.login}>
+            <Button data-orko="submitModal" type="submit" onClick={this.login}>
               Login
             </Button>
           </Form>

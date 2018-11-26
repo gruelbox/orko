@@ -51,6 +51,12 @@ jobs:
             mkdir -p ~/junit/h2
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/h2 \;
           when: always
+      - run:
+          name: Saving test results (Integration)
+          command: |
+            mkdir -p ~/junit/integration
+            find . -type f -regex ".*/target/mocha-reports/.*xml" -exec cp {} ~/junit/integration \;
+          when: always
       - store_artifacts:
           path: ~/junit
       - store_test_results:
@@ -65,7 +71,7 @@ jobs:
       - store_artifacts:
           path: orko-end-to-end-testing/cypress/screenshots
       - store_artifacts:
-          path: orko-end-to-end-testing/target/app.log
+          path: orko-end-to-end-testing/app.log
 workflows:
   version: 2
   all:

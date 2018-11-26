@@ -37,6 +37,7 @@ export default class Whitelisting extends Component {
               </div>
             </Form.Field>
             <Button
+              data-orko="submitModal"
               type="submit"
               onClick={() => this.props.onApply(this.state.response)}
             >
