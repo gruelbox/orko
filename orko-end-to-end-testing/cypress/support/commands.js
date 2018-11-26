@@ -104,6 +104,7 @@ Cypress.Commands.add("loginApi", options => {
       if (valid) {
         expect(response.status).to.eq(200)
         expect(response.body).to.have.property("xsrf")
+        cy.getCookie("accessToken").should("exist")
       } else {
         expect(response.status).to.eq(403)
       }
@@ -138,6 +139,7 @@ Cypress.Commands.add("login", options => {
   cy.get("[data-orko=loginSubmit]").click()
 
   if (valid) {
+    cy.getCookie("accessToken").should("exist")
     cy.get("[data-orko=loginModal]").should("not.exist")
     cy.get("[data-orko=errorModal]").should("not.exist")
   } else {
