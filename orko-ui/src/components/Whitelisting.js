@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { Modal, Icon, Form, Input, Button, Message } from "semantic-ui-react"
+import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
 import FixedModal from "./primitives/FixedModal"
 
 export default class Whitelisting extends Component {
@@ -26,12 +26,15 @@ export default class Whitelisting extends Component {
             <Message error header="Error" content={this.props.error} />
             <Form.Field>
               <label>Response</label>
-              <Input
-                type="text"
-                placeholder="Enter response"
-                value={this.state.response || ""}
-                onChange={this.onChangeResponse}
-              />
+              <div className="ui input">
+                <input
+                  data-orko="token"
+                  type="text"
+                  placeholder="Enter response"
+                  value={this.state.response || ""}
+                  onChange={this.onChangeResponse}
+                />
+              </div>
             </Form.Field>
             <Button
               type="submit"

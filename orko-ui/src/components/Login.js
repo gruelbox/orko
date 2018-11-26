@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { Modal, Icon, Form, Input, Button, Message } from "semantic-ui-react"
+import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
 import FixedModal from "./primitives/FixedModal"
 import authService from "../services/auth"
 import { setXsrfToken } from "../services/fetchUtil"
@@ -54,32 +54,43 @@ export default class Login extends Component {
             <Message error header="Error" content={this.props.error} />
             <Form.Field>
               <label>Username</label>
-              <Input
-                type="text"
-                placeholder="Enter name"
-                value={this.state.username}
-                onChange={this.onChangeUsername}
-              />
+              <div className="ui input">
+                <input
+                  data-orko="username"
+                  type="text"
+                  placeholder="Enter name"
+                  value={this.state.username}
+                  onChange={this.onChangeUsername}
+                  autoComplete="username"
+                />
+              </div>
             </Form.Field>
             <Form.Field>
               <label>Password</label>
-              <Input
-                type="password"
-                placeholder="Enter password"
-                value={this.state.password}
-                onChange={this.onChangePassword}
-              />
+              <div className="ui input">
+                <input
+                  data-orko="password"
+                  type="password"
+                  placeholder="Enter password"
+                  value={this.state.password}
+                  onChange={this.onChangePassword}
+                  autoComplete="current-password"
+                />
+              </div>
             </Form.Field>
             <Form.Field>
               <label>Second factor</label>
-              <Input
-                type="text"
-                placeholder="Enter second factor"
-                value={this.state.secondFactor}
-                onChange={this.onChangeSecondFactor}
-              />
+              <div className="ui input">
+                <input
+                  data-orko="secondFactor"
+                  type="text"
+                  placeholder="Enter second factor"
+                  value={this.state.secondFactor}
+                  onChange={this.onChangeSecondFactor}
+                />
+              </div>
             </Form.Field>
-            <Button type="submit" onClick={this.login}>
+            <Button data-orko="submit" type="submit" onClick={this.login}>
               Login
             </Button>
           </Form>

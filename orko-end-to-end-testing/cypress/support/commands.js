@@ -23,3 +23,124 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+
+import {
+  IP_WHITELISTING_SECRET,
+  IP_WHITELISTING_SECRET_INVALID,
+  LOGIN_USER,
+  LOGIN_PW,
+  LOGIN_SECRET,
+  LOGIN_SECRET_INVALID
+} from "../util/constants"
+import { tokenForSecret } from "../util/token"
+
+function option(options, name) {
+  return options === undefined || options[name] === undefined || options[name]
+}
+
+Cypress.Commands.add("requestNoFail", url => {
+  return cy.request({
+    url,
+    failOnStatusCode: false
+  })
+})
+
+Cypress.Commands.add("clearWhitelist", () => {
+  return cy.request({
+    method: "DELETE",
+    url: "/api/auth",
+    failOnStatusCode: false
+  })
+})
+
+Cypress.Commands.add("whitelist", options => {
+  const valid = option(options, "valid")
+
+  // Clear any existing whitelisting
+  cy.clearWhitelist()
+
+  // Re-whitelist
+  return cy
+    .request({
+      method: "PUT",
+      url:
+        "/api/auth?token=" +
+        tokenForSecret(
+          valid ? IP_WHITELISTING_SECRET : IP_WHITELISTING_SECRET_INVALID
+        ),
+      failOnStatusCode: valid
+    })
+    .should(response => {
+      if (valid) {
+        expect(response.body).to.eq("Whitelisting successful")
+      } else {
+        expect(response.status).to.eq(403)
+      }
+    })
+})
+
+Cypress.Commands.add("loginApi", options => {
+  const validUser = option(options, "validUser")
+  const validPassword = option(options, "validPassword")
+  const validToken = option(options, "validToken")
+  const valid = validUser && validPassword && validToken
+
+  const body = {
+    username: validUser ? LOGIN_USER : LOGIN_USER + "x",
+    password: validPassword ? LOGIN_PW : LOGIN_PW + "x",
+    secondFactor: tokenForSecret(
+      validToken ? LOGIN_SECRET : LOGIN_SECRET_INVALID
+    )
+  }
+
+  return cy
+    .request({
+      method: "POST",
+      url: "/api/auth/login",
+      failOnStatusCode: valid,
+      body
+    })
+    .then(response => {
+      if (valid) {
+        expect(response.status).to.eq(200)
+        expect(response.body).to.have.property("xsrf")
+      } else {
+        expect(response.status).to.eq(403)
+      }
+      return response.body
+    })
+})
+
+Cypress.Commands.add("login", options => {
+  const visit = option(options, "visit")
+  const validUser = option(options, "validUser")
+  const validPassword = option(options, "validPassword")
+  const validToken = option(options, "validToken")
+  const hasToken = option(options, "hasToken")
+  const valid = validUser && validPassword && validToken && hasToken
+
+  const data = {
+    username: validUser ? LOGIN_USER : LOGIN_USER + "x",
+    password: validPassword ? LOGIN_PW : LOGIN_PW + "x",
+    secondFactor: hasToken
+      ? tokenForSecret(validToken ? LOGIN_SECRET : LOGIN_SECRET_INVALID)
+      : ""
+  }
+
+  if (visit) cy.visit("/")
+
+  cy.get("[data-orko=username]").type(data.username)
+  cy.get("[data-orko=password]").type(data.password)
+  cy.get("[data-orko=secondFactor]").type(`${data.secondFactor}{enter}`)
+
+  if (valid) {
+    cy.get("[data-orko=modal]").should("not.exist")
+  } else {
+    cy.get("div").contains("Error")
+    cy.get("p").contains("Login failed")
+  }
+})
+
+Cypress.Commands.add("logout", () => {
+  //xsrfToken = undefined
+})
