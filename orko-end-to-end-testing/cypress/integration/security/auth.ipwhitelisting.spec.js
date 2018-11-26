@@ -1,19 +1,13 @@
 import crypto from "crypto"
 import authenticator from "otplib/authenticator"
-import { APP_URL } from "../../util/constants"
-
-authenticator.options = {
-  crypto
-}
+import {
+  APP_URL,
+  NOT_WHITELISTED,
+  NOT_AUTHENTICATED
+} from "../../util/constants"
+import { whitelist, clearWhitelisting, tokenForSecret } from "../../util/login"
 
 const IP_WHITELISTING_SECRET_INVALID = "KJY4B3ZOFWRNNCN3"
-const IP_WHITELISTING_SECRET = "KJY4B3ZOFWRNNCN4"
-const LOGIN_SECRET = "O546XLKJMJIQM3PW"
-const LOGIN_USER = "ci"
-const LOGIN_PW = "tester"
-
-const NOT_WHITELISTED = 403
-const NOT_AUTHENTICATED = 401
 
 context("Check various APIs not accessible without IP whitelisting", () => {
   clearWhitelisting()
@@ -25,48 +19,24 @@ context("Check various APIs not accessible without IP whitelisting", () => {
     cy.request({
       method: "PUT",
       url:
-        APP_URL + "/api/auth?token=" + tokenFor(IP_WHITELISTING_SECRET_INVALID),
+        APP_URL +
+        "/api/auth?token=" +
+        tokenForSecret(IP_WHITELISTING_SECRET_INVALID),
       failOnStatusCode: false
     }).should(response => {
       expect(response.status).to.eq(403)
     })
   })
 
-  it("PUT /api/auth?token=VALID", () => {
-    cy.request({
-      method: "PUT",
-      url: APP_URL + "/api/auth?token=" + tokenFor(IP_WHITELISTING_SECRET)
-    }).should(response => {
-      expect(response.body).to.eq("Whitelisting successful")
-    })
-  })
+  whitelist()
 
   checkResponseCode("/api/exchanges", NOT_AUTHENTICATED)
   checkResponseCode("/api/exchanges/binance/orders", NOT_AUTHENTICATED)
 
-  it("DELETE /api/auth", () => {
-    cy.request({
-      method: "DELETE",
-      url: APP_URL + "/api/auth"
-    })
-  })
+  clearWhitelisting()
 
   checkResponseCode("/api/exchanges", NOT_WHITELISTED)
 })
-
-function clearWhitelisting() {
-  it("Clear authentication", () => {
-    cy.request({
-      method: "DELETE",
-      url: APP_URL + "/api/auth",
-      failOnStatusCode: false
-    })
-  })
-}
-
-function tokenFor(secret) {
-  return authenticator.generate(secret)
-}
 
 function checkResponseCode(endpoint, code) {
   it("GET " + endpoint + " (unauthenticated)", () => {
