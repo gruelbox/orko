@@ -21,8 +21,9 @@ context("Auth UI", () => {
       .its("status")
       .should("eq", 403)
 
+    cy.get("[data-orko=whitelistingModal]").should("exist")
     cy.get("[data-orko=token]").type(tokenForSecret(IP_WHITELISTING_SECRET))
-    cy.get("[data-orko=submitModal]").click()
+    cy.get("[data-orko=whitelistingSubmit]").click()
 
     cy.login({ visit: false })
   })
@@ -34,10 +35,11 @@ context("Auth UI", () => {
       .its("status")
       .should("eq", 403)
 
+    cy.get("[data-orko=whitelistingModal]").should("exist")
     cy.get("[data-orko=token]").type(
       tokenForSecret(IP_WHITELISTING_SECRET_INVALID)
     )
-    cy.get("[data-orko=submitModal]").click()
+    cy.get("[data-orko=whitelistingSubmit]").click()
 
     cy.get("div").contains("Error")
     cy.get("p").contains("Whitelisting failed")

@@ -38,7 +38,7 @@ class AddCoinContainer extends Component {
     const ready = !!this.state.pair
 
     return (
-      <FixedModal>
+      <FixedModal data-orko="addCoinModal">
         <Modal.Header>
           <Icon name="bitcoin" />
           Add coin
@@ -82,7 +82,7 @@ class AddCoinContainer extends Component {
                 onChange={this.onChangePair}
               />
             </Form.Field>
-            <Button primary disabled={!ready} data-orko="submit">
+            <Button primary disabled={!ready} data-orko="addCoinSubmit">
               Add
             </Button>
           </Form>

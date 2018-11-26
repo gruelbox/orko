@@ -14,6 +14,6 @@ context("Coins", () => {
     cy.get("[class='visible menu transition']")
       .contains("BTC/USD")
       .click()
-    cy.get("[data-orko=submit]").click()
+    cy.get("[data-orko=addCoinSubmit]").click()
   })
 })

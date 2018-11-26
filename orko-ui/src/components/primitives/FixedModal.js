@@ -10,7 +10,7 @@ const inlineStyle = {
 }
 
 const FixedModal = props => (
-  <Modal open={true} style={inlineStyle.modal} data-orko="modal">
+  <Modal open={true} style={inlineStyle.modal} data-orko={props["data-orko"]}>
     {props.children}
   </Modal>
 )

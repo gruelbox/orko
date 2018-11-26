@@ -16,7 +16,7 @@ export default class Whitelisting extends Component {
 
   render() {
     return (
-      <FixedModal>
+      <FixedModal data-orko="whitelistingModal">
         <Modal.Header>
           <Icon name="lock" />
           Challenge
@@ -37,7 +37,7 @@ export default class Whitelisting extends Component {
               </div>
             </Form.Field>
             <Button
-              data-orko="submitModal"
+              data-orko="whitelistingSubmit"
               type="submit"
               onClick={() => this.props.onApply(this.state.response)}
             >

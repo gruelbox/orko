@@ -44,7 +44,7 @@ export default class Login extends Component {
 
   render() {
     return (
-      <FixedModal>
+      <FixedModal data-orko="loginModal">
         <Modal.Header>
           <Icon name="lock" />
           Login
@@ -90,7 +90,7 @@ export default class Login extends Component {
                 />
               </div>
             </Form.Field>
-            <Button data-orko="submitModal" type="submit" onClick={this.login}>
+            <Button data-orko="loginSubmit" type="submit" onClick={this.login}>
               Login
             </Button>
           </Form>

@@ -129,18 +129,20 @@ Cypress.Commands.add("login", options => {
 
   if (visit) cy.visit("/")
 
+  cy.get("[data-orko=loginModal]").should("exist")
   cy.get("[data-orko=username]").type(data.username)
   cy.get("[data-orko=password]").type(data.password)
   if (hasToken) {
     cy.get("[data-orko=secondFactor]").type(data.secondFactor)
   }
-  cy.get("[data-orko=submitModal]").click()
+  cy.get("[data-orko=loginSubmit]").click()
 
   if (valid) {
-    cy.get("[data-orko=modal]").should("not.exist")
+    cy.get("[data-orko=loginModal]").should("not.exist")
+    cy.get("[data-orko=errorModal]").should("not.exist")
   } else {
-    cy.get("div").contains("Error")
-    cy.get("p").contains("Login failed")
+    cy.get("[data-orko=errorModal]").contains("Error")
+    cy.get("[data-orko=errorModal]").contains("Login failed")
   }
 })
 

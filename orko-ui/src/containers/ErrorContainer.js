@@ -8,13 +8,14 @@ import * as errorActions from "../store/error/actions"
 const ErrorContainer = props => {
   if (props.errorForeground !== null) {
     return (
-      <FixedModal defaultOpen>
+      <FixedModal defaultOpen data-orko="errorModal">
         <Header icon="warning" content="Error" />
         <Modal.Content>
           <p>{props.errorForeground}</p>
         </Modal.Content>
         <Modal.Actions>
           <Button
+            data-orko="errorSubmit"
             onClick={() => props.dispatch(errorActions.clearForeground())}
           >
             OK
