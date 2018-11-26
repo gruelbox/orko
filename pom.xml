@@ -495,7 +495,7 @@
             </dependency>
           </dependencies>
           <configuration>
-            <excludes>**/generated-sources/**/*</excludes>
+            <excludes>**/generated-sources/**</excludes>
             <configLocation>../etc/checkstyle.xml</configLocation>
             <encoding>UTF-8</encoding>
             <consoleOutput>true</consoleOutput>

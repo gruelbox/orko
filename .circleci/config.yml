@@ -35,6 +35,8 @@ jobs:
       - save_cache:
           key: cypress-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
           paths:
+            - orko-end-to-end-testing/node_modules
+            - orko-end-to-end-testing/node
             - ~/.npm
             - ~/.cache
 workflows:
