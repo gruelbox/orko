@@ -37,7 +37,7 @@ context("Auth UI", () => {
     cy.get("[data-orko=token]").type(
       tokenForSecret(IP_WHITELISTING_SECRET_INVALID)
     )
-    cy.get("[data-orko=submit]").click()
+    cy.get("[data-orko=submitModal]").click()
 
     cy.get("div").contains("Error")
     cy.get("p").contains("Whitelisting failed")

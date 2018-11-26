@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk-node-browsers-legacy
+      - image: circleci/openjdk:8-jdk-browsers
         environment:
           MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
