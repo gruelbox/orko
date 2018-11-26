@@ -48,9 +48,8 @@
                 <argument>com.grahamcrockford.orko.allinone.AllInOneApplication</argument>
                 <argument>server</argument>
                 <argument>integration-test-config.yml</argument>
-                <argument>></argument>
-                <argument>app.log</argument>
               </arguments>
+              <processLogFile>app.log</processLogFile>
             </configuration>
           </execution>
           <execution>
