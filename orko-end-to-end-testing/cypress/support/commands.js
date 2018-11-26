@@ -137,7 +137,7 @@ Cypress.Commands.add("login", options => {
   cy.get("[data-orko=loginSubmit]").click()
 
   if (valid) {
-    cy.getCookie("accessToken").should("exist")
+    //cy.getCookie("accessToken").should("exist")
     cy.get("[data-orko=loginModal]").should("not.exist")
     cy.get("[data-orko=errorModal]").should("not.exist")
   } else {
