@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  
+
   <url>http://github.com/badgerwithagun/orko</url>
   <description>Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.</description>
   <inceptionYear>2018</inceptionYear>
@@ -485,7 +485,7 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
+          <artifactId>  </artifactId>
           <version>${maven-checkstyle-plugin.version}</version>
           <dependencies>
             <dependency>
@@ -495,6 +495,7 @@
             </dependency>
           </dependencies>
           <configuration>
+            <excludes>**/generated-sources/**/*</excludes>
             <configLocation>../etc/checkstyle.xml</configLocation>
             <encoding>UTF-8</encoding>
             <consoleOutput>true</consoleOutput>
