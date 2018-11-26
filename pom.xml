@@ -495,7 +495,8 @@
             </dependency>
           </dependencies>
           <configuration>
-            <excludes>**/generated-sources/**</excludes>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <suppressionsLocation>../etc/checkstyle-suppressions.xml</suppressionsLocation>
             <configLocation>../etc/checkstyle.xml</configLocation>
             <encoding>UTF-8</encoding>
             <consoleOutput>true</consoleOutput>
