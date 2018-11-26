@@ -100,15 +100,13 @@ Cypress.Commands.add("loginApi", options => {
       failOnStatusCode: valid,
       body
     })
-    .then(response => {
+    .should(response => {
       if (valid) {
         expect(response.status).to.eq(200)
         expect(response.body).to.have.property("xsrf")
-        cy.getCookie("accessToken").should("exist")
       } else {
         expect(response.status).to.eq(403)
       }
-      return response.body
     })
 })
 

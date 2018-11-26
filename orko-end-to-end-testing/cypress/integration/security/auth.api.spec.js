@@ -47,31 +47,35 @@ context("Auth API", () => {
 
   it("Check invalid XSRF", () => {
     cy.whitelist()
-    cy.loginApi().then(auth => {
-      cy.request({
-        url: "/api/exchanges",
-        failOnStatusCode: false,
-        headers: {
-          "x-xsrf-token": "WRONG"
-        }
-      })
-        .its("status")
-        .should("eq", 401)
+    cy.loginApi()
+      .its("status")
+      .should("eq", 200)
+    cy.getCookie("accessToken").should("exist")
+    cy.request({
+      url: "/api/exchanges",
+      failOnStatusCode: false,
+      headers: {
+        "x-xsrf-token": "WRONG"
+      }
     })
+      .its("status")
+      .should("eq", 401)
   })
 
   it("Check success", () => {
     cy.whitelist()
-    cy.loginApi().then(auth => {
-      cy.request({
-        url: "/api/exchanges",
-        failOnStatusCode: false,
-        headers: {
-          "x-xsrf-token": auth.xsrf
-        }
+    cy.loginApi()
+      .its("body")
+      .then(auth => {
+        cy.request({
+          url: "/api/exchanges",
+          failOnStatusCode: false,
+          headers: {
+            "x-xsrf-token": auth.xsrf
+          }
+        })
+          .its("status")
+          .should("eq", 200)
       })
-        .its("status")
-        .should("eq", 200)
-    })
   })
 })
