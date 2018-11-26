@@ -104,6 +104,15 @@
       </modules>
     </profile>
     <profile>
+      <id>integration-test</id>
+      <modules>
+        <module>orko-common</module>
+        <module>orko-ui</module>
+        <module>orko-all-in-one</module>
+        <module>orko-end-to-end-testing</module>
+      </modules>
+    </profile>
+    <profile>
       <id>release</id>
       <modules>
         <module>orko-common</module>

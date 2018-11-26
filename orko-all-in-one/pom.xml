@@ -48,6 +48,16 @@
       </dependencies>
     </profile>
     <profile>
+      <id>integration-test</id>
+      <dependencies>
+        <dependency>
+          <groupId>com.grahamcrockford</groupId>
+          <artifactId>orko-ui</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
       <id>release</id>
       <dependencies>
         <dependency>

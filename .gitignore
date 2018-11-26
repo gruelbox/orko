@@ -36,3 +36,6 @@
 /orko-all-in-one/orko.trace.db
 /orko.mv.db
 /orko.trace.db
+/orko-end-to-end-testing/cypress/**/*.mp4
+/orko-end-to-end-testing/target
+/orko-end-to-end-testing/node
