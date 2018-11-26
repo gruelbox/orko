@@ -15,6 +15,14 @@
 
   <name>Orko Integration Tests</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>com.grahamcrockford</groupId>
+      <artifactId>orko-all-in-one</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>
