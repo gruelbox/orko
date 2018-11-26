@@ -10,6 +10,7 @@ import * as jobActions from "../job/actions"
 var store
 var actionBuffer = {}
 var initialising = true
+var jobFetch
 
 function subscribedCoins() {
   return store.getState().coins.coins
@@ -129,16 +130,15 @@ export function initialise(s, history) {
     if (sameCoin(coin, selectedCoin()))
       store.dispatch(coinActions.setUserTrades(trades))
   })
-
-  // Fetch and dispatch the job details on the server.
-  // TODO this should really move to the socket, but for the time being
-  // we'll fetch it on an interval.
-  setInterval(() => {
-    store.dispatch(jobActions.fetchJobs())
-  }, 5000)
 }
 
 export function connect() {
+  // Fetch and dispatch the job details on the server.
+  // TODO this should really move to the socket, but for the time being
+  // we'll fetch it on an interval.
+  jobFetch = setInterval(() => {
+    store.dispatch(jobActions.fetchJobs())
+  }, 5000)
   socketClient.connect()
 }
 
@@ -149,4 +149,5 @@ export function resubscribe() {
 
 export function disconnect() {
   socketClient.disconnect()
+  clearInterval(jobFetch)
 }

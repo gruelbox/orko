@@ -24,6 +24,8 @@ import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"
 import Framework from "./Framework"
 
+import * as authActions from "./store/auth/actions"
+
 const history = createHistory()
 
 const store = createStore(
@@ -34,6 +36,7 @@ const store = createStore(
 )
 
 socket.initialise(store, history)
+store.dispatch(authActions.checkWhiteList())
 
 export default class App extends Component {
   render() {

@@ -7,10 +7,6 @@ import Whitelisting from "../components/Whitelisting"
 import Credentials from "../components/Credentials"
 
 class AuthContainer extends Component {
-  componentDidMount() {
-    this.props.dispatch(actions.checkWhiteList())
-  }
-
   onWhitelist = token => {
     this.props.dispatch(actions.whitelist(token))
   }
