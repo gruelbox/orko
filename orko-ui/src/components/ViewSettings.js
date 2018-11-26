@@ -26,6 +26,7 @@ export default class ViewSettings extends Component {
           <Form>
             {this.props.panels.map(panel => (
               <Checkbox
+                key={panel.key}
                 id={"panel" + panel.key}
                 label={panel.title}
                 type="checkbox"
