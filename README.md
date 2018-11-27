@@ -36,7 +36,7 @@ If that doesn't work, or you don't trust it, you can [install the application ma
 
 ## Donations
 
-Okta was created and is maintained free of charge for you to use. If it helps you, please consider a donation to fund the project.
+Orko was created and is maintained free of charge for you to use. If it helps you, please consider a donation to fund the project.
 
 | Ticker | Name     | Address                                                          |
 | ------ | -------- | ---------------------------------------------------------------- |
