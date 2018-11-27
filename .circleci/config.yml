@@ -5,6 +5,12 @@ jobs:
       - image: circleci/openjdk:8-jdk-browsers
         environment:
           MAVEN_OPTS: -Xmx3200m
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: test
+          MYSQL_USER: open
+          MYSQL_PASSWORD: sesame
     working_directory: ~/orko
     steps:
       - run: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
@@ -68,6 +74,16 @@ jobs:
             find . -type f -regex ".*/target/mocha-reports/.*xml" -exec cp {} ~/junit/integration \;
           when: always
 
+      - run:
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
       - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
 
       - run:
