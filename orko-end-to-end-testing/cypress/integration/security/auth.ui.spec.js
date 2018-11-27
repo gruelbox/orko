@@ -16,34 +16,26 @@ context("Auth UI", () => {
 
   it("Successful full login", () => {
     cy.visit("/")
-
-    cy.requestNoFail("/api/exchanges")
-      .its("status")
-      .should("eq", 403)
-
-    cy.get("[data-orko=whitelistingModal]").should("exist")
-    cy.get("[data-orko=token]").type(tokenForSecret(IP_WHITELISTING_SECRET))
-    cy.get("[data-orko=whitelistingSubmit]").click()
-
+    cy.get("[data-orko=whitelistingModal]").within(() => {
+      cy.get("[data-orko=token]").type(tokenForSecret(IP_WHITELISTING_SECRET))
+      cy.get("[data-orko=whitelistingSubmit]").click()
+    })
     cy.login({ visit: false })
+    cy.getCookie("accessToken")
+      .its("httpOnly")
+      .should("eq", true)
   })
 
   it("Invalid whitelisting attempt", () => {
     cy.visit("/")
-
-    cy.requestNoFail("/api/exchanges")
-      .its("status")
-      .should("eq", 403)
-
-    cy.get("[data-orko=whitelistingModal]").should("exist")
-    cy.get("[data-orko=token]").type(
-      tokenForSecret(IP_WHITELISTING_SECRET_INVALID)
-    )
-    cy.get("[data-orko=whitelistingSubmit]").click()
-
-    cy.get("div").contains("Error")
-    cy.get("p").contains("Whitelisting failed")
-
+    cy.get("[data-orko=whitelistingModal]").within(() => {
+      cy.get("[data-orko=token]").type(
+        tokenForSecret(IP_WHITELISTING_SECRET_INVALID)
+      )
+      cy.get("[data-orko=whitelistingSubmit]").click()
+      cy.contains("Error")
+      cy.contains("Whitelisting failed")
+    })
     cy.requestNoFail("/api/exchanges")
       .its("status")
       .should("eq", 403)

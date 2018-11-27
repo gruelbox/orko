@@ -50,7 +50,6 @@ context("Auth API", () => {
     cy.loginApi()
       .its("status")
       .should("eq", 200)
-    cy.getCookie("accessToken").should("exist")
     cy.request({
       url: "/api/exchanges",
       failOnStatusCode: false,
@@ -60,6 +59,9 @@ context("Auth API", () => {
     })
       .its("status")
       .should("eq", 401)
+    cy.getCookie("accessToken")
+      .its("httpOnly")
+      .should("eq", true)
   })
 
   it("Check success", () => {
@@ -77,5 +79,8 @@ context("Auth API", () => {
           .its("status")
           .should("eq", 200)
       })
+    cy.getCookie("accessToken")
+      .its("httpOnly")
+      .should("eq", true)
   })
 })

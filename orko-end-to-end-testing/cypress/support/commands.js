@@ -38,8 +38,9 @@ function option(options, name) {
   return options === undefined || options[name] === undefined || options[name]
 }
 
-Cypress.Commands.add("requestNoFail", url => {
+Cypress.Commands.add("requestNoFail", (url, options) => {
   return cy.request({
+    ...options,
     url,
     failOnStatusCode: false
   })
@@ -128,7 +129,7 @@ Cypress.Commands.add("login", options => {
 
   if (visit) cy.visit("/")
 
-  cy.get("[data-orko=loginModal]").should("exist")
+  cy.get("[data-orko=loginModal]")
   cy.get("[data-orko=username]").type(data.username)
   cy.get("[data-orko=password]").type(data.password)
   if (hasToken) {
@@ -137,9 +138,9 @@ Cypress.Commands.add("login", options => {
   cy.get("[data-orko=loginSubmit]").click()
 
   if (valid) {
-    //cy.getCookie("accessToken").should("exist")
     cy.get("[data-orko=loginModal]").should("not.exist")
     cy.get("[data-orko=errorModal]").should("not.exist")
+    cy.getCookie("accessToken")
   } else {
     cy.get("[data-orko=errorModal]").contains("Error")
     cy.get("[data-orko=errorModal]").contains("Login failed")
