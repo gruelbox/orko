@@ -20,7 +20,11 @@ const exchangeColumn = {
   Header: "Exchange",
   accessor: "exchange",
   Cell: ({ original }) => (
-    <Link to={"/coin/" + original.key} title="Open coin">
+    <Link
+      data-orko={"coins/" + original.key + "/exchange"}
+      to={"/coin/" + original.key}
+      title="Open coin"
+    >
       {original.exchange}
     </Link>
   ),
@@ -35,7 +39,11 @@ const nameColumn = {
   Header: "Name",
   accessor: "shortName",
   Cell: ({ original }) => (
-    <Link to={"/coin/" + original.key} title="Open coin">
+    <Link
+      data-orko={"coins/" + original.key + "/name"}
+      to={"/coin/" + original.key}
+      title="Open coin"
+    >
       {original.shortName}
     </Link>
   ),
@@ -49,7 +57,7 @@ const priceColumn = {
   id: "price",
   Header: "Price",
   Cell: ({ original }) => (
-    <Price coin={original} bare>
+    <Price data-orko={"coins/" + original.key + "/price"} coin={original} bare>
       {original.ticker ? original.ticker.last : undefined}
     </Price>
   ),
@@ -66,6 +74,7 @@ const changeColumn = onClick => ({
   accessor: "change",
   Cell: ({ original }) => (
     <Href
+      data-orko={"coins/" + original.key + "/setReferencePrice"}
       color={original.priceChange.slice(0, 1) === "-" ? "sell" : "buy"}
       onClick={() => onClick(original)}
       title="Set reference price"
@@ -83,7 +92,11 @@ const closeColumn = onRemove => ({
   id: "close",
   Header: null,
   Cell: ({ original }) => (
-    <Href title="Remove coin" onClick={() => onRemove(original)}>
+    <Href
+      data-orko={"coins/" + original.key + "/remove"}
+      title="Remove coin"
+      onClick={() => onRemove(original)}
+    >
       <Icon fitted name="close" />
     </Href>
   ),
@@ -98,7 +111,11 @@ const alertColumn = onClickAlerts => ({
   id: "alert",
   Header: <Icon fitted name="bell outline" />,
   Cell: ({ original }) => (
-    <Href title="Manage alerts" onClick={() => onClickAlerts(original)}>
+    <Href
+      data-orko={"coins/" + original.key + "/alerts"}
+      title="Manage alerts"
+      onClick={() => onClickAlerts(original)}
+    >
       <Icon fitted name={original.hasAlert ? "bell" : "bell outline"} />
     </Href>
   ),

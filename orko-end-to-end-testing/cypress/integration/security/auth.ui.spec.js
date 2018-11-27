@@ -16,9 +16,9 @@ context("Auth UI", () => {
 
   it("Successful full login", () => {
     cy.visit("/")
-    cy.get("[data-orko=whitelistingModal]").within(() => {
-      cy.get("[data-orko=token]").type(tokenForSecret(IP_WHITELISTING_SECRET))
-      cy.get("[data-orko=whitelistingSubmit]").click()
+    cy.o("whitelistingModal").within(() => {
+      cy.o("token").type(tokenForSecret(IP_WHITELISTING_SECRET))
+      cy.o("whitelistingSubmit").click()
     })
     cy.login({ visit: false })
     cy.getCookie("accessToken")
@@ -28,11 +28,9 @@ context("Auth UI", () => {
 
   it("Invalid whitelisting attempt", () => {
     cy.visit("/")
-    cy.get("[data-orko=whitelistingModal]").within(() => {
-      cy.get("[data-orko=token]").type(
-        tokenForSecret(IP_WHITELISTING_SECRET_INVALID)
-      )
-      cy.get("[data-orko=whitelistingSubmit]").click()
+    cy.o("whitelistingModal").within(() => {
+      cy.o("token").type(tokenForSecret(IP_WHITELISTING_SECRET_INVALID))
+      cy.o("whitelistingSubmit").click()
       cy.contains("Error")
       cy.contains("Whitelisting failed")
     })

@@ -38,21 +38,25 @@ function option(options, name) {
   return options === undefined || options[name] === undefined || options[name]
 }
 
-Cypress.Commands.add("requestNoFail", (url, options) => {
-  return cy.request({
+Cypress.Commands.add("o", dataAttribute =>
+  cy.get("[data-orko='" + dataAttribute + "']")
+)
+
+Cypress.Commands.add("requestNoFail", (url, options) =>
+  cy.request({
     ...options,
     url,
     failOnStatusCode: false
   })
-})
+)
 
-Cypress.Commands.add("clearWhitelist", () => {
-  return cy.request({
+Cypress.Commands.add("clearWhitelist", () =>
+  cy.request({
     method: "DELETE",
     url: "/api/auth",
     failOnStatusCode: false
   })
-})
+)
 
 Cypress.Commands.add("whitelist", options => {
   const valid = option(options, "valid")
@@ -129,21 +133,21 @@ Cypress.Commands.add("login", options => {
 
   if (visit) cy.visit("/")
 
-  cy.get("[data-orko=loginModal]")
-  cy.get("[data-orko=username]").type(data.username)
-  cy.get("[data-orko=password]").type(data.password)
+  cy.o("loginModal")
+  cy.o("username").type(data.username)
+  cy.o("password").type(data.password)
   if (hasToken) {
-    cy.get("[data-orko=secondFactor]").type(data.secondFactor)
+    cy.o("secondFactor").type(data.secondFactor)
   }
-  cy.get("[data-orko=loginSubmit]").click()
+  cy.o("loginSubmit").click()
 
   if (valid) {
-    cy.get("[data-orko=loginModal]").should("not.exist")
-    cy.get("[data-orko=errorModal]").should("not.exist")
+    cy.o("loginModal").should("not.exist")
+    cy.o("errorModal").should("not.exist")
     cy.getCookie("accessToken")
   } else {
-    cy.get("[data-orko=errorModal]").contains("Error")
-    cy.get("[data-orko=errorModal]").contains("Login failed")
+    cy.o("errorModal").contains("Error")
+    cy.o("errorModal").contains("Login failed")
   }
 })
 

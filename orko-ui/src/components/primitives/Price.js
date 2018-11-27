@@ -26,14 +26,14 @@ const PriceValue = styled.div`
     props.movement === "up"
       ? props.theme.colors.buy
       : props.movement === "down"
-        ? props.theme.colors.sell
-        : "none"};
+      ? props.theme.colors.sell
+      : "none"};
   color: ${props =>
     props.movement === "up"
       ? props.theme.colors.black
       : props.movement === "down"
-        ? props.theme.colors.black
-        : props.theme.colors.fore};
+      ? props.theme.colors.black
+      : props.theme.colors.fore};
   ${color}
   ${fontSize}
   ${fontWeight}
@@ -53,16 +53,16 @@ const BarePriceValue = styled.span.attrs({
     props.movement === "up"
       ? props.theme.colors.buy
       : props.movement === "down"
-        ? props.theme.colors.sell
-        : "none"};
+      ? props.theme.colors.sell
+      : "none"};
   color: ${props =>
     props.color
       ? props.color
       : props.movement === "up"
-        ? props.theme.colors.black
-        : props.movement === "down"
-          ? props.theme.colors.black
-          : props.theme.colors.fore};
+      ? props.theme.colors.black
+      : props.movement === "down"
+      ? props.theme.colors.black
+      : props.theme.colors.fore};
   ${color}
   ${fontSize}
   ${fontWeight}
@@ -122,6 +122,7 @@ class Price extends React.PureComponent {
           onClick={this.onClick}
           color={this.props.color}
           className={this.props.className}
+          data-orko={this.props["data-orko"]}
         >
           {this.props.children === "--"
             ? "--"
@@ -144,6 +145,7 @@ class Price extends React.PureComponent {
             movement={this.state.movement}
             onClick={this.onClick}
             title={this.props.title}
+            data-orko={this.props["data-orko"]}
           >
             {this.props.children === "--"
               ? "--"
@@ -165,8 +167,8 @@ function mapStateToProps(state, props) {
     onClick: props.onClick
       ? props.onClick
       : state.focus.fn
-        ? value => state.focus.fn(formatNumber(value, scale, ""))
-        : nullOnCLick,
+      ? value => state.focus.fn(formatNumber(value, scale, ""))
+      : nullOnCLick,
     scale
   }
 }
