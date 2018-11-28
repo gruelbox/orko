@@ -21,7 +21,7 @@ const exchangeColumn = {
   accessor: "exchange",
   Cell: ({ original }) => (
     <Link
-      data-orko={"coins/" + original.key + "/exchange"}
+      data-orko={original.key + "/exchange"}
       to={"/coin/" + original.key}
       title="Open coin"
     >
@@ -40,7 +40,7 @@ const nameColumn = {
   accessor: "shortName",
   Cell: ({ original }) => (
     <Link
-      data-orko={"coins/" + original.key + "/name"}
+      data-orko={original.key + "/name"}
       to={"/coin/" + original.key}
       title="Open coin"
     >
@@ -57,7 +57,7 @@ const priceColumn = {
   id: "price",
   Header: "Price",
   Cell: ({ original }) => (
-    <Price data-orko={"coins/" + original.key + "/price"} coin={original} bare>
+    <Price data-orko={original.key + "/price"} coin={original} bare>
       {original.ticker ? original.ticker.last : undefined}
     </Price>
   ),
@@ -74,7 +74,7 @@ const changeColumn = onClick => ({
   accessor: "change",
   Cell: ({ original }) => (
     <Href
-      data-orko={"coins/" + original.key + "/setReferencePrice"}
+      data-orko={original.key + "/setReferencePrice"}
       color={original.priceChange.slice(0, 1) === "-" ? "sell" : "buy"}
       onClick={() => onClick(original)}
       title="Set reference price"
@@ -93,7 +93,7 @@ const closeColumn = onRemove => ({
   Header: null,
   Cell: ({ original }) => (
     <Href
-      data-orko={"coins/" + original.key + "/remove"}
+      data-orko={original.key + "/remove"}
       title="Remove coin"
       onClick={() => onRemove(original)}
     >
@@ -112,7 +112,7 @@ const alertColumn = onClickAlerts => ({
   Header: <Icon fitted name="bell outline" />,
   Cell: ({ original }) => (
     <Href
-      data-orko={"coins/" + original.key + "/alerts"}
+      data-orko={original.key + "/alerts"}
       title="Manage alerts"
       onClick={() => onClickAlerts(original)}
     >

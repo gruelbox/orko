@@ -43,7 +43,7 @@ class Section extends React.Component {
   render() {
     return (
       <SectionBox>
-        <SectionHeadingBox>
+        <SectionHeadingBox data-orko={"section/" + this.props.id + "/tabs"}>
           <Heading p={0} my={0} ml={0} mr={3} color="heading">
             <Icon name="content" className="dragMe" />
             {this.props.heading}
@@ -51,6 +51,7 @@ class Section extends React.Component {
           <div>{this.props.buttons && this.props.buttons()}</div>
         </SectionHeadingBox>
         <SectionInner
+          data-orko={"section/" + this.props.id}
           scroll={this.props.scroll}
           expand={this.props.expand}
           nopadding={this.props.nopadding}

@@ -41,6 +41,7 @@ const Content = styled.div`
 const Checkbox = props => (
   <Content title={props.title}>
     <input
+      data-orko={props.id}
       id={props.id}
       type={props.type}
       checked={props.checked}

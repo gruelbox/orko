@@ -58,12 +58,14 @@ class JobsContainer extends React.Component {
     var buttons = (
       <span>
         <Tab
+          data-orko="onlycomplex"
           selected={this.state.selected === "onlycomplex"}
           onClick={() => this.setState({ selected: "onlycomplex" })}
         >
           Complex only
         </Tab>
         <Tab
+          data-orko="all"
           selected={this.state.selected === "all"}
           onClick={() => this.setState({ selected: "all" })}
         >

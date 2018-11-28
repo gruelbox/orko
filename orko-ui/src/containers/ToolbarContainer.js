@@ -121,7 +121,7 @@ const CoinExchange = styled.h2`
 `
 
 const Coin = ({ coin }) => (
-  <CoinContainer px={3}>
+  <CoinContainer px={3} data-orko="selectedCoin">
     <CoinTicker>{coin ? coin.base + "/" + coin.counter : ""}</CoinTicker>
     <CoinExchange>{coin ? coin.exchange : ""}</CoinExchange>
   </CoinContainer>

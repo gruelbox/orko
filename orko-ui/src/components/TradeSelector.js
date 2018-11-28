@@ -17,12 +17,14 @@ export default class TradeSelector extends React.Component {
     var buttons = (
       <span>
         <Tab
+          data-orko="limit"
           selected={this.state.selected === "limit"}
           onClick={() => this.setState({ selected: "limit" })}
         >
           Limit
         </Tab>
         <Tab
+          data-orko="stopTakeProfit"
           selected={this.state.selected === "oco"}
           onClick={() => this.setState({ selected: "oco" })}
         >

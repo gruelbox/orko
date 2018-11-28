@@ -42,6 +42,15 @@ Cypress.Commands.add("o", dataAttribute =>
   cy.get("[data-orko='" + dataAttribute + "']")
 )
 
+Cypress.Commands.add("secureRequest", options =>
+  cy.request({
+    ...options,
+    headers: {
+      "x-xsrf-token": window.localStorage.getItem("x-xsrf-token")
+    }
+  })
+)
+
 Cypress.Commands.add("requestNoFail", (url, options) =>
   cy.request({
     ...options,
@@ -109,6 +118,7 @@ Cypress.Commands.add("loginApi", options => {
       if (valid) {
         expect(response.status).to.eq(200)
         expect(response.body).to.have.property("xsrf")
+        window.localStorage.setItem("x-xsrf-token", response.body.xsrf)
       } else {
         expect(response.status).to.eq(403)
       }
@@ -152,5 +162,5 @@ Cypress.Commands.add("login", options => {
 })
 
 Cypress.Commands.add("logout", () => {
-  //xsrfToken = undefined
+  cy.clearLocalStorage()
 })

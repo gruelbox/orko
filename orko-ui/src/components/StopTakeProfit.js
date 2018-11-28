@@ -72,7 +72,7 @@ const StopTakeProfit = props => {
     : () => {}
 
   return (
-    <Form>
+    <Form data-orko="stopTakeProfit">
       <div>
         <Input
           id="highPrice"
@@ -96,23 +96,20 @@ const StopTakeProfit = props => {
           onChange={e => onChange("highLimitPrice", e.target.value)}
           onFocus={e => props.onFocus("highLimitPrice")}
         />
-        {props.job.direction === "SELL" &&
-          props.job.highTrailing && (
-            <Input
-              id="initialTrailingStop"
-              error={props.job.initialTrailingStop && !initialTrailingStopValid}
-              label="Trailing stop price"
-              type="number"
-              placeholder="Enter price..."
-              value={
-                props.job.initialTrailingStop
-                  ? props.job.initialTrailingStop
-                  : ""
-              }
-              onChange={e => onChange("initialTrailingStop", e.target.value)}
-              onFocus={e => props.onFocus("initialTrailingStop")}
-            />
-          )}
+        {props.job.direction === "SELL" && props.job.highTrailing && (
+          <Input
+            id="initialTrailingStop"
+            error={props.job.initialTrailingStop && !initialTrailingStopValid}
+            label="Trailing stop price"
+            type="number"
+            placeholder="Enter price..."
+            value={
+              props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
+            }
+            onChange={e => onChange("initialTrailingStop", e.target.value)}
+            onFocus={e => props.onFocus("initialTrailingStop")}
+          />
+        )}
       </div>
       <div>
         <Input
@@ -137,23 +134,20 @@ const StopTakeProfit = props => {
           onChange={e => onChange("lowLimitPrice", e.target.value)}
           onFocus={e => props.onFocus("lowLimitPrice")}
         />
-        {props.job.direction === "BUY" &&
-          props.job.lowTrailing && (
-            <Input
-              id="initialTrailingStop"
-              error={props.job.initialTrailingStop && !initialTrailingStopValid}
-              label="Trailing stop price"
-              type="number"
-              placeholder="Enter difference..."
-              value={
-                props.job.initialTrailingStop
-                  ? props.job.initialTrailingStop
-                  : ""
-              }
-              onChange={e => onChange("initialTrailingStop", e.target.value)}
-              onFocus={e => props.onFocus("initialTrailingStop")}
-            />
-          )}
+        {props.job.direction === "BUY" && props.job.lowTrailing && (
+          <Input
+            id="initialTrailingStop"
+            error={props.job.initialTrailingStop && !initialTrailingStopValid}
+            label="Trailing stop price"
+            type="number"
+            placeholder="Enter difference..."
+            value={
+              props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
+            }
+            onChange={e => onChange("initialTrailingStop", e.target.value)}
+            onFocus={e => props.onFocus("initialTrailingStop")}
+          />
+        )}
       </div>
       <Input
         id="amount"
@@ -188,8 +182,7 @@ const StopTakeProfit = props => {
         )}
         <RadioInput
           id="BUY"
-          name="direction"
-          value="BUY"
+          data-orko="BUY"
           checked={props.job.direction === "BUY"}
           onClick={() => onChangeDirection("BUY")}
           left
@@ -199,8 +192,7 @@ const StopTakeProfit = props => {
         </RadioInput>
         <RadioInput
           id="SELL"
-          name="direction"
-          value="BUY"
+          data-orko="SELL"
           checked={props.job.direction === "SELL"}
           onClick={() => onChangeDirection("SELL")}
           right
@@ -209,6 +201,7 @@ const StopTakeProfit = props => {
           Sell
         </RadioInput>
         <Button
+          data-orko="submitOrder"
           disabled={!valid}
           onClick={props.onSubmit}
           width={120}

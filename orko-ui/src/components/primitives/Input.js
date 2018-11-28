@@ -62,6 +62,7 @@ const Input = props => (
       </RawLabel>
     )}
     <RawInput
+      data-orko={props.id}
       id={props.id}
       error={props.error}
       type={props.type}
