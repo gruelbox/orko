@@ -44,12 +44,7 @@ export default class JobShort extends React.Component {
       )
     } else if (job.jobType === jobTypes.LIMIT_ORDER) {
       return (
-        "On " +
-        ticker(job.tickTrigger) +
-        " " +
-        job.direction +
-        " " +
-        job.bigDecimals.amount
+        "On " + ticker(job.tickTrigger) + " " + job.direction + " " + job.amount
       )
     } else if (
       job.jobType === jobTypes.SOFT_TRAILING_STOP &&
@@ -59,11 +54,11 @@ export default class JobShort extends React.Component {
         "When " +
         ticker(job.tickTrigger) +
         "> " +
-        job.bigDecimals.stopPrice +
+        job.stopPrice +
         " then sell at " +
-        job.bigDecimals.limitPrice +
+        job.limitPrice +
         " trailing at " +
-        job.bigDecimals.lastSyncPrice
+        job.lastSyncPrice
       )
     } else if (
       job.jobType === jobTypes.SOFT_TRAILING_STOP &&
@@ -73,11 +68,11 @@ export default class JobShort extends React.Component {
         "When " +
         ticker(job.tickTrigger) +
         "< " +
-        job.bigDecimals.stopPrice +
+        job.stopPrice +
         " then buy at " +
-        job.bigDecimals.limitPrice +
+        job.limitPrice +
         " trailing at " +
-        job.bigDecimals.lastSyncPrice
+        job.lastSyncPrice
       )
     } else if (job.jobType === jobTypes.ALERT) {
       return "Send alert"

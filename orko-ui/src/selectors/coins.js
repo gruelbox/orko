@@ -28,8 +28,9 @@ export const locationToCoin = location => {
   }
 }
 
-export const getSelectedCoin = createSelector([getRouterLocation], location =>
-  locationToCoin(location)
+export const getSelectedCoin = createSelector(
+  [getRouterLocation],
+  location => locationToCoin(location)
 )
 
 function jobTriggerMatchesCoin(job, coin) {
@@ -45,7 +46,7 @@ export const getOrdersForSelectedCoin = createSelector(
   (orders, stopJobs, selectedCoin) => {
     if (!selectedCoin) return null
 
-    if (!orders) return orders
+    var result = !orders ? [] : orders
 
     const server = stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
@@ -57,21 +58,25 @@ export const getOrdersForSelectedCoin = createSelector(
             ? "BID"
             : "ASK"
           : job.low.job.direction === "BUY"
-            ? "BID"
-            : "ASK",
+          ? "BID"
+          : "ASK",
         stopPrice: job.high
           ? Number(job.high.thresholdAsString)
           : Number(job.low.thresholdAsString),
         limitPrice: job.high
-          ? Number(job.high.job.bigDecimals.limitPrice)
-          : Number(job.low.job.bigDecimals.limitPrice),
+          ? Number(job.high.job.limitPrice)
+          : Number(job.low.job.limitPrice),
         originalAmount: job.high
-          ? Number(job.high.job.bigDecimals.amount)
-          : Number(job.low.job.bigDecimals.amount),
+          ? Number(job.high.job.amount)
+          : Number(job.low.job.amount),
         cumulativeAmount: "--"
       }))
 
-    return orders.concat(server)
+    result = result.concat(server)
+
+    if (result.length === 0 && !orders) return null
+
+    return result
   }
 )
 

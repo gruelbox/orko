@@ -57,23 +57,19 @@ class StopTakeProfitContainer extends React.Component {
       jobType: jobTypes.LIMIT_ORDER,
       direction: this.state.job.direction,
       tickTrigger,
-      bigDecimals: {
-        amount: this.state.job.amount,
-        limitPrice
-      }
+      amount: this.state.job.amount,
+      limitPrice
     })
 
     const trailingOrder = (startPrice, stopPrice, limitPrice) => ({
       jobType: jobTypes.SOFT_TRAILING_STOP,
       direction: this.state.job.direction,
       tickTrigger,
-      bigDecimals: {
-        amount: this.state.job.amount,
-        startPrice,
-        lastSyncPrice: startPrice,
-        stopPrice,
-        limitPrice
-      }
+      amount: this.state.job.amount,
+      startPrice,
+      lastSyncPrice: startPrice,
+      stopPrice,
+      limitPrice
     })
 
     return {

@@ -42,10 +42,9 @@ export default class Job extends Component {
         <JobStages>
           <JobStage>
             <Icon name={job.direction === BUY ? "caret up" : "caret down"} />
-            {job.direction} <b>{job.bigDecimals.amount}</b>{" "}
-            {job.tickTrigger.base} for {job.tickTrigger.counter} on{" "}
-            <b>{job.tickTrigger.exchange}</b> at{" "}
-            <b>{job.bigDecimals.limitPrice}</b>
+            {job.direction} <b>{job.amount}</b> {job.tickTrigger.base} for{" "}
+            {job.tickTrigger.counter} on <b>{job.tickTrigger.exchange}</b> at{" "}
+            <b>{job.limitPrice}</b>
           </JobStage>
         </JobStages>
       )
@@ -62,11 +61,11 @@ export default class Job extends Component {
             <JobStages>
               <JobStage>
                 <Icon name="pointing down" />
-                If the bid price drops below {job.bigDecimals.stopPrice}
+                If the bid price drops below {job.stopPrice}
                 <JobStages>
                   <JobStage>
                     <Icon name="caret down" />
-                    Sell at {job.bigDecimals.limitPrice}
+                    Sell at {job.limitPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>
@@ -77,7 +76,7 @@ export default class Job extends Component {
                   <JobStage>
                     <Icon name="caret up" />
                     Raise the stop price by the same amount, but not the limit
-                    price. Last synced price is {job.bigDecimals.lastSyncPrice}
+                    price. Last synced price is {job.lastSyncPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>
@@ -98,11 +97,11 @@ export default class Job extends Component {
             <JobStages>
               <JobStage>
                 <Icon name="pointing up" />
-                If ask price rises above {job.bigDecimals.stopPrice}
+                If ask price rises above {job.stopPrice}
                 <JobStages>
                   <JobStage>
                     <Icon name="caret up" />
-                    Buy at {job.bigDecimals.limitPrice}
+                    Buy at {job.limitPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>
@@ -113,7 +112,7 @@ export default class Job extends Component {
                   <JobStage>
                     <Icon name="caret down" />
                     Lower the stop price by the same amount, but not the limit
-                    price. Last synced price is {job.bigDecimals.lastSyncPrice}
+                    price. Last synced price is {job.lastSyncPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>
