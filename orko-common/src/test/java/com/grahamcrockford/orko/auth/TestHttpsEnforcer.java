@@ -92,6 +92,21 @@ public class TestHttpsEnforcer {
     verify(response).sendRedirect("https://foo.com/here/and/there");
     verifyNoMoreInteractions(response, filterChain);
   }
+  
+  @Test
+  public void testProxiedRedirectPort80() throws IOException, ServletException {
+    HttpsEnforcer httpsEnforcer = new HttpsEnforcementModule.HttpsEnforcer(true);
+    when(request.getHeader(Headers.X_FORWARDED_PROTO)).thenReturn("http");
+    when(request.getServerName()).thenReturn("foo.com");
+    when(request.getRequestURI()).thenReturn("/here/and/there");
+    when(request.getServerPort()).thenReturn(80);
+
+    httpsEnforcer.doFilter(request, response, filterChain);
+
+    verify(response).sendRedirect("https://foo.com/here/and/there");
+    verifyNoMoreInteractions(response, filterChain);
+  }
+
 
   @Test
   public void testProxiedRedirectComplex() throws IOException, ServletException {

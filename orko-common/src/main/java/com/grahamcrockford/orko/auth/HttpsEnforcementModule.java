@@ -46,8 +46,8 @@ class HttpsEnforcementModule extends AbstractModule {
     public void init(Environment environment) {
       if (configuration.isHttpsOnly()) {
         LOGGER.info("Restricting to HTTPS only.");
-        FilterRegistration.Dynamic httpsEnforcer = environment.servlets()
-            .addFilter(HttpsEnforcer.class.getSimpleName(), new HttpsEnforcer(configuration.isProxied()));
+        FilterRegistration.Dynamic httpsEnforcer = environment.servlets().addFilter(HttpsEnforcer.class.getSimpleName(),
+            new HttpsEnforcer(configuration.isProxied()));
         httpsEnforcer.addMappingForUrlPatterns(null, true, "/*");
       }
     }
@@ -66,11 +66,13 @@ class HttpsEnforcementModule extends AbstractModule {
     }
 
     @Override
-    public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+        throws IOException, ServletException {
       if (proxied) {
         if (StringUtils.isEmpty(request.getHeader(X_FORWARDED_PROTO))) {
-          throw new IllegalStateException("Configured to assume application is behind a proxy but the forward header has not been provided. "
-              + "Headers available: " + Headers.listForRequest(request).toList());
+          throw new IllegalStateException(
+              "Configured to assume application is behind a proxy but the forward header has not been provided. "
+                  + "Headers available: " + Headers.listForRequest(request).toList());
         }
         if (!request.getHeader(X_FORWARDED_PROTO).equalsIgnoreCase("https")) {
           switchToHttps(request, response);
@@ -79,8 +81,9 @@ class HttpsEnforcementModule extends AbstractModule {
       } else {
         if (!request.isSecure()) {
           if (request.getProtocol().equalsIgnoreCase("https")) {
-            throw new IllegalStateException("Configured to assume application is accessed directly but connection is not secure and "
-                + "protocol is already https");
+            throw new IllegalStateException(
+                "Configured to assume application is accessed directly but connection is not secure and "
+                    + "protocol is already https");
           }
           switchToHttps(request, response);
           return;
@@ -92,7 +95,7 @@ class HttpsEnforcementModule extends AbstractModule {
 
     private void switchToHttps(HttpServletRequest request, HttpServletResponse response) throws IOException {
       final StringBuffer url = new StringBuffer(128);
-      URIUtil.appendSchemeHostPort(url, "https", request.getServerName(), request.getServerPort());
+      URIUtil.appendSchemeHostPort(url, "https", request.getServerName(), request.getServerPort() == 80 ? 443 : request.getServerPort());
       url.append(request.getRequestURI());
       if (request.getQueryString() != null) {
         url.append("?");
