@@ -1,2 +1,2 @@
-web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp orko-web/target/classes:orko-web/target/dependency/* com.grahamcrockford.orko.web.WebApplication server ../orko-all-in-one/heroku-config.yml
-worker: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp orko-worker/target/classes:orko-worker/target/dependency/* com.grahamcrockford.orko.worker.WorkerApplication server ../orko-all-in-one/heroku-config.yml
+web: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp orko-web/target/classes:orko-web/target/dependency/* com.gruelbox.orko.web.WebApplication server ../orko-all-in-one/heroku-config.yml
+worker: java $JAVA_OPTS -Ddw.server.connector.port=$PORT -cp orko-worker/target/classes:orko-worker/target/dependency/* com.gruelbox.orko.worker.WorkerApplication server ../orko-all-in-one/heroku-config.yml

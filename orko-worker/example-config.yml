@@ -58,5 +58,5 @@ server:
   maxThreads: 16
 logging:
   loggers:
-    "com.grahamcrockford.orko": INFO
+    "com.gruelbox.orko": INFO
     "si.mazi.rescu": ERROR

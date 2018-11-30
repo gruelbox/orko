@@ -39,7 +39,7 @@
     </license>
   </licenses>
 
-  <groupId>com.grahamcrockford</groupId>
+  <groupId>com.gruelbox</groupId>
   <artifactId>orko-parent</artifactId>
   <version>0.4.1-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -231,12 +231,6 @@
     <mockito.version>1.10.19</mockito.version>
     <hamcrest.version>1.3</hamcrest.version>
   </properties>
-
-  <!--<build> <plugins> <plugin> <groupId>org.apache.maven.plugins</groupId> 
-    <artifactId>maven-surefire-plugin</artifactId> <version>${maven-surefire-plugin-version}</version> 
-    <configuration> <parallel>classes</parallel> <useUnlimitedThreads>true</useUnlimitedThreads> 
-    <perCoreThreadCount>true</perCoreThreadCount> </configuration> </plugin> 
-    </plugins> </build> -->
 
   <dependencyManagement>
     <dependencies>
@@ -520,8 +514,9 @@
           <artifactId>license-maven-plugin</artifactId>
           <version>${license.maven.plugin.version}</version>
           <configuration>
-            <processStartTag>===License======================================================================</processStartTag>
-            <processEndTag>===End=of=license===============================================================</processEndTag>
+            <processStartTag>===============================================================================L
+            </processStartTag>
+            <processEndTag>===============================================================================E</processEndTag>
             <sectionDelimiter>================================================================================</sectionDelimiter>
             <licenseName>agpl_v3</licenseName>
             <canUpdateCopyright>true</canUpdateCopyright>

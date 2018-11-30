@@ -61,7 +61,7 @@ jerseyClient:
   connectionRequestTimeout: 15000ms
 logging:
   loggers:
-    "com.grahamcrockford.orko": ${LOG_LEVEL:-INFO}
+    "com.gruelbox.orko": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.binance": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}

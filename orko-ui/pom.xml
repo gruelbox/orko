@@ -6,7 +6,7 @@
   <packaging>jar</packaging>
 
   <parent>
-    <groupId>com.grahamcrockford</groupId>
+    <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
     <version>0.4.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
