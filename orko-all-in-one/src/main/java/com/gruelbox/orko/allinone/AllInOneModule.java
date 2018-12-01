@@ -25,7 +25,7 @@ class AllInOneModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new GuardianModule(false));
-    install(new AuthModule(configuration));
+    install(new AuthModule(configuration.getAuth()));
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);

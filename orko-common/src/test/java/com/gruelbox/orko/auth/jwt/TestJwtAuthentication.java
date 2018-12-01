@@ -31,7 +31,6 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.Scope;
 import com.google.inject.servlet.RequestScoped;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.auth.GoogleAuthenticatorModule;
@@ -43,7 +42,7 @@ import io.dropwizard.auth.PrincipalImpl;
 
 public class TestJwtAuthentication {
 
-  private OrkoConfiguration config;
+  private AuthConfiguration config;
 
   private JwtXsrfProtectionFilter xsrfFilter;
   private JwtAuthenticationFilter authFilter;
@@ -57,19 +56,17 @@ public class TestJwtAuthentication {
 
     MockitoAnnotations.initMocks(this);
 
-    config = new OrkoConfiguration();
-    config.setAuth(new AuthConfiguration());
-    config.getAuth().setJwt(new JwtConfiguration());
-    config.getAuth().getJwt().setUserName("user");
-    config.getAuth().getJwt().setPassword("pass");
-    config.getAuth().getJwt().setSecret(UUID.randomUUID().toString());
-    config.getAuth().getJwt().setExpirationMinutes(60);
+    config = new AuthConfiguration();
+    config.setJwt(new JwtConfiguration());
+    config.getJwt().setUserName("user");
+    config.getJwt().setPassword("pass");
+    config.getJwt().setSecret(UUID.randomUUID().toString());
+    config.getJwt().setExpirationMinutes(60);
 
     Injector injector = Guice.createInjector(
       new Module() {
         @Override
         public void configure(Binder binder) {
-          binder.bind(OrkoConfiguration.class).toInstance(config);
           binder.bind(HttpServletRequest.class).toInstance(request);
           binder.bindScope(RequestScoped.class, new Scope() {
             @Override
@@ -80,8 +77,8 @@ public class TestJwtAuthentication {
         }
       },
       new GoogleAuthenticatorModule(),
-      new AuthModule.Testing(),
-      new JwtModule(config.getAuth())
+      new AuthModule.Testing(config),
+      new JwtModule(config)
     );
 
     xsrfFilter = injector.getInstance(JwtXsrfProtectionFilter.class);
@@ -115,7 +112,7 @@ public class TestJwtAuthentication {
 
   @Test
   public void testValidXsrf() throws IOException, ServletException, JoseException, MalformedClaimException {
-    TokenIssuer issuer = new TokenIssuer(config.getAuth().getJwt().getSecretBytes(), 60);
+    TokenIssuer issuer = new TokenIssuer(config.getJwt().getSecretBytes(), 60);
     JwtClaims claims = issuer.buildClaims(new PrincipalImpl("FOO"), Roles.TRADER);
     JsonWebSignature validJwt = issuer.claimsToToken(claims);
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", validJwt.getCompactSerialization()) });
@@ -152,7 +149,7 @@ public class TestJwtAuthentication {
 
   @Test
   public void testWrongRole() throws IOException, ServletException, JoseException {
-    String forgedToken = new TokenIssuer(config.getAuth().getJwt().getSecretBytes(), 60).buildToken(new PrincipalImpl("FOO"), "SOMETHINGELSE").getCompactSerialization();
+    String forgedToken = new TokenIssuer(config.getJwt().getSecretBytes(), 60).buildToken(new PrincipalImpl("FOO"), "SOMETHINGELSE").getCompactSerialization();
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", forgedToken) });
     authFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
@@ -161,7 +158,7 @@ public class TestJwtAuthentication {
 
   @Test
   public void testNoRoles() throws IOException, ServletException, JoseException {
-    String forgedToken = new TokenIssuer(config.getAuth().getJwt().getSecretBytes(), 60).buildToken(new PrincipalImpl("FOO"), "").getCompactSerialization();
+    String forgedToken = new TokenIssuer(config.getJwt().getSecretBytes(), 60).buildToken(new PrincipalImpl("FOO"), "").getCompactSerialization();
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", forgedToken) });
     authFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
@@ -177,6 +174,6 @@ public class TestJwtAuthentication {
   }
 
   private JsonWebSignature validJwt() {
-    return new TokenIssuer(config.getAuth().getJwt().getSecretBytes(), 60).buildToken(new PrincipalImpl("FOO"), Roles.TRADER);
+    return new TokenIssuer(config.getJwt().getSecretBytes(), 60).buildToken(new PrincipalImpl("FOO"), Roles.TRADER);
   }
 }

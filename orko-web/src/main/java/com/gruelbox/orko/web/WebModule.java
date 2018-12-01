@@ -21,7 +21,7 @@ class WebModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new MqModule());
-    install(new AuthModule(configuration));
+    install(new AuthModule(configuration.getAuth()));
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
   }
