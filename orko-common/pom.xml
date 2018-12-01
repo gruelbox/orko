@@ -36,6 +36,10 @@
       <artifactId>dropwizard-websockets</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.gruelbox</groupId>
+      <artifactId>dropwizard-https-redirect</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-assets</artifactId>
     </dependency>

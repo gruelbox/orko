@@ -8,6 +8,7 @@ import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 import com.google.inject.Module;
 import com.gruelbox.orko.websocket.WebSocketBundleInit;
+import com.gruelbox.tools.dropwizard.httpsredirect.HttpsEnforcementBundle;
 
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
@@ -26,6 +27,7 @@ public abstract class WebHostApplication extends BaseApplication {
     super.initialize(bootstrap);
     websocketBundle = new WebsocketBundle(new Class[] {});
     bootstrap.addBundle(websocketBundle);
+    bootstrap.addBundle(new HttpsEnforcementBundle());
   }
 
   @Override
