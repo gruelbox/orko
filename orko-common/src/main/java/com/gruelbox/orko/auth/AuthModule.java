@@ -1,5 +1,7 @@
 package com.gruelbox.orko.auth;
 
+import static com.google.inject.name.Names.named;
+
 import java.util.Optional;
 
 import com.google.inject.AbstractModule;
@@ -18,15 +20,19 @@ import io.dropwizard.lifecycle.Managed;
 public class AuthModule extends AbstractModule {
 
   private final AuthConfiguration configuration;
+  private final String rootPath;
 
   public static final String ACCESS_TOKEN_KEY = "accessToken";
+  public static final String ROOT_PATH = "auth-rootPath";
 
-  public AuthModule(AuthConfiguration configuration) {
+  public AuthModule(AuthConfiguration configuration, String rootPath) {
     this.configuration = configuration;
+    this.rootPath = rootPath;
   }
 
   @Override
   protected void configure() {
+    bind(String.class).annotatedWith(named(ROOT_PATH)).toInstance(rootPath);
     if (configuration != null) {
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());
@@ -40,7 +46,7 @@ public class AuthModule extends AbstractModule {
 
   public static final class Testing extends AbstractModule {
 
-    private AuthConfiguration configuration;
+    private final AuthConfiguration configuration;
 
     public Testing(AuthConfiguration configuration) {
       this.configuration = configuration;

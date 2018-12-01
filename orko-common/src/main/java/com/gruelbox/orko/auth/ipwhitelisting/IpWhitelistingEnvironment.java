@@ -4,8 +4,9 @@ import javax.inject.Inject;
 
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.OrkoConfiguration;
+import com.google.inject.name.Named;
 import com.gruelbox.orko.auth.AuthConfiguration;
+import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.orko.wiring.EnvironmentInitialiser;
 
@@ -16,22 +17,22 @@ public class IpWhitelistingEnvironment implements EnvironmentInitialiser {
 
   private final Provider<IpWhitelistServletFilter> ipWhitelistServletFilter;
   private final AuthConfiguration authConfiguration;
-  private final OrkoConfiguration appConfiguration;
+  private final String rootPath;
 
   @Inject
   IpWhitelistingEnvironment(Provider<IpWhitelistServletFilter> ipWhitelistServletFilter,
                             AuthConfiguration authConfiguration,
-                            OrkoConfiguration appConfiguration) {
+                            @Named(AuthModule.ROOT_PATH) String rootPath) {
     this.ipWhitelistServletFilter = ipWhitelistServletFilter;
     this.authConfiguration = authConfiguration;
-    this.appConfiguration = appConfiguration;
+    this.rootPath = rootPath;
   }
 
   @Override
   public void init(Environment environment) {
     if (authConfiguration.getIpWhitelisting() != null && authConfiguration.getIpWhitelisting().isEnabled()) {
       environment.servlets().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter.get())
-        .addMappingForUrlPatterns(null, true, appConfiguration.getRootPath(), WebSocketModule.ENTRY_POINT + "/*");
+        .addMappingForUrlPatterns(null, true, rootPath, WebSocketModule.ENTRY_POINT + "/*");
       environment.admin().addFilter(IpWhitelistServletFilter.class.getSimpleName(), ipWhitelistServletFilter.get())
         .addMappingForUrlPatterns(null, true, "/*");
     }

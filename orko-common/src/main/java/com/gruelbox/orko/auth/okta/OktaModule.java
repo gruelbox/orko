@@ -78,7 +78,7 @@ public class OktaModule extends AbstractModule {
 
     OktaAuthenticator uncached = credentials -> jwt.get().map(j -> new AuthenticatedUser((String) j.getClaims().get("sub"), Roles.TRADER));
 
-    CachingAuthenticator<String, AuthenticatedUser> cached = new CachingAuthenticator<String, AuthenticatedUser>(
+    CachingAuthenticator<String, AuthenticatedUser> cached = new CachingAuthenticator<>(
       environment.metrics(),
       uncached,
       CacheBuilderSpec.parse(configuration.getAuthCachePolicy())

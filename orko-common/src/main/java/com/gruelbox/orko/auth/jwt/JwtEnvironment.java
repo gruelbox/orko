@@ -4,7 +4,9 @@ import javax.inject.Inject;
 
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.OrkoConfiguration;
+import com.google.inject.name.Named;
+import com.gruelbox.orko.auth.AuthConfiguration;
+import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.orko.wiring.EnvironmentInitialiser;
 
@@ -13,15 +15,18 @@ import io.dropwizard.setup.Environment;
 @Singleton
 public class JwtEnvironment implements EnvironmentInitialiser {
 
-  private final OrkoConfiguration appConfiguration;
+  private final AuthConfiguration configuration;
   private final Provider<JwtAuthenticationFilter> jwtAuthenticationFilter;
   private final Provider<JwtXsrfProtectionFilter> jwtXsrfProtectionFilter;
+  private final String rootPath;
 
   @Inject
-  JwtEnvironment(OrkoConfiguration appConfiguration,
+  JwtEnvironment(AuthConfiguration configuration,
+                 @Named(AuthModule.ROOT_PATH) String rootPath,
                  Provider<JwtAuthenticationFilter> jwtAuthenticationFilter,
                  Provider<JwtXsrfProtectionFilter> jwtXsrfProtectionFilter) {
-    this.appConfiguration = appConfiguration;
+    this.configuration = configuration;
+    this.rootPath = rootPath;
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     this.jwtXsrfProtectionFilter = jwtXsrfProtectionFilter;
   }
@@ -29,8 +34,7 @@ public class JwtEnvironment implements EnvironmentInitialiser {
   @Override
   public void init(Environment environment) {
 
-    if (appConfiguration.getAuth().getJwt() != null && appConfiguration.getAuth().getJwt().isEnabled()) {
-      String rootPath = appConfiguration.getRootPath();
+    if (configuration.getJwt() != null && configuration.getJwt().isEnabled()) {
       String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
 
       JwtXsrfProtectionFilter xsrfFilter = jwtXsrfProtectionFilter.get();

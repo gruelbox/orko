@@ -4,8 +4,9 @@ import javax.inject.Inject;
 
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.OrkoConfiguration;
+import com.google.inject.name.Named;
 import com.gruelbox.orko.auth.AuthConfiguration;
+import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.orko.wiring.EnvironmentInitialiser;
 
@@ -16,21 +17,20 @@ public class OktaEnvironment implements EnvironmentInitialiser {
 
   private final Provider<OktaAuthenticationFilter> oktaAuthenticationFilter;
   private final AuthConfiguration authConfiguration;
-  private final OrkoConfiguration appConfiguration;
+  private final String rootPath;
 
   @Inject
   OktaEnvironment(AuthConfiguration authConfiguration,
-                  OrkoConfiguration appConfiguration,
+                  @Named(AuthModule.ROOT_PATH) String rootPath,
                   Provider<OktaAuthenticationFilter> oktaAuthenticationFilter) {
+    this.rootPath = rootPath;
     this.oktaAuthenticationFilter = oktaAuthenticationFilter;
     this.authConfiguration = authConfiguration;
-    this.appConfiguration = appConfiguration;
   }
 
   @Override
   public void init(Environment environment) {
     if (authConfiguration.getOkta() != null && authConfiguration.getOkta().isEnabled()) {
-      String rootPath = appConfiguration.getRootPath();
       String websocketEntryFilter = WebSocketModule.ENTRY_POINT + "/*";
 
       OktaAuthenticationFilter authFilter = oktaAuthenticationFilter.get();
