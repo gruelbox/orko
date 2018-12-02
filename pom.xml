@@ -45,6 +45,9 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>orko-base</module>
+    <module>orko-db-testsupport</module>
+    <module>orko-auth</module>
     <module>orko-common</module>
     <module>orko-all-in-one</module>
   </modules>
@@ -68,6 +71,9 @@
     <profile>
       <id>web</id>
       <modules>
+        <module>orko-base</module>
+        <module>orko-db-testsupport</module>
+        <module>orko-auth</module>
         <module>orko-common</module>
         <module>orko-web</module>
       </modules>
@@ -75,6 +81,9 @@
     <profile>
       <id>worker</id>
       <modules>
+        <module>orko-base</module>
+        <module>orko-db-testsupport</module>
+        <module>orko-auth</module>
         <module>orko-common</module>
         <module>orko-worker</module>
       </modules>
@@ -82,6 +91,9 @@
     <profile>
       <id>webdev</id>
       <modules>
+        <module>orko-base</module>
+        <module>orko-db-testsupport</module>
+        <module>orko-auth</module>
         <module>orko-common</module>
         <module>orko-all-in-one</module>
       </modules>
@@ -98,6 +110,9 @@
     <profile>
       <id>production</id>
       <modules>
+        <module>orko-base</module>
+        <module>orko-db-testsupport</module>
+        <module>orko-auth</module>
         <module>orko-common</module>
         <module>orko-ui</module>
         <module>orko-all-in-one</module>
@@ -106,6 +121,9 @@
     <profile>
       <id>integration-test</id>
       <modules>
+        <module>orko-base</module>
+        <module>orko-db-testsupport</module>
+        <module>orko-auth</module>
         <module>orko-common</module>
         <module>orko-ui</module>
         <module>orko-all-in-one</module>
@@ -115,6 +133,9 @@
     <profile>
       <id>release</id>
       <modules>
+        <module>orko-base</module>
+        <module>orko-db-testsupport</module>
+        <module>orko-auth</module>
         <module>orko-common</module>
         <module>orko-ui</module>
         <module>orko-all-in-one</module>
@@ -123,6 +144,9 @@
     <profile>
       <id>only-eclipse</id>
       <modules>
+        <module>orko-base</module>
+        <module>orko-db-testsupport</module>
+        <module>orko-auth</module>
         <module>orko-common</module>
         <module>orko-web</module>
         <module>orko-worker</module>
@@ -214,7 +238,7 @@
     <jose4j.version>0.6.4</jose4j.version>
     <dropwizard-websockets-version>1.3.2</dropwizard-websockets-version>
     <urlrewritefilter.version>4.0.4</urlrewritefilter.version>
-    <dropwizard.https.redirect.version>0.0.3-SNAPSHOT</dropwizard.https.redirect.version>
+    <dropwizard.https.redirect.version>0.0.3</dropwizard.https.redirect.version>
 
     <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
     <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
@@ -315,12 +339,6 @@
         <groupId>${morf.groupid}</groupId>
         <artifactId>morf-core</artifactId>
         <version>${morf.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${morf.groupid}</groupId>
-        <artifactId>morf-testsupport</artifactId>
-        <version>${morf.version}</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>${morf.groupid}</groupId>

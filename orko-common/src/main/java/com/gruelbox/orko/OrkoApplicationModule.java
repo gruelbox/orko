@@ -18,14 +18,14 @@ public class OrkoApplicationModule extends AbstractModule {
   public OrkoApplicationModule(OrkoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
     this.configuration = configuration;
     this.objectMapper = objectMapper;
-    this.jerseyClient = client;
+    jerseyClient = client;
     this.environment = environment;
   }
 
   @Override
   protected void configure() {
     install(new ServletModule());
-    install(new CommonModule());
+    install(new CommonModule(configuration.getDatabase()));
     bind(ObjectMapper.class).toInstance(objectMapper);
     bind(OrkoConfiguration.class).toInstance(configuration);
     bind(Client.class).toInstance(jerseyClient);

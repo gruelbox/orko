@@ -1,6 +1,3 @@
-/my-config.yml
-/orko-worker/my-config.yml
-/orko-web/my-config.yml
 **/.classpath
 **/.factorypath
 **/.project
@@ -9,6 +6,14 @@
 **/.settings/org.eclipse.jdt.core.prefs
 **/.settings/org.eclipse.m2e.core.prefs
 **/.settings/org.jboss.tools.maven.apt.prefs
+**/.settings/edu.umd.cs.findbugs.core.prefs
+**/.checkstyle
+**/.fbExcludeFilterFile
+**/dependency-reduced-pom.xml
+
+/my-config.yml
+/orko-worker/my-config.yml
+/orko-web/my-config.yml
 **/node_modules
 /orko-api/dependency-reduced-pom.xml
 /orko-web/dependency-reduced-pom.xml
@@ -20,18 +25,6 @@
 /orko-ui/.settings
 /orko-ui/node
 /orko-all-in-one/src/main/resources/assets
-/orko-all-in-one/.checkstyle
-/orko-all-in-one/.fbExcludeFilterFile
-/orko-all-in-one/.settings/edu.umd.cs.findbugs.core.prefs
-/orko-common/.checkstyle
-/orko-common/.fbExcludeFilterFile
-/orko-common/.settings/edu.umd.cs.findbugs.core.prefs
-/orko-web/.checkstyle
-/orko-web/.fbExcludeFilterFile
-/orko-web/.settings/edu.umd.cs.findbugs.core.prefs
-/orko-worker/.checkstyle
-/orko-worker/.fbExcludeFilterFile
-/orko-worker/.settings/edu.umd.cs.findbugs.core.prefs
 /orko-all-in-one/orko.mv.db
 /orko-all-in-one/orko.trace.db
 /orko.mv.db
@@ -41,4 +34,3 @@
 /orko-end-to-end-testing/node
 /orko-end-to-end-testing/app.log
 /orko-end-to-end-testing/cypress/screenshots/**/*
-/orko-all-in-one/dependency-reduced-pom.xml

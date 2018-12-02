@@ -21,18 +21,22 @@ public class AuthModule extends AbstractModule {
 
   private final AuthConfiguration configuration;
   private final String rootPath;
+  private final String webSocketEntryPoint;
 
   public static final String ACCESS_TOKEN_KEY = "accessToken";
   public static final String ROOT_PATH = "auth-rootPath";
+  public static final String WEBSOCKET_ENTRY_POINT = "auth-ws-entry";
 
-  public AuthModule(AuthConfiguration configuration, String rootPath) {
+  public AuthModule(AuthConfiguration configuration, String rootPath, String webSocketEntryPoint) {
     this.configuration = configuration;
     this.rootPath = rootPath;
+    this.webSocketEntryPoint = webSocketEntryPoint;
   }
 
   @Override
   protected void configure() {
     bind(String.class).annotatedWith(named(ROOT_PATH)).toInstance(rootPath);
+    bind(String.class).annotatedWith(named(WEBSOCKET_ENTRY_POINT)).toInstance(webSocketEntryPoint);
     if (configuration != null) {
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());

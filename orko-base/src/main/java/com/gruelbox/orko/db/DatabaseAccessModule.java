@@ -17,20 +17,21 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.OrkoConfiguration;
 
 public class DatabaseAccessModule extends AbstractModule {
 
+  private final DbConfiguration configuration;
+
+  public DatabaseAccessModule(DbConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
   @Override
   protected void configure() {
+    bind(DbConfiguration.class).toInstance(configuration);
     Multibinder.newSetBinder(binder(), UpgradeStep.class);
     Multibinder.newSetBinder(binder(), TableContribution.class);
     Multibinder.newSetBinder(binder(), View.class);
-  }
-
-  @Provides
-  DbConfiguration dbConfiguration(OrkoConfiguration orkoConfiguration) {
-    return orkoConfiguration.getDatabase();
   }
 
   @Provides
@@ -38,7 +39,7 @@ public class DatabaseAccessModule extends AbstractModule {
   ConnectionResources connectionResources(DbConfiguration dbConfiguration) {
     return dbConfiguration.toConnectionResources();
   }
-  
+
   @Provides
   @Singleton
   Schema schema(Set<TableContribution> contributions, Set<View> views) {

@@ -149,7 +149,8 @@ public class TestLimitOrderJobProcessor {
         .direction(Direction.SELL)
         .build();
 
-    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(RuntimeException.class);
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+      .thenThrow(new RuntimeException());
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -175,7 +176,8 @@ public class TestLimitOrderJobProcessor {
         .direction(Direction.BUY)
         .build();
 
-    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenThrow(RuntimeException.class);
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+      .thenThrow(new RuntimeException());
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();

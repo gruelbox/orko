@@ -1,6 +1,6 @@
 package com.gruelbox.orko.marketdata;
 
-import static com.gruelbox.orko.TestingUtils.skipIfSlowTestsDisabled;
+import static com.gruelbox.orko.db.TestingUtils.skipIfSlowTestsDisabled;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;

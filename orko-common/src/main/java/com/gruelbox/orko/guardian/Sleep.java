@@ -1,9 +1,9 @@
-package com.gruelbox.orko.util;
+package com.gruelbox.orko.guardian;
 
 import com.google.inject.Inject;
 import com.gruelbox.orko.OrkoConfiguration;
 
-public class Sleep {
+class Sleep {
 
   private final OrkoConfiguration configuration;
 
