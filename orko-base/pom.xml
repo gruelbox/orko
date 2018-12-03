@@ -23,6 +23,10 @@
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.gruelbox</groupId>
+      <artifactId>dropwizard-guice-box</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>mysql</groupId>
@@ -70,7 +74,7 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
-    
+
     <!-- TODO actually just reactivex -->
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>

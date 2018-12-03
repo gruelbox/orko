@@ -19,7 +19,7 @@ import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.auth.AuthenticatedUser;
 import com.gruelbox.orko.auth.Roles;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.okta.jwt.JoseException;
 import com.okta.jwt.Jwt;

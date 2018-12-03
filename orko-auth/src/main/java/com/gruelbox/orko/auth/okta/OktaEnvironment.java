@@ -7,7 +7,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
-import com.gruelbox.orko.wiring.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
 

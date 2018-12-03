@@ -1,7 +1,5 @@
 package com.gruelbox.orko.auth;
 
-import static com.google.inject.name.Names.named;
-
 import java.util.Optional;
 
 import com.google.inject.AbstractModule;
@@ -13,30 +11,24 @@ import com.gruelbox.orko.auth.blacklist.Blacklisting;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.gruelbox.orko.auth.jwt.JwtModule;
 import com.gruelbox.orko.auth.okta.OktaModule;
-import com.gruelbox.orko.wiring.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.lifecycle.Managed;
 
 public class AuthModule extends AbstractModule {
 
-  private final AuthConfiguration configuration;
-  private final String rootPath;
-  private final String webSocketEntryPoint;
-
   public static final String ACCESS_TOKEN_KEY = "accessToken";
   public static final String ROOT_PATH = "auth-rootPath";
   public static final String WEBSOCKET_ENTRY_POINT = "auth-ws-entry";
 
-  public AuthModule(AuthConfiguration configuration, String rootPath, String webSocketEntryPoint) {
+  private final AuthConfiguration configuration;
+
+  public AuthModule(AuthConfiguration configuration) {
     this.configuration = configuration;
-    this.rootPath = rootPath;
-    this.webSocketEntryPoint = webSocketEntryPoint;
   }
 
   @Override
   protected void configure() {
-    bind(String.class).annotatedWith(named(ROOT_PATH)).toInstance(rootPath);
-    bind(String.class).annotatedWith(named(WEBSOCKET_ENTRY_POINT)).toInstance(webSocketEntryPoint);
     if (configuration != null) {
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());

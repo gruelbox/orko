@@ -20,7 +20,7 @@ import com.google.inject.servlet.RequestScoped;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.auth.jwt.login.LoginResource;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 public class JwtModule extends AbstractModule {
 

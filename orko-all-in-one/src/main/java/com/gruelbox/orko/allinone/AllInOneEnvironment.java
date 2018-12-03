@@ -3,7 +3,7 @@ package com.gruelbox.orko.allinone;
 import javax.inject.Inject;
 
 import com.google.inject.Singleton;
-import com.gruelbox.orko.wiring.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
 

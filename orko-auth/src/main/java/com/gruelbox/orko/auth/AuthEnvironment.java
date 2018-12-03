@@ -6,7 +6,7 @@ import com.google.inject.Singleton;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingEnvironment;
 import com.gruelbox.orko.auth.jwt.JwtEnvironment;
 import com.gruelbox.orko.auth.okta.OktaEnvironment;
-import com.gruelbox.orko.wiring.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
 

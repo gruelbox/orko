@@ -20,15 +20,8 @@ import com.google.inject.multibindings.Multibinder;
 
 public class DatabaseAccessModule extends AbstractModule {
 
-  private final DbConfiguration configuration;
-
-  public DatabaseAccessModule(DbConfiguration configuration) {
-    this.configuration = configuration;
-  }
-
   @Override
   protected void configure() {
-    bind(DbConfiguration.class).toInstance(configuration);
     Multibinder.newSetBinder(binder(), UpgradeStep.class);
     Multibinder.newSetBinder(binder(), TableContribution.class);
     Multibinder.newSetBinder(binder(), View.class);

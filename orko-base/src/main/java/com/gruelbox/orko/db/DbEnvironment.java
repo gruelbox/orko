@@ -2,7 +2,7 @@ package com.gruelbox.orko.db;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.wiring.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
 

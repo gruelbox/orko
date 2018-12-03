@@ -4,31 +4,37 @@ import javax.ws.rs.client.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
+import com.gruelbox.orko.db.DbConfiguration;
 
+import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.setup.Environment;
 
 public class OrkoApplicationModule extends AbstractModule {
 
-  private final ObjectMapper objectMapper;
-  private final OrkoConfiguration configuration;
-  private final Client jerseyClient;
-  private final Environment environment;
-
-  public OrkoApplicationModule(OrkoConfiguration configuration, ObjectMapper objectMapper, Client client, Environment environment) {
-    this.configuration = configuration;
-    this.objectMapper = objectMapper;
-    jerseyClient = client;
-    this.environment = environment;
-  }
-
   @Override
   protected void configure() {
     install(new ServletModule());
-    install(new CommonModule(configuration.getDatabase()));
-    bind(ObjectMapper.class).toInstance(objectMapper);
-    bind(OrkoConfiguration.class).toInstance(configuration);
-    bind(Client.class).toInstance(jerseyClient);
-    bind(Environment.class).toInstance(environment);
+    install(new CommonModule());
+  }
+
+  @Provides
+  DbConfiguration dbConfiguration(OrkoConfiguration configuration) {
+    return configuration.getDatabase();
+  }
+
+  @Provides
+  ObjectMapper objectMapper(Environment environment) {
+    return environment.getObjectMapper();
+  }
+
+  @Provides
+  @Singleton
+  Client jerseyClient(Environment environment, OrkoConfiguration configuration) {
+    return new JerseyClientBuilder(environment)
+      .using(configuration.getJerseyClientConfiguration())
+      .build("client");
   }
 }

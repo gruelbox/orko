@@ -21,8 +21,8 @@ import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.spi.Job;
 import com.gruelbox.orko.submit.JobAccess;
 import com.gruelbox.orko.submit.JobAccess.JobDoesNotExistException;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 import com.gruelbox.orko.submit.JobSubmitter;
-import com.gruelbox.orko.wiring.WebResource;
 
 import io.dropwizard.auth.AuthenticationException;
 

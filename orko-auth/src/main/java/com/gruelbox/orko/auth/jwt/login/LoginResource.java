@@ -25,7 +25,7 @@ import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.CookieHandlers;
 import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.auth.blacklist.Blacklisting;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.PrincipalImpl;

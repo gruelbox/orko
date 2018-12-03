@@ -14,7 +14,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.codahale.metrics.annotation.Timed;
 import com.gruelbox.orko.auth.blacklist.Blacklisting;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 @Path("/auth")
 @Singleton

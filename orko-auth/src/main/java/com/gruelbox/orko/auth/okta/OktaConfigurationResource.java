@@ -9,7 +9,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.codahale.metrics.annotation.Timed;
 import com.gruelbox.orko.auth.AuthConfiguration;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)

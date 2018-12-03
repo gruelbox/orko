@@ -2,7 +2,6 @@ package com.gruelbox.orko;
 
 import javax.inject.Inject;
 import javax.servlet.FilterRegistration;
-import javax.ws.rs.client.Client;
 
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -31,7 +30,7 @@ public abstract class WebHostApplication extends BaseApplication {
   }
 
   @Override
-  protected abstract Module createApplicationModule(final OrkoConfiguration configuration, final Environment environment, Client jerseyClient);
+  protected abstract Module createApplicationModule();
 
   @Override
   public final void run(final OrkoConfiguration configuration, final Environment environment) {

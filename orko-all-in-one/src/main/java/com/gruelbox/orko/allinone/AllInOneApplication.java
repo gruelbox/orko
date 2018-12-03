@@ -1,12 +1,7 @@
 package com.gruelbox.orko.allinone;
 
-import javax.ws.rs.client.Client;
-
 import com.google.inject.Module;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.WebHostApplication;
-
-import io.dropwizard.setup.Environment;
 
 public class AllInOneApplication extends WebHostApplication {
 
@@ -20,7 +15,7 @@ public class AllInOneApplication extends WebHostApplication {
   }
 
   @Override
-  protected Module createApplicationModule(OrkoConfiguration configuration, Environment environment, Client jerseyClient) {
-    return new AllInOneModule(configuration);
+  protected Module createApplicationModule() {
+    return new AllInOneModule();
   }
 }

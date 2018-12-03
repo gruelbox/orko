@@ -14,8 +14,8 @@ public class WiringModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(CommonEnvironmentInitialiser.class);
-    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(ExecutorServiceManager.class);
+    Multibinder.newSetBinder(binder(), Managed.class).addBinding()
+      .to(ExecutorServiceManager.class);
   }
 
   @Provides
