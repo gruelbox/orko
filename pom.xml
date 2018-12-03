@@ -48,6 +48,7 @@
     <module>orko-base</module>
     <module>orko-db-testsupport</module>
     <module>orko-auth</module>
+    <module>orko-job</module>
     <module>orko-common</module>
     <module>orko-all-in-one</module>
   </modules>
@@ -79,31 +80,12 @@
 
   <profiles>
     <profile>
-      <id>web</id>
-      <modules>
-        <module>orko-base</module>
-        <module>orko-db-testsupport</module>
-        <module>orko-auth</module>
-        <module>orko-common</module>
-        <module>orko-web</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>worker</id>
-      <modules>
-        <module>orko-base</module>
-        <module>orko-db-testsupport</module>
-        <module>orko-auth</module>
-        <module>orko-common</module>
-        <module>orko-worker</module>
-      </modules>
-    </profile>
-    <profile>
       <id>webdev</id>
       <modules>
         <module>orko-base</module>
         <module>orko-db-testsupport</module>
         <module>orko-auth</module>
+        <module>orko-job</module>
         <module>orko-common</module>
         <module>orko-all-in-one</module>
       </modules>
@@ -123,6 +105,7 @@
         <module>orko-base</module>
         <module>orko-db-testsupport</module>
         <module>orko-auth</module>
+        <module>orko-job</module>
         <module>orko-common</module>
         <module>orko-ui</module>
         <module>orko-all-in-one</module>
@@ -134,6 +117,7 @@
         <module>orko-base</module>
         <module>orko-db-testsupport</module>
         <module>orko-auth</module>
+        <module>orko-job</module>
         <module>orko-common</module>
         <module>orko-ui</module>
         <module>orko-all-in-one</module>
@@ -146,6 +130,7 @@
         <module>orko-base</module>
         <module>orko-db-testsupport</module>
         <module>orko-auth</module>
+        <module>orko-job</module>
         <module>orko-common</module>
         <module>orko-ui</module>
         <module>orko-all-in-one</module>
@@ -157,9 +142,8 @@
         <module>orko-base</module>
         <module>orko-db-testsupport</module>
         <module>orko-auth</module>
+        <module>orko-job</module>
         <module>orko-common</module>
-        <module>orko-web</module>
-        <module>orko-worker</module>
         <module>orko-all-in-one</module>
       </modules>
       <activation>

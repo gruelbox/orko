@@ -1,9 +1,9 @@
 package com.gruelbox.orko.job;
 
+import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
+import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
+import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static com.gruelbox.orko.notification.Status.FAILURE_PERMANENT;
-import static com.gruelbox.orko.notification.Status.FAILURE_TRANSIENT;
-import static com.gruelbox.orko.notification.Status.SUCCESS;
 import static java.math.RoundingMode.HALF_UP;
 
 import java.math.BigDecimal;
@@ -21,16 +21,16 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
+import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
 import com.gruelbox.orko.marketdata.TickerEvent;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.notification.Status;
-import com.gruelbox.orko.notification.StatusUpdateService;
-import com.gruelbox.orko.spi.JobControl;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.submit.JobSubmitter;
 import com.gruelbox.orko.util.SafelyClose;
 import com.gruelbox.orko.util.SafelyDispose;
 

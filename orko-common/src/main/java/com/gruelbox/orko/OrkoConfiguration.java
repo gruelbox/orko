@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
-import com.gruelbox.orko.mq.MqConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpsResponsibility;
@@ -51,12 +50,6 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
    * be left out but then you have no idea what the application is doing.
    */
   private TelegramConfiguration telegram;
-
-  /**
-   * MQ configuration. Required for communication when running separate
-   * worker and web applications.
-   */
-  private MqConfiguration mq;
 
   @Valid
   @NotNull
@@ -115,7 +108,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
 
   @JsonProperty
   public void setExchanges(Map<String, ExchangeConfiguration> exchange) {
-    this.exchanges = exchange;
+    exchanges = exchange;
   }
 
   @JsonProperty("jerseyClient")
@@ -128,21 +121,11 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
       this.jerseyClient = jerseyClient;
   }
 
-  @JsonProperty
-  public MqConfiguration getMq() {
-    return mq;
-  }
-
-  @JsonProperty
-  public void setMq(MqConfiguration mq) {
-    this.mq = mq;
-  }
-
   public String getRootPath() {
     AbstractServerFactory serverFactory = (AbstractServerFactory) getServerFactory();
     return serverFactory.getJerseyRootPath().orElse("/") + "*";
   }
-  
+
   @Override
   public boolean isHttpsOnly() {
     return auth == null ? false : auth.isHttpsOnly();

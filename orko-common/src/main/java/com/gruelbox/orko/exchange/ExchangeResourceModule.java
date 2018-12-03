@@ -9,7 +9,6 @@ public class ExchangeResourceModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(JobResource.class);
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(ExchangeResource.class);
     Multibinder.newSetBinder(binder(), HealthCheck.class).addBinding().to(ExchangeAccessHealthCheck.class);
   }

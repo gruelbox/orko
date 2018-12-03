@@ -10,10 +10,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
-import com.gruelbox.orko.spi.Job;
-import com.gruelbox.orko.spi.JobBuilder;
-import com.gruelbox.orko.spi.JobControl;
-import com.gruelbox.orko.spi.JobProcessor;
+import com.gruelbox.orko.jobrun.spi.Job;
+import com.gruelbox.orko.jobrun.spi.JobBuilder;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.spi.TickerSpec;
 
 @AutoValue

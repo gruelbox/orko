@@ -28,16 +28,16 @@ import org.mockito.MockitoAnnotations;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.job.SoftTrailingStop.Builder;
+import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
 import com.gruelbox.orko.marketdata.TickerEvent;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.notification.Status;
-import com.gruelbox.orko.notification.StatusUpdateService;
-import com.gruelbox.orko.spi.JobControl;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.submit.JobSubmitter;
 
 import io.reactivex.Flowable;
 

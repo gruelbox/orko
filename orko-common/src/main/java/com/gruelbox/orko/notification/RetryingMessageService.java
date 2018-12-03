@@ -7,7 +7,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.job.Alert;
 import com.gruelbox.orko.job.StatusUpdateJob;
-import com.gruelbox.orko.submit.JobSubmitter;
+import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.StatusUpdate;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
 @Singleton
 class RetryingMessageService implements NotificationService, StatusUpdateService {

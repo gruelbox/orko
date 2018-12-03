@@ -9,9 +9,8 @@ import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.exchange.ExchangeResourceModule;
-import com.gruelbox.orko.guardian.GuardianModule;
-import com.gruelbox.orko.guardian.InProcessJobSubmitter;
-import com.gruelbox.orko.submit.JobSubmitter;
+import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
+import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.tools.dropwizard.guice.Configured;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
@@ -30,7 +29,6 @@ class AllInOneModule extends AbstractModule implements Configured<OrkoConfigurat
 
   @Override
   protected void configure() {
-    install(new GuardianModule(false));
     install(new AuthModule(configuration.getAuth()));
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
