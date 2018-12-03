@@ -47,7 +47,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.marketdata.Balance;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
  * Access to exchange information.

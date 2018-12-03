@@ -21,7 +21,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.Maps;
 import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
  * Access to exchange information.

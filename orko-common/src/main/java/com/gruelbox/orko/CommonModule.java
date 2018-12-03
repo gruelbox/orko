@@ -11,13 +11,14 @@ import com.gruelbox.orko.notification.TelegramModule;
 import com.gruelbox.orko.signal.SignalModule;
 import com.gruelbox.orko.strategy.StrategyModule;
 import com.gruelbox.orko.submit.SubmitModule;
-import com.gruelbox.orko.wiring.EnvironmentInitialiser;
-import com.gruelbox.orko.wiring.WebResource;
 import com.gruelbox.orko.wiring.WiringModule;
+import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.lifecycle.Managed;
 
 class CommonModule extends AbstractModule {
+
   @Override
   protected void configure() {
     Multibinder.newSetBinder(binder(), Service.class);

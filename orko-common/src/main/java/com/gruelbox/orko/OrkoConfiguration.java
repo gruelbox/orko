@@ -6,12 +6,15 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.mq.MqConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
+import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
+import com.gruelbox.tools.dropwizard.httpsredirect.HttpsResponsibility;
 
 import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientConfiguration;
@@ -20,7 +23,7 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Runtime config. Should really be broken up.
  */
-public class OrkoConfiguration extends Configuration {
+public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -138,5 +141,21 @@ public class OrkoConfiguration extends Configuration {
   public String getRootPath() {
     AbstractServerFactory serverFactory = (AbstractServerFactory) getServerFactory();
     return serverFactory.getJerseyRootPath().orElse("/") + "*";
+  }
+  
+  @Override
+  public boolean isHttpsOnly() {
+    return auth == null ? false : auth.isHttpsOnly();
+  }
+
+  @JsonIgnore
+  @Override
+  public HttpsResponsibility getHttpResponsibility() {
+    if (auth == null) {
+      return HttpsResponsibility.HTTPS_DIRECT;
+    }
+    return auth.isProxied()
+        ? HttpsResponsibility.HTTPS_AT_PROXY
+        : HttpsResponsibility.HTTPS_DIRECT;
   }
 }

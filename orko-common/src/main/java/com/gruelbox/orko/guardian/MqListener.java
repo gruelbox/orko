@@ -11,7 +11,6 @@ import com.google.inject.Inject;
 import com.gruelbox.orko.mq.JobRouteFactory;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.Job;
-import com.gruelbox.orko.util.Sleep;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

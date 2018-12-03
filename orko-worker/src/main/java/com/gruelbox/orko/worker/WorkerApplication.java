@@ -1,12 +1,7 @@
 package com.gruelbox.orko.worker;
 
-import javax.ws.rs.client.Client;
-
 import com.google.inject.Module;
 import com.gruelbox.orko.BaseApplication;
-import com.gruelbox.orko.OrkoConfiguration;
-
-import io.dropwizard.setup.Environment;
 
 public class WorkerApplication extends BaseApplication {
 
@@ -20,7 +15,7 @@ public class WorkerApplication extends BaseApplication {
   }
 
   @Override
-  protected Module createApplicationModule(OrkoConfiguration configuration, Environment environment, Client jerseyClient) {
+  protected Module createApplicationModule() {
     return new WorkerModule();
   }
 }

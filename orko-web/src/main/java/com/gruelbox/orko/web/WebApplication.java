@@ -1,12 +1,7 @@
 package com.gruelbox.orko.web;
 
-import javax.ws.rs.client.Client;
-
 import com.google.inject.Module;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.WebHostApplication;
-
-import io.dropwizard.setup.Environment;
 
 public class WebApplication extends WebHostApplication {
 
@@ -20,7 +15,7 @@ public class WebApplication extends WebHostApplication {
   }
 
   @Override
-  protected Module createApplicationModule(OrkoConfiguration configuration, Environment environment, Client jerseyClient) {
-    return new WebModule(configuration);
+  protected Module createApplicationModule() {
+    return new WebModule();
   }
 }

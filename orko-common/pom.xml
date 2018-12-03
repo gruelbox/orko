@@ -20,6 +20,16 @@
   <dependencies>
 
     <dependency>
+      <groupId>com.gruelbox</groupId>
+      <artifactId>orko-auth</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.gruelbox</groupId>
+      <artifactId>orko-base</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>
     </dependency>
@@ -36,6 +46,10 @@
       <artifactId>dropwizard-websockets</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.gruelbox</groupId>
+      <artifactId>dropwizard-https-redirect</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-assets</artifactId>
     </dependency>
@@ -43,49 +57,10 @@
       <groupId>org.tuckey</groupId>
       <artifactId>urlrewritefilter</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>com.okta.jwt</groupId>
-      <artifactId>okta-jwt-verifier</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.bitbucket.b_c</groupId>
-      <artifactId>jose4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.warrenstrange</groupId>
-      <artifactId>googleauth</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
     </dependency>
-    <dependency>
-      <groupId>${morf.groupid}</groupId>
-      <artifactId>morf-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${morf.groupid}</groupId>
-      <artifactId>morf-h2</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${morf.groupid}</groupId>
-      <artifactId>morf-mysql</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>${morf.groupid}</groupId>
-      <artifactId>morf-testsupport</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -130,6 +105,12 @@
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.gruelbox</groupId>
+      <artifactId>orko-db-testsupport</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
 

@@ -5,7 +5,7 @@ import org.alfasoftware.morf.upgrade.TableContribution;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.wiring.WebResource;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.lifecycle.Managed;
 
