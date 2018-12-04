@@ -1,4 +1,4 @@
-package com.gruelbox.orko.allinone;
+package com.gruelbox.orko.app.monolith;
 
 import static com.google.common.net.HttpHeaders.CONTENT_SECURITY_POLICY;
 import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;

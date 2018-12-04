@@ -1,4 +1,4 @@
-package com.gruelbox.orko.allinone;
+package com.gruelbox.orko.app.monolith;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -18,7 +18,7 @@ import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 /**
  * Top level bindings.
  */
-class AllInOneModule extends AbstractModule implements Configured<OrkoConfiguration> {
+class MonolithModule extends AbstractModule implements Configured<OrkoConfiguration> {
 
   private OrkoConfiguration configuration;
 
@@ -33,7 +33,8 @@ class AllInOneModule extends AbstractModule implements Configured<OrkoConfigurat
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
-    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AllInOneEnvironment.class);
+    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
+      .addBinding().to(MonolithEnvironment.class);
   }
 
   @Provides

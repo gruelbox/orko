@@ -50,7 +50,7 @@
     <module>orko-auth</module>
     <module>orko-job</module>
     <module>orko-common</module>
-    <module>orko-all-in-one</module>
+    <module>orko-app</module>
   </modules>
 
   <repositories>
@@ -87,7 +87,7 @@
         <module>orko-auth</module>
         <module>orko-job</module>
         <module>orko-common</module>
-        <module>orko-all-in-one</module>
+        <module>orko-app</module>
       </modules>
       <build>
         <plugins>
@@ -108,7 +108,7 @@
         <module>orko-job</module>
         <module>orko-common</module>
         <module>orko-ui</module>
-        <module>orko-all-in-one</module>
+        <module>orko-app</module>
       </modules>
     </profile>
     <profile>
@@ -120,7 +120,7 @@
         <module>orko-job</module>
         <module>orko-common</module>
         <module>orko-ui</module>
-        <module>orko-all-in-one</module>
+        <module>orko-app</module>
         <module>orko-end-to-end-testing</module>
       </modules>
     </profile>
@@ -133,7 +133,7 @@
         <module>orko-job</module>
         <module>orko-common</module>
         <module>orko-ui</module>
-        <module>orko-all-in-one</module>
+        <module>orko-app</module>
       </modules>
     </profile>
     <profile>
@@ -144,7 +144,7 @@
         <module>orko-auth</module>
         <module>orko-job</module>
         <module>orko-common</module>
-        <module>orko-all-in-one</module>
+        <module>orko-app</module>
       </modules>
       <activation>
         <property>

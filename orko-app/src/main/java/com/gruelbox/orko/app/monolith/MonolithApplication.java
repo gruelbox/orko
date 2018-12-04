@@ -1,12 +1,12 @@
-package com.gruelbox.orko.allinone;
+package com.gruelbox.orko.app.monolith;
 
 import com.google.inject.Module;
 import com.gruelbox.orko.WebHostApplication;
 
-public class AllInOneApplication extends WebHostApplication {
+public class MonolithApplication extends WebHostApplication {
 
   public static void main(final String[] args) throws Exception {
-    new AllInOneApplication().run(args);
+    new MonolithApplication().run(args);
   }
 
   @Override
@@ -16,6 +16,6 @@ public class AllInOneApplication extends WebHostApplication {
 
   @Override
   protected Module createApplicationModule() {
-    return new AllInOneModule();
+    return new MonolithModule();
   }
 }

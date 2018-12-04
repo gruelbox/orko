@@ -1,4 +1,4 @@
-package com.gruelbox.orko.allinone;
+package com.gruelbox.orko.app.monolith;
 
 import javax.inject.Inject;
 
@@ -8,12 +8,12 @@ import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 import io.dropwizard.setup.Environment;
 
 @Singleton
-class AllInOneEnvironment implements EnvironmentInitialiser {
+class MonolithEnvironment implements EnvironmentInitialiser {
 
   private final ClientSecurityHeadersFilter clientSecurityHeadersFilter;
 
   @Inject
-  AllInOneEnvironment(ClientSecurityHeadersFilter clientSecurityHeadersFilter) {
+  MonolithEnvironment(ClientSecurityHeadersFilter clientSecurityHeadersFilter) {
     this.clientSecurityHeadersFilter = clientSecurityHeadersFilter;
   }
 

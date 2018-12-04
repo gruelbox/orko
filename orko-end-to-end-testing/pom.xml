@@ -18,7 +18,7 @@
   <dependencies>
     <dependency>
       <groupId>com.gruelbox</groupId>
-      <artifactId>orko-all-in-one</artifactId>
+      <artifactId>orko-app</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -38,14 +38,14 @@
             </goals>
             <configuration>
               <name>orko</name>
-              <workingDir>../../orko-all-in-one</workingDir>
+              <workingDir>../../orko-app</workingDir>
               <waitForInterrupt>false</waitForInterrupt>
               <healthcheckUrl>http://localhost:8080/</healthcheckUrl>
               <arguments>
                 <argument>java</argument>
                 <argument>-cp</argument>
                 <argument>target/classes:target/dependency/*</argument>
-                <argument>com.gruelbox.orko.allinone.AllInOneApplication</argument>
+                <argument>com.gruelbox.orko.app.monolith.MonolithApplication</argument>
                 <argument>server</argument>
                 <argument>integration-test-config.yml</argument>
               </arguments>
