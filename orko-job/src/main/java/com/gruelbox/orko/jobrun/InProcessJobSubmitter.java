@@ -26,7 +26,6 @@ public class InProcessJobSubmitter implements JobSubmitter {
     return result;
   }
 
-
   public final class JobNotUniqueException extends Exception {
     private static final long serialVersionUID = 7113718773155036498L;
     JobNotUniqueException() {

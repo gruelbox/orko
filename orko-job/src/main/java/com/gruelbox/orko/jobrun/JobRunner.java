@@ -31,13 +31,15 @@ class JobRunner {
   private final StatusUpdateService statusUpdateService;
 
   @Inject
-  JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker, Injector injector, EventBus eventBus, StatusUpdateService statusUpdateService) {
-    this.jobAccess = advancedOrderAccess;
+  JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker,
+            Injector injector, EventBus eventBus,
+            StatusUpdateService statusUpdateService) {
+    jobAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.injector = injector;
     this.eventBus = eventBus;
     this.statusUpdateService = statusUpdateService;
-    this.uuid = UUID.randomUUID();
+    uuid = UUID.randomUUID();
   }
 
   /**
@@ -81,20 +83,29 @@ class JobRunner {
    * @throws Exception
    */
   public boolean runNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+    if (!attemptLock(job, reject)) {
+      return false;
+    }
+    if (!createJob(job, ack, reject)) {
+      return false;
+    }
+    new JobLifetimeManager(job).start();
+    return true;
+  }
 
+  private boolean attemptLock(Job job, ExceptionThrowingRunnable reject) throws Exception {
     boolean locked;
     try {
       locked = jobLocker.attemptLock(job.id(), uuid);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       reject.run();
       LOGGER.warn("Job " + job.id() + " could not be locked. Request rejected.");
       throw t;
     }
+    return locked;
+  }
 
-    if (!locked) {
-      return false;
-    }
-
+  private boolean createJob(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
     try {
       jobAccess.insert(job);
     } catch (JobAlreadyExistsException e) {
@@ -108,10 +119,8 @@ class JobRunner {
       throw t;
     }
     ack.run();
-    new JobLifetimeManager(job).start();
     return true;
   }
-
 
   public interface ExceptionThrowingRunnable {
     public void run() throws Exception;
@@ -131,10 +140,9 @@ class JobRunner {
     private final JobProcessor<Job> processor;
     private final AtomicReference<JobStatus> status = new AtomicReference<>(JobStatus.CREATED);
 
-    @SuppressWarnings("unchecked")
     JobLifetimeManager(Job job) {
       this.job = job;
-      this.processor = ((JobProcessor.Factory<Job>) injector.getInstance(job.processorFactory())).create(job, this);
+      processor = JobProcessor.createProcessor(job, this, injector);
     }
 
     public void start() {
@@ -142,26 +150,50 @@ class JobRunner {
     }
 
     private void start(boolean replacement) {
+
+      // Ensure this lifetime manager can only be used once (when replacing, we
+      // create a new lifetime manager).
       if (!status.compareAndSet(JobStatus.CREATED, JobStatus.STARTING))
         throw new IllegalStateException("Job lifecycle status indicates re-use of lifetime manager: " + job);
+
+      // We do record that a new startup is a replacement, though, so don't log
+      // startup if that's the case
       if (!replacement)
         LOGGER.info(job + " starting...");
+
+      // Attempt to run the startup method on the job and send a status update
       Status result = safeStart();
       if (!replacement || !result.equals(Status.RUNNING))
         statusUpdateService.status(job.id(), result);
-      if (result.equals(Status.SUCCESS) || result.equals(Status.FAILURE_PERMANENT)) {
-        LOGGER.debug("{} finished immediately ({}), cleaning up", job, result);
-        jobAccess.delete(job.id());  //  TODO think - what happens if something goes wrong here?
-        safeStop();
-        status.set(JobStatus.STOPPED);
-        LOGGER.debug("{} cleaned up", job);
-      } else if (result.equals(Status.FAILURE_TRANSIENT)) {
-        LOGGER.warn(job + " temporary failure. Sending back to queue for retry");
-        processor.stop();
-        status.set(JobStatus.STOPPED);
-        LOGGER.debug("{} cleaned up", job);
-      } else {
-        register();
+
+      switch (result) {
+        case FAILURE_PERMANENT:
+        case SUCCESS:
+
+          // If the job completed or failed permanently, delete it
+          LOGGER.debug("{} finished immediately ({}), cleaning up", job, result);
+          jobAccess.delete(job.id());
+          safeStop();
+          status.set(JobStatus.STOPPED);
+          LOGGER.debug("{} cleaned up", job);
+          break;
+
+        case FAILURE_TRANSIENT:
+
+          // Stop and let the job get picked up again
+          LOGGER.warn(job + " temporary failure. Sending back to queue for retry");
+          safeStop();
+          LOGGER.debug("{} cleaned up", job);
+          break;
+
+        case RUNNING:
+
+          // We are now running, so register for events
+          register();
+          break;
+
+        default:
+          throw new IllegalStateException("Unknown job status " + result);
       }
     }
 
@@ -211,7 +243,6 @@ class JobRunner {
 
     private synchronized void register() {
       if (status.compareAndSet(JobStatus.STARTING, JobStatus.RUNNING)) {
-        status.set(JobStatus.RUNNING);
         eventBus.register(this);
         LOGGER.info(job + " started");
       }

@@ -10,6 +10,12 @@ import com.google.inject.Singleton;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
+/**
+ * Background process which restarts any open jobs which aren't
+ * currently running on any instance.
+ *
+ * @author Graham Crockford
+ */
 @Singleton
 class GuardianLoop extends AbstractExecutionThreadService {
 
@@ -48,6 +54,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
           break;
         }
 
+        // Refresh the locks on the running jobs
         eventBus.post(KeepAliveEvent.INSTANCE);
 
       } catch (Exception e) {

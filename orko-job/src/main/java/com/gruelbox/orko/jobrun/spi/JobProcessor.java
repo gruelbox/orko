@@ -1,5 +1,7 @@
 package com.gruelbox.orko.jobrun.spi;
 
+import com.google.inject.Injector;
+
 /**
  * The processing code for a {@link Job}.
  *
@@ -35,5 +37,18 @@ public interface JobProcessor<T extends Job> {
    */
   public interface Factory<T extends Job> {
     public JobProcessor<T> create(T job, JobControl jobControl);
+  }
+
+  /**
+   * Factory method for {@link JobProcessor}s.
+   *
+   * @param job The job to create a processor for.
+   * @param jobControl The {@link JobControl} to pass to the processor.
+   * @param injector The injector to create the required {@link JobProcessor.Factory}.
+   * @return The {@link JobProcessor}.
+   */
+  @SuppressWarnings("unchecked")
+  public static JobProcessor<Job> createProcessor(Job job, JobControl jobControl, Injector injector) {
+    return ((JobProcessor.Factory<Job>) injector.getInstance(job.processorFactory())).create(job, jobControl);
   }
 }
