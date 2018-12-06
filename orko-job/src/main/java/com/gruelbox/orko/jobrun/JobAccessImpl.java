@@ -52,7 +52,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
   @Override
   public void insert(Job job) throws JobAlreadyExistsException {
     MutableBoolean exists = new MutableBoolean();
-    connectionSource.runInTransaction(dsl -> {
+    connectionSource.withNewConnection(dsl -> {
       try {
         dsl.insertInto(TABLE).values(job.id(), encode(job), false).execute();
       } catch (DataAccessException e) {
@@ -83,7 +83,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
 
   @Override
   public void update(Job job) {
-    int updated = connectionSource.getInTransaction(dsl -> dsl.update(TABLE).set(CONTENT_FIELD, encode(job)).where(ID_FIELD.eq(job.id())).execute());
+    int updated = connectionSource.getWithNewConnection(dsl -> dsl.update(TABLE).set(CONTENT_FIELD, encode(job)).where(ID_FIELD.eq(job.id())).execute());
     if (updated == 0) {
       throw new JobDoesNotExistException();
     }
@@ -92,7 +92,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
   @Override
   public Job load(String id) {
     try {
-      return decode(connectionSource.getInTransaction(dsl -> dsl
+      return decode(connectionSource.getWithNewConnection(dsl -> dsl
           .select(CONTENT_FIELD)
           .from(TABLE)
           .where(ID_FIELD.eq(id).and(PROCESSED_FIELD.eq(false)))
@@ -105,7 +105,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
 
   @Override
   public Iterable<Job> list() {
-    return connectionSource.getInTransaction(dsl -> dsl
+    return connectionSource.getWithNewConnection(dsl -> dsl
         .select(CONTENT_FIELD)
         .from(TABLE)
         .where(PROCESSED_FIELD.eq(false))
@@ -118,7 +118,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
 
   @Override
   public void delete(String jobId) {
-    int updated = connectionSource.getInTransaction(dsl -> dsl.update(TABLE).set(PROCESSED_FIELD, true).where(ID_FIELD.eq(jobId)).execute());
+    int updated = connectionSource.getWithNewConnection(dsl -> dsl.update(TABLE).set(PROCESSED_FIELD, true).where(ID_FIELD.eq(jobId)).execute());
     if (updated == 0) {
       throw new JobDoesNotExistException();
     }
@@ -126,7 +126,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
 
   @Override
   public void deleteAll() {
-    connectionSource.runInTransaction(dsl -> dsl.update(TABLE).set(PROCESSED_FIELD, true).execute());
+    connectionSource.withNewConnection(dsl -> dsl.update(TABLE).set(PROCESSED_FIELD, true).execute());
   }
 
   @Override

@@ -29,43 +29,40 @@ public class ConnectionSource {
     this.connectionResources = connectionResources;
   }
 
-  public Connection newStandaloneConnection() throws SQLException {
+  Connection newStandaloneConnection() throws SQLException {
     return DriverManager.getConnection("jdbc:" + dbConfiguration.get().getConnectionString());
   }
 
-  public Connection currentConnection() {
-    if (!isTransactionStarted())
+  Connection currentConnection() {
+    if (!isConnectionOpen())
       throw new TransactionNotStartedException();
     return currentConnection.get();
   }
 
-  public void transactionally(Runnable runnable) {
-    runInTransaction(dsl -> runnable.run());
+  public void withCurrentConnection(Runnable runnable) {
+    withNewConnection(dsl -> runnable.run());
   }
 
-  public <T> T transactionallyGet(Supplier<T> supplier) {
-    return getInTransaction(dsl ->  supplier.get());
+  public <T> T getWithNewConnection(Supplier<T> supplier) {
+    return getWithNewConnection(dsl ->  supplier.get());
   }
 
-  public void runInTransaction(Work work) {
-    getInTransaction(dsl -> {
+  public void withNewConnection(Work work) {
+    getWithNewConnection(dsl -> {
       work.work(dsl);
       return null;
     });
   }
 
-  public void assertNotInTransaction() {
-    if (isTransactionStarted())
+  public <T> T getWithNewConnection(ReturningWork<T> supplier) {
+    if (isConnectionOpen())
       throw new TransactionAlreadyStartedException();
-  }
-
-  public <T> T getInTransaction(ReturningWork<T> supplier) {
     boolean success = false;
     try {
       currentConnection.set(newStandaloneConnection());
       try {
-        currentConnection.get().setAutoCommit(false);
-        T result = getInExistingTransaction(supplier);
+        currentConnection.get().setAutoCommit(true);
+        T result = getWithCurrentConnection(supplier);
         success = true;
         return result;
       } finally {
@@ -84,14 +81,14 @@ public class ConnectionSource {
     }
   }
 
-  public void inExistingTransaction(Work work) {
-    getInExistingTransaction(dsl -> {
+  public void withCurrentConnection(Work work) {
+    getWithCurrentConnection(dsl -> {
       work.work(dsl);
       return null;
     });
   }
 
-  public <T> T getInExistingTransaction(ReturningWork<T> supplier) {
+  public <T> T getWithCurrentConnection(ReturningWork<T> supplier) {
     try {
       return supplier.work(DSL.using(currentConnection(), jooqDialect()));
     } catch (SQLException e) {
@@ -115,7 +112,7 @@ public class ConnectionSource {
     void work(DSLContext dsl) throws SQLException;
   }
 
-  public boolean isTransactionStarted() {
+  public boolean isConnectionOpen() {
     return currentConnection.get() != null;
   }
 

@@ -68,20 +68,20 @@ class PermanentSubscriptionAccessImpl implements PermanentSubscriptionAccess, Ta
   @Override
   public void add(TickerSpec spec) {
     LOGGER.info("Adding permanent subscription to {}", spec);
-    connectionSource.runInTransaction(dsl -> dsl
+    connectionSource.withNewConnection(dsl -> dsl
       .insertInto(SUBSCRIPTION_TABLE).values(spec.key(), null).execute());
   }
 
   @Override
   public void remove(TickerSpec spec) {
     LOGGER.info("Removing permanent subscription to {}", spec);
-    connectionSource.runInTransaction(dsl -> dsl
+    connectionSource.withNewConnection(dsl -> dsl
       .deleteFrom(SUBSCRIPTION_TABLE).where(TICKER_FIELD.eq(spec.key())).execute());
   }
 
   @Override
   public Set<TickerSpec> all() {
-    return connectionSource.getInTransaction(dsl -> dsl
+    return connectionSource.getWithNewConnection(dsl -> dsl
       .select(TICKER_FIELD)
       .from(SUBSCRIPTION_TABLE)
       .fetch()
@@ -92,12 +92,12 @@ class PermanentSubscriptionAccessImpl implements PermanentSubscriptionAccess, Ta
 
   @Override
   public void setReferencePrice(TickerSpec tickerSpec, BigDecimal price) {
-    connectionSource.runInTransaction(dsl ->  dsl.execute(mergeStatement.get(), tickerSpec.key(), price));
+    connectionSource.withNewConnection(dsl ->  dsl.execute(mergeStatement.get(), tickerSpec.key(), price));
   }
 
   @Override
   public Map<TickerSpec, BigDecimal> getReferencePrices() {
-    return connectionSource.getInTransaction(dsl -> {
+    return connectionSource.getWithNewConnection(dsl -> {
       RecordMapper<Record, TickerSpec> keyMapper = r -> fromKey(r.get(TICKER_FIELD));
       RecordMapper<Record, BigDecimal> valueMapper = r -> r.get(REFERENCE_PRICE_FIELD);
       Map<TickerSpec, BigDecimal> unfiltered = dsl

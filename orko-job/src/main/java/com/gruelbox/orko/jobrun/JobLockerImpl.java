@@ -70,7 +70,7 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
   @VisibleForTesting
   void cleanup(LocalDateTime localDateTime) {
     long expiry = localDateTime.toEpochSecond(UTC);
-    connectionSource.runInTransaction(dsl -> dsl.deleteFrom(TABLE).where(EXPIRES_FIELD.lessOrEqual(expiry)).execute());
+    connectionSource.withNewConnection(dsl -> dsl.deleteFrom(TABLE).where(EXPIRES_FIELD.lessOrEqual(expiry)).execute());
   }
 
   @Override
@@ -86,7 +86,7 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
   @VisibleForTesting
   boolean attemptLock(String jobId, UUID uuid, LocalDateTime dateTime) {
     try {
-      return connectionSource.getInTransaction(dsl -> dsl.insertInto(TABLE).values(jobId, uuid.toString(), newExpiryDate(dateTime)).execute()) == 1;
+      return connectionSource.getWithNewConnection(dsl -> dsl.insertInto(TABLE).values(jobId, uuid.toString(), newExpiryDate(dateTime)).execute()) == 1;
     } catch (DataAccessException e) {
       return false;
     }
@@ -99,7 +99,7 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
 
   @VisibleForTesting
   boolean updateLock(String jobId, UUID uuid, LocalDateTime dateTime) {
-    return connectionSource.getInTransaction(dsl -> dsl.update(TABLE).set(EXPIRES_FIELD, newExpiryDate(dateTime)).where(fullKeyMatch(jobId, uuid)).execute()) != 0;
+    return connectionSource.getWithNewConnection(dsl -> dsl.update(TABLE).set(EXPIRES_FIELD, newExpiryDate(dateTime)).where(fullKeyMatch(jobId, uuid)).execute()) != 0;
   }
 
   private long newExpiryDate(LocalDateTime dateTime) {
@@ -108,7 +108,7 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
 
   @Override
   public void releaseLock(String jobId, UUID uuid) {
-    connectionSource.runInTransaction(dsl -> dsl.delete(TABLE).where(fullKeyMatch(jobId, uuid)).execute());
+    connectionSource.withNewConnection(dsl -> dsl.delete(TABLE).where(fullKeyMatch(jobId, uuid)).execute());
   }
 
   private Condition fullKeyMatch(String jobId, UUID uuid) {
@@ -117,12 +117,12 @@ class JobLockerImpl implements JobLocker, Managed, TableContribution {
 
   @Override
   public void releaseAnyLock(String jobId) {
-    connectionSource.runInTransaction(dsl -> dsl.delete(TABLE).where(JOB_ID_FIELD.eq(jobId)).execute());
+    connectionSource.withNewConnection(dsl -> dsl.delete(TABLE).where(JOB_ID_FIELD.eq(jobId)).execute());
   }
 
   @Override
   public void releaseAllLocks() {
-    connectionSource.runInTransaction(dsl -> dsl.delete(TABLE).execute());
+    connectionSource.withNewConnection(dsl -> dsl.delete(TABLE).execute());
   }
 
   @Override

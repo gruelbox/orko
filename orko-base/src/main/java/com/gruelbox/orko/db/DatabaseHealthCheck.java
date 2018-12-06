@@ -23,7 +23,7 @@ class DatabaseHealthCheck extends HealthCheck {
 
   @Override
   protected Result check() throws Exception {
-    return connectionSource.getInTransaction(dsl -> {
+    return connectionSource.getWithNewConnection(dsl -> {
       Integer value = dsl.select(val(1)).fetchSingle(0, Integer.class);
       return value == 1 ? Result.healthy() : Result.unhealthy("Whut");
     });

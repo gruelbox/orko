@@ -77,7 +77,7 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, TableContribution, Man
   @VisibleForTesting
   void cleanup() {
     long expiry = LocalDateTime.now().toEpochSecond(UTC);
-    connectionSource.runInTransaction(dsl -> dsl.deleteFrom(IP_WHITELIST_TABLE).where(EXPIRES_FIELD.lessOrEqual(expiry)).execute());
+    connectionSource.withNewConnection(dsl -> dsl.deleteFrom(IP_WHITELIST_TABLE).where(EXPIRES_FIELD.lessOrEqual(expiry)).execute());
   }
   
   @Override
@@ -85,7 +85,7 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, TableContribution, Man
     if (authConfiguration.getIpWhitelisting() == null)
       return;
     Preconditions.checkNotNull(ip);
-    connectionSource.runInTransaction(dsl -> {
+    connectionSource.withNewConnection(dsl -> {
       if (!existsInner(ip, dsl)) {
         dsl.insertInto(IP_WHITELIST_TABLE).values(ip, newExpiryDate()).execute();
       }
@@ -98,12 +98,12 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, TableContribution, Man
 
   @Override
   public synchronized void delete(String ip) {
-    connectionSource.runInTransaction(dsl -> dsl.deleteFrom(IP_WHITELIST_TABLE).where(IP_FIELD.eq(ip)).execute());
+    connectionSource.withNewConnection(dsl -> dsl.deleteFrom(IP_WHITELIST_TABLE).where(IP_FIELD.eq(ip)).execute());
   }
 
   @Override
   public synchronized boolean exists(String ip) {
-    return connectionSource.getInTransaction(dsl -> existsInner(ip, dsl));
+    return connectionSource.getWithNewConnection(dsl -> existsInner(ip, dsl));
   }
   
   private boolean existsInner(String ip, DSLContext dsl) {
