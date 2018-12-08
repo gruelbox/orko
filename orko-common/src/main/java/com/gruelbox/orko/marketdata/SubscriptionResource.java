@@ -23,6 +23,8 @@ import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
+import io.dropwizard.hibernate.UnitOfWork;
+
 /**
  * Access to exchange information.
  */
@@ -33,22 +35,27 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 public class SubscriptionResource implements WebResource {
 
   private final PermanentSubscriptionManager permanentSubscriptionManager;
+  private final PermanentSubscriptionAccess permanentSubscriptionAccess;
 
   @Inject
-  SubscriptionResource(PermanentSubscriptionManager permanentSubscriptionManager) {
+  SubscriptionResource(PermanentSubscriptionManager permanentSubscriptionManager,
+                       PermanentSubscriptionAccess permanentSubscriptionAccess) {
     this.permanentSubscriptionManager = permanentSubscriptionManager;
+    this.permanentSubscriptionAccess = permanentSubscriptionAccess;
   }
 
 
   @GET
   @Timed
+  @UnitOfWork(readOnly = true)
   @RolesAllowed(Roles.TRADER)
   public Collection<TickerSpec> list() {
-    return permanentSubscriptionManager.all();
+    return permanentSubscriptionAccess.all();
   }
 
   @PUT
   @Timed
+  @UnitOfWork
   @RolesAllowed(Roles.TRADER)
   public void put(TickerSpec spec) {
     permanentSubscriptionManager.add(spec);
@@ -56,27 +63,30 @@ public class SubscriptionResource implements WebResource {
 
   @GET
   @Timed
+  @UnitOfWork(readOnly = true)
   @Path("referencePrices")
   @RolesAllowed(Roles.TRADER)
   public Map<String, BigDecimal> listReferencePrices() {
-    Map<String, Entry<TickerSpec, BigDecimal>> rekeyed = Maps.uniqueIndex(permanentSubscriptionManager.referencePrices().entrySet(), e -> e.getKey().key());
+    Map<String, Entry<TickerSpec, BigDecimal>> rekeyed = Maps.uniqueIndex(permanentSubscriptionAccess.getReferencePrices().entrySet(), e -> e.getKey().key());
     Map<String, BigDecimal> result = Maps.transformValues(rekeyed, e -> e.getValue());
     return result;
   }
 
   @PUT
   @Timed
+  @UnitOfWork
   @Path("referencePrices/{exchange}/{base}-{counter}")
   @RolesAllowed(Roles.TRADER)
   public void setReferencePrice(@PathParam("exchange") String exchange,
                                 @PathParam("counter") String counter,
                                 @PathParam("base") String base,
                                 BigDecimal price) {
-    permanentSubscriptionManager.setReferencePrice(TickerSpec.builder().exchange(exchange).base(base).counter(counter).build(), price);
+    permanentSubscriptionAccess.setReferencePrice(TickerSpec.builder().exchange(exchange).base(base).counter(counter).build(), price);
   }
 
   @DELETE
   @Timed
+  @UnitOfWork
   @RolesAllowed(Roles.TRADER)
   public void delete(TickerSpec spec) {
     permanentSubscriptionManager.remove(spec);

@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import com.google.inject.util.Providers;
 import com.gruelbox.orko.db.DbTesting;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.dropwizard.testing.junit.DAOTestRule;
@@ -22,29 +23,44 @@ import io.dropwizard.testing.junit.DAOTestRule;
 public class TestPermanentSubscriptionAccess {
 
   @Rule
-  public DAOTestRule database = DbTesting.rule().build();
+  public DAOTestRule database = DbTesting.rule()
+    .addEntityClass(PermanentSubscription.class)
+    .build();
 
   private static final TickerSpec TICKER_1 = TickerSpec.builder().exchange("foo").base("XX1").counter("YYYYY").build();
   private static final TickerSpec TICKER_2 = TickerSpec.builder().exchange("foo").base("XX2").counter("YYYYY").build();
   private static final TickerSpec TICKER_3 = TickerSpec.builder().exchange("foo").base("XX3").counter("YYYYY").build();
 
-  private PermanentSubscriptionAccessImpl dao;
+  private PermanentSubscriptionAccess dao;
+  private Transactionally transactionally;
 
   @Before
   public void setup() {
-    dao = new PermanentSubscriptionAccessImpl(DbTesting.connectionSource(database.getSessionFactory()), Providers.of(DbTesting.connectionResources()));
+    dao = new PermanentSubscriptionAccess(Providers.of(database.getSessionFactory()));
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(dao.tables()));
+    transactionally = new Transactionally(database.getSessionFactory());
   }
 
   @Test
   public void testAll() {
-    dao.add(TICKER_1);
-    dao.add(TICKER_2);
-    dao.add(TICKER_3);
-    dao.remove(TICKER_2);
-    dao.setReferencePrice(TICKER_3, ONE);
-    assertThat(dao.all(), containsInAnyOrder(TICKER_1, TICKER_3));
-    Map<TickerSpec, BigDecimal> referencePrices = dao.getReferencePrices();
-    assertTrue(referencePrices.get(TICKER_3).compareTo(ONE) == 0);
+    transactionally.run(() -> {
+      dao.add(TICKER_1);
+      dao.add(TICKER_2);
+      dao.add(TICKER_3);
+    });
+    transactionally.run(() -> dao.remove(TICKER_2));
+    transactionally.run(() -> dao.setReferencePrice(TICKER_3, ONE));
+    transactionally.run(() -> {
+      assertThat(dao.all(), containsInAnyOrder(TICKER_1, TICKER_3));
+      Map<TickerSpec, BigDecimal> referencePrices = dao.getReferencePrices();
+      assertTrue(referencePrices.get(TICKER_3).compareTo(ONE) == 0);
+    });
+  }
+
+  @Test
+  public void testReplace() {
+    transactionally.run(() -> dao.add(TICKER_1));
+    transactionally.run(() -> dao.add(TICKER_1));
+    transactionally.run(() -> assertThat(dao.all(), containsInAnyOrder(TICKER_1)));
   }
 }

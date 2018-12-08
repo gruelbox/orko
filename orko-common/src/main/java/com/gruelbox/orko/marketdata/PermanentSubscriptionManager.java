@@ -7,9 +7,7 @@ import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
 
-import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -19,6 +17,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
@@ -32,20 +31,23 @@ class PermanentSubscriptionManager implements Managed {
 
   private final PermanentSubscriptionAccess permanentSubscriptionAccess;
   private final ExchangeEventRegistry exchangeEventRegistry;
+  private final Transactionally transactionally;
 
   private volatile ExchangeEventSubscription subscription;
 
   @Inject
   PermanentSubscriptionManager(PermanentSubscriptionAccess permanentSubscriptionAccess,
-                               ExchangeEventRegistry exchangeEventRegistry) {
+                               ExchangeEventRegistry exchangeEventRegistry,
+                               Transactionally transactionally) {
     this.permanentSubscriptionAccess = permanentSubscriptionAccess;
     this.exchangeEventRegistry = exchangeEventRegistry;
+    this.transactionally = transactionally;
   }
 
   @Override
   public void start() throws Exception {
     subscription = exchangeEventRegistry.subscribe();
-    update();
+    transactionally.run(Transactionally.READ_ONLY_UNIT, this::update);
   }
 
   @Override
@@ -59,26 +61,14 @@ class PermanentSubscriptionManager implements Managed {
     subscription = subscription.replace(all);
   }
 
-  public void add(TickerSpec spec) {
+  void add(TickerSpec spec) {
     permanentSubscriptionAccess.add(spec);
     update();
   }
 
-  public void remove(TickerSpec spec) {
+  void remove(TickerSpec spec) {
     permanentSubscriptionAccess.remove(spec);
     update();
-  }
-
-  public Collection<TickerSpec> all() {
-    return permanentSubscriptionAccess.all();
-  }
-
-  public void setReferencePrice(TickerSpec tickerSpec, BigDecimal price) {
-    permanentSubscriptionAccess.setReferencePrice(tickerSpec, price);
-  }
-
-  public Map<TickerSpec, BigDecimal> referencePrices() {
-    return permanentSubscriptionAccess.getReferencePrices();
   }
 
   private Collection<MarketDataSubscription> subscriptionsFor(TickerSpec spec) {
