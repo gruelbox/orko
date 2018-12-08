@@ -25,6 +25,7 @@ public class DatabaseAccessModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), UpgradeStep.class);
     Multibinder.newSetBinder(binder(), TableContribution.class);
     Multibinder.newSetBinder(binder(), View.class);
+    Multibinder.newSetBinder(binder(), EntityContribution.class);
   }
 
   @Provides

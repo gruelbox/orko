@@ -24,6 +24,10 @@
       <artifactId>dropwizard-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-hibernate</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.gruelbox</groupId>
       <artifactId>dropwizard-guice-box</artifactId>
     </dependency>

@@ -6,7 +6,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
@@ -30,12 +29,14 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
    */
   @NotNull
   @Min(1L)
+  @JsonProperty
   private int loopSeconds = 15;
 
   /**
    * Authentication configuration
    */
   @NotNull
+  @JsonProperty
   private AuthConfiguration auth;
 
   /**
@@ -43,16 +44,19 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
    * volatile in-memory storage, which is obviously fine for trying things
    * out but quickly becomes useless in real life.
    */
+  @JsonProperty
   private DbConfiguration database = new DbConfiguration();
 
   /**
    * Telegram configuration. Currently required for notifications.  Can
    * be left out but then you have no idea what the application is doing.
    */
+  @JsonProperty
   private TelegramConfiguration telegram;
 
   @Valid
   @NotNull
+  @JsonProperty("jerseyClient")
   private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
 
   private Map<String, ExchangeConfiguration> exchanges;
@@ -61,62 +65,50 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     super();
   }
 
-  @JsonProperty
   public int getLoopSeconds() {
     return loopSeconds;
   }
 
-  @JsonProperty
   public void setLoopSeconds(int loopSeconds) {
     this.loopSeconds = loopSeconds;
   }
 
-  @JsonProperty
   public AuthConfiguration getAuth() {
     return auth;
   }
 
-  @JsonProperty
   public void setAuth(AuthConfiguration auth) {
     this.auth = auth;
   }
 
-  @JsonProperty
   public DbConfiguration getDatabase() {
     return database;
   }
 
-  @JsonProperty
   public void setDatabase(DbConfiguration database) {
     this.database = database;
   }
 
-  @JsonProperty
   public TelegramConfiguration getTelegram() {
     return telegram;
   }
 
-  @JsonProperty
   public void setTelegram(TelegramConfiguration telegram) {
     this.telegram = telegram;
   }
 
-  @JsonProperty
   public Map<String, ExchangeConfiguration> getExchanges() {
     return exchanges;
   }
 
-  @JsonProperty
   public void setExchanges(Map<String, ExchangeConfiguration> exchange) {
     exchanges = exchange;
   }
 
-  @JsonProperty("jerseyClient")
   public JerseyClientConfiguration getJerseyClientConfiguration() {
       return jerseyClient;
   }
 
-  @JsonProperty("jerseyClient")
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
       this.jerseyClient = jerseyClient;
   }
@@ -131,7 +123,6 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     return auth == null ? false : auth.isHttpsOnly();
   }
 
-  @JsonIgnore
   @Override
   public HttpsResponsibility getHttpResponsibility() {
     if (auth == null) {

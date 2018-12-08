@@ -26,7 +26,7 @@ import io.dropwizard.testing.junit.ResourceTestRule;
 public class TestIpWhitelistingResource {
 
   private static AuthConfiguration authConfiguration = new AuthConfiguration();
-  private static final IpWhitelisting ipWhitelisting = mock(IpWhitelisting.class);
+  private static final IpWhitelistingService ipWhitelisting = mock(IpWhitelistingService.class);
   private static final RequestUtils requestUtils = mock(RequestUtils.class);
   private static final Blacklisting blackListing;
   

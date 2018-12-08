@@ -84,7 +84,7 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev surefire:test -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+      - run: mvn -Pwebdev surefire:test -Dmorf.mysql.noadmin=true -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
 
       - run:
           name: Saving test results (MySQL)

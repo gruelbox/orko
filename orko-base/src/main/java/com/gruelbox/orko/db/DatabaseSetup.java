@@ -15,10 +15,10 @@ import org.alfasoftware.morf.upgrade.Upgrade;
 import org.alfasoftware.morf.upgrade.UpgradeStep;
 
 public class DatabaseSetup {
-  
-  private Schema targetSchema;
-  private ConnectionResources connectionResources;
-  private Set<TableContribution> tableContributions;
+
+  private final Schema targetSchema;
+  private final ConnectionResources connectionResources;
+  private final Set<TableContribution> tableContributions;
 
   @Inject
   DatabaseSetup(Schema targetSchema, ConnectionResources connectionResources, Set<TableContribution> tableContributions) {
@@ -28,7 +28,6 @@ public class DatabaseSetup {
   }
 
   public void setup() {
-    System.setProperty("morf.mysql.noadmin", "true");
     try (SchemaResource currentSchema = connectionResources.openSchemaResource()) {
       Set<Class<? extends UpgradeStep>> upgradeSteps = tableContributions.stream().flatMap(c -> c.schemaUpgradeClassses().stream()).collect(toSet());
       if (currentSchema.isEmptyDatabase()) {

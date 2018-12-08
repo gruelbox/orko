@@ -10,26 +10,32 @@ import java.util.Map;
 
 import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.inject.util.Providers;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.spi.TickerSpec;
 
+import io.dropwizard.testing.junit.DAOTestRule;
+
 public class TestPermanentSubscriptionAccess {
-  
+
+  @Rule
+  public DAOTestRule database = DbTesting.rule().build();
+
   private static final TickerSpec TICKER_1 = TickerSpec.builder().exchange("foo").base("XX1").counter("YYYYY").build();
   private static final TickerSpec TICKER_2 = TickerSpec.builder().exchange("foo").base("XX2").counter("YYYYY").build();
   private static final TickerSpec TICKER_3 = TickerSpec.builder().exchange("foo").base("XX3").counter("YYYYY").build();
-  
+
   private PermanentSubscriptionAccessImpl dao;
 
   @Before
   public void setup() {
-    dao = new PermanentSubscriptionAccessImpl(DbTesting.connectionSource(), Providers.of(DbTesting.connectionResources()));
+    dao = new PermanentSubscriptionAccessImpl(DbTesting.connectionSource(database.getSessionFactory()), Providers.of(DbTesting.connectionResources()));
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(dao.tables()));
   }
-  
+
   @Test
   public void testAll() {
     dao.add(TICKER_1);

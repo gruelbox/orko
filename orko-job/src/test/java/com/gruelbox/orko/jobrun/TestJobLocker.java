@@ -8,12 +8,18 @@ import java.util.UUID;
 
 import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
+import io.dropwizard.testing.junit.DAOTestRule;
+
 public class TestJobLocker {
+
+  @Rule
+  public DAOTestRule database = DbTesting.rule().build();
 
   private static final UUID OWNER_1 = UUID.randomUUID();
   private static final UUID OWNER_2 = UUID.randomUUID();
@@ -26,7 +32,7 @@ public class TestJobLocker {
   public void setup() throws Exception {
     JobRunConfiguration configuration = new JobRunConfiguration();
     configuration.setDatabaseLockSeconds(3);
-    dao = new JobLockerImpl(configuration, DbTesting.connectionSource());
+    dao = new JobLockerImpl(configuration, DbTesting.connectionSource(database.getSessionFactory()));
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(dao.tables()));
   }
 

@@ -43,6 +43,7 @@
               <healthcheckUrl>http://localhost:8080/</healthcheckUrl>
               <arguments>
                 <argument>java</argument>
+                <argument>-Dmorf.mysql.noadmin=true</argument>
                 <argument>-cp</argument>
                 <argument>target/classes:target/dependency/*</argument>
                 <argument>com.gruelbox.orko.app.monolith.MonolithApplication</argument>

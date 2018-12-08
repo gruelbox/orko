@@ -10,13 +10,15 @@ import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.RequestUtils;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
+import io.dropwizard.hibernate.UnitOfWork;
+
 /**
  * Only one IP can be whitelisted at a time and requires 2FA.
  */
 @Singleton
-class IpWhitelisting {
+class IpWhitelistingService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IpWhitelisting.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(IpWhitelistingService.class);
 
   private final Provider<RequestUtils> requestUtils;
   private final IGoogleAuthenticator googleAuthenticator;
@@ -24,16 +26,22 @@ class IpWhitelisting {
   private final Provider<IpWhitelistAccess> ipWhitelistAccess;
 
   @Inject
-  IpWhitelisting(Provider<RequestUtils> requestUtils,
-                 IGoogleAuthenticator googleAuthenticator,
-                 AuthConfiguration configuration,
-                 Provider<IpWhitelistAccess> ipWhitelistAccess) {
+  IpWhitelistingService(Provider<RequestUtils> requestUtils,
+                        IGoogleAuthenticator googleAuthenticator,
+                        AuthConfiguration configuration,
+                        Provider<IpWhitelistAccess> ipWhitelistAccess) {
     this.requestUtils = requestUtils;
     this.googleAuthenticator = googleAuthenticator;
     this.configuration = configuration;
     this.ipWhitelistAccess = ipWhitelistAccess;
   }
 
+
+  /**
+   * Checks if the current IP is an authorised IP.
+   *
+   * @return True if authorised.
+   */
   public boolean authoriseIp() {
     if (isDisabled())
       return true;
@@ -45,6 +53,13 @@ class IpWhitelisting {
     return true;
   }
 
+  /**
+   * Marks the current request IP as authorised. Requires
+   * an ongoing transaction or {@link UnitOfWork}.
+   *
+   * @param token The attempted 2FA token.
+   * @return True if success.
+   */
   public boolean whiteListRequestIp(int token) {
     if (isDisabled())
       return true;
@@ -58,12 +73,17 @@ class IpWhitelisting {
     return true;
   }
 
+  /**
+   * Remove authorisation for the current IP.
+   *
+   * @return true if anything actually happened.
+   */
   public boolean deWhitelistIp() {
     if (isDisabled())
       return false;
     if (!authoriseIp())
       return false;
-    
+
     ipWhitelistAccess.get().delete(requestUtils.get().sourceIp());
     return true;
   }
