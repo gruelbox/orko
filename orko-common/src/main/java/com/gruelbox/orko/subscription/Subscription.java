@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,12 +32,8 @@ final class Subscription {
   @JsonProperty
   private BigDecimal referencePrice;
 
-  @Version
-  @Column(nullable = false)
-  private int version;
-
   Subscription() {
-
+    // Nothing to do
   }
 
   Subscription(TickerSpec ticker, BigDecimal referencePrice) {

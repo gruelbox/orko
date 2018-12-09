@@ -1,68 +1,94 @@
 package com.gruelbox.orko.jobrun;
 
-import static java.util.stream.Collectors.toList;
-import static org.alfasoftware.morf.metadata.SchemaUtils.column;
-import static org.alfasoftware.morf.metadata.SchemaUtils.index;
-import static org.alfasoftware.morf.metadata.SchemaUtils.table;
+import static com.gruelbox.orko.jobrun.JobRecord.TABLE_NAME;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
-import org.alfasoftware.morf.metadata.DataType;
-import org.alfasoftware.morf.metadata.Table;
-import org.alfasoftware.morf.upgrade.TableContribution;
-import org.alfasoftware.morf.upgrade.UpgradeStep;
-import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.exception.DataAccessException;
-import org.jooq.exception.NoDataFoundException;
-import org.jooq.impl.DSL;
+import javax.persistence.PersistenceException;
+
+import org.hibernate.LockMode;
+import org.hibernate.NonUniqueObjectException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.exception.ConstraintViolationException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.db.ConnectionSource;
 import com.gruelbox.orko.jobrun.spi.Job;
 
 @Singleton
-class JobAccessImpl implements JobAccess, TableContribution {
-  
-  private static final String JOB = "Job";
-  private static final org.jooq.Table<Record> TABLE = DSL.table(JOB);
-  private static final String ID = "id";
-  private static final Field<String> ID_FIELD = DSL.field(ID, String.class);
-  private static final String CONTENT = "content";
-  private static final Field<String> CONTENT_FIELD = DSL.field(CONTENT, String.class);
-  private static final String PROCESSED = "processed";
-  private static final Field<Boolean> PROCESSED_FIELD = DSL.field(PROCESSED, Boolean.class);
-  
-  private ConnectionSource connectionSource;
-  private ObjectMapper objectMapper;
+class JobAccessImpl implements JobAccess {
+
+  private final ObjectMapper objectMapper;
+  private final Provider<SessionFactory> sessionFactory;
 
   @Inject
-  JobAccessImpl(ConnectionSource connectionSource, ObjectMapper objectMapper) {
-    this.connectionSource = connectionSource;
+  JobAccessImpl(Provider<SessionFactory> sessionFactory, ObjectMapper objectMapper) {
+    this.sessionFactory = sessionFactory;
     this.objectMapper = objectMapper;
   }
-  
+
   @Override
   public void insert(Job job) throws JobAlreadyExistsException {
-    MutableBoolean exists = new MutableBoolean();
-    connectionSource.withNewConnection(dsl -> {
-      try {
-        dsl.insertInto(TABLE).values(job.id(), encode(job), false).execute();
-      } catch (DataAccessException e) {
-        if (!dsl.select(DSL.val(1)).from(TABLE).where(ID_FIELD.eq(job.id())).fetch().isEmpty()) {
-          exists.setTrue();
-        }
-      }
-    });
-    if (exists.getValue())
+    JobRecord record = new JobRecord(job.id(), encode(job), false);
+    try {
+      session().save(record);
+      session().flush();
+    } catch (NonUniqueObjectException e) {
       throw new JobAlreadyExistsException();
+    } catch (PersistenceException e) {
+      if (e.getCause() instanceof ConstraintViolationException) {
+        throw new JobAlreadyExistsException();
+      }
+      throw e;
+    }
+  }
+
+  @Override
+  public void update(Job job) {
+    JobRecord jobRecord = fetchAndLockRecord(job.id());
+    jobRecord.setContent(encode(job));
+    session().update(jobRecord);
+  }
+
+  @Override
+  public Job load(String id) {
+    return decode(fetchRecord(id).getContent());
+  }
+
+  @Override
+  public Iterable<Job> list() {
+    List<JobRecord> results = session().createQuery("from " + TABLE_NAME + " where processed = false", JobRecord.class).list();
+    return FluentIterable.from(results)
+        .transform(JobRecord::getContent)
+        .transform(this::decode);
+  }
+
+  @Override
+  public void delete(String jobId) {
+    int updated = session()
+      .createQuery("update " + TABLE_NAME + " set processed = true where id = :id and processed = false")
+      .setParameter("id", jobId)
+      .executeUpdate();
+    if (updated == 0) {
+      throw new JobDoesNotExistException();
+    }
+  }
+
+  @Override
+  public void deleteAll() {
+    session()
+      .createQuery("update " + TABLE_NAME + " set processed = true where processed = false")
+      .executeUpdate();
+  }
+
+  private Session session() {
+    return sessionFactory.get().getCurrentSession();
   }
 
   private String encode(Job job) {
@@ -72,7 +98,7 @@ class JobAccessImpl implements JobAccess, TableContribution {
       throw new RuntimeException(e);
     }
   }
-  
+
   private Job decode(String str) {
     try {
       return objectMapper.readValue(str, Job.class);
@@ -81,76 +107,19 @@ class JobAccessImpl implements JobAccess, TableContribution {
     }
   }
 
-  @Override
-  public void update(Job job) {
-    int updated = connectionSource.getWithNewConnection(dsl -> dsl.update(TABLE).set(CONTENT_FIELD, encode(job)).where(ID_FIELD.eq(job.id())).execute());
-    if (updated == 0) {
+  private JobRecord fetchAndLockRecord(String id) {
+    JobRecord jobRecord = session().get(JobRecord.class, id, LockMode.PESSIMISTIC_WRITE);
+    if (jobRecord == null || jobRecord.isProcessed()) {
       throw new JobDoesNotExistException();
     }
+    return jobRecord;
   }
 
-  @Override
-  public Job load(String id) {
-    try {
-      return decode(connectionSource.getWithNewConnection(dsl -> dsl
-          .select(CONTENT_FIELD)
-          .from(TABLE)
-          .where(ID_FIELD.eq(id).and(PROCESSED_FIELD.eq(false)))
-          .fetchSingle(CONTENT_FIELD)
-      ));
-    } catch (NoDataFoundException e) {
+  private JobRecord fetchRecord(String id) {
+    JobRecord jobRecord = session().get(JobRecord.class, id);
+    if (jobRecord == null || jobRecord.isProcessed()) {
       throw new JobDoesNotExistException();
     }
-  }
-
-  @Override
-  public Iterable<Job> list() {
-    return connectionSource.getWithNewConnection(dsl -> dsl
-        .select(CONTENT_FIELD)
-        .from(TABLE)
-        .where(PROCESSED_FIELD.eq(false))
-        .fetch(CONTENT_FIELD)
-        .stream()
-        .map(this::decode)
-        .collect(toList())
-    );
-  }
-
-  @Override
-  public void delete(String jobId) {
-    int updated = connectionSource.getWithNewConnection(dsl -> dsl.update(TABLE).set(PROCESSED_FIELD, true).where(ID_FIELD.eq(jobId)).execute());
-    if (updated == 0) {
-      throw new JobDoesNotExistException();
-    }
-  }
-
-  @Override
-  public void deleteAll() {
-    connectionSource.withNewConnection(dsl -> dsl.update(TABLE).set(PROCESSED_FIELD, true).execute());
-  }
-
-  @Override
-  public Collection<Table> tables() {
-    return tablesStatic();
-  }
-  
-  @VisibleForTesting
-  static Collection<Table> tablesStatic() {
-    return ImmutableList.of(
-      table(JOB)
-        .columns(
-          column(ID, DataType.STRING, 45).primaryKey(),
-          column(CONTENT, DataType.CLOB).nullable(),
-          column(PROCESSED, DataType.BOOLEAN)
-        )
-        .indexes(
-          index(JOB + "_1").columns(PROCESSED)
-        )
-    );
-  }
-
-  @Override
-  public Collection<Class<? extends UpgradeStep>> schemaUpgradeClassses() {
-    return ImmutableList.of();
+    return jobRecord;
   }
 }

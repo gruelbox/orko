@@ -33,7 +33,7 @@ final class IpWhitelist {
   private long expires;
 
   IpWhitelist() {
-
+    // Nothing to do
   }
 
   IpWhitelist(String ip, long expires) {

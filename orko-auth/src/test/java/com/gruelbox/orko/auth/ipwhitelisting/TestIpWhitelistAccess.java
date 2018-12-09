@@ -33,8 +33,7 @@ public class TestIpWhitelistAccess {
     authConfiguration.getIpWhitelisting().setWhitelistExpirySeconds(3);
     transactionally = new Transactionally(database.getSessionFactory());
     dao = new IpWhitelistAccessImpl(Providers.of(database.getSessionFactory()), transactionally, authConfiguration);
-    DbTesting.mutateToSupportSchema(SchemaUtils.schema(dao.tables()));
-
+    DbTesting.mutateToSupportSchema(SchemaUtils.schema(new IpWhitelistContribution().tables()));
     dao.start();
   }
 

@@ -118,7 +118,11 @@ public class Transactionally {
     return call(DEFAULT_UNIT, callable);
   }
 
-  public <T> T call(UnitOfWork unitOfWork, Callable<T> callable) {
+  public <T> T callChecked(Callable<T> callable) throws Exception {
+    return callChecked(DEFAULT_UNIT, callable);
+  }
+
+  public <T> T callChecked(UnitOfWork unitOfWork, Callable<T> callable) throws Exception {
     UnitOfWorkAspect unitOfWorkAspect = new UnitOfWorkAspect(ImmutableMap.of(HibernateBundle.DEFAULT_NAME, sessionFactory.get()));
     try {
       unitOfWorkAspect.beforeStart(unitOfWork);
@@ -127,10 +131,18 @@ public class Transactionally {
       return result;
     } catch (Exception e) {
       unitOfWorkAspect.onError();
-      Throwables.throwIfUnchecked(e);
-      throw new RuntimeException(e);
+      throw e;
     } finally {
       unitOfWorkAspect.onFinish();
+    }
+  }
+
+  public <T> T call(UnitOfWork unitOfWork, Callable<T> callable) {
+    try {
+      return callChecked(unitOfWork, callable);
+    } catch (Exception e) {
+      Throwables.throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
   }
 }

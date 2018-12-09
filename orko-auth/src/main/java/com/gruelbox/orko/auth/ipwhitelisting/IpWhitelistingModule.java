@@ -14,8 +14,8 @@ public class IpWhitelistingModule extends AbstractModule {
   protected void configure() {
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(IpWhitelistingResource.class);
 
-    Multibinder.newSetBinder(binder(), TableContribution.class).addBinding().to(IpWhitelistAccessImpl.class);
-    Multibinder.newSetBinder(binder(), EntityContribution.class).addBinding().to(IpWhitelistAccessImpl.class);
+    Multibinder.newSetBinder(binder(), TableContribution.class).addBinding().to(IpWhitelistContribution.class);
+    Multibinder.newSetBinder(binder(), EntityContribution.class).addBinding().to(IpWhitelistContribution.class);
     Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(IpWhitelistAccessImpl.class);
   }
 }

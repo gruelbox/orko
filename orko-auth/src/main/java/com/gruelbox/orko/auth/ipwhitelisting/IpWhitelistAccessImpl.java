@@ -1,28 +1,18 @@
 package com.gruelbox.orko.auth.ipwhitelisting;
 
 import static java.time.ZoneOffset.UTC;
-import static org.alfasoftware.morf.metadata.SchemaUtils.column;
-import static org.alfasoftware.morf.metadata.SchemaUtils.index;
-import static org.alfasoftware.morf.metadata.SchemaUtils.table;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
-import org.alfasoftware.morf.metadata.DataType;
-import org.alfasoftware.morf.metadata.Table;
-import org.alfasoftware.morf.upgrade.TableContribution;
-import org.alfasoftware.morf.upgrade.UpgradeStep;
 import org.hibernate.SessionFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.auth.AuthConfiguration;
-import com.gruelbox.orko.db.EntityContribution;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.util.SafelyDispose;
 
@@ -32,7 +22,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 @Singleton
-class IpWhitelistAccessImpl implements IpWhitelistAccess, TableContribution, EntityContribution, Managed {
+class IpWhitelistAccessImpl implements IpWhitelistAccess, Managed {
 
   private final AuthConfiguration authConfiguration;
   private final Provider<SessionFactory> sessionFactory;
@@ -102,29 +92,5 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, TableContribution, Ent
   @Override
   public synchronized boolean exists(String ip) {
     return sessionFactory.get().getCurrentSession().get(IpWhitelist.class, ip) != null;
-  }
-
-  @Override
-  public Collection<Table> tables() {
-    return ImmutableList.of(
-      table(IpWhitelist.TABLE_NAME)
-        .columns(
-          column(IpWhitelist.IP, DataType.STRING, 45).primaryKey(),
-          column(IpWhitelist.EXPIRES, DataType.BIG_INTEGER)
-        )
-        .indexes(
-          index(IpWhitelist.TABLE_NAME + "_1").columns("expires")
-        )
-    );
-  }
-
-  @Override
-  public Collection<Class<? extends UpgradeStep>> schemaUpgradeClassses() {
-    return ImmutableList.of();
-  }
-
-  @Override
-  public Iterable<Class<?>> getEntities() {
-    return ImmutableList.of(IpWhitelist.class);
   }
 }
