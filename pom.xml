@@ -339,16 +339,46 @@
         <groupId>${morf.groupid}</groupId>
         <artifactId>morf-core</artifactId>
         <version>${morf.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>${morf.groupid}</groupId>
         <artifactId>morf-h2</artifactId>
         <version>${morf.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>${morf.groupid}</groupId>
         <artifactId>morf-mysql</artifactId>
         <version>${morf.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.jooq</groupId>
@@ -591,6 +621,14 @@
                 <requireMavenVersion>
                   <version>[${min_maven_version},)</version>
                 </requireMavenVersion>
+              </rules>
+              <rules>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>log4j:log4j</exclude>
+                    <exclude>commons-logging:commons-logging</exclude>
+                  </excludes>
+                </bannedDependencies>
               </rules>
             </configuration>
           </execution>
