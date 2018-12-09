@@ -27,21 +27,21 @@ import com.gruelbox.orko.util.SafelyClose;
 import io.dropwizard.lifecycle.Managed;
 
 @Singleton
-class PermanentSubscriptionManager implements Managed {
+class SubscriptionManager implements Managed {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PermanentSubscriptionManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionManager.class);
 
-  private final PermanentSubscriptionAccess permanentSubscriptionAccess;
+  private final SubscriptionAccess subscriptionAccess;
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final Transactionally transactionally;
 
   private volatile ExchangeEventSubscription subscription;
 
   @Inject
-  PermanentSubscriptionManager(PermanentSubscriptionAccess permanentSubscriptionAccess,
+  SubscriptionManager(SubscriptionAccess subscriptionAccess,
                                ExchangeEventRegistry exchangeEventRegistry,
                                Transactionally transactionally) {
-    this.permanentSubscriptionAccess = permanentSubscriptionAccess;
+    this.subscriptionAccess = subscriptionAccess;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.transactionally = transactionally;
   }
@@ -58,18 +58,18 @@ class PermanentSubscriptionManager implements Managed {
   }
 
   private void update() {
-    Set<MarketDataSubscription> all = FluentIterable.from(permanentSubscriptionAccess.all()).transformAndConcat(this::subscriptionsFor).toSet();
+    Set<MarketDataSubscription> all = FluentIterable.from(subscriptionAccess.all()).transformAndConcat(this::subscriptionsFor).toSet();
     LOGGER.info("Updating permanent subscriptions to {}", all);
     subscription = subscription.replace(all);
   }
 
   void add(TickerSpec spec) {
-    permanentSubscriptionAccess.add(spec);
+    subscriptionAccess.add(spec);
     update();
   }
 
   void remove(TickerSpec spec) {
-    permanentSubscriptionAccess.remove(spec);
+    subscriptionAccess.remove(spec);
     update();
   }
 

@@ -8,7 +8,9 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Persistence object for IP whitelisting.
+ * Persistence object for IP whitelisting. All properties are
+ * private; this thing is only ever tested for existence or
+ * deleted using HQL.
  *
  * @author Graham Crockford
  */
@@ -23,12 +25,12 @@ final class IpWhitelist {
   @Column(name = IP, nullable = false)
   @NotNull
   @JsonProperty
-  String ip;
+  private String ip;
 
   @Column(name = EXPIRES, nullable = false)
   @NotNull
   @JsonProperty
-  long expires;
+  private long expires;
 
   IpWhitelist() {
 

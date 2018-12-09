@@ -34,14 +34,14 @@ import io.dropwizard.hibernate.UnitOfWork;
 @Singleton
 public class SubscriptionResource implements WebResource {
 
-  private final PermanentSubscriptionManager permanentSubscriptionManager;
-  private final PermanentSubscriptionAccess permanentSubscriptionAccess;
+  private final SubscriptionManager subscriptionManager;
+  private final SubscriptionAccess subscriptionAccess;
 
   @Inject
-  SubscriptionResource(PermanentSubscriptionManager permanentSubscriptionManager,
-                       PermanentSubscriptionAccess permanentSubscriptionAccess) {
-    this.permanentSubscriptionManager = permanentSubscriptionManager;
-    this.permanentSubscriptionAccess = permanentSubscriptionAccess;
+  SubscriptionResource(SubscriptionManager permanentSubscriptionManager,
+                       SubscriptionAccess permanentSubscriptionAccess) {
+    this.subscriptionManager = permanentSubscriptionManager;
+    this.subscriptionAccess = permanentSubscriptionAccess;
   }
 
 
@@ -50,7 +50,7 @@ public class SubscriptionResource implements WebResource {
   @UnitOfWork(readOnly = true)
   @RolesAllowed(Roles.TRADER)
   public Collection<TickerSpec> list() {
-    return permanentSubscriptionAccess.all();
+    return subscriptionAccess.all();
   }
 
   @PUT
@@ -58,7 +58,7 @@ public class SubscriptionResource implements WebResource {
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
   public void put(TickerSpec spec) {
-    permanentSubscriptionManager.add(spec);
+    subscriptionManager.add(spec);
   }
 
   @GET
@@ -67,7 +67,7 @@ public class SubscriptionResource implements WebResource {
   @Path("referencePrices")
   @RolesAllowed(Roles.TRADER)
   public Map<String, BigDecimal> listReferencePrices() {
-    Map<String, Entry<TickerSpec, BigDecimal>> rekeyed = Maps.uniqueIndex(permanentSubscriptionAccess.getReferencePrices().entrySet(), e -> e.getKey().key());
+    Map<String, Entry<TickerSpec, BigDecimal>> rekeyed = Maps.uniqueIndex(subscriptionAccess.getReferencePrices().entrySet(), e -> e.getKey().key());
     Map<String, BigDecimal> result = Maps.transformValues(rekeyed, e -> e.getValue());
     return result;
   }
@@ -81,7 +81,7 @@ public class SubscriptionResource implements WebResource {
                                 @PathParam("counter") String counter,
                                 @PathParam("base") String base,
                                 BigDecimal price) {
-    permanentSubscriptionAccess.setReferencePrice(TickerSpec.builder().exchange(exchange).base(base).counter(counter).build(), price);
+    subscriptionAccess.setReferencePrice(TickerSpec.builder().exchange(exchange).base(base).counter(counter).build(), price);
   }
 
   @DELETE
@@ -89,6 +89,6 @@ public class SubscriptionResource implements WebResource {
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
   public void delete(TickerSpec spec) {
-    permanentSubscriptionManager.remove(spec);
+    subscriptionManager.remove(spec);
   }
 }

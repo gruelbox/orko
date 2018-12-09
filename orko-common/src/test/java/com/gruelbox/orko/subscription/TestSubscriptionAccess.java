@@ -17,29 +17,27 @@ import com.google.inject.util.Providers;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.subscription.PermanentSubscription;
-import com.gruelbox.orko.subscription.PermanentSubscriptionAccess;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
-public class TestPermanentSubscriptionAccess {
+public class TestSubscriptionAccess {
 
   @Rule
   public DAOTestRule database = DbTesting.rule()
-    .addEntityClass(PermanentSubscription.class)
+    .addEntityClass(Subscription.class)
     .build();
 
   private static final TickerSpec TICKER_1 = TickerSpec.builder().exchange("foo").base("XX1").counter("YYYYY").build();
   private static final TickerSpec TICKER_2 = TickerSpec.builder().exchange("foo").base("XX2").counter("YYYYY").build();
   private static final TickerSpec TICKER_3 = TickerSpec.builder().exchange("foo").base("XX3").counter("YYYYY").build();
 
-  private PermanentSubscriptionAccess dao;
+  private SubscriptionAccess dao;
   private Transactionally transactionally;
 
   @Before
   public void setup() {
-    dao = new PermanentSubscriptionAccess(Providers.of(database.getSessionFactory()));
-    DbTesting.mutateToSupportSchema(SchemaUtils.schema(dao.tables()));
+    dao = new SubscriptionAccess(Providers.of(database.getSessionFactory()));
+    DbTesting.mutateToSupportSchema(SchemaUtils.schema(new SubscriptionContribution().tables()));
     transactionally = new Transactionally(database.getSessionFactory());
   }
 

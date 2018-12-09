@@ -14,8 +14,8 @@ public class SubscriptionModule extends AbstractModule {
   protected void configure() {
     Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(SubscriptionResource.class);
 
-    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(PermanentSubscriptionManager.class);
-    Multibinder.newSetBinder(binder(), TableContribution.class).addBinding().to(PermanentSubscriptionAccess.class);
-    Multibinder.newSetBinder(binder(), EntityContribution.class).addBinding().to(PermanentSubscriptionAccess.class);
+    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(SubscriptionManager.class);
+    Multibinder.newSetBinder(binder(), TableContribution.class).addBinding().to(SubscriptionContribution.class);
+    Multibinder.newSetBinder(binder(), EntityContribution.class).addBinding().to(SubscriptionContribution.class);
   }
 }
