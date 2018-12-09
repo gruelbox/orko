@@ -100,6 +100,13 @@ public class Transactionally {
     this.sessionFactory = Providers.of(sessionFactory);
   }
 
+  public void run(UnitOfWork unitOfWork, Runnable runnable) {
+    call(unitOfWork, () -> {
+      runnable.run();
+      return null;
+    });
+  }
+
   public void run(Runnable runnable) {
     call(() -> {
       runnable.run();
