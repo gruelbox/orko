@@ -1,4 +1,4 @@
-package com.gruelbox.orko.marketdata;
+package com.gruelbox.orko.subscription;
 
 import static java.math.BigDecimal.ONE;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,6 +17,8 @@ import com.google.inject.util.Providers;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.spi.TickerSpec;
+import com.gruelbox.orko.subscription.PermanentSubscription;
+import com.gruelbox.orko.subscription.PermanentSubscriptionAccess;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 

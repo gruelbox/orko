@@ -1,8 +1,8 @@
-package com.gruelbox.orko.marketdata;
+package com.gruelbox.orko.subscription;
 
-import static com.gruelbox.orko.marketdata.PermanentSubscription.REFERENCE_PRICE;
-import static com.gruelbox.orko.marketdata.PermanentSubscription.TABLE_NAME;
-import static com.gruelbox.orko.marketdata.PermanentSubscription.TICKER;
+import static com.gruelbox.orko.subscription.PermanentSubscription.REFERENCE_PRICE;
+import static com.gruelbox.orko.subscription.PermanentSubscription.TABLE_NAME;
+import static com.gruelbox.orko.subscription.PermanentSubscription.TICKER;
 import static org.alfasoftware.morf.metadata.DataType.DECIMAL;
 import static org.alfasoftware.morf.metadata.DataType.STRING;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;

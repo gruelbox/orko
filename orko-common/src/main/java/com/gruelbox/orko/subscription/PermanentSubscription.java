@@ -1,4 +1,4 @@
-package com.gruelbox.orko.marketdata;
+package com.gruelbox.orko.subscription;
 
 import java.math.BigDecimal;
 

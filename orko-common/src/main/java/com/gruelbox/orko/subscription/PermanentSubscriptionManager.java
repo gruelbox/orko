@@ -1,4 +1,4 @@
-package com.gruelbox.orko.marketdata;
+package com.gruelbox.orko.subscription;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
@@ -18,6 +18,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
+import com.gruelbox.orko.marketdata.MarketDataSubscription;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;

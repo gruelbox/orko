@@ -12,6 +12,7 @@ import com.gruelbox.orko.marketdata.MarketDataModule;
 import com.gruelbox.orko.notification.NotificationModule;
 import com.gruelbox.orko.signal.SignalModule;
 import com.gruelbox.orko.strategy.StrategyModule;
+import com.gruelbox.orko.subscription.SubscriptionModule;
 import com.gruelbox.orko.wiring.WiringModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
@@ -28,6 +29,7 @@ class CommonModule extends AbstractModule {
     install(new DbModule());
     install(new JobRunModule());
     install(new MarketDataModule());
+    install(new SubscriptionModule());
     install(new JobsModule());
     install(new NotificationModule());
     install(new SignalModule());
