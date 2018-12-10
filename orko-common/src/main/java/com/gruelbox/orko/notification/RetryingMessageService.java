@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.Alert;
 import com.gruelbox.orko.job.StatusUpdateJob;
 import com.gruelbox.orko.jobrun.JobSubmitter;
@@ -17,16 +18,20 @@ class RetryingMessageService implements NotificationService, StatusUpdateService
   private static final Logger LOGGER = LoggerFactory.getLogger(RetryingMessageService.class);
 
   private final JobSubmitter jobSubmitter;
+  private final Transactionally transactionally;
 
   @Inject
-  RetryingMessageService(JobSubmitter jobSubmitter) {
+  RetryingMessageService(JobSubmitter jobSubmitter, Transactionally transactionally) {
     this.jobSubmitter = jobSubmitter;
+    this.transactionally = transactionally;
   }
 
 
   @Override
   public void send(Notification notification) {
-    jobSubmitter.submitNewUnchecked(Alert.builder().notification(notification).build());
+    transactionally.allowingNested().run(() ->
+      jobSubmitter.submitNewUnchecked(Alert.builder().notification(notification).build())
+    );
   }
 
   @Override
@@ -38,6 +43,8 @@ class RetryingMessageService implements NotificationService, StatusUpdateService
 
   @Override
   public void send(StatusUpdate statusUpdate) {
-    jobSubmitter.submitNewUnchecked(StatusUpdateJob.builder().statusUpdate(statusUpdate).build());
+    transactionally.allowingNested().run(() ->
+      jobSubmitter.submitNewUnchecked(StatusUpdateJob.builder().statusUpdate(statusUpdate).build())
+    );
   }
 }
