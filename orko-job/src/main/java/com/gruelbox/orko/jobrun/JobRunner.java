@@ -13,6 +13,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.JobAccess.JobAlreadyExistsException;
@@ -35,7 +36,7 @@ class JobRunner {
   private final StatusUpdateService statusUpdateService;
   private final Transactionally transactionally;
   private final ExecutorService executorService;
-  private final SessionFactory sessionFactory;
+  private final Provider<SessionFactory> sessionFactory;
 
   @Inject
   JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker,
@@ -43,7 +44,7 @@ class JobRunner {
             StatusUpdateService statusUpdateService,
             Transactionally transactionally,
             ExecutorService executorService,
-            SessionFactory sessionFactory) {
+            Provider<SessionFactory> sessionFactory) {
     jobAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.injector = injector;
@@ -102,7 +103,7 @@ class JobRunner {
   }
 
   private void startAfterCommit(Job job, boolean replacement) {
-    sessionFactory.getCurrentSession().addEventListeners(new BaseSessionEventListener() {
+    sessionFactory.get().getCurrentSession().addEventListeners(new BaseSessionEventListener() {
       private static final long serialVersionUID = 4340675209658497123L;
       @Override
       public void transactionCompletion(boolean successful) {
@@ -160,10 +161,6 @@ class JobRunner {
     JobLifetimeManager(Job job) {
       this.job = job;
       processor = JobProcessor.createProcessor(job, this, injector);
-    }
-
-    public void start() {
-      start(false);
     }
 
     private void start(boolean replacement) {

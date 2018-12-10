@@ -5,6 +5,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.db.DbModule;
+import com.gruelbox.orko.exchange.ExchangeModule;
 import com.gruelbox.orko.job.JobsModule;
 import com.gruelbox.orko.jobrun.JobRunModule;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
@@ -28,6 +29,7 @@ class CommonModule extends AbstractModule {
     install(new WiringModule());
     install(new DbModule());
     install(new JobRunModule());
+    install(new ExchangeModule());
     install(new MarketDataModule());
     install(new SubscriptionModule());
     install(new JobsModule());

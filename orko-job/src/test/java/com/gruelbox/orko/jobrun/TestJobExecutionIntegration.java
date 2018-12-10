@@ -103,9 +103,9 @@ public class TestJobExecutionIntegration {
     transactionally = new Transactionally(database.getSessionFactory());
     jobAccess = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper());
     jobRunner1 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
-        transactionally, executorService, database.getSessionFactory());
+        transactionally, executorService, Providers.of(database.getSessionFactory()));
     jobRunner2 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
-        transactionally, executorService, database.getSessionFactory());
+        transactionally, executorService, Providers.of(database.getSessionFactory()));
     guardianLoop1 = new GuardianLoop(jobAccess, jobRunner1, eventBus, config, transactionally);
     guardianLoop2 = new GuardianLoop(jobAccess, jobRunner2, eventBus, config, transactionally);
   }
