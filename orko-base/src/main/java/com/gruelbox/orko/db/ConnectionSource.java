@@ -14,7 +14,6 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
-@Deprecated
 public class ConnectionSource {
 
   private final ThreadLocal<Connection> currentConnection = ThreadLocal.withInitial(() -> null);
@@ -35,14 +34,17 @@ public class ConnectionSource {
     withCurrentConnection(dsl -> runnable.run());
   }
 
+  @Deprecated
   public <T> T getWithNewConnection(Supplier<T> supplier) {
     return getWithCurrentConnection(dsl ->  supplier.get());
   }
 
+  @Deprecated
   public void withNewConnection(Work work) {
     withCurrentConnection(work);
   }
 
+  @Deprecated
   public <T> T getWithNewConnection(ReturningWork<T> supplier) {
     return getWithCurrentConnection(supplier);
   }
