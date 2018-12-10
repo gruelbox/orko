@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import org.hibernate.CacheMode;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
+import org.hibernate.context.internal.ManagedSessionContext;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
@@ -89,15 +90,25 @@ public class Transactionally {
   };
 
   private final Provider<SessionFactory> sessionFactory;
+  private final boolean allowNested;
 
   @Inject
   Transactionally(Provider<SessionFactory> sessionFactory) {
-    this.sessionFactory = sessionFactory;
+    this(sessionFactory, false);
   }
 
   @VisibleForTesting
   public Transactionally(SessionFactory sessionFactory) {
-    this.sessionFactory = Providers.of(sessionFactory);
+    this(Providers.of(sessionFactory), false);
+  }
+
+  private Transactionally(Provider<SessionFactory> sessionFactory, boolean allowNested) {
+    this.sessionFactory = sessionFactory;
+    this.allowNested = allowNested;
+  }
+
+  public Transactionally allowingNested() {
+    return new Transactionally(sessionFactory, true);
   }
 
   public void run(UnitOfWork unitOfWork, Runnable runnable) {
@@ -123,6 +134,14 @@ public class Transactionally {
   }
 
   public <T> T callChecked(UnitOfWork unitOfWork, Callable<T> callable) throws Exception {
+    boolean nested = ManagedSessionContext.hasBind(sessionFactory.get());
+    if (nested) {
+      if (allowNested) {
+        return callable.call();
+      } else {
+        throw new IllegalStateException("Nested units of work not permitted");
+      }
+    }
     UnitOfWorkAspect unitOfWorkAspect = new UnitOfWorkAspect(ImmutableMap.of(HibernateBundle.DEFAULT_NAME, sessionFactory.get()));
     try {
       unitOfWorkAspect.beforeStart(unitOfWork);
