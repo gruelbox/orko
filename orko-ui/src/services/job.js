@@ -2,7 +2,7 @@ import { put, get, del } from "./fetchUtil"
 
 class JobService {
   async submitJob(job) {
-    return await put("jobs", JSON.stringify(job))
+    return await put("jobs/" + job.id, JSON.stringify(job))
   }
 
   async deleteJob(job) {

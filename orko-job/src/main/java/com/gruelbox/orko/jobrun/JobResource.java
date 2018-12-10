@@ -8,6 +8,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -15,8 +16,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.JobAccess.JobDoesNotExistException;
 import com.gruelbox.orko.jobrun.spi.Job;
@@ -53,9 +57,23 @@ public class JobResource implements WebResource {
 
   @PUT
   @Timed
+  @Path("/{id}")
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
-  public Job put(Job job) throws AuthenticationException {
+  public Response put(@PathParam("id") String id, Job job) throws AuthenticationException {
+    if (StringUtils.isEmpty(job.id()) || !job.id().equals(id))
+      return Response.status(400)
+          .entity(ImmutableMap.of("error", "id not set or query and body do not match"))
+          .build();
+    jobSubmitter.submitNewUnchecked(job);
+    return Response.ok().build();
+  }
+
+  @POST
+  @Timed
+  @UnitOfWork
+  @RolesAllowed(Roles.TRADER)
+  public Job post(Job job) throws AuthenticationException {
     Job created = jobSubmitter.submitNewUnchecked(job);
     return created;
   }
