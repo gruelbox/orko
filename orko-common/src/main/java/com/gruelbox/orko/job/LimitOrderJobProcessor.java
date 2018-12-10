@@ -81,13 +81,12 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
         return job.id();
       }
     });
-    if (job.tickTrigger().exchange().equals(Exchanges.BINANCE)) {
+    if (binance()) {
       return binancePlaceOrder();
     } else {
       return SUCCESS;
     }
   }
-
 
   /**
    * For other exchanges, we do the actual trade in the stop handler to make
@@ -95,7 +94,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
    */
   @Override
   public void stop() {
-    if (job.tickTrigger().exchange().equals(Exchanges.BINANCE))
+    if (binance())
       return;
     nonBinancePlaceOrder();
   }
@@ -170,6 +169,10 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
       );
     statusUpdateService.status(job.id(), failureStatus);
     notificationService.error(message, e);
+  }
+
+  private boolean binance() {
+    return job.tickTrigger().exchange().equals(Exchanges.BINANCE);
   }
 
   public static final class Module extends AbstractModule {
