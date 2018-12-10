@@ -15,7 +15,7 @@ public class JobRunModule extends AbstractModule {
   protected void configure() {
     Multibinder<TableContribution> tableContributions = Multibinder.newSetBinder(binder(), TableContribution.class);
     tableContributions.addBinding().to(JobRecordContribution.class);
-    tableContributions.addBinding().to(JobLockerImpl.class);
+    tableContributions.addBinding().to(JobLockContribution.class);
 
     Multibinder<EntityContribution> entityContributions = Multibinder.newSetBinder(binder(), EntityContribution.class);
     entityContributions.addBinding().to(JobRecordContribution.class);

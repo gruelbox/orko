@@ -1,5 +1,7 @@
 package com.gruelbox.orko.jobrun;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import java.util.UUID;
 
 import com.google.inject.Inject;
@@ -19,11 +21,11 @@ public class InProcessJobSubmitter implements JobSubmitter {
 
   @Override
   public Job submitNew(Job job) throws Exception {
-    Job result = job.toBuilder().id(UUID.randomUUID().toString()).build();
-    if (!jobRunner.runNew(result, () -> {}, () -> {})) {
-      throw new JobNotUniqueException();
+    if (isEmpty(job.id())) {
+      job = job.toBuilder().id(UUID.randomUUID().toString()).build();
     }
-    return result;
+    jobRunner.submitNew(job, () -> {}, () -> {});
+    return job;
   }
 
   public final class JobNotUniqueException extends Exception {

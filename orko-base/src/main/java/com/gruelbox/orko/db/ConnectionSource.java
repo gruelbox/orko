@@ -2,7 +2,6 @@ package com.gruelbox.orko.db;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.function.Supplier;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.hibernate.SessionFactory;
@@ -19,34 +18,16 @@ public class ConnectionSource {
   private final ThreadLocal<Connection> currentConnection = ThreadLocal.withInitial(() -> null);
   private final Provider<ConnectionResources> connectionResources;
   private final Provider<SessionFactory> sessionFactory;
-  private final Transactionally transactionally;
 
   @Inject
   ConnectionSource(Provider<SessionFactory> sessionFactory,
-                   Provider<ConnectionResources> connectionResources,
-                   Transactionally transactionally) {
+                   Provider<ConnectionResources> connectionResources) {
     this.sessionFactory = sessionFactory;
     this.connectionResources = connectionResources;
-    this.transactionally = transactionally;
   }
 
   public void withCurrentConnection(Runnable runnable) {
     withCurrentConnection(dsl -> runnable.run());
-  }
-
-  @Deprecated
-  public <T> T getWithNewConnection(Supplier<T> supplier) {
-    return getWithCurrentConnection(dsl ->  supplier.get());
-  }
-
-  @Deprecated
-  public void withNewConnection(Work work) {
-    withCurrentConnection(work);
-  }
-
-  @Deprecated
-  public <T> T getWithNewConnection(ReturningWork<T> supplier) {
-    return getWithCurrentConnection(supplier);
   }
 
   public void withCurrentConnection(Work work) {
@@ -57,11 +38,12 @@ public class ConnectionSource {
   }
 
   public <T> T getWithCurrentConnection(ReturningWork<T> supplier) {
-    return transactionally.call(() -> {
-      return sessionFactory.get()
-          .getCurrentSession()
-          .doReturningWork(connection -> supplier.work(DSL.using(connection, DialectResolver.jooqDialect(connectionResources.get().getDatabaseType()))));
-    });
+    return sessionFactory.get()
+        .getCurrentSession()
+        .doReturningWork(connection -> {
+          DSLContext dsl = DSL.using(connection, DialectResolver.jooqDialect(connectionResources.get().getDatabaseType()));
+          return supplier.work(dsl);
+        });
   }
 
   public interface ReturningWork<T> {

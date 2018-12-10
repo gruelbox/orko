@@ -36,7 +36,7 @@ public class DbTesting {
   }
 
   public static ConnectionSource connectionSource(SessionFactory sessionFactory) {
-    return new ConnectionSource(Providers.of(sessionFactory), Providers.of(CONNECTION_RESOURCES), new Transactionally(sessionFactory));
+    return new ConnectionSource(Providers.of(sessionFactory), Providers.of(CONNECTION_RESOURCES));
   }
 
   public static DbConfiguration dbConfiguration() {

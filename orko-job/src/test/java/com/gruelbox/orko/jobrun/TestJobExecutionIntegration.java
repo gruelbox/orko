@@ -1,29 +1,38 @@
 package com.gruelbox.orko.jobrun;
 
+import static org.alfasoftware.morf.metadata.SchemaUtils.schema;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
+import com.google.inject.util.Providers;
+import com.gruelbox.orko.db.DbTesting;
+import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.jobrun.TestingJobEvent.EventType;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
@@ -31,29 +40,54 @@ import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
+import io.dropwizard.testing.junit.DAOTestRule;
+
 public class TestJobExecutionIntegration {
 
-  private static final int WAIT_SECONDS = 3;
+  private static final Logger LOGGER = LoggerFactory.getLogger(TestJobExecutionIntegration.class);
+
+  @Rule
+  public DAOTestRule database = DbTesting.rule()
+    .addEntityClass(JobRecord.class)
+    .build();
+
+  private static final int WAIT_SECONDS = 10;
 
   private static final String JOB1 = "JOB1";
   private static final String JOB2 = "JOB2";
   private static final String JOB3 = "JOB3";
 
-  @Mock private JobAccess jobAccess;
-  @Mock private JobLocker jobLocker;
   @Mock private Injector injector;
   @Mock private StatusUpdateService statusUpdateService;
 
+  private JobAccess jobAccess;
+  private JobLockerImpl jobLocker;
   private EventBus eventBus;
-  private JobRunner jobSubmitter;
+  private JobRunner jobRunner1;
+  private JobRunner jobRunner2;
   private GuardianLoop guardianLoop1;
   private GuardianLoop guardianLoop2;
+  private Transactionally transactionally;
 
-  private final Set<Job> activeJobs = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private ExecutorService executorService;
 
   @Before
   public void setup() throws Exception {
+
     MockitoAnnotations.initMocks(this);
+
+    JobRunConfiguration config = new JobRunConfiguration();
+    config.setGuardianLoopSeconds(1);
+    config.setDatabaseLockSeconds(4);
+
+    jobLocker = new JobLockerImpl(config,
+        DbTesting.connectionSource(database.getSessionFactory()),
+        new Transactionally(database.getSessionFactory()));
+
+    DbTesting.mutateToSupportSchema(schema(
+      schema(new JobRecordContribution().tables()),
+      schema(new JobLockContribution().tables())
+    ));
 
     eventBus = new EventBus();
 
@@ -64,14 +98,16 @@ public class TestJobExecutionIntegration {
       }
     });
 
-    when(jobAccess.list()).thenReturn(activeJobs);
+    executorService = Executors.newFixedThreadPool(4);
 
-    JobRunConfiguration config = new JobRunConfiguration();
-    config.setGuardianLoopSeconds(1);
-
-    jobSubmitter = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService);
-    guardianLoop1 = new GuardianLoop(jobAccess, jobSubmitter, eventBus, config);
-    guardianLoop2 = new GuardianLoop(jobAccess, jobSubmitter, eventBus, config);
+    transactionally = new Transactionally(database.getSessionFactory());
+    jobAccess = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper());
+    jobRunner1 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
+        transactionally, executorService, database.getSessionFactory());
+    jobRunner2 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
+        transactionally, executorService, database.getSessionFactory());
+    guardianLoop1 = new GuardianLoop(jobAccess, jobRunner1, eventBus, config, transactionally);
+    guardianLoop2 = new GuardianLoop(jobAccess, jobRunner2, eventBus, config, transactionally);
   }
 
 
@@ -89,85 +125,94 @@ public class TestJobExecutionIntegration {
    */
   @Test
   public void testSyncRun() throws Exception {
-    CountDownLatch completion1 = new CountDownLatch(1);
-    CountDownLatch completion2 = new CountDownLatch(1);
-    CountDownLatch completion3 = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).completionLatch(completion1).build(), false);
-    addJob(TestingJob.builder().id(JOB2).completionLatch(completion2).build(), false);
-    addJob(TestingJob.builder().id(JOB3).completionLatch(completion3).build(), false);
+    LOGGER.info("Starting listeners");
+    try (Listener listener1 = new Listener(JOB1);
+         Listener listener2 = new Listener(JOB2);
+         Listener listener3 = new Listener(JOB3)) {
 
-    start();
+      LOGGER.info("Submitting jobs");
+      addJob(TestingJob.builder().id(JOB1).build());
+      addJob(TestingJob.builder().id(JOB2).build());
+      addJob(TestingJob.builder().id(JOB3).build());
 
-    Assert.assertTrue(completion1.await(WAIT_SECONDS, TimeUnit.SECONDS));
-    Assert.assertTrue(completion2.await(WAIT_SECONDS, TimeUnit.SECONDS));
-    Assert.assertTrue(completion3.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      LOGGER.info("Starting guardians");
+      start();
+
+      LOGGER.info("Waiting for success");
+      Assert.assertTrue(listener1.awaitFinish());
+      Assert.assertTrue(listener2.awaitFinish());
+      Assert.assertTrue(listener3.awaitFinish());
+    }
   }
 
 
   /**
    * Ensures that an exception thrown during startup is treated as transient
-   * @throws InterruptedException
+   * @throws Exception
    */
   @Test
-  public void testFailOnStart() throws InterruptedException {
-    CountDownLatch completion = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).failOnStart(true).build(), false);
-    start();
-    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
-    verify(statusUpdateService).status(JOB1, Status.FAILURE_TRANSIENT);
-    verifyNoMoreInteractions(statusUpdateService);
+  public void testFailOnStart() throws Exception {
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(TestingJob.builder().id(JOB1).failOnStart(true).build());
+      start();
+      Assert.assertTrue(listener1.awaitFinish());
+      verify(statusUpdateService).status(JOB1, Status.FAILURE_TRANSIENT);
+      verifyNoMoreInteractions(statusUpdateService);
+    }
   }
 
 
   /**
    * Ensures that an exception thrown during stop is handled
-   * @throws InterruptedException
+   * @throws Exception
    */
   @Test
-  public void testFailOnStopNonResident() throws InterruptedException {
-    CountDownLatch completion = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).failOnStop(true).build(), false);
-    start();
-    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
-    verify(statusUpdateService).status(JOB1, Status.SUCCESS);
-    verifyNoMoreInteractions(statusUpdateService);
+  public void testFailOnStopNonResident() throws Exception {
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(TestingJob.builder().id(JOB1).failOnStop(true).build());
+      start();
+      Assert.assertTrue(listener1.awaitFinish());
+      verify(statusUpdateService).status(JOB1, Status.SUCCESS);
+      verifyNoMoreInteractions(statusUpdateService);
+    }
   }
 
 
   /**
    * Ensures that an exception thrown during stop is handled
-   * @throws InterruptedException
+   * @throws Exception
    */
   @Test
-  public void testFailOnStopResident() throws InterruptedException {
-    CountDownLatch completion = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).runAsync(true).stayResident(false).failOnStop(true).build(), false);
-    start();
-    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+  public void testFailOnStopResident() throws Exception {
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(false).failOnStop(true).build());
+      start();
+      Assert.assertTrue(listener1.awaitFinish());
 
-
-    InOrder inOrder = inOrder(statusUpdateService);
-    inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
-    inOrder.verify(statusUpdateService).status(JOB1, Status.SUCCESS);
-    verifyNoMoreInteractions(statusUpdateService);
+      InOrder inOrder = inOrder(statusUpdateService);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.SUCCESS);
+      verifyNoMoreInteractions(statusUpdateService);
+    }
   }
 
 
   /**
    * Ensures that we correctly handle a mid-run abort
-   * @throws InterruptedException
+   * @throws Exception
    */
   @Test
-  public void testFailOnTick() throws InterruptedException {
-    CountDownLatch completion = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).completionLatch(completion).runAsync(true).stayResident(true).failOnTick(true).build(), false);
-    start();
-    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+  public void testFailOnTick() throws Exception {
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).failOnTick(true).build());
+      start();
+      Assert.assertTrue(listener1.awaitFinish());
 
-    InOrder inOrder = inOrder(statusUpdateService);
-    inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
-    inOrder.verify(statusUpdateService).status(JOB1, Status.FAILURE_PERMANENT);
-    verifyNoMoreInteractions(statusUpdateService);
+      InOrder inOrder = inOrder(statusUpdateService);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.FAILURE_PERMANENT);
+      verifyNoMoreInteractions(statusUpdateService);
+    }
   }
 
 
@@ -176,19 +221,28 @@ public class TestJobExecutionIntegration {
    */
   @Test
   public void testASyncResidentRunKillByLostLock() throws Exception {
-    CountDownLatch completion = new CountDownLatch(1);
-    AtomicBoolean hasLock = addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).completionLatch(completion).build(), false);
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).build());
 
-    start();
+      start();
 
-    // Should still be running after 10 seconds
-    Assert.assertFalse(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      // Make sure we're up and running
+      Assert.assertTrue(listener1.awaitStart());
 
-    // Kill its lock
-    hasLock.set(false);
+      // Should still be running after a pause
+      Assert.assertFalse(listener1.awaitFinish());
 
-    // Should die
-    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      // Kill the guardians so the lock stops getting refreshed
+      guardianLoop1.kill();
+      guardianLoop2.kill();
+
+      // Delete the lock and tell the job to refresh
+      database.inTransaction(() -> jobLocker.releaseAllLocks());
+      executorService.execute(() -> eventBus.post(KeepAliveEvent.INSTANCE));
+
+      // Should die
+      Assert.assertTrue(listener1.awaitFinish());
+    }
   }
 
 
@@ -197,19 +251,24 @@ public class TestJobExecutionIntegration {
    */
   @Test
   public void testASyncResidentRunKillByShutdown() throws Exception {
-    CountDownLatch completion = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).completionLatch(completion).build(), false);
+    try (Listener listener1 = new Listener(JOB1)) {
 
-    start();
+      addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).build());
 
-    // Should still be running after 10 seconds
-    Assert.assertFalse(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      start();
 
-    // Mimic shutdown
-    eventBus.post(StopEvent.INSTANCE);
+      // Make sure we're up and running
+      Assert.assertTrue(listener1.awaitStart());
 
-    // Should die
-    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      // Should still be running after a pause
+      Assert.assertFalse(listener1.awaitFinish());
+
+      // Shut down
+      stopGuardians();
+
+      // Should die
+      Assert.assertTrue(listener1.awaitFinish());
+    }
   }
 
 
@@ -218,21 +277,22 @@ public class TestJobExecutionIntegration {
    */
   @Test
   public void testUpdate() throws Exception {
-    CountDownLatch start = new CountDownLatch(2);
-    CountDownLatch completion = new CountDownLatch(2);
-    addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).update(true).startLatch(start).completionLatch(completion).build(), false);
+    try (Listener listener1 = new Listener(JOB1, 2, 2)) {
 
-    start();
+      addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).update(true).build());
 
-    // We expect to have started twice but finished once
-    Assert.assertTrue(start.await(WAIT_SECONDS, TimeUnit.SECONDS));
-    Assert.assertFalse(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      start();
 
-    // Mimic shutdown
-    eventBus.post(StopEvent.INSTANCE);
+      // We expect to have started twice but finished once
+      Assert.assertTrue(listener1.awaitStart());
+      Assert.assertFalse(listener1.awaitFinish());
 
-    // Should die
-    Assert.assertTrue(completion.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      // Shut down
+      stopGuardians();
+
+      // Should die
+      Assert.assertTrue(listener1.awaitFinish());
+    }
   }
 
 
@@ -241,18 +301,19 @@ public class TestJobExecutionIntegration {
    */
   @Test
   public void testASyncNonResidentRun() throws Exception {
-    CountDownLatch completion1 = new CountDownLatch(1);
-    CountDownLatch completion2 = new CountDownLatch(1);
-    CountDownLatch completion3 = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(false).completionLatch(completion1).build(), false);
-    addJob(TestingJob.builder().id(JOB2).runAsync(true).stayResident(false).completionLatch(completion2).build(), false);
-    addJob(TestingJob.builder().id(JOB3).runAsync(true).stayResident(false).completionLatch(completion3).build(), false);
+    try (Listener listener1 = new Listener(JOB1);
+        Listener listener2 = new Listener(JOB2);
+        Listener listener3 = new Listener(JOB3)) {
+      addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(false).build());
+      addJob(TestingJob.builder().id(JOB2).runAsync(true).stayResident(false).build());
+      addJob(TestingJob.builder().id(JOB3).runAsync(true).stayResident(false).build());
 
-    start();
+      start();
 
-    Assert.assertTrue(completion1.await(WAIT_SECONDS, TimeUnit.SECONDS));
-    Assert.assertTrue(completion2.await(WAIT_SECONDS, TimeUnit.SECONDS));
-    Assert.assertTrue(completion3.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      Assert.assertTrue(listener1.awaitFinish());
+      Assert.assertTrue(listener1.awaitFinish());
+      Assert.assertTrue(listener1.awaitFinish());
+    }
   }
 
 
@@ -261,26 +322,40 @@ public class TestJobExecutionIntegration {
    */
   @Test
   public void testDontRunIfHandledElsewhere() throws Exception {
-    CountDownLatch startLatch = new CountDownLatch(1);
-    addJob(TestingJob.builder().id(JOB1).startLatch(startLatch).build(), true);
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(TestingJob.builder().id(JOB1).build());
 
-    start();
+      UUID myId = UUID.randomUUID();
+      database.inTransaction(() -> assertTrue(jobLocker.attemptLock(JOB1, myId)));
+      Future<?> backgroundLock = executorService.submit(() -> {
+        while (!Thread.currentThread().isInterrupted()) {
+          try {
+            Thread.sleep(500);
+          } catch (InterruptedException e) {
+            break;
+          }
+          transactionally.run(() -> jobLocker.updateLock(JOB1, myId));
+        }
+      });
 
-    Assert.assertFalse(startLatch.await(WAIT_SECONDS, TimeUnit.SECONDS));
+      start();
+
+      Assert.assertFalse(listener1.awaitStart());
+
+      backgroundLock.cancel(true);
+    }
   }
 
 
-  private AtomicBoolean addJob(Job job, boolean alreadyLocked) {
-    AtomicBoolean locked = new AtomicBoolean(alreadyLocked);
-    AtomicBoolean hasLock = new AtomicBoolean(true);
-    when(jobLocker.attemptLock(Mockito.eq(job.id()), Mockito.any(UUID.class))).thenAnswer(a -> !locked.getAndSet(true));
-    when(jobLocker.updateLock(Mockito.eq(job.id()), Mockito.any(UUID.class))).thenAnswer(a -> hasLock.get());
-    when(jobAccess.load(job.id())).thenReturn(job);
-    activeJobs.add(job);
-    return hasLock;
+  private UUID addJob(Job job) {
+    return database.inTransaction(() -> {
+      jobAccess.insert(job);
+      return null;
+    });
   }
 
-  private void start() {
+  private void start() throws Exception {
+    jobLocker.start();
     guardianLoop1.startAsync();
     guardianLoop2.startAsync();
     guardianLoop1.awaitRunning();
@@ -289,9 +364,55 @@ public class TestJobExecutionIntegration {
 
   @After
   public void tearDown() throws Exception {
+    jobLocker.stop();
+    stopGuardians();
+  }
+
+  private void stopGuardians() {
     guardianLoop1.stopAsync();
     guardianLoop2.stopAsync();
     guardianLoop1.awaitTerminated();
     guardianLoop2.awaitTerminated();
+  }
+
+  private final class Listener implements AutoCloseable {
+
+    private final CountDownLatch started;
+    private final CountDownLatch completed;
+    private final String jobId;
+
+    Listener(String jobId) {
+      this(jobId, 1, 1);
+    }
+
+    public Listener(String jobId, int startCount, int finishCount) {
+      this.jobId = jobId;
+      started = new CountDownLatch(startCount);
+      completed = new CountDownLatch(finishCount);
+      eventBus.register(this);
+    }
+
+    @Subscribe
+    void onEvent(TestingJobEvent event) {
+      if (event.eventType() == EventType.FINISH && event.jobId().equals(jobId)) {
+        completed.countDown();
+      }
+      if (event.eventType() == EventType.START && event.jobId().equals(jobId)) {
+        started.countDown();
+      }
+    }
+
+    boolean awaitFinish() throws InterruptedException {
+      return completed.await(WAIT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    boolean awaitStart() throws InterruptedException {
+      return started.await(WAIT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void close() {
+      eventBus.unregister(this);
+    }
   }
 }

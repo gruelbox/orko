@@ -8,6 +8,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.gruelbox.orko.jobrun.TestingJobEvent.EventType;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.jobrun.spi.Status;
@@ -15,15 +16,15 @@ import com.gruelbox.orko.jobrun.spi.Status;
 class TestingJobProcessor implements JobProcessor<TestingJob> {
 
   private final TestingJob job;
-  private final EventBus asyncEventBus;
+  private final EventBus eventBus;
   private final JobControl jobControl;
   private volatile boolean done;
 
   @Inject
-  public TestingJobProcessor(@Assisted TestingJob job, @Assisted JobControl jobControl, EventBus asyncEventBus) {
+  public TestingJobProcessor(@Assisted TestingJob job, @Assisted JobControl jobControl, EventBus eventBus) {
     this.job = job;
     this.jobControl = jobControl;
-    this.asyncEventBus = asyncEventBus;
+    this.eventBus = eventBus;
   }
 
   @Override
@@ -31,12 +32,10 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
     if (job.failOnStart())
       throw new IllegalStateException("Fail on start");
     if (job.runAsync()) {
-      asyncEventBus.register(this);
+      eventBus.register(this);
       return Status.RUNNING;
     } else {
-      if (job.startLatch() != null) {
-        job.startLatch().countDown();
-      }
+      eventBus.post(TestingJobEvent.create(job.id(), EventType.FINISH));
       return Status.SUCCESS;
     }
   }
@@ -45,8 +44,7 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
   private synchronized void tick(KeepAliveEvent tick) {
     if (done)
       return;
-    if (job.startLatch() != null)
-      job.startLatch().countDown();
+    eventBus.post(TestingJobEvent.create(job.id(), EventType.START));
     if (job.failOnTick()) {
       done = true;
       jobControl.finish(Status.FAILURE_PERMANENT);
@@ -63,10 +61,9 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
   @Override
   public void stop() {
     if (job.runAsync()) {
-      asyncEventBus.unregister(this);
+      eventBus.unregister(this);
     }
-    if (job.completionLatch() != null)
-      job.completionLatch().countDown();
+    eventBus.post(TestingJobEvent.create(job.id(), EventType.FINISH));
     if (job.failOnStop())
       throw new IllegalStateException("Fail on stop");
   }

@@ -1,7 +1,5 @@
 package com.gruelbox.orko.jobrun;
 
-import java.util.concurrent.CountDownLatch;
-
 import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -43,9 +41,6 @@ public abstract class TestingJob implements Job {
     public abstract Builder failOnStop(boolean failOnStop);
     public abstract Builder failOnTick(boolean failOnTick);
 
-    public abstract Builder startLatch(CountDownLatch startLatch);
-    public abstract Builder completionLatch(CountDownLatch completionLatch);
-
     @Override
     public abstract TestingJob build();
   }
@@ -59,18 +54,23 @@ public abstract class TestingJob implements Job {
   @Nullable
   public abstract String id();
 
+  @JsonProperty
   public abstract boolean runAsync();
+
+  @JsonProperty
   public abstract boolean stayResident();
+
+  @JsonProperty
   public abstract boolean update();
+
+  @JsonProperty
   public abstract boolean failOnStart();
+
+  @JsonProperty
   public abstract boolean failOnStop();
+
+  @JsonProperty
   public abstract boolean failOnTick();
-
-  @Nullable
-  public abstract CountDownLatch startLatch();
-
-  @Nullable
-  public abstract CountDownLatch completionLatch();
 
   @JsonIgnore
   @Override

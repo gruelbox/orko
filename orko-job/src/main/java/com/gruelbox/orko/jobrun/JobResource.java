@@ -23,9 +23,10 @@ import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.auth.AuthenticationException;
+import io.dropwizard.hibernate.UnitOfWork;
 
 /**
- * Slightly disorganised endpoint with a mix of methods. Will get re-organised.
+ * Submission and management of jobs.
  */
 @Path("/jobs")
 @Produces(MediaType.APPLICATION_JSON)
@@ -44,6 +45,7 @@ public class JobResource implements WebResource {
 
   @GET
   @Timed
+  @UnitOfWork(readOnly = true)
   @RolesAllowed(Roles.TRADER)
   public Collection<Job> list() throws AuthenticationException {
     return ImmutableList.copyOf(jobAccess.list());
@@ -51,6 +53,7 @@ public class JobResource implements WebResource {
 
   @PUT
   @Timed
+  @UnitOfWork
   @RolesAllowed(Roles.TRADER)
   public Job put(Job job) throws AuthenticationException {
     Job created = jobSubmitter.submitNewUnchecked(job);
@@ -59,6 +62,7 @@ public class JobResource implements WebResource {
 
   @DELETE
   @Timed
+  @UnitOfWork
   @RolesAllowed(Roles.TRADER)
   public void deleteAllJobs() throws AuthenticationException {
     jobAccess.deleteAll();
@@ -67,6 +71,7 @@ public class JobResource implements WebResource {
   @GET
   @Path("{id}")
   @Timed
+  @UnitOfWork(readOnly = true)
   @RolesAllowed(Roles.TRADER)
   public Response fetchJob(@PathParam("id") String id) {
     try {
@@ -79,6 +84,7 @@ public class JobResource implements WebResource {
   @DELETE
   @Path("{id}")
   @Timed
+  @UnitOfWork
   @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
     jobAccess.delete(id);

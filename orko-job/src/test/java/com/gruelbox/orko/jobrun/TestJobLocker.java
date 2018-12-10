@@ -12,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.gruelbox.orko.db.DbTesting;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
 import io.dropwizard.testing.junit.DAOTestRule;
@@ -32,8 +33,8 @@ public class TestJobLocker {
   public void setup() throws Exception {
     JobRunConfiguration configuration = new JobRunConfiguration();
     configuration.setDatabaseLockSeconds(3);
-    dao = new JobLockerImpl(configuration, DbTesting.connectionSource(database.getSessionFactory()));
-    DbTesting.mutateToSupportSchema(SchemaUtils.schema(dao.tables()));
+    dao = new JobLockerImpl(configuration, DbTesting.connectionSource(database.getSessionFactory()), new Transactionally(database.getSessionFactory()));
+    DbTesting.mutateToSupportSchema(SchemaUtils.schema(new JobLockContribution().tables()));
   }
 
   @Test

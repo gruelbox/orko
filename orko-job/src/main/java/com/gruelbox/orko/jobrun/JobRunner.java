@@ -1,8 +1,11 @@
 package com.gruelbox.orko.jobrun;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.hibernate.BaseSessionEventListener;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +14,7 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.JobAccess.JobAlreadyExistsException;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
@@ -29,21 +33,30 @@ class JobRunner {
   private final Injector injector;
   private final EventBus eventBus;
   private final StatusUpdateService statusUpdateService;
+  private final Transactionally transactionally;
+  private final ExecutorService executorService;
+  private final SessionFactory sessionFactory;
 
   @Inject
   JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker,
             Injector injector, EventBus eventBus,
-            StatusUpdateService statusUpdateService) {
+            StatusUpdateService statusUpdateService,
+            Transactionally transactionally,
+            ExecutorService executorService,
+            SessionFactory sessionFactory) {
     jobAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.injector = injector;
     this.eventBus = eventBus;
     this.statusUpdateService = statusUpdateService;
+    this.transactionally = transactionally;
+    this.executorService = executorService;
+    this.sessionFactory = sessionFactory;
     uuid = UUID.randomUUID();
   }
 
   /**
-   * Attempts to run a job that already exists.  Used by the poll loop.
+   * Attempts to submit a job that already exists.  Used by the poll loop.
    *
    * <p>Note that if the lock is successful, the job is only unlocked
    * on success or, if the job fails, due to the TTL removing it.
@@ -52,14 +65,12 @@ class JobRunner {
    * @param job The job.
    * @return True if the job could be locked and run successfully.
    */
-  public boolean runExisting(Job job) {
+  public boolean submitExisting(Job job) {
     if (jobLocker.attemptLock(job.id(), uuid)) {
-      job = jobAccess.load(job.id());
-      new JobLifetimeManager(job).start();
+      startAfterCommit(jobAccess.load(job.id()), false);
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   /**
@@ -82,15 +93,24 @@ class JobRunner {
    * @param reject If insertion failed
    * @throws Exception
    */
-  public boolean runNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+  public void submitNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+    createJob(job, ack, reject);
     if (!attemptLock(job, reject)) {
-      return false;
+      throw new RuntimeException("Created but could not immediately lock new job");
     }
-    if (!createJob(job, ack, reject)) {
-      return false;
-    }
-    new JobLifetimeManager(job).start();
-    return true;
+    startAfterCommit(job, false);
+  }
+
+  private void startAfterCommit(Job job, boolean replacement) {
+    sessionFactory.getCurrentSession().addEventListeners(new BaseSessionEventListener() {
+      private static final long serialVersionUID = 4340675209658497123L;
+      @Override
+      public void transactionCompletion(boolean successful) {
+        if (successful) {
+          executorService.execute(() -> new JobLifetimeManager(job).start(replacement));
+        }
+      }
+    });
   }
 
   private boolean attemptLock(Job job, ExceptionThrowingRunnable reject) throws Exception {
@@ -105,21 +125,18 @@ class JobRunner {
     return locked;
   }
 
-  private boolean createJob(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+  private void createJob(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
     try {
       jobAccess.insert(job);
     } catch (JobAlreadyExistsException e) {
       LOGGER.info("Job " + job.id() + " already exists. Request ignored.");
       ack.run();
-      jobLocker.releaseLock(job.id(), uuid);
-      return false;
-    } catch (Throwable t) {
+      throw e;
+    } catch (Exception t) {
       reject.run();
-      jobLocker.releaseLock(job.id(), uuid);
       throw t;
     }
     ack.run();
-    return true;
   }
 
   public interface ExceptionThrowingRunnable {
@@ -159,7 +176,7 @@ class JobRunner {
       // We do record that a new startup is a replacement, though, so don't log
       // startup if that's the case
       if (!replacement)
-        LOGGER.info(job + " starting...");
+        LOGGER.info("{} starting...", job);
 
       // Attempt to run the startup method on the job and send a status update
       Status result = safeStart();
@@ -170,9 +187,11 @@ class JobRunner {
         case FAILURE_PERMANENT:
         case SUCCESS:
 
-          // If the job completed or failed permanently, delete it
+          // If the job completed or failed permanently, delete it. The job
+          // itself might be transactional if it's not working with external
+          // resources, so allow to run in a nested transaction.
           LOGGER.debug("{} finished immediately ({}), cleaning up", job, result);
-          jobAccess.delete(job.id());
+          transactionally.allowingNested().run(() -> jobAccess.delete(job.id()));
           safeStop();
           status.set(JobStatus.STOPPED);
           LOGGER.debug("{} cleaned up", job);
@@ -180,7 +199,9 @@ class JobRunner {
 
         case FAILURE_TRANSIENT:
 
-          // Stop and let the job get picked up again
+          // Stop and let the job get picked up again. We don't release
+          // the lock, instead let it expire naturally, giving us an
+          // inherent retry delay
           LOGGER.warn(job + " temporary failure. Sending back to queue for retry");
           safeStop();
           LOGGER.debug("{} cleaned up", job);
@@ -189,7 +210,7 @@ class JobRunner {
         case RUNNING:
 
           // We are now running, so register for events
-          register();
+          register(replacement);
           break;
 
         default:
@@ -199,9 +220,11 @@ class JobRunner {
 
     @Subscribe
     public void onKeepAlive(KeepAliveEvent keepAlive) {
+      LOGGER.debug("{} checking lock...", job);
       if (!status.get().equals(JobStatus.RUNNING))
         return;
-      if (!jobLocker.updateLock(job.id(), uuid)) {
+      LOGGER.debug("{} updating lock...", job);
+      if (!transactionally.call(() -> jobLocker.updateLock(job.id(), uuid))) {
         LOGGER.debug("{} stopping due to loss of lock...", job);
         if (stopAndUnregister())
           LOGGER.debug("{} stopped due to loss of lock", job);
@@ -212,7 +235,7 @@ class JobRunner {
     public void stop(StopEvent stop) {
       LOGGER.debug("{} stopping due to shutdown", job);
       if (stopAndUnregister()) {
-        jobLocker.releaseLock(job.id(), uuid);
+        transactionally.allowingNested().run(() -> jobLocker.releaseLock(job.id(), uuid));
         LOGGER.debug("{} stopped due to shutdown", job);
       }
     }
@@ -224,8 +247,11 @@ class JobRunner {
         LOGGER.warn("Replacement of job which is already shutting down: " + job);
         return;
       }
-      jobAccess.update(newVersion);
-      new JobLifetimeManager(newVersion).start(true);
+      // The job might be transactional, so participate if necessary
+      transactionally.allowingNested().run(() -> {
+        jobAccess.update(newVersion);
+        startAfterCommit(newVersion, true);
+      });
       LOGGER.debug("{} replaced", newVersion);
     }
 
@@ -237,14 +263,17 @@ class JobRunner {
         LOGGER.warn("Finish of job which is already shutting down: {}", job);
         return;
       }
-      jobAccess.delete(job.id());
+      // If this gets rolled back due to the job itself being transactional, that's
+      // fine; we'll lose the lock anyway
+      transactionally.allowingNested().run(() -> jobAccess.delete(job.id()));
       LOGGER.info(job + " finished");
     }
 
-    private synchronized void register() {
+    private synchronized void register(boolean replacement) {
       if (status.compareAndSet(JobStatus.STARTING, JobStatus.RUNNING)) {
         eventBus.register(this);
-        LOGGER.info(job + " started");
+        if (!replacement)
+          LOGGER.info("{} started", job);
       }
     }
 
@@ -257,7 +286,7 @@ class JobRunner {
       } else if (status.compareAndSet(JobStatus.STARTING, JobStatus.STOPPED)) {
         return true;
       } else {
-        LOGGER.debug("Stop of job which is already shutting down: {}", job);
+        LOGGER.info("Stop of job which is already shutting down. Status={}, job={}", status.get(), job);
         return false;
       }
     }
