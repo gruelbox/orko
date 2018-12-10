@@ -1,6 +1,9 @@
 package com.gruelbox.orko.jobrun;
 
+import static com.gruelbox.orko.jobrun.JobRecord.CONTENT;
+import static com.gruelbox.orko.jobrun.JobRecord.ID;
 import static com.gruelbox.orko.jobrun.JobRecord.PROCESSED;
+import static com.gruelbox.orko.jobrun.JobRecord.TABLE_NAME;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
 import static org.alfasoftware.morf.metadata.SchemaUtils.index;
 import static org.alfasoftware.morf.metadata.SchemaUtils.table;
@@ -12,7 +15,6 @@ import org.alfasoftware.morf.metadata.Table;
 import org.alfasoftware.morf.upgrade.TableContribution;
 import org.alfasoftware.morf.upgrade.UpgradeStep;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.EntityContribution;
@@ -22,20 +24,15 @@ class JobRecordContribution implements TableContribution, EntityContribution {
 
   @Override
   public Collection<Table> tables() {
-    return tablesStatic();
-  }
-
-  @VisibleForTesting
-  static Collection<Table> tablesStatic() {
     return ImmutableList.of(
-      table("Job")
+      table(TABLE_NAME)
         .columns(
-          column("id", DataType.STRING, 45).primaryKey(),
-          column("content", DataType.CLOB).nullable(),
-          column("processed", DataType.BOOLEAN)
+          column(ID, DataType.STRING, 45).primaryKey(),
+          column(CONTENT, DataType.CLOB).nullable(),
+          column(PROCESSED, DataType.BOOLEAN)
         )
         .indexes(
-          index("Job_1").columns(PROCESSED)
+          index(TABLE_NAME + "_1").columns(PROCESSED)
         )
     );
   }

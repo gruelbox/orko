@@ -1,9 +1,6 @@
 package com.gruelbox.orko.jobrun;
 
-import static com.gruelbox.orko.jobrun.JobRecord.CONTENT;
-import static com.gruelbox.orko.jobrun.JobRecord.ID;
 import static com.gruelbox.orko.jobrun.JobRecord.PROCESSED;
-import static com.gruelbox.orko.jobrun.JobRecord.TABLE_NAME;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
 import static org.alfasoftware.morf.metadata.SchemaUtils.index;
 import static org.alfasoftware.morf.metadata.SchemaUtils.schema;
@@ -20,14 +17,14 @@ public class TestJobRecordContribution extends AbstractTableContributionTest {
   @Override
   protected Schema initialSchema() {
     return schema(
-      table(TABLE_NAME)
+      table("Job")
       .columns(
-        column(ID, DataType.STRING, 45).primaryKey(),
-        column(CONTENT, DataType.CLOB).nullable(),
-        column(PROCESSED, DataType.BOOLEAN)
+        column("id", DataType.STRING, 45).primaryKey(),
+        column("content", DataType.CLOB).nullable(),
+        column("processed", DataType.BOOLEAN)
       )
       .indexes(
-        index(TABLE_NAME + "_1").columns(PROCESSED)
+        index("Job_1").columns(PROCESSED)
       )
     );
   }
