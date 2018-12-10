@@ -16,6 +16,15 @@ import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.spi.TickerSpec;
 
+/**
+ * A job which immediately submits a limit order. Mainly exists to provide a
+ * means for more complex orders such as {@link OneCancelsOther} and
+ * {@link SoftTrailingStop} to issue trades in a transactional fashion, thus
+ * moving the job of working out how to make this task idempotent into one
+ * place.
+ *
+ * @author Graham Crockford
+ */
 @AutoValue
 @JsonDeserialize(builder = LimitOrderJob.Builder.class)
 public abstract class LimitOrderJob implements Job {
