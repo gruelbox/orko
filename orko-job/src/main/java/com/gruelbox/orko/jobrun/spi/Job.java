@@ -5,7 +5,8 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
 /**
  * A job may start multiple times, but only run exactly once to completion. It
- * can be serialized, and thus is persistent until finishing.
+ * can be serialized, and thus is persistent until finishing. Its behaviour
+ * must be idempotent to avoid double-processing.
  *
  * <p>
  * Instances of this class are immutable, but can be copied and modified (using

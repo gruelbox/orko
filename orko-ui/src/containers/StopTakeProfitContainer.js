@@ -9,6 +9,8 @@ import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import { getSelectedCoin } from "../selectors/coins"
 
+import uuidv4 from "uuid/v4"
+
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {
     super(props)
@@ -55,6 +57,7 @@ class StopTakeProfitContainer extends React.Component {
 
     const limitOrder = limitPrice => ({
       jobType: jobTypes.LIMIT_ORDER,
+      id: uuidv4(),
       direction: this.state.job.direction,
       tickTrigger,
       amount: this.state.job.amount,
@@ -63,6 +66,7 @@ class StopTakeProfitContainer extends React.Component {
 
     const trailingOrder = (startPrice, stopPrice, limitPrice) => ({
       jobType: jobTypes.SOFT_TRAILING_STOP,
+      id: uuidv4(),
       direction: this.state.job.direction,
       tickTrigger,
       amount: this.state.job.amount,
@@ -74,6 +78,7 @@ class StopTakeProfitContainer extends React.Component {
 
     return {
       jobType: jobTypes.OCO,
+      id: uuidv4(),
       tickTrigger: tickTrigger,
       low: this.state.job.lowPrice
         ? {
