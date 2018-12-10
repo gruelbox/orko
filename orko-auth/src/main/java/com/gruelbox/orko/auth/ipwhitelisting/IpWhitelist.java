@@ -8,9 +8,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Persistence object for IP whitelisting. All properties are
- * private; this thing is only ever tested for existence or
- * deleted using HQL.
+ * Persistence object for IP whitelisting.
  *
  * @author Graham Crockford
  */

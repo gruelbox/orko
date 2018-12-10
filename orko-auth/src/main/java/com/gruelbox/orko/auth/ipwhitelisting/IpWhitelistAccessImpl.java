@@ -5,6 +5,7 @@ import static java.time.ZoneOffset.UTC;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -51,7 +52,9 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, Managed {
 
   @Override
   public void start() throws Exception {
-    subscription = Observable.interval(expiry, expiryUnits).observeOn(Schedulers.single()).subscribe(x -> cleanup());
+    subscription = Observable.interval(expiry, expiryUnits)
+        .observeOn(Schedulers.single())
+        .subscribe(x -> transactionally.run(this::cleanup));
   }
 
   @Override
@@ -61,12 +64,11 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, Managed {
 
   @VisibleForTesting
   void cleanup() {
-    transactionally.run(() ->
-      sessionFactory.get().getCurrentSession()
-          .createQuery("delete from " + IpWhitelist.TABLE_NAME + " where expires <= :expires")
-          .setParameter("expires", LocalDateTime.now().toEpochSecond(UTC))
-          .executeUpdate()
-    );
+    session().clear();
+    session().createQuery("delete from " + IpWhitelist.TABLE_NAME + " where expires <= :expires")
+        .setParameter("expires", LocalDateTime.now().toEpochSecond(UTC))
+        .executeUpdate();
+    session().flush();
   }
 
   @Override
@@ -74,7 +76,7 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, Managed {
     if (authConfiguration.getIpWhitelisting() == null)
       return;
     Preconditions.checkNotNull(ip);
-    sessionFactory.get().getCurrentSession().merge(new IpWhitelist(ip, newExpiryDate()));
+    session().merge(new IpWhitelist(ip, newExpiryDate()));
   }
 
   private long newExpiryDate() {
@@ -83,14 +85,17 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, Managed {
 
   @Override
   public synchronized void delete(String ip) {
-    sessionFactory.get().getCurrentSession()
-        .createQuery("delete from " +  IpWhitelist.TABLE_NAME + " where id = :id")
-        .setParameter("id", ip)
-        .executeUpdate();
+    IpWhitelist entry = session().get(IpWhitelist.class, ip);
+    if (entry != null)
+      session().delete(entry);
   }
 
   @Override
   public synchronized boolean exists(String ip) {
-    return sessionFactory.get().getCurrentSession().get(IpWhitelist.class, ip) != null;
+    return session().get(IpWhitelist.class, ip) != null;
+  }
+
+  private Session session() {
+    return sessionFactory.get().getCurrentSession();
   }
 }
