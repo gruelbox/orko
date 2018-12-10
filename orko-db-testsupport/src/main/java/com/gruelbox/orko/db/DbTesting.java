@@ -47,6 +47,11 @@ public class DbTesting {
     return CONNECTION_RESOURCES;
   }
 
+  public static void clearDatabase() {
+    SCHEMA_MANAGER.dropAllTables();
+    SCHEMA_MANAGER.dropAllViews();
+  }
+
   public static void mutateToSupportSchema(Schema schema) {
     SCHEMA_MANAGER.mutateToSupportSchema(schema, TruncationBehavior.ALWAYS);
   }

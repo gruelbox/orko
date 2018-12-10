@@ -26,6 +26,7 @@ public abstract class AbstractTableContributionTest {
    */
   @Before
   public final void setup() {
+    DbTesting.clearDatabase();
     DbTesting.mutateToSupportSchema(schema(
       schema(ImmutableList.of(deployedViewsTable(), upgradeAuditTable())),
       initialSchema()
