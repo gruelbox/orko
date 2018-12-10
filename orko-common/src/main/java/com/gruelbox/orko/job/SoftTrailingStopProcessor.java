@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.JobSubmitter;
@@ -62,6 +63,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
   private volatile ExchangeEventSubscription subscription;
   private volatile Disposable disposable;
+  private final Transactionally transactionally;
 
 
   @Inject
@@ -71,7 +73,8 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
                                    final NotificationService notificationService,
                                    final ExchangeService exchangeService,
                                    final JobSubmitter jobSubmitter,
-                                   final ExchangeEventRegistry exchangeEventRegistry) {
+                                   final ExchangeEventRegistry exchangeEventRegistry,
+                                   final Transactionally transactionally) {
     this.job = job;
     this.jobControl = jobControl;
     this.statusUpdateService = statusUpdateService;
@@ -79,6 +82,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     this.exchangeService = exchangeService;
     this.jobSubmitter = jobSubmitter;
     this.exchangeEventRegistry = exchangeEventRegistry;
+    this.transactionally = transactionally;
   }
 
   @Override
@@ -97,7 +101,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   private synchronized void tick(TickerEvent tickerEvent) {
     try {
       if (!done)
-        tickInner(tickerEvent);
+        transactionally.run(() -> tickTransaction(tickerEvent));
     } catch (Exception t) {
       String message = String.format(
         "Trailing stop on %s %s/%s market temporarily failed with error: %s",
@@ -111,7 +115,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     }
   }
 
-  private void tickInner(TickerEvent tickerEvent) {
+  private void tickTransaction(TickerEvent tickerEvent) {
 
     final Ticker ticker = tickerEvent.ticker();
     final TickerSpec ex = job.tickTrigger();
@@ -146,7 +150,6 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
         stopPrice
       ));
 
-      // This may throw, in which case retry of the job should kick in
       jobSubmitter.submitNewUnchecked(LimitOrderJob.builder()
           .tickTrigger(ex)
           .direction(job.direction())

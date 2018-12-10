@@ -12,6 +12,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.JobControl;
@@ -56,6 +57,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private volatile ExchangeEventSubscription subscription;
   private volatile Disposable disposable;
 
+  private final Transactionally transactionally;
+
 
   @AssistedInject
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
@@ -64,7 +67,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
                            StatusUpdateService statusUpdateService,
                            NotificationService notificationService,
                            ExchangeEventRegistry exchangeEventRegistry,
-                           ExchangeService exchangeService) {
+                           ExchangeService exchangeService,
+                           Transactionally transactionally) {
     this.job = job;
     this.jobControl = jobControl;
     this.jobSubmitter = jobSubmitter;
@@ -72,6 +76,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.exchangeService = exchangeService;
+    this.transactionally = transactionally;
   }
 
   @Override
@@ -94,7 +99,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private synchronized void tick(TickerEvent tickerEvent) {
     try {
       if (!done)
-        tickInner(tickerEvent);
+        transactionally.run(() -> tickTransaction(tickerEvent));
     } catch (Exception t) {
       String message = String.format(
         "One-cancels-other on %s %s/%s market temporarily failed with error: %s",
@@ -109,7 +114,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     }
   }
 
-  private void tickInner(TickerEvent tickerEvent) {
+  private void tickTransaction(TickerEvent tickerEvent) {
 
     final Ticker ticker = tickerEvent.ticker();
     final TickerSpec ex = job.tickTrigger();
@@ -140,7 +145,6 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
         )
       );
 
-      // This may throw, in which case retry of the job should kick in
       jobSubmitter.submitNewUnchecked(job.low().job());
       done = true;
       jobControl.finish(SUCCESS);
@@ -161,7 +165,6 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
         )
       );
 
-      // This may throw, in which case retry of the job should kick in
       jobSubmitter.submitNewUnchecked(job.high().job());
       done = true;
       jobControl.finish(SUCCESS);

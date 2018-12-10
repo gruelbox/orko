@@ -1,5 +1,6 @@
 package com.gruelbox.orko.job;
 
+import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -410,7 +411,8 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   private SoftTrailingStopProcessor processor(SoftTrailingStop job) {
-    return new SoftTrailingStopProcessor(job, jobControl, statusUpdateService, notificationService, exchangeService, enqueuer, exchangeEventRegistry);
+    return new SoftTrailingStopProcessor(job, jobControl, statusUpdateService, notificationService,
+        exchangeService, enqueuer, exchangeEventRegistry, mockTransactionally());
   }
 
   private void verifyResyncedPriceTo(SoftTrailingStop job, BigDecimal syncPrice) throws IOException {

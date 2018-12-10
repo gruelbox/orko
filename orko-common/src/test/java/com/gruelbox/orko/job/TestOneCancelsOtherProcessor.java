@@ -1,5 +1,6 @@
 package com.gruelbox.orko.job;
 
+import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -296,7 +297,8 @@ public class TestOneCancelsOtherProcessor {
   }
 
   private OneCancelsOtherProcessor createProcessor(OneCancelsOther job) {
-    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, statusUpdateService, notificationService, exchangeEventRegistry, exchangeService);
+    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, statusUpdateService,
+        notificationService, exchangeEventRegistry, exchangeService, mockTransactionally());
   }
 
   private void verifyDidNothingElse() {
