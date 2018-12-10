@@ -99,7 +99,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private synchronized void tick(TickerEvent tickerEvent) {
     try {
       if (!done)
-        transactionally.run(() -> tickTransaction(tickerEvent));
+        tickInner(tickerEvent);
     } catch (Exception t) {
       String message = String.format(
         "One-cancels-other on %s %s/%s market temporarily failed with error: %s",
@@ -114,7 +114,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     }
   }
 
-  private void tickTransaction(TickerEvent tickerEvent) {
+  private void tickInner(TickerEvent tickerEvent) {
 
     final Ticker ticker = tickerEvent.ticker();
     final TickerSpec ex = job.tickTrigger();
@@ -131,43 +131,51 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
     if (job.low() != null && ticker.getBid().compareTo(job.low().threshold()) <= 0) {
 
-      notificationService.send(
-        Notification.create(
-          String.format(
-            "One-cancels-other on %s %s/%s market hit low threshold (%s < %s)",
-            job.tickTrigger().exchange(),
-            job.tickTrigger().base(),
-            job.tickTrigger().counter(),
-            ticker.getBid(),
-            job.low().threshold()
-          ),
-          job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
-        )
-      );
+      transactionally.run(() -> {
 
-      jobSubmitter.submitNewUnchecked(job.low().job());
-      done = true;
-      jobControl.finish(SUCCESS);
+        notificationService.send(
+          Notification.create(
+            String.format(
+              "One-cancels-other on %s %s/%s market hit low threshold (%s < %s)",
+              job.tickTrigger().exchange(),
+              job.tickTrigger().base(),
+              job.tickTrigger().counter(),
+              ticker.getBid(),
+              job.low().threshold()
+            ),
+            job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
+          )
+        );
+
+        jobSubmitter.submitNewUnchecked(job.low().job());
+        done = true;
+        jobControl.finish(SUCCESS);
+
+      });
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
-      notificationService.send(
-        Notification.create(
-          String.format(
-            "One-cancels-other on %s %s/%s market hit high threshold (%s > %s)",
-            job.tickTrigger().exchange(),
-            job.tickTrigger().base(),
-            job.tickTrigger().counter(),
-            ticker.getBid(),
-            job.high().threshold()
-          ),
-          job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
-        )
-      );
+      transactionally.run(() -> {
 
-      jobSubmitter.submitNewUnchecked(job.high().job());
-      done = true;
-      jobControl.finish(SUCCESS);
+        notificationService.send(
+          Notification.create(
+            String.format(
+              "One-cancels-other on %s %s/%s market hit high threshold (%s > %s)",
+              job.tickTrigger().exchange(),
+              job.tickTrigger().base(),
+              job.tickTrigger().counter(),
+              ticker.getBid(),
+              job.high().threshold()
+            ),
+            job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
+          )
+        );
+
+        jobSubmitter.submitNewUnchecked(job.high().job());
+        done = true;
+        jobControl.finish(SUCCESS);
+
+      });
 
     }
   }
