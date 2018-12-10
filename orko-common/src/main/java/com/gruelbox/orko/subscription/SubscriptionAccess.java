@@ -47,10 +47,9 @@ class SubscriptionAccess {
 
   void remove(TickerSpec spec) {
     LOGGER.info("Removing permanent subscription to {}", spec);
-    session()
-      .createQuery("delete from " + TABLE_NAME + " where id = :id")
-      .setParameter("id", spec.key())
-      .executeUpdate();
+    Subscription subscription = session().get(Subscription.class, spec.key());
+    if (subscription != null)
+      session().delete(subscription);
   }
 
   Set<TickerSpec> all() {
