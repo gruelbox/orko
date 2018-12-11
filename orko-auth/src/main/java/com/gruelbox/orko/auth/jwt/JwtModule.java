@@ -2,6 +2,8 @@ package com.gruelbox.orko.auth.jwt;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
@@ -37,6 +39,12 @@ public class JwtModule extends AbstractModule {
     if (auth.getJwt() != null && auth.getJwt().isEnabled()) {
       Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(LoginResource.class);
     }
+  }
+
+  @Nullable
+  @Provides
+  JwtConfiguration config(AuthConfiguration authConfiguration) {
+    return authConfiguration.getJwt();
   }
 
   @Singleton

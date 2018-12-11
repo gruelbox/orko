@@ -3,15 +3,19 @@
   "scripts": {},
   "env": {
     "AUTH_TOKEN": {
-      "description": "2FA authentication secret for dynamic IP whitelisting. For your own good, this is required.",
-      "required": true
+      "description": "2FA authentication secret for dynamic IP whitelisting. You don't need this just to try out the application, but it is extremely recommended if you are going to be providing your API keys.",
+      "required": false
     },
     "SIMPLE_AUTH_USERNAME": {
       "description": "A username to require for login.",
       "required": false
     },
     "SIMPLE_AUTH_PASSWORD": {
-      "description": "A password to require for login.",
+      "description": "A password to require for login. You can either enter this directly, or for more security, use generate-salt.sh and generate-hash.sh locally to set both this and SIMPLE_AUTH_SALT. See the Wiki for more information. If you're just trying out Orko, don't worry about this for now, and set the value directly.",
+      "required": false
+    },
+    "SIMPLE_AUTH_SALT": {
+      "description": "If set, acts as a hash salt for SIMPLE_AUTH_PASSWORD. May be omitted if SIMPLE_AUTH_PASSWORD is stored as plaintext, but is advised.  See the Wiki for more information.",
       "required": false
     },
     "SIMPLE_AUTH_SECRET": {

@@ -11,14 +11,15 @@ public class JwtConfiguration {
   @JsonProperty private String secret;
   @JsonProperty private String userName;
   @JsonProperty private String password;
+  @JsonProperty private String passwordSalt;
   @JsonProperty private String secondFactorSecret;
   @JsonProperty private int expirationMinutes = 60 * 24;
-  
-  String getSecret() {
+
+  public String getSecret() {
     return secret;
   }
 
-  void setSecret(String secret) {
+  public void setSecret(String secret) {
     this.secret = secret;
   }
 
@@ -30,8 +31,8 @@ public class JwtConfiguration {
   public String getUserName() {
     return userName;
   }
-  
-  void setUserName(String userName) {
+
+  public void setUserName(String userName) {
     this.userName = userName;
   }
 
@@ -39,23 +40,31 @@ public class JwtConfiguration {
     return password;
   }
 
-  void setPassword(String password) {
+  public void setPassword(String password) {
     this.password = password;
+  }
+
+  public String getPasswordSalt() {
+    return passwordSalt;
+  }
+
+  public void setPasswordSalt(String passwordSalt) {
+    this.passwordSalt = passwordSalt;
   }
 
   public int getExpirationMinutes() {
     return expirationMinutes;
   }
 
-  void setExpirationMinutes(int expirationMinutes) {
+  public void setExpirationMinutes(int expirationMinutes) {
     this.expirationMinutes = expirationMinutes;
   }
-  
+
   public String getSecondFactorSecret() {
     return secondFactorSecret;
   }
 
-  void setSecondFactorSecret(String secondFactorSecret) {
+  public void setSecondFactorSecret(String secondFactorSecret) {
     this.secondFactorSecret = secondFactorSecret;
   }
 

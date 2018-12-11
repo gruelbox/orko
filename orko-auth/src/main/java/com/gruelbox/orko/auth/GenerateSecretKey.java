@@ -8,26 +8,27 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 public class GenerateSecretKey {
 
   public static void main(String[] args) throws IOException {
+    Injector injector = Guice.createInjector(new GoogleAuthenticatorModule());
+    otp(injector.getInstance(GenerateSecretKey.class));
+  }
 
-    final GenerateSecretKey generator = Guice.createInjector(new GoogleAuthenticatorModule()).getInstance(GenerateSecretKey.class);
-
+  private static void otp(final GenerateSecretKey generator) throws IOException {
     final String key = generator.createNewKey();
-
-    System.out.println("Here's your key. Enter it into Google Authenticator:");
-    System.out.println(key);
-
-    while (true) {
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, Charsets.UTF_8))) {
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, Charsets.UTF_8))) {
+      while (true) {
+        System.out.println("Here's your key. Enter it into Google Authenticator:");
+        System.out.println(key);
         System.out.println("Now enter the current value from Google Authenticator:");
         String response = reader.readLine();
-        if (generator.checkKey(key, response)) {
+        if (generator.checkKey(key, Integer.parseInt(response))) {
           System.out.println("Yep, that's working.");
-          System.exit(0);
+          break;
         } else {
           System.out.println("Something's wrong. Try again.");
         }
@@ -38,22 +39,22 @@ public class GenerateSecretKey {
   private final IGoogleAuthenticator googleAuthenticator;
 
   @Inject
-  GenerateSecretKey(IGoogleAuthenticator googleAuthenticator) {
+  public GenerateSecretKey(IGoogleAuthenticator googleAuthenticator) {
     this.googleAuthenticator = googleAuthenticator;
   }
 
   @VisibleForTesting
-  String createNewKey() {
+  public String createNewKey() {
     return googleAuthenticator.createCredentials().getKey();
   }
 
   @VisibleForTesting
-  String generateValidInput(String key) {
-    return Integer.toString(googleAuthenticator.getTotpPassword(key));
+  public int generateValidInput(String key) {
+    return googleAuthenticator.getTotpPassword(key);
   }
 
   @VisibleForTesting
-  boolean checkKey(String key, String value) {
-    return googleAuthenticator.authorize(key, Integer.parseInt(value));
+  public  boolean checkKey(String key, int value) {
+    return googleAuthenticator.authorize(key, value);
   }
 }
