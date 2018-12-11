@@ -81,14 +81,6 @@
   <profiles>
     <profile>
       <id>webdev</id>
-      <modules>
-        <module>orko-base</module>
-        <module>orko-db-testsupport</module>
-        <module>orko-auth</module>
-        <module>orko-job</module>
-        <module>orko-common</module>
-        <module>orko-app</module>
-      </modules>
       <build>
         <plugins>
           <plugin>
@@ -102,50 +94,24 @@
     <profile>
       <id>production</id>
       <modules>
-        <module>orko-base</module>
-        <module>orko-db-testsupport</module>
-        <module>orko-auth</module>
-        <module>orko-job</module>
-        <module>orko-common</module>
         <module>orko-ui</module>
-        <module>orko-app</module>
       </modules>
     </profile>
     <profile>
       <id>integration-test</id>
       <modules>
-        <module>orko-base</module>
-        <module>orko-db-testsupport</module>
-        <module>orko-auth</module>
-        <module>orko-job</module>
-        <module>orko-common</module>
         <module>orko-ui</module>
-        <module>orko-app</module>
         <module>orko-end-to-end-testing</module>
       </modules>
     </profile>
     <profile>
       <id>release</id>
       <modules>
-        <module>orko-base</module>
-        <module>orko-db-testsupport</module>
-        <module>orko-auth</module>
-        <module>orko-job</module>
-        <module>orko-common</module>
         <module>orko-ui</module>
-        <module>orko-app</module>
       </modules>
     </profile>
     <profile>
       <id>only-eclipse</id>
-      <modules>
-        <module>orko-base</module>
-        <module>orko-db-testsupport</module>
-        <module>orko-auth</module>
-        <module>orko-job</module>
-        <module>orko-common</module>
-        <module>orko-app</module>
-      </modules>
       <activation>
         <property>
           <name>m2e.version</name>

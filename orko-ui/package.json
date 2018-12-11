@@ -4,11 +4,11 @@
   "private": true,
   "dependencies": {
     "@mars/heroku-js-runtime-env": "^3.0.2",
-    "@okta/okta-signin-widget": "^2.13.0",
+    "@okta/okta-signin-widget": "^2.14.0",
     "connected-react-router": "^4.5.0",
     "cookies-js": "^1.2.3",
     "fetch": "^1.1.0",
-    "http-proxy-middleware": "^0.19.0",
+    "http-proxy-middleware": "^0.19.1",
     "immutable": "^3.8.2",
     "polished": "^1.9.3",
     "react": "^16.6.3",
@@ -29,7 +29,7 @@
     "seamless-immutable": "^7.1.4",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.83.0",
-    "styled-components": "^4.1.1",
+    "styled-components": "^4.1.2",
     "styled-system": "^3.1.11",
     "uuid": "^3.3.2"
   },
