@@ -20,6 +20,7 @@ import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.Headers;
 import com.gruelbox.orko.auth.RequestUtils;
+import com.gruelbox.orko.db.Transactionally;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 public class TestIpWhitelisting {
@@ -28,12 +29,13 @@ public class TestIpWhitelisting {
   private static final String MOST_RECENT_FORWARD = "MostRecentForward";
   private static final String ORIGIN = "Origin";
 
-  private IpWhitelisting ontest;
+  private IpWhitelistingService ontest;
 
   @Mock private HttpServletRequest request;
   @Mock private IGoogleAuthenticator googleAuthenticator;
   private final AuthConfiguration configuration = new AuthConfiguration();
   @Mock private IpWhitelistAccess ipWhitelistAccess;
+  @Mock private Transactionally transactionally;
 
   @Before
   public void setup() {
@@ -41,7 +43,11 @@ public class TestIpWhitelisting {
 
     when(request.getRemoteAddr()).thenReturn(ORIGIN);
 
-    ontest = new IpWhitelisting(Providers.of(new RequestUtils(request, configuration)), googleAuthenticator, configuration, Providers.of(ipWhitelistAccess));
+    ontest = new IpWhitelistingService(
+        Providers.of(new RequestUtils(request, configuration)),
+        googleAuthenticator, configuration,
+        Providers.of(ipWhitelistAccess)
+    );
   }
 
   @Test

@@ -48,6 +48,24 @@ context("Coins", () => {
       cy.o("binance/USDT/ETH/exchange").contains("binance")
       cy.o("binance/USDT/ETH/name").contains("ETH/USD")
       cy.o("binance/USDT/ETH/price").contains(/^[0-9\.]*/)
+      cy.o("binance/USDT/ETH/setReferencePrice").contains("--")
+      cy.o("binance/USDT/ETH/setReferencePrice").click()
+    })
+    cy.o("section/referencePrice").within(() => {
+      cy.o("price").type("10")
+      cy.o("doSubmit").click()
+    })
+    cy.o("section/referencePrice").should("not.exist")
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/ETH/setReferencePrice").contains(/^[\-0-9\.]*%/)
+      cy.o("binance/USDT/ETH/setReferencePrice").click()
+    })
+    cy.o("section/referencePrice").within(() => {
+      cy.o("doClear").click()
+    })
+    cy.o("section/referencePrice").should("not.exist")
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/ETH/setReferencePrice").contains("--")
       cy.o("binance/USDT/ETH/remove").click()
       cy.o("binance/USDT/ETH/exchange").should("not.exist")
     })

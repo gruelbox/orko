@@ -16,15 +16,17 @@ import com.codahale.metrics.annotation.Timed;
 import com.gruelbox.orko.auth.blacklist.Blacklisting;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
+import io.dropwizard.hibernate.UnitOfWork;
+
 @Path("/auth")
 @Singleton
 public class IpWhitelistingResource implements WebResource {
 
-  private final IpWhitelisting ipWhitelisting;
+  private final IpWhitelistingService ipWhitelisting;
   private final Blacklisting blacklisting;
 
   @Inject
-  IpWhitelistingResource(IpWhitelisting ipWhitelisting, Blacklisting blacklisting) {
+  IpWhitelistingResource(IpWhitelistingService ipWhitelisting, Blacklisting blacklisting) {
     this.ipWhitelisting = ipWhitelisting;
     this.blacklisting = blacklisting;
   }
@@ -32,10 +34,11 @@ public class IpWhitelistingResource implements WebResource {
   @DELETE
   @Timed
   @Produces(MediaType.TEXT_PLAIN)
-  public Response auth() {
+  @UnitOfWork
+  public Response delete() {
     if (blacklisting.isBlacklisted())
       return Response.status(Status.TOO_MANY_REQUESTS).entity("Too many requests").type(MediaType.TEXT_PLAIN).build();
-      
+
     if (ipWhitelisting.deWhitelistIp()) {
       return Response.ok().build();
     } else {
@@ -46,10 +49,11 @@ public class IpWhitelistingResource implements WebResource {
   @PUT
   @Timed
   @Produces(MediaType.TEXT_PLAIN)
-  public Response auth(@QueryParam("token") int token) {
+  @UnitOfWork
+  public Response put(@QueryParam("token") int token) {
     if (blacklisting.isBlacklisted())
       return Response.status(Status.TOO_MANY_REQUESTS).entity("Too many requests").type(MediaType.TEXT_PLAIN).build();
-    
+
     if (!ipWhitelisting.whiteListRequestIp(token)) {
       blacklisting.failure();
       return Response.status(Status.FORBIDDEN).entity("Token does not match").type(MediaType.TEXT_PLAIN).build();
@@ -61,10 +65,11 @@ public class IpWhitelistingResource implements WebResource {
   @GET
   @Timed
   @Produces(MediaType.TEXT_PLAIN)
+  @UnitOfWork(readOnly = true)
   public boolean check() {
     if (blacklisting.isBlacklisted())
       return false;
-    
+
     return ipWhitelisting.authoriseIp();
   }
 }

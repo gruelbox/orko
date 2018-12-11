@@ -6,6 +6,10 @@ context("Auth API", () => {
   it("Check whitelisting", () => {
     cy.clearWhitelist()
 
+    cy.request("/api/auth")
+      .its("body")
+      .should("eq", "false")
+
     cy.requestNoFail("/api/exchanges")
       .its("status")
       .should("eq", 403)
@@ -24,6 +28,10 @@ context("Auth API", () => {
 
     cy.whitelist()
 
+    cy.request("/api/auth")
+      .its("body")
+      .should("eq", "true")
+
     cy.requestNoFail("/api/exchanges")
       .its("status")
       .should("eq", 401)
@@ -31,7 +39,7 @@ context("Auth API", () => {
       .its("status")
       .should("eq", 401)
 
-    cy.clearWhitelist()
+    cy.clearWhitelist({ failOnStatusCode: true })
 
     cy.requestNoFail("/api/exchanges")
       .its("status")

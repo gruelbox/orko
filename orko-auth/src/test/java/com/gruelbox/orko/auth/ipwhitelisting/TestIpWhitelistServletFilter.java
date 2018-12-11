@@ -17,10 +17,12 @@ import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 
+import com.gruelbox.orko.db.MockTransactionallyFactory;
+
 public class TestIpWhitelistServletFilter {
 
-  private final IpWhitelisting ipWhitelisting = mock(IpWhitelisting.class);
-  private final IpWhitelistServletFilter ipWhitelistServletFilter = new IpWhitelistServletFilter(ipWhitelisting);
+  private final IpWhitelistingService ipWhitelisting = mock(IpWhitelistingService.class);
+  private final IpWhitelistServletFilter ipWhitelistServletFilter = new IpWhitelistServletFilter(ipWhitelisting, MockTransactionallyFactory.mockTransactionally());
 
   private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final HttpServletResponse response = mock(HttpServletResponse.class);

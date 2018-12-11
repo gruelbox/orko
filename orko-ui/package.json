@@ -1,6 +1,6 @@
 {
   "name": "orko-ui",
-  "version": "0.4.1",
+  "version": "0.5.1",
   "private": true,
   "dependencies": {
     "@mars/heroku-js-runtime-env": "^3.0.2",
@@ -30,7 +30,8 @@
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.83.0",
     "styled-components": "^4.1.1",
-    "styled-system": "^3.1.11"
+    "styled-system": "^3.1.11",
+    "uuid": "^3.3.2"
   },
   "scripts": {
     "start": "react-scripts start",

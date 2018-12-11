@@ -1,8 +1,8 @@
 package com.gruelbox.orko.job;
 
+import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
+import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static com.gruelbox.orko.notification.Status.FAILURE_TRANSIENT;
-import static com.gruelbox.orko.notification.Status.SUCCESS;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
@@ -12,7 +12,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.exchange.ExchangeService;
+import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
@@ -20,11 +25,7 @@ import com.gruelbox.orko.marketdata.TickerEvent;
 import com.gruelbox.orko.notification.Notification;
 import com.gruelbox.orko.notification.NotificationLevel;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.notification.Status;
-import com.gruelbox.orko.notification.StatusUpdateService;
-import com.gruelbox.orko.spi.JobControl;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.submit.JobSubmitter;
 import com.gruelbox.orko.util.SafelyClose;
 import com.gruelbox.orko.util.SafelyDispose;
 
@@ -56,6 +57,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private volatile ExchangeEventSubscription subscription;
   private volatile Disposable disposable;
 
+  private final Transactionally transactionally;
+
 
   @AssistedInject
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,
@@ -64,7 +67,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
                            StatusUpdateService statusUpdateService,
                            NotificationService notificationService,
                            ExchangeEventRegistry exchangeEventRegistry,
-                           ExchangeService exchangeService) {
+                           ExchangeService exchangeService,
+                           Transactionally transactionally) {
     this.job = job;
     this.jobControl = jobControl;
     this.jobSubmitter = jobSubmitter;
@@ -72,6 +76,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.exchangeService = exchangeService;
+    this.transactionally = transactionally;
   }
 
   @Override
@@ -126,45 +131,51 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
 
     if (job.low() != null && ticker.getBid().compareTo(job.low().threshold()) <= 0) {
 
-      notificationService.send(
-        Notification.create(
-          String.format(
-            "One-cancels-other on %s %s/%s market hit low threshold (%s < %s)",
-            job.tickTrigger().exchange(),
-            job.tickTrigger().base(),
-            job.tickTrigger().counter(),
-            ticker.getBid(),
-            job.low().threshold()
-          ),
-          job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
-        )
-      );
+      transactionally.run(() -> {
 
-      // This may throw, in which case retry of the job should kick in
-      jobSubmitter.submitNewUnchecked(job.low().job());
-      done = true;
-      jobControl.finish(SUCCESS);
+        notificationService.send(
+          Notification.create(
+            String.format(
+              "One-cancels-other on %s %s/%s market hit low threshold (%s < %s)",
+              job.tickTrigger().exchange(),
+              job.tickTrigger().base(),
+              job.tickTrigger().counter(),
+              ticker.getBid(),
+              job.low().threshold()
+            ),
+            job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
+          )
+        );
+
+        jobSubmitter.submitNewUnchecked(job.low().job());
+        done = true;
+        jobControl.finish(SUCCESS);
+
+      });
 
     } else if (job.high() != null && ticker.getBid().compareTo(job.high().threshold()) >= 0) {
 
-      notificationService.send(
-        Notification.create(
-          String.format(
-            "One-cancels-other on %s %s/%s market hit high threshold (%s > %s)",
-            job.tickTrigger().exchange(),
-            job.tickTrigger().base(),
-            job.tickTrigger().counter(),
-            ticker.getBid(),
-            job.high().threshold()
-          ),
-          job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
-        )
-      );
+      transactionally.run(() -> {
 
-      // This may throw, in which case retry of the job should kick in
-      jobSubmitter.submitNewUnchecked(job.high().job());
-      done = true;
-      jobControl.finish(SUCCESS);
+        notificationService.send(
+          Notification.create(
+            String.format(
+              "One-cancels-other on %s %s/%s market hit high threshold (%s > %s)",
+              job.tickTrigger().exchange(),
+              job.tickTrigger().base(),
+              job.tickTrigger().counter(),
+              ticker.getBid(),
+              job.high().threshold()
+            ),
+            job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
+          )
+        );
+
+        jobSubmitter.submitNewUnchecked(job.high().job());
+        done = true;
+        jobControl.finish(SUCCESS);
+
+      });
 
     }
   }

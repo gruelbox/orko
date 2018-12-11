@@ -2,13 +2,14 @@ import React from "react"
 import { connect } from "react-redux"
 
 import Immutable from "seamless-immutable"
-
 import Alert from "../components/Alert"
 
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import { isValidNumber } from "../util/numberUtils"
+
+import uuidv4 from "uuid/v4"
 
 class CreateAlertContainer extends React.Component {
   constructor(props) {
@@ -59,6 +60,7 @@ class CreateAlertContainer extends React.Component {
 
     return {
       jobType: jobTypes.OCO,
+      id: uuidv4(),
       tickTrigger: tickTrigger,
       verbose: false,
       low: lowPriceValid
@@ -66,6 +68,7 @@ class CreateAlertContainer extends React.Component {
             thresholdAsString: String(this.state.job.lowPrice),
             job: {
               jobType: jobTypes.ALERT,
+              id: uuidv4(),
               notification: {
                 message:
                   "Price of " +
@@ -85,6 +88,7 @@ class CreateAlertContainer extends React.Component {
             thresholdAsString: String(this.state.job.highPrice),
             job: {
               jobType: "Alert",
+              id: uuidv4(),
               notification: {
                 message:
                   "Price of " +

@@ -1,14 +1,14 @@
 package com.gruelbox.orko.job;
 
-import static com.gruelbox.orko.notification.Status.SUCCESS;
+import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.gruelbox.orko.notification.Status;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.notification.TransientNotificationService;
-import com.gruelbox.orko.spi.JobControl;
 
 class AlertProcessor implements Alert.Processor {
 

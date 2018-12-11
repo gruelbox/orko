@@ -4,9 +4,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.gruelbox.orko.notification.Status;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.notification.TransientStatusUpdateService;
-import com.gruelbox.orko.spi.JobControl;
 
 class StatusUpdateJobProcessor implements StatusUpdateJob.Processor {
 

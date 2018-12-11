@@ -7,9 +7,10 @@ import * as notificationActions from "../notifications/actions"
 export function submitJob(job, callback) {
   return authActions.wrappedRequest(
     auth => jobService.submitJob(job),
-    job => addJob(job, callback),
+    null,
     error =>
-      errorActions.setForeground("Could not submit job: " + error.message)
+      errorActions.setForeground("Could not submit job: " + error.message),
+    () => addJob(job, callback)
   )
 }
 

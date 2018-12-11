@@ -1,5 +1,7 @@
 package com.gruelbox.orko.db;
 
+import java.sql.Driver;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
@@ -43,5 +45,22 @@ public class DbConfiguration {
 
   public ConnectionResources toConnectionResources() {
     return DatabaseType.Registry.urlToConnectionResources("jdbc:" + connectionString);
+  }
+
+  public String getDriverClassName() {
+    return DatabaseType.Registry.findByIdentifier(toConnectionResources().getDatabaseType()).driverClassName();
+  }
+
+  @SuppressWarnings("unchecked")
+  public Class<? extends Driver> getDriver() {
+    try {
+      return (Class<? extends Driver>) Class.forName(getDriverClassName());
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public String getJdbcUrl() {
+    return "jdbc:" + connectionString;
   }
 }

@@ -80,8 +80,8 @@ class SetReferencePriceContainer extends Component {
               onFocus={this.onFocus}
             />
             <FormButtonBar>
-              <Button onClick={this.onClear}>Clear</Button>
-              <Button disabled={!ready} onClick={this.onSubmit}>
+              <Button data-orko="doClear" onClick={this.onClear}>Clear</Button>
+              <Button data-orko="doSubmit" disabled={!ready} onClick={this.onSubmit}>
                 Set
               </Button>
             </FormButtonBar>

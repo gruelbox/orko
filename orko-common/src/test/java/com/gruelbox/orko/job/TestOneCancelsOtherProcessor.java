@@ -1,5 +1,6 @@
 package com.gruelbox.orko.job;
 
+import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -23,6 +24,11 @@ import org.mockito.MockitoAnnotations;
 
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.OneCancelsOther.ThresholdAndJob;
+import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.Job;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
@@ -30,12 +36,7 @@ import com.gruelbox.orko.marketdata.TickerEvent;
 import com.gruelbox.orko.notification.Notification;
 import com.gruelbox.orko.notification.NotificationLevel;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.notification.Status;
-import com.gruelbox.orko.notification.StatusUpdateService;
-import com.gruelbox.orko.spi.Job;
-import com.gruelbox.orko.spi.JobControl;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.submit.JobSubmitter;
 
 import io.reactivex.Flowable;
 
@@ -296,7 +297,8 @@ public class TestOneCancelsOtherProcessor {
   }
 
   private OneCancelsOtherProcessor createProcessor(OneCancelsOther job) {
-    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, statusUpdateService, notificationService, exchangeEventRegistry, exchangeService);
+    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, statusUpdateService,
+        notificationService, exchangeEventRegistry, exchangeService, mockTransactionally());
   }
 
   private void verifyDidNothingElse() {

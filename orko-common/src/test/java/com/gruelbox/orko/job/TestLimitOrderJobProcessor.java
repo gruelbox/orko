@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.binance.dto.BinanceException;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
@@ -22,12 +23,13 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.gruelbox.orko.exchange.ExchangeService;
+import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.notification.Status;
-import com.gruelbox.orko.notification.StatusUpdateService;
-import com.gruelbox.orko.spi.JobControl;
 import com.gruelbox.orko.spi.TickerSpec;
 
 public class TestLimitOrderJobProcessor {
@@ -57,6 +59,7 @@ public class TestLimitOrderJobProcessor {
     MockitoAnnotations.initMocks(this);
 
     when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
+    when(tradeServiceFactory.getForExchange(Exchanges.BINANCE)).thenReturn(tradeService);
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenAnswer(args -> newTradeId());
   }
 
@@ -186,6 +189,114 @@ public class TestLimitOrderJobProcessor {
     verifyLimitBuy();
     verifySentError();
     verifyFinished(result);
+    verifyDidNothingElse();
+  }
+
+  @Test
+  public void testBuyFailedBinance() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(Exchanges.BINANCE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .build();
+
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+      .thenThrow(new RuntimeException());
+
+    LimitOrderJobProcessor processor = newProcessor(job);
+    Status result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
+    verifySentError();
+    Assert.assertEquals(Status.FAILURE_PERMANENT, result);
+    verifyDidNothingElse();
+  }
+
+  @Test
+  public void testBuyFailedBinancePermanent() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(Exchanges.BINANCE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .build();
+
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+      .thenThrow(new BinanceException(-1100, "Foo"));
+
+    LimitOrderJobProcessor processor = newProcessor(job);
+    Status result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
+    verifySentError();
+    Assert.assertEquals(Status.FAILURE_PERMANENT, result);
+    verifyDidNothingElse();
+  }
+
+  @Test
+  public void testBuyFailedBinanceTransient() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(Exchanges.BINANCE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .build();
+
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+      .thenThrow(new BinanceException(-1000, "Foo"));
+
+    LimitOrderJobProcessor processor = newProcessor(job);
+    Status result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
+    verifySentError();
+    Assert.assertEquals(Status.FAILURE_TRANSIENT, result);
+    verifyDidNothingElse();
+  }
+
+  @Test
+  public void testBuyFailedBinanceDuplicate() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(Exchanges.BINANCE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .build();
+
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+      .thenThrow(new BinanceException(-2010, "Foo"));
+
+    LimitOrderJobProcessor processor = newProcessor(job);
+    Status result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
+    verifySentMessage();
+    Assert.assertEquals(Status.SUCCESS, result);
     verifyDidNothingElse();
   }
 
