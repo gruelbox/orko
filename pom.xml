@@ -41,7 +41,7 @@
 
   <groupId>com.gruelbox</groupId>
   <artifactId>orko-parent</artifactId>
-  <version>0.4.1-SNAPSHOT</version>
+  <version>0.5.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
