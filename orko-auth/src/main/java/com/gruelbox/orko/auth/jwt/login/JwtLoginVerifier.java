@@ -10,7 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.gruelbox.orko.auth.AuthConfiguration;
+import com.gruelbox.orko.auth.Hasher;
+import com.gruelbox.orko.auth.jwt.JwtConfiguration;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 import io.dropwizard.auth.AuthenticationException;
@@ -22,20 +23,22 @@ class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtLoginVerifier.class);
 
-  private final AuthConfiguration authConfiguration;
+  private final JwtConfiguration config;
   private final IGoogleAuthenticator googleAuthenticator;
+  private final Hasher hasher;
 
   @Inject
-  JwtLoginVerifier(AuthConfiguration authConfiguration, IGoogleAuthenticator googleAuthenticator) {
-    this.authConfiguration = authConfiguration;
+  JwtLoginVerifier(JwtConfiguration config, IGoogleAuthenticator googleAuthenticator, Hasher hasher) {
+    this.config = config;
     this.googleAuthenticator = googleAuthenticator;
+    this.hasher = hasher;
   }
 
   @Override
   public Optional<PrincipalImpl> authenticate(LoginRequest credentials) throws AuthenticationException {
-    Preconditions.checkNotNull(authConfiguration.getJwt(), "No JWT auth configuration");
-    Preconditions.checkNotNull(authConfiguration.getJwt().getUserName(), "No JWT auth username");
-    Preconditions.checkNotNull(authConfiguration.getJwt().getPassword(), "No JWT auth username");
+    Preconditions.checkNotNull(config, "No JWT auth configuration");
+    Preconditions.checkNotNull(config, "No JWT auth username");
+    Preconditions.checkNotNull(config, "No JWT auth username");
     if (valid(credentials)) {
       return Optional.of(new PrincipalImpl(credentials.getUsername()));
     }
@@ -49,17 +52,29 @@ class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
 
   private boolean valid(LoginRequest credentials) {
     return credentials != null &&
-           authConfiguration.getJwt().getUserName().equals(credentials.getUsername()) &&
-           authConfiguration.getJwt().getPassword().equals(credentials.getPassword()) &&
+           userMatches(credentials) &&
+           passwordMatches(credentials) &&
            passesSecondFactor(credentials);
   }
 
+  private boolean userMatches(LoginRequest credentials) {
+    return config.getUserName().equals(credentials.getUsername());
+  }
+
+  private boolean passwordMatches(LoginRequest credentials) {
+    if (hasher.isHash(config.getPassword())) {
+      return config.getPassword().equals(hasher.hash(credentials.getPassword(), config.getPasswordSalt()));
+    } else {
+      return config.getPassword().equals(credentials.getPassword());
+    }
+  }
+
   private boolean passesSecondFactor(LoginRequest credentials) {
-    if (StringUtils.isEmpty(authConfiguration.getJwt().getSecondFactorSecret()))
+    if (StringUtils.isEmpty(config.getSecondFactorSecret()))
       return true;
     if (credentials.getSecondFactor() == null) {
       return false;
     }
-    return googleAuthenticator.authorize(authConfiguration.getJwt().getSecondFactorSecret(), credentials.getSecondFactor());
+    return googleAuthenticator.authorize(config.getSecondFactorSecret(), credentials.getSecondFactor());
   }
 }

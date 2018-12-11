@@ -8,6 +8,7 @@ auth:
   jwt:
     userName: ${SIMPLE_AUTH_USERNAME:-}
     password: ${SIMPLE_AUTH_PASSWORD:-}
+    passwordSalt: ${SIMPLE_AUTH_SALT:-}
     secret: ${SIMPLE_AUTH_SECRET:-}
     secondFactorSecret: ${SIMPLE_AUTH_SECOND_FACTOR:-}
     expirationMinutes: ${SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES:-1440}
