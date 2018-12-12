@@ -49,6 +49,7 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
+import org.knowm.xchange.dto.trade.StopOrder;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
 import org.knowm.xchange.service.trade.TradeService;
@@ -176,7 +177,7 @@ public class ExchangeResource implements WebResource {
       counter.equals("Z19") ? "BTC" : counter
     );
     return new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
-  }
+            }
 
   public static class PairMetaData {
 
@@ -228,30 +229,53 @@ public class ExchangeResource implements WebResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response postOrder(@PathParam("exchange") String exchange, Map<String, String> order) throws IOException {
-    if (order.containsKey("stopPrice") || !order.containsKey("limitPrice"))
-      return Response.status(400).entity(ImmutableMap.of("message", "Only limit orders supported at the moment")).build();
+
+    if (!order.containsKey("stopPrice") && !order.containsKey("limitPrice"))
+      return Response.status(400).entity(ImmutableMap.of("message", "Market orders not supported at the moment.")).build();
+
+    if (order.containsKey("stopPrice") && order.containsKey("limitPrice"))
+      return Response.status(400).entity(ImmutableMap.of("message", "Stop limit orders not supported at the moment.")).build();
 
     TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
 
     try {
-      String id = tradeService.placeLimitOrder(
-        new LimitOrder(
-          OrderType.valueOf(order.get("type")),
-          new BigDecimal(order.get("amount")),
-          new CurrencyPair(order.get("base"), order.get("counter")),
-          null,
-          new Date(),
-          new BigDecimal(order.get("limitPrice"))
-        ));
+      String id = order.containsKey("stopPrice")
+          ? postStopOrder(exchange, order, tradeService)
+          : postLimitOrder(order, tradeService);
       return Response.ok()
           .entity(ImmutableMap.of("id", id))
           .build();
     } catch (NotAvailableFromExchangeException e) {
-      return Response.status(503).build();
+      return Response.status(503).entity(ImmutableMap.of("message", "Order type not currently supported by exchange.")).build();
     } catch (Exception e) {
       LOGGER.error("Failed to submit order", e);
       return Response.status(500).entity(ImmutableMap.of("message", "Failed to submit order. " + e.getMessage())).build();
     }
+  }
+
+  private String postLimitOrder(Map<String, String> order, TradeService tradeService) throws IOException {
+    return tradeService.placeLimitOrder(
+      new LimitOrder(
+        OrderType.valueOf(order.get("type")),
+        new BigDecimal(order.get("amount")),
+        new CurrencyPair(order.get("base"), order.get("counter")),
+        null,
+        new Date(),
+        new BigDecimal(order.get("limitPrice"))
+      ));
+  }
+
+  private String postStopOrder(String exchange, Map<String, String> order, TradeService tradeService) throws IOException {
+    return tradeService.placeStopOrder(
+      new StopOrder(
+          OrderType.valueOf(order.get("type")),
+          new BigDecimal(order.get("amount")),
+          new CurrencyPair(order.get("base"), order.get("counter")),
+        null,
+        new Date(),
+        new BigDecimal(order.get("stopPrice"))
+      )
+    );
   }
 
 
