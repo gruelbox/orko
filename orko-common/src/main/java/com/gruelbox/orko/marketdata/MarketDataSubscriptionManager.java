@@ -66,6 +66,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
+import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
@@ -133,7 +134,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.eventBus = eventBus;
 
     this.nextSubscriptions = FluentIterable.from(exchangeService.getExchanges())
-        .toMap(e -> new AtomicReference<Set<MarketDataSubscription>>());
+        .toMap(e -> new AtomicReference<>());
 
     exchangeService.getExchanges().forEach(e -> {
       subscriptionsPerExchange.put(e, ImmutableSet.of());
@@ -373,7 +374,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       })
     );
 
-    if (Exchanges.BINANCE.equals(exchangeName) && !StringUtils.isEmpty(configuration.getExchanges().get(Exchanges.BINANCE).getApiKey())) {
+    if (Exchanges.BINANCE.equals(exchangeName) && hasBinanceApiKey()) {
       BinanceStreamingMarketDataService binance = (BinanceStreamingMarketDataService) streaming;
       disposablesPerExchange.put(
         exchangeName,
@@ -384,6 +385,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           )
       );
     }
+  }
+
+
+  private boolean hasBinanceApiKey() {
+    if (configuration.getExchanges() == null)
+      return false;
+    ExchangeConfiguration binanceConfiguration = configuration.getExchanges().get(Exchanges.BINANCE);
+    if (binanceConfiguration == null)
+      return false;
+    return !StringUtils.isEmpty(binanceConfiguration.getApiKey());
   }
 
   /**

@@ -7,18 +7,18 @@ import org.knowm.xchange.cryptopia.CryptopiaExchange;
 import org.knowm.xchange.kucoin.KucoinExchange;
 
 import info.bitrich.xchangestream.bitfinex.BitfinexStreamingExchange;
-import info.bitrich.xchangestream.gdax.GDAXStreamingExchange;
+import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange;
 
 public class TestExchanges {
 
   @Test
   public void testGdaxSandbox() {
-    Assert.assertEquals(GDAXStreamingExchange.class, Exchanges.friendlyNameToClass(Exchanges.GDAX_SANDBOX));
+    Assert.assertEquals(CoinbaseProStreamingExchange.class, Exchanges.friendlyNameToClass(Exchanges.GDAX_SANDBOX));
   }
 
   @Test
   public void testGdax() {
-    Assert.assertEquals(GDAXStreamingExchange.class, Exchanges.friendlyNameToClass(Exchanges.GDAX));
+    Assert.assertEquals(CoinbaseProStreamingExchange.class, Exchanges.friendlyNameToClass(Exchanges.GDAX));
   }
 
   @Test

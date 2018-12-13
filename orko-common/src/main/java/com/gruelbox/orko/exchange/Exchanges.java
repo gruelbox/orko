@@ -11,8 +11,8 @@ import org.reflections.Reflections;
 
 import com.google.common.base.Suppliers;
 
+import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchange;
-import info.bitrich.xchangestream.gdax.GDAXStreamingExchange;
 
 public final class Exchanges {
 
@@ -51,8 +51,8 @@ public final class Exchanges {
    */
   public static Class<? extends Exchange> friendlyNameToClass(String friendlyName) {
 
-    if (friendlyName.equals(GDAX_SANDBOX))
-      return GDAXStreamingExchange.class;
+    if (friendlyName.equals(GDAX) || friendlyName.equals(GDAX_SANDBOX))
+      return CoinbaseProStreamingExchange.class;
 
     Optional<Class<? extends StreamingExchange>> streamingResult = STREAMING_EXCHANGE_TYPES.get()
         .stream()

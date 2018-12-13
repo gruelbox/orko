@@ -27,9 +27,9 @@ class BinanceExceptionClassifier {
     try {
       return callable.call();
     } catch (BinanceException e) {
-      if (e.code == DUPLICATE_ORDER) {
+      if (e.getCode() == DUPLICATE_ORDER) {
         throw new DuplicateOrderException(e);
-      } else if (RETRIABLE_BINANCE_ERROR_CODES.contains(e.code)) {
+      } else if (RETRIABLE_BINANCE_ERROR_CODES.contains(e.getCode())) {
         throw new RetriableBinanceException(e);
       } else {
         throw e;

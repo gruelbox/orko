@@ -125,7 +125,7 @@
     </dependency>
     <dependency>
       <groupId>org.knowm.xchange</groupId>
-      <artifactId>xchange-gdax</artifactId>
+      <artifactId>xchange-coinbasepro</artifactId>
     </dependency>
     <dependency>
       <groupId>org.knowm.xchange</groupId>
@@ -154,7 +154,7 @@
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-gdax</artifactId>
+      <artifactId>xchange-coinbasepro</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
