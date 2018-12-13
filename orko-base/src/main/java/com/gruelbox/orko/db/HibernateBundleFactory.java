@@ -59,8 +59,8 @@ public class HibernateBundleFactory {
         ));
         dsf.setMaxWaitForConnection(Duration.seconds(1));
         dsf.setValidationQuery("/* Health Check */ SELECT 1");
-        dsf.setMinSize(8);
-        dsf.setMaxSize(32);
+        dsf.setMinSize(5);
+        dsf.setMaxSize(9); // 10 is the max on Heroku
         dsf.setCheckConnectionWhileIdle(false);
         return dsf;
       }
