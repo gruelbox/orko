@@ -16,6 +16,12 @@ context("Auth API", () => {
     cy.requestNoFail("/api/exchanges/binance/orders")
       .its("status")
       .should("eq", 403)
+    cy.requestNoFail("/admin")
+      .its("status")
+      .should("eq", 403)
+    cy.requestNoFail("/api/db.zip")
+      .its("status")
+      .should("eq", 403)
 
     cy.whitelist({ valid: false })
 
@@ -23,6 +29,12 @@ context("Auth API", () => {
       .its("status")
       .should("eq", 403)
     cy.requestNoFail("/api/exchanges/binance/orders")
+      .its("status")
+      .should("eq", 403)
+    cy.requestNoFail("/admin")
+      .its("status")
+      .should("eq", 403)
+    cy.requestNoFail("/api/db.zip")
       .its("status")
       .should("eq", 403)
 
@@ -36,6 +48,12 @@ context("Auth API", () => {
       .its("status")
       .should("eq", 401)
     cy.requestNoFail("/api/exchanges/binance/orders")
+      .its("status")
+      .should("eq", 401)
+    cy.requestNoFail("/admin")
+      .its("status")
+      .should("eq", 401)
+    cy.requestNoFail("/api/db.zip")
       .its("status")
       .should("eq", 401)
 
@@ -79,6 +97,24 @@ context("Auth API", () => {
       .then(auth => {
         cy.request({
           url: "/api/exchanges",
+          failOnStatusCode: false,
+          headers: {
+            "x-xsrf-token": auth.xsrf
+          }
+        })
+          .its("status")
+          .should("eq", 200)
+        cy.request({
+          url: "/admin",
+          failOnStatusCode: false,
+          headers: {
+            "x-xsrf-token": auth.xsrf
+          }
+        })
+          .its("status")
+          .should("eq", 200)
+        cy.request({
+          url: "/api/db.zip",
           failOnStatusCode: false,
           headers: {
             "x-xsrf-token": auth.xsrf
