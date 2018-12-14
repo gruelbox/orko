@@ -95,6 +95,7 @@ context("Auth API", () => {
     cy.loginApi()
       .its("body")
       .then(auth => {
+        
         cy.request({
           url: "/api/exchanges",
           failOnStatusCode: false,
@@ -104,6 +105,7 @@ context("Auth API", () => {
         })
           .its("status")
           .should("eq", 200)
+
         cy.request({
           url: "/admin",
           failOnStatusCode: false,
@@ -113,12 +115,9 @@ context("Auth API", () => {
         })
           .its("status")
           .should("eq", 200)
+
         cy.request({
-          url: "/api/db.zip",
-          failOnStatusCode: false,
-          headers: {
-            "x-xsrf-token": auth.xsrf
-          }
+          url: "/api/db.zip"
         })
           .its("status")
           .should("eq", 200)

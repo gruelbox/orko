@@ -35,6 +35,12 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
 
     String fullPath = request.getContextPath() + request.getServletPath() + request.getPathInfo();
 
+    // Slightly ugly. We want to let the DB dump API through our XSRF controls
+    // since this is normally user-initiated.
+    if (fullPath.equals("/api/db.zip")) {
+      return true;
+    }
+
     Optional<String> claim = jwtContext.get()
         .map(JwtContext::getJwtClaims)
         .map(claims -> {
