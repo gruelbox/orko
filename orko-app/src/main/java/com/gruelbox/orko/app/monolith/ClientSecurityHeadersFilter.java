@@ -39,7 +39,7 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
       URIUtil.appendSchemeHostPort(wssUri,
           authConfiguration.get().isHttpsOnly() ? "wss" : "ws",
           httpServletRequest.get().getServerName(),
-          httpServletRequest.get().getServerPort());
+          0); // TODO either use httpServletRequest.get().getServerPort() or proxy header if behind a proxy
       return "default-src 'none'; "
           + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
           + "font-src 'self' https://fonts.gstatic.com data:; "
