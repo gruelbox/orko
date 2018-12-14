@@ -27,6 +27,13 @@ public class DbConfiguration {
   @JsonProperty
   private int lockSeconds = 10;
 
+  /**
+   * A zip file containing a Morf database snapshot to load into the database
+   * on startup. Extract from a running instance using {@link DbResource}.
+   */
+  @JsonProperty
+  private String startPositionFile;
+
   public String getConnectionString() {
     return connectionString;
   }
@@ -62,5 +69,9 @@ public class DbConfiguration {
 
   public String getJdbcUrl() {
     return "jdbc:" + connectionString;
+  }
+
+  public String getStartPositionFile() {
+    return startPositionFile;
   }
 }
