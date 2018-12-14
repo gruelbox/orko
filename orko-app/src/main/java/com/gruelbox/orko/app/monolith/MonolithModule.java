@@ -8,12 +8,14 @@ import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
+import com.gruelbox.orko.db.DbResource;
 import com.gruelbox.orko.exchange.ExchangeResourceModule;
 import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.tools.dropwizard.guice.Configured;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
  * Top level bindings.
@@ -35,6 +37,8 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
       .addBinding().to(MonolithEnvironment.class);
+    Multibinder.newSetBinder(binder(), WebResource.class)
+      .addBinding().to(DbResource.class);
   }
 
   @Provides
