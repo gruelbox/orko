@@ -40,6 +40,8 @@ import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
 
+  private static final long SENSIBLE_MINIMUM_POLL_DELAY = 2000;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
   private final OrkoConfiguration configuration;
@@ -115,9 +117,21 @@ public class ExchangeServiceImpl implements ExchangeService {
           rateLimits = Arrays.asList(metaData.getPrivateRateLimits()).stream();
         if (metaData.getPublicRateLimits() != null)
           rateLimits = Stream.concat(rateLimits, Arrays.asList(metaData.getPublicRateLimits()).stream());
+
+        // We floor the poll delay at a sensible minimum in case the above calculation goes
+        // wrong (frequently when something's up with the exchange metadata).
         return rateLimits
           .map(RateLimit::getPollDelayMillis)
-          .max(Comparator.naturalOrder());
+          .max(Comparator.naturalOrder())
+          .map(result -> {
+            if (result < SENSIBLE_MINIMUM_POLL_DELAY) {
+              LOGGER.warn("Exchange [[{}] reported suspicious pollDelayMillis ({}). Reset to {}",
+                  exchangeName, result, SENSIBLE_MINIMUM_POLL_DELAY);
+              return SENSIBLE_MINIMUM_POLL_DELAY;
+            } else {
+              return result;
+            }
+          });
 
       } catch (Exception e) {
         LOGGER.warn("Failed to fetch exchange metadata for " + exchangeName, e);
