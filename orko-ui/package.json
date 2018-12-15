@@ -1,6 +1,6 @@
 {
   "name": "orko-ui",
-  "version": "0.5.1",
+  "version": "0.6.1",
   "private": true,
   "dependencies": {
     "@mars/heroku-js-runtime-env": "^3.0.2",
