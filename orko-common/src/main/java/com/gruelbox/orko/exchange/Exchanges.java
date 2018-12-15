@@ -27,6 +27,7 @@ public final class Exchanges {
   public static final String BITTREX = "bittrex";
   public static final String BITFINEX = "bitfinex";
   public static final String CRYPTOPIA = "cryptopia";
+  public static final String BITMEX = "bitmex";
 
   static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
       () -> new Reflections("org.knowm.xchange")
@@ -40,7 +41,6 @@ public final class Exchanges {
       .getSubTypesOf(StreamingExchange.class)
       .stream()
       .collect(Collectors.toList()));
-
 
 
   /**

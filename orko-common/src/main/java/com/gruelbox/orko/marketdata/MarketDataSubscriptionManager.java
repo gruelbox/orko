@@ -28,6 +28,7 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.bitmex.BitmexPrompt;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.account.Wallet;
@@ -684,7 +685,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void pollAndEmitTrades(MarketDataSubscription subscription, MarketDataService marketDataService) throws IOException {
-    marketDataService.getTrades(subscription.spec().currencyPair())
+    marketDataService.getTrades(subscription.spec().currencyPair(), exchangeTradesArgs(subscription))
       .getTrades()
       .stream()
       .forEach(t -> {
@@ -702,13 +703,27 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       });
   }
 
+  private Object[] exchangeTradesArgs(MarketDataSubscription subscription) {
+    // TODO assuming perpetual on Bitmex for now
+    return subscription.spec().exchange().equals(Exchanges.BITMEX)
+        ? new Object[] { BitmexPrompt.PERPETUAL }
+        : new Object[] {};
+  }
+
   private void pollAndEmitOrderbook(TickerSpec spec, MarketDataService marketDataService) throws IOException {
-    if (spec.exchange().equals(Exchanges.CRYPTOPIA)) {
+    orderbookOut.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), exchangeOrderbookArgs(spec))));
+  }
+
+  private Object[] exchangeOrderbookArgs(TickerSpec spec) {
+    if (spec.exchange().equals(Exchanges.BITMEX)) {
+      // TODO assuming perpetual on Bitmex for now
+      return new Object[] { BitmexPrompt.PERPETUAL };
+    } else if (spec.exchange().equals(Exchanges.CRYPTOPIA)) {
       // TODO submit a PR to xChange for this
       long longValue = ORDERBOOK_DEPTH;
-      orderbookOut.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), longValue, longValue)));
+      return new Object[] { longValue, longValue };
     } else {
-      orderbookOut.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), ORDERBOOK_DEPTH, ORDERBOOK_DEPTH)));
+      return new Object[] { ORDERBOOK_DEPTH, ORDERBOOK_DEPTH };
     }
   }
 
