@@ -11,6 +11,7 @@ import static org.knowm.xchange.dto.Order.OrderType.BID;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +33,7 @@ import org.knowm.xchange.bitmex.BitmexPrompt;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.account.Wallet;
+import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
@@ -60,6 +62,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
@@ -685,7 +688,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private void pollAndEmitTrades(MarketDataSubscription subscription, MarketDataService marketDataService) throws IOException {
-    marketDataService.getTrades(subscription.spec().currencyPair(), exchangeTradesArgs(subscription))
+    marketDataService.getTrades(exchangePair(subscription.spec()), exchangeTradesArgs(subscription.spec()))
       .getTrades()
       .stream()
       .forEach(t -> {
@@ -703,21 +706,51 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       });
   }
 
-  private Object[] exchangeTradesArgs(MarketDataSubscription subscription) {
-    // TODO assuming perpetual on Bitmex for now
-    return subscription.spec().exchange().equals(Exchanges.BITMEX)
-        ? new Object[] { BitmexPrompt.PERPETUAL }
+  private Object[] exchangeTradesArgs(TickerSpec spec) {
+    return spec.exchange().equals(Exchanges.BITMEX)
+        ? bitmexArgs(spec)
         : new Object[] {};
   }
 
+  private Object[] bitmexArgs(TickerSpec spec) {
+    // TODO need to think about how to manage differnet Bitmex contracts,
+    // in the meantime just assume we'll use perps if we can and monthly
+    // otherwise
+    return new Object[] {
+        (spec.base().equals("XBT") || spec.base().equals("ETH"))
+          ? BitmexPrompt.PERPETUAL
+          : BitmexPrompt.QUARTERLY
+    };
+  }
+
+  private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
+    // TODO need solution for https://github.com/knowm/XChange/issues/2886
+    if (spec.counter().equals("Z18"))
+      return new CurrencyPair(spec.base(), "BTC");
+    else
+      return spec.currencyPair();
+  }
+
+  private CurrencyPair exchangePair(TickerSpec spec) {
+    return spec.exchange().equals(Exchanges.BITMEX)
+        ? bitmexCurrencyPair(spec)
+        : spec.currencyPair();
+  }
+
   private void pollAndEmitOrderbook(TickerSpec spec, MarketDataService marketDataService) throws IOException {
-    orderbookOut.emit(OrderBookEvent.create(spec, marketDataService.getOrderBook(spec.currencyPair(), exchangeOrderbookArgs(spec))));
+    OrderBook orderBook = marketDataService.getOrderBook(exchangePair(spec), exchangeOrderbookArgs(spec));
+
+    // TODO pending https://github.com/knowm/XChange/pull/2887
+    if (Exchanges.BITMEX.equals(spec.exchange())) {
+      Collections.sort(orderBook.getAsks(), Ordering.natural().onResultOf(LimitOrder::getLimitPrice));
+    }
+
+    orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
   }
 
   private Object[] exchangeOrderbookArgs(TickerSpec spec) {
     if (spec.exchange().equals(Exchanges.BITMEX)) {
-      // TODO assuming perpetual on Bitmex for now
-      return new Object[] { BitmexPrompt.PERPETUAL };
+      return bitmexArgs(spec);
     } else if (spec.exchange().equals(Exchanges.CRYPTOPIA)) {
       // TODO submit a PR to xChange for this
       long longValue = ORDERBOOK_DEPTH;

@@ -2,7 +2,6 @@ package com.gruelbox.orko.exchange;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -25,8 +24,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.binance.dto.meta.exchangeinfo.Filter;
-import org.knowm.xchange.binance.service.BinanceMarketDataService;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -43,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.gruelbox.orko.auth.Roles;
@@ -95,19 +93,41 @@ public class ExchangeResource implements WebResource {
   @Path("{exchange}/pairs")
   @RolesAllowed(Roles.TRADER)
   public Collection<Pair> pairs(@PathParam("exchange") String exchangeName) {
-    return exchanges.get(exchangeName)
-        .getExchangeMetaData()
-        .getCurrencyPairs()
-        .keySet()
-        .stream()
-        .map(Pair::new)
-        .collect(Collectors.toSet());
+
+    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
+    if (Exchanges.BITMEX.equals(exchangeName)) {
+      return ImmutableList.of(
+        new Pair("XBT", "USD"),
+        new Pair("XBT", "Z18"),
+        new Pair("ADA", "Z18"),
+        new Pair("BCH", "Z18"),
+        new Pair("EOS", "Z18"),
+        new Pair("ETH", "USD"),
+        new Pair("ETH", "Z18"),
+        new Pair("LTC", "Z18"),
+        new Pair("TRX", "Z18"),
+        new Pair("XRP", "Z18")
+      );
+    } else {
+      return exchanges.get(exchangeName)
+          .getExchangeMetaData()
+          .getCurrencyPairs()
+          .keySet()
+          .stream()
+          .map(Pair::new)
+          .collect(Collectors.toSet());
+    }
   }
 
   public static class Pair {
 
     @JsonProperty public String counter;
     @JsonProperty public String base;
+
+    public Pair(String base, String counter) {
+      this.base = base;
+      this.counter = counter;
+    }
 
     public Pair(CurrencyPair currencyPair) {
       this.counter = currencyPair.counter.getCurrencyCode();
@@ -120,34 +140,15 @@ public class ExchangeResource implements WebResource {
   @Path("{exchange}/pairs/{base}-{counter}")
   @RolesAllowed(Roles.TRADER)
   public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) throws IOException {
-    
-    Exchange exchange = exchanges.get(exchangeName);
-    CurrencyPair currencyPair = new CurrencyPair(base, counter);
-    PairMetaData pairMetaData = new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
-    
-    // TODO Pending access to https://github.com/knowm/XChange/pull/2870
-    if (exchangeName.equals(Exchanges.BINANCE)) {
-      BinanceMarketDataService binanceMarketDataService = (BinanceMarketDataService) exchange.getMarketDataService();
-      Arrays.stream(binanceMarketDataService.getExchangeInfo().getSymbols())
-        .filter(s -> s.getSymbol().equals(base + counter))
-        .findFirst()
-        .ifPresent(symbol -> {
-          int pairPrecision = 8;
-          Filter[] filters = symbol.getFilters();
-          for (Filter filter : filters) {
-            if (filter.getFilterType().equals("PRICE_FILTER")) {
-              pairPrecision = Math.min(pairPrecision, new BigDecimal(filter.getTickSize()).stripTrailingZeros().scale());
-            }
-          }
-          if (pairMetaData.priceScale != pairPrecision) {
-            LOGGER.warn("Fixed price scale for {} from {} to {}", currencyPair, pairMetaData.priceScale, pairPrecision);
-            pairMetaData.priceScale = pairPrecision;
-          }
-          
-        });
-    }
 
-    return pairMetaData;
+    Exchange exchange = exchanges.get(exchangeName);
+
+    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
+    CurrencyPair currencyPair = new CurrencyPair(
+      base.equals("Z18") ? "BTC" : base,
+      counter.equals("Z18") ? "BTC" : counter
+    );
+    return new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
   }
 
   public static class PairMetaData {
