@@ -25,7 +25,7 @@ public class DbConfiguration {
   @NotNull
   @Min(10L)
   @JsonProperty
-  private int lockSeconds = 10;
+  private int lockSeconds = 45;
 
   /**
    * A zip file containing a Morf database snapshot to load into the database

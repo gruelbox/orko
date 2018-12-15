@@ -54,8 +54,10 @@ class GuardianLoop extends AbstractExecutionThreadService {
     while (isRunning() && !Thread.currentThread().isInterrupted() && !kill) {
       try {
 
+        LOGGER.debug("Checking and restarting jobs");
         lockAndStartInactiveJobs();
 
+        LOGGER.debug("Sleeping");
         try {
           Thread.sleep((long) config.getGuardianLoopSeconds() * 1000);
         } catch (InterruptedException e) {
@@ -65,6 +67,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
         }
 
         // Refresh the locks on the running jobs
+        LOGGER.debug("Refreshing locks");
         eventBus.post(KeepAliveEvent.INSTANCE);
 
       } catch (Exception e) {
