@@ -30,7 +30,7 @@ context("Coins", () => {
     })
   })
 
-  it("Visit a coin directly", () => {
+  it("Visit a coin directly and work with it", () => {
     cy.whitelist()
     cy.loginApi().then(() => {
       clearSubscriptions().then(() =>
@@ -66,6 +66,19 @@ context("Coins", () => {
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
       cy.o("binance/USDT/ETH/setReferencePrice").contains("--")
+      cy.o("binance/USDT/ETH/alerts").click()
+    })
+    cy.o("section/manageAlerts").within(() => {
+      cy.o("highPrice").type("6000")
+      cy.o("lowPrice").type("1")
+      cy.o("doCreateAlert").click()
+    })
+    cy.o("errorModal").should("not.exist")
+    cy.o("section/manageAlerts/tabs").within(() => {
+      cy.o("close").click()
+    })
+    cy.o("section/manageAlerts").should("not.exist")
+    cy.o("section/coinList").within(() => {
       cy.o("binance/USDT/ETH/remove").click()
       cy.o("binance/USDT/ETH/exchange").should("not.exist")
     })

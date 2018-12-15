@@ -52,7 +52,7 @@ const Alert = props => {
         mr={0}
       />
       <FormButtonBar>
-        <Button disabled={!valid} onClick={props.onSubmit}>
+        <Button data-orko="doCreateAlert" disabled={!valid} onClick={props.onSubmit}>
           Create Alert
         </Button>
       </FormButtonBar>

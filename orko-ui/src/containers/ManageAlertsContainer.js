@@ -115,6 +115,7 @@ class ManageAlertsContainer extends React.Component {
           heading={"Manage alerts for " + coin.name}
           buttons={() => (
             <Href
+              data-orko="close"
               title="Close"
               onClick={() => this.props.dispatch(uiActions.closeAlerts())}
             >
