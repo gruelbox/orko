@@ -55,7 +55,7 @@ public class ScriptResource implements WebResource {
         .build());
   }
 
-  public class ScriptJobPrototype {
+  public static final class ScriptJobPrototype {
     public String id;
     public String name;
     public String script;
