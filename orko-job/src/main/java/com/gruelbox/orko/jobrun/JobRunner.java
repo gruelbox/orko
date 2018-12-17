@@ -9,6 +9,7 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -239,6 +240,8 @@ class JobRunner {
 
     @Override
     public void replace(Job newVersion) {
+      Preconditions.checkNotNull(newVersion, "Job replaced with null");
+
       LOGGER.debug("{} replacing...", job);
       if (!stopAndUnregister()) {
         LOGGER.warn("Replacement of job which is already shutting down: " + job);
@@ -254,6 +257,8 @@ class JobRunner {
 
     @Override
     public void finish(Status status) {
+      Preconditions.checkArgument(status == Status.FAILURE_PERMANENT || status == Status.SUCCESS, "Finish condition must be success or permanent failure");
+
       LOGGER.info(job + " finishing ({})...", status);
       statusUpdateService.status(job.id(), status);
       if (!stopAndUnregister()) {

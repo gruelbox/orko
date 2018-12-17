@@ -4,15 +4,17 @@ import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
 import static com.gruelbox.orko.jobrun.spi.Status.RUNNING;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptException;
@@ -27,7 +29,9 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.job.ScriptJob.Builder;
+import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
@@ -45,6 +49,7 @@ public class TestScriptJobProcessor {
   @Mock private JobControl jobControl;
   @Mock private ExchangeEventRegistry exchangeEventRegistry;
   @Mock private NotificationService notificationService;
+  @Mock private JobSubmitter jobSubmitter;
   @Mock private Transactionally transactionally;
 
   @Before
@@ -111,7 +116,7 @@ public class TestScriptJobProcessor {
   public void testSaveState() throws Exception {
     ScriptJob scriptJob = newJob().script(""
         + "function start() {\n"
-        + "  saveState('foo', 'bar')\n"
+        + "  state.persistent.set('foo', 'bar')\n"
         + "  return SUCCESS\n"
         + "}").build();
     ScriptJobProcessor processor = processor(scriptJob);
@@ -124,7 +129,7 @@ public class TestScriptJobProcessor {
   public void testGetState() throws Exception {
     ScriptJob scriptJob = newJob().state(ImmutableMap.of("foo", "bar")).script(""
         + "function start() {\n"
-        + "  if (getSavedState('foo') !== 'bar') throw new Error('Assertion failed')\n"
+        + "  if (state.persistent.get('foo') !== 'bar') throw new Error('Assertion failed')\n"
         + "  return SUCCESS\n"
         + "}").build();
     ScriptJobProcessor processor = processor(scriptJob);
@@ -136,60 +141,80 @@ public class TestScriptJobProcessor {
   public void testStayResident() throws Exception {
     ScriptJob scriptJob = newJob().script(""
         + "function start() {\n"
-        + "  transientState.interval = setInterval(poll, 1000)\n"
+        + "  state.local.set('interval', setInterval(poll, 250))\n"
+        + "  state.local.set('count', 1)\n"
         + "  return RUNNING\n"
         + "}\n"
         + "function poll() {\n"
-        + "  print('Poll')\n"
+        + "  console.log('Poll')\n"
         + "  notifications.alert('Alert')\n"
         + "  notifications.info('Info')\n"
         + "  notifications.error('Error')\n"
-        + "  jobControl.finish(SUCCESS)\n"
+        + "  if (state.local.get('count') >= 3) { control.done() } else { state.local.increment('count') }\n"
         + "}\n"
         + "function stop() {\n"
-        + "  clearInterval(transientState.interval)\n"
-        + "  print('Done')\n"
+        + "  clearInterval(state.local.get('interval'))\n"
+        + "  console.log('Done')\n"
         + "}").build();
     ScriptJobProcessor processor = Mockito.spy(processor(scriptJob));
 
     Mockito.doAnswer(args -> {
       processor.stop();
       return null;
-    }).when(jobControl).finish(SUCCESS);
+    }).when(jobControl).finish(Mockito.any(Status.class));
+
+    CountDownLatch latch = new CountDownLatch(1);
+    Mockito.doAnswer(args -> {
+      latch.countDown();
+      return null;
+    }).when(processor).dispose(Mockito.any(Disposable.class));
 
     assertEquals(RUNNING, processor.start());
-    sleep(3000);
-    InOrder inOrder = Mockito.inOrder(jobControl, processor, notificationService);
-    inOrder.verify(processor).setInterval(Mockito.any(Runnable.class), Mockito.eq(1000L));
-    inOrder.verify(notificationService).alert("Alert");
-    inOrder.verify(notificationService).info("Info");
-    inOrder.verify(notificationService).error("Error");
-    inOrder.verify(jobControl).finish(SUCCESS);
-    inOrder.verify(processor).dispose(Mockito.any(Disposable.class));
+
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    verify(processor).onInterval(Mockito.any(Runnable.class), Mockito.eq(250L), Mockito.anyString());
+    verify(notificationService, times(3)).alert("Alert");
+    verify(notificationService, times(3)).info("Info");
+    verify(notificationService, times(3)).error("Error");
+    verify(jobControl).finish(SUCCESS);
+    verify(processor).dispose(Mockito.any(Disposable.class));
   }
 
   @Test
   public void testMonitorTicker() throws Exception {
     ScriptJob scriptJob = newJob().script(""
         + "function start() {\n"
-        + "  log('x' + transientState)\n"
-        + "  transientState.subscription = setTick(onTick, { exchange: 'binance', base: 'BTC', counter: 'USDT' })\n"
-        + "  log('y' + transientState)\n"
+        + "  console.log('x' + state.local)\n"
+        + "  state.local.set('subscription', events.setTick(onTick, { exchange: 'binance', base: 'BTC', counter: 'USDT' }))\n"
+        + "  console.log('y' + state.local)\n"
         + "  return RUNNING\n"
         + "}\n"
         + "function onTick(event) {\n"
         + "  try {\n"
-        + "    log('Poll')\n"
+        + "    console.log('Poll')\n"
         + "    notifications.info(event.toString())\n"
-        + "    jobControl.finish(SUCCESS)\n"
+        + "    trading.limitOrder({\n"
+        + "      market: { exchange: 'binance', base: 'BTC', counter: 'USDT' },\n"
+        + "      direction: BUY,\n"
+        + "      price: decimal('1'),\n"
+        + "      amount: decimal('2')\n"
+        + "    })\n"
+        + "    trading.limitOrder({\n"
+        + "      market: { exchange: 'gdax', base: 'ETH', counter: 'EUR' },\n"
+        + "      direction: SELL,\n"
+        + "      price: decimal('2'),\n"
+        + "      amount: decimal('4')\n"
+        + "    })\n"
+        + "    control.done()\n"
         + "  } catch (err) {\n"
-        + "    log('Error on tick: ' + err)\n"
-        + "    jobControl.finish(FAILURE_PERMANENT)\n"
+        + "    // By default, errors are transient. Make it permanent\n"
+        + "    console.log('Error on tick: ' + err)\n"
+        + "    control.fail()\n"
         + "  }\n"
         + "}\n"
         + "function stop() {\n"
-        + "  log('Stop')\n"
-        + "  clearTick(transientState.subscription)\n"
+        + "  console.log('Stop')\n"
+        + "  events.clear(state.local.get('subscription'))\n"
         + "}").build();
 
     ScriptJobProcessor processor = Mockito.spy(processor(scriptJob));
@@ -217,18 +242,38 @@ public class TestScriptJobProcessor {
           )
       );
 
+    CountDownLatch latch = new CountDownLatch(1);
+    Mockito.doAnswer(args -> {
+      latch.countDown();
+      return null;
+    }).when(subscription).close();
+
     assertEquals(RUNNING, processor.start());
 
-    Thread.sleep(1000);
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-    verify(jobControl, Mockito.atLeastOnce()).finish(SUCCESS);
-    verify(notificationService, Mockito.atLeastOnce()).info(TickerEvent.create(spec, ticker1).toString());
-    verify(subscription).close();
+    InOrder inOrder = Mockito.inOrder(notificationService, jobSubmitter, subscription, jobControl);
+    inOrder.verify(notificationService).info(TickerEvent.create(spec, ticker1).toString());
+    inOrder.verify(jobSubmitter).submitNewUnchecked(LimitOrderJob.builder()
+        .direction(Direction.BUY)
+        .tickTrigger(TickerSpec.fromKey("binance/USDT/BTC"))
+        .amount(new BigDecimal(2))
+        .limitPrice(BigDecimal.ONE)
+        .build());
+    inOrder.verify(jobSubmitter).submitNewUnchecked(LimitOrderJob.builder()
+        .direction(Direction.SELL)
+        .tickTrigger(TickerSpec.fromKey("gdax/EUR/ETH"))
+        .amount(new BigDecimal(4))
+        .limitPrice(new BigDecimal(2))
+        .build());
+    inOrder.verify(jobControl).finish(SUCCESS);
+    inOrder.verify(subscription).close();
   }
 
   private ScriptJobProcessor processor(ScriptJob scriptJob) {
     return new ScriptJobProcessor(scriptJob, jobControl,
-        exchangeEventRegistry, notificationService, transactionally);
+        exchangeEventRegistry, notificationService,
+        jobSubmitter, transactionally);
   }
 
   private Builder newJob() {
