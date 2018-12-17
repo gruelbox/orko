@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableMap;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.ScriptJob.Builder;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
@@ -44,10 +45,15 @@ public class TestScriptJobProcessor {
   @Mock private JobControl jobControl;
   @Mock private ExchangeEventRegistry exchangeEventRegistry;
   @Mock private NotificationService notificationService;
+  @Mock private Transactionally transactionally;
 
   @Before
   public void before() throws IOException {
     MockitoAnnotations.initMocks(this);
+    Mockito.doAnswer(args -> {
+      ((Runnable) args.getArguments()[0]).run();
+      return null;
+    }).when(transactionally).run(Mockito.any(Runnable.class));
   }
 
   /* -------------------------------------------------------------------------------------- */
@@ -145,10 +151,12 @@ public class TestScriptJobProcessor {
         + "  print('Done')\n"
         + "}").build();
     ScriptJobProcessor processor = Mockito.spy(processor(scriptJob));
+
     Mockito.doAnswer(args -> {
       processor.stop();
       return null;
     }).when(jobControl).finish(SUCCESS);
+
     assertEquals(RUNNING, processor.start());
     sleep(3000);
     InOrder inOrder = Mockito.inOrder(jobControl, processor, notificationService);
@@ -219,7 +227,8 @@ public class TestScriptJobProcessor {
   }
 
   private ScriptJobProcessor processor(ScriptJob scriptJob) {
-    return new ScriptJobProcessor(scriptJob, jobControl, exchangeEventRegistry, notificationService);
+    return new ScriptJobProcessor(scriptJob, jobControl,
+        exchangeEventRegistry, notificationService, transactionally);
   }
 
   private Builder newJob() {

@@ -26,6 +26,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
@@ -58,6 +59,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final NotificationService notificationService;
+  private final Transactionally transactionally;
 
   private final Map<String, Object> transientState = new HashMap<>();
   private volatile boolean done;
@@ -66,11 +68,13 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public ScriptJobProcessor(@Assisted ScriptJob job,
                             @Assisted JobControl jobControl,
                             ExchangeEventRegistry exchangeEventRegistry,
-                            NotificationService notificationService) {
+                            NotificationService notificationService,
+                            Transactionally transactionally) {
     this.job = job;
     this.jobControl = jobControl;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.notificationService = notificationService;
+    this.transactionally = transactionally;
   }
 
   @Override
@@ -134,7 +138,9 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       public Disposable apply(ScriptObjectMirror callback, Integer timeout) {
         return setInterval(() -> {
           synchronized(ScriptJobProcessor.this) {
-            callback.call(null);
+            if (done)
+              return;
+            transactionally.run(() -> callback.call(null));
           }
         }, timeout);
       }
@@ -147,7 +153,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
             synchronized(ScriptJobProcessor.this) {
               if (done)
                 return;
-              callback.call(null, event);
+              transactionally.run(() -> callback.call(null, event));
             }
           },
           TickerSpec.builder()
