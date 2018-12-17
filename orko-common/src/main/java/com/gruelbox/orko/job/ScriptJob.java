@@ -67,6 +67,11 @@ public abstract class ScriptJob implements Job {
   @JsonProperty
   public abstract Map<String, String> state();
 
+  @Override
+  public String toString() {
+    return "Script(" + name() + ")";
+  }
+
   @JsonIgnore
   @Override
   public final Class<Processor.ProcessorFactory> processorFactory() {
