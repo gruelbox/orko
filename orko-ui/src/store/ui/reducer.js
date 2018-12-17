@@ -4,7 +4,7 @@ import * as types from "./actionTypes"
 const initialState = Immutable({
   alertsCoin: null,
   referencePriceCoin: null,
-  showScripts: true
+  showScripts: false
 })
 
 export default function reduce(state = initialState, action = {}) {

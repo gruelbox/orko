@@ -9,6 +9,7 @@ import ticker from "./ticker/reducer"
 import socket from "./socket/reducer"
 import notifications from "./notifications/reducer"
 import ui from "./ui/reducer"
+import scripting from "./scripting/reducer"
 
 export {
   auth,
@@ -21,5 +22,6 @@ export {
   ticker,
   notifications,
   ui,
-  socket
+  socket,
+  scripting
 }
