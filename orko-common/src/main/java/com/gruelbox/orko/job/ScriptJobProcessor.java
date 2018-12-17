@@ -196,6 +196,14 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       LOGGER.info("{} - {}", job.name(), o);
     }
 
+    public void log(Object o, Exception error) {
+      LOGGER.error(job.name() + " - " + o, error);
+    }
+
+    public void log(Object o, Object value) {
+      LOGGER.info("{} - {}, {}", job.name(), o, value);
+    }
+
   }
 
   public final class Control {
@@ -261,43 +269,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   }
 
   public final class State {
-
-    public final StateManager<Object> local = new StateManager<Object>() {
-
-      @Override
-      public void set(String key, Object value) {
-        transientState.put(key, value);
-      }
-
-      @Override
-      public Object get(String key) {
-        return transientState.get(key);
-      }
-
-      @Override
-      public void remove(String key) {
-        transientState.remove(key);
-      }
-
-      @Override
-      public String toString() {
-        return transientState.toString();
-      }
-
-      @Override
-      public void increment(String key) {
-        Object value = get(key);
-        if (value instanceof Integer) {
-          set(key, ((Integer)value) + 1);
-        } else if (value instanceof Long) {
-          set(key, ((Long)value) + 1);
-        } else if (value instanceof BigDecimal) {
-          set(key, ((BigDecimal)value).add(BigDecimal.ONE));
-        } else {
-          throw new IllegalStateException(key + " is a " + key.getClass().getName() + ", not an precise numeric value, so cannot be incremented");
-        }
-      }
-    };
 
     public final StateManager<String> persistent = new StateManager<String>() {
 

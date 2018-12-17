@@ -22,7 +22,6 @@ import javax.script.ScriptException;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.dto.marketdata.Ticker;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -163,9 +162,10 @@ public class TestScriptJobProcessor {
   @Test
   public void testStayResident() throws Exception {
     ScriptJob scriptJob = newJob(""
+        + "var interval, count\n"
         + "function start() {\n"
-        + "  state.local.set('interval', setInterval(poll, 250))\n"
-        + "  state.local.set('count', 1)\n"
+        + "  interval = setInterval(poll, 250)\n"
+        + "  count = 1\n"
         + "  return RUNNING\n"
         + "}\n"
         + "function poll() {\n"
@@ -173,10 +173,10 @@ public class TestScriptJobProcessor {
         + "  notifications.alert('Alert')\n"
         + "  notifications.info('Info')\n"
         + "  notifications.error('Error')\n"
-        + "  if (state.local.get('count') >= 3) { control.done() } else { state.local.increment('count') }\n"
+        + "  if (count >= 3) { control.done() } else { count++ }\n"
         + "}\n"
         + "function stop() {\n"
-        + "  clearInterval(state.local.get('interval'))\n"
+        + "  clearInterval(interval)\n"
         + "  console.log('Done')\n"
         + "}").build();
     ScriptJobProcessor processor = Mockito.spy(processor(scriptJob));
@@ -206,10 +206,11 @@ public class TestScriptJobProcessor {
   @Test
   public void testMonitorTicker() throws Exception {
     ScriptJob scriptJob = newJob(""
+        + "var subscription\n"
         + "function start() {\n"
-        + "  console.log('x' + state.local)\n"
-        + "  state.local.set('subscription', events.setTick(onTick, { exchange: 'binance', base: 'BTC', counter: 'USDT' }))\n"
-        + "  console.log('y' + state.local)\n"
+        + "  console.log('Pre-subscription', subscription)\n"
+        + "  subscription = events.setTick(onTick, { exchange: 'binance', base: 'BTC', counter: 'USDT' })\n"
+        + "  console.log('Post-subscription', subscription)\n"
         + "  return RUNNING\n"
         + "}\n"
         + "function onTick(event) {\n"
@@ -231,13 +232,13 @@ public class TestScriptJobProcessor {
         + "    control.done()\n"
         + "  } catch (err) {\n"
         + "    // By default, errors are transient. Make it permanent\n"
-        + "    console.log('Error on tick: ' + err)\n"
+        + "    console.log('Error on tick', err)\n"
         + "    control.fail()\n"
         + "  }\n"
         + "}\n"
         + "function stop() {\n"
         + "  console.log('Stop')\n"
-        + "  events.clear(state.local.get('subscription'))\n"
+        + "  events.clear(subscription)\n"
         + "}").build();
 
     ScriptJobProcessor processor = Mockito.spy(processor(scriptJob));
@@ -275,22 +276,22 @@ public class TestScriptJobProcessor {
 
     assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-    InOrder inOrder = Mockito.inOrder(notificationService, jobSubmitter, subscription, jobControl);
-    inOrder.verify(notificationService).info(TickerEvent.create(spec, ticker1).toString());
-    inOrder.verify(jobSubmitter).submitNewUnchecked(LimitOrderJob.builder()
+//    InOrder inOrder = Mockito.inOrder(notificationService, jobSubmitter, subscription, jobControl);
+    verify(notificationService).info(TickerEvent.create(spec, ticker1).toString());
+    verify(jobSubmitter).submitNewUnchecked(LimitOrderJob.builder()
         .direction(Direction.BUY)
         .tickTrigger(TickerSpec.fromKey("binance/USDT/BTC"))
         .amount(new BigDecimal(2))
         .limitPrice(BigDecimal.ONE)
         .build());
-    inOrder.verify(jobSubmitter).submitNewUnchecked(LimitOrderJob.builder()
+    verify(jobSubmitter).submitNewUnchecked(LimitOrderJob.builder()
         .direction(Direction.SELL)
         .tickTrigger(TickerSpec.fromKey("gdax/EUR/ETH"))
         .amount(new BigDecimal(4))
         .limitPrice(new BigDecimal(2))
         .build());
-    inOrder.verify(jobControl).finish(SUCCESS);
-    inOrder.verify(subscription).close();
+    verify(jobControl).finish(SUCCESS);
+    verify(subscription).close();
   }
 
   private ScriptJobProcessor processor(ScriptJob scriptJob) {
