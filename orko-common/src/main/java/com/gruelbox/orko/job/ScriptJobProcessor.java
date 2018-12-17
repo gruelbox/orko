@@ -102,6 +102,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       initialiseEngine();
     } catch (Exception e) {
       notificationService.error("Script job '" + job.name() + "' permanently failed: " + e.getMessage(), e);
+      LOGGER.error("Failed script:\n" + job.script());
       return Status.FAILURE_PERMANENT;
     }
     try {
@@ -109,6 +110,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       return (Status) invocable.invokeFunction("start");
     } catch (NoSuchMethodException e) {
       notificationService.error("Script job '" + job.name() + "' permanently failed: " + e.getMessage(), e);
+      LOGGER.error("Failed script:\n" + job.script());
       return Status.FAILURE_PERMANENT;
     } catch (Exception e) {
       notifyAndLogError("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
