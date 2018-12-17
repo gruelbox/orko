@@ -10,7 +10,7 @@ const initialState = Immutable({
 var count = 0
 
 function start() {
-  notifications.alert("Starting")
+  notifications.alert(parameters.startMessage)
   subscription = events.setTick(
     function(event) {
       notifications.info("Price is " + event.ticker().getLast() + ", count=" + count)
@@ -25,7 +25,7 @@ function start() {
 }
 
 function stop() {
-  notifications.alert("Finished")
+  notifications.alert(parameters.finishMessage)
   events.clear(subscription)
 }`,
       parameters: [
