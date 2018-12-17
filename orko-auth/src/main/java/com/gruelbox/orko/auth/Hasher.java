@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import com.google.common.base.Charsets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -38,6 +39,11 @@ public class Hasher {
     byte[] salt = new byte[16];
     random.nextBytes(salt);
     return Base64.getEncoder().encodeToString(salt);
+  }
+
+  public String hashWithString(String value, String stringSalt) {
+    String salt = Base64.getEncoder().encodeToString(stringSalt.getBytes(Charsets.UTF_8));
+    return hash(value, salt);
   }
 
   public String hash(String value, String salt) {

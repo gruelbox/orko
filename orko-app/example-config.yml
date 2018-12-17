@@ -1,4 +1,5 @@
 loopSeconds: 3
+scriptSigningKey: "MAKE SURE YOU CHANGE THIS IN PRODUCTION"
 auth:
   httpsOnly: false
   proxied: false

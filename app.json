@@ -51,6 +51,11 @@
     "TELEGRAM_CHAT_ID": {
       "description": "The Telegram chat ID. May be omitted if TELEGRAM_BOT_TOKEN is.",
       "required": false
+    },
+    "SCRIPT_SIGNING_KEY": {
+      "description": "Any script jobs written to the database are signed with this in case the database is compromised.",
+      "required": true,
+      "generator": "secret"
     }
   },
   "formation": {

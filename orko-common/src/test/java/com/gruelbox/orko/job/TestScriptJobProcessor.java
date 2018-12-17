@@ -28,6 +28,8 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableMap;
+import com.gruelbox.orko.OrkoConfiguration;
+import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.job.ScriptJob.Builder;
@@ -46,11 +48,13 @@ import io.reactivex.disposables.Disposable;
 
 public class TestScriptJobProcessor {
 
+  private static final String SCRIPT_SIGNING_KEY = "WHATEVER REALLY. DOESN'T MATTER";
   @Mock private JobControl jobControl;
   @Mock private ExchangeEventRegistry exchangeEventRegistry;
   @Mock private NotificationService notificationService;
   @Mock private JobSubmitter jobSubmitter;
   @Mock private Transactionally transactionally;
+  private final Hasher hasher = new Hasher();
 
   @Before
   public void before() throws IOException {
@@ -65,7 +69,7 @@ public class TestScriptJobProcessor {
 
   @Test
   public void testTransientExceptionOnStart() throws Exception {
-    ScriptJob scriptJob = newJob().script(""
+    ScriptJob scriptJob = newJob(""
         + "function start() {\n"
         + "  throw new Error('Boom!')\n"
         + "}").build();
@@ -81,7 +85,7 @@ public class TestScriptJobProcessor {
 
   @Test
   public void testPermanentExceptionOnStart() throws Exception {
-    ScriptJob scriptJob = newJob().script(""
+    ScriptJob scriptJob = newJob(""
         + "function wrongFunctionName() {\n"
         + "  throw new Error('Boom!')\n"
         + "}").build();
@@ -92,7 +96,7 @@ public class TestScriptJobProcessor {
 
   @Test
   public void testSuccessOnStart() throws Exception {
-    ScriptJob scriptJob = newJob().script(""
+    ScriptJob scriptJob = newJob(""
         + "function start() {\n"
         + "  return SUCCESS\n"
         + "}").build();
@@ -103,7 +107,7 @@ public class TestScriptJobProcessor {
 
   @Test
   public void testFailOnStart() throws Exception {
-    ScriptJob scriptJob = newJob().script(""
+    ScriptJob scriptJob = newJob(""
         + "function start() {\n"
         + "  return FAILURE_PERMANENT\n"
         + "}").build();
@@ -113,8 +117,27 @@ public class TestScriptJobProcessor {
   }
 
   @Test
+  public void testFailBadlySigned() throws Exception {
+    ScriptJob scriptJob = ScriptJob.builder()
+      .name("Badly signed job")
+      .script(""
+        + "function start() {\n"
+        + "  return SUCCESS\n"
+        + "}")
+      .scriptHash(hasher.hashWithString(""
+          + "function start() {\n"
+          + "  print('Something nefarious')\n"
+          + "  return SUCCESS\n"
+          + "}", SCRIPT_SIGNING_KEY))
+      .build();
+    ScriptJobProcessor processor = processor(scriptJob);
+    assertEquals(FAILURE_PERMANENT, processor.start());
+    processor.stop();
+  }
+
+  @Test
   public void testSaveState() throws Exception {
-    ScriptJob scriptJob = newJob().script(""
+    ScriptJob scriptJob = newJob(""
         + "function start() {\n"
         + "  state.persistent.set('foo', 'bar')\n"
         + "  return SUCCESS\n"
@@ -127,11 +150,11 @@ public class TestScriptJobProcessor {
 
   @Test
   public void testGetState() throws Exception {
-    ScriptJob scriptJob = newJob().state(ImmutableMap.of("foo", "bar")).script(""
+    ScriptJob scriptJob = newJob(""
         + "function start() {\n"
         + "  if (state.persistent.get('foo') !== 'bar') throw new Error('Assertion failed')\n"
         + "  return SUCCESS\n"
-        + "}").build();
+        + "}").state(ImmutableMap.of("foo", "bar")).build();
     ScriptJobProcessor processor = processor(scriptJob);
     assertEquals(SUCCESS, processor.start());
     processor.stop();
@@ -139,7 +162,7 @@ public class TestScriptJobProcessor {
 
   @Test
   public void testStayResident() throws Exception {
-    ScriptJob scriptJob = newJob().script(""
+    ScriptJob scriptJob = newJob(""
         + "function start() {\n"
         + "  state.local.set('interval', setInterval(poll, 250))\n"
         + "  state.local.set('count', 1)\n"
@@ -182,7 +205,7 @@ public class TestScriptJobProcessor {
 
   @Test
   public void testMonitorTicker() throws Exception {
-    ScriptJob scriptJob = newJob().script(""
+    ScriptJob scriptJob = newJob(""
         + "function start() {\n"
         + "  console.log('x' + state.local)\n"
         + "  state.local.set('subscription', events.setTick(onTick, { exchange: 'binance', base: 'BTC', counter: 'USDT' }))\n"
@@ -271,12 +294,17 @@ public class TestScriptJobProcessor {
   }
 
   private ScriptJobProcessor processor(ScriptJob scriptJob) {
+    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
+    orkoConfiguration.setScriptSigningKey(SCRIPT_SIGNING_KEY);
     return new ScriptJobProcessor(scriptJob, jobControl,
         exchangeEventRegistry, notificationService,
-        jobSubmitter, transactionally);
+        jobSubmitter, transactionally, hasher, orkoConfiguration);
   }
 
-  private Builder newJob() {
-    return ScriptJob.builder().name("Test job");
+  private Builder newJob(String script) {
+    return ScriptJob.builder()
+        .name("Test job")
+        .script(script)
+        .scriptHash(hasher.hashWithString(script, SCRIPT_SIGNING_KEY));
   }
 }

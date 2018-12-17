@@ -54,6 +54,9 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
   @JsonProperty
   private TelegramConfiguration telegram;
 
+  @JsonProperty
+  private String scriptSigningKey;
+
   @Valid
   @NotNull
   @JsonProperty("jerseyClient")
@@ -103,6 +106,14 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
 
   public void setExchanges(Map<String, ExchangeConfiguration> exchange) {
     exchanges = exchange;
+  }
+
+  public String getScriptSigningKey() {
+    return scriptSigningKey;
+  }
+
+  public void setScriptSigningKey(String scriptSigningKey) {
+    this.scriptSigningKey = scriptSigningKey;
   }
 
   public JerseyClientConfiguration getJerseyClientConfiguration() {

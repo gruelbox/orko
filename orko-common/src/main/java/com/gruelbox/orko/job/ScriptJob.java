@@ -39,6 +39,7 @@ public abstract class ScriptJob implements Job {
     public abstract Builder id(String value);
     public abstract Builder name(String name);
     public abstract Builder script(String script);
+    public abstract Builder scriptHash(String hash);
     public abstract Builder state(Map<String, String> state);
 
     @Override
@@ -59,6 +60,9 @@ public abstract class ScriptJob implements Job {
 
   @JsonProperty
   public abstract String script();
+
+  @JsonProperty
+  public abstract String scriptHash();
 
   @JsonProperty
   public abstract Map<String, String> state();

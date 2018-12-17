@@ -27,6 +27,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.gruelbox.orko.OrkoConfiguration;
+import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.JobSubmitter;
@@ -63,6 +65,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   private final NotificationService notificationService;
   private final JobSubmitter jobSubmitter;
   private final Transactionally transactionally;
+  private final Hasher hasher;
+  private final OrkoConfiguration configuration;
 
   private final Map<String, Object> transientState = new HashMap<>();
   private volatile boolean done;
@@ -73,23 +77,33 @@ class ScriptJobProcessor implements ScriptJob.Processor {
                             ExchangeEventRegistry exchangeEventRegistry,
                             NotificationService notificationService,
                             JobSubmitter jobSubmitter,
-                            Transactionally transactionally) {
+                            Transactionally transactionally,
+                            Hasher hasher,
+                            OrkoConfiguration configuration) {
     this.job = job;
     this.jobControl = jobControl;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.notificationService = notificationService;
     this.jobSubmitter = jobSubmitter;
     this.transactionally = transactionally;
+    this.hasher = hasher;
+    this.configuration = configuration;
   }
 
   @Override
   public Status start() {
+    String hash = hasher.hashWithString(job.script(), configuration.getScriptSigningKey());
+    if (!hash.equals(job.scriptHash())) {
+      notifyAndLogError("Script job '" + job.name() + "' has invalid hash. Failed permanently");
+      return Status.FAILURE_PERMANENT;
+    }
+
     initialiseEngine();
     Invocable invocable = (Invocable) engine;
     try {
       return (Status) invocable.invokeFunction("start");
     } catch (ScriptException e) {
-      notificationService.error("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
+      notifyAndLogError("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
       throw new RuntimeException(e.getMessage(), e);
     } catch (NoSuchMethodException e) {
       notificationService.error("Script job '" + job.name() + "' permanently failed: " + e.getMessage(), e);
@@ -99,6 +113,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   @Override
   public void stop() {
+    if (engine == null)
+      return;
     Invocable invocable = (Invocable) engine;
     try {
       invocable.invokeFunction("stop");
@@ -209,6 +225,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
             try {
               transactionally.run(() -> callback.call(null, event));
             } catch (PermanentFailureException e) {
+              notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
               jobControl.finish(FAILURE_PERMANENT);
             }
           }
@@ -227,6 +244,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
             try {
               transactionally.run(() -> callback.call(null));
             } catch (PermanentFailureException e) {
+              notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
               jobControl.finish(FAILURE_PERMANENT);
             }
           }
@@ -407,6 +425,14 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         return description;
       }
     };
+  }
+
+  private void notifyAndLogError(String message) {
+    notificationService.error(message);
+  }
+
+  private void notifyAndLogError(String message, Throwable t) {
+    notificationService.error(message, t);
   }
 
   public static final class Module extends AbstractModule {
