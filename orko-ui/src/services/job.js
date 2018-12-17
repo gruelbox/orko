@@ -5,6 +5,10 @@ class JobService {
     return await put("jobs/" + job.id, JSON.stringify(job))
   }
 
+  async submitScriptJob(job) {
+    return await put("jobs/scripts/" + job.id, JSON.stringify(job))
+  }
+
   async deleteJob(job) {
     return await del("jobs/" + job.id)
   }

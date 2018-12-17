@@ -3,6 +3,7 @@ import * as authActions from "../auth/actions"
 import * as errorActions from "../error/actions"
 import jobService from "../../services/job"
 import * as notificationActions from "../notifications/actions"
+import * as jobTypes from "../../services/jobTypes"
 
 export function submitJob(job, callback) {
   return authActions.wrappedRequest(
@@ -11,6 +12,16 @@ export function submitJob(job, callback) {
     error =>
       errorActions.setForeground("Could not submit job: " + error.message),
     () => addJob(job, callback)
+  )
+}
+
+export function submitScriptJob(job, callback) {
+  return authActions.wrappedRequest(
+    auth => jobService.submitScriptJob(job),
+    null,
+    error =>
+      errorActions.setForeground("Could not submit job: " + error.message),
+    () => addJob({...job, jobType: jobTypes.SCRIPT}, callback)
   )
 }
 
