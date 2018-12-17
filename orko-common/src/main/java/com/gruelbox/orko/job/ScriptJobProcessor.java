@@ -9,6 +9,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,6 +23,7 @@ import javax.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Throwables;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -46,6 +48,7 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import jdk.nashorn.internal.runtime.ParserException;
 
 /**
  * Processor for {@link ScriptJob}.
@@ -95,17 +98,21 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       notifyAndLogError("Script job '" + job.name() + "' has invalid hash. Failed permanently");
       return Status.FAILURE_PERMANENT;
     }
-
-    initialiseEngine();
-    Invocable invocable = (Invocable) engine;
     try {
+      initialiseEngine();
+    } catch (Exception e) {
+      notificationService.error("Script job '" + job.name() + "' permanently failed: " + e.getMessage(), e);
+      return Status.FAILURE_PERMANENT;
+    }
+    try {
+      Invocable invocable = (Invocable) engine;
       return (Status) invocable.invokeFunction("start");
-    } catch (ScriptException e) {
-      notifyAndLogError("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
-      throw new RuntimeException(e.getMessage(), e);
     } catch (NoSuchMethodException e) {
       notificationService.error("Script job '" + job.name() + "' permanently failed: " + e.getMessage(), e);
       return Status.FAILURE_PERMANENT;
+    } catch (Exception e) {
+      notifyAndLogError("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
+      throw new RuntimeException(e.getMessage(), e);
     }
   }
 
@@ -116,21 +123,18 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     Invocable invocable = (Invocable) engine;
     try {
       invocable.invokeFunction("stop");
-    } catch (ScriptException e) {
-      throw new RuntimeException(e);
     } catch (NoSuchMethodException e) {
       // Fine
+    } catch (Exception e) {
+      Throwables.throwIfUnchecked(e);
+      throw new RuntimeException(e);
     }
   }
 
-  private void initialiseEngine() {
+  private void initialiseEngine() throws ScriptException, ParserException {
     engine = new NashornScriptEngineFactory().getScriptEngine(new String[] { "--no-java" });
     createBindings();
-    try {
-      engine.eval(job.script());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    engine.eval(job.script());
   }
 
   private void createBindings() {
@@ -222,7 +226,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   public final class Events {
 
+    private final AtomicBoolean failing = new AtomicBoolean(false);
+
     public Disposable setTick(JSObject callback, JSObject tickerSpec) {
+
       return onTick(
         event -> {
           synchronized(ScriptJobProcessor.this) {
@@ -230,9 +237,12 @@ class ScriptJobProcessor implements ScriptJob.Processor {
               return;
             try {
               transactionally.run(() -> callback.call(null, event));
+              successfulPoll();
             } catch (PermanentFailureException e) {
               notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
               jobControl.finish(FAILURE_PERMANENT);
+            } catch (Exception e) {
+              failingPoll(e);
             }
           }
         },
@@ -249,15 +259,32 @@ class ScriptJobProcessor implements ScriptJob.Processor {
               return;
             try {
               transactionally.run(() -> callback.call(null));
+              successfulPoll();
             } catch (PermanentFailureException e) {
               notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
               jobControl.finish(FAILURE_PERMANENT);
+            } catch (Exception e) {
+              failingPoll(e);
             }
           }
         },
         timeout,
         callback.toString()
       );
+    }
+
+    private void successfulPoll() {
+      if (failing.compareAndSet(true, false)) {
+        notificationService.alert("Script job '" + job.name() + "' working again");
+      }
+    }
+
+    private void failingPoll(Exception e) {
+      if (failing.compareAndSet(false, true)) {
+        notifyAndLogError("Script job '" + job.name() + "' failing: " + e.getMessage(), e);
+      } else {
+        LOGGER.error("Script job '" + job.name() + "' failed again: " + e.getMessage());
+      }
     }
 
     public void clear(Disposable disposable) {
