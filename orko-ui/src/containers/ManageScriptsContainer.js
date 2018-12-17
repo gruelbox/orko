@@ -5,7 +5,7 @@ import Modal from "../components/primitives/Modal"
 import Href from "../components/primitives/Href"
 import * as uiActions from "../store/ui/actions"
 import { Icon } from "semantic-ui-react"
-import ReactTable from "react-table"
+import Scripts from "../components/Scripts"
 import Input from "../components/primitives/Input"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
@@ -14,54 +14,6 @@ import { highlight, languages } from "prismjs/components/prism-core"
 import "prismjs/components/prism-clike"
 import "prismjs/components/prism-javascript"
 import theme from "../theme"
-
-const textStyle = {
-  textAlign: "left"
-}
-
-const Scripts = ({ scripts, onDelete, onSelect }) => (
-  <ReactTable
-    data={scripts}
-    columns={[
-      {
-        id: "close",
-        Header: null,
-        Cell: ({ original }) => (
-          <Href title="Remove script" onClick={() => onDelete(original)}>
-            <Icon fitted name="close" />
-          </Href>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        width: 32,
-        sortable: false,
-        resizable: false
-      },
-      {
-        id: "name",
-        Header: "name",
-        Cell: ({ original }) => (
-          <Href
-            data-orko={original.id + "/select"}
-            title={"Select " + original.name}
-            onClick={() => onSelect(original)}
-          >
-            {original.name}
-          </Href>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        resizable: true,
-        minWidth: 50
-      }
-    ]}
-    showPagination={false}
-    resizable={false}
-    className="-striped"
-    minRows={0}
-    noDataText="No scripts"
-  />
-)
 
 const Editor = ({
   name,
