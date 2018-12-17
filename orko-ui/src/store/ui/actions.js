@@ -8,6 +8,14 @@ export function closeAlerts() {
   return { type: types.CLOSE_ALERTS }
 }
 
+export function openScripts() {
+  return { type: types.OPEN_SCRIPTS }
+}
+
+export function closeScripts() {
+  return { type: types.CLOSE_SCRIPTS }
+}
+
 export function openReferencePrice(coin) {
   return { type: types.OPEN_REFERENCE_PRICE, payload: coin }
 }

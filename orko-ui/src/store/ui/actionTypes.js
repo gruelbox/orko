@@ -1,4 +1,6 @@
 export const OPEN_ALERTS = "ui.OPEN_ALERTS"
 export const CLOSE_ALERTS = "ui.CLOSE_ALERTS"
+export const OPEN_SCRIPTS = "ui.OPEN_SCRIPTS"
+export const CLOSE_SCRIPTS = "ui.CLOSE_SCRIPTS"
 export const OPEN_REFERENCE_PRICE = "ui.OPEN_REFERENCE_PRICE"
 export const CLOSE_REFERENCE_PRICE = "ui.CLOSE_REFERENCE_PRICE"
