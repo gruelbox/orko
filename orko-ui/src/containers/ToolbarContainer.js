@@ -13,6 +13,7 @@ import Ticker from "../components/Ticker"
 
 import { formatNumber } from "../util/numberUtils"
 import * as authActions from "../store/auth/actions"
+import * as uiActions from "../store/ui/actions"
 import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
 
 const ToolbarBox = styled.div`
@@ -84,6 +85,19 @@ const SignOutLink = ({ onClick }) => (
   </Href>
 )
 
+const ScriptsLink = ({ onClick }) => (
+  <Href
+    mx={2}
+    color="heading"
+    fontSize={3}
+    title="Open scripts"
+    fontWeight="bold"
+    onClick={onClick}
+  >
+    <Icon name="code" />
+  </Href>
+)
+
 const InvalidateLink = ({ onClick }) => (
   <Href
     color="heading"
@@ -152,6 +166,7 @@ const Normal = ({
       />
     </RemainingSpace>
     <TickerSocketState connected={connected} />
+    <ScriptsLink onClick={() => dispatch(uiActions.openScripts())} />
     <ViewSettings onClick={onShowViewSettings} />
     <SignOutLink onClick={() => dispatch(authActions.logout())} />
     <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
@@ -171,6 +186,7 @@ const Mobile = ({
     <HomeLink />
     <TickerSocketState connected={connected} />
     <Coin coin={coin} />
+    <ScriptsLink onClick={() => dispatch(uiActions.openScripts())} />
     <SignOutLink onClick={() => dispatch(authActions.logout())} />
     <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
   </ToolbarBox>
