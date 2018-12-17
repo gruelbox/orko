@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -15,6 +16,8 @@ import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
@@ -27,6 +30,8 @@ import io.dropwizard.testing.junit.DAOTestRule;
 
 public class TestJobAccess {
 
+  @Mock private JobLocker jobLocker;
+
   @Rule
   public DAOTestRule database = DbTesting.rule()
     .addEntityClass(JobRecord.class)
@@ -36,7 +41,8 @@ public class TestJobAccess {
 
   @Before
   public void setup() throws Exception {
-    dao = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper());
+    MockitoAnnotations.initMocks(this);
+    dao = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper(), jobLocker);
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(new JobRecordContribution().tables()));
   }
 
@@ -64,6 +70,7 @@ public class TestJobAccess {
       dao.delete(job2.id());
       assertThat(dao.list(), containsInAnyOrder(job1));
     });
+    verify(jobLocker).releaseAnyLock(job2.id());
 
     database.inTransaction(() -> assertThat(dao.list(), containsInAnyOrder(job1)));
 

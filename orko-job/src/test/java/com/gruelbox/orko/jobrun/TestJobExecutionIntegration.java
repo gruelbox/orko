@@ -101,7 +101,7 @@ public class TestJobExecutionIntegration {
     executorService = Executors.newFixedThreadPool(4);
 
     transactionally = new Transactionally(database.getSessionFactory());
-    jobAccess = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper());
+    jobAccess = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper(), jobLocker);
     jobRunner1 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
         transactionally, executorService, Providers.of(database.getSessionFactory()));
     jobRunner2 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
