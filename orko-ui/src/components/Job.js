@@ -138,6 +138,15 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
+    } else if (job.jobType === jobTypes.SCRIPT) {
+      return (
+        <JobStages>
+          <JobStage>
+            <Icon name="computer" />
+            {job.name}
+          </JobStage>
+        </JobStages>
+      )
     } else {
       return (
         <JobStages>
