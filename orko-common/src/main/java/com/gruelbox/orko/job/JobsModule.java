@@ -12,6 +12,7 @@ public class JobsModule extends AbstractModule {
     install(new SoftTrailingStopProcessor.Module());
     install(new AlertProcessor.Module());
     install(new StatusUpdateJobProcessor.Module());
+    install(new ScriptJobProcessor.Module());
     Multibinder.newSetBinder(binder(), WebResource.class)
       .addBinding().to(ScriptResource.class);
   }

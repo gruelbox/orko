@@ -19,7 +19,8 @@ public class JobTypes implements JobTypeContribution {
       AutoValue_LimitOrderJob.class,
       OneCancelsOther.class,
       SoftTrailingStop.class,
-      StatusUpdateJob.class
+      StatusUpdateJob.class,
+      ScriptJob.class
     );
   }
 }
