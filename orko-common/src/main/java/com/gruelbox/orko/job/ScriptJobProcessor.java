@@ -26,6 +26,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
@@ -57,7 +58,9 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final NotificationService notificationService;
+
   private final Map<String, Object> transientState = new HashMap<>();
+  private volatile boolean done;
 
   @AssistedInject
   public ScriptJobProcessor(@Assisted ScriptJob job,
@@ -113,7 +116,18 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     bindings.put("FAILURE_PERMANENT", FAILURE_PERMANENT);
     bindings.put("RUNNING", RUNNING);
     bindings.put("transientState", transientState);
-    bindings.put("jobControl", jobControl);
+    bindings.put("jobControl", new JobControl() {
+      @Override
+      public void replace(Job job) {
+        jobControl.replace(job);
+      }
+
+      @Override
+      public void finish(Status status) {
+        jobControl.finish(status);
+        done = true;
+      }
+    });
     bindings.put("notifications", notificationService);
     bindings.put("setInterval", new BiFunction<ScriptObjectMirror, Integer, Disposable>() {
       @Override
@@ -131,6 +145,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         return onTick(
           event -> {
             synchronized(ScriptJobProcessor.this) {
+              if (done)
+                return;
               callback.call(null, event);
             }
           },
