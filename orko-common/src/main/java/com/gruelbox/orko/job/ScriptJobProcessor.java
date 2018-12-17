@@ -9,7 +9,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -68,7 +67,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   private final Hasher hasher;
   private final OrkoConfiguration configuration;
 
-  private final Map<String, Object> transientState = new HashMap<>();
   private volatile boolean done;
 
   @AssistedInject

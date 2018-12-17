@@ -1,6 +1,8 @@
 package com.gruelbox.orko.job;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.Multibinder;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 public class JobsModule extends AbstractModule {
   @Override
@@ -10,5 +12,7 @@ public class JobsModule extends AbstractModule {
     install(new SoftTrailingStopProcessor.Module());
     install(new AlertProcessor.Module());
     install(new StatusUpdateJobProcessor.Module());
+    Multibinder.newSetBinder(binder(), WebResource.class)
+      .addBinding().to(ScriptResource.class);
   }
 }
