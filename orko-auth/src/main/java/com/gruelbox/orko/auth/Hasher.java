@@ -12,6 +12,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -42,11 +43,14 @@ public class Hasher {
   }
 
   public String hashWithString(String value, String stringSalt) {
+    Preconditions.checkNotNull(stringSalt);
     String salt = Base64.getEncoder().encodeToString(stringSalt.getBytes(Charsets.UTF_8));
     return hash(value, salt);
   }
 
   public String hash(String value, String salt) {
+    Preconditions.checkNotNull(value);
+    Preconditions.checkNotNull(salt);
     KeySpec spec = new PBEKeySpec(value.toCharArray(), Base64.getDecoder().decode(salt), 65536, 256);
     try {
       SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
