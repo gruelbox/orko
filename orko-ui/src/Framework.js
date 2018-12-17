@@ -21,6 +21,7 @@ import TradingContainer from "./containers/TradingContainer"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
+import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
 import ChartContainer from "./containers/ChartContainer"
 import ViewSettings from "./components/ViewSettings"
@@ -168,6 +169,7 @@ export default class Framework extends React.Component {
     )
     const Market = () => <MarketContainer allowAnimate={!isMobile} />
     const ManageAlerts = () => <ManageAlertsContainer mobile={isMobile} />
+    const ManageScripts = () => <ManageScriptsContainer mobile={isMobile} />
 
     const Settings = () =>
       this.state.showSettings ? (
@@ -192,6 +194,7 @@ export default class Framework extends React.Component {
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
       <PositioningWrapper key="dialogs" mobile={isMobile}>
         <Settings />
+        <ManageScripts/>
         <ManageAlerts />
         <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
       </PositioningWrapper>

@@ -16,7 +16,8 @@ const RawForm = styled.form`
 const RawFormContent = styled.div`
   flex: 1;
   display: flex;
-  flex-direction: row;
+  flex-direction: ${props =>
+    props.flexDirection ? props.flexDirection : "row"};
   justify-content: flex-start;
   align-items: flex-start;
   align-content: flex-start;
@@ -31,7 +32,9 @@ const RawFormContent = styled.div`
 
 const Form = props => (
   <RawForm data-orko={props["data-orko"]}>
-    <RawFormContent>{props.children}</RawFormContent>
+    <RawFormContent flexDirection={props["flex-direction"]}>
+      {props.children}
+    </RawFormContent>
     {props.buttons && <FormButtonBar>{props.buttons()}</FormButtonBar>}
   </RawForm>
 )
