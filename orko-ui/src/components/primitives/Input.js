@@ -1,11 +1,12 @@
 import React from "react"
 import styled from "styled-components"
-import { fontSize, color, fontWeight, space } from "styled-system"
+import { fontSize, color, fontWeight, space, width } from "styled-system"
 
 const RawInput = styled.input.attrs({
   fontSize: 2,
-  color: "fore",
-  m: 0,
+  mx: 0,
+  mt: 0,
+  mb: 2,
   px: 2,
   py: 2
 })`
@@ -25,16 +26,15 @@ const RawInput = styled.input.attrs({
         ? props.theme.colors.inputBorderError
         : props.theme.colors.inputBorder};
   }
-  width: 100%;
   ${color}
   ${fontSize}
   ${fontWeight}
   ${space}
+  ${width}
 `
 
 const RawLabel = styled.label.attrs({
   fontSize: 2,
-  color: "fore",
   mt: 0,
   mb: 1,
   p: 0
@@ -44,18 +44,25 @@ const RawLabel = styled.label.attrs({
   ${fontSize}
   ${fontWeight}
   ${space}
+  ${width}
 `
 
 const RawFieldSet = styled.fieldset`
   display: inline;
   border: none;
-  width: 140px;
   flex: ${props => props.flex};
   ${space}
+  ${width}
 `
 
 const Input = props => (
-  <RawFieldSet mr={props.mr ? props.mr : 2} flex={props.flex} ml={0} p={0}>
+  <RawFieldSet
+    mr={props.mr ? props.mr : 2}
+    flex={props.flex}
+    ml={0}
+    p={0}
+    width={props.width}
+  >
     {props.label && (
       <RawLabel htmlFor={props.id} disabled={props.disabled}>
         {props.label}
@@ -71,6 +78,7 @@ const Input = props => (
       onChange={props.onChange}
       onFocus={props.onFocus}
       disabled={props.disabled}
+      width={props.width}
     />
   </RawFieldSet>
 )

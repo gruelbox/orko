@@ -7,7 +7,6 @@ import Form from "./primitives/Form"
 import Button from "./primitives/Button"
 import { isValidNumber } from "../util/numberUtils"
 import styled from "styled-components"
-import FormButtonBar from "./primitives/FormButtonBar"
 
 const RadioInput = styled(Button)`
   margin-left: ${props => (props.left ? "inherit" : "0 !important")};
@@ -72,83 +71,140 @@ const StopTakeProfit = props => {
     : () => {}
 
   return (
-    <Form data-orko="stopTakeProfit">
-      <div>
+    <Form
+      data-orko="stopTakeProfit"
+      buttons={() => (
+        <>
+          {props.job.direction === "BUY" && (
+            <Checkbox
+              title="Enable trailing buy stop"
+              id="lowTrailing"
+              label="Trailing"
+              type="checkbox"
+              checked={props.job.lowTrailing}
+              onChange={e => onChange("lowTrailing", e.target.checked)}
+            />
+          )}
+          {props.job.direction === "SELL" && (
+            <Checkbox
+              title="Enable trailing sell stop"
+              id="highTrailing"
+              label="Trailing"
+              type="checkbox"
+              checked={props.job.highTrailing}
+              onChange={e => onChange("highTrailing", e.target.checked)}
+            />
+          )}
+          <RadioInput
+            id="BUY"
+            data-orko="BUY"
+            checked={props.job.direction === "BUY"}
+            onClick={() => onChangeDirection("BUY")}
+            left
+            bg={props.job.direction === "BUY" ? "buy" : "deemphasis"}
+          >
+            Buy
+          </RadioInput>
+          <RadioInput
+            id="SELL"
+            data-orko="SELL"
+            checked={props.job.direction === "SELL"}
+            onClick={() => onChangeDirection("SELL")}
+            right
+            bg={props.job.direction === "SELL" ? "sell" : "deemphasis"}
+          >
+            Sell
+          </RadioInput>
+          <Button
+            data-orko="submitOrder"
+            disabled={!valid}
+            onClick={props.onSubmit}
+            width={120}
+            bg={props.job.direction === "BUY" ? "buy" : "sell"}
+          >
+            {props.job.direction}
+          </Button>
+        </>
+      )}
+    >
+      <Input
+        id="highPrice"
+        error={props.job.highPrice && !highPriceValid}
+        label={
+          (props.job.direction === "BUY" ? "Ask" : "Bid") + " high threshold"
+        }
+        type="number"
+        placeholder="Enter price..."
+        value={props.job.highPrice ? props.job.highPrice : ""}
+        onChange={e => onChange("highPrice", e.target.value)}
+        onFocus={e => props.onFocus("highPrice")}
+        width="140px"
+      />
+      <Input
+        id="highLimitPrice"
+        error={props.job.highLimitPrice && !highLimitPriceValid}
+        label="High Limit price"
+        type="number"
+        placeholder="Enter price..."
+        value={props.job.highLimitPrice ? props.job.highLimitPrice : ""}
+        onChange={e => onChange("highLimitPrice", e.target.value)}
+        onFocus={e => props.onFocus("highLimitPrice")}
+        width="140px"
+      />
+      {props.job.direction === "SELL" && props.job.highTrailing && (
         <Input
-          id="highPrice"
-          error={props.job.highPrice && !highPriceValid}
-          label={
-            (props.job.direction === "BUY" ? "Ask" : "Bid") + " high threshold"
+          id="initialTrailingStop"
+          error={props.job.initialTrailingStop && !initialTrailingStopValid}
+          label="Trailing stop price"
+          type="number"
+          placeholder="Enter price..."
+          value={
+            props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
           }
-          type="number"
-          placeholder="Enter price..."
-          value={props.job.highPrice ? props.job.highPrice : ""}
-          onChange={e => onChange("highPrice", e.target.value)}
-          onFocus={e => props.onFocus("highPrice")}
+          onChange={e => onChange("initialTrailingStop", e.target.value)}
+          onFocus={e => props.onFocus("initialTrailingStop")}
+          width="140px"
         />
+      )}
+      <Input
+        id="lowPrice"
+        error={props.job.lowPrice && !lowPriceValid}
+        label={
+          (props.job.direction === "BUY" ? "Ask" : "Bid") + " low threshold"
+        }
+        type="number"
+        placeholder="Enter price..."
+        value={props.job.lowPrice ? props.job.lowPrice : ""}
+        onChange={e => onChange("lowPrice", e.target.value)}
+        onFocus={e => props.onFocus("lowPrice")}
+        width="140px"
+      />
+      <Input
+        id="lowLimitPrice"
+        error={props.job.lowLimitPrice && !lowLimitPriceValid}
+        label="Low limit price"
+        type="number"
+        placeholder="Enter price..."
+        value={props.job.lowLimitPrice ? props.job.lowLimitPrice : ""}
+        onChange={e => onChange("lowLimitPrice", e.target.value)}
+        onFocus={e => props.onFocus("lowLimitPrice")}
+        width="140px"
+      />
+      {props.job.direction === "BUY" && props.job.lowTrailing && (
         <Input
-          id="highLimitPrice"
-          error={props.job.highLimitPrice && !highLimitPriceValid}
-          label="High Limit price"
+          id="initialTrailingStop"
+          error={props.job.initialTrailingStop && !initialTrailingStopValid}
+          label="Trailing stop price"
           type="number"
-          placeholder="Enter price..."
-          value={props.job.highLimitPrice ? props.job.highLimitPrice : ""}
-          onChange={e => onChange("highLimitPrice", e.target.value)}
-          onFocus={e => props.onFocus("highLimitPrice")}
-        />
-        {props.job.direction === "SELL" && props.job.highTrailing && (
-          <Input
-            id="initialTrailingStop"
-            error={props.job.initialTrailingStop && !initialTrailingStopValid}
-            label="Trailing stop price"
-            type="number"
-            placeholder="Enter price..."
-            value={
-              props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
-            }
-            onChange={e => onChange("initialTrailingStop", e.target.value)}
-            onFocus={e => props.onFocus("initialTrailingStop")}
-          />
-        )}
-      </div>
-      <div>
-        <Input
-          id="lowPrice"
-          error={props.job.lowPrice && !lowPriceValid}
-          label={
-            (props.job.direction === "BUY" ? "Ask" : "Bid") + " low threshold"
+          placeholder="Enter difference..."
+          value={
+            props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
           }
-          type="number"
-          placeholder="Enter price..."
-          value={props.job.lowPrice ? props.job.lowPrice : ""}
-          onChange={e => onChange("lowPrice", e.target.value)}
-          onFocus={e => props.onFocus("lowPrice")}
+          onChange={e => onChange("initialTrailingStop", e.target.value)}
+          onFocus={e => props.onFocus("initialTrailingStop")}
+          width="140px"
         />
-        <Input
-          id="lowLimitPrice"
-          error={props.job.lowLimitPrice && !lowLimitPriceValid}
-          label="Low limit price"
-          type="number"
-          placeholder="Enter price..."
-          value={props.job.lowLimitPrice ? props.job.lowLimitPrice : ""}
-          onChange={e => onChange("lowLimitPrice", e.target.value)}
-          onFocus={e => props.onFocus("lowLimitPrice")}
-        />
-        {props.job.direction === "BUY" && props.job.lowTrailing && (
-          <Input
-            id="initialTrailingStop"
-            error={props.job.initialTrailingStop && !initialTrailingStopValid}
-            label="Trailing stop price"
-            type="number"
-            placeholder="Enter difference..."
-            value={
-              props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
-            }
-            onChange={e => onChange("initialTrailingStop", e.target.value)}
-            onFocus={e => props.onFocus("initialTrailingStop")}
-          />
-        )}
-      </div>
+      )}
       <Input
         id="amount"
         error={props.job.amount && !amountValid}
@@ -158,58 +214,8 @@ const StopTakeProfit = props => {
         value={props.job.amount ? props.job.amount : ""}
         onChange={e => onChange("amount", e.target.value)}
         onFocus={e => props.onFocus("amount")}
+        width="140px"
       />
-      <FormButtonBar>
-        {props.job.direction === "BUY" && (
-          <Checkbox
-            title="Enable trailing buy stop"
-            id="lowTrailing"
-            label="Trailing"
-            type="checkbox"
-            checked={props.job.lowTrailing}
-            onChange={e => onChange("lowTrailing", e.target.checked)}
-          />
-        )}
-        {props.job.direction === "SELL" && (
-          <Checkbox
-            title="Enable trailing sell stop"
-            id="highTrailing"
-            label="Trailing"
-            type="checkbox"
-            checked={props.job.highTrailing}
-            onChange={e => onChange("highTrailing", e.target.checked)}
-          />
-        )}
-        <RadioInput
-          id="BUY"
-          data-orko="BUY"
-          checked={props.job.direction === "BUY"}
-          onClick={() => onChangeDirection("BUY")}
-          left
-          bg={props.job.direction === "BUY" ? "buy" : "deemphasis"}
-        >
-          Buy
-        </RadioInput>
-        <RadioInput
-          id="SELL"
-          data-orko="SELL"
-          checked={props.job.direction === "SELL"}
-          onClick={() => onChangeDirection("SELL")}
-          right
-          bg={props.job.direction === "SELL" ? "sell" : "deemphasis"}
-        >
-          Sell
-        </RadioInput>
-        <Button
-          data-orko="submitOrder"
-          disabled={!valid}
-          onClick={props.onSubmit}
-          width={120}
-          bg={props.job.direction === "BUY" ? "buy" : "sell"}
-        >
-          {props.job.direction}
-        </Button>
-      </FormButtonBar>
     </Form>
   )
 }

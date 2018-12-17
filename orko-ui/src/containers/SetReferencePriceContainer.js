@@ -13,7 +13,6 @@ import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
 import { isValidNumber, formatNumber } from "../util/numberUtils"
-import FormButtonBar from "../components/primitives/FormButtonBar"
 
 class SetReferencePriceContainer extends Component {
   state = {
@@ -66,7 +65,22 @@ class SetReferencePriceContainer extends Component {
             </Href>
           )}
         >
-          <Form>
+          <Form
+            buttons={() => (
+              <>
+                <Button data-orko="doClear" onClick={this.onClear}>
+                  Clear
+                </Button>
+                <Button
+                  data-orko="doSubmit"
+                  disabled={!ready}
+                  onClick={this.onSubmit}
+                >
+                  Set
+                </Button>
+              </>
+            )}
+          >
             <Input
               id="price"
               error={ready}
@@ -79,12 +93,6 @@ class SetReferencePriceContainer extends Component {
               onChange={this.onChangePrice}
               onFocus={this.onFocus}
             />
-            <FormButtonBar>
-              <Button data-orko="doClear" onClick={this.onClear}>Clear</Button>
-              <Button data-orko="doSubmit" disabled={!ready} onClick={this.onSubmit}>
-                Set
-              </Button>
-            </FormButtonBar>
           </Form>
         </Section>
       </Modal>
