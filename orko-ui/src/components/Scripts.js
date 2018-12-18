@@ -2,8 +2,6 @@ import React from "react"
 import Href from "./primitives/Href"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
-import "prismjs/components/prism-clike"
-import "prismjs/components/prism-javascript"
 
 const textStyle = {
   textAlign: "left"
