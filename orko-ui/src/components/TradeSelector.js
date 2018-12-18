@@ -16,7 +16,7 @@ export default class TradeSelector extends React.Component {
     const coin = this.props.coin
 
     var buttons = (
-      <span>
+      <>
         <Tab
           data-orko="limit"
           selected={this.state.selected === "limit"}
@@ -37,7 +37,7 @@ export default class TradeSelector extends React.Component {
         >
           Script
         </Tab>
-      </span>
+      </>
     )
 
     var content = null
