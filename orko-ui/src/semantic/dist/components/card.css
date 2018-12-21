@@ -170,7 +170,7 @@
   display: block;
   margin: '';
   font-family: system-ui, sans-serif;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 
 /* Default Header Size */
@@ -178,7 +178,7 @@
 .ui.card > .content > .header:not(.ui) {
   font-weight: bold;
   font-size: 1.33333333em;
-  margin-top: -0.33em;
+  margin-top: -0.21425em;
   line-height: 1.28571429em;
 }
 .ui.cards > .card > .content > .meta + .description,
@@ -267,7 +267,7 @@
 .ui.cards > .card .meta,
 .ui.card .meta {
   font-size: 1em;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
 }
 .ui.cards > .card .meta *,
 .ui.card .meta * {
@@ -303,7 +303,7 @@
 /* Header */
 .ui.cards > .card > .content > a.header,
 .ui.card > .content > a.header {
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 .ui.cards > .card > .content > a.header:hover,
 .ui.card > .content > a.header:hover {
@@ -313,7 +313,7 @@
 /* Meta */
 .ui.cards > .card .meta > a:not(.ui),
 .ui.card .meta > a:not(.ui) {
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
 }
 .ui.cards > .card .meta > a:not(.ui):hover,
 .ui.card .meta > a:not(.ui):hover {
@@ -408,7 +408,7 @@
   padding: 0.75em 1em;
   top: 0em;
   left: 0em;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
   -webkit-box-shadow: none;
           box-shadow: none;
   -webkit-transition: color 0.1s ease;
@@ -416,7 +416,7 @@
 }
 .ui.cards > .card > .extra a:not(.ui),
 .ui.card > .extra a:not(.ui) {
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.4);
 }
 .ui.cards > .card > .extra a:not(.ui):hover,
 .ui.card > .extra a:not(.ui):hover {

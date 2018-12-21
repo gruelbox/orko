@@ -105,7 +105,7 @@
   -webkit-appearance: none;
   tap-highlight-color: rgba(255, 255, 255, 0);
   line-height: 1.21428571em;
-  padding: 0.80952381em 1.16666667em;
+  padding: 0.55952381em 0.66666667em;
   font-size: 1em;
   background: #131722;
   border: 1px solid #131722;
@@ -122,7 +122,7 @@
   margin: 0em;
   -webkit-appearance: none;
   tap-highlight-color: rgba(255, 255, 255, 0);
-  padding: 0.91666667em 1.16666667em;
+  padding: 0.66666667em 0.66666667em;
   background: #131722;
   border: 1px solid #131722;
   outline: none;
@@ -167,7 +167,7 @@
   border-radius: 0.33333333rem;
   -webkit-box-shadow: 0em 0em 0em 0em transparent inset;
           box-shadow: 0em 0em 0em 0em transparent inset;
-  padding: 0.62em 1.16666667em;
+  padding: 0.62em 0.66666667em;
   color: #aaa;
   -webkit-transition: color 0.1s ease, border-color 0.1s ease;
   transition: color 0.1s ease, border-color 0.1s ease;
@@ -260,8 +260,8 @@
 .ui.form .field .prompt.label {
   white-space: normal;
   background: #FFFFFF !important;
-  border: 1px solid #E0B4B4 !important;
-  color: #9F3A38 !important;
+  border: 1px solid rgba(239, 84, 81, 0.3) !important;
+  color: #ef5451 !important;
 }
 .ui.form .inline.fields .field .prompt,
 .ui.form .inline.field .prompt {
@@ -314,42 +314,42 @@
 
 /* browsers require these rules separate */
 .ui.form ::-webkit-input-placeholder {
-  color: #ffffff;
+  color: rgba(170, 170, 170, 0.6);
 }
 .ui.form :-ms-input-placeholder {
-  color: #ffffff !important;
+  color: rgba(170, 170, 170, 0.6) !important;
 }
 .ui.form ::-moz-placeholder {
-  color: #ffffff;
+  color: rgba(170, 170, 170, 0.6);
 }
 .ui.form :focus::-webkit-input-placeholder {
-  color: #ffffff;
+  color: rgba(170, 170, 170, 0.2);
 }
 .ui.form :focus:-ms-input-placeholder {
-  color: #ffffff !important;
+  color: rgba(170, 170, 170, 0.2) !important;
 }
 .ui.form :focus::-moz-placeholder {
-  color: #ffffff;
+  color: rgba(170, 170, 170, 0.2);
 }
 
 /* Error Placeholder */
 .ui.form .error ::-webkit-input-placeholder {
-  color: #e7bdbc;
+  color: #ffffff;
 }
 .ui.form .error :-ms-input-placeholder {
-  color: #e7bdbc !important;
+  color: #ffffff !important;
 }
 .ui.form .error ::-moz-placeholder {
-  color: #e7bdbc;
+  color: #ffffff;
 }
 .ui.form .error :focus::-webkit-input-placeholder {
-  color: #da9796;
+  color: #fcdedd;
 }
 .ui.form .error :focus:-ms-input-placeholder {
-  color: #da9796 !important;
+  color: #fcdedd !important;
 }
 .ui.form .error :focus::-moz-placeholder {
-  color: #da9796;
+  color: #fcdedd;
 }
 
 /*--------------------
@@ -368,16 +368,16 @@
 .ui.form input[type="text"]:focus,
 .ui.form input[type="file"]:focus,
 .ui.form input[type="url"]:focus {
-  color: rgba(0, 0, 0, 0.95);
-  border-color: #85B7D9;
+  color: rgba(170, 170, 170, 0.95);
+  border-color: rgba(0, 0, 0, 0.3);
   border-radius: 0.33333333rem;
   background: #131722;
   -webkit-box-shadow: 0px 0em 0em 0em rgba(34, 36, 38, 0.35) inset;
           box-shadow: 0px 0em 0em 0em rgba(34, 36, 38, 0.35) inset;
 }
 .ui.form textarea:focus {
-  color: rgba(0, 0, 0, 0.95);
-  border-color: #85B7D9;
+  color: rgba(170, 170, 170, 0.95);
+  border-color: rgba(0, 0, 0, 0.3);
   border-radius: 0.33333333rem;
   background: #131722;
   -webkit-box-shadow: 0px 0em 0em 0em rgba(34, 36, 38, 0.35) inset;
@@ -444,11 +444,11 @@
 .ui.form .field.error label,
 .ui.form .fields.error .field .input,
 .ui.form .field.error .input {
-  color: #9F3A38;
+  color: #ef5451;
 }
 .ui.form .fields.error .field .corner.label,
 .ui.form .field.error .corner.label {
-  border-color: #9F3A38;
+  border-color: #ef5451;
   color: #FFFFFF;
 }
 .ui.form .fields.error .field textarea,
@@ -479,9 +479,9 @@
 .ui.form .field.error input[type="text"],
 .ui.form .field.error input[type="file"],
 .ui.form .field.error input[type="url"] {
-  background: #FFF6F6;
-  border-color: #E0B4B4;
-  color: #9F3A38;
+  background: rgba(239, 84, 81, 0.1);
+  border-color: rgba(239, 84, 81, 0.3);
+  color: #ef5451;
   border-radius: '';
   -webkit-box-shadow: none;
           box-shadow: none;
@@ -500,9 +500,9 @@
 .ui.form .field.error input[type="text"]:focus,
 .ui.form .field.error input[type="file"]:focus,
 .ui.form .field.error input[type="url"]:focus {
-  background: #FFF6F6;
-  border-color: #E0B4B4;
-  color: #9F3A38;
+  background: rgba(239, 84, 81, 0.1);
+  border-color: rgba(239, 84, 81, 0.3);
+  color: #ef5451;
   -webkit-appearance: none;
   -webkit-box-shadow: none;
           box-shadow: none;
@@ -522,25 +522,25 @@
 .ui.form .field.error .ui.dropdown,
 .ui.form .field.error .ui.dropdown .text,
 .ui.form .field.error .ui.dropdown .item {
-  background: #FFF6F6;
-  color: #9F3A38;
+  background: rgba(239, 84, 81, 0.1);
+  color: #ef5451;
 }
 .ui.form .fields.error .field .ui.dropdown,
 .ui.form .field.error .ui.dropdown {
-  border-color: #E0B4B4 !important;
+  border-color: rgba(239, 84, 81, 0.3) !important;
 }
 .ui.form .fields.error .field .ui.dropdown:hover,
 .ui.form .field.error .ui.dropdown:hover {
-  border-color: #E0B4B4 !important;
+  border-color: rgba(239, 84, 81, 0.3) !important;
 }
 .ui.form .fields.error .field .ui.dropdown:hover .menu,
 .ui.form .field.error .ui.dropdown:hover .menu {
-  border-color: #E0B4B4;
+  border-color: rgba(239, 84, 81, 0.3);
 }
 .ui.form .fields.error .field .ui.multiple.selection.dropdown > .label,
 .ui.form .field.error .ui.multiple.selection.dropdown > .label {
   background-color: #EACBCB;
-  color: #9F3A38;
+  color: #ef5451;
 }
 
 /* Hover */
@@ -569,20 +569,20 @@
 .ui.form .field.error .checkbox:not(.toggle):not(.slider) label,
 .ui.form .fields.error .field .checkbox:not(.toggle):not(.slider) .box,
 .ui.form .field.error .checkbox:not(.toggle):not(.slider) .box {
-  color: #9F3A38;
+  color: #ef5451;
 }
 .ui.form .fields.error .field .checkbox:not(.toggle):not(.slider) label:before,
 .ui.form .field.error .checkbox:not(.toggle):not(.slider) label:before,
 .ui.form .fields.error .field .checkbox:not(.toggle):not(.slider) .box:before,
 .ui.form .field.error .checkbox:not(.toggle):not(.slider) .box:before {
-  background: #FFF6F6;
-  border-color: #E0B4B4;
+  background: rgba(239, 84, 81, 0.1);
+  border-color: rgba(239, 84, 81, 0.3);
 }
 .ui.form .fields.error .field .checkbox label:after,
 .ui.form .field.error .checkbox label:after,
 .ui.form .fields.error .field .checkbox .box:after,
 .ui.form .field.error .checkbox .box:after {
-  color: #9F3A38;
+  color: #ef5451;
 }
 
 /*--------------------
@@ -717,7 +717,7 @@
 .ui.inverted.form .inline.fields .field > p,
 .ui.inverted.form .inline.field > label,
 .ui.inverted.form .inline.field > p {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
 }
 
 /* Inverted Field */

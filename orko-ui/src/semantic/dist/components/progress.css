@@ -61,7 +61,7 @@
   right: 0.5em;
   left: auto;
   bottom: auto;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
   text-shadow: none;
   margin-top: -0.5em;
   font-weight: bold;
@@ -220,7 +220,7 @@
           animation: none !important;
 }
 .ui.progress.error > .label {
-  color: #912D2B;
+  color: #ef5451;
 }
 
 /*--------------

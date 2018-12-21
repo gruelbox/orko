@@ -1,3 +1,41 @@
 /*******************************
          Site Overrides
 *******************************/
+
+.ui.modal > .content {
+  box-shadow: inset 0 2px 16px 0 rgba(0, 0, 0, 0.15);
+}
+
+.ui.modal > .close {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+
+  opacity: 1;
+  font-size: @fontSize;
+  color: @white!important;
+
+  width: 1em;
+  height: 1em;
+  padding: 1.25rem 1.5rem;
+}
+
+.ui.modal > .close:hover {  
+  color: #3BB3E4 !important;
+}
+
+@media only screen and (max-width : @largestTabletScreen) {
+  .ui.modal > .close {
+    top: 0 !important;
+    right: 0 !important;
+    color: @white !important;
+    width: 1em;
+    height: 1em;
+    padding: 1.25rem 1.5rem;
+  }
+  .ui.modal > .close:hover {
+    color: #3BB3E4 !important;
+  }
+}

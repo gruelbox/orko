@@ -25,7 +25,7 @@
   display: flex;
   margin: 1rem 0em;
   font-family: 'Trebuchet MS', Tahoma, Arial, sans-serif;
-  background: #FFFFFF;
+  background: #131722;
   font-weight: normal;
   border: 1px solid #131722;
   -webkit-box-shadow: 0px 1px 2px 0 #131722;
@@ -249,16 +249,16 @@
 }
 .ui.menu .ui.dropdown .menu > .item:hover {
   background: rgba(0, 0, 0, 0.05) !important;
-  color: rgba(0, 0, 0, 0.95) !important;
+  color: rgba(170, 170, 170, 0.95) !important;
 }
 .ui.menu .ui.dropdown .menu > .selected.item {
   background: rgba(0, 0, 0, 0.05) !important;
-  color: rgba(0, 0, 0, 0.95) !important;
+  color: rgba(170, 170, 170, 0.95) !important;
 }
 .ui.menu .ui.dropdown .menu > .active.item {
   background: rgba(0, 0, 0, 0.03) !important;
   font-weight: bold !important;
-  color: rgba(0, 0, 0, 0.95) !important;
+  color: rgba(170, 170, 170, 0.95) !important;
 }
 .ui.menu .ui.dropdown.item .menu .item:not(.filtered) {
   display: block;
@@ -285,7 +285,7 @@
 /* Inverted */
 .ui.inverted.menu .search.dropdown.item > .search,
 .ui.inverted.menu .search.dropdown.item > .text {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
 }
 
 /* Vertical */
@@ -422,7 +422,7 @@
 .ui.menu a.item:hover {
   cursor: pointer;
   background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*--------------
@@ -433,7 +433,7 @@
 .ui.menu .link.item:active,
 .ui.menu a.item:active {
   background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*--------------
@@ -442,7 +442,7 @@
 
 .ui.menu .active.item {
   background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
   font-weight: normal;
   -webkit-box-shadow: none;
           box-shadow: none;
@@ -458,7 +458,7 @@
 .ui.menu .active.item:hover,
 .ui.vertical.menu .active.item:hover {
   background-color: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*--------------
@@ -469,7 +469,7 @@
 .ui.menu .item.disabled:hover {
   cursor: default !important;
   background-color: transparent !important;
-  color: rgba(40, 40, 40, 0.3) !important;
+  color: rgba(170, 170, 170, 0.2) !important;
 }
 
 
@@ -585,7 +585,7 @@ Floated Menu / Item
 }
 .ui.vertical.menu .item .menu a.item:hover,
 .ui.vertical.menu .item .menu .link.item:hover {
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 .ui.vertical.menu .menu .item:before {
   display: none;
@@ -613,7 +613,7 @@ Floated Menu / Item
 .ui.vertical.menu .item .menu .active.item {
   background-color: transparent;
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*--------------
@@ -647,13 +647,13 @@ Floated Menu / Item
 /* Hover */
 .ui.tabular.menu .item:hover {
   background-color: transparent;
-  color: rgba(0, 0, 0, 0.8);
+  color: rgba(170, 170, 170, 0.8);
 }
 
 /* Active */
 .ui.tabular.menu .active.item {
   background: none #FFFFFF;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
   border-top-width: 1px;
   border-color: #D4D4D5;
   font-weight: bold;
@@ -696,7 +696,7 @@ Floated Menu / Item
 }
 .ui.bottom.tabular.menu .active.item {
   background: none #FFFFFF;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
   border-color: #D4D4D5;
   margin: -1px 0px 0px 0px;
   border-radius: 0px 0px 0.33333333rem 0.33333333rem !important;
@@ -720,7 +720,7 @@ Floated Menu / Item
 }
 .ui.vertical.tabular.menu .active.item {
   background: none #FFFFFF;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
   border-color: #D4D4D5;
   margin: 0px -1px 0px 0px;
   border-radius: 0.33333333rem 0px 0px 0.33333333rem !important;
@@ -745,7 +745,7 @@ Floated Menu / Item
 }
 .ui.vertical.right.tabular.menu .active.item {
   background: none #FFFFFF;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
   border-color: #D4D4D5;
   margin: 0px 0px 0px -1px;
   border-radius: 0px 0.33333333rem 0.33333333rem 0px !important;
@@ -793,7 +793,7 @@ Floated Menu / Item
   border-top: none;
   padding-top: 0.91666667em;
   background-color: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
   -webkit-box-shadow: none;
           box-shadow: none;
 }
@@ -849,7 +849,7 @@ Floated Menu / Item
 .ui.secondary.menu .link.item:hover,
 .ui.secondary.menu a.item:hover {
   background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /* Active */
@@ -857,7 +857,7 @@ Floated Menu / Item
   -webkit-box-shadow: none;
           box-shadow: none;
   background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
   border-radius: 0.33333333rem;
 }
 
@@ -866,23 +866,23 @@ Floated Menu / Item
   -webkit-box-shadow: none;
           box-shadow: none;
   background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /* Inverted */
 .ui.secondary.inverted.menu .link.item,
 .ui.secondary.inverted.menu a.item {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: rgba(0, 0, 0, 0.7) !important;
 }
 .ui.secondary.inverted.menu .dropdown.item:hover,
 .ui.secondary.inverted.menu .link.item:hover,
 .ui.secondary.inverted.menu a.item:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 .ui.secondary.inverted.menu .active.item {
   background: rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* Fix item margins */
@@ -954,7 +954,7 @@ Floated Menu / Item
 
 /* Item Types */
 .ui.secondary.pointing.menu .header.item {
-  color: rgba(0, 0, 0, 0.85) !important;
+  color: rgba(170, 170, 170, 0.5) !important;
 }
 .ui.secondary.pointing.menu .text.item {
   -webkit-box-shadow: none !important;
@@ -987,13 +987,13 @@ Floated Menu / Item
           box-shadow: none;
   border-color: #1B1C1D;
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /* Active Hover */
 .ui.secondary.pointing.menu .active.item:hover {
   border-color: #1B1C1D;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /* Active Dropdown */
@@ -1031,7 +1031,7 @@ Floated Menu / Item
   border-color: #131722;
 }
 .ui.secondary.inverted.pointing.menu .item {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
 }
 .ui.secondary.inverted.pointing.menu .header.item {
   color: #FFFFFF !important;
@@ -1040,13 +1040,13 @@ Floated Menu / Item
 /* Hover */
 .ui.secondary.inverted.pointing.menu .link.item:hover,
 .ui.secondary.inverted.pointing.menu a.item:hover {
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /* Active */
 .ui.secondary.inverted.pointing.menu .active.item {
   border-color: #FFFFFF;
-  color: #ffffff;
+  color: #000000;
 }
 
 /*--------------
@@ -1070,7 +1070,7 @@ Floated Menu / Item
   margin: 0em 0em;
   padding: 0.41666667em 0.58333333em;
   font-weight: normal;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(170, 170, 170, 0.7);
   -webkit-transition: opacity 0.1s ease;
   transition: opacity 0.1s ease;
 }
@@ -1085,7 +1085,7 @@ Floated Menu / Item
 .ui.text.menu .header.item {
   background-color: transparent;
   opacity: 1;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
   font-size: 0.91666667em;
   text-transform: uppercase;
   font-weight: bold;
@@ -1150,7 +1150,7 @@ Floated Menu / Item
   -webkit-box-shadow: none;
           box-shadow: none;
   font-weight: normal;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*--- active hover ---*/
@@ -1393,7 +1393,7 @@ Floated Menu / Item
 .ui.inverted.menu .item,
 .ui.inverted.menu .item > a:not(.ui) {
   background: transparent;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
 }
 .ui.inverted.menu .item.menu {
   background: transparent;
@@ -1411,7 +1411,7 @@ Floated Menu / Item
 /* Sub Menu */
 .ui.vertical.inverted.menu .menu .item,
 .ui.vertical.inverted.menu .menu .item a:not(.ui) {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 /* Header */
@@ -1425,7 +1425,7 @@ Floated Menu / Item
 /* Disabled */
 .ui.inverted.menu .item.disabled,
 .ui.inverted.menu .item.disabled:hover {
-  color: rgba(225, 225, 225, 0.3);
+  color: rgba(0, 0, 0, 0.2);
 }
 
 /*--- Hover ---*/
@@ -1435,12 +1435,12 @@ Floated Menu / Item
 .ui.inverted.menu .link.item:hover,
 .ui.inverted.menu a.item:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  color: #000000;
 }
 .ui.vertical.inverted.menu .item .menu a.item:hover,
 .ui.vertical.inverted.menu .item .menu .link.item:hover {
   background: transparent;
-  color: #ffffff;
+  color: #000000;
 }
 
 /*--- Pressed ---*/
@@ -1448,14 +1448,14 @@ Floated Menu / Item
 .ui.inverted.menu a.item:active,
 .ui.inverted.menu .link.item:active {
   background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  color: #000000;
 }
 
 /*--- Active ---*/
 
 .ui.inverted.menu .active.item {
   background: rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 .ui.inverted.vertical.menu .item .menu .active.item {
   background: transparent;

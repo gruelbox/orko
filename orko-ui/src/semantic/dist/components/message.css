@@ -15,19 +15,19 @@
 
 .ui.message {
   position: relative;
-  min-height: 1em;
-  margin: 1em 0em;
+  dermin-height: 1em;
+  margin: 0.66666667em 0em;
   background: #F8F8F9;
-  padding: 1em 1.5em;
-  line-height: 1.66em;
+  padding: 0.66666667em 0.66666667em;
+  line-height: 1.4285em;
   color: #aaa;
   -webkit-transition: opacity 0.1s ease, color 0.1s ease, background 0.1s ease, -webkit-box-shadow 0.1s ease;
   transition: opacity 0.1s ease, color 0.1s ease, background 0.1s ease, -webkit-box-shadow 0.1s ease;
   transition: opacity 0.1s ease, color 0.1s ease, background 0.1s ease, box-shadow 0.1s ease;
   transition: opacity 0.1s ease, color 0.1s ease, background 0.1s ease, box-shadow 0.1s ease, -webkit-box-shadow 0.1s ease;
   border-radius: 0.33333333rem;
-  -webkit-box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.22) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
-          box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.22) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
+  -webkit-box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.1) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
+          box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.1) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
 }
 .ui.message:first-child {
   margin-top: 0em;
@@ -51,7 +51,7 @@
 
 /* Default font size */
 .ui.message .header:not(.ui) {
-  font-size: 1.16666667em;
+  font-size: 12px;
 }
 
 /* Paragraph */
@@ -91,7 +91,7 @@
 }
 .ui.message .list:not(.ui) li:before {
   position: absolute;
-  content: '•';
+  content: "•";
   left: -1em;
   height: 100%;
   vertical-align: baseline;
@@ -110,7 +110,7 @@
   cursor: pointer;
   position: absolute;
   margin: 0em;
-  top: 0.67em;
+  top: 0.45241667em;
   right: 0.5em;
   opacity: 0.7;
   -webkit-transition: opacity 0.1s ease;
@@ -206,7 +206,7 @@
           box-shadow: 0em 0em 0em 1px #131722 inset, 0px 1px 2px 0 #131722;
 }
 .ui.bottom.attached.message:not(:last-child) {
-  margin-bottom: 1em;
+  margin-bottom: 0.66666667em;
 }
 .ui.attached.icon.message {
   width: auto;
@@ -255,8 +255,8 @@
 ---------------*/
 
 .ui.floating.message {
-  -webkit-box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.22) inset, 0px 2px 4px 0px rgba(34, 36, 38, 0.12), 0px 2px 10px 0px rgba(34, 36, 38, 0.15);
-          box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.22) inset, 0px 2px 4px 0px rgba(34, 36, 38, 0.12), 0px 2px 10px 0px rgba(34, 36, 38, 0.15);
+  -webkit-box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.1) inset, 0px 2px 4px 0px rgba(34, 36, 38, 0.12), 0px 2px 10px 0px rgba(34, 36, 38, 0.15);
+          box-shadow: 0px 0px 0px 1px rgba(34, 36, 38, 0.1) inset, 0px 2px 4px 0px rgba(34, 36, 38, 0.12), 0px 2px 10px 0px rgba(34, 36, 38, 0.15);
 }
 
 /*--------------
@@ -265,7 +265,7 @@
 
 .ui.black.message {
   background-color: #1B1C1D;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
 }
 
 /*--------------
@@ -289,16 +289,16 @@
 
 /* Negative */
 .ui.negative.message {
-  background-color: #FFF6F6;
-  color: #9F3A38;
+  background-color: rgba(239, 84, 81, 0.1);
+  color: #ef5451;
 }
 .ui.negative.message,
 .ui.attached.negative.message {
-  -webkit-box-shadow: 0px 0px 0px 1px #E0B4B4 inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
-          box-shadow: 0px 0px 0px 1px #E0B4B4 inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
+  -webkit-box-shadow: 0px 0px 0px 1px rgba(239, 84, 81, 0.3) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
+          box-shadow: 0px 0px 0px 1px rgba(239, 84, 81, 0.3) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
 }
 .ui.negative.message .header {
-  color: #912D2B;
+  color: #ef5451;
 }
 
 /* Info */
@@ -331,16 +331,16 @@
 
 /* Error */
 .ui.error.message {
-  background-color: #FFF6F6;
-  color: #9F3A38;
+  background-color: rgba(239, 84, 81, 0.1);
+  color: #ef5451;
 }
 .ui.error.message,
 .ui.attached.error.message {
-  -webkit-box-shadow: 0px 0px 0px 1px #E0B4B4 inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
-          box-shadow: 0px 0px 0px 1px #E0B4B4 inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
+  -webkit-box-shadow: 0px 0px 0px 1px rgba(239, 84, 81, 0.3) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
+          box-shadow: 0px 0px 0px 1px rgba(239, 84, 81, 0.3) inset, 0px 0px 0px 0px rgba(0, 0, 0, 0);
 }
 .ui.error.message .header {
-  color: #912D2B;
+  color: #ef5451;
 }
 
 /* Success */
@@ -361,7 +361,7 @@
 .ui.inverted.message,
 .ui.black.message {
   background-color: #1B1C1D;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
 }
 .ui.red.message {
   background-color: #FFE8E6;

@@ -1,3 +1,26 @@
 /*******************************
          Site Overrides
 *******************************/
+
+@background: #2F3241;
+@headerBackground: #343747;
+@headerColor: @white;
+@headerFontSize: @large;
+@headerVerticalPadding: @relative8px;
+@headerHorizontalPadding: @relative8px;
+@headerBorder: 1px solid #131722;
+
+@contentFontSize: @fontSize;
+@contentLineHeight: @lineHeight;
+@contentBackground: none;
+@contentPadding: 1em;
+
+@actionBorder: 1px solid #131722;
+@actionBackground: #282b38;
+@actionPadding: 1em;
+@actionAlign: right;
+
+@mobileHeaderPadding: @relative8px;
+@mobileContentPadding: 1em;
+@mobileActionPadding: 1em;
+@mobileButtonDistance: 0;

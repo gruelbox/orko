@@ -84,7 +84,7 @@
 }
 .ui.accordion.menu .item .title > .dropdown.icon {
   float: right;
-  margin: 0.33em 0em 0em 1em;
+  margin: 0.21425em 0em 0em 1em;
   -webkit-transform: rotate(180deg);
           transform: rotate(180deg);
 }
@@ -134,7 +134,7 @@
 .ui.styled.accordion .accordion .title {
   margin: 0em;
   padding: 0.75em 1em;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.4);
   font-weight: bold;
   border-top: 1px solid #131722;
   -webkit-transition: background 0.1s ease, color 0.1s ease;
@@ -173,11 +173,11 @@
 /* Active */
 .ui.styled.accordion .active.title {
   background: transparent;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 .ui.styled.accordion .accordion .active.title {
   background: transparent;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 
@@ -215,7 +215,7 @@
 ---------------*/
 
 .ui.inverted.accordion .title:not(.ui) {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
 }
 
 

@@ -43,7 +43,7 @@
   margin: 0em;
   font-size: 1rem;
   line-height: 1.2em;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(170, 170, 170, 0.7);
 }
 
 /*--------------
@@ -298,7 +298,7 @@ h5.ui.header .sub.header {
   color: #FFFFFF;
 }
 .ui.inverted.header .sub.header {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.8);
 }
 .ui.inverted.attached.header {
   background: #545454 -webkit-gradient(linear, left top, left bottom, from(transparent), to(rgba(0, 0, 0, 0.05)));
@@ -725,3 +725,6 @@ a.ui.inverted.grey.header:hover {
          Site Overrides
 *******************************/
 
+.header {
+  text-transform: uppercase;
+}

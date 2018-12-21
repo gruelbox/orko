@@ -10,9 +10,7 @@ const inlineStyle = {
 }
 
 const FixedModal = props => (
-  <Modal open={true} style={inlineStyle.modal} data-orko={props["data-orko"]}>
-    {props.children}
-  </Modal>
+  <Modal {...props} dimmer="blurring" open={true} style={inlineStyle.modal} />
 )
 
 export default FixedModal

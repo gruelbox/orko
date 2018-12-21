@@ -139,10 +139,10 @@
 }
 .ui.items > .item > .content > .header {
   display: inline-block;
-  margin: -0.33em 0em 0em;
+  margin: -0.21425em 0em 0em;
   font-family: system-ui, sans-serif;
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 
 /* Default Header Size */
@@ -185,7 +185,7 @@
   margin-top: 0.6em;
   max-width: auto;
   font-size: 1em;
-  line-height: 1.66em;
+  line-height: 1.4285em;
   color: #aaa;
 }
 
@@ -238,7 +238,7 @@
 
 /* Header */
 .ui.items > .item > .content > a.header {
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 .ui.items > .item > .content > a.header:hover {
   color: #3BB3E4;
@@ -246,7 +246,7 @@
 
 /* Meta */
 .ui.items > .item .meta > a:not(.ui) {
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
 }
 .ui.items > .item .meta > a:not(.ui):hover {
   color: #aaa;
@@ -306,7 +306,7 @@
   padding: 0em 0em 0em;
   top: 0em;
   left: 0em;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
   -webkit-box-shadow: none;
           box-shadow: none;
   -webkit-transition: color 0.1s ease;

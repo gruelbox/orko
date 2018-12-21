@@ -21,7 +21,7 @@
   background-color: #E8E8E8;
   background-image: none;
   padding: 0.5833em 0.833em;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(170, 170, 170, 0.7);
   text-transform: none;
   font-weight: bold;
   border: 0px solid transparent;
@@ -436,11 +436,11 @@ a.ui.label:hover {
   background-color: #E0E0E0;
   border-color: #E0E0E0;
   background-image: none;
-  color: rgba(0, 0, 0, 0.8);
+  color: rgba(170, 170, 170, 0.8);
 }
 .ui.labels a.label:hover:before,
 a.ui.label:hover:before {
-  color: rgba(0, 0, 0, 0.8);
+  color: rgba(170, 170, 170, 0.8);
 }
 
 /*-------------------
@@ -451,12 +451,12 @@ a.ui.label:hover:before {
   background-color: #D0D0D0;
   border-color: #D0D0D0;
   background-image: none;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 .ui.active.label:before {
   background-color: #D0D0D0;
   background-image: none;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*-------------------
@@ -468,13 +468,13 @@ a.ui.active.label:hover {
   background-color: #C8C8C8;
   border-color: #C8C8C8;
   background-image: none;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 .ui.labels a.active.label:ActiveHover:before,
 a.ui.active.label:ActiveHover:before {
   background-color: #C8C8C8;
   background-image: none;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*-------------------
@@ -1084,7 +1084,7 @@ a.ui.basic.label:hover {
 
 .ui.inverted.labels .label,
 .ui.inverted.label {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(0, 0, 0, 0.9) !important;
 }
 
 /*-------------------

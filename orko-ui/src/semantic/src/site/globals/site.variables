@@ -1,3 +1,139 @@
 /*******************************
      User Global Variables
 *******************************/
+
+/*-------------------
+       Fonts
+--------------------*/
+
+@fontName          : 'Trebuchet MS';
+@headerFont        : system-ui, sans-serif;
+@pageFont          : @fontName, Tahoma, Arial, sans-serif;
+@importGoogleFonts : false;
+
+/*-------------------
+      Base Sizes
+--------------------*/
+
+@emSize   : 12px;
+@fontSize : 12px;
+
+/*--------------
+   Form Input
+---------------*/
+
+/* This adjusts the default form input across all elements */
+@inputBackground        : #131722;
+@inputVerticalPadding   : @relative8px;
+@inputHorizontalPadding : @relative8px;
+@inputPadding           : @inputVerticalPadding @inputHorizontalPadding;
+
+/* Input Text Color */
+@inputColor: @textColor;
+@inputPlaceholderColor: fade(@inputColor, 60%);
+@inputPlaceholderFocusColor: fade(@inputColor, 20%);
+
+/* Line Height Default For Inputs in Browser (Descenders are 17px at 14px base em) */
+@inputLineHeight: unit((17 / 14), em);
+
+/*-------------------
+    Focused Input
+--------------------*/
+
+/* Used on inputs, textarea etc */
+@focusedFormBorderColor: rgba(0, 0, 0, 0.3);
+
+/* Used on dropdowns, other larger blocks */
+@focusedFormMutedBorderColor: rgba(0, 0, 0, 0.3);
+
+/*-------------------
+        Sizes
+--------------------*/
+
+@miniSize        : (9 / 12);
+@tinySize        : (10 / 12);
+@smallSize       : (11 / 12);
+@mediumSize      : (12 / 12);
+@largeSize       : (14 / 12);
+@bigSize         : (16 / 12);
+@hugeSize        : (18 / 12);
+@massiveSize     : (22 / 12);
+
+/*-------------------
+        Page
+--------------------*/
+
+@pageBackground      : #131722;
+@textColor           : #aaa;
+
+/*-------------------
+       Links
+--------------------*/
+
+@linkColor           : #aaa;
+@linkHoverColor      : #3BB3E4;
+
+/*-------------------
+      Site Colors
+--------------------*/
+
+@red              : #ef5451;
+@green            : #2aa599;
+@blue             : #3BB3E4;
+@lightRed         : #f2716e;
+@lightGreen       : #33c7b8;
+@lightBlue        : #70d2ff;
+
+/*-------------------
+    Emotive Colors
+--------------------*/
+
+@negativeColor           : @red;
+@negativeBackgroundColor : fade(@red, 10%);
+@negativeBorderColor     : fade(@red, 30%);
+@negativeHeaderColor     : @red;
+@negativeTextColor       : @red;
+
+/*-------------------
+     Neutral Text
+--------------------*/
+
+@darkTextColor               : fade(@textColor, 50%);
+@mutedTextColor              : fade(@textColor, 70%);
+@lightTextColor              : fade(@textColor, 80%);
+
+@unselectedTextColor         : fade(@textColor, 40%);
+@hoveredTextColor            : fade(@textColor, 80%);
+@pressedTextColor            : fade(@textColor, 90%);
+@selectedTextColor           : fade(@textColor, 95%);
+@disabledTextColor           : fade(@textColor, 20%);
+
+@invertedTextColor           : rgba(0, 0, 0, 0.9);
+@invertedMutedTextColor      : rgba(0, 0, 0, 0.8);
+@invertedLightTextColor      : rgba(0, 0, 0, 0.7);
+@invertedUnselectedTextColor : rgba(0, 0, 0, 0.5);
+@invertedHoveredTextColor    : rgba(0, 0, 0, 1);
+@invertedPressedTextColor    : rgba(0, 0, 0, 1);
+@invertedSelectedTextColor   : rgba(0, 0, 0, 1);
+@invertedDisabledTextColor   : rgba(0, 0, 0, 0.2);
+
+/*-------------------
+      Borders
+--------------------*/
+
+@borderColor               : #131722;
+@strongBorderColor         : rgba(34, 36, 38, 0.1);
+@internalBorderColor       : rgba(34, 36, 38, 0.1);
+@selectedBorderColor       : rgba(34, 36, 38, 0.35);
+@strongSelectedBorderColor : rgba(34, 36, 38, 0.5);
+@disabledBorderColor       : rgba(34, 36, 38, 0.5);
+
+@solidInternalBorderColor  : rgba(0, 0, 0, 0.3);
+@solidBorderColor          : #D4D4D5;
+@solidSelectedBorderColor  : #BCBDBD;
+
+@whiteBorderColor              : rgba(255, 255, 255, 0.1);
+@selectedWhiteBorderColor      : rgba(255, 255, 255, 0.8);
+
+@solidWhiteBorderColor         : #555555;
+@selectedSolidWhiteBorderColor : #999999;

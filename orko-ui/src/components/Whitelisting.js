@@ -16,13 +16,17 @@ export default class Whitelisting extends Component {
 
   render() {
     return (
-      <FixedModal data-orko="whitelistingModal">
+      <FixedModal size="tiny" data-orko="whitelistingModal">
         <Modal.Header>
           <Icon name="lock" />
           Challenge
         </Modal.Header>
         <Modal.Content>
-          <Form error={this.props.error !== null}>
+          <Form
+            onSubmit={() => this.props.onApply(this.state.response)}
+            error={this.props.error !== null}
+            id="whitelistingForm"
+          >
             <Message error header="Error" content={this.props.error} />
             <Form.Field>
               <label>Response</label>
@@ -36,15 +40,17 @@ export default class Whitelisting extends Component {
                 />
               </div>
             </Form.Field>
-            <Button
-              data-orko="whitelistingSubmit"
-              type="submit"
-              onClick={() => this.props.onApply(this.state.response)}
-            >
-              Authorise
-            </Button>
           </Form>
         </Modal.Content>
+        <Modal.Actions>
+          <Button
+            form="whitelistingForm"
+            data-orko="whitelistingSubmit"
+            type="submit"
+          >
+            Authorise
+          </Button>
+        </Modal.Actions>
       </FixedModal>
     )
   }

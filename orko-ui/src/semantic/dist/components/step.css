@@ -340,7 +340,7 @@
 .ui.steps a.step:hover::after,
 .ui.steps a.step:hover {
   background: #F9FAFB;
-  color: rgba(0, 0, 0, 0.8);
+  color: rgba(170, 170, 170, 0.8);
 }
 
 /* Link Down */
@@ -349,7 +349,7 @@
 .ui.steps a.step:active::after,
 .ui.steps a.step:active {
   background: #F3F4F5;
-  color: rgba(0, 0, 0, 0.9);
+  color: rgba(170, 170, 170, 0.9);
 }
 
 /* Active */
@@ -365,7 +365,7 @@
 }
 .ui.ordered.steps .step.active:before,
 .ui.steps .active.step .icon {
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 
 /* Active Arrow */
@@ -407,7 +407,7 @@
 .ui.steps .disabled.step,
 .ui.steps .disabled.step .title,
 .ui.steps .disabled.step .description {
-  color: rgba(40, 40, 40, 0.3);
+  color: rgba(170, 170, 170, 0.2);
 }
 .ui.steps .disabled.step:after {
   background: #FFFFFF;

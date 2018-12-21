@@ -25,7 +25,7 @@
   font-style: normal;
   font-weight: normal;
   line-height: 1.21428571em;
-  padding: 0.80952381em 1.16666667em;
+  padding: 0.55952381em 0.66666667em;
   font-size: 1em;
   background: #131722;
   border: 1px solid #131722;
@@ -124,12 +124,12 @@
   font-family: system-ui, sans-serif;
   font-weight: bold;
   font-size: 1em;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 .ui.search > .results .result .description {
   margin-top: 0;
   font-size: 0.91666667em;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
 }
 .ui.search > .results .result .price {
   float: right;
@@ -179,7 +179,7 @@
 .ui.search > .prompt:focus {
   border-color: rgba(34, 36, 38, 0.35);
   background: #131722;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 /*--------------------
@@ -248,10 +248,10 @@
           box-shadow: none;
 }
 .ui.search > .results .result.active .title {
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 .ui.search > .results .result.active .description {
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 
 /*--------------------
@@ -351,7 +351,7 @@
   font-size: 1em;
   padding: 0.4em 1em;
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
   border-bottom: 1px solid rgba(34, 36, 38, 0.1);
 }
 

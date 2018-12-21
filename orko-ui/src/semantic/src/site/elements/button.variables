@@ -1,3 +1,23 @@
 /*******************************
     User Variable Overrides
 *******************************/
+
+
+/*-------------------
+       Element
+--------------------*/
+
+@verticalMargin: 0;
+@horizontalMargin: 0;
+@textTransform: uppercase;
+@fontFamily: @headerFont;
+@textColor: @white;
+@backgroundColor: @blue;
+
+/*-------------------
+        States
+--------------------*/
+
+@hoverBackgroundColor: darken(@backgroundColor, 10%);
+@downBackgroundColor: lighten(@backgroundColor, 10%);
+@activeBackgroundColor: lighten(@backgroundColor, 20%);

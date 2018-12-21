@@ -44,13 +44,13 @@ export default class Login extends Component {
 
   render() {
     return (
-      <FixedModal data-orko="loginModal">
+      <FixedModal size="tiny" data-orko="loginModal">
         <Modal.Header>
           <Icon name="lock" />
           Login
         </Modal.Header>
         <Modal.Content>
-          <Form error={this.props.error !== null}>
+          <Form error={this.props.error !== null} id="loginForm">
             <Message error header="Error" content={this.props.error} />
             <Form.Field>
               <label>Username</label>
@@ -90,11 +90,18 @@ export default class Login extends Component {
                 />
               </div>
             </Form.Field>
-            <Button data-orko="loginSubmit" type="submit" onClick={this.login}>
-              Login
-            </Button>
           </Form>
         </Modal.Content>
+        <Modal.Actions>
+          <Button
+            data-orko="loginSubmit"
+            type="submit"
+            form="loginForm"
+            onClick={this.login}
+          >
+            Login
+          </Button>
+        </Modal.Actions>
       </FixedModal>
     )
   }

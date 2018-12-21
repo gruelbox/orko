@@ -38,13 +38,17 @@ class AddCoinContainer extends Component {
     const ready = !!this.state.pair
 
     return (
-      <FixedModal data-orko="addCoinModal">
+      <FixedModal
+        data-orko="addCoinModal"
+        closeIcon
+        onClose={() => this.props.history.goBack()}
+      >
         <Modal.Header>
           <Icon name="bitcoin" />
           Add coin
         </Modal.Header>
         <Modal.Content>
-          <Form onSubmit={this.onSubmit}>
+          <Form id="addCoinForm" onSubmit={this.onSubmit}>
             <Form.Field>
               <Dropdown
                 basic
@@ -82,11 +86,19 @@ class AddCoinContainer extends Component {
                 onChange={this.onChangePair}
               />
             </Form.Field>
-            <Button primary disabled={!ready} data-orko="addCoinSubmit">
-              Add
-            </Button>
           </Form>
         </Modal.Content>
+        <Modal.Actions>
+          <Button
+            primary
+            disabled={!ready}
+            data-orko="addCoinSubmit"
+            type="submit"
+            form="addCoinForm"
+          >
+            Add
+          </Button>
+        </Modal.Actions>
       </FixedModal>
     )
   }

@@ -118,7 +118,7 @@
   font-weight: normal;
   font-size: 1em;
   font-style: normal;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
 }
 
 /*--------------
@@ -173,7 +173,7 @@
   font-style: normal;
   margin: 0em 0em 0em 0.5em;
   padding: 0em;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(170, 170, 170, 0.8);
 }
 
 /*--------------
@@ -200,7 +200,7 @@
   border-left: none;
   font-size: 1em;
   max-width: 500px;
-  line-height: 1.66em;
+  line-height: 1.4285em;
 }
 
 /*--------------
@@ -264,7 +264,7 @@
 .ui.feed > .event > .content .meta a:hover,
 .ui.feed > .event > .content .meta a:hover .icon,
 .ui.feed > .event > .content .meta > .icon:hover {
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(170, 170, 170, 0.95);
 }
 
 

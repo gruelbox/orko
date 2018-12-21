@@ -18,7 +18,7 @@
   display: none;
   z-index: 1001;
   text-align: left;
-  background: #FFFFFF;
+  background: #2F3241;
   border: none;
   -webkit-box-shadow: 1px 3px 3px 0px rgba(0, 0, 0, 0.2), 1px 3px 15px 2px rgba(0, 0, 0, 0.2);
           box-shadow: 1px 3px 3px 0px rgba(0, 0, 0, 0.2), 1px 3px 15px 2px rgba(0, 0, 0, 0.2);
@@ -27,7 +27,7 @@
   -webkit-box-flex: 0;
       -ms-flex: 0 0 auto;
           flex: 0 0 auto;
-  border-radius: 0.28571429rem;
+  border-radius: 0.33333333rem;
   -webkit-user-select: text;
      -moz-user-select: text;
       -ms-user-select: text;
@@ -36,12 +36,12 @@
 }
 .ui.modal > :first-child:not(.icon),
 .ui.modal > .icon:first-child + * {
-  border-top-left-radius: 0.28571429rem;
-  border-top-right-radius: 0.28571429rem;
+  border-top-left-radius: 0.33333333rem;
+  border-top-right-radius: 0.33333333rem;
 }
 .ui.modal > :last-child {
-  border-bottom-left-radius: 0.28571429rem;
-  border-bottom-right-radius: 0.28571429rem;
+  border-bottom-left-radius: 0.33333333rem;
+  border-bottom-right-radius: 0.33333333rem;
 }
 
 
@@ -77,17 +77,17 @@
 
 .ui.modal > .header {
   display: block;
-  font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;
-  background: #FFFFFF;
+  font-family: system-ui, sans-serif;
+  background: #343747;
   margin: 0em;
-  padding: 1.25rem 1.5rem;
+  padding: 0.66666667em 0.66666667em;
   -webkit-box-shadow: none;
           box-shadow: none;
-  color: rgba(0, 0, 0, 0.85);
-  border-bottom: 1px solid rgba(34, 36, 38, 0.15);
+  color: #FFFFFF;
+  border-bottom: 1px solid #131722;
 }
 .ui.modal > .header:not(.ui) {
-  font-size: 1.42857143rem;
+  font-size: 1.16666667rem;
   line-height: 1.28571429em;
   font-weight: bold;
 }
@@ -99,10 +99,10 @@
 .ui.modal > .content {
   display: block;
   width: 100%;
-  font-size: 1em;
-  line-height: 1.4;
-  padding: 1.5rem;
-  background: #FFFFFF;
+  font-size: 12px;
+  line-height: 1.4285em;
+  padding: 1em;
+  background: none;
 }
 .ui.modal > .image.content {
   display: -webkit-box;
@@ -170,9 +170,9 @@
 ---------------*/
 
 .ui.modal > .actions {
-  background: #F9FAFB;
-  padding: 1rem 1rem;
-  border-top: 1px solid rgba(34, 36, 38, 0.15);
+  background: #282b38;
+  padding: 1em;
+  border-top: 1px solid #131722;
   text-align: right;
 }
 .ui.modal .actions > .button {
@@ -222,21 +222,21 @@
     padding-right: 2.25rem;
   }
   .ui.modal > .close {
-    top: 1.0535rem;
+    top: 0.47016667em;
     right: 1rem;
-    color: rgba(0, 0, 0, 0.87);
+    color: #aaa;
   }
 }
 
 /* Mobile */
 @media only screen and (max-width: 767px) {
   .ui.modal > .header {
-    padding: 0.75rem 1rem !important;
+    padding: 0.66666667em !important;
     padding-right: 2.25rem !important;
   }
   .ui.modal > .content {
     display: block;
-    padding: 1rem !important;
+    padding: 1em !important;
   }
   .ui.modal > .close {
     top: 0.5rem !important;
@@ -272,11 +272,11 @@
   
 /* Let Buttons Stack */
   .ui.modal > .actions {
-    padding: 1rem 1rem 0rem !important;
+    padding: 1em !important;
   }
   .ui.modal .actions > .buttons,
   .ui.modal .actions > .button {
-    margin-bottom: 1rem;
+    margin-bottom: 0;
   }
 }
 
@@ -315,10 +315,10 @@
   right: 1.5rem;
 }
 .ui.inverted.dimmer > .basic.modal {
-  color: rgba(0, 0, 0, 0.87);
+  color: #aaa;
 }
 .ui.inverted.dimmer > .ui.basic.modal > .header {
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(170, 170, 170, 0.5);
 }
 
 /* Resort to margin positioning if legacy */
@@ -443,9 +443,9 @@
   padding-right: 2.25rem;
 }
 .ui.fullscreen.modal > .close {
-  top: 1.0535rem;
+  top: 0.47016667em;
   right: 1rem;
-  color: rgba(0, 0, 0, 0.87);
+  color: #aaa;
 }
 
 /*--------------
@@ -613,3 +613,36 @@
          Site Overrides
 *******************************/
 
+.ui.modal > .content {
+  -webkit-box-shadow: inset 0 2px 16px 0 rgba(0, 0, 0, 0.15);
+          box-shadow: inset 0 2px 16px 0 rgba(0, 0, 0, 0.15);
+}
+.ui.modal > .close {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  opacity: 1;
+  font-size: 12px;
+  color: #FFFFFF !important;
+  width: 1em;
+  height: 1em;
+  padding: 1.25rem 1.5rem;
+}
+.ui.modal > .close:hover {
+  color: #3BB3E4 !important;
+}
+@media only screen and (max-width: 991px) {
+  .ui.modal > .close {
+    top: 0 !important;
+    right: 0 !important;
+    color: #FFFFFF !important;
+    width: 1em;
+    height: 1em;
+    padding: 1.25rem 1.5rem;
+  }
+  .ui.modal > .close:hover {
+    color: #3BB3E4 !important;
+  }
+}
