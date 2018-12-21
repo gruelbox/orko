@@ -1,0 +1,13 @@
+/*******************************
+    User Variable Overrides
+*******************************/
+
+/*-------------------
+       Elements
+--------------------*/
+
+@verticalMargin: @relative8px;
+@verticalPadding: @relative8px;
+@horizontalPadding: @relative8px;
+
+@headerFontSize: @fontSize;

@@ -1,6 +1,6 @@
 import React from "react"
 import { connect } from "react-redux"
-import { Button, Header, Modal } from "semantic-ui-react"
+import { Button, Modal, Icon } from "semantic-ui-react"
 import FixedModal from "../components/primitives/FixedModal"
 
 import * as errorActions from "../store/error/actions"
@@ -9,7 +9,10 @@ const ErrorContainer = props => {
   if (props.errorForeground !== null) {
     return (
       <FixedModal defaultOpen data-orko="errorModal">
-        <Header icon="warning" content="Error" />
+        <Modal.Header>
+          <Icon name="warning" />
+          Error
+        </Modal.Header>
         <Modal.Content>
           <p>{props.errorForeground}</p>
         </Modal.Content>

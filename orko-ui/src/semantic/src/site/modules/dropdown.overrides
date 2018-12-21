@@ -1,0 +1,7 @@
+/*******************************
+        User Overrides
+*******************************/
+
+.ui.loading.selection.dropdown > i.icon {
+  padding: @relative14px @relative14px !important;
+}
