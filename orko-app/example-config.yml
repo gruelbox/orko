@@ -8,7 +8,7 @@ auth:
 #  jwt:
 #    userName: joe
 #    password: bloggs
-#    secret: CHANGEME
+#    secret: CHANGEME!!!!!!!!23423rwefsdf13cr123de1234d1243d1ewdfsdfcsdfsdf12222
 #    secondFactorSecret: YOURTOKEN
 #    expirationMinutes: 1440
 #  okta:
