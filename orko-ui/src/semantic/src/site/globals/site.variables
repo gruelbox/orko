@@ -124,8 +124,8 @@
 @borderColor               : #131722;
 @strongBorderColor         : rgba(34, 36, 38, 0.1);
 @internalBorderColor       : rgba(34, 36, 38, 0.1);
-@selectedBorderColor       : rgba(34, 36, 38, 0.35);
-@strongSelectedBorderColor : rgba(34, 36, 38, 0.5);
+@selectedBorderColor       : lighten(#131722, 30%);
+@strongSelectedBorderColor : lighten(#131722, 50%);
 @disabledBorderColor       : rgba(34, 36, 38, 0.5);
 
 @solidInternalBorderColor  : rgba(0, 0, 0, 0.3);

@@ -1,3 +1,64 @@
 /*******************************
-    User Variable Overrides
+            Checkbox
 *******************************/
+
+@checkboxSize: 19px;
+@checkboxColor: @textColor;
+@checkboxLineHeight: @checkboxSize;
+
+/* Label */
+@labelDistance: 2em;
+
+/* Checkbox */
+@checkboxBackground: #131722;
+@checkboxBorder: 1px solid @checkboxBackground;
+@checkboxBorderRadius: @3px;
+
+/* Checkmark */
+@checkboxCheckFontSize: 14px;
+@checkboxCheckTop: 0px;
+@checkboxCheckLeft: 1px;
+@checkboxCheckSize: 17px;
+
+/* Label */
+@labelFontSize: @relativeMedium;
+@labelColor: @textColor;
+
+/*-------------------
+        States
+--------------------*/
+
+/* Hover */
+@checkboxHoverBackground: @checkboxBackground;
+@checkboxHoverBorderColor: @checkboxBackground;
+@labelHoverColor: @hoveredTextColor;
+
+/* Pressed */
+@checkboxPressedBackground: #131722;
+@checkboxPressedBorderColor: @checkboxBackground;
+@checkboxPressedColor: @selectedTextColor;
+@labelPressedColor: @selectedTextColor;
+
+/* Focus */
+@checkboxFocusBackground: #131722;
+@checkboxFocusBorderColor: @checkboxBackground;
+@checkboxFocusCheckColor: @selectedTextColor;
+@labelFocusColor: @selectedTextColor;
+
+/* Active */
+@labelActiveColor: @selectedTextColor;
+@checkboxActiveBackground: @checkboxBackground;
+@checkboxActiveBorderColor: @checkboxBackground;
+@checkboxActiveCheckColor: @selectedTextColor;
+@checkboxActiveCheckOpacity: 1;
+
+/* Active Focus */
+@checkboxActiveFocusBackground: @checkboxBackground;
+@checkboxActiveFocusBorderColor: @checkboxBackground;
+@checkboxActiveFocusCheckColor: @selectedTextColor;
+
+/* Indeterminate */
+@checkboxIndeterminateBackground: @checkboxActiveBackground;
+@checkboxIndeterminateBorderColor: @checkboxActiveBorderColor;
+@checkboxIndeterminateCheckOpacity: 1;
+@checkboxIndeterminateCheckColor: @checkboxActiveCheckColor;
