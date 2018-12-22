@@ -36,6 +36,7 @@
     "build-semantic": "cd src/semantic && gulp build-css build-assets",
     "watch-semantic": "cd src/semantic && npm run build-semantic && gulp watch",
     "start": "npm run build-semantic && react-scripts start",
+    "start-no-semantic": "react-scripts start",
     "build": "npm run build-semantic && export INLINE_RUNTIME_CHUNK=false && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
