@@ -34,7 +34,7 @@ export default class Whitelisting extends Component {
                 <input
                   data-orko="token"
                   type="text"
-                  placeholder="Enter response"
+                  placeholder="Enter response..."
                   value={this.state.response || ""}
                   onChange={this.onChangeResponse}
                 />
