@@ -30,8 +30,8 @@
 
 /* Input Text Color */
 @inputColor: @textColor;
-@inputPlaceholderColor: fade(@inputColor, 60%);
-@inputPlaceholderFocusColor: fade(@inputColor, 20%);
+@inputPlaceholderColor: fade(@inputColor, 40%);
+@inputPlaceholderFocusColor: fade(@inputColor, 60%);
 
 /* Line Height Default For Inputs in Browser (Descenders are 17px at 14px base em) */
 @inputLineHeight: unit((17 / 14), em);
@@ -41,10 +41,10 @@
 --------------------*/
 
 /* Used on inputs, textarea etc */
-@focusedFormBorderColor: rgba(0, 0, 0, 0.3);
+@focusedFormBorderColor: fade(lighten(@blue, 20%), 30%);
 
 /* Used on dropdowns, other larger blocks */
-@focusedFormMutedBorderColor: rgba(0, 0, 0, 0.3);
+@focusedFormMutedBorderColor: fade(lighten(@blue, 20%), 10%);
 
 /*-------------------
         Sizes

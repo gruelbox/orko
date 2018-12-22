@@ -41,7 +41,7 @@
 
 /* Focus */
 @checkboxFocusBackground: #131722;
-@checkboxFocusBorderColor: @checkboxBackground;
+@checkboxFocusBorderColor: @focusedFormBorderColor;
 @checkboxFocusCheckColor: @selectedTextColor;
 @labelFocusColor: @selectedTextColor;
 
@@ -54,7 +54,7 @@
 
 /* Active Focus */
 @checkboxActiveFocusBackground: @checkboxBackground;
-@checkboxActiveFocusBorderColor: @checkboxBackground;
+@checkboxActiveFocusBorderColor: @focusedFormBorderColor;
 @checkboxActiveFocusCheckColor: @selectedTextColor;
 
 /* Indeterminate */
