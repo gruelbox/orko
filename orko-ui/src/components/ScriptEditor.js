@@ -1,12 +1,5 @@
 import React from "react"
-import Input from "./primitives/Input"
-import Form from "./primitives/Form"
-import Button from "./primitives/Button"
-import SimpleCodeEditor from "react-simple-code-editor"
-import { highlight, languages } from "prismjs/components/prism-core"
-import "prismjs/components/prism-clike"
-import "prismjs/components/prism-javascript"
-import theme from "../theme"
+import { Form, Grid, Table, Icon, Button } from "semantic-ui-react"
 
 const ScriptEditor = ({
   name,
@@ -17,48 +10,80 @@ const ScriptEditor = ({
   onChangeParameters
 }) => (
   <Form
-    flex-direction="column"
-    buttons={() => (
-      <>
-        <Button data-orko="verify">Verify</Button>
-        <Button data-orko="save">Save</Button>
-      </>
-    )}
+    style={{
+      height: "100%"
+    }}
   >
-    <Input
-      id="name"
-      label="Name"
-      placeholder="Enter name..."
-      value={name}
-      onChange={e => onChangeName && onChangeName(e.target.value)}
-      width="100%"
-      mr={0}
-    />
-    <Input
-      id="parameters"
-      label="Parameters"
-      placeholder="Enter comma-separated list of parameters..."
-      value={parameters}
-      onChange={e => onChangeParameters && onChangeName(e.target.value)}
-      width="100%"
-      mr={0}
-    />
-    <SimpleCodeEditor
-      value={script}
-      onValueChange={code => onChangeScript && onChangeScript(code)}
-      highlight={code => (code ? highlight(code, languages.js) : "")}
-      padding={theme.space[2]}
-      style={{
-        fontFamily: '"Fira code", "Fira Mono", monospace',
-        fontSize: 12,
-        border: "2px solid " + theme.colors.inputBg,
-        borderRadius: theme.radii[2] + "px",
-        backgroundColor: theme.colors.inputBg,
-        width: "100%",
-        flex: "1",
-        overflow: "scroll"
-      }}
-    />
+    <Grid columns="2" style={{ height: "100%" }}>
+      <Grid.Row style={{ height: "100%" }}>
+        <Grid.Column
+          width={10}
+          style={{ height: "100%", display: "flex", flexDirection: "column" }}
+        >
+          <Form.Input
+            required
+            id="name"
+            label="Name"
+            placeholder="Enter name..."
+            value={name}
+            onChange={e => onChangeName && onChangeName(e.target.value)}
+          />
+          <Form.Field
+            required
+            style={{
+              flex: "2",
+              display: "flex",
+              flexDirection: "column"
+            }}
+          >
+            <label>Code</label>
+            <textarea
+              value={script}
+              onChange={e => onChangeScript && onChangeScript(e.target.value)}
+              style={{
+                fontFamily: '"Fira code", "Fira Mono", monospace',
+                fontSize: 12,
+                overflow: "scroll",
+                height: "100%",
+                flex: "2"
+              }}
+            />
+          </Form.Field>
+          <Button data-orko="verify" style={{ alignSelf: "flex-start" }}>
+            Verify
+          </Button>
+        </Grid.Column>
+        <Grid.Column width={6} style={{ height: "100%" }}>
+          <Form.Field>
+            <label>Parameters</label>
+            <Table celled striped selectable>
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Name</Table.HeaderCell>
+                  <Table.HeaderCell>Description</Table.HeaderCell>
+                  <Table.HeaderCell>Default</Table.HeaderCell>
+                  <Table.HeaderCell>Reqd</Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {parameters &&
+                  parameters.map(parameter => (
+                    <Table.Row>
+                      <Table.Cell>{parameter.name}</Table.Cell>
+                      <Table.Cell>{parameter.description}</Table.Cell>
+                      <Table.Cell>{parameter.default}</Table.Cell>
+                      <Table.Cell>
+                        {parameter.mandatory ? <Icon name="checkmark" /> : null}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+              </Table.Body>
+            </Table>
+            <Button data-orko="addParameter">Add</Button>
+          </Form.Field>
+        </Grid.Column>
+      </Grid.Row>
+    </Grid>
   </Form>
 )
 

@@ -6,7 +6,6 @@ import Toolbar from "../components/Toolbar"
 import { formatNumber } from "../util/numberUtils"
 import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
 import * as authActions from "../store/auth/actions"
-import * as uiActions from "../store/ui/actions"
 
 const ToolbarContainer = props => {
   if (!props.connected) {
@@ -28,7 +27,6 @@ const ToolbarContainer = props => {
   return (
     <Toolbar
       {...props}
-      onOpenScripts={() => props.dispatch(uiActions.openScripts())}
       onLogout={() => props.dispatch(authActions.logout())}
       onClearWhitelist={() => props.dispatch(authActions.clearWhitelist())}
     />

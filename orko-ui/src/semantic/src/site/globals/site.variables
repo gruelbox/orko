@@ -83,6 +83,7 @@
 @lightRed         : #f2716e;
 @lightGreen       : #33c7b8;
 @lightBlue        : #70d2ff;
+@black            : #131722;
 
 /*-------------------
     Emotive Colors
@@ -93,6 +94,19 @@
 @negativeBorderColor     : fade(@red, 30%);
 @negativeHeaderColor     : @red;
 @negativeTextColor       : @red;
+
+/*-------------------
+     Alpha Colors
+--------------------*/
+
+@subtleTransparentBlack     : rgba(0, 0, 0, 0.10);
+@transparentBlack           : rgba(0, 0, 0, 0.20);
+@strongTransparentBlack     : rgba(0, 0, 0, 0.30);
+@veryStrongTransparentBlack : rgba(0, 0, 0, 0.40);
+
+@subtleTransparentWhite     : rgba(255, 255, 255, 0.02);
+@transparentWhite           : rgba(255, 255, 255, 0.08);
+@strongTransparentWhite     : rgba(255, 255, 255, 0.15);
 
 /*-------------------
      Neutral Text

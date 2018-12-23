@@ -169,7 +169,6 @@ export default class Framework extends React.Component {
     )
     const Market = () => <MarketContainer allowAnimate={!isMobile} />
     const ManageAlerts = () => <ManageAlertsContainer mobile={isMobile} />
-    const ManageScripts = () => <ManageScriptsContainer mobile={isMobile} />
 
     const Settings = () =>
       this.state.showSettings ? (
@@ -191,10 +190,15 @@ export default class Framework extends React.Component {
         path="/addCoin"
         component={AddCoinContainer}
       />,
+      <Route
+        key="scripts"
+        exact
+        path="/scripts"
+        component={ManageScriptsContainer}
+      />,
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
       <PositioningWrapper key="dialogs" mobile={isMobile}>
         <Settings />
-        <ManageScripts/>
         <ManageAlerts />
         <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
       </PositioningWrapper>

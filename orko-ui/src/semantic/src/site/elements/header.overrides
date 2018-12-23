@@ -1,7 +1,3 @@
 /*******************************
          Site Overrides
 *******************************/
-
-.header {
-    text-transform: uppercase;
-}

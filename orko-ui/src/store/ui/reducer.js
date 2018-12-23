@@ -3,8 +3,7 @@ import * as types from "./actionTypes"
 
 const initialState = Immutable({
   alertsCoin: null,
-  referencePriceCoin: null,
-  showScripts: false
+  referencePriceCoin: null
 })
 
 export default function reduce(state = initialState, action = {}) {
@@ -17,10 +16,6 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, { referencePriceCoin: action.payload })
     case types.CLOSE_REFERENCE_PRICE:
       return Immutable.merge(state, { referencePriceCoin: null })
-    case types.OPEN_SCRIPTS:
-      return Immutable.merge(state, { showScripts: true })
-    case types.CLOSE_SCRIPTS:
-      return Immutable.merge(state, { showScripts: false })
     default:
       return state
   }

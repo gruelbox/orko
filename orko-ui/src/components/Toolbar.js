@@ -79,17 +79,17 @@ const SignOutLink = ({ onClick }) => (
   </Href>
 )
 
-const ScriptsLink = ({ onClick }) => (
-  <Href
+const ScriptsLink = () => (
+  <Link
     mx={2}
     color="heading"
     fontSize={3}
     title="Open scripts"
     fontWeight="bold"
-    onClick={onClick}
+    to="/scripts"
   >
     <Icon name="code" />
-  </Href>
+  </Link>
 )
 
 const InvalidateLink = ({ onClick }) => (
@@ -161,7 +161,7 @@ const Normal = ({
       />
     </RemainingSpace>
     <TickerSocketState connected={connected} />
-    <ScriptsLink onClick={onOpenScripts} />
+    <ScriptsLink />
     <ViewSettings onClick={onShowViewSettings} />
     <SignOutLink onClick={onLogout} />
     <InvalidateLink onClick={onClearWhitelist} />
@@ -179,7 +179,7 @@ const Mobile = ({
     <HomeLink />
     <TickerSocketState connected={connected} />
     <Coin coin={coin} />
-    <ScriptsLink onClick={onOpenScripts} />
+    <ScriptsLink />
     <SignOutLink onClick={onLogout} />
     <InvalidateLink onClick={onClearWhitelist} />
   </ToolbarBox>

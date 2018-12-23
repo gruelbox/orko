@@ -1,54 +1,38 @@
 import React from "react"
-import Href from "./primitives/Href"
-import { Icon } from "semantic-ui-react"
-import ReactTable from "react-table"
+import { List } from "semantic-ui-react"
 
-const textStyle = {
-  textAlign: "left"
-}
+const Script = ({ script, onSelect, selected, modified, fresh }) => (
+  <List.Item active={selected} onClick={() => onSelect && onSelect(script)}>
+    <List.Icon name="file code" size="large" verticalAlign="middle" />
+    <List.Content>
+      <List.Header data-orko={script.id + "/select"}>{script.name}</List.Header>
+      <List.Description>
+        {fresh ? "New" : modified ? "Modified" : "Saved"}
+      </List.Description>
+    </List.Content>
+  </List.Item>
+)
 
-const Scripts = ({ scripts, onDelete, onSelect }) => (
-  <ReactTable
-    data={scripts}
-    columns={[
-      {
-        id: "close",
-        Header: null,
-        Cell: ({ original }) => (
-          <Href title="Remove script" onClick={() => onDelete(original)}>
-            <Icon fitted name="close" />
-          </Href>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        width: 32,
-        sortable: false,
-        resizable: false
-      },
-      {
-        id: "name",
-        Header: "name",
-        Cell: ({ original }) => (
-          <Href
-            data-orko={original.id + "/select"}
-            title={"Select " + original.name}
-            onClick={() => onSelect(original)}
-          >
-            {original.name}
-          </Href>
-        ),
-        headerStyle: textStyle,
-        style: textStyle,
-        resizable: true,
-        minWidth: 50
-      }
-    ]}
-    showPagination={false}
-    resizable={false}
-    className="-striped"
-    minRows={0}
-    noDataText="No scripts"
-  />
+const Scripts = ({ scripts, onSelect, modified, selected }) => (
+  <List selection divided>
+    {selected.id === undefined && (
+      <Script
+        script={selected}
+        modified={modified}
+        selected={true}
+        fresh={true}
+      />
+    )}
+    {scripts.map(script => (
+      <Script
+        key={script.id}
+        script={script}
+        selected={selected && selected.id === script.id}
+        modified={selected && selected.id === script.id && modified}
+        onSelect={onSelect}
+      />
+    ))}
+  </List>
 )
 
 export default Scripts

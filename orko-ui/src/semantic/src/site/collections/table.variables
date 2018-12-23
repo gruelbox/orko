@@ -1,3 +1,7 @@
 /*******************************
     User Variable Overrides
 *******************************/
+
+@background: #282b38;
+@headerBackground: #131722;
+@stripedBackground: rgba(0, 0, 0, 0.1);
