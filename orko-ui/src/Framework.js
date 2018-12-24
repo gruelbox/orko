@@ -182,6 +182,10 @@ export default class Framework extends React.Component {
         <React.Fragment />
       )
 
+    const ManageScripts = props => (
+      <ManageScriptsContainer {...props} key={props.match.params.id} />
+    )
+
     const header = [
       <Tools key="tools" />,
       <Route
@@ -191,10 +195,16 @@ export default class Framework extends React.Component {
         component={AddCoinContainer}
       />,
       <Route
-        key="scripts"
+        key="scriptsNoId"
         exact
         path="/scripts"
-        component={ManageScriptsContainer}
+        component={ManageScripts}
+      />,
+      <Route
+        key="scripts"
+        exact
+        path="/scripts/:id"
+        component={ManageScripts}
       />,
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
       <PositioningWrapper key="dialogs" mobile={isMobile}>

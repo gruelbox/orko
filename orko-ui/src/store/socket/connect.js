@@ -11,6 +11,7 @@ var store
 var actionBuffer = {}
 var initialising = true
 var jobFetch
+var previousCoin
 
 function subscribedCoins() {
   return store.getState().coins.coins
@@ -44,16 +45,19 @@ export function initialise(s, history) {
   // When the coin selected changes, send resubscription messages and clear any
   // coin-specific state
   history.listen(location => {
-    console.log("Resubscribing following coin change")
     const coin = locationToCoin(location)
-    socketClient.changeSubscriptions(subscribedCoins(), coin)
-    socketClient.resubscribe()
-    store.dispatch(coinActions.setUserTrades(null))
-    bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
-    bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(null))
-    bufferAction(ACTION_KEY_TRADE, coinActions.clearTrades())
-    bufferAction(ACTION_KEY_BALANCE, coinActions.clearBalances())
-    actionDispatch()
+    if (coin !== previousCoin) {
+      previousCoin = coin
+      console.log("Resubscribing following coin change")
+      socketClient.changeSubscriptions(subscribedCoins(), coin)
+      socketClient.resubscribe()
+      store.dispatch(coinActions.setUserTrades(null))
+      bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
+      bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(null))
+      bufferAction(ACTION_KEY_TRADE, coinActions.clearTrades())
+      bufferAction(ACTION_KEY_BALANCE, coinActions.clearBalances())
+      actionDispatch()
+    }
   })
 
   // Sync the store state of the socket with the socket itself

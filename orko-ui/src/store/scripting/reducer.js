@@ -12,7 +12,7 @@ export const newScript = Immutable({
 const initialState = Immutable({
   scripts: [
     {
-      id: 1,
+      id: "1",
       name: "Send price notifications",
       script: `var subscription
 var count = 0
@@ -57,7 +57,7 @@ function stop() {
       ]
     },
     {
-      id: 2,
+      id: "2",
       name: "Do something else",
       script: `var subscription
 var count = 0
@@ -115,10 +115,16 @@ export default function reduce(state = initialState, action = {}) {
         scripts: state.scripts.concat([action.payload])
       })
     case types.UPDATE_SCRIPT:
+      var scripts = []
+      for (let script of state.scripts) {
+        if (script.id === action.payload.id) {
+          scripts.push(action.payload)
+        } else {
+          scripts.push(script)
+        }
+      }
       return Immutable.merge(state, {
-        scripts: state.scripts
-          .filter(script => script.id !== action.payload)
-          .concat([action.payload])
+        scripts
       })
     default:
       return state

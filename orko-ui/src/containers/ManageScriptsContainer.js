@@ -1,163 +1,138 @@
 import React from "react"
 import { connect } from "react-redux"
-import FixedModal from "../components/primitives/FixedModal"
-import { Modal, Icon, Grid, Button } from "semantic-ui-react"
-import Scripts from "../components/Scripts"
 import Confirmation from "../components/Confirmation"
+import ScriptManagement from "../components/ScriptManagement"
+import Scripts from "../components/Scripts"
 import ScriptEditor from "../components/ScriptEditor"
 import { newScript } from "../store/scripting/reducer"
 import * as scriptActions from "../store/scripting/actions"
 
 import uuidv4 from "uuid/v4"
 
-const newScriptState = {
-  ...newScript,
-  id: undefined,
-  modified: true,
-  check: undefined
-}
-
-const selectScriptState = script => ({
-  ...script,
-  modified: false,
-  check: undefined
-})
+const NEW_SCRIPT_ROUTE = "new"
 
 class ManageScriptsContainer extends React.Component {
   constructor(props) {
     super(props)
-    if (props.scripts.length === 0) {
-      this.state = newScriptState
+
+    var scriptState
+
+    if (
+      props.scripts.length === 0 ||
+      this.props.match.params.id === NEW_SCRIPT_ROUTE
+    ) {
+      scriptState = newScript
     } else {
-      this.state = selectScriptState(props.scripts[0])
+      if (this.props.match.params.id) {
+        scriptState = props.scripts.find(
+          s => s.id === this.props.match.params.id
+        )
+      } else {
+        scriptState = props.scripts[0]
+      }
+    }
+
+    this.state = {
+      current: {
+        ...scriptState
+      },
+      modified: false,
+      check: undefined
     }
   }
 
-  changeScript = targetState => {
-    this.setState(state => {
-      if (state.modified) {
-        return {
-          check: {
-            message: "Unsaved changes. Are you sure?",
-            onOk: () => {
-              this.setState(targetState)
-            }
-          }
+  selectedScriptId = () => this.props.match.params.id
+
+  isNewScript = () => this.selectedScriptId() === NEW_SCRIPT_ROUTE
+
+  changeScript = id => {
+    if (this.state.modified) {
+      this.setState({
+        check: {
+          message: "Unsaved changes. Are you sure?",
+          onOk: () => this.props.history.push("/scripts/" + id)
         }
-      } else {
-        return targetState
-      }
-    })
+      })
+    } else {
+      this.props.history.push("/scripts/" + id)
+    }
   }
 
-  onSelectScript = script => {
-    this.changeScript(selectScriptState(script))
+  onSelect = script => {
+    this.changeScript(script.id)
   }
 
   onNew = () => {
-    this.changeScript(newScriptState)
+    this.changeScript(NEW_SCRIPT_ROUTE)
   }
 
   onDelete = () => {
     var nextChoice = this.props.scripts.find(
-      script => script.id !== this.state.id
+      script => script.id !== this.selectedScriptId()
     )
+    this.props.dispatch(scriptActions.remove(this.selectedScriptId()))
     if (nextChoice) {
-      this.onSelectScript(nextChoice)
+      this.onSelect(nextChoice)
     } else {
       this.onNew()
     }
-    this.props.dispatch(scriptActions.remove(this.state.id))
   }
 
   onSave = () => {
-    if (this.state.id === undefined) {
-      this.setState({ id: uuidv4(), modified: false }, () =>
-        this.props.dispatch(scriptActions.add(this.state))
+    if (this.isNewScript()) {
+      this.setState(
+        state => ({
+          current: { ...state.current, id: uuidv4() },
+          modified: false
+        }),
+        () => {
+          this.props.dispatch(scriptActions.add(this.state.current))
+          this.props.history.push("/scripts/" + this.state.current.id)
+        }
       )
     } else {
-      this.props.dispatch(scriptActions.update(this.state))
+      this.setState({ modified: false }, () =>
+        this.props.dispatch(scriptActions.update(this.state.current))
+      )
     }
+  }
+
+  onChangeState = state => {
+    this.setState({ current: state, modified: true })
   }
 
   render() {
     return (
       <>
-        <FixedModal
-          data-orko="manageScripts"
-          closeIcon
-          size="fullscreen"
-          onClose={() => this.props.history.goBack()}
-          style={{ height: "100%" }}
-        >
-          <Modal.Header>
-            <Icon name="code" />
-            Manage scripts
-          </Modal.Header>
-          <Modal.Content>
-            <Grid columns="2" divided style={{ height: "75vh" }}>
-              <Grid.Row style={{ height: "100%" }}>
-                <Grid.Column width={4}>
-                  <Scripts
-                    scripts={this.props.scripts}
-                    onSelect={script => this.onSelectScript(script)}
-                    modified={this.state.modified}
-                    selected={{
-                      id: this.state.id,
-                      name: this.state.name
-                    }}
-                  />
-                </Grid.Column>
-                <Grid.Column width="twelve">
-                  <ScriptEditor
-                    name={this.state.name}
-                    script={this.state.script}
-                    parameters={this.state.parameters}
-                    onChangeName={name => this.setState({ name })}
-                    onChangeScript={script => this.setState({ script })}
-                    onChangeParameters={parameters =>
-                      this.setState({ parameters })
-                    }
-                  />
-                </Grid.Column>
-              </Grid.Row>
-            </Grid>
-          </Modal.Content>
-          <Modal.Actions>
-            <Button
-              floated="left"
-              negative
-              data-orko="delete"
-              disabled={this.state.id === undefined}
-              onClick={this.onDelete}
-              title="Delete the selected script"
-            >
-              Delete
-            </Button>
-            <Button
-              color="green"
-              data-orko="verify"
-              onClick={this.onNew}
-              title="Create a new script"
-            >
-              New
-            </Button>
-            <Button
-              primary
-              data-orko="save"
-              title="Save the script"
-              onClick={this.onSave}
-            >
-              Save
-            </Button>
-          </Modal.Actions>
-        </FixedModal>
-
+        <ScriptManagement
+          onClose={() => this.props.history.push("/")}
+          onDelete={this.onDelete}
+          onNew={this.onNew}
+          onSave={this.onSave}
+          deleteEnabled={!this.isNewScript()}
+          listing={
+            <Scripts
+              scripts={this.props.scripts}
+              onSelect={this.onSelect}
+              modified={this.state.modified}
+              selected={this.state.current.id}
+            />
+          }
+          editor={
+            <ScriptEditor
+              state={this.state.current}
+              onChangeState={this.onChangeState}
+            />
+          }
+        />
         {this.state.check && (
           <Confirmation
             message={this.state.check.message}
             onCancel={() => this.setState({ check: undefined })}
-            onOk={this.state.check.onOk}
+            onOk={() => {
+              const onOk = this.state.check.onOk
+              this.setState({ check: undefined }, onOk)
+            }}
           />
         )}
       </>

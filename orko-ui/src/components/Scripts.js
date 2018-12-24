@@ -15,9 +15,9 @@ const Script = ({ script, onSelect, selected, modified, fresh }) => (
 
 const Scripts = ({ scripts, onSelect, modified, selected }) => (
   <List selection divided>
-    {selected.id === undefined && (
+    {selected === undefined && (
       <Script
-        script={selected}
+        script={{ name: "New" }}
         modified={modified}
         selected={true}
         fresh={true}
@@ -27,8 +27,8 @@ const Scripts = ({ scripts, onSelect, modified, selected }) => (
       <Script
         key={script.id}
         script={script}
-        selected={selected && selected.id === script.id}
-        modified={selected && selected.id === script.id && modified}
+        selected={selected && selected === script.id}
+        modified={selected && selected === script.id && modified}
         onSelect={onSelect}
       />
     ))}

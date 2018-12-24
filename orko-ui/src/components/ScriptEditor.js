@@ -1,14 +1,7 @@
 import React from "react"
 import { Form, Grid, Table, Icon, Button } from "semantic-ui-react"
 
-const ScriptEditor = ({
-  name,
-  script,
-  parameters,
-  onChangeName,
-  onChangeScript,
-  onChangeParameters
-}) => (
+const ScriptEditor = ({ state, onChangeState }) => (
   <Form
     style={{
       height: "100%"
@@ -25,8 +18,8 @@ const ScriptEditor = ({
             id="name"
             label="Name"
             placeholder="Enter name..."
-            value={name}
-            onChange={e => onChangeName && onChangeName(e.target.value)}
+            value={state.name}
+            onChange={e => onChangeState({ ...state, name: e.target.value })}
           />
           <Form.Field
             required
@@ -38,8 +31,10 @@ const ScriptEditor = ({
           >
             <label>Code</label>
             <textarea
-              value={script}
-              onChange={e => onChangeScript && onChangeScript(e.target.value)}
+              value={state.script}
+              onChange={e =>
+                onChangeState({ ...state, script: e.target.value })
+              }
               style={{
                 fontFamily: '"Fira code", "Fira Mono", monospace',
                 fontSize: 12,
@@ -66,9 +61,9 @@ const ScriptEditor = ({
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {parameters &&
-                  parameters.map(parameter => (
-                    <Table.Row>
+                {state.parameters &&
+                  state.parameters.map(parameter => (
+                    <Table.Row key={parameter.name}>
                       <Table.Cell>{parameter.name}</Table.Cell>
                       <Table.Cell>{parameter.description}</Table.Cell>
                       <Table.Cell>{parameter.default}</Table.Cell>
