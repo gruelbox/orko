@@ -52,12 +52,12 @@ const ScriptEditor = ({
             />
           </Form.Field>
           <Button
-            data-orko="verify"
+            data-orko="test"
             disabled
-            title="Submits the script to the server to check for validity"
+            title="Tests the script with user-requested inputs, mocking any risky operations such as trading."
             style={{ alignSelf: "flex-start" }}
           >
-            Verify not supported yet
+            Testing coming soon
           </Button>
         </Grid.Column>
         <Grid.Column width={6} style={{ height: "100%" }}>
