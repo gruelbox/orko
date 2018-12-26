@@ -4,8 +4,10 @@ import Confirmation from "../components/Confirmation"
 import ScriptManagement from "../components/ScriptManagement"
 import Scripts from "../components/Scripts"
 import ScriptEditor from "../components/ScriptEditor"
-import { newScript } from "../store/scripting/reducer"
+import ScriptParameterContainer from "./ScriptParameterContainer"
+import { newScript, newParameter } from "../store/scripting/reducer"
 import * as scriptActions from "../store/scripting/actions"
+import { replaceInArray } from "../util/objectUtils"
 
 import uuidv4 from "uuid/v4"
 
@@ -36,8 +38,7 @@ class ManageScriptsContainer extends React.Component {
       current: {
         ...scriptState
       },
-      modified: false,
-      check: undefined
+      modified: false
     }
   }
 
@@ -101,6 +102,47 @@ class ManageScriptsContainer extends React.Component {
     this.setState({ current: state, modified: true })
   }
 
+  onEditParameter = parameter => {
+    this.setState({ editingParameter: true, parameterUnderEdit: parameter })
+  }
+
+  onAddParameter = () => {
+    this.setState({ editingParameter: true, parameterUnderEdit: newParameter })
+  }
+
+  onCloseParameterEditor = () => {
+    this.setState({ editingParameter: false, parameterUnderEdit: undefined })
+  }
+
+  onDeleteParameter = () => {
+    var parameter = this.state.parameterUnderEdit
+    this.setState(state => ({
+      editingParameter: false,
+      parameterUnderEdit: undefined,
+      current: {
+        ...state.current,
+        parameters: state.current.parameters.filter(
+          p => p.name !== parameter.name
+        )
+      }
+    }))
+  }
+
+  onUpdateParameter = parameter => {
+    this.setState(state => ({
+      editingParameter: false,
+      parameterUnderEdit: undefined,
+      current: {
+        ...state.current,
+        parameters: replaceInArray(
+          state.current.parameters,
+          parameter,
+          p => p.name === parameter.name
+        )
+      }
+    }))
+  }
+
   render() {
     return (
       <>
@@ -122,6 +164,8 @@ class ManageScriptsContainer extends React.Component {
             <ScriptEditor
               state={this.state.current}
               onChangeState={this.onChangeState}
+              onAddParameter={this.onAddParameter}
+              onEditParameter={this.onEditParameter}
             />
           }
         />
@@ -133,6 +177,16 @@ class ManageScriptsContainer extends React.Component {
               const onOk = this.state.check.onOk
               this.setState({ check: undefined }, onOk)
             }}
+          />
+        )}
+        {this.state.editingParameter && (
+          <ScriptParameterContainer
+            parameter={this.state.parameterUnderEdit}
+            onDelete={() =>
+              this.onDeleteParameter(this.state.parameterUnderEdit)
+            }
+            onUpdate={updated => this.onUpdateParameter(updated)}
+            onClose={this.onCloseParameterEditor}
           />
         )}
       </>

@@ -1,5 +1,6 @@
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
+import { replaceInArray } from "../../util/objectUtils"
 
 export const newScript = Immutable({
   name: "New script",
@@ -7,6 +8,13 @@ export const newScript = Immutable({
   script: `function start() {
   return SUCCESS
 }`
+})
+
+export const newParameter = Immutable({
+  name: "",
+  description: "",
+  default: "",
+  mandatory: false
 })
 
 const initialState = Immutable({
@@ -115,16 +123,12 @@ export default function reduce(state = initialState, action = {}) {
         scripts: state.scripts.concat([action.payload])
       })
     case types.UPDATE_SCRIPT:
-      var scripts = []
-      for (let script of state.scripts) {
-        if (script.id === action.payload.id) {
-          scripts.push(action.payload)
-        } else {
-          scripts.push(script)
-        }
-      }
       return Immutable.merge(state, {
-        scripts
+        scripts: replaceInArray(
+          state.scripts,
+          action.payload,
+          s => s.id === action.payload.id
+        )
       })
     default:
       return state

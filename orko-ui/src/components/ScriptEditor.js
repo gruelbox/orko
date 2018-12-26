@@ -1,7 +1,12 @@
 import React from "react"
 import { Form, Grid, Table, Icon, Button } from "semantic-ui-react"
 
-const ScriptEditor = ({ state, onChangeState }) => (
+const ScriptEditor = ({
+  state,
+  onChangeState,
+  onAddParameter,
+  onEditParameter
+}) => (
   <Form
     style={{
       height: "100%"
@@ -18,11 +23,13 @@ const ScriptEditor = ({ state, onChangeState }) => (
             id="name"
             label="Name"
             placeholder="Enter name..."
+            error={state.name === ""}
             value={state.name}
             onChange={e => onChangeState({ ...state, name: e.target.value })}
           />
           <Form.Field
             required
+            error={state.script === ""}
             style={{
               flex: "2",
               display: "flex",
@@ -44,8 +51,13 @@ const ScriptEditor = ({ state, onChangeState }) => (
               }}
             />
           </Form.Field>
-          <Button data-orko="verify" style={{ alignSelf: "flex-start" }}>
-            Verify
+          <Button
+            data-orko="verify"
+            disabled
+            title="Submits the script to the server to check for validity"
+            style={{ alignSelf: "flex-start" }}
+          >
+            Verify not supported yet
           </Button>
         </Grid.Column>
         <Grid.Column width={6} style={{ height: "100%" }}>
@@ -61,9 +73,12 @@ const ScriptEditor = ({ state, onChangeState }) => (
                 </Table.Row>
               </Table.Header>
               <Table.Body>
-                {state.parameters &&
+                {!!state.parameters &&
                   state.parameters.map(parameter => (
-                    <Table.Row key={parameter.name}>
+                    <Table.Row
+                      key={parameter.name}
+                      onClick={() => onEditParameter(parameter)}
+                    >
                       <Table.Cell>{parameter.name}</Table.Cell>
                       <Table.Cell>{parameter.description}</Table.Cell>
                       <Table.Cell>{parameter.default}</Table.Cell>
@@ -74,7 +89,9 @@ const ScriptEditor = ({ state, onChangeState }) => (
                   ))}
               </Table.Body>
             </Table>
-            <Button data-orko="addParameter">Add</Button>
+            <Button data-orko="addParameter" onClick={onAddParameter}>
+              Add
+            </Button>
           </Form.Field>
         </Grid.Column>
       </Grid.Row>

@@ -11,3 +11,18 @@ export function areEqualShallow(a, b) {
   }
   return true
 }
+
+export function replaceInArray(arr, replacement, find) {
+  var result = []
+  var found = false
+  for (let o of arr) {
+    if (find(o)) {
+      result.push(replacement)
+      found = true
+    } else {
+      result.push(o)
+    }
+  }
+  if (!found) result.push(replacement)
+  return result
+}
