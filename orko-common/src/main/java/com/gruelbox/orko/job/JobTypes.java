@@ -3,6 +3,7 @@ package com.gruelbox.orko.job;
 import java.util.ServiceLoader;
 
 import com.google.common.collect.ImmutableList;
+import com.gruelbox.orko.job.script.ScriptJob;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobTypeContribution;
 

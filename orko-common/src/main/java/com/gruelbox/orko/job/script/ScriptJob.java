@@ -1,4 +1,4 @@
-package com.gruelbox.orko.job;
+package com.gruelbox.orko.job.script;
 
 import java.util.Map;
 
@@ -18,8 +18,6 @@ import com.gruelbox.orko.jobrun.spi.JobProcessor;
 
 /**
  * Provides the context for a Javscript job.
- *
- * TODO add signature to prevent modification of scripts via the database
  *
  * @author Graham Crockford
  */

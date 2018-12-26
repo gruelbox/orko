@@ -1,4 +1,4 @@
-package com.gruelbox.orko.job;
+package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
 import static com.gruelbox.orko.jobrun.spi.Status.RUNNING;
@@ -30,8 +30,11 @@ import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.job.LimitOrderJob;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
-import com.gruelbox.orko.job.ScriptJob.Builder;
+import com.gruelbox.orko.job.script.ScriptJob;
+import com.gruelbox.orko.job.script.ScriptJobProcessor;
+import com.gruelbox.orko.job.script.ScriptJob.Builder;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
