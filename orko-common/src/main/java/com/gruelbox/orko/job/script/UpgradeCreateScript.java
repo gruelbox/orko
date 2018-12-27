@@ -16,7 +16,7 @@ import org.alfasoftware.morf.upgrade.Version;
 @UUID("2a181650-04c7-4473-9455-8ab051335a96")
 @Version("0.7.0")
 @Sequence(1545850327)
-public class UpgradeCreateScript implements UpgradeStep {
+class UpgradeCreateScript implements UpgradeStep {
 
   @Override
   public String getJiraId() {
@@ -25,7 +25,7 @@ public class UpgradeCreateScript implements UpgradeStep {
 
   @Override
   public String getDescription() {
-    return "Adds the tables supporting scripted job parameters";
+    return "Add the tables supporting scripted job parameters";
   }
 
   @Override

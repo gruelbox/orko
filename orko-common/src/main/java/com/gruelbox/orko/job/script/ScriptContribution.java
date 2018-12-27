@@ -37,7 +37,7 @@ class ScriptContribution implements EntityContribution, TableContribution {
           column(ScriptParameter.SCRIPT_ID, STRING, 45).primaryKey(),
           column(ScriptParameter.NAME, STRING, 255).primaryKey(),
           column(ScriptParameter.DESCRIPTION, STRING, 255),
-          column(ScriptParameter.DEFAULT_VALUE, STRING, 255),
+          column(ScriptParameter.DEFAULT_VALUE, STRING, 255).nullable(),
           column(ScriptParameter.MANDATORY, BOOLEAN)
         )
     );
@@ -45,6 +45,6 @@ class ScriptContribution implements EntityContribution, TableContribution {
 
   @Override
   public Collection<Class<? extends UpgradeStep>> schemaUpgradeClassses() {
-    return ImmutableList.of(UpgradeCreateScript.class);
+    return ImmutableList.of(UpgradeCreateScript.class, UpgradeNullableDefaultValue.class);
   }
 }
