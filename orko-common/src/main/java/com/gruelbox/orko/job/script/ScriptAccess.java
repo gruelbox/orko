@@ -3,6 +3,7 @@ package com.gruelbox.orko.job.script;
 import static com.gruelbox.orko.job.script.Script.TABLE_NAME;
 import static java.util.stream.Collectors.toList;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -47,10 +48,18 @@ class ScriptAccess {
     script.parameters().forEach(p -> p.setParent(script));
     LOGGER.debug("Saving script: " + script);
 
-    session().createQuery("delete from " + ScriptParameter.TABLE_NAME + " where id.scriptId = :scriptId and id.name not in :names")
-      .setParameter("scriptId", script.id())
-      .setParameterList("names", script.parameters().stream().map(ScriptParameter::name).collect(toList()))
-      .executeUpdate();
+    List<String> parameterNames = script.parameters().stream().map(ScriptParameter::name).collect(toList());
+    if (parameterNames.isEmpty()) {
+      session().createQuery("delete from " + ScriptParameter.TABLE_NAME + " where id.scriptId = :scriptId")
+        .setParameter("scriptId", script.id())
+        .executeUpdate();
+    } else {
+      session().createQuery("delete from " + ScriptParameter.TABLE_NAME + " where id.scriptId = :scriptId and id.name not in :names")
+        .setParameter("scriptId", script.id())
+        .setParameterList("names", parameterNames)
+        .executeUpdate();
+    }
+
     script.parameters().forEach(p -> session().saveOrUpdate(p));
     session().saveOrUpdate(script);
   }
