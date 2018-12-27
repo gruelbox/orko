@@ -8,17 +8,21 @@ const FormButtonBar = styled.div`
   justify-content: flex-end;
   width: 100%;
   & > button {
+    margin-top: 0
     margin-left: ${props => props.theme.space[2] + "px"};
+    margin-bottom: 0
   }
   & > div {
-    margin-left: ${props => props.theme.space[2] + "px"};
+    margin-top: 0 !important;
+    margin-left: ${props => props.theme.space[2] + "px"} !important;
+    margin-bottom: 0 !important;
   }
   & > label {
     margin-left: ${props => props.theme.space[2] + "px"};
   }
   padding-left: ${props => props.theme.space[2] + "px"};
   padding-right: ${props => props.theme.space[2] + "px"};
-  padding-top: ${props => props.theme.space[1] + "px"};
+  padding-top: ${props => props.theme.space[2] + "px"};
   padding-bottom: ${props => props.theme.space[1] + "px"};
 `
 

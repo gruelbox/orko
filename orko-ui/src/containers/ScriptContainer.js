@@ -2,6 +2,7 @@ import React from "react"
 import { connect } from "react-redux"
 
 import Script from "../components/Script"
+import ViewSource from "../components/ViewSource"
 
 import * as jobActions from "../store/job/actions"
 import { getSelectedCoin } from "../selectors/coins"
@@ -14,7 +15,8 @@ class ScriptContainer extends React.Component {
     this.state = {
       name: "",
       script: undefined,
-      parameters: {}
+      parameters: {},
+      viewSource: false
     }
   }
 
@@ -37,6 +39,18 @@ class ScriptContainer extends React.Component {
   onChangeParameters = parameters => {
     this.setState({
       parameters
+    })
+  }
+
+  onViewSource = () => {
+    this.setState({
+      viewSource: true
+    })
+  }
+
+  onCloseSource = () => {
+    this.setState({
+      viewSource: false
     })
   }
 
@@ -76,16 +90,22 @@ class ScriptContainer extends React.Component {
 
   render() {
     return (
-      <Script
-        name={this.state.name}
-        script={this.state.script}
-        parameters={this.state.parameters}
-        scripts={this.props.scripts}
-        onChangeName={this.onChangeName}
-        onChangeScript={this.onChangeScript}
-        onChangeParameters={this.onChangeParameters}
-        onSubmit={this.onSubmit}
-      />
+      <>
+        <Script
+          name={this.state.name}
+          script={this.state.script}
+          parameters={this.state.parameters}
+          scripts={this.props.scripts}
+          onChangeName={this.onChangeName}
+          onChangeScript={this.onChangeScript}
+          onChangeParameters={this.onChangeParameters}
+          onViewSource={this.onViewSource}
+          onSubmit={this.onSubmit}
+        />
+        {this.state.viewSource && (
+          <ViewSource script={this.state.script} onClose={this.onCloseSource} />
+        )}
+      </>
     )
   }
 }

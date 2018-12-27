@@ -1,8 +1,8 @@
 import React from "react"
 
-import Input from "./primitives/Input"
-import Form from "./primitives/Form"
-import Button from "./primitives/Button"
+import FormButtonBar from "./primitives/FormButtonBar"
+import RawForm from "./primitives/RawForm"
+import { Form, Icon } from "semantic-ui-react"
 
 const Script = ({
   name,
@@ -12,7 +12,8 @@ const Script = ({
   onSubmit,
   onChangeName,
   onChangeScript,
-  onChangeParameters
+  onChangeParameters,
+  onViewSource
 }) => {
   const scriptValid = !!script
   const nameValid = name && name !== ""
@@ -20,51 +21,60 @@ const Script = ({
     script && script.parameters.every(p => parameters[p.name] !== "")
   const valid = scriptValid && nameValid && parametersValid
   return (
-    <Form
-      data-orko="script"
-      buttons={() => (
-        <>
-          <Button
-            data-orko="submitScript"
-            disabled={!valid}
-            onClick={onSubmit}
-            width={120}
-          >
-            Submit
-          </Button>
-        </>
-      )}
-    >
-      <Input
-        id="type"
-        label="Select script"
-        type="select"
-        value={script ? script.id : undefined}
-        onChange={e =>
-          onChangeScript(scripts.find(s => s.id === e.target.value))
-        }
-        options={scripts.map(s => ({ value: s.id, name: s.name }))}
-      />
-      <Input
-        id="name"
-        label="Job name"
-        placeholder="Enter name..."
-        value={name}
-        onChange={e => onChangeName(e.target.value)}
-      />
-      {script &&
-        script.parameters.map(p => (
-          <Input
-            key={"parameter-" + p.name}
-            id={"parameter-" + p.name}
-            label={p.description}
-            placeholder={"Enter " + p.description + "..."}
-            value={parameters[p.name]}
-            onChange={e =>
-              onChangeParameters({ ...parameters, [p.name]: e.target.value })
-            }
-          />
-        ))}
+    <Form data-orko="script" as={RawForm}>
+      <Form.Group>
+        <Form.Dropdown
+          id="type"
+          label="Select script"
+          search
+          value={script ? script.id : undefined}
+          selection
+          onChange={(e, { value }) =>
+            onChangeScript(scripts.find(s => s.id === value))
+          }
+          options={scripts.map(s => ({ value: s.id, text: s.name }))}
+        />
+        <Form.Input
+          id="name"
+          label="Job name"
+          placeholder="Enter name..."
+          value={name}
+          onChange={e => onChangeName(e.target.value)}
+        />
+      </Form.Group>
+      <Form.Group style={{ flex: "1" }}>
+        {script &&
+          script.parameters.map(p => (
+            <Form.Input
+              key={"parameter-" + p.name}
+              id={"parameter-" + p.name}
+              label={p.description}
+              placeholder={"Enter " + p.description + "..."}
+              value={parameters[p.name]}
+              onChange={e =>
+                onChangeParameters({ ...parameters, [p.name]: e.target.value })
+              }
+            />
+          ))}
+      </Form.Group>
+      <FormButtonBar>
+        <Form.Button
+          disabled={!script}
+          secondary
+          icon
+          onClick={onViewSource}
+          title="Show source"
+        >
+          <Icon name="code" />
+        </Form.Button>
+        <Form.Button
+          data-orko="submitScript"
+          disabled={!valid}
+          onClick={onSubmit}
+        >
+          Submit
+        </Form.Button>
+      </FormButtonBar>
     </Form>
   )
 }

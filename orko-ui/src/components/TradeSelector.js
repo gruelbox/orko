@@ -32,10 +32,10 @@ export default class TradeSelector extends React.Component {
           Stop/Take Profit
         </Tab>
         <Tab
-          selected={this.state.selected === "script"}
-          onClick={() => this.setState({ selected: "script" })}
+          selected={this.state.selected === "custom"}
+          onClick={() => this.setState({ selected: "custom" })}
         >
-          Script
+          Custom
         </Tab>
       </>
     )
@@ -49,7 +49,7 @@ export default class TradeSelector extends React.Component {
         content = <LimitOrderContainer coin={coin} />
       } else if (this.state.selected === "oco") {
         content = <StopTakeProfitContainer coin={coin} />
-      } else if (this.state.selected === "script") {
+      } else if (this.state.selected === "custom") {
         content = <ScriptContainer />
       }
     }

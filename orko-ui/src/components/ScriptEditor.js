@@ -64,18 +64,23 @@ const ScriptEditor = ({
           <Grid.Column width={6} style={{ height: "100%" }}>
             <Form.Field>
               <label>Parameters</label>
-              <Table celled striped selectable>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>Name</Table.HeaderCell>
-                    <Table.HeaderCell>Description</Table.HeaderCell>
-                    <Table.HeaderCell>Default</Table.HeaderCell>
-                    <Table.HeaderCell>Reqd</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {!!state.parameters &&
-                    state.parameters.map(parameter => (
+              {!!state.parameters && state.parameters.length > 0 && (
+                <Table
+                  celled
+                  striped
+                  selectable={!!onEditParameter}
+                  style={{ marginTop: 0 }}
+                >
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.HeaderCell>Name</Table.HeaderCell>
+                      <Table.HeaderCell>Description</Table.HeaderCell>
+                      <Table.HeaderCell>Default</Table.HeaderCell>
+                      <Table.HeaderCell>Reqd</Table.HeaderCell>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {state.parameters.map(parameter => (
                       <Table.Row
                         key={parameter.name}
                         onClick={() => onEditParameter(parameter)}
@@ -90,11 +95,14 @@ const ScriptEditor = ({
                         </Table.Cell>
                       </Table.Row>
                     ))}
-                </Table.Body>
-              </Table>
-              <Button data-orko="addParameter" onClick={onAddParameter}>
-                Add
-              </Button>
+                  </Table.Body>
+                </Table>
+              )}
+              {onAddParameter && (
+                <Button data-orko="addParameter" onClick={onAddParameter}>
+                  Add
+                </Button>
+              )}
             </Form.Field>
           </Grid.Column>
         </Grid.Row>

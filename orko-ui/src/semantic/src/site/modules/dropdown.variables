@@ -7,3 +7,4 @@
 --------------------*/
 
 @menuBackground: #131722;
+@labelSize: @textSize;
