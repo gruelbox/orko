@@ -40,7 +40,6 @@ const Script = ({
         label="Select script"
         type="select"
         value={script ? script.id : undefined}
-        error={!scriptValid}
         onChange={e =>
           onChangeScript(scripts.find(s => s.id === e.target.value))
         }
@@ -50,7 +49,6 @@ const Script = ({
         id="name"
         label="Job name"
         placeholder="Enter name..."
-        error={!nameValid}
         value={name}
         onChange={e => onChangeName(e.target.value)}
       />
@@ -60,7 +58,6 @@ const Script = ({
             key={"parameter-" + p.name}
             id={"parameter-" + p.name}
             label={p.description}
-            error={parameters[p.name] === "" && p.mandatory}
             placeholder={"Enter " + p.description + "..."}
             value={parameters[p.name]}
             onChange={e =>

@@ -7,7 +7,7 @@ import { coinFromTicker, tickerFromCoin } from "../../util/coinUtils"
 
 export function fetch() {
   return authActions.wrappedRequest(
-    auth => exchangesService.fetchSubscriptions(),
+    () => exchangesService.fetchSubscriptions(),
     json => ({ type: types.SET, payload: json.map(t => coinFromTicker(t)) }),
     error =>
       errorActions.setForeground("Could not fetch coin list: " + error.message),
@@ -17,7 +17,7 @@ export function fetch() {
 
 export function fetchReferencePrices() {
   return authActions.wrappedRequest(
-    auth => exchangesService.fetchReferencePrices(),
+    () => exchangesService.fetchReferencePrices(),
     json => ({ type: types.SET_REFERENCE_PRICES, payload: json }),
     error =>
       errorActions.setForeground("Could not fetch coin list: " + error.message)
@@ -26,7 +26,7 @@ export function fetchReferencePrices() {
 
 export function add(coin) {
   return authActions.wrappedRequest(
-    auth =>
+    () =>
       exchangesService.addSubscription(JSON.stringify(tickerFromCoin(coin))),
     null,
     error =>
@@ -45,7 +45,7 @@ function multiFetchMetadata() {
 
 function fetchMetadata(coin) {
   return authActions.wrappedRequest(
-    auth => exchangesService.fetchMetadata(coin),
+    () => exchangesService.fetchMetadata(coin),
     json => ({ type: types.SET_META, payload: { coin: coin, meta: json } }),
     error =>
       errorActions.setForeground(
@@ -64,7 +64,7 @@ function applyAdd(coin) {
 
 export function remove(coin) {
   return authActions.wrappedRequest(
-    auth =>
+    () =>
       exchangesService.removeSubscription(JSON.stringify(tickerFromCoin(coin))),
     null,
     error =>
@@ -85,7 +85,7 @@ function applyRemove(coin) {
 
 export function setReferencePrice(coin, price) {
   return authActions.wrappedRequest(
-    auth => exchangesService.setReferencePrice(coin, price),
+    () => exchangesService.setReferencePrice(coin, price),
     null,
     error =>
       errorActions.setForeground(

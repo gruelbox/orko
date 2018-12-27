@@ -64,6 +64,9 @@ public class TestJobAccess {
       return null;
     });
 
+    // Force an evict so we can make sure we're picking up the data from the database next
+    database.getSessionFactory().getCurrentSession().clear();
+
     database.inTransaction(() -> assertThat(dao.list(), containsInAnyOrder(job1, job2)));
 
     database.inTransaction(() -> {

@@ -3,6 +3,7 @@ import authService from "../../services/auth"
 import * as notificationActions from "../notifications/actions"
 import * as errorActions from "../error/actions"
 import * as coinActions from "../coins/actions"
+import * as scriptActions from "../scripting/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
@@ -56,6 +57,7 @@ function connect() {
     }
     await dispatch(coinActions.fetch())
     await dispatch(coinActions.fetchReferencePrices())
+    await dispatch(scriptActions.fetch())
     await socket.connect()
   }
 }
@@ -178,6 +180,7 @@ export async function dispatchWrappedRequest(
   try {
     // Don't dispatch API requests if we're not authenticated.
     if (!auth.whitelisted || !auth.loggedIn) {
+      console.log("Warning: Ignoring api request as not logged in")
       return
     }
 

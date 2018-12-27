@@ -1,40 +1,94 @@
 package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.job.script.Script.TABLE_NAME;
+import static java.util.stream.Collectors.toList;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.FluentIterable;
 import com.google.inject.Provider;
+import com.gruelbox.orko.OrkoConfiguration;
+import com.gruelbox.orko.auth.Hasher;
+
+import jersey.repackaged.com.google.common.collect.Maps;
 
 class ScriptAccess {
 
+  static final String UNSIGNED = "UNSIGNED";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ScriptAccess.class);
+
   private final Provider<SessionFactory> sessionFactory;
+  private final Hasher hasher;
+  private final OrkoConfiguration config;
 
   @Inject
-  ScriptAccess(Provider<SessionFactory> sf) {
+  ScriptAccess(Provider<SessionFactory> sf, Hasher hasher, OrkoConfiguration orkoConfiguration) {
     this.sessionFactory = sf;
+    this.hasher = hasher;
+    this.config = orkoConfiguration;
   }
 
-  public void insert(Script script) {
-    session().save(script);
+  void saveOrUpdate(Script script) {
+    if (StringUtils.isNotEmpty(config.getScriptSigningKey())) {
+      script.setScriptHash(hasher.hashWithString(script.script(), config.getScriptSigningKey()));
+    } else {
+      script.setScriptHash(UNSIGNED);
+    }
+    script.parameters().forEach(p -> p.setParent(script));
+    LOGGER.debug("Saving script: " + script);
+
+    session().createQuery("delete from " + ScriptParameter.TABLE_NAME + " where id.scriptId = :scriptId and id.name not in :names")
+      .setParameter("scriptId", script.id())
+      .setParameterList("names", script.parameters().stream().map(ScriptParameter::name).collect(toList()))
+      .executeUpdate();
+    script.parameters().forEach(p -> session().saveOrUpdate(p));
+    session().saveOrUpdate(script);
   }
 
-  public List<Script> list() {
-    return session().createQuery("from " + TABLE_NAME, Script.class).list();
+  Iterable<Script> list() {
+    Map<String, Script> scripts = Maps.uniqueIndex(
+      FluentIterable.from(session().createQuery("from " + TABLE_NAME, Script.class).list())
+        .filter(this::scriptValid),
+      Script::id
+    );
+    session().createQuery("from " + ScriptParameter.TABLE_NAME, ScriptParameter.class).list().forEach(p -> {
+      Script script = scripts.get(p.scriptId());
+      if (script == null) {
+        LOGGER.warn("Ophaned parameter: {}", p);
+      } else {
+        script.parameters().add(p);
+      }
+    });
+    if (LOGGER.isDebugEnabled()) LOGGER.debug("Loaded scripts: " + scripts.values());
+    return scripts.values();
   }
 
-  public void update(Script script) {
-    session().update(script);
+  private boolean scriptValid(@Nullable Script s) {
+    if (StringUtils.isEmpty(config.getScriptSigningKey()))
+      return true;
+    boolean valid = hasher.hashWithString(s.script(), config.getScriptSigningKey()).equals(s.scriptHash());
+    if (!valid)
+      LOGGER.warn("Ignoring script [{}] since script hash mismatches. Possible DB intrusion?");
+    return valid;
   }
 
-  public void delete(String id) {
+  void delete(String id) {
     session()
       .createQuery("delete from " + TABLE_NAME + " where id = :id")
+      .setParameter("id", id)
+      .executeUpdate();
+    session()
+      .createQuery("delete from " + ScriptParameter.TABLE_NAME + " where id.scriptId = :id")
       .setParameter("id", id)
       .executeUpdate();
   }

@@ -13,38 +13,47 @@ import uuidv4 from "uuid/v4"
 
 const NEW_SCRIPT_ROUTE = "new"
 
-class ManageScriptsContainer extends React.Component {
+class ManageScriptsContainerOuter extends React.Component {
+  componentDidMount() {
+    this.props.dispatch(scriptActions.fetch())
+  }
+
+  render() {
+    return (
+      <ManageScriptsContainerInner
+        key={this.props.loading + "-" + this.props.match.params.id}
+        scripts={this.props.scripts}
+        loading={this.props.loading}
+        match={this.props.match}
+        history={this.props.history}
+        dispatch={this.props.dispatch}
+      />
+    )
+  }
+}
+
+class ManageScriptsContainerInner extends React.Component {
   constructor(props) {
     super(props)
 
-    var scriptState
+    var scriptState = null
 
-    if (
-      props.scripts.length === 0 ||
-      this.props.match.params.id === NEW_SCRIPT_ROUTE
-    ) {
-      scriptState = newScript
-    } else {
-      if (this.props.match.params.id) {
-        scriptState = props.scripts.find(
-          s => s.id === this.props.match.params.id
-        )
-      } else {
-        scriptState = props.scripts[0]
-      }
+    if (props.match.params.id === NEW_SCRIPT_ROUTE) {
+      scriptState = { ...newScript }
+    } else if (props.match.params.id) {
+      var found = props.scripts.find(s => s.id === props.match.params.id)
+      if (found) scriptState = { ...found }
     }
 
     this.state = {
-      current: {
-        ...scriptState
-      },
+      current: scriptState,
       modified: false
     }
   }
 
   selectedScriptId = () => this.props.match.params.id
 
-  isNewScript = () => this.selectedScriptId() === NEW_SCRIPT_ROUTE
+  isNewScript = () => this.state.current && !this.state.current.id
 
   changeScript = id => {
     if (this.state.modified) {
@@ -151,13 +160,14 @@ class ManageScriptsContainer extends React.Component {
           onDelete={this.onDelete}
           onNew={this.onNew}
           onSave={this.onSave}
-          deleteEnabled={!this.isNewScript()}
+          deleteEnabled={!!this.state.current && !this.isNewScript()}
+          saveEnabled={!!this.state.current}
           listing={
             <Scripts
               scripts={this.props.scripts}
               onSelect={this.onSelect}
               modified={this.state.modified}
-              selected={this.state.current.id}
+              selected={!!this.state.current && this.state.current.id}
             />
           }
           editor={
@@ -168,6 +178,7 @@ class ManageScriptsContainer extends React.Component {
               onEditParameter={this.onEditParameter}
             />
           }
+          loading={this.props.loading}
         />
         {this.state.check && (
           <Confirmation
@@ -194,10 +205,7 @@ class ManageScriptsContainer extends React.Component {
   }
 }
 
-function mapStateToProps(state) {
-  return {
-    scripts: state.scripting.scripts
-  }
-}
-
-export default connect(mapStateToProps)(ManageScriptsContainer)
+export default connect(state => ({
+  scripts: state.scripting.scripts,
+  loading: !state.scripting.loaded
+}))(ManageScriptsContainerOuter)

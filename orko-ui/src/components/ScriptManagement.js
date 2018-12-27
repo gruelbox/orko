@@ -1,6 +1,6 @@
 import React from "react"
 import FixedModal from "./primitives/FixedModal"
-import { Modal, Icon, Grid, Button } from "semantic-ui-react"
+import { Modal, Icon, Grid, Button, Loader, Dimmer } from "semantic-ui-react"
 
 const ScriptManagement = ({
   onClose,
@@ -8,8 +8,10 @@ const ScriptManagement = ({
   onNew,
   onSave,
   deleteEnabled,
+  saveEnabled,
   listing,
-  editor
+  editor,
+  loading
 }) => (
   <FixedModal
     data-orko="manageScripts"
@@ -22,14 +24,17 @@ const ScriptManagement = ({
       <Icon name="code" />
       Manage scripts
     </Modal.Header>
-    <Modal.Content>
+    <Dimmer.Dimmable as={Modal.Content} dimmed={loading}>
+      <Dimmer active={loading}>
+        <Loader />
+      </Dimmer>
       <Grid columns="2" divided style={{ height: "75vh" }}>
         <Grid.Row style={{ height: "100%" }}>
           <Grid.Column width={4}>{listing}</Grid.Column>
           <Grid.Column width="twelve">{editor}</Grid.Column>
         </Grid.Row>
       </Grid>
-    </Modal.Content>
+    </Dimmer.Dimmable>
     <Modal.Actions>
       <Button
         floated="left"
@@ -49,7 +54,13 @@ const ScriptManagement = ({
       >
         New
       </Button>
-      <Button primary data-orko="save" title="Save the script" onClick={onSave}>
+      <Button
+        primary
+        disabled={!saveEnabled}
+        data-orko="save"
+        title="Save the script"
+        onClick={onSave}
+      >
         Save
       </Button>
     </Modal.Actions>

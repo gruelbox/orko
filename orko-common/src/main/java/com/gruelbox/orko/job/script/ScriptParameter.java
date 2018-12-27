@@ -6,8 +6,6 @@ import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 import org.hibernate.validator.constraints.Length;
 
@@ -34,11 +32,11 @@ class ScriptParameter {
     private static final long serialVersionUID = -1103388707546786957L;
 
     @Length(min = 1, max = 45)
-    @Column(name = SCRIPT_ID, nullable = false, updatable=false)
+    @Column(name = SCRIPT_ID, nullable = false, updatable = false, insertable = true)
     private String scriptId;
 
     @Length(min = 1, max = 255)
-    @Column(name = NAME, nullable = false, updatable=false)
+    @Column(name = NAME, nullable = false, updatable = false, insertable = true)
     private String name;
 
     public Id() {}
@@ -95,17 +93,18 @@ class ScriptParameter {
   private String description;
 
   @JsonProperty(value = "default")
-  @Length(min = 1, max = 255)
-  @Column(name = DEFAULT_VALUE, nullable = false)
+  @Length(max = 255)
+  @Column(name = DEFAULT_VALUE, nullable = true)
   private String defaultValue;
 
   @JsonProperty
   @Column(name = MANDATORY, nullable = false)
   private boolean mandatory;
 
-  @ManyToOne
-  @JoinColumn(name=SCRIPT_ID, insertable = false, updatable = false)
-  private Script parent;
+  // Handling associations outside Hibernate for now.
+//  @ManyToOne(optional = false, fetch = FetchType.LAZY)
+//  @JoinColumn(name = SCRIPT_ID, insertable = false, updatable = false)
+//  private Script parent;
 
   @JsonProperty
   public String scriptId() {
@@ -149,6 +148,11 @@ class ScriptParameter {
 
   void setMandatory(boolean mandatory) {
     this.mandatory = mandatory;
+  }
+
+  void setParent(Script script) {
+    this.id.scriptId = script.id();
+//    this.parent = script;
   }
 
   @Override

@@ -209,6 +209,11 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       LOGGER.info("{} - {}, {}", job.name(), o, value);
     }
 
+    @Override
+    public String toString() {
+      return "console";
+    }
+
   }
 
   public final class Control {
@@ -223,6 +228,11 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     public void done() {
       jobControl.finish(SUCCESS);
+    }
+
+    @Override
+    public String toString() {
+      return "control";
     }
 
   }
@@ -294,6 +304,11 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       dispose(disposable);
     }
 
+    @Override
+    public String toString() {
+      return "events";
+    }
+
   }
 
   public final class State {
@@ -337,6 +352,11 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         }
       }
     };
+
+    @Override
+    public String toString() {
+      return "state";
+    }
   }
 
 
@@ -357,6 +377,11 @@ class ScriptJobProcessor implements ScriptJob.Processor {
           .limitPrice(price)
           .build()
       );
+    }
+
+    @Override
+    public String toString() {
+      return "trading";
     }
 
   }

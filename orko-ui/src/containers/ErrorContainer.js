@@ -8,7 +8,7 @@ import * as errorActions from "../store/error/actions"
 const ErrorContainer = props => {
   if (props.errorForeground !== null) {
     return (
-      <FixedModal defaultOpen data-orko="errorModal">
+      <FixedModal data-orko="errorModal">
         <Modal.Header>
           <Icon name="warning" />
           Error

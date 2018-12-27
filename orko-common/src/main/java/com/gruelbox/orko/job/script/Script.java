@@ -1,12 +1,12 @@
 package com.gruelbox.orko.job.script;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import org.hibernate.validator.constraints.Length;
 
@@ -47,9 +47,12 @@ class Script {
   @Column(name = SCRIPT_HASH, nullable = false)
   private String scriptHash;
 
-  @JsonProperty
-  @OneToMany(mappedBy="parent", fetch=FetchType.EAGER)
-  private List<ScriptParameter> parameters;
+  // Hibernate's associations really don't handle stateless disconnected
+  // POJOs well. For the time being, hitting abort and dealing with the child
+  // collection manually.
+  @Transient
+//  @OneToMany(mappedBy="parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScriptParameter> params = new ArrayList<>();
 
   public String id() {
     return id;
@@ -83,12 +86,14 @@ class Script {
     this.scriptHash = scriptHash;
   }
 
+  @JsonProperty
   public List<ScriptParameter> parameters() {
-    return parameters;
+    return params;
   }
 
+  @JsonProperty
   void setParameters(List<ScriptParameter> parameters) {
-    this.parameters = parameters;
+    this.params = parameters;
   }
 
   @Override
@@ -98,7 +103,7 @@ class Script {
          + "name=" + name + ", "
          + "script=" + script + ", "
          + "scriptHash=" + scriptHash + ", "
-         + "parameters=" + parameters
+         + "parameters=" + params
         + "}";
   }
 
@@ -108,7 +113,7 @@ class Script {
     int result = 1;
     result = prime * result + ((id == null) ? 0 : id.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+    result = prime * result + ((params == null) ? 0 : params.hashCode());
     result = prime * result + ((script == null) ? 0 : script.hashCode());
     result = prime * result + ((scriptHash == null) ? 0 : scriptHash.hashCode());
     return result;
@@ -133,10 +138,10 @@ class Script {
         return false;
     } else if (!name.equals(other.name))
       return false;
-    if (parameters == null) {
-      if (other.parameters != null)
+    if (params == null) {
+      if (other.params != null)
         return false;
-    } else if (!parameters.equals(other.parameters))
+    } else if (!params.equals(other.params))
       return false;
     if (script == null) {
       if (other.script != null)
