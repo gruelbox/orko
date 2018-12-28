@@ -43,6 +43,10 @@ public class TestJobAccess {
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
     dao = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper(), jobLocker);
+
+    DbTesting.invalidateSchemaCache();
+    DbTesting.clearDatabase(); // TODO not sure why this is needed. Looks like the state is getting corrupted somewhere
+
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(new JobRecordContribution().tables()));
   }
 
