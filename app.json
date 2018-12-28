@@ -34,7 +34,7 @@
     },
     "JAVA_OPTS": {
       "description": "You generally shouldn't need to change any of this. It's been well tuned for a Hobby Heroku instance.",
-      "value": "-server -Xmx192m -Xms192m -Xss256k -XX:MaxMetaspaceSize=92m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced"
+      "value": "-server -Xmx192m -Xms192m -Xss256k -XX:MaxMetaspaceSize=96m -XX:+UseG1GC -Dsun.net.inetaddr.ttl=60 -Dio.netty.leakDetectionLevel=advanced"
     },
     "MAVEN_CUSTOM_GOALS": {
       "description": "Used by the Heroku buildpack. Do not change.",
