@@ -74,7 +74,7 @@ const StopTakeProfit = props => {
           onChange={e => onChange("highPrice", e.target.value)}
           onFocus={e => props.onFocus("highPrice")}
         >
-          <input />
+          <input data-orko="highPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         <Form.Input
@@ -95,7 +95,7 @@ const StopTakeProfit = props => {
           onChange={e => onChange("highLimitPrice", e.target.value)}
           onFocus={e => props.onFocus("highLimitPrice")}
         >
-          <input />
+          <input data-orko="highLimitPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         {props.job.direction === "SELL" && props.job.highTrailing && (
@@ -111,7 +111,7 @@ const StopTakeProfit = props => {
             onChange={e => onChange("initialTrailingStop", e.target.value)}
             onFocus={e => props.onFocus("initialTrailingStop")}
           >
-            <input />
+            <input data-orko="initialTrailingStop" />
             <Label>{props.coin.counter}</Label>
           </Form.Input>
         )}
@@ -131,7 +131,7 @@ const StopTakeProfit = props => {
           onChange={e => onChange("lowPrice", e.target.value)}
           onFocus={e => props.onFocus("lowPrice")}
         >
-          <input />
+          <input data-orko="lowPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         <Form.Input
@@ -152,7 +152,7 @@ const StopTakeProfit = props => {
           onChange={e => onChange("lowLimitPrice", e.target.value)}
           onFocus={e => props.onFocus("lowLimitPrice")}
         >
-          <input />
+          <input data-orko="lowLimitPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         {props.job.direction === "BUY" && props.job.lowTrailing && (
@@ -168,7 +168,7 @@ const StopTakeProfit = props => {
             onChange={e => onChange("initialTrailingStop", e.target.value)}
             onFocus={e => props.onFocus("initialTrailingStop")}
           >
-            <input />
+            <input data-orko="initialTrailingStop" />
             <Label>{props.coin.counter}</Label>
           </Form.Input>
         )}
@@ -185,7 +185,7 @@ const StopTakeProfit = props => {
           onChange={e => onChange("amount", e.target.value)}
           onFocus={e => props.onFocus("amount")}
         >
-          <input />
+          <input data-orko="amount" />
           <Label>{props.coin.base}</Label>
         </Form.Input>
       </Form.Group>
