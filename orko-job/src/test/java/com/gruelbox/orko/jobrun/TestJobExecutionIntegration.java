@@ -369,10 +369,14 @@ public class TestJobExecutionIntegration {
   }
 
   private void stopGuardians() {
-    guardianLoop1.stopAsync();
-    guardianLoop2.stopAsync();
-    guardianLoop1.awaitTerminated();
-    guardianLoop2.awaitTerminated();
+    if (guardianLoop1 != null)
+      guardianLoop1.stopAsync();
+    if (guardianLoop2 != null)
+      guardianLoop2.stopAsync();
+    if (guardianLoop1 != null)
+      guardianLoop1.awaitTerminated();
+    if (guardianLoop2 != null)
+      guardianLoop2.awaitTerminated();
   }
 
   private final class Listener implements AutoCloseable {
