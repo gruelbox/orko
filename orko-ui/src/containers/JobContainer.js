@@ -24,7 +24,7 @@ class JobContainer extends React.Component {
           <Icon name="code" />
           {"Job " + this.props.match.params.jobId}
         </Modal.Header>
-        <Modal.Content>
+        <Modal.Content scrolling>
           {job && <Job job={job} />}
           {!job && <Para>Job {this.props.match.params.jobId} not found</Para>}
         </Modal.Content>
