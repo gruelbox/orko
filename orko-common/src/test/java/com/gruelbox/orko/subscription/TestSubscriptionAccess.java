@@ -35,6 +35,8 @@ public class TestSubscriptionAccess {
   @Before
   public void setup() {
     dao = new SubscriptionAccess(Providers.of(database.getSessionFactory()));
+    DbTesting.clearDatabase();
+    DbTesting.invalidateSchemaCache();
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(new SubscriptionContribution().tables()));
   }
 

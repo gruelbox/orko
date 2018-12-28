@@ -34,6 +34,9 @@ public class TestJobLocker {
     JobRunConfiguration configuration = new JobRunConfiguration();
     configuration.setDatabaseLockSeconds(3);
     dao = new JobLockerImpl(configuration, DbTesting.connectionSource(database.getSessionFactory()), new Transactionally(database.getSessionFactory()));
+
+    DbTesting.clearDatabase();
+    DbTesting.invalidateSchemaCache();
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(new JobLockContribution().tables()));
   }
 

@@ -84,6 +84,8 @@ public class TestJobExecutionIntegration {
         DbTesting.connectionSource(database.getSessionFactory()),
         new Transactionally(database.getSessionFactory()));
 
+    DbTesting.clearDatabase();
+    DbTesting.invalidateSchemaCache();
     DbTesting.mutateToSupportSchema(schema(
       schema(new JobRecordContribution().tables()),
       schema(new JobLockContribution().tables())

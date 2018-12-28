@@ -42,6 +42,8 @@ public class TestScriptAccess {
     MockitoAnnotations.initMocks(this);
     config.setScriptSigningKey("UGI&T&IUGousy9d7y2he3o8dyq9182y018yfouqhwdwe2");
     dao = new ScriptAccess(Providers.of(database.getSessionFactory()), hasher, config);
+    DbTesting.clearDatabase();
+    DbTesting.invalidateSchemaCache();
     DbTesting.mutateToSupportSchema(SchemaUtils.schema(new ScriptContribution().tables()));
   }
 
