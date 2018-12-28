@@ -40,7 +40,7 @@ import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
 
-  private static final long SENSIBLE_MINIMUM_POLL_DELAY = 2000;
+  private static final long SENSIBLE_MINIMUM_POLL_DELAY = 1500;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
@@ -104,9 +104,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
   });
 
-  private final LoadingCache<String, Optional<Long>> safePollDelays = CacheBuilder.newBuilder().build(new CacheLoader<String, Optional<Long>>() {
+  private final LoadingCache<String, Long> safePollDelays = CacheBuilder.newBuilder().build(new CacheLoader<String, Long>() {
     @Override
-    public Optional<Long> load(String exchangeName) throws Exception {
+    public Long load(String exchangeName) throws Exception {
       try {
 
         ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
@@ -120,7 +120,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         // We floor the poll delay at a sensible minimum in case the above calculation goes
         // wrong (frequently when something's up with the exchange metadata).
-        return rateLimits
+        Optional<Long> limit = rateLimits
           .map(RateLimit::getPollDelayMillis)
           .max(Comparator.naturalOrder())
           .map(result -> {
@@ -133,9 +133,17 @@ public class ExchangeServiceImpl implements ExchangeService {
             }
           });
 
+        if (limit.isPresent()) {
+          LOGGER.info("Safe poll delay for exchange [{}] is {}ms", exchangeName, limit.get());
+          return limit.get();
+        } else {
+          LOGGER.info("Safe poll delay for exchange [{}] is unknown, defaulting to {}", exchangeName, SENSIBLE_MINIMUM_POLL_DELAY);
+          return SENSIBLE_MINIMUM_POLL_DELAY;
+        }
+
       } catch (Exception e) {
-        LOGGER.warn("Failed to fetch exchange metadata for " + exchangeName, e);
-        return Optional.empty();
+        LOGGER.warn("Failed to fetch exchange metadata for [" + exchangeName + "], defaulting to " + SENSIBLE_MINIMUM_POLL_DELAY + "ms", e);
+        return SENSIBLE_MINIMUM_POLL_DELAY;
       }
     }
   });
@@ -199,7 +207,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
 
   @Override
-  public Optional<Long> safePollDelay(String exchangeName) {
+  public long safePollDelay(String exchangeName) {
     return safePollDelays.getUnchecked(exchangeName);
   }
 

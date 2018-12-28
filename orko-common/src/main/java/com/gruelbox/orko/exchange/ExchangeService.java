@@ -1,7 +1,6 @@
 package com.gruelbox.orko.exchange;
 
 import java.util.Collection;
-import java.util.Optional;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
@@ -22,7 +21,7 @@ public interface ExchangeService {
 
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
 
-  Optional<Long> safePollDelay(String name);
+  long safePollDelay(String name);
 
   boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair);
 

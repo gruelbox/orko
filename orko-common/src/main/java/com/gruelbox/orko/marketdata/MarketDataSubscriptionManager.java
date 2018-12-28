@@ -504,7 +504,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       // Work out how often we can poll the exchange safely.
       Set<MarketDataSubscription> polls = activePollsForExchange(exchangeName);
-      long interApiSleep = sleepTime(exchangeName, defaultSleep, polls.isEmpty() ? 10 : polls.size());
+      long interApiSleep = sleepTime(exchangeName);
 
       // Pause after a resubscription since it probably counts as an API call and thus
       // toward the rate limit
@@ -599,14 +599,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
   }
 
-  private long sleepTime(String exchangeName, long defaultSleep, int pollCount) {
-    try {
-      return exchangeService.safePollDelay(exchangeName)
-          .orElse(defaultSleep / pollCount);
-    } catch (Exception e) {
-      LOGGER.error("Failed to fetch exchange safe poll delay for " + exchangeName, e);
-      return defaultSleep / pollCount;
-    }
+  private long sleepTime(String exchangeName) {
+    return exchangeService.safePollDelay(exchangeName);
   }
 
   private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) throws IOException {
