@@ -37,7 +37,7 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
 
     // Slightly ugly. We want to let the DB dump API through our XSRF controls
     // since this is normally user-initiated.
-    if (fullPath.equals("/api/db.zip")) {
+    if (fullPath.equals("/api/db.zip") || fullPath.equals("/api/db/debug") ) {
       return true;
     }
 

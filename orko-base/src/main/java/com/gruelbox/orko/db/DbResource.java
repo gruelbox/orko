@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.sql.SQLException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -16,7 +17,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
+import org.alfasoftware.morf.jdbc.h2.H2;
 import org.apache.commons.io.IOUtils;
+import org.h2.tools.Server;
 
 import com.codahale.metrics.annotation.Timed;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
@@ -27,7 +30,7 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
  *
  * @author Graham Crockford
  */
-@Path("/db.zip")
+@Path("/")
 @Singleton
 public class DbResource implements WebResource {
 
@@ -39,6 +42,7 @@ public class DbResource implements WebResource {
   }
 
   @GET
+  @Path("/db.zip")
   @Timed
   @Produces("application/zip")
   public Response check() {
@@ -55,5 +59,18 @@ public class DbResource implements WebResource {
         }
       }
     }).build();
+  }
+
+  @GET
+  @Path("/db/debug")
+  @Timed
+  public void debug() {
+    if (connectionResources.getDatabaseType().equals(H2.IDENTIFIER)) {
+      try {
+        Server.startWebServer(connectionResources.getDataSource().getConnection());
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }
