@@ -26,6 +26,7 @@ const Script = ({
         <Form.Dropdown
           id="type"
           label="Select script"
+          required
           search
           value={script ? script.id : undefined}
           selection
@@ -36,6 +37,7 @@ const Script = ({
         />
         <Form.Input
           id="name"
+          required
           label="Job name"
           placeholder="Enter name..."
           value={name}
@@ -48,6 +50,7 @@ const Script = ({
             <Form.Input
               key={"parameter-" + p.name}
               id={"parameter-" + p.name}
+              required={p.mandatory}
               label={p.description}
               placeholder={"Enter " + p.description + "..."}
               value={parameters[p.name]}

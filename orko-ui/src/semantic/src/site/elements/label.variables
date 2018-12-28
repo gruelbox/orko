@@ -1,3 +1,7 @@
 /*******************************
     User Variable Overrides
 *******************************/
+
+@backgroundColor: @transparentBlack;
+@basicBackground: none @transparentBlack;
+@border: @borderWidth solid @borderColor;

@@ -72,6 +72,7 @@ class LimitOrderContainer extends React.Component {
         onSell={() => this.onSubmit("SELL")}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
+        coin={this.props.coin}
       />
     )
   }
