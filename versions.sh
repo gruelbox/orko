@@ -1,2 +1,2 @@
 #!/bin/bash
-mvn versions:set -DnewVersion="0.7.0"
+mvn versions:set -DnewVersion="0.7.1-SNAPSHOT"
