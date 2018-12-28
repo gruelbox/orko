@@ -3,6 +3,7 @@
 *******************************/
 
 @background: #2F3241;
+@zIndex: -10;
 @headerBackground: #343747;
 @headerColor: @white;
 @headerFontSize: @large;

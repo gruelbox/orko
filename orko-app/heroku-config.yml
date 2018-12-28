@@ -1,4 +1,5 @@
 loopSeconds: ${LOOP_SECONDS:-15}
+scriptSigningKey: ${SCRIPT_SIGNING_KEY}
 auth:
   httpsOnly: true
   proxied: true

@@ -3,8 +3,9 @@ import { connect } from "react-redux"
 
 import Job from "../components/Job"
 
-import Section from "../components/primitives/Section"
+import FixedModal from "../components/primitives/FixedModal"
 import Para from "../components/primitives/Para"
+import { Modal, Icon } from "semantic-ui-react"
 
 class JobContainer extends React.Component {
   render() {
@@ -13,14 +14,21 @@ class JobContainer extends React.Component {
     )
 
     return (
-      <Section
-        id="job"
-        bg="backgrounds.2"
-        heading={"Job " + this.props.match.params.jobId}
+      <FixedModal
+        data-orko={"job/" + this.props.match.params.jobId}
+        closeIcon
+        onClose={() => this.props.history.goBack()}
+        style={{ height: "100%" }}
       >
-        {job && <Job job={job} />}
-        {!job && <Para>Job {this.props.match.params.jobId} not found</Para>}
-      </Section>
+        <Modal.Header>
+          <Icon name="code" />
+          {"Job " + this.props.match.params.jobId}
+        </Modal.Header>
+        <Modal.Content scrolling>
+          {job && <Job job={job} />}
+          {!job && <Para>Job {this.props.match.params.jobId} not found</Para>}
+        </Modal.Content>
+      </FixedModal>
     )
   }
 }

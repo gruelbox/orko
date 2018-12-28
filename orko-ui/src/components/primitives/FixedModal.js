@@ -10,7 +10,7 @@ const inlineStyle = {
 }
 
 const FixedModal = props => (
-  <Modal {...props} dimmer="blurring" open={true} style={inlineStyle.modal} />
+  <Modal {...props} open={true} style={inlineStyle.modal} />
 )
 
 export default FixedModal

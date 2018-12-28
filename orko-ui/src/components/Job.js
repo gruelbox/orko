@@ -138,6 +138,13 @@ export default class Job extends Component {
           </JobStage>
         </JobStages>
       )
+    } else if (job.jobType === jobTypes.SCRIPT) {
+      return (
+        <>
+          <h3>{job.name}</h3>
+          <pre>{job.script}</pre>
+        </>
+      )
     } else {
       return (
         <JobStages>

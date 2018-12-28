@@ -1,3 +1,7 @@
 /*******************************
     User Variable Overrides
 *******************************/
+
+@itemHeaderFontFamily: @pageFont;
+@itemHeaderColor: @white;
+@itemDescriptionColor: @textColor;

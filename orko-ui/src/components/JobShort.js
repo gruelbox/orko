@@ -78,6 +78,8 @@ export default class JobShort extends React.Component {
       return "Send alert"
     } else if (job.jobType === jobTypes.STATUS_UPDATE) {
       return "Status update"
+    } else if (job.jobType === jobTypes.SCRIPT) {
+      return job.name
     } else {
       return "Complex (" + job.jobType + ")"
     }

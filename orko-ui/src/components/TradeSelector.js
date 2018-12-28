@@ -4,6 +4,7 @@ import Para from "./primitives/Para"
 import Section from "../components/primitives/Section"
 import LimitOrderContainer from "../containers/LimitOrderContainer"
 import StopTakeProfitContainer from "../containers/StopTakeProfitContainer"
+import ScriptContainer from "../containers/ScriptContainer"
 
 export default class TradeSelector extends React.Component {
   constructor(props) {
@@ -15,7 +16,7 @@ export default class TradeSelector extends React.Component {
     const coin = this.props.coin
 
     var buttons = (
-      <span>
+      <>
         <Tab
           data-orko="limit"
           selected={this.state.selected === "limit"}
@@ -31,12 +32,12 @@ export default class TradeSelector extends React.Component {
           Stop/Take Profit
         </Tab>
         <Tab
-          selected={this.state.selected === "complex"}
-          onClick={() => this.setState({ selected: "complex" })}
+          selected={this.state.selected === "custom"}
+          onClick={() => this.setState({ selected: "custom" })}
         >
-          More to come...
+          Custom
         </Tab>
-      </span>
+      </>
     )
 
     var content = null
@@ -48,6 +49,8 @@ export default class TradeSelector extends React.Component {
         content = <LimitOrderContainer coin={coin} />
       } else if (this.state.selected === "oco") {
         content = <StopTakeProfitContainer coin={coin} />
+      } else if (this.state.selected === "custom") {
+        content = <ScriptContainer />
       }
     }
 

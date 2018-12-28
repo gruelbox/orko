@@ -118,6 +118,7 @@ class StopTakeProfitContainer extends React.Component {
         onChange={this.onChange}
         onFocus={this.onFocus}
         onSubmit={this.onSubmit}
+        coin={this.props.coin}
       />
     )
   }

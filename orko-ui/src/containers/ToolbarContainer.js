@@ -1,180 +1,11 @@
 import React from "react"
 import { connect } from "react-redux"
 
-import styled from "styled-components"
-import { space } from "styled-system"
-
-import { Icon } from "semantic-ui-react"
-import Link from "../components/primitives/Link"
-import Href from "../components/primitives/Href"
-import Span from "../components/primitives/Span"
-
-import Ticker from "../components/Ticker"
+import Toolbar from "../components/Toolbar"
 
 import { formatNumber } from "../util/numberUtils"
-import * as authActions from "../store/auth/actions"
 import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
-
-const ToolbarBox = styled.div`
-  display: flex;
-  padding: 0;
-  align-items: center;
-  height: 56px;
-`
-
-const Logo = () => (
-  <div>
-    <h1 style={{ textShadow: "0 0 10px #FF0000" }}>
-      <Span color="sell">O</Span>
-      rko
-    </h1>
-  </div>
-)
-
-const TickerSocketState = ({ connected }) => {
-  return (
-    <Span
-      title={connected ? "Socket connected" : "Socket down"}
-      color={connected ? "white" : "red"}
-      ml="auto"
-      mr={2}
-      fontWeight="bold"
-    >
-      <Icon name="wifi" />
-    </Span>
-  )
-}
-
-const HomeLink = () => (
-  <Link
-    mx={2}
-    color="heading"
-    title="Home"
-    fontSize={3}
-    to="/"
-    fontWeight="bold"
-  >
-    <Icon name="home" />
-  </Link>
-)
-
-const ViewSettings = ({ onClick }) => (
-  <Href
-    mx={2}
-    onClick={onClick}
-    color="heading"
-    title="View settings"
-    fontSize={3}
-    fontWeight="bold"
-  >
-    <Icon name="eye" />
-  </Href>
-)
-
-const SignOutLink = ({ onClick }) => (
-  <Href
-    ml={2}
-    color="heading"
-    fontSize={3}
-    title="Sign out"
-    fontWeight="bold"
-    onClick={onClick}
-  >
-    <Icon name="sign out" />
-  </Href>
-)
-
-const InvalidateLink = ({ onClick }) => (
-  <Href
-    color="heading"
-    fontSize={3}
-    title="Invalidate whitelist"
-    mx={2}
-    fontWeight="bold"
-    onClick={onClick}
-  >
-    <Icon name="moon" />
-  </Href>
-)
-
-const RemainingSpace = styled.div`
-  flex-shrink: 1;
-  overflow: auto;
-  ${space};
-`
-
-const CoinContainer = styled.div`
-  ${space};
-`
-
-const CoinTicker = styled.h1`
-  margin: 0;
-  font-weight: bold;
-  font-size: 15px;
-`
-
-const CoinExchange = styled.h2`
-  margin: 0;
-  font-size: 11px;
-  font-weight: normal;
-  color: ${props => props.theme.colors.fore};
-`
-
-const Coin = ({ coin }) => (
-  <CoinContainer px={3} data-orko="selectedCoin">
-    <CoinTicker>{coin ? coin.base + "/" + coin.counter : ""}</CoinTicker>
-    <CoinExchange>{coin ? coin.exchange : ""}</CoinExchange>
-  </CoinContainer>
-)
-
-const Normal = ({
-  ticker,
-  coin,
-  connected,
-  errors,
-  updateFocusedField,
-  onShowViewSettings,
-  dispatch
-}) => (
-  <ToolbarBox p={0}>
-    <HomeLink />
-    <Logo />
-    <Coin coin={coin} />
-    <RemainingSpace mx={2}>
-      <Ticker
-        coin={coin}
-        ticker={ticker}
-        onClickNumber={number => {
-          if (updateFocusedField) {
-            updateFocusedField(number)
-          }
-        }}
-      />
-    </RemainingSpace>
-    <TickerSocketState connected={connected} />
-    <ViewSettings onClick={onShowViewSettings} />
-    <SignOutLink onClick={() => dispatch(authActions.logout())} />
-    <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
-  </ToolbarBox>
-)
-
-const Mobile = ({
-  ticker,
-  coin,
-  connected,
-  errors,
-  updateFocusedField,
-  onResetLayout,
-  dispatch
-}) => (
-  <ToolbarBox>
-    <HomeLink />
-    <TickerSocketState connected={connected} />
-    <Coin coin={coin} />
-    <SignOutLink onClick={() => dispatch(authActions.logout())} />
-    <InvalidateLink onClick={() => dispatch(authActions.clearWhitelist())} />
-  </ToolbarBox>
-)
+import * as authActions from "../store/auth/actions"
 
 const ToolbarContainer = props => {
   if (!props.connected) {
@@ -193,7 +24,13 @@ const ToolbarContainer = props => {
   } else {
     document.title = "No coin"
   }
-  return props.mobile ? <Mobile {...props} /> : <Normal {...props} />
+  return (
+    <Toolbar
+      {...props}
+      onLogout={() => props.dispatch(authActions.logout())}
+      onClearWhitelist={() => props.dispatch(authActions.clearWhitelist())}
+    />
+  )
 }
 
 export default connect((state, props) => {

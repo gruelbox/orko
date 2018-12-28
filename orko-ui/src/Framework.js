@@ -21,6 +21,7 @@ import TradingContainer from "./containers/TradingContainer"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
+import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
 import ChartContainer from "./containers/ChartContainer"
 import ViewSettings from "./components/ViewSettings"
@@ -181,6 +182,10 @@ export default class Framework extends React.Component {
         <React.Fragment />
       )
 
+    const ManageScripts = props => (
+      <ManageScriptsContainer {...props} key={props.match.params.id} />
+    )
+
     const header = [
       <Tools key="tools" />,
       <Route
@@ -188,6 +193,18 @@ export default class Framework extends React.Component {
         exact
         path="/addCoin"
         component={AddCoinContainer}
+      />,
+      <Route
+        key="scriptsNoId"
+        exact
+        path="/scripts"
+        component={ManageScripts}
+      />,
+      <Route
+        key="scripts"
+        exact
+        path="/scripts/:id"
+        component={ManageScripts}
       />,
       <Route key="job" path="/job/:jobId" component={JobContainer} />,
       <PositioningWrapper key="dialogs" mobile={isMobile}>

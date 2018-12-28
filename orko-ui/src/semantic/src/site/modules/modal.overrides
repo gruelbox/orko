@@ -6,6 +6,10 @@
   box-shadow: inset 0 2px 16px 0 rgba(0, 0, 0, 0.15);
 }
 
+.ui.modal > .header {
+    text-transform: uppercase;
+}
+
 .ui.modal > .close {
   cursor: pointer;
   position: absolute;

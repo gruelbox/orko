@@ -26,11 +26,13 @@ class JobAccessImpl implements JobAccess {
 
   private final ObjectMapper objectMapper;
   private final Provider<SessionFactory> sessionFactory;
+  private final JobLocker joblocker;
 
   @Inject
-  JobAccessImpl(Provider<SessionFactory> sessionFactory, ObjectMapper objectMapper) {
+  JobAccessImpl(Provider<SessionFactory> sessionFactory, ObjectMapper objectMapper, JobLocker joblocker) {
     this.sessionFactory = sessionFactory;
     this.objectMapper = objectMapper;
+    this.joblocker = joblocker;
   }
 
   @Override
@@ -78,6 +80,7 @@ class JobAccessImpl implements JobAccess {
     if (updated == 0) {
       throw new JobDoesNotExistException();
     }
+    joblocker.releaseAnyLock(jobId);
   }
 
   @Override

@@ -84,6 +84,8 @@ public class TestJobExecutionIntegration {
         DbTesting.connectionSource(database.getSessionFactory()),
         new Transactionally(database.getSessionFactory()));
 
+    DbTesting.clearDatabase();
+    DbTesting.invalidateSchemaCache();
     DbTesting.mutateToSupportSchema(schema(
       schema(new JobRecordContribution().tables()),
       schema(new JobLockContribution().tables())
@@ -101,7 +103,7 @@ public class TestJobExecutionIntegration {
     executorService = Executors.newFixedThreadPool(4);
 
     transactionally = new Transactionally(database.getSessionFactory());
-    jobAccess = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper());
+    jobAccess = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper(), jobLocker);
     jobRunner1 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
         transactionally, executorService, Providers.of(database.getSessionFactory()));
     jobRunner2 = new JobRunner(jobAccess, jobLocker, injector, eventBus, statusUpdateService,
@@ -369,10 +371,14 @@ public class TestJobExecutionIntegration {
   }
 
   private void stopGuardians() {
-    guardianLoop1.stopAsync();
-    guardianLoop2.stopAsync();
-    guardianLoop1.awaitTerminated();
-    guardianLoop2.awaitTerminated();
+    if (guardianLoop1 != null)
+      guardianLoop1.stopAsync();
+    if (guardianLoop2 != null)
+      guardianLoop2.stopAsync();
+    if (guardianLoop1 != null)
+      guardianLoop1.awaitTerminated();
+    if (guardianLoop2 != null)
+      guardianLoop2.awaitTerminated();
   }
 
   private final class Listener implements AutoCloseable {

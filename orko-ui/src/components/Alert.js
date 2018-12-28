@@ -3,7 +3,6 @@ import Immutable from "seamless-immutable"
 
 import Input from "./primitives/Input.js"
 import Form from "./primitives/Form"
-import FormButtonBar from "./primitives/FormButtonBar"
 import Button from "./primitives/Button"
 
 const Alert = props => {
@@ -19,7 +18,19 @@ const Alert = props => {
     : () => {}
 
   return (
-    <Form>
+    <Form
+      buttons={() => (
+        <>
+          <Button
+            data-orko="doCreateAlert"
+            disabled={!valid}
+            onClick={props.onSubmit}
+          >
+            Create Alert
+          </Button>
+        </>
+      )}
+    >
       <Input
         id="highPrice"
         error={props.job.highPrice && !props.highPriceValid}
@@ -51,11 +62,6 @@ const Alert = props => {
         flex="1"
         mr={0}
       />
-      <FormButtonBar>
-        <Button data-orko="doCreateAlert" disabled={!valid} onClick={props.onSubmit}>
-          Create Alert
-        </Button>
-      </FormButtonBar>
     </Form>
   )
 }

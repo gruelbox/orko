@@ -15,8 +15,8 @@
       Base Sizes
 --------------------*/
 
-@emSize   : 12px;
-@fontSize : 12px;
+@emSize   : 13px;
+@fontSize : 13px;
 
 /*--------------
    Form Input
@@ -50,14 +50,14 @@
         Sizes
 --------------------*/
 
-@miniSize        : (9 / 12);
-@tinySize        : (10 / 12);
-@smallSize       : (11 / 12);
-@mediumSize      : (12 / 12);
-@largeSize       : (14 / 12);
-@bigSize         : (16 / 12);
-@hugeSize        : (18 / 12);
-@massiveSize     : (22 / 12);
+@miniSize        : (10 / 13);
+@tinySize        : (11 / 13);
+@smallSize       : (12 / 13);
+@mediumSize      : (13 / 13);
+@largeSize       : (14 / 13);
+@bigSize         : (16 / 13);
+@hugeSize        : (18 / 13);
+@massiveSize     : (22 / 13);
 
 /*-------------------
         Page
@@ -83,6 +83,7 @@
 @lightRed         : #f2716e;
 @lightGreen       : #33c7b8;
 @lightBlue        : #70d2ff;
+@black            : #131722;
 
 /*-------------------
     Emotive Colors
@@ -93,6 +94,19 @@
 @negativeBorderColor     : fade(@red, 30%);
 @negativeHeaderColor     : @red;
 @negativeTextColor       : @red;
+
+/*-------------------
+     Alpha Colors
+--------------------*/
+
+@subtleTransparentBlack     : rgba(0, 0, 0, 0.10);
+@transparentBlack           : rgba(0, 0, 0, 0.20);
+@strongTransparentBlack     : rgba(0, 0, 0, 0.30);
+@veryStrongTransparentBlack : rgba(0, 0, 0, 0.40);
+
+@subtleTransparentWhite     : rgba(255, 255, 255, 0.02);
+@transparentWhite           : rgba(255, 255, 255, 0.08);
+@strongTransparentWhite     : rgba(255, 255, 255, 0.15);
 
 /*-------------------
      Neutral Text

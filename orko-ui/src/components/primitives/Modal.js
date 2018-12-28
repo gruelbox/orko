@@ -8,13 +8,15 @@ const Content = styled.div`
 const FloatingContent = styled(Content)`
   box-shadow: 0 0 16px rgba(0, 0, 0, 0.7);
   z-index: 10;
+  width: ${props => props.large ? "80%" : "auto"}
+  height: ${props => props.large ? "80%" : "auto"}
 `
 
-const Modal = ({ children, mobile }) =>
+const Modal = ({ children, mobile, large }) =>
   mobile ? (
     <Content>{children}</Content>
   ) : (
-    <FloatingContent>{children}</FloatingContent>
+    <FloatingContent large={large}>{children}</FloatingContent>
   )
 
 export default Modal
