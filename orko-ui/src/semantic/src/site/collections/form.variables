@@ -2,10 +2,11 @@
     User Variable Overrides
 *******************************/
 
-@textAreaMaxHeight: 100%
-@labelFontSize: @fontSize;
+@labelColor: @mutedTextColor;
+@textAreaMaxHeight: 100%;
+@labelFontSize: @relativeMedium;
 @labelFontWeight: normal;
-@groupedLabelFontSize: @fontSize;
+@groupedLabelFontSize: @relativeMedium;
 @groupedLabelFontWeight: normal;
-@inlineLabelFontSize: @fontSize;
+@inlineLabelFontSize: @relativeMedium;
 @inlineLabelFontWeight: normal;
