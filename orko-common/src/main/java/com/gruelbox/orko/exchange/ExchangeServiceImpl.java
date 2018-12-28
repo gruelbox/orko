@@ -1,5 +1,6 @@
 package com.gruelbox.orko.exchange;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -62,7 +63,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         LOGGER.warn("No API connection details.  Connecting to public API: " + name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name);
         return createExchange(exSpec);
-      } catch (InstantiationException | IllegalAccessException e) {
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
     }
@@ -80,7 +81,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
         return createExchange(exSpec);
 
-      } catch (InstantiationException | IllegalAccessException e) {
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
     }
@@ -93,8 +94,10 @@ public class ExchangeServiceImpl implements ExchangeService {
       }
     }
 
-    private ExchangeSpecification createExchangeSpecification(String exchangeName) throws InstantiationException, IllegalAccessException {
-      final ExchangeSpecification exSpec = Exchanges.friendlyNameToClass(exchangeName).newInstance().getDefaultExchangeSpecification();
+    private ExchangeSpecification createExchangeSpecification(String exchangeName) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+      final ExchangeSpecification exSpec = Exchanges.friendlyNameToClass(exchangeName)
+          .getConstructor().newInstance()
+          .getDefaultExchangeSpecification();
       if (exchangeName.equalsIgnoreCase(Exchanges.GDAX_SANDBOX)) {
         LOGGER.info("Using sandbox GDAX");
         exSpec.setSslUri("https://api-public.sandbox.pro.coinbase.com");
