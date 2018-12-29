@@ -37,6 +37,7 @@ const TrailingStopOrder = props => {
         </Form.Input>
         <Form.Input
           id="limitPrice"
+          required
           error={!!props.order.limitPrice && !props.limitPriceValid}
           label="Limit price"
           labelPosition="right"
@@ -63,19 +64,19 @@ const TrailingStopOrder = props => {
           <Label>{props.coin.base}</Label>
         </Form.Input>
       </Form.Group>
+      <Form.Checkbox
+        title="If enabled and supported, runs the stop on the exchange itself. This will usually incur less slippage, but locks the balance, and is not supported on all exchanges."
+        id="onExchange"
+        label="Place on exchange"
+        checked={props.order.useExchange}
+        onChange={e => onChange("useExchange", e.target.checked)}
+        disabled={true}
+      />
       <Form.Group style={{ flex: "1" }}>
-        <Form.Checkbox
-          title="If enabled and supported, runs the stop on the exchange itself. This will usually incur less slippage, but locks the balance, and is not supported on all exchanges."
-          id="onExchange"
-          label="Place on exchange (not currently supported)"
-          checked={props.order.useExchange}
-          onChange={e => onChange("useExchange", e.target.checked)}
-          disabled={true}
-        />
         <Form.Checkbox
           title="Use margin account (if supported by the exchange)"
           id="useMargin"
-          label="Use margin account (not currently supported)"
+          label="Use margin"
           checked={false}
           onChange={e => onChange("useMargin", e.target.checked)}
           disabled={true}
@@ -84,7 +85,7 @@ const TrailingStopOrder = props => {
       <FormButtonBar>
         <Form.Button
           title="Submit sell stop order"
-          disabled={true || !valid}
+          disabled={!valid}
           onClick={props.onSell}
           color="red"
         >
@@ -92,7 +93,7 @@ const TrailingStopOrder = props => {
         </Form.Button>
         <Form.Button
           title="Submit buy stop order"
-          disabled={true || !valid}
+          disabled={!valid}
           onClick={props.onBuy}
           color="green"
         >

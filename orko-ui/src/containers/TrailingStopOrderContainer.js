@@ -1,13 +1,16 @@
 import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
+import uuidv4 from "uuid/v4"
 
 import TrailingStopOrder from "../components/TrailingStopOrder"
 
 import * as focusActions from "../store/focus/actions"
-//import * as exchangesActions from "../store/exchanges/actions"
+import * as jobActions from "../store/job/actions"
+import * as jobTypes from "../services/jobTypes"
+
 import { isValidNumber } from "../util/numberUtils"
-import { getSelectedCoin } from "../selectors/coins"
+import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
@@ -40,20 +43,30 @@ class TrailingStopOrderContainer extends React.Component {
     )
   }
 
-  createOrder = direction => ({
-    type: direction === "BUY" ? "BID" : "ASK",
-    counter: this.props.coin.counter,
-    base: this.props.coin.base,
-    amount: this.state.order.amount,
-    stopPrice: this.state.order.stopPrice,
-    limitPrice: this.state.order.limitPrice
-  })
+  currentPrice = direction =>
+    direction === "BUY" ? this.props.ticker.ask : this.props.ticker.bid
+
+  createJob = direction => {
+    const startPrice = this.currentPrice(direction)
+    return {
+      jobType: jobTypes.SOFT_TRAILING_STOP,
+      id: uuidv4(),
+      tickTrigger: {
+        exchange: this.props.coin.exchange,
+        counter: this.props.coin.counter,
+        base: this.props.coin.base
+      },
+      direction,
+      amount: this.state.order.amount,
+      startPrice,
+      lastSyncPrice: startPrice,
+      stopPrice: this.state.order.stopPrice,
+      limitPrice: this.state.order.limitPrice
+    }
+  }
 
   onSubmit = async direction => {
-    //const order = this.createOrder(direction)
-    //this.props.dispatch(
-    //  exchangesActions.submitStopOrder(this.props.coin.exchange, order)
-    //)
+    this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
   }
 
   render() {
@@ -81,6 +94,7 @@ class TrailingStopOrderContainer extends React.Component {
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
         coin={this.props.coin}
+        currentPrice={this.currentPrice}
       />
     )
   }
@@ -88,7 +102,8 @@ class TrailingStopOrderContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    coin: getSelectedCoin(state)
+    coin: getSelectedCoin(state),
+    ticker: getSelectedCoinTicker(state)
   }
 }
 
