@@ -169,15 +169,17 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
           .stopPrice(job.stopPrice().add(ticker.getBid()).subtract(job.lastSyncPrice()))
           .build()
       );
+      done = true;
     }
 
     if (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(job.lastSyncPrice()) < 0 ) {
       jobControl.replace(
         job.toBuilder()
           .lastSyncPrice(ticker.getAsk())
-          .stopPrice(job.stopPrice().subtract(ticker.getAsk()).add(job.lastSyncPrice()))
+          .stopPrice(job.stopPrice().add(ticker.getAsk()).subtract(job.lastSyncPrice()))
           .build()
       );
+      done = true;
     }
   }
 
