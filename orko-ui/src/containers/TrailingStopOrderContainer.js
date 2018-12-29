@@ -2,20 +2,22 @@ import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
 
-import LimitOrder from "../components/LimitOrder"
+import TrailingStopOrder from "../components/TrailingStopOrder"
 
 import * as focusActions from "../store/focus/actions"
-import * as exchangesActions from "../store/exchanges/actions"
+//import * as exchangesActions from "../store/exchanges/actions"
 import { isValidNumber } from "../util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 
-class LimitOrderContainer extends React.Component {
+class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       order: Immutable({
+        stopPrice: "",
         limitPrice: "",
-        amount: ""
+        amount: "",
+        useExchange: false
       })
     }
   }
@@ -43,17 +45,22 @@ class LimitOrderContainer extends React.Component {
     counter: this.props.coin.counter,
     base: this.props.coin.base,
     amount: this.state.order.amount,
+    stopPrice: this.state.order.stopPrice,
     limitPrice: this.state.order.limitPrice
   })
 
   onSubmit = async direction => {
-    const order = this.createOrder(direction)
-    this.props.dispatch(
-      exchangesActions.submitOrder(this.props.coin.exchange, order)
-    )
+    //const order = this.createOrder(direction)
+    //this.props.dispatch(
+    //  exchangesActions.submitStopOrder(this.props.coin.exchange, order)
+    //)
   }
 
   render() {
+    const stopPriceValid =
+      this.state.order.stopPrice &&
+      isValidNumber(this.state.order.stopPrice) &&
+      this.state.order.stopPrice > 0
     const limitPriceValid =
       this.state.order.limitPrice &&
       isValidNumber(this.state.order.limitPrice) &&
@@ -64,12 +71,13 @@ class LimitOrderContainer extends React.Component {
       this.state.order.amount > 0
 
     return (
-      <LimitOrder
+      <TrailingStopOrder
         order={this.state.order}
         onChange={this.onChange}
         onFocus={this.onFocus}
         onBuy={() => this.onSubmit("BUY")}
         onSell={() => this.onSubmit("SELL")}
+        stopPriceValid={stopPriceValid}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
         coin={this.props.coin}
@@ -84,4 +92,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(LimitOrderContainer)
+export default connect(mapStateToProps)(TrailingStopOrderContainer)

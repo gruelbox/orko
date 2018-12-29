@@ -62,3 +62,7 @@
 @checkboxIndeterminateBorderColor: @checkboxActiveBorderColor;
 @checkboxIndeterminateCheckOpacity: 1;
 @checkboxIndeterminateCheckColor: @checkboxActiveCheckColor;
+
+/* Disabled */
+@disabledCheckboxOpacity: 0.6;
+@disabledCheckboxLabelColor: @textColor;

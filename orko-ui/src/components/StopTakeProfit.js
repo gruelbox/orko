@@ -102,9 +102,9 @@ const StopTakeProfit = props => {
           <Form.Input
             id="initialTrailingStop"
             error={!!props.job.initialTrailingStop && !initialTrailingStopValid}
-            label="Trailing stop price"
+            label="... with trailing stop starting at"
             labelPosition="right"
-            placeholder="Enter price..."
+            placeholder="Price (above trigger price)..."
             value={
               props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
             }
@@ -159,9 +159,9 @@ const StopTakeProfit = props => {
           <Form.Input
             id="initialTrailingStop"
             error={!!props.job.initialTrailingStop && !initialTrailingStopValid}
-            label="Trailing stop price"
+            label="... with trailing stop starting at"
             labelPosition="right"
-            placeholder="Enter difference..."
+            placeholder="Price (below trigger price)..."
             value={
               props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
             }
@@ -190,26 +190,36 @@ const StopTakeProfit = props => {
         </Form.Input>
       </Form.Group>
       <FormButtonBar>
-        {props.job.direction === "BUY" && (
+        <Form.Group>
+          {props.job.direction === "BUY" && (
+            <Form.Checkbox
+              title="Enable trailing buy stop"
+              id="lowTrailing"
+              label="Trailing"
+              checked={props.job.lowTrailing}
+              style={{ verticalAlign: "middle" }}
+              onChange={e => onChange("lowTrailing", e.target.checked)}
+            />
+          )}
+          {props.job.direction === "SELL" && (
+            <Form.Checkbox
+              title="Enable trailing sell stop"
+              id="highTrailing"
+              label="Trailing"
+              checked={props.job.highTrailing}
+              inline
+              onChange={e => onChange("highTrailing", e.target.checked)}
+            />
+          )}
           <Form.Checkbox
-            title="Enable trailing buy stop"
-            id="lowTrailing"
-            label="Trailing"
-            checked={props.job.lowTrailing}
-            style={{ verticalAlign: "middle" }}
-            onChange={e => onChange("lowTrailing", e.target.checked)}
+            title="Use margin account (if supported by the exchange)"
+            id="useMargin"
+            label="Use margin"
+            checked={false}
+            onChange={e => onChange("useMargin", e.target.checked)}
+            disabled={true}
           />
-        )}
-        {props.job.direction === "SELL" && (
-          <Form.Checkbox
-            title="Enable trailing sell stop"
-            id="highTrailing"
-            label="Trailing"
-            checked={props.job.highTrailing}
-            inline
-            onChange={e => onChange("highTrailing", e.target.checked)}
-          />
-        )}
+        </Form.Group>
         <Button.Group>
           <Button
             id="BUY"
