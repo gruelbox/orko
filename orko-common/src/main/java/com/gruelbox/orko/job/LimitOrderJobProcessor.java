@@ -40,7 +40,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
   private final NotificationService notificationService;
   private final TradeServiceFactory tradeServiceFactory;
 
-  private final LimitOrderJob job;
+  private volatile LimitOrderJob job;
 
   private TradeService tradeService;
   private LimitOrder order;
@@ -86,6 +86,11 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     } else {
       return SUCCESS;
     }
+  }
+
+  @Override
+  public void setReplacedJob(LimitOrderJob job) {
+    this.job = job;
   }
 
   /**

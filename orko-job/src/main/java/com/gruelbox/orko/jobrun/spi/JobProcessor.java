@@ -30,6 +30,16 @@ public interface JobProcessor<T extends Job> {
   }
 
   /**
+   * Called following a call to {@link JobControl#replace(Job)} to update the job
+   * itself. While the job could handle this itself, this acts as a reminder
+   * to handle this state appropriately, modifying callbacks and subscriptions
+   * if necessary.
+   *
+   * @param job The replacement job.
+   */
+  public void setReplacedJob(T job);
+
+  /**
    * A factory for {@link JobProcessor}s.
    *
    * @author Graham Crockford

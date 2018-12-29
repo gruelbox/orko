@@ -56,11 +56,11 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   private final NotificationService notificationService;
   private final ExchangeService exchangeService;
   private final JobSubmitter jobSubmitter;
-  private final SoftTrailingStop job;
   private final JobControl jobControl;
   private final ExchangeEventRegistry exchangeEventRegistry;
   private volatile boolean done;
 
+  private volatile SoftTrailingStop job;
   private volatile ExchangeEventSubscription subscription;
   private volatile Disposable disposable;
   private final Transactionally transactionally;
@@ -90,6 +90,11 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     subscription = exchangeEventRegistry.subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
     disposable = subscription.getTickers().subscribe(this::tick);
     return Status.RUNNING;
+  }
+
+  @Override
+  public void setReplacedJob(SoftTrailingStop job) {
+    this.job = job;
   }
 
   @Override
@@ -169,13 +174,14 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
           .stopPrice(job.stopPrice().add(ticker.getBid()).subtract(job.lastSyncPrice()))
           .build()
       );
+      return;
     }
 
     if (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(job.lastSyncPrice()) < 0 ) {
       jobControl.replace(
         job.toBuilder()
           .lastSyncPrice(ticker.getAsk())
-          .stopPrice(job.stopPrice().subtract(ticker.getAsk()).add(job.lastSyncPrice()))
+          .stopPrice(job.stopPrice().add(ticker.getAsk()).subtract(job.lastSyncPrice()))
           .build()
       );
     }

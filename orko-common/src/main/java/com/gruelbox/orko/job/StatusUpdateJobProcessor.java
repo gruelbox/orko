@@ -25,6 +25,11 @@ class StatusUpdateJobProcessor implements StatusUpdateJob.Processor {
     return Status.SUCCESS;
   }
 
+  @Override
+  public void setReplacedJob(StatusUpdateJob job) {
+    // No-op
+  }
+
   public static final class Module extends AbstractModule {
     @Override
     protected void configure() {

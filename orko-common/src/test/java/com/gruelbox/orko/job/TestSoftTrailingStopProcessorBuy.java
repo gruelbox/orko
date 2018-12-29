@@ -419,7 +419,7 @@ public class TestSoftTrailingStopProcessorBuy {
     verify(jobControl).replace(
       job.toBuilder()
         .lastSyncPrice(syncPrice)
-        .stopPrice(job.stopPrice().subtract(syncPrice).add(job.lastSyncPrice()))
+        .stopPrice(job.stopPrice().add(syncPrice).subtract(job.lastSyncPrice()))
         .build());
   }
 

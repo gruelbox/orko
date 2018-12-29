@@ -151,3 +151,15 @@
 
 @solidWhiteBorderColor         : #555555;
 @selectedSolidWhiteBorderColor : #999999;
+
+/*******************************
+             States
+*******************************/
+
+/*-------------------
+      Disabled
+--------------------*/
+
+@disabledOpacity: 0.7;
+@disabledTextColor: @textColor;
+@invertedDisabledTextColor: rgba(0, 0, 0, 0.3);

@@ -53,11 +53,11 @@ export default class JobShort extends React.Component {
       return (
         "When " +
         ticker(job.tickTrigger) +
-        "> " +
+        " < " +
         job.stopPrice +
         " then sell at " +
         job.limitPrice +
-        " trailing at " +
+        ". Highest bid price recorded is " +
         job.lastSyncPrice
       )
     } else if (
@@ -67,11 +67,11 @@ export default class JobShort extends React.Component {
       return (
         "When " +
         ticker(job.tickTrigger) +
-        "< " +
+        " > " +
         job.stopPrice +
         " then buy at " +
         job.limitPrice +
-        " trailing at " +
+        ". Lowest ask price recorded is " +
         job.lastSyncPrice
       )
     } else if (job.jobType === jobTypes.ALERT) {

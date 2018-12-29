@@ -76,7 +76,8 @@ export default class Job extends Component {
                   <JobStage>
                     <Icon name="caret up" />
                     Raise the stop price by the same amount, but not the limit
-                    price. Last synced price is {job.lastSyncPrice}
+                    price. Highest bid price recorded so far is{" "}
+                    {job.lastSyncPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>
@@ -112,7 +113,8 @@ export default class Job extends Component {
                   <JobStage>
                     <Icon name="caret down" />
                     Lower the stop price by the same amount, but not the limit
-                    price. Last synced price is {job.lastSyncPrice}
+                    price. Lowest ask price recorded so far is{" "}
+                    {job.lastSyncPrice}
                   </JobStage>
                 </JobStages>
               </JobStage>

@@ -5,8 +5,9 @@ import RawForm from "./primitives/RawForm"
 import FormButtonBar from "./primitives/FormButtonBar"
 import { Form, Label } from "semantic-ui-react"
 
-const LimitOrder = props => {
-  const valid = props.limitPriceValid && props.amountValid
+const StopOrder = props => {
+  const valid =
+    props.stopPriceValid && props.limitPriceValid && props.amountValid
 
   const onChange = props.onChange
     ? (prop, value) =>
@@ -18,15 +19,30 @@ const LimitOrder = props => {
     : () => {}
 
   return (
-    <Form data-orko="limitOrder" as={RawForm}>
+    <Form data-orko="stopOrder" as={RawForm}>
+      <p>Not supported fully yet. Coming soon.</p>
       <Form.Group>
         <Form.Input
-          id="limitPrice"
+          id="stopPrice"
           required
+          error={!!props.order.stopPrice && !props.stopPriceValid}
+          label="Stop price"
+          labelPosition="right"
+          placeholder="Enter stop price..."
+          value={props.order.stopPrice ? props.order.stopPrice : ""}
+          onChange={e => onChange("stopPrice", e.target.value)}
+          onFocus={e => props.onFocus("stopPrice")}
+        >
+          <input />
+          <Label>{props.coin.counter}</Label>
+        </Form.Input>
+        <Form.Input
+          id="limitPrice"
           error={!!props.order.limitPrice && !props.limitPriceValid}
+          disabled={true}
           label="Limit price"
           labelPosition="right"
-          placeholder="Enter price..."
+          placeholder="Not supported by exchange"
           value={props.order.limitPrice ? props.order.limitPrice : ""}
           onChange={e => onChange("limitPrice", e.target.value)}
           onFocus={e => props.onFocus("limitPrice")}
@@ -49,6 +65,14 @@ const LimitOrder = props => {
           <Label>{props.coin.base}</Label>
         </Form.Input>
       </Form.Group>
+      <Form.Checkbox
+        title="If enabled and supported, runs the stop on the exchange itself. This will usually incur less slippage, but locks the balance, and is not supported on all exchanges."
+        id="onExchange"
+        label="Place on exchange"
+        checked={props.order.useExchange}
+        onChange={e => onChange("useExchange", e.target.checked)}
+        disabled={true}
+      />
       <Form.Group style={{ flex: "1" }}>
         <Form.Checkbox
           title="Use margin account (if supported by the exchange)"
@@ -60,15 +84,25 @@ const LimitOrder = props => {
         />
       </Form.Group>
       <FormButtonBar>
-        <Form.Button disabled={!valid} onClick={props.onSell} color="red">
-          Sell
+        <Form.Button
+          title="Submit sell stop order"
+          disabled={true || !valid}
+          onClick={props.onSell}
+          color="red"
+        >
+          Submit sell stop
         </Form.Button>
-        <Form.Button disabled={!valid} onClick={props.onBuy} color="green">
-          Buy
+        <Form.Button
+          title="Submit buy stop order"
+          disabled={true || !valid}
+          onClick={props.onBuy}
+          color="green"
+        >
+          Submit buy stop
         </Form.Button>
       </FormButtonBar>
     </Form>
   )
 }
 
-export default LimitOrder
+export default StopOrder

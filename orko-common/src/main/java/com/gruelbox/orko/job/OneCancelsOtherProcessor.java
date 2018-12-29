@@ -49,10 +49,10 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private final StatusUpdateService statusUpdateService;
   private final NotificationService notificationService;
   private final ExchangeEventRegistry exchangeEventRegistry;
-  private final OneCancelsOther job;
   private final JobControl jobControl;
   private final ExchangeService exchangeService;
 
+  private volatile OneCancelsOther job;
   private volatile boolean done;
   private volatile ExchangeEventSubscription subscription;
   private volatile Disposable disposable;
@@ -88,6 +88,11 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
     subscription = exchangeEventRegistry.subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
     disposable = subscription.getTickers().subscribe(this::tick);
     return Status.RUNNING;
+  }
+
+  @Override
+  public void setReplacedJob(OneCancelsOther job) {
+    this.job = job;
   }
 
   @Override
