@@ -164,7 +164,7 @@ class JobRunner {
       processor = JobProcessor.createProcessor(job, this, injector);
     }
 
-    private void start(boolean replacement) {
+    private synchronized void start(boolean replacement) {
 
       // Ensure this lifetime manager can only be used once (when replacing, we
       // create a new lifetime manager).
@@ -217,7 +217,7 @@ class JobRunner {
     }
 
     @Subscribe
-    public void onKeepAlive(KeepAliveEvent keepAlive) {
+    public synchronized void onKeepAlive(KeepAliveEvent keepAlive) {
       LOGGER.debug("{} checking lock...", job);
       if (!status.get().equals(JobStatus.RUNNING))
         return;
@@ -230,21 +230,23 @@ class JobRunner {
     }
 
     @Subscribe
-    public void stop(StopEvent stop) {
+    public synchronized void stop(StopEvent stop) {
       LOGGER.debug("{} stopping due to shutdown", job);
-      if (stopAndUnregister()) {
-        transactionally.allowingNested().run(() -> jobLocker.releaseLock(job.id(), uuid));
-        LOGGER.debug("{} stopped due to shutdown", job);
+      if (!stopAndUnregister()) {
+        LOGGER.warn("Stop of job which is already shutting down. Status={}, job={}", status.get(), job);
+        return;
       }
+      transactionally.allowingNested().run(() -> jobLocker.releaseLock(job.id(), uuid));
+      LOGGER.debug("{} stopped due to shutdown", job);
     }
 
     @Override
-    public void replace(Job newVersion) {
+    public synchronized void replace(Job newVersion) {
       Preconditions.checkNotNull(newVersion, "Job replaced with null");
 
       LOGGER.debug("{} replacing...", job);
       if (!stopAndUnregister()) {
-        LOGGER.warn("Replacement of job which is already shutting down: " + job);
+        LOGGER.warn("Replacement of job which is already shutting down. Status={}, job={}", status.get(), job);
         return;
       }
       // The job might be transactional, so participate if necessary
@@ -256,13 +258,13 @@ class JobRunner {
     }
 
     @Override
-    public void finish(Status status) {
+    public synchronized void finish(Status status) {
       Preconditions.checkArgument(status == Status.FAILURE_PERMANENT || status == Status.SUCCESS, "Finish condition must be success or permanent failure");
 
       LOGGER.info(job + " finishing ({})...", status);
       statusUpdateService.status(job.id(), status);
       if (!stopAndUnregister()) {
-        LOGGER.warn("Finish of job which is already shutting down: {}", job);
+        LOGGER.warn("Finish of job which is already shutting down. Status={}, job={}", this.status.get(), job);
         return;
       }
       // If this gets rolled back due to the job itself being transactional, that's
@@ -271,7 +273,7 @@ class JobRunner {
       LOGGER.info(job + " finished");
     }
 
-    private synchronized void register(boolean replacement) {
+    private void register(boolean replacement) {
       if (status.compareAndSet(JobStatus.STARTING, JobStatus.RUNNING)) {
         eventBus.register(this);
         if (!replacement)
@@ -279,17 +281,14 @@ class JobRunner {
       }
     }
 
-    private synchronized boolean stopAndUnregister() {
+    private boolean stopAndUnregister() {
       if (status.compareAndSet(JobStatus.RUNNING, JobStatus.STOPPING)) {
         safeStop();
         eventBus.unregister(this);
         status.set(JobStatus.STOPPED);
         return true;
-      } else if (status.compareAndSet(JobStatus.STARTING, JobStatus.STOPPED)) {
-        return true;
       } else {
-        LOGGER.info("Stop of job which is already shutting down. Status={}, job={}", status.get(), job);
-        return false;
+        return status.compareAndSet(JobStatus.STARTING, JobStatus.STOPPED);
       }
     }
 

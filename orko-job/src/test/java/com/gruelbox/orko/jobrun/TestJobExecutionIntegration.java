@@ -100,6 +100,13 @@ public class TestJobExecutionIntegration {
       }
     });
 
+    when(injector.getInstance(AsynchronouslySelfStoppingJobProcessor.Factory.class)).thenReturn(new AsynchronouslySelfStoppingJobProcessor.Factory() {
+      @Override
+      public JobProcessor<AsynchronouslySelfStoppingJob> create(AsynchronouslySelfStoppingJob job, JobControl jobControl) {
+        return new AsynchronouslySelfStoppingJobProcessor(job, jobControl, eventBus);
+      }
+    });
+
     executorService = Executors.newFixedThreadPool(4);
 
     transactionally = new Transactionally(database.getSessionFactory());
@@ -188,6 +195,27 @@ public class TestJobExecutionIntegration {
   public void testFailOnStopResident() throws Exception {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(false).failOnStop(true).build());
+      start();
+      Assert.assertTrue(listener1.awaitFinish());
+
+      InOrder inOrder = inOrder(statusUpdateService);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.SUCCESS);
+      verifyNoMoreInteractions(statusUpdateService);
+    }
+  }
+
+
+  /**
+   * Ensures that a job shutdown is handled correctly if it tries to finish
+   * asynchronously during the setup phase
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCompleteDuringSetup() throws Exception {
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(AsynchronouslySelfStoppingJob.builder().id(JOB1).build());
       start();
       Assert.assertTrue(listener1.awaitFinish());
 
