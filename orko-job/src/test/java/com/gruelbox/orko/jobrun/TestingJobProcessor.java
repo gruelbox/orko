@@ -15,9 +15,10 @@ import com.gruelbox.orko.jobrun.spi.Status;
 
 class TestingJobProcessor implements JobProcessor<TestingJob> {
 
-  private final TestingJob job;
   private final EventBus eventBus;
   private final JobControl jobControl;
+
+  private volatile TestingJob job;
   private volatile boolean done;
 
   @Inject
@@ -38,6 +39,11 @@ class TestingJobProcessor implements JobProcessor<TestingJob> {
       eventBus.post(TestingJobEvent.create(job.id(), EventType.FINISH));
       return Status.SUCCESS;
     }
+  }
+
+  @Override
+  public void setReplacedJob(TestingJob job) {
+    this.job = job;
   }
 
   @Subscribe

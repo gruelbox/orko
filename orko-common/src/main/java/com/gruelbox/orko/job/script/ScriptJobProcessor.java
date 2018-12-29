@@ -60,7 +60,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptJobProcessor.class);
 
-  private final ScriptJob job;
   private final JobControl jobControl;
   private ScriptEngine engine;
 
@@ -71,6 +70,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   private final Hasher hasher;
   private final OrkoConfiguration configuration;
 
+  private volatile ScriptJob job;
   private volatile boolean done;
 
   @AssistedInject
@@ -117,6 +117,11 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       notifyAndLogError("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
       throw new RuntimeException(e.getMessage(), e);
     }
+  }
+
+  @Override
+  public void setReplacedJob(ScriptJob job) {
+    this.job = job;
   }
 
   @Override

@@ -22,6 +22,11 @@ class AlertProcessor implements Alert.Processor {
   }
 
   @Override
+  public void setReplacedJob(Alert job) {
+    // No-op
+  }
+
+  @Override
   public Status start() {
     notificationService.send(job.notification());
     return SUCCESS;

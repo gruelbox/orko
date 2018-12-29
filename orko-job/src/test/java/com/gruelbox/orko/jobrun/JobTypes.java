@@ -11,7 +11,8 @@ public class JobTypes implements JobTypeContribution {
     return ImmutableList.of(
       AutoValue_DummyJob.class,
       AutoValue_TestingJob.class,
-      AutoValue_AsynchronouslySelfStoppingJob.class
+      AutoValue_AsynchronouslySelfStoppingJob.class,
+      AutoValue_CounterJob.class
     );
   }
 }
