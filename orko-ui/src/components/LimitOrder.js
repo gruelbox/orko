@@ -53,7 +53,7 @@ const LimitOrder = props => {
         <Form.Checkbox
           title="Use margin account (if supported by the exchange)"
           id="useMargin"
-          label="Use margin (not currently supported)"
+          label="Use margin"
           checked={false}
           onChange={e => onChange("useMargin", e.target.checked)}
           disabled={true}

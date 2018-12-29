@@ -65,19 +65,19 @@ const StopOrder = props => {
           <Label>{props.coin.base}</Label>
         </Form.Input>
       </Form.Group>
+      <Form.Checkbox
+        title="If enabled and supported, runs the stop on the exchange itself. This will usually incur less slippage, but locks the balance, and is not supported on all exchanges."
+        id="onExchange"
+        label="Place on exchange"
+        checked={props.order.useExchange}
+        onChange={e => onChange("useExchange", e.target.checked)}
+        disabled={true}
+      />
       <Form.Group style={{ flex: "1" }}>
-        <Form.Checkbox
-          title="If enabled and supported, runs the stop on the exchange itself. This will usually incur less slippage, but locks the balance, and is not supported on all exchanges."
-          id="onExchange"
-          label="Place on exchange"
-          checked={props.order.useExchange}
-          onChange={e => onChange("useExchange", e.target.checked)}
-          disabled={true}
-        />
         <Form.Checkbox
           title="Use margin account (if supported by the exchange)"
           id="useMargin"
-          label="Use margin (not currently supported)"
+          label="Use margin"
           checked={false}
           onChange={e => onChange("useMargin", e.target.checked)}
           disabled={true}
