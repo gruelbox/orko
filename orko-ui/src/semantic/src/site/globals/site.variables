@@ -60,6 +60,16 @@
 @massiveSize     : (22 / 13);
 
 /*-------------------
+     Breakpoints
+--------------------*/
+
+@mobileBreakpoint            : 500px;
+@tabletBreakpoint            : 768px;
+@computerBreakpoint          : 992px;
+@largeMonitorBreakpoint      : 1630px;
+@widescreenMonitorBreakpoint : 1920px;
+
+/*-------------------
         Page
 --------------------*/
 
