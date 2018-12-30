@@ -55,11 +55,13 @@ export default class MarketContainer extends React.Component {
         {visible => (
           <RenderIf condition={visible}>
             <Section
+              draggable
               alwaysscroll="vertical"
               nopadding
               id="marketData"
               heading="Market"
               buttons={this.buttons}
+              onHide={this.props.onHide}
             >
               {this.state.selected === "book" ? (
                 <OrderBookContainer animate={this.state.animate} />

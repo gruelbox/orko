@@ -14,16 +14,23 @@ import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
 
 const buttons = () => (
-  <Link to="/addCoin" color="heading" data-orko="addCoin">
+  <Link to="/addCoin" data-orko="addCoin" title="Add a coin">
     <Icon name="add" />
   </Link>
 )
 
-const CoinsCointainer = ({ data, dispatch }) => (
+const CoinsCointainer = ({ data, dispatch, onHide }) => (
   <GetPageVisibility>
     {visible => (
       <RenderIf condition={visible}>
-        <Section id="coinList" heading="Coins" nopadding buttons={buttons}>
+        <Section
+          draggable
+          id="coinList"
+          heading="Coins"
+          nopadding
+          buttons={buttons}
+          onHide={onHide}
+        >
           <Coins
             data={data}
             onRemove={coin => dispatch(coinsActions.remove(coin))}

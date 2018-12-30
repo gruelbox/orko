@@ -3,6 +3,7 @@ import styled from "styled-components"
 import { color } from "styled-system"
 import { Icon } from "semantic-ui-react"
 import Heading from "./Heading"
+import Href from "./Href"
 
 const SectionBox = styled.section`
   ${color} margin: 0;
@@ -45,10 +46,28 @@ class Section extends React.Component {
       <SectionBox>
         <SectionHeadingBox data-orko={"section/" + this.props.id + "/tabs"}>
           <Heading p={0} my={0} ml={0} mr={3} color="heading">
-            <Icon name="content" className="dragMe" />
+            {this.props.draggable && (
+              <Icon
+                name="arrows alternate"
+                className="dragMe"
+                title="Drag to move"
+              />
+            )}
             {this.props.heading}
           </Heading>
-          <div>{this.props.buttons && this.props.buttons()}</div>
+          <div>
+            {this.props.buttons && this.props.buttons()}
+            {this.props.onHide && (
+              <Href
+                data-orko={"section/" + this.props.id + "/hide"}
+                ml={2}
+                onClick={this.props.onHide}
+                title="Hide this panel (it can be shown again from View Settings)"
+              >
+                <Icon name="hide" />
+              </Href>
+            )}
+          </div>
         </SectionHeadingBox>
         <SectionInner
           data-orko={"section/" + this.props.id}

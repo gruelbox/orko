@@ -4,21 +4,20 @@ import styled from "styled-components"
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
 import Tab from "./primitives/Tab"
-import Span from "./primitives/Span"
 
 const CHART_INTERVAL_KEY = "Chart.interval"
 
 const CONTAINER_ID = "tradingview-widget-container"
 
-const NewWindowChartContent = ({ coin, url }) => (
-  <Section id="chart" heading="Chart">
+const NewWindowChartContent = ({ coin, url, onHide }) => (
+  <>
     <Para>TradingView does not support charts for this exchange.</Para>
     <Para>
       <a target="_blank" rel="noopener noreferrer" href={url}>
         Open in {coin.exchange}
       </a>
     </Para>
-  </Section>
+  </>
 )
 
 const ChartOuter = styled.div`
@@ -105,18 +104,15 @@ class Chart extends React.Component {
   }
 
   render() {
+    var content
+    var buttons
+
     const coin = this.props.coin
 
     if (!coin) {
-      return (
-        <Section id="chart" heading="Chart">
-          <Para>No coin selected</Para>
-        </Section>
-      )
-    }
-
-    if (coin.exchange === "kucoin") {
-      return (
+      content = <Para>No coin selected</Para>
+    } else if (coin.exchange === "kucoin") {
+      content = (
         <NewWindowChartContent
           coin={coin}
           url={
@@ -127,10 +123,8 @@ class Chart extends React.Component {
           }
         />
       )
-    }
-
-    if (coin.exchange === "cryptopia") {
-      return (
+    } else if (coin.exchange === "cryptopia") {
+      content = (
         <NewWindowChartContent
           coin={coin}
           url={
@@ -141,37 +135,40 @@ class Chart extends React.Component {
           }
         />
       )
+    } else {
+      const Interval = ({ name, code, selected }) => (
+        <Tab
+          selected={selected === code}
+          onClick={() => {
+            localStorage.setItem(CHART_INTERVAL_KEY, code)
+            this.setState({ interval: code })
+          }}
+        >
+          {name}
+        </Tab>
+      )
+      buttons = () => (
+        <span>
+          <Interval selected={this.state.interval} code="W" name="W" />
+          <Interval selected={this.state.interval} code="D" name="D" />
+          <Interval selected={this.state.interval} code="240" name="4h" />
+          <Interval selected={this.state.interval} code="60" name="1h" />
+          <Interval selected={this.state.interval} code="15" name="15m" />
+        </span>
+      )
+      content = (
+        <TradingViewChartContent coin={coin} interval={this.state.interval} />
+      )
     }
-
-    const Interval = ({ name, code, selected }) => (
-      <Tab
-        selected={selected === code}
-        onClick={() => {
-          localStorage.setItem(CHART_INTERVAL_KEY, code)
-          this.setState({ interval: code })
-        }}
-      >
-        {name}
-      </Tab>
-    )
-
     return (
       <Section
+        draggable
         id="chart"
         heading="Chart"
-        expand
-        buttons={() => (
-          <span>
-            <Span>Default interval</Span>
-            <Interval selected={this.state.interval} code="W" name="W" />
-            <Interval selected={this.state.interval} code="D" name="D" />
-            <Interval selected={this.state.interval} code="240" name="4h" />
-            <Interval selected={this.state.interval} code="60" name="1h" />
-            <Interval selected={this.state.interval} code="15" name="15m" />
-          </span>
-        )}
+        buttons={buttons}
+        onHide={this.props.onHide}
       >
-        <TradingViewChartContent coin={coin} interval={this.state.interval} />
+        {content}
       </Section>
     )
   }

@@ -15,3 +15,11 @@ export function openReferencePrice(coin) {
 export function closeReferencePrice() {
   return { type: types.CLOSE_REFERENCE_PRICE }
 }
+
+export function changePanels(panels) {
+  return { type: types.CHANGE_PANELS, payload: panels }
+}
+
+export function resetPanels() {
+  return { type: types.RESET_PANELS }
+}

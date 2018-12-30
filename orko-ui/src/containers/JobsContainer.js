@@ -77,7 +77,13 @@ class JobsContainer extends React.Component {
     return (
       <PageVisibility onChange={this.handleVisibilityChange}>
         <RenderIf condition={this.state.visible}>
-          <Section id="jobs" heading="Running Jobs" buttons={() => buttons}>
+          <Section
+            draggable
+            id="jobs"
+            heading="Running Jobs"
+            buttons={() => buttons}
+            onHide={this.props.onHide}
+          >
             {jobs}
           </Section>
         </RenderIf>

@@ -5,7 +5,7 @@ import { connect } from "react-redux"
 
 class ChartContainer extends React.Component {
   render() {
-    return <Chart coin={this.props.coin} />
+    return <Chart coin={this.props.coin} onHide={this.props.onHide} />
   }
 }
 

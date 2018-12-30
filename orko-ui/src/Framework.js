@@ -1,5 +1,6 @@
 import React from "react"
 
+import { connect } from "react-redux"
 import { Route } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
 import styled from "styled-components"
@@ -7,6 +8,8 @@ import { color } from "styled-system"
 import { Tab } from "semantic-ui-react"
 import theme from "./theme"
 import Immutable from "seamless-immutable"
+
+import * as uiActions from "./store/ui/actions"
 
 import { getFromLS, saveToLS } from "./util/localStorage"
 
@@ -57,17 +60,6 @@ const FloatingPositioningWrapper = styled.div`
   }
 `
 
-const basePanels = Immutable([
-  { key: "coins", title: "Coins", visible: true },
-  { key: "jobs", title: "Jobs", visible: true },
-  { key: "chart", title: "Chart", visible: true },
-  { key: "openOrders", title: "Orders", visible: true },
-  { key: "balance", title: "Balance", visible: true },
-  { key: "tradeSelector", title: "Trading", visible: true },
-  { key: "marketData", title: "Market", visible: true },
-  { key: "notifications", title: "Notifications", visible: true }
-])
-
 const baseLayouts = Immutable({
   lg: [
     { i: "coins", x: 0, y: 100, w: 4, h: 22 },
@@ -102,18 +94,16 @@ const baseLayouts = Immutable({
   ]
 })
 
-export default class Framework extends React.Component {
+class Framework extends React.Component {
   constructor(props) {
     super(props)
     const loadedLayouts = getFromLS("layouts")
-    const loadedPanels = getFromLS("panels")
     this.state = {
       isMobile: window.innerWidth <= 500,
       layouts:
         loadedLayouts === null
           ? baseLayouts
           : Immutable.merge(baseLayouts, loadedLayouts),
-      panels: loadedPanels === null ? basePanels : loadedPanels,
       showSettings: false
     }
   }
@@ -129,8 +119,14 @@ export default class Framework extends React.Component {
 
   onResetLayout = () => {
     saveToLS("layouts", baseLayouts)
-    saveToLS("panels", basePanels)
-    this.setState({ layouts: baseLayouts, panels: basePanels })
+    this.setState({ layouts: baseLayouts })
+    this.props.dispatch(uiActions.resetPanels())
+  }
+
+  onHidePanel = id => {
+    this.props.dispatch(
+      uiActions.changePanels(Immutable([{ key: id, visible: false }]))
+    )
   }
 
   onLayoutChange = (layout, layouts) => {
@@ -139,18 +135,7 @@ export default class Framework extends React.Component {
   }
 
   onChangePanels = panels => {
-    const reducer = toReduce =>
-      toReduce.reduce(function(accumulator, panel) {
-        accumulator[panel.key] = panel
-        return accumulator
-      }, {})
-    var current = reducer(this.state.panels)
-    var changes = reducer(panels)
-    const updated = Immutable(
-      Object.values(Immutable.merge(current, changes, { deep: true }))
-    )
-    saveToLS("panels", updated)
-    this.setState({ panels: updated })
+    this.props.dispatch(uiActions.changePanels(panels))
   }
 
   onToggleViewSettings = () => {
@@ -158,7 +143,8 @@ export default class Framework extends React.Component {
   }
 
   render() {
-    const { isMobile, panels } = this.state
+    const { isMobile } = this.state
+    const { panels } = this.props
 
     const Tools = () => (
       <ToolbarContainer
@@ -167,7 +153,12 @@ export default class Framework extends React.Component {
         panels={panels}
       />
     )
-    const Market = () => <MarketContainer allowAnimate={!isMobile} />
+    const Market = () => (
+      <MarketContainer
+        allowAnimate={!isMobile}
+        onHide={() => this.onHidePanel("marketData")}
+      />
+    )
     const ManageAlerts = () => <ManageAlertsContainer mobile={isMobile} />
 
     const Settings = () =>
@@ -217,32 +208,32 @@ export default class Framework extends React.Component {
     const panelsRenderers = {
       chart: () => (
         <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-          <ChartContainer />
+          <ChartContainer onHide={() => this.onHidePanel("chart")} />
         </LayoutBox>
       ),
       openOrders: () => (
         <LayoutBox key="openOrders" bg="backgrounds.1">
-          <OrdersContainer />
+          <OrdersContainer onHide={() => this.onHidePanel("openOrders")} />
         </LayoutBox>
       ),
       balance: () => (
         <LayoutBox key="balance" bg="backgrounds.1">
-          <BalanceContainer />
+          <BalanceContainer onHide={() => this.onHidePanel("balance")} />
         </LayoutBox>
       ),
       tradeSelector: () => (
         <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-          <TradingContainer />
+          <TradingContainer onHide={() => this.onHidePanel("tradeSelector")} />
         </LayoutBox>
       ),
       coins: () => (
         <LayoutBox key="coins" bg="backgrounds.1">
-          <CoinsContainer />
+          <CoinsContainer onHide={() => this.onHidePanel("coins")} />
         </LayoutBox>
       ),
       jobs: () => (
         <LayoutBox key="jobs" bg="backgrounds.1">
-          <JobsContainer />
+          <JobsContainer onHide={() => this.onHidePanel("jobs")} />
         </LayoutBox>
       ),
       marketData: () => (
@@ -252,7 +243,9 @@ export default class Framework extends React.Component {
       ),
       notifications: () => (
         <LayoutBox key="notifications" bg="backgrounds.1">
-          <NotificationsContainer />
+          <NotificationsContainer
+            onHide={() => this.onHidePanel("notifications")}
+          />
         </LayoutBox>
       )
     }
@@ -269,7 +262,7 @@ export default class Framework extends React.Component {
                 menuItem: "Chart",
                 render: () => (
                   <LayoutBox key="chart" bg="backgrounds.1" expand height={500}>
-                    <ChartContainer />
+                    <ChartContainer onHide={() => this.onHidePanel("chart")} />
                   </LayoutBox>
                 )
               },
@@ -309,7 +302,7 @@ export default class Framework extends React.Component {
         <div>
           {header}
           <ResponsiveReactGridLayout
-            breakpoints={{ lg: 1630, md: 900, sm: 0 }}
+            breakpoints={{ lg: 1630, md: 992, sm: 0 }}
             cols={{ lg: 20, md: 16, sm: 2 }}
             rowHeight={24}
             layouts={this.state.layouts.asMutable()}
@@ -318,12 +311,14 @@ export default class Framework extends React.Component {
             containerPadding={[theme.space[1], theme.space[1]]}
             draggableHandle=".dragMe"
           >
-            {this.state.panels
-              .filter(p => p.visible)
-              .map(p => panelsRenderers[p.key]())}
+            {panels.filter(p => p.visible).map(p => panelsRenderers[p.key]())}
           </ResponsiveReactGridLayout>
         </div>
       )
     }
   }
 }
+
+export default connect(state => ({
+  panels: state.ui.panels
+}))(Framework)

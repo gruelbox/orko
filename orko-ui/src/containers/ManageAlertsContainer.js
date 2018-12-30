@@ -32,9 +32,8 @@ const lowStyle = {
 const lowPriceColumn = {
   id: "lowPrice",
   Header: "Low price",
-  Cell: ({ original }) => original.low
-    ? original.low.thresholdAsString
-    : "--",
+  Cell: ({ original }) =>
+    original.low ? original.low.thresholdAsString : "--",
   headerStyle: numberStyle,
   style: lowStyle,
   resizable: true,
@@ -44,9 +43,8 @@ const lowPriceColumn = {
 const highPriceColumn = {
   id: "highPrice",
   Header: "High price",
-  Cell: ({ original }) => original.high
-    ? original.high.thresholdAsString
-    : "--",
+  Cell: ({ original }) =>
+    original.high ? original.high.thresholdAsString : "--",
   headerStyle: numberStyle,
   style: highStyle,
   resizable: true,

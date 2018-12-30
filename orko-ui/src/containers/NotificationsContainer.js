@@ -60,8 +60,9 @@ const columns = [
   }
 ]
 
-const NotificationsContainer = ({ notifications, dispatch }) => (
+const NotificationsContainer = ({ notifications, dispatch, onHide }) => (
   <Section
+    draggable
     id="notifications"
     heading="Server Notifications"
     nopadding
@@ -75,6 +76,7 @@ const NotificationsContainer = ({ notifications, dispatch }) => (
         </Href>
       </Span>
     )}
+    onHide={onHide}
   >
     <ReactTable
       data={notifications}
@@ -84,10 +86,10 @@ const NotificationsContainer = ({ notifications, dispatch }) => (
             rowInfo.original.level === "ERROR"
               ? theme.colors.alert
               : rowInfo.original.level === "ALERT"
-                ? theme.colors.emphasis
-                : rowInfo.original.level === "TRACE"
-                  ? theme.colors.deemphasis
-                  : undefined
+              ? theme.colors.emphasis
+              : rowInfo.original.level === "TRACE"
+              ? theme.colors.deemphasis
+              : undefined
         }
       })}
       columns={columns}
