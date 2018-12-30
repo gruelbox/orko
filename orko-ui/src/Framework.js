@@ -130,12 +130,49 @@ class Framework extends React.Component {
   }
 
   onLayoutChange = (layout, layouts) => {
-    saveToLS("layouts", layouts)
-    this.setState({ layouts: Immutable.merge(baseLayouts, layouts) })
+    this.setState({ layouts: Immutable.merge(baseLayouts, layouts) }, () =>
+      saveToLS("layouts", this.state.layouts)
+    )
+  }
+
+  onAddedLayout = key => {
+    const match = it => it.i === key
+    const newLayouts = {
+      lg: baseLayouts.lg.find(match),
+      md: baseLayouts.md.find(match),
+      sm: baseLayouts.sm.find(match)
+    }
+    this.setState(
+      state => {
+        var lg = state.layouts.lg.asMutable()
+        var md = state.layouts.md.asMutable()
+        var sm = state.layouts.sm.asMutable()
+        if (!lg.find(match)) {
+          lg.push(newLayouts.lg)
+        }
+        if (!md.find(match)) {
+          md.push(newLayouts.md)
+        }
+        if (!sm.find(match)) {
+          sm.push(newLayouts.sm)
+        }
+        return {
+          layouts: Immutable({
+            lg,
+            md,
+            sm
+          })
+        }
+      },
+      () => saveToLS("layouts", this.state.layouts)
+    )
   }
 
   onChangePanels = panels => {
     this.props.dispatch(uiActions.changePanels(panels))
+    panels
+      .filter(panel => panel.visible)
+      .forEach(panel => this.onAddedLayout(panel.key))
   }
 
   onToggleViewSettings = () => {
