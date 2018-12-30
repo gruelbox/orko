@@ -5,31 +5,27 @@ import theme from "./theme"
 import { GlobalStyle } from "./theme"
 
 import { Provider as ReduxProvider } from "react-redux"
-import { compose, createStore, applyMiddleware, combineReducers } from "redux"
+import { compose, createStore, applyMiddleware } from "redux"
 
 import createHistory from "history/createBrowserHistory"
-import {
-  ConnectedRouter,
-  connectRouter,
-  routerMiddleware
-} from "connected-react-router"
+import { ConnectedRouter, routerMiddleware } from "connected-react-router"
 
 import { enableBatching } from "redux-batched-actions"
 
 import thunk from "redux-thunk"
-import * as reducers from "./store/reducers"
+import createRootReducer from "./store/reducers"
 import * as socket from "./store/socket/connect"
 
 import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"
-import Framework from "./Framework"
+import FrameworkContainer from "./FrameworkContainer"
 
 import * as authActions from "./store/auth/actions"
 
 const history = createHistory()
 
 const store = createStore(
-  enableBatching(connectRouter(history)(combineReducers(reducers))),
+  enableBatching(createRootReducer(history)),
   compose(
     applyMiddleware(routerMiddleware(history), thunk.withExtraArgument(socket))
   )
@@ -47,7 +43,7 @@ export default class App extends Component {
             <GlobalStyle />
             <ErrorContainer />
             <ConnectedRouter history={history}>
-              <Framework />
+              <FrameworkContainer />
             </ConnectedRouter>
             <AuthContainer />
           </>

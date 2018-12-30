@@ -41,7 +41,7 @@ class AddCoinContainer extends Component {
       <FixedModal
         data-orko="addCoinModal"
         closeIcon
-        onClose={() => this.props.history.goBack()}
+        onClose={() => this.props.history.push("/")}
       >
         <Modal.Header>
           <Icon name="bitcoin" />

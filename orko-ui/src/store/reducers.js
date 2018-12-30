@@ -11,17 +11,22 @@ import notifications from "./notifications/reducer"
 import ui from "./ui/reducer"
 import scripting from "./scripting/reducer"
 
-export {
-  auth,
-  exchanges,
-  coin,
-  coins,
-  focus,
-  job,
-  error,
-  ticker,
-  notifications,
-  ui,
-  socket,
-  scripting
-}
+import { combineReducers } from "redux"
+import { connectRouter } from "connected-react-router"
+
+export default history =>
+  combineReducers({
+    router: connectRouter(history),
+    auth,
+    exchanges,
+    coin,
+    coins,
+    focus,
+    job,
+    error,
+    ticker,
+    notifications,
+    ui,
+    socket,
+    scripting
+  })

@@ -17,7 +17,7 @@ class JobContainer extends React.Component {
       <FixedModal
         data-orko={"job/" + this.props.match.params.jobId}
         closeIcon
-        onClose={() => this.props.history.goBack()}
+        onClose={() => this.props.history.push("/")}
         style={{ height: "100%" }}
       >
         <Modal.Header>
