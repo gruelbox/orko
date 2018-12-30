@@ -10,15 +10,11 @@ const CHART_INTERVAL_KEY = "Chart.interval"
 
 const CONTAINER_ID = "tradingview-widget-container"
 
-const NewWindowChartContent = ({coin, url}) => (
+const NewWindowChartContent = ({ coin, url }) => (
   <Section id="chart" heading="Chart">
     <Para>TradingView does not support charts for this exchange.</Para>
     <Para>
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href={url}
-      >
+      <a target="_blank" rel="noopener noreferrer" href={url}>
         Open in {coin.exchange}
       </a>
     </Para>
@@ -40,7 +36,10 @@ const ChartInner = styled.div`
 
 class TradingViewChartContent extends Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
-    return this.props.coin.key !== nextProps.coin.key || this.props.interval !== nextProps.interval
+    return (
+      this.props.coin.key !== nextProps.coin.key ||
+      this.props.interval !== nextProps.interval
+    )
   }
 
   componentDidMount = () => {
@@ -74,7 +73,7 @@ class TradingViewChartContent extends Component {
       popup_height: "650",
       container_id: CONTAINER_ID,
       hide_side_toolbar: false,
-      studies: ["RSI@tv-basicstudies"]
+      studies: []
     })
   }
 
@@ -118,13 +117,29 @@ class Chart extends React.Component {
 
     if (coin.exchange === "kucoin") {
       return (
-        <NewWindowChartContent coin={coin} url={"https://www.kucoin.com/#/trade.pro/" + coin.base + "-" + coin.counter}/>
+        <NewWindowChartContent
+          coin={coin}
+          url={
+            "https://www.kucoin.com/#/trade.pro/" +
+            coin.base +
+            "-" +
+            coin.counter
+          }
+        />
       )
     }
 
     if (coin.exchange === "cryptopia") {
       return (
-        <NewWindowChartContent coin={coin} url={"https://www.cryptopia.co.nz/Exchange/?market=" + coin.base + "_" + coin.counter}/>
+        <NewWindowChartContent
+          coin={coin}
+          url={
+            "https://www.cryptopia.co.nz/Exchange/?market=" +
+            coin.base +
+            "_" +
+            coin.counter
+          }
+        />
       )
     }
 
