@@ -61,6 +61,7 @@ class JobsContainer extends React.Component {
           data-orko="onlycomplex"
           selected={this.state.selected === "onlycomplex"}
           onClick={() => this.setState({ selected: "onlycomplex" })}
+          title="Only show jobs which are not summarised elsewhere (such as alerts or simple server-side trades)"
         >
           Complex only
         </Tab>
@@ -68,6 +69,7 @@ class JobsContainer extends React.Component {
           data-orko="all"
           selected={this.state.selected === "all"}
           onClick={() => this.setState({ selected: "all" })}
+          title="Show all jobs running in the background on the server"
         >
           All
         </Tab>

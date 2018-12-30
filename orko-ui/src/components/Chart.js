@@ -136,24 +136,54 @@ class Chart extends React.Component {
         />
       )
     } else {
-      const Interval = ({ name, code, selected }) => (
+      const Interval = ({ name, code, selected, description }) => (
         <Tab
           selected={selected === code}
           onClick={() => {
             localStorage.setItem(CHART_INTERVAL_KEY, code)
             this.setState({ interval: code })
           }}
+          title={
+            "Select the " +
+            description +
+            " chart (this option will be remembered, unlike selecting the interval from the TradingView chart)"
+          }
         >
           {name}
         </Tab>
       )
       buttons = () => (
         <span>
-          <Interval selected={this.state.interval} code="W" name="W" />
-          <Interval selected={this.state.interval} code="D" name="D" />
-          <Interval selected={this.state.interval} code="240" name="4h" />
-          <Interval selected={this.state.interval} code="60" name="1h" />
-          <Interval selected={this.state.interval} code="15" name="15m" />
+          <Interval
+            selected={this.state.interval}
+            code="W"
+            name="W"
+            description="weekly"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="D"
+            name="D"
+            description="daily"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="240"
+            name="4h"
+            description="4 hour"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="60"
+            name="1h"
+            description="1 hour"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="15"
+            name="15m"
+            description="15 minute"
+          />
         </span>
       )
       content = (

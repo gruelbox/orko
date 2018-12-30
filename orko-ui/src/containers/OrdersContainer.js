@@ -17,12 +17,14 @@ class OrdersContainer extends React.Component {
       <Tab
         selected={this.state.selected === "open"}
         onClick={() => this.setState({ selected: "open" })}
+        title="Show open orders for the selected coin"
       >
         Open
       </Tab>
       <Tab
         selected={this.state.selected === "history"}
         onClick={() => this.setState({ selected: "history" })}
+        title="Show order history for the selected coin"
       >
         History
       </Tab>

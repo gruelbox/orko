@@ -23,6 +23,7 @@ export default class TradeSelector extends React.Component {
           data-orko="limit"
           selected={this.state.selected === "limit"}
           onClick={() => this.setState({ selected: "limit" })}
+          title="Simple limit orders"
         >
           Limit
         </Tab>
@@ -30,6 +31,7 @@ export default class TradeSelector extends React.Component {
           data-orko="stop"
           selected={this.state.selected === "stop"}
           onClick={() => this.setState({ selected: "stop" })}
+          title="Simple stop orders, processed either on the exchange or by Orko"
         >
           Stop
         </Tab>
@@ -37,6 +39,7 @@ export default class TradeSelector extends React.Component {
           data-orko="trailing"
           selected={this.state.selected === "trailing"}
           onClick={() => this.setState({ selected: "trailing" })}
+          title="Trailing stops, handled by Orko"
         >
           Trailing stop
         </Tab>
@@ -44,12 +47,14 @@ export default class TradeSelector extends React.Component {
           data-orko="stopTakeProfit"
           selected={this.state.selected === "oco"}
           onClick={() => this.setState({ selected: "oco" })}
+          title="Complex one-cancels-other orders"
         >
           OCO
         </Tab>
         <Tab
           selected={this.state.selected === "custom"}
           onClick={() => this.setState({ selected: "custom" })}
+          title="Custom scripted orders"
         >
           Custom script
         </Tab>
