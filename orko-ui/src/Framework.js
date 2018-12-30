@@ -72,7 +72,6 @@ export default ({
       panels={panels}
     />
   )
-  const Market = () => <MarketContainer allowAnimate={!isMobile} />
   const ManageAlerts = () => <ManageAlertsContainer mobile={isMobile} />
 
   const Settings = () =>
@@ -107,42 +106,53 @@ export default ({
   const panelsRenderers = {
     chart: () => (
       <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-        <ChartContainer onHide={() => onHidePanel("chart")} />
+        <ChartContainer onHide={isMobile ? null : () => onHidePanel("chart")} />
       </LayoutBox>
     ),
     openOrders: () => (
       <LayoutBox key="openOrders" bg="backgrounds.1">
-        <OrdersContainer onHide={() => onHidePanel("openOrders")} />
+        <OrdersContainer
+          onHide={isMobile ? null : () => onHidePanel("openOrders")}
+        />
       </LayoutBox>
     ),
     balance: () => (
       <LayoutBox key="balance" bg="backgrounds.1">
-        <BalanceContainer onHide={() => onHidePanel("balance")} />
+        <BalanceContainer
+          onHide={isMobile ? null : () => onHidePanel("balance")}
+        />
       </LayoutBox>
     ),
     tradeSelector: () => (
       <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-        <TradingContainer onHide={() => onHidePanel("tradeSelector")} />
+        <TradingContainer
+          onHide={isMobile ? null : () => onHidePanel("tradeSelector")}
+        />
       </LayoutBox>
     ),
     coins: () => (
       <LayoutBox key="coins" bg="backgrounds.1">
-        <CoinsContainer onHide={() => onHidePanel("coins")} />
+        <CoinsContainer onHide={isMobile ? null : () => onHidePanel("coins")} />
       </LayoutBox>
     ),
     jobs: () => (
       <LayoutBox key="jobs" bg="backgrounds.1">
-        <JobsContainer onHide={() => onHidePanel("jobs")} />
+        <JobsContainer onHide={isMobile ? null : () => onHidePanel("jobs")} />
       </LayoutBox>
     ),
     marketData: () => (
       <LayoutBox key="marketData" bg="backgrounds.1">
-        <Market onHide={() => onHidePanel("marketData")} />
+        <MarketContainer
+          allowAnimate={!isMobile}
+          onHide={isMobile ? null : () => onHidePanel("marketData")}
+        />
       </LayoutBox>
     ),
     notifications: () => (
       <LayoutBox key="notifications" bg="backgrounds.1">
-        <NotificationsContainer onHide={() => onHidePanel("notifications")} />
+        <NotificationsContainer
+          onHide={isMobile ? null : () => onHidePanel("notifications")}
+        />
       </LayoutBox>
     )
   }
@@ -165,7 +175,7 @@ export default ({
             },
             {
               menuItem: "Book",
-              render: () => <Market />
+              render: () => <MarketContainer allowAnimate={false} />
             },
             {
               menuItem: "Trading",
@@ -200,7 +210,7 @@ export default ({
         {header}
         <ResponsiveReactGridLayout
           breakpoints={{ lg: 1630, md: 992, sm: 0 }}
-          cols={{ lg: 20, md: 16, sm: 2 }}
+          cols={{ lg: 40, md: 32, sm: 4 }}
           rowHeight={24}
           layouts={layouts.asMutable()}
           onLayoutChange={onLayoutChange}
