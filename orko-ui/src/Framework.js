@@ -92,49 +92,61 @@ export default class Framework extends React.Component {
         </LayoutBox>
       ),
       openOrders: () => (
-        <LayoutBox key="openOrders">
+        <LayoutBox
+          key="openOrders"
+          data-grid={this.props.layoutsAsObj.openOrders}
+        >
           <Panel id="openOrders">
             <OrdersContainer />
           </Panel>
         </LayoutBox>
       ),
       balance: () => (
-        <LayoutBox key="balance">
+        <LayoutBox key="balance" data-grid={this.props.layoutsAsObj.balance}>
           <Panel id="balance">
             <BalanceContainer />
           </Panel>
         </LayoutBox>
       ),
       tradeSelector: () => (
-        <LayoutBox key="tradeSelector">
+        <LayoutBox
+          key="tradeSelector"
+          data-grid={this.props.layoutsAsObj.tradeSelector}
+        >
           <Panel id="tradeSelector">
             <TradingContainer />
           </Panel>
         </LayoutBox>
       ),
       coins: () => (
-        <LayoutBox key="coins">
+        <LayoutBox key="coins" data-grid={this.props.layoutsAsObj.coins}>
           <Panel id="coins">
             <CoinsContainer />
           </Panel>
         </LayoutBox>
       ),
       jobs: () => (
-        <LayoutBox key="jobs">
+        <LayoutBox key="jobs" data-grid={this.props.layoutsAsObj.jobs}>
           <Panel id="jobs">
             <JobsContainer />
           </Panel>
         </LayoutBox>
       ),
       marketData: () => (
-        <LayoutBox key="marketData">
+        <LayoutBox
+          key="marketData"
+          data-grid={this.props.layoutsAsObj.marketData}
+        >
           <Panel id="marketData">
             <MarketContainer allowAnimate={!this.props.isMobile} />
           </Panel>
         </LayoutBox>
       ),
       notifications: () => (
-        <LayoutBox key="notifications">
+        <LayoutBox
+          key="notifications"
+          data-grid={this.props.layoutsAsObj.notifications}
+        >
           <Panel id="notifications">
             <NotificationsContainer />
           </Panel>
