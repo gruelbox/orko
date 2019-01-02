@@ -6,7 +6,7 @@ const Tab = styled.button`
   border-radius: 2px;
   color: ${props => (props.selected ? "black" : props.theme.colors.fore)};
   background: ${props =>
-    props.selected ? rgba(255, 255, 255, 0.7) : rgba(255, 255, 255, 0.05)};
+    props.selected ? rgba(255, 255, 255, 0.9) : rgba(255, 255, 255, 0.05)};
   border-color: transparent;
   border-width: 2px;
   border-style: solid;
