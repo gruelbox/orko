@@ -1,7 +1,7 @@
 #!/bin/bash
+set -e
+./licences.sh
 mvn release:prepare \
-    -Dtag=0.8.5  \
     -DpreparationGoals=clean \
     -DautoVersionSubmodules=true
-    -Prelease \
-    -Darguments='-Prelease'
+    -Pintegration-test
