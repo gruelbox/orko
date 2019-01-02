@@ -4,15 +4,6 @@ html {
   height: 100%;
 }
 
-@media screen and (min-resolution: 120dpi) and (min-width: 501px) {
-  body {
-    transform: scale(0.8);
-    transform-origin: top left;
-    width: 125%;
-    height: 125%;
-  }
-}
-
 .react-grid-layout {
   position: relative;
   transition: height 200ms ease;
