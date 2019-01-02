@@ -8,12 +8,12 @@
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * ===============================================================================E
@@ -24,6 +24,7 @@ import * as notificationActions from "../notifications/actions"
 import * as errorActions from "../error/actions"
 import * as coinActions from "../coins/actions"
 import * as scriptActions from "../scripting/actions"
+import * as supportActions from "../support/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
@@ -75,9 +76,13 @@ function connect() {
     } else {
       await dispatch(notificationActions.trace("Connecting using main auth"))
     }
-    await dispatch(coinActions.fetch())
-    await dispatch(coinActions.fetchReferencePrices())
-    await dispatch(scriptActions.fetch())
+    var coinPromise = dispatch(coinActions.fetch())
+    var scriptsPromise = dispatch(scriptActions.fetch())
+    var metaPromise = dispatch(supportActions.fetchMetadata())
+    await coinPromise
+    await coinActions.fetchReferencePrices()
+    await scriptsPromise
+    await metaPromise
     await socket.connect()
   }
 }
