@@ -23,6 +23,7 @@ package com.gruelbox.orko.auth.jwt.login;
 
 import static org.jose4j.jws.AlgorithmIdentifiers.HMAC_SHA256;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.jose4j.jws.JsonWebSignature;
@@ -38,7 +39,7 @@ import io.dropwizard.auth.PrincipalImpl;
 public class TokenIssuer {
 
   public static final String XSRF_CLAIM = "xsrf";
-  
+
   private final byte[] secret;
   private final int expiry;
 
@@ -50,7 +51,7 @@ public class TokenIssuer {
 
   @VisibleForTesting
   public TokenIssuer(byte[] secret, int expiry) {
-    this.secret = secret;
+    this.secret = Arrays.copyOf(secret, secret.length);
     this.expiry = expiry;
   }
 

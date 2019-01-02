@@ -47,7 +47,7 @@ public class GenerateSecretKey {
         System.out.println(key);
         System.out.println("Now enter the current value from Google Authenticator:");
         String response = reader.readLine();
-        if (generator.checkKey(key, Integer.parseInt(response))) {
+        if (response != null && generator.checkKey(key, Integer.parseInt(response))) {
           System.out.println("Yep, that's working.");
           break;
         } else {
