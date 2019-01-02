@@ -1,2 +1,2 @@
 #!/bin/bash
-mvn license:update-file-header -Pintegration-test
+mvn license:format -Pintegration-test

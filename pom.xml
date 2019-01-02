@@ -200,7 +200,7 @@
     <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
     <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
     <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
-    <license.maven.plugin.version>1.16</license.maven.plugin.version>
+    <license.maven.plugin.version>3.0</license.maven.plugin.version>
     <spotbugs-maven-plugin.version>3.1.10</spotbugs-maven-plugin.version>
     <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
     <process.exec.maven.plugin.version>0.7</process.exec.maven.plugin.version>
@@ -530,29 +530,23 @@
           </executions>
         </plugin>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${license.maven.plugin.version}</version>
           <configuration>
-            <processStartTag>===============================================================================L
-            </processStartTag>
-            <processEndTag>===============================================================================E</processEndTag>
-            <sectionDelimiter>================================================================================</sectionDelimiter>
-            <licenseName>agpl_v3</licenseName>
-            <canUpdateCopyright>true</canUpdateCopyright>
-            <canUpdateDescription>true</canUpdateDescription>
-            <canUpdateLicense>true</canUpdateLicense>
+            <header>etc/HEADER</header>
             <includes>
               <include>**/*.java</include>
               <include>**/*.js</include>
+              <include>src</include>
             </includes>
             <excludes>
-              <excludes>**/*.xml</excludes>
+              <exclude>src/test/resources/**</exclude>
+              <exclude>src/main/resources/**</exclude>
+              <exclude>node_modules/**</exclude>
+              <exclude>node/**</exclude>
+              <exclude>build/**</exclude>
             </excludes>
-            <roots>
-              <root>src/main/java</root>
-              <root>src/test/java</root>
-            </roots>
           </configuration>
         </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->

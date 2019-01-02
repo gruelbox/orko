@@ -27,12 +27,12 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <configuration>
-            <roots>
-              <root>cypress</root>
-            </roots>
+            <includes>
+              <include>cypress/**</include>
+            </includes>
           </configuration>
         </plugin>
       </plugins>

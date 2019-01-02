@@ -17,15 +17,12 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <configuration>
             <excludes>
-              <exclude>**/semantic/**</exclude>
+              <exclude>src/semantic/**</exclude>
             </excludes>
-            <roots>
-              <root>src</root>
-            </roots>
           </configuration>
         </plugin>
       </plugins>
