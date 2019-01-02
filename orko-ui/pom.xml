@@ -32,7 +32,7 @@
               <phase>process-sources</phase>
               <configuration>
                 <excludes>
-                  <excludes>src/semantic/**</excludes>
+                  <exclude>src/semantic/**</exclude>
                 </excludes>
                 <roots>
                   <root>src</root>

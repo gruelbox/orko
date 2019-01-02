@@ -558,8 +558,8 @@
               <phase>process-sources</phase>
               <configuration>
                 <includes>
-                  <includes>**/*.java</includes>
-                  <includes>**/*.js</includes>
+                  <include>**/*.java</include>
+                  <include>**/*.js</include>
                 </includes>
                 <excludes>
                   <excludes>**/*.xml</excludes>
