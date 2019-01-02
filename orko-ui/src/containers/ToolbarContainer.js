@@ -31,6 +31,7 @@ const ToolbarContainer = props => {
       onLogout={() => props.dispatch(authActions.logout())}
       onClearWhitelist={() => props.dispatch(authActions.clearWhitelist())}
       onShowPanel={key => props.onTogglePanelVisible(key)}
+      balance={props.balance}
     />
   )
 }
@@ -43,6 +44,7 @@ export default connect((state, props) => {
     connected: state.socket.connected,
     updateFocusedField: state.focus.fn,
     ticker: getSelectedCoinTicker(state),
+    balance: state.coin.balance,
     coin,
     coinMetadata:
       coin && state.coins.meta ? state.coins.meta[coin.key] : undefined

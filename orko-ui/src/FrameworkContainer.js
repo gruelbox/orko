@@ -4,15 +4,16 @@ import * as uiActions from "./store/ui/actions"
 import { getAllPanels, getAllLayouts } from "./selectors/ui"
 import Framework from "./Framework"
 
-const windowToBreakpoint = () =>
-  window.innerWidth < 1630 ? (window.innerWidth < 992 ? "sm" : "md") : "lg"
+const windowToBreakpoint = width =>
+  width < 1630 ? (width < 992 ? "sm" : "md") : "lg"
 
 class FrameworkContainer extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       isMobile: window.innerWidth <= 500,
-      breakpoint: windowToBreakpoint(),
+      breakpoint: windowToBreakpoint(window.innerWidth),
+      width: window.innerWidth,
       showSettings: false
     }
   }
@@ -22,13 +23,15 @@ class FrameworkContainer extends React.Component {
   }
 
   handleWindowSizeChange = () => {
-    const isMobile = window.innerWidth <= 500
-    const breakpoint = windowToBreakpoint()
+    const width = window.innerWidth
+    const isMobile = width <= 500
+    const breakpoint = windowToBreakpoint(width)
     if (
       isMobile !== this.state.isMobile ||
-      breakpoint !== this.state.breakpoint
+      breakpoint !== this.state.breakpoint ||
+      width !== this.state.width
     )
-      this.setState({ isMobile, breakpoint })
+      this.setState({ isMobile, breakpoint, width })
   }
 
   onResetLayout = () => {
@@ -64,6 +67,7 @@ class FrameworkContainer extends React.Component {
     return (
       <Framework
         isMobile={this.state.isMobile}
+        width={this.state.width}
         showSettings={this.state.showSettings}
         panels={this.props.panels}
         layouts={this.props.layouts}

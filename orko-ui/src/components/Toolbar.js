@@ -9,6 +9,7 @@ import Href from "./primitives/Href"
 import Span from "./primitives/Span"
 
 import Ticker from "./Ticker"
+import Balance from "./Balance"
 
 const ToolbarBox = styled.div`
   display: flex;
@@ -82,7 +83,7 @@ const SignOutLink = ({ onClick }) => (
 const Panel = ({ panel, onClick }) => (
   <Href
     ml={2}
-    fontSize={4}
+    fontSize={3}
     color="deemphasis"
     title={"Show" + panel.key}
     fontWeight="bold"
@@ -121,7 +122,7 @@ const InvalidateLink = ({ onClick }) => (
 const RemainingSpace = styled.div`
   flex-shrink: 1;
   overflow: auto;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
   ${space};
 `
 
@@ -152,13 +153,15 @@ const Coin = ({ coin }) => (
 const Normal = ({
   ticker,
   coin,
+  balance,
   connected,
   hiddenPanels,
   updateFocusedField,
   onShowViewSettings,
   onLogout,
   onClearWhitelist,
-  onShowPanel
+  onShowPanel,
+  width
 }) => (
   <ToolbarBox p={0}>
     <HomeLink />
@@ -175,13 +178,31 @@ const Normal = ({
         }}
       />
     </RemainingSpace>
-    {hiddenPanels.map(panel => (
-      <Panel
-        key={panel.key}
-        panel={panel}
-        onClick={() => onShowPanel(panel.key)}
-      />
-    ))}
+    {hiddenPanels
+      .filter(p => p.key === "balance")
+      .map(panel => (
+        <>
+          <Panel
+            key={panel.key}
+            panel={panel}
+            onClick={() => onShowPanel(panel.key)}
+          />
+          {width >= 1440 && (
+            <div style={{ borderRight: "1px solid rgba(255, 255, 255, 0.2)" }}>
+              <Balance coin={coin} balance={balance} ticker={ticker} />
+            </div>
+          )}
+        </>
+      ))}
+    {hiddenPanels
+      .filter(p => p.key !== "balance")
+      .map(panel => (
+        <Panel
+          key={panel.key}
+          panel={panel}
+          onClick={() => onShowPanel(panel.key)}
+        />
+      ))}
     <TickerSocketState connected={connected} />
     <ScriptsLink />
     <ViewSettings onClick={onShowViewSettings} />
@@ -190,13 +211,7 @@ const Normal = ({
   </ToolbarBox>
 )
 
-const Mobile = ({
-  coin,
-  connected,
-  onOpenScripts,
-  onLogout,
-  onClearWhitelist
-}) => (
+const Mobile = ({ coin, connected, onLogout, onClearWhitelist }) => (
   <ToolbarBox>
     <HomeLink />
     <TickerSocketState connected={connected} />

@@ -158,6 +158,7 @@ export default class Framework extends React.Component {
   render() {
     var {
       isMobile,
+      width,
       panels,
       layouts,
       showSettings,
@@ -193,6 +194,7 @@ export default class Framework extends React.Component {
         onTogglePanelVisible={onTogglePanelVisible}
         on
         panels={panels}
+        width={width}
       />,
       <Route
         key="addCoin"

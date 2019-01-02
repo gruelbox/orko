@@ -50,7 +50,7 @@ const nameColumn = {
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
-  minWidth: 48
+  minWidth: 50
 }
 
 const priceColumn = {
@@ -64,7 +64,7 @@ const priceColumn = {
   headerStyle: numberStyle,
   style: numberStyle,
   resizable: true,
-  minWidth: 50,
+  minWidth: 56,
   sortable: false
 }
 
