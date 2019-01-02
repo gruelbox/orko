@@ -17,6 +17,8 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
@@ -30,6 +32,8 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 @Path("/db.zip")
 @Singleton
 public class DbResource implements WebResource {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DbResource.class);
 
   private final ConnectionResources connectionResources;
 
@@ -51,7 +55,8 @@ public class DbResource implements WebResource {
             IOUtils.copy(input, output);
           }
         } finally {
-          tempFile.delete();
+          if (!tempFile.delete())
+            LOGGER.warn("Failed to delete tempfile: {}", tempFile.getName());
         }
       }
     }).build();
