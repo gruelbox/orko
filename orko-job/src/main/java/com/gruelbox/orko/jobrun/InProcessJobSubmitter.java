@@ -49,7 +49,7 @@ public class InProcessJobSubmitter implements JobSubmitter {
     return job;
   }
 
-  public final class JobNotUniqueException extends Exception {
+  public static final class JobNotUniqueException extends Exception {
     private static final long serialVersionUID = 7113718773155036498L;
     JobNotUniqueException() {
       super("Job cannot be locked. Already exists or UUID re-used");
