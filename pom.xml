@@ -554,12 +554,16 @@
               <id>generate-license-headers</id>
               <goals>
                 <goal>update-file-header</goal>
-              </goals>
+              </goals> 
               <phase>process-sources</phase>
               <configuration>
                 <includes>
                   <includes>**/*.java</includes>
+                  <includes>**/*.js</includes>
                 </includes>
+                <excludes>
+                  <excludes>**/*.xml</excludes>
+                </excludes>
                 <roots>
                   <root>src/main/java</root>
                   <root>src/test/java</root>
