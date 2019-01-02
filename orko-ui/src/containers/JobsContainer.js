@@ -56,7 +56,7 @@ class JobsContainer extends React.Component {
     }
 
     var buttons = (
-      <span>
+      <>
         <Tab
           data-orko="onlycomplex"
           selected={this.state.selected === "onlycomplex"}
@@ -73,19 +73,13 @@ class JobsContainer extends React.Component {
         >
           All
         </Tab>
-      </span>
+      </>
     )
 
     return (
       <PageVisibility onChange={this.handleVisibilityChange}>
         <RenderIf condition={this.state.visible}>
-          <Section
-            draggable
-            id="jobs"
-            heading="Running Jobs"
-            buttons={() => buttons}
-            onHide={this.props.onHide}
-          >
+          <Section id="jobs" heading="Running Jobs" buttons={() => buttons}>
             {jobs}
           </Section>
         </RenderIf>

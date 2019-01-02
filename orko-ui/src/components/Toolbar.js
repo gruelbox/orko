@@ -79,6 +79,19 @@ const SignOutLink = ({ onClick }) => (
   </Href>
 )
 
+const Panel = ({ panel, onClick }) => (
+  <Href
+    ml={2}
+    fontSize={4}
+    color="deemphasis"
+    title={"Show" + panel.key}
+    fontWeight="bold"
+    onClick={onClick}
+  >
+    <Icon name={panel.icon} />
+  </Href>
+)
+
 const ScriptsLink = () => (
   <Link
     mx={2}
@@ -108,6 +121,7 @@ const InvalidateLink = ({ onClick }) => (
 const RemainingSpace = styled.div`
   flex-shrink: 1;
   overflow: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   ${space};
 `
 
@@ -139,11 +153,12 @@ const Normal = ({
   ticker,
   coin,
   connected,
+  hiddenPanels,
   updateFocusedField,
   onShowViewSettings,
-  onOpenScripts,
   onLogout,
-  onClearWhitelist
+  onClearWhitelist,
+  onShowPanel
 }) => (
   <ToolbarBox p={0}>
     <HomeLink />
@@ -160,6 +175,13 @@ const Normal = ({
         }}
       />
     </RemainingSpace>
+    {hiddenPanels.map(panel => (
+      <Panel
+        key={panel.key}
+        panel={panel}
+        onClick={() => onShowPanel(panel.key)}
+      />
+    ))}
     <TickerSocketState connected={connected} />
     <ScriptsLink />
     <ViewSettings onClick={onShowViewSettings} />

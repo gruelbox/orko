@@ -5,7 +5,7 @@ import { connect } from "react-redux"
 
 class TradingContainer extends React.Component {
   render() {
-    return <TradeSelector coin={this.props.coin} onHide={this.props.onHide} />
+    return <TradeSelector coin={this.props.coin} />
   }
 }
 

@@ -75,7 +75,7 @@ export default class JobShort extends React.Component {
         job.lastSyncPrice
       )
     } else if (job.jobType === jobTypes.ALERT) {
-      return "Send alert"
+      return "Send alert '" + job.message + "'"
     } else if (job.jobType === jobTypes.STATUS_UPDATE) {
       return "Status update"
     } else if (job.jobType === jobTypes.SCRIPT) {

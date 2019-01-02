@@ -169,13 +169,13 @@ class Chart extends React.Component {
           <Interval
             selected={this.state.interval}
             code="240"
-            name="4h"
+            name="4H"
             description="4 hour"
           />
           <Interval
             selected={this.state.interval}
             code="60"
-            name="1h"
+            name="1H"
             description="1 hour"
           />
           <Interval
@@ -191,13 +191,7 @@ class Chart extends React.Component {
       )
     }
     return (
-      <Section
-        draggable
-        id="chart"
-        heading="Chart"
-        buttons={buttons}
-        onHide={this.props.onHide}
-      >
+      <Section id="chart" heading="Chart" buttons={buttons}>
         {content}
       </Section>
     )

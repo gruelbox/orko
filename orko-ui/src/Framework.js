@@ -2,8 +2,8 @@ import React from "react"
 
 import { Route } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
+import { Rnd } from "react-rnd"
 import styled from "styled-components"
-import { color } from "styled-system"
 import { Tab } from "semantic-ui-react"
 import theme from "./theme"
 
@@ -22,13 +22,14 @@ import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
 import ChartContainer from "./containers/ChartContainer"
 import ViewSettings from "./components/ViewSettings"
+import { Provider as SectionProvider } from "./components/primitives/Section"
+import { isNull } from "util"
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
 const LayoutBox = styled.div`
-  ${color}
-  height: ${props => (props.height ? props.height + "px" : "auto")}
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, .2);
+  height: 100%;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
 `
 
 const PositioningWrapper = ({ mobile, children }) =>
@@ -54,173 +55,251 @@ const FloatingPositioningWrapper = styled.div`
   }
 `
 
-export default ({
-  isMobile,
-  panels,
-  layouts,
-  showSettings,
-  onToggleViewSettings,
-  onHidePanel,
-  onChangePanels,
-  onResetLayout,
-  onLayoutChange
-}) => {
-  const Tools = () => (
-    <ToolbarContainer
-      mobile={isMobile}
-      onShowViewSettings={onToggleViewSettings}
-      panels={panels}
-    />
-  )
-  const ManageAlerts = () => <ManageAlertsContainer mobile={isMobile} />
+export default class Framework extends React.Component {
+  panelsRenderers = isNull
 
-  const Settings = () =>
-    showSettings ? (
-      <ViewSettings
-        panels={panels}
-        onChangePanels={onChangePanels}
-        onClose={onToggleViewSettings}
-        onReset={onResetLayout}
-      />
-    ) : (
-      <React.Fragment />
+  constructor(props) {
+    super(props)
+
+    const icons = this.props.panels.reduce(function(accumulator, panel) {
+      accumulator[panel.key] = panel.icon
+      return accumulator
+    }, {})
+
+    const Panel = ({ id, children }) => (
+      <SectionProvider
+        value={{
+          draggable: true,
+          icon: icons[id],
+          onHide: this.props.isMobile
+            ? null
+            : () => this.props.onTogglePanelVisible(id),
+          onToggleAttached: this.props.isMobile
+            ? null
+            : () => this.props.onTogglePanelAttached(id)
+        }}
+      >
+        {children}
+      </SectionProvider>
     )
 
-  const ManageScripts = props => (
-    <ManageScriptsContainer {...props} key={props.match.params.id} />
-  )
-
-  const header = [
-    <Tools key="tools" />,
-    <Route key="addCoin" exact path="/addCoin" component={AddCoinContainer} />,
-    <Route key="scriptsNoId" exact path="/scripts" component={ManageScripts} />,
-    <Route key="scripts" exact path="/scripts/:id" component={ManageScripts} />,
-    <Route key="job" path="/job/:jobId" component={JobContainer} />,
-    <PositioningWrapper key="dialogs" mobile={isMobile}>
-      <Settings />
-      <ManageAlerts />
-      <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
-    </PositioningWrapper>
-  ]
-
-  const panelsRenderers = {
-    chart: () => (
-      <LayoutBox key="chart" bg="backgrounds.1" expand height={300}>
-        <ChartContainer onHide={isMobile ? null : () => onHidePanel("chart")} />
-      </LayoutBox>
-    ),
-    openOrders: () => (
-      <LayoutBox key="openOrders" bg="backgrounds.1">
-        <OrdersContainer
-          onHide={isMobile ? null : () => onHidePanel("openOrders")}
-        />
-      </LayoutBox>
-    ),
-    balance: () => (
-      <LayoutBox key="balance" bg="backgrounds.1">
-        <BalanceContainer
-          onHide={isMobile ? null : () => onHidePanel("balance")}
-        />
-      </LayoutBox>
-    ),
-    tradeSelector: () => (
-      <LayoutBox key="tradeSelector" bg="backgrounds.1" expand>
-        <TradingContainer
-          onHide={isMobile ? null : () => onHidePanel("tradeSelector")}
-        />
-      </LayoutBox>
-    ),
-    coins: () => (
-      <LayoutBox key="coins" bg="backgrounds.1">
-        <CoinsContainer onHide={isMobile ? null : () => onHidePanel("coins")} />
-      </LayoutBox>
-    ),
-    jobs: () => (
-      <LayoutBox key="jobs" bg="backgrounds.1">
-        <JobsContainer onHide={isMobile ? null : () => onHidePanel("jobs")} />
-      </LayoutBox>
-    ),
-    marketData: () => (
-      <LayoutBox key="marketData" bg="backgrounds.1">
-        <MarketContainer
-          allowAnimate={!isMobile}
-          onHide={isMobile ? null : () => onHidePanel("marketData")}
-        />
-      </LayoutBox>
-    ),
-    notifications: () => (
-      <LayoutBox key="notifications" bg="backgrounds.1">
-        <NotificationsContainer
-          onHide={isMobile ? null : () => onHidePanel("notifications")}
-        />
-      </LayoutBox>
-    )
+    this.panelsRenderers = {
+      chart: () => (
+        <LayoutBox key="chart" data-grid={this.props.layoutsAsObj.chart}>
+          <Panel id="chart">
+            <ChartContainer />
+          </Panel>
+        </LayoutBox>
+      ),
+      openOrders: () => (
+        <LayoutBox key="openOrders">
+          <Panel id="openOrders">
+            <OrdersContainer />
+          </Panel>
+        </LayoutBox>
+      ),
+      balance: () => (
+        <LayoutBox key="balance">
+          <Panel id="balance">
+            <BalanceContainer />
+          </Panel>
+        </LayoutBox>
+      ),
+      tradeSelector: () => (
+        <LayoutBox key="tradeSelector">
+          <Panel id="tradeSelector">
+            <TradingContainer />
+          </Panel>
+        </LayoutBox>
+      ),
+      coins: () => (
+        <LayoutBox key="coins">
+          <Panel id="coins">
+            <CoinsContainer />
+          </Panel>
+        </LayoutBox>
+      ),
+      jobs: () => (
+        <LayoutBox key="jobs">
+          <Panel id="jobs">
+            <JobsContainer />
+          </Panel>
+        </LayoutBox>
+      ),
+      marketData: () => (
+        <LayoutBox key="marketData">
+          <Panel id="marketData">
+            <MarketContainer allowAnimate={!this.props.isMobile} />
+          </Panel>
+        </LayoutBox>
+      ),
+      notifications: () => (
+        <LayoutBox key="notifications">
+          <Panel id="notifications">
+            <NotificationsContainer />
+          </Panel>
+        </LayoutBox>
+      )
+    }
   }
 
-  if (isMobile) {
-    return (
-      <div style={{ height: "100%" }}>
-        {header}
-        <Tab
-          menu={{ inverted: true, color: "blue" }}
-          panes={[
-            { menuItem: "Coins", render: panelsRenderers.coins },
-            {
-              menuItem: "Chart",
-              render: () => (
-                <LayoutBox key="chart" bg="backgrounds.1" expand height={500}>
-                  <ChartContainer />
-                </LayoutBox>
-              )
-            },
-            {
-              menuItem: "Book",
-              render: () => <MarketContainer allowAnimate={false} />
-            },
-            {
-              menuItem: "Trading",
-              render: () => (
-                <React.Fragment>
-                  <div style={{ marginBottom: "4px" }}>
-                    {panelsRenderers.balance()}
-                  </div>
-                  {panelsRenderers.tradeSelector()}
-                </React.Fragment>
-              )
-            },
-            { menuItem: "Orders", render: panelsRenderers.openOrders },
-            {
-              menuItem: "Status",
-              render: () => (
-                <div>
-                  <div style={{ marginBottom: "4px" }}>
-                    {panelsRenderers.notifications()}
-                  </div>
-                  {panelsRenderers.jobs()}
-                </div>
-              )
-            }
-          ]}
+  render() {
+    var {
+      isMobile,
+      panels,
+      layouts,
+      showSettings,
+      onToggleViewSettings,
+      onTogglePanelVisible,
+      onResetLayout,
+      onLayoutChange,
+      onMovePanel,
+      onResizePanel
+    } = this.props
+
+    const Settings = () =>
+      showSettings ? (
+        <ViewSettings
+          panels={panels}
+          onTogglePanelVisible={onTogglePanelVisible}
+          onClose={onToggleViewSettings}
+          onReset={onResetLayout}
         />
-      </div>
+      ) : (
+        <React.Fragment />
+      )
+
+    const ManageScripts = props => (
+      <ManageScriptsContainer {...props} key={props.match.params.id} />
     )
-  } else {
-    return (
-      <div>
-        {header}
-        <ResponsiveReactGridLayout
-          breakpoints={{ lg: 1630, md: 992, sm: 0 }}
-          cols={{ lg: 40, md: 32, sm: 4 }}
-          rowHeight={24}
-          layouts={layouts.asMutable()}
-          onLayoutChange={onLayoutChange}
-          margin={[theme.space[1], theme.space[1]]}
-          containerPadding={[theme.space[1], theme.space[1]]}
-          draggableHandle=".dragMe"
-        >
-          {panels.filter(p => p.visible).map(p => panelsRenderers[p.key]())}
-        </ResponsiveReactGridLayout>
-      </div>
-    )
+
+    const header = [
+      <ToolbarContainer
+        key="tools"
+        mobile={isMobile}
+        onShowViewSettings={onToggleViewSettings}
+        onTogglePanelVisible={onTogglePanelVisible}
+        on
+        panels={panels}
+      />,
+      <Route
+        key="addCoin"
+        exact
+        path="/addCoin"
+        component={AddCoinContainer}
+      />,
+      <Route
+        key="scriptsNoId"
+        exact
+        path="/scripts"
+        component={ManageScripts}
+      />,
+      <Route
+        key="scripts"
+        exact
+        path="/scripts/:id"
+        component={ManageScripts}
+      />,
+      <Route key="job" path="/job/:jobId" component={JobContainer} />,
+      <PositioningWrapper key="dialogs" mobile={isMobile}>
+        <Settings />
+        <ManageAlertsContainer mobile={isMobile} />
+        <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
+      </PositioningWrapper>
+    ]
+
+    if (isMobile) {
+      return (
+        <div style={{ height: "100%" }}>
+          {header}
+          <Tab
+            menu={{ inverted: true, color: "blue" }}
+            panes={[
+              { menuItem: "Coins", render: this.panelsRenderers.coins },
+              {
+                menuItem: "Chart",
+                render: () => <ChartContainer />
+              },
+              {
+                menuItem: "Book",
+                render: () => <MarketContainer allowAnimate={false} />
+              },
+              {
+                menuItem: "Trading",
+                render: () => (
+                  <React.Fragment>
+                    <div style={{ marginBottom: "4px" }}>
+                      {this.panelsRenderers.balance()}
+                    </div>
+                    {this.panelsRenderers.tradeSelector()}
+                  </React.Fragment>
+                )
+              },
+              { menuItem: "Orders", render: this.panelsRenderers.openOrders },
+              {
+                menuItem: "Status",
+                render: () => (
+                  <div>
+                    <div style={{ marginBottom: "4px" }}>
+                      {this.panelsRenderers.notifications()}
+                    </div>
+                    {this.panelsRenderers.jobs()}
+                  </div>
+                )
+              }
+            ]}
+          />
+        </div>
+      )
+    } else {
+      return (
+        <>
+          {header}
+          <div style={{ padding: "-" + theme.space[1] + "px" }}>
+            <ResponsiveReactGridLayout
+              breakpoints={{ lg: 1630, md: 992, sm: 0 }}
+              cols={{ lg: 40, md: 32, sm: 4 }}
+              rowHeight={24}
+              layouts={layouts.asMutable()}
+              onLayoutChange={onLayoutChange}
+              margin={[theme.space[1], theme.space[1]]}
+              containerPadding={[theme.space[1], theme.space[1]]}
+              draggableHandle=".dragMe"
+            >
+              {panels
+                .filter(p => !p.detached)
+                .filter(p => p.visible)
+                .map(p => this.panelsRenderers[p.key]())}
+            </ResponsiveReactGridLayout>
+            {panels
+              .filter(p => p.detached)
+              .filter(p => p.visible)
+              .map(p => (
+                <Rnd
+                  key={p.key}
+                  bounds="parent"
+                  style={{
+                    border: "1px solid " + theme.colors.canvas,
+                    boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)"
+                  }}
+                  dragHandleClassName="dragMe"
+                  position={{ x: p.x ? p.x : 100, y: p.y ? p.y : 100 }}
+                  size={{ width: p.w ? p.w : 400, height: p.h ? p.h : 400 }}
+                  onDragStop={(e, d) => onMovePanel(p.key, d)}
+                  onResizeStop={(e, direction, ref, delta, position) => {
+                    onResizePanel(p.key, {
+                      width: ref.offsetWidth,
+                      height: ref.offsetHeight,
+                      ...position
+                    })
+                  }}
+                >
+                  {this.panelsRenderers[p.key]()}
+                </Rnd>
+              ))}
+          </div>
+        </>
+      )
+    }
   }
 }

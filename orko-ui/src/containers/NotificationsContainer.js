@@ -60,9 +60,8 @@ const columns = [
   }
 ]
 
-const NotificationsContainer = ({ notifications, dispatch, onHide }) => (
+const NotificationsContainer = ({ notifications, dispatch }) => (
   <Section
-    draggable
     id="notifications"
     heading="Server Notifications"
     nopadding
@@ -76,7 +75,6 @@ const NotificationsContainer = ({ notifications, dispatch, onHide }) => (
         </Href>
       </Span>
     )}
-    onHide={onHide}
   >
     <ReactTable
       data={notifications}

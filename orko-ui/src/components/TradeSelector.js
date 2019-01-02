@@ -80,13 +80,7 @@ export default class TradeSelector extends React.Component {
     }
 
     return (
-      <Section
-        draggable
-        id="trading"
-        heading="Trading"
-        buttons={() => buttons}
-        onHide={this.props.onHide}
-      >
+      <Section id="trading" heading="Trading" buttons={() => buttons}>
         {content}
       </Section>
     )

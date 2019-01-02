@@ -1,7 +1,9 @@
 import React from "react"
 import { connect } from "react-redux"
-import Section from "../components/primitives/Section"
-import Modal from "../components/primitives/Modal"
+import Section, {
+  Provider as SectionProvider
+} from "../components/primitives/Section"
+import Window from "../components/primitives/Window"
 import Href from "../components/primitives/Href"
 import CreateAlertContainer from "./CreateAlertContainer"
 import * as uiActions from "../store/ui/actions"
@@ -107,27 +109,19 @@ class ManageAlertsContainer extends React.Component {
         job.tickTrigger.counter === coin.counter
     )
     return (
-      <Modal mobile={this.props.mobile}>
-        <Section
-          id="manageAlerts"
-          heading={"Manage alerts for " + coin.name}
-          buttons={() => (
-            <Href
-              data-orko="close"
-              title="Close"
-              onClick={() => this.props.dispatch(uiActions.closeAlerts())}
-            >
-              <Icon fitted name="close" />
-            </Href>
-          )}
+      <Window mobile={this.props.mobile}>
+        <SectionProvider
+          value={{ onHide: () => this.props.dispatch(uiActions.closeAlerts()) }}
         >
-          <Alerts
-            alerts={alerts}
-            onDelete={job => this.props.dispatch(jobActions.deleteJob(job))}
-          />
-          <CreateAlertContainer coin={coin} />
-        </Section>
-      </Modal>
+          <Section id="manageAlerts" heading={"Manage alerts for " + coin.name}>
+            <Alerts
+              alerts={alerts}
+              onDelete={job => this.props.dispatch(jobActions.deleteJob(job))}
+            />
+            <CreateAlertContainer coin={coin} />
+          </Section>
+        </SectionProvider>
+      </Window>
     )
   }
 }

@@ -5,6 +5,7 @@ import Toolbar from "../components/Toolbar"
 
 import { formatNumber } from "../util/numberUtils"
 import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
+import { getHiddenPanels } from "../selectors/ui"
 import * as authActions from "../store/auth/actions"
 
 const ToolbarContainer = props => {
@@ -29,6 +30,7 @@ const ToolbarContainer = props => {
       {...props}
       onLogout={() => props.dispatch(authActions.logout())}
       onClearWhitelist={() => props.dispatch(authActions.clearWhitelist())}
+      onShowPanel={key => props.onTogglePanelVisible(key)}
     />
   )
 }
@@ -36,6 +38,7 @@ const ToolbarContainer = props => {
 export default connect((state, props) => {
   const coin = getSelectedCoin(state)
   return {
+    hiddenPanels: getHiddenPanels(state),
     errors: state.error.errorBackground,
     connected: state.socket.connected,
     updateFocusedField: state.focus.fn,

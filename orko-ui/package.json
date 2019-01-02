@@ -17,6 +17,7 @@
     "react-grid-layout": "^0.16.6",
     "react-page-visibility": "^3.0.0",
     "react-redux": "^6.0.0",
+    "react-rnd": "^9.0.4",
     "react-router-dom": "^4.3.1",
     "react-scripts": "2.1.1",
     "react-table": "^6.8.6",

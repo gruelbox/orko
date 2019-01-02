@@ -31,7 +31,7 @@ const exchangeColumn = {
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
-  minWidth: 42
+  minWidth: 40
 }
 
 const nameColumn = {

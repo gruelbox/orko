@@ -4,6 +4,7 @@ import { color } from "styled-system"
 import { Icon } from "semantic-ui-react"
 import Heading from "./Heading"
 import Href from "./Href"
+import Span from "./Span"
 
 const SectionBox = styled.section`
   ${color} margin: 0;
@@ -11,6 +12,7 @@ const SectionBox = styled.section`
   height: 100%;
   display: flex;
   flex-direction: column;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
 `
 
 const SectionHeadingBox = styled.div`
@@ -19,11 +21,15 @@ const SectionHeadingBox = styled.div`
   padding: ${props => props.theme.space[2] + "px"};
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  box-shadow: 0 2px 15px 0 rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
 `
 
 const SectionInner = styled.section`
+  background-color: ${props => props.theme.colors.backgrounds[1]};
   padding-top: ${props => (props.nopadding ? 0 : "10px")};
   padding-bottom: ${props =>
     props.nopadding ? 0 : props.theme.space[2] + "px"};
@@ -40,46 +46,84 @@ const SectionInner = styled.section`
     props.scroll === "vertical" || props.scroll === "both" ? "scroll" : "auto"};
 `
 
+const FloatingIcon = styled.div`
+  position: absolute;
+  font-size: 36px;
+  top: 8px;
+  right: 30px;
+  z-index: -1;
+  opacity: 0.1;
+  color: black;
+`
+
 class Section extends React.Component {
   render() {
     return (
-      <SectionBox>
-        <SectionHeadingBox data-orko={"section/" + this.props.id + "/tabs"}>
-          <Heading p={0} my={0} ml={0} mr={3} color="heading">
-            {this.props.draggable && (
-              <Icon
-                name="arrows alternate"
-                className="dragMe"
-                title="Drag to move"
-              />
-            )}
-            {this.props.heading}
-          </Heading>
-          <div>
-            {this.props.buttons && this.props.buttons()}
-            {this.props.onHide && (
-              <Href
-                data-orko={"section/" + this.props.id + "/hide"}
-                ml={2}
-                onClick={this.props.onHide}
-                title="Hide this panel (it can be shown again from View Settings)"
-              >
-                <Icon name="hide" />
-              </Href>
-            )}
-          </div>
-        </SectionHeadingBox>
-        <SectionInner
-          data-orko={"section/" + this.props.id}
-          scroll={this.props.scroll}
-          expand={this.props.expand}
-          nopadding={this.props.nopadding}
-        >
-          {this.props.children}
-        </SectionInner>
-      </SectionBox>
+      <Context.Consumer>
+        {context => (
+          <SectionBox>
+            <SectionHeadingBox
+              className="dragMe"
+              data-orko={"section/" + this.props.id + "/tabs"}
+            >
+              <Heading p={0} my={0} ml={0} mr={3} color="heading">
+                {context && !!context.onHide && (
+                  <Href
+                    data-orko={"section/" + this.props.id + "/hide"}
+                    onClick={context.onHide}
+                    title="Hide this panel (it can be shown again from View Settings)"
+                    fontSize={2}
+                    color="deemphasis"
+                  >
+                    <Icon name="close" />
+                  </Href>
+                )}
+                {context && context.draggable && !!context.onToggleAttached && (
+                  <Href
+                    data-orko={"section/" + this.props.id + "/toggleAttached"}
+                    fontSize={2}
+                    color="deemphasis"
+                    onClick={context.onToggleAttached}
+                  >
+                    <Icon
+                      name="external square alternate"
+                      title="Detach/detach window"
+                    />
+                  </Href>
+                )}
+                <Span
+                  ml={
+                    context && (!!context.onHide || !!context.draggable) ? 1 : 0
+                  }
+                >
+                  {this.props.heading}
+                </Span>
+                {context && context.icon && (
+                  <FloatingIcon>
+                    <Icon name={context.icon} title={this.props.heading} />
+                  </FloatingIcon>
+                )}
+              </Heading>
+              <div style={{ whiteSpace: "nowrap" }}>
+                {this.props.buttons && this.props.buttons()}
+              </div>
+            </SectionHeadingBox>
+            <SectionInner
+              data-orko={"section/" + this.props.id}
+              scroll={this.props.scroll}
+              expand={this.props.expand}
+              nopadding={this.props.nopadding}
+            >
+              {this.props.children}
+            </SectionInner>
+          </SectionBox>
+        )}
+      </Context.Consumer>
     )
   }
 }
 
 export default Section
+
+const Context = React.createContext("Section")
+export const Provider = Context.Provider

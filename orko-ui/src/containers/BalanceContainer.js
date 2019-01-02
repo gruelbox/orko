@@ -7,12 +7,7 @@ import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
 class BalanceContainer extends React.Component {
   render() {
     return (
-      <Section
-        draggable
-        id="balance"
-        heading="Balances"
-        onHide={this.props.onHide}
-      >
+      <Section id="balance" heading="Balances">
         <Balance
           coin={this.props.coin}
           balance={this.props.balance}

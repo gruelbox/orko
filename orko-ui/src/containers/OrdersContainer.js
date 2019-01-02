@@ -37,12 +37,10 @@ class OrdersContainer extends React.Component {
         {visible => (
           <RenderIf condition={visible}>
             <Section
-              draggable
               nopadding
               id="orders"
               heading="Orders"
               buttons={this.buttons}
-              onHide={this.props.onHide}
             >
               {this.state.selected === "open" ? (
                 <OpenOrdersContainer />

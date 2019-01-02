@@ -23,14 +23,7 @@ const CoinsCointainer = ({ data, dispatch, onHide }) => (
   <GetPageVisibility>
     {visible => (
       <RenderIf condition={visible}>
-        <Section
-          draggable
-          id="coinList"
-          heading="Coins"
-          nopadding
-          buttons={buttons}
-          onHide={onHide}
-        >
+        <Section id="coinList" heading="Coins" nopadding buttons={buttons}>
           <Coins
             data={data}
             onRemove={coin => dispatch(coinsActions.remove(coin))}

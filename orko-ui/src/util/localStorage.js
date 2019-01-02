@@ -18,6 +18,7 @@ export function getValueFromLS(key) {
 
 export function saveToLS(key, value) {
   saveValueToLS(key, JSON.stringify(value))
+  return value
 }
 
 export function saveValueToLS(key, value) {

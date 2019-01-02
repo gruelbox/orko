@@ -75,7 +75,7 @@ context("Coins", () => {
     })
     cy.o("errorModal").should("not.exist")
     cy.o("section/manageAlerts/tabs").within(() => {
-      cy.o("close").click()
+      cy.o("section/manageAlerts/hide").click()
     })
     cy.o("section/manageAlerts").should("not.exist")
     cy.o("section/coinList").within(() => {

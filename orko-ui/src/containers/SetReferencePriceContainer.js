@@ -2,13 +2,13 @@ import React, { Component } from "react"
 
 import { connect } from "react-redux"
 
-import Section from "../components/primitives/Section"
-import Modal from "../components/primitives/Modal"
-import Href from "../components/primitives/Href"
+import Section, {
+  Provider as SectionProvider
+} from "../components/primitives/Section"
+import Window from "../components/primitives/Window"
 import * as uiActions from "../store/ui/actions"
 import * as coinsActions from "../store/coins/actions"
 import * as focusActions from "../store/focus/actions"
-import { Icon } from "semantic-ui-react"
 import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
@@ -50,52 +50,50 @@ class SetReferencePriceContainer extends Component {
       isValidNumber(this.state.price) &&
       this.state.price > 0
     return (
-      <Modal mobile={this.props.mobile}>
-        <Section
-          id="referencePrice"
-          heading={"Set reference price for " + this.props.coin.name}
-          buttons={() => (
-            <Href
-              title="Close"
-              onClick={() =>
-                this.props.dispatch(uiActions.closeReferencePrice())
-              }
-            >
-              <Icon fitted name="close" />
-            </Href>
-          )}
+      <Window mobile={this.props.mobile}>
+        <SectionProvider
+          value={{
+            onHide: () => this.props.dispatch(uiActions.closeReferencePrice())
+          }}
         >
-          <Form
-            buttons={() => (
-              <>
-                <Button data-orko="doClear" onClick={this.onClear}>
-                  Clear
-                </Button>
-                <Button
-                  data-orko="doSubmit"
-                  disabled={!ready}
-                  onClick={this.onSubmit}
-                >
-                  Set
-                </Button>
-              </>
-            )}
+          <Section
+            id="referencePrice"
+            heading={"Set reference price for " + this.props.coin.name}
           >
-            <Input
-              id="price"
-              error={ready}
-              label="Reference price"
-              type="number"
-              placeholder="Enter price..."
-              value={
-                this.state.price ? this.state.price : this.props.referencePrice
-              }
-              onChange={this.onChangePrice}
-              onFocus={this.onFocus}
-            />
-          </Form>
-        </Section>
-      </Modal>
+            <Form
+              buttons={() => (
+                <>
+                  <Button data-orko="doClear" onClick={this.onClear}>
+                    Clear
+                  </Button>
+                  <Button
+                    data-orko="doSubmit"
+                    disabled={!ready}
+                    onClick={this.onSubmit}
+                  >
+                    Set
+                  </Button>
+                </>
+              )}
+            >
+              <Input
+                id="price"
+                error={ready}
+                label="Reference price"
+                type="number"
+                placeholder="Enter price..."
+                value={
+                  this.state.price
+                    ? this.state.price
+                    : this.props.referencePrice
+                }
+                onChange={this.onChangePrice}
+                onFocus={this.onFocus}
+              />
+            </Form>
+          </Section>
+        </SectionProvider>
+      </Window>
     )
   }
 }

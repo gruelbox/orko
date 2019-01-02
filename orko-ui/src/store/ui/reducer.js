@@ -2,26 +2,149 @@ import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 import { getFromLS, saveToLS } from "../../util/localStorage"
 
-const basePanels = Immutable([
-  { key: "coins", title: "Coins", visible: true },
-  { key: "jobs", title: "Jobs", visible: true },
-  { key: "chart", title: "Chart", visible: true },
-  { key: "openOrders", title: "Orders", visible: true },
-  { key: "balance", title: "Balance", visible: true },
-  { key: "tradeSelector", title: "Trading", visible: true },
-  { key: "marketData", title: "Market", visible: true },
-  { key: "notifications", title: "Notifications", visible: true }
-])
+const basePanelMetadata = Immutable({
+  coins: {
+    title: "Coins",
+    icon: "bitcoin"
+  },
+  jobs: {
+    title: "Jobs",
+    icon: "tasks"
+  },
+  chart: {
+    title: "Chart",
+    icon: "chart bar outline"
+  },
+  openOrders: {
+    title: "Orders",
+    icon: "shopping cart"
+  },
+  balance: {
+    title: "Balance",
+    icon: "balance"
+  },
+  tradeSelector: {
+    title: "Trading",
+    icon: "call"
+  },
+  marketData: {
+    title: "Market",
+    icon: "book"
+  },
+  notifications: {
+    title: "Notifications",
+    icon: "warning circle"
+  }
+})
+
+const basePanels = Immutable.merge(
+  {
+    coins: {
+      key: "coins",
+      visible: true,
+      detached: false
+    },
+    jobs: {
+      key: "jobs",
+      visible: true,
+      detached: false
+    },
+    chart: {
+      key: "chart",
+      visible: true,
+      detached: false
+    },
+    openOrders: {
+      key: "openOrders",
+      visible: true,
+      detached: false
+    },
+    balance: {
+      key: "balance",
+      visible: true,
+      detached: false
+    },
+    tradeSelector: {
+      key: "tradeSelector",
+      visible: true,
+      detached: false
+    },
+    marketData: {
+      key: "marketData",
+      visible: true,
+      detached: false
+    },
+    notifications: {
+      key: "notifications",
+      visible: true,
+      detached: false
+    }
+  },
+  basePanelMetadata,
+  { deep: true }
+)
+
+const baseLayouts = Immutable({
+  lg: {
+    coins: { i: "coins", x: 0, y: 100, w: 8, h: 22 },
+    notifications: { i: "notifications", x: 0, y: 200, w: 8, h: 9 },
+    chart: { i: "chart", x: 8, y: 100, w: 18, h: 18 },
+    balance: { i: "balance", x: 8, y: 200, w: 18, h: 4 },
+    tradeSelector: { i: "tradeSelector", x: 8, y: 300, w: 18, h: 9 },
+    marketData: { i: "marketData", x: 26, y: 100, w: 14, h: 11 },
+    openOrders: { i: "openOrders", x: 26, y: 200, w: 14, h: 11 },
+    jobs: { i: "jobs", x: 26, y: 300, w: 14, h: 9 }
+  },
+  md: {
+    chart: { i: "chart", x: 0, y: 100, w: 20, h: 13 },
+    openOrders: { i: "openOrders", x: 0, y: 200, w: 20, h: 5 },
+    balance: { i: "balance", x: 0, y: 300, w: 20, h: 4 },
+    tradeSelector: { i: "tradeSelector", x: 0, y: 400, w: 20, h: 9 },
+    jobs: { i: "coins", x: 20, y: 100, w: 12, h: 11 },
+    marketData: { i: "marketData", x: 20, y: 200, w: 12, h: 8 },
+    coins: { i: "jobs", x: 20, y: 300, w: 12, h: 5 },
+    notifications: { i: "notifications", x: 20, y: 400, w: 12, h: 7 }
+  },
+  sm: {
+    chart: { i: "chart", x: 0, y: 100, w: 4, h: 12 },
+    openOrders: { i: "openOrders", x: 0, y: 200, w: 4, h: 6 },
+    balance: { i: "balance", x: 0, y: 300, w: 4, h: 4 },
+    tradeSelector: { i: "tradeSelector", x: 0, y: 400, w: 4, h: 9 },
+    coins: { i: "coins", x: 0, y: 500, w: 4, h: 6 },
+    jobs: { i: "jobs", x: 0, y: 600, w: 4, h: 6 },
+    marketData: { i: "marketData", x: 0, y: 700, w: 4, h: 6 },
+    notifications: { i: "notifications", x: 0, y: 800, w: 4, h: 6 }
+  }
+})
 
 const loadedPanels = getFromLS("panels")
+const loadedLayouts = getFromLS("layouts.2")
 
 const initialState = Immutable({
   alertsCoin: null,
   referencePriceCoin: null,
-  panels: loadedPanels === null ? basePanels : loadedPanels
+  panels: Immutable.merge(
+    loadedPanels === null ? basePanels : loadedPanels,
+    basePanelMetadata,
+    { deep: true }
+  ),
+  layouts: loadedLayouts === null ? baseLayouts : loadedLayouts
 })
 
 export default function reduce(state = initialState, action = {}) {
+  const panelsUpdate = (key, partial) =>
+    Immutable.merge(state, {
+      panels: saveToLS(
+        "panels",
+        Immutable.merge(
+          state.panels,
+          {
+            [key]: partial
+          },
+          { deep: true }
+        )
+      )
+    })
   switch (action.type) {
     case types.OPEN_ALERTS:
       return Immutable.merge(state, { alertsCoin: action.payload })
@@ -31,23 +154,69 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, { referencePriceCoin: action.payload })
     case types.CLOSE_REFERENCE_PRICE:
       return Immutable.merge(state, { referencePriceCoin: null })
-    case types.CHANGE_PANELS:
-      const panels = action.payload
-      const reducer = toReduce =>
-        toReduce.reduce(function(accumulator, panel) {
-          accumulator[panel.key] = panel
-          return accumulator
-        }, {})
-      var current = reducer(state.panels)
-      var changes = reducer(panels)
-      const updated = Immutable(
-        Object.values(Immutable.merge(current, changes, { deep: true }))
-      )
-      saveToLS("panels", updated)
-      return Immutable.merge(state, { panels: updated })
+    case types.TOGGLE_PANEL_ATTACHED:
+      return panelsUpdate(action.payload, {
+        detached: !state.panels[action.payload].detached,
+        layouts: saveToLS(
+          "layouts.2",
+          Immutable.merge(state.layouts, {
+            lg: Immutable.merge(state.layouts.lg, {
+              [action.payload]: baseLayouts.lg[action.payload]
+            }),
+            md: Immutable.merge(state.layouts.lg, {
+              [action.payload]: baseLayouts.md[action.payload]
+            }),
+            sm: Immutable.merge(state.layouts.lg, {
+              [action.payload]: baseLayouts.sm[action.payload]
+            })
+          })
+        )
+      })
+    case types.TOGGLE_PANEL_VISIBLE:
+      return panelsUpdate(action.payload, {
+        visible: !state.panels[action.payload].visible,
+        layouts: saveToLS(
+          "layouts.2",
+          Immutable.merge(state.layouts, {
+            lg: Immutable.merge(state.layouts.lg, {
+              [action.payload]: baseLayouts.lg[action.payload]
+            }),
+            md: Immutable.merge(state.layouts.lg, {
+              [action.payload]: baseLayouts.md[action.payload]
+            }),
+            sm: Immutable.merge(state.layouts.lg, {
+              [action.payload]: baseLayouts.sm[action.payload]
+            })
+          })
+        )
+      })
     case types.RESET_PANELS:
-      saveToLS("panels", basePanels)
-      return Immutable.merge(state, { panels: basePanels })
+      return Immutable.merge(state, {
+        panels: saveToLS("panels", basePanels)
+      })
+    case types.RESET_ALL_LAYOUTS:
+      return Immutable.merge(state, {
+        layouts: saveToLS("layouts.2", baseLayouts)
+      })
+    case types.UPDATE_LAYOUTS:
+      return Immutable.merge(state, {
+        layouts: saveToLS(
+          "layouts.2",
+          Immutable.merge(baseLayouts, action.payload, { deep: true })
+        )
+      })
+    case types.MOVE_PANEL:
+      return panelsUpdate(action.payload.key, {
+        x: action.payload.position.x,
+        y: action.payload.position.y
+      })
+    case types.RESIZE_PANEL:
+      return panelsUpdate(action.payload.key, {
+        x: action.payload.dimensions.x,
+        y: action.payload.dimensions.y,
+        w: action.payload.dimensions.width,
+        h: action.payload.dimensions.height
+      })
     default:
       return state
   }

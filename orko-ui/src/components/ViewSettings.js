@@ -2,7 +2,6 @@ import React, { Component } from "react"
 
 import FixedModal from "./primitives/FixedModal"
 import { Icon, Modal, Button, Form } from "semantic-ui-react"
-import Immutable from "seamless-immutable"
 
 export default class ViewSettings extends Component {
   render() {
@@ -20,11 +19,7 @@ export default class ViewSettings extends Component {
                 label={panel.title}
                 type="checkbox"
                 checked={panel.visible}
-                onChange={() =>
-                  this.props.onChangePanels(
-                    Immutable([{ key: panel.key, visible: !panel.visible }])
-                  )
-                }
+                onChange={() => this.props.onTogglePanelVisible(panel.key)}
               />
             ))}
           </Form>
