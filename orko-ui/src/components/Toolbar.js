@@ -123,6 +123,7 @@ const RemainingSpace = styled.div`
   flex-shrink: 1;
   overflow: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
   ${space};
 `
 
