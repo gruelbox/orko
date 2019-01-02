@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -102,12 +100,6 @@
       <modules>
         <module>orko-ui</module>
         <module>orko-end-to-end-testing</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>release</id>
-      <modules>
-        <module>orko-ui</module>
       </modules>
     </profile>
     <profile>
@@ -482,6 +474,14 @@
           </executions>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+          <configuration>
+            <tagNameFormat>@{project.version}</tagNameFormat>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
           <version>${spotbugs-maven-plugin.version}</version>
@@ -542,35 +542,18 @@
             <canUpdateCopyright>true</canUpdateCopyright>
             <canUpdateDescription>true</canUpdateDescription>
             <canUpdateLicense>true</canUpdateLicense>
+            <includes>
+              <include>**/*.java</include>
+              <include>**/*.js</include>
+            </includes>
+            <excludes>
+              <excludes>**/*.xml</excludes>
+            </excludes>
+            <roots>
+              <root>src/main/java</root>
+              <root>src/test/java</root>
+            </roots>
           </configuration>
-          <executions>
-            <execution>
-              <id>download-licenses</id>
-              <goals>
-                <goal>download-licenses</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>generate-license-headers</id>
-              <goals>
-                <goal>update-file-header</goal>
-              </goals> 
-              <phase>process-sources</phase>
-              <configuration>
-                <includes>
-                  <include>**/*.java</include>
-                  <include>**/*.js</include>
-                </includes>
-                <excludes>
-                  <excludes>**/*.xml</excludes>
-                </excludes>
-                <roots>
-                  <root>src/main/java</root>
-                  <root>src/test/java</root>
-                </roots>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
         <plugin>
@@ -590,7 +573,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>

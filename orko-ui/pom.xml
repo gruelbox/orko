@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>orko-ui</artifactId>
@@ -15,38 +13,23 @@
 
   <name>Orko UI</name>
 
-  <profiles>
-    <profile>
-      <id>release</id>
   <build>
+    <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>generate-license-headers</id>
-              <goals>
-                <goal>update-file-header</goal>
-              </goals>
-              <phase>process-sources</phase>
-              <configuration>
-                <excludes>
-                  <exclude>/semantic/**</exclude>
-                </excludes>
-                <roots>
-                  <root>src</root>
-                </roots>
-              </configuration>
-            </execution>
-          </executions>
+          <configuration>
+            <excludes>
+              <exclude>**/semantic/**</exclude>
+            </excludes>
+            <roots>
+              <root>src</root>
+            </roots>
+          </configuration>
         </plugin>
       </plugins>
-      </build>
-    </profile>
-  </profiles>
-    
-  <build>
+    </pluginManagement>
     <resources>
       <resource>
         <targetPath>assets</targetPath>
