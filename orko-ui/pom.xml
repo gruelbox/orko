@@ -20,8 +20,15 @@
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <configuration>
+            <includes>
+              <include>**/*.js</include>
+              <include>src</include>
+            </includes>
             <excludes>
               <exclude>src/semantic/**</exclude>
+              <exclude>node_modules/**</exclude>
+              <exclude>node/**</exclude>
+              <exclude>build/**</exclude>
             </excludes>
           </configuration>
         </plugin>

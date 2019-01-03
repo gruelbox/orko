@@ -572,9 +572,6 @@
             <excludes>
               <exclude>src/test/resources/**</exclude>
               <exclude>src/main/resources/**</exclude>
-              <exclude>node_modules/**</exclude>
-              <exclude>node/**</exclude>
-              <exclude>build/**</exclude>
             </excludes>
           </configuration>
         </plugin>
