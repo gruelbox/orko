@@ -17,9 +17,24 @@
  */
 package com.gruelbox.orko.support;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+
+import org.apache.commons.io.IOUtils;
+
+import com.google.common.base.Charsets;
+
 public final class ReadVersion {
 
   public static String readVersionInfoInManifest() {
-    return ReadVersion.class.getPackage().getSpecificationVersion();
+    try (InputStream stream = new BufferedInputStream(ReadVersion.class.getResourceAsStream("/VERSION"))) {
+      return IOUtils.toString(stream, Charsets.UTF_8);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
