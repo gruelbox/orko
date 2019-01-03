@@ -77,7 +77,7 @@ function connect() {
     var scriptsPromise = dispatch(scriptActions.fetch())
     var metaPromise = dispatch(supportActions.fetchMetadata())
     await coinPromise
-    await coinActions.fetchReferencePrices()
+    await dispatch(coinActions.fetchReferencePrices())
     await scriptsPromise
     await metaPromise
     await socket.connect()
