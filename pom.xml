@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -13,6 +11,7 @@
     <connection>scm:git:https://github.com/badgerwithagun/orko.git</connection>
     <developerConnection>scm:git:git@github.com:badgerwithagun/orko.git</developerConnection>
     <url>https://github.com/badgerwithagun/orko</url>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
@@ -41,7 +40,7 @@
 
   <groupId>com.gruelbox</groupId>
   <artifactId>orko-parent</artifactId>
-  <version>0.6.2-SNAPSHOT</version>
+  <version>0.8.8-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -105,12 +104,6 @@
       </modules>
     </profile>
     <profile>
-      <id>release</id>
-      <modules>
-        <module>orko-ui</module>
-      </modules>
-    </profile>
-    <profile>
       <id>only-eclipse</id>
       <activation>
         <property>
@@ -148,6 +141,19 @@
                         <goals>
                           <goal>install-node-and-npm</goal>
                           <goal>npm</goal>
+                        </goals>
+                      </pluginExecutionFilter>
+                      <action>
+                        <ignore />
+                      </action>
+                    </pluginExecution>
+                    <pluginExecution>
+                      <pluginExecutionFilter>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <versionRange>${spotbugs-maven-plugin.version}</versionRange>
+                        <goals>
+                          <goal>check</goal>
                         </goals>
                       </pluginExecutionFilter>
                       <action>
@@ -203,13 +209,14 @@
 
     <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
     <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+    <maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
     <maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
     <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
     <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
     <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
     <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
-    <license.maven.plugin.version>1.16</license.maven.plugin.version>
-    <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
+    <license.maven.plugin.version>3.0</license.maven.plugin.version>
+    <spotbugs-maven-plugin.version>3.1.10</spotbugs-maven-plugin.version>
     <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
     <process.exec.maven.plugin.version>0.7</process.exec.maven.plugin.version>
     <checkstyle.version>8.12</checkstyle.version>
@@ -466,6 +473,18 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${maven.jar.plugin.version}</version>
+          <configuration>
+            <archive>
+              <manifest>
+                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              </manifest>
+            </archive>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
           <version>${maven-dependency-plugin-version}</version>
           <executions>
@@ -482,15 +501,23 @@
           </executions>
         </plugin>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>findbugs-maven-plugin</artifactId>
-          <version>${findbugs-maven-plugin.version}</version>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+          <configuration>
+            <tagNameFormat>@{project.version}</tagNameFormat>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${spotbugs-maven-plugin.version}</version>
           <configuration>
             <excludeFilterFile>../etc/findbugs-exclude.xml</excludeFilterFile>
           </configuration>
           <executions>
             <execution>
-              <id>sca-findbugs</id>
+              <id>sca-spotbugs</id>
               <phase>validate</phase>
               <goals>
                 <goal>check</goal>
@@ -530,43 +557,21 @@
           </executions>
         </plugin>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${license.maven.plugin.version}</version>
           <configuration>
-            <processStartTag>===============================================================================L
-            </processStartTag>
-            <processEndTag>===============================================================================E</processEndTag>
-            <sectionDelimiter>================================================================================</sectionDelimiter>
-            <licenseName>agpl_v3</licenseName>
-            <canUpdateCopyright>true</canUpdateCopyright>
-            <canUpdateDescription>true</canUpdateDescription>
-            <canUpdateLicense>true</canUpdateLicense>
+            <header>etc/HEADER</header>
+            <includes>
+              <include>**/*.java</include>
+              <include>**/*.js</include>
+              <include>src</include>
+            </includes>
+            <excludes>
+              <exclude>src/test/resources/**</exclude>
+              <exclude>src/main/resources/**</exclude>
+            </excludes>
           </configuration>
-          <executions>
-            <execution>
-              <id>download-licenses</id>
-              <goals>
-                <goal>download-licenses</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>generate-license-headers</id>
-              <goals>
-                <goal>update-file-header</goal>
-              </goals>
-              <phase>process-sources</phase>
-              <configuration>
-                <includes>
-                  <includes>**/*.java</includes>
-                </includes>
-                <roots>
-                  <root>src/main/java</root>
-                  <root>src/test/java</root>
-                </roots>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
       </plugins>
     </pluginManagement>

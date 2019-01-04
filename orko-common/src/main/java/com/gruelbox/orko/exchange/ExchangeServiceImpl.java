@@ -1,3 +1,20 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.gruelbox.orko.exchange;
 
 import java.util.Arrays;
@@ -104,9 +121,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
   });
 
-  private final LoadingCache<String, Optional<Long>> safePollDelays = CacheBuilder.newBuilder().build(new CacheLoader<String, Optional<Long>>() {
+  private final LoadingCache<String, Long> safePollDelays = CacheBuilder.newBuilder().build(new CacheLoader<String, Long>() {
     @Override
-    public Optional<Long> load(String exchangeName) throws Exception {
+    public Long load(String exchangeName) throws Exception {
       try {
 
         ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
@@ -120,7 +137,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         // We floor the poll delay at a sensible minimum in case the above calculation goes
         // wrong (frequently when something's up with the exchange metadata).
-        return rateLimits
+        Optional<Long> limit = rateLimits
           .map(RateLimit::getPollDelayMillis)
           .max(Comparator.naturalOrder())
           .map(result -> {
@@ -133,9 +150,17 @@ public class ExchangeServiceImpl implements ExchangeService {
             }
           });
 
+        if (limit.isPresent()) {
+          LOGGER.info("Safe poll delay for exchange [{}] is {}ms", exchangeName, limit.get());
+          return limit.get();
+        } else {
+          LOGGER.info("Safe poll delay for exchange [{}] is unknown, defaulting to {}", exchangeName, SENSIBLE_MINIMUM_POLL_DELAY);
+          return SENSIBLE_MINIMUM_POLL_DELAY;
+        }
+
       } catch (Exception e) {
-        LOGGER.warn("Failed to fetch exchange metadata for " + exchangeName, e);
-        return Optional.empty();
+        LOGGER.warn("Failed to fetch exchange metadata for [" + exchangeName + "], defaulting to " + SENSIBLE_MINIMUM_POLL_DELAY + "ms", e);
+        return SENSIBLE_MINIMUM_POLL_DELAY;
       }
     }
   });
@@ -199,7 +224,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
 
   @Override
-  public Optional<Long> safePollDelay(String exchangeName) {
+  public long safePollDelay(String exchangeName) {
     return safePollDelays.getUnchecked(exchangeName);
   }
 

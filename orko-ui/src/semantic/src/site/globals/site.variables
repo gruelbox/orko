@@ -60,6 +60,16 @@
 @massiveSize     : (22 / 13);
 
 /*-------------------
+     Breakpoints
+--------------------*/
+
+@mobileBreakpoint            : 500px;
+@tabletBreakpoint            : 768px;
+@computerBreakpoint          : 992px;
+@largeMonitorBreakpoint      : 1630px;
+@widescreenMonitorBreakpoint : 1920px;
+
+/*-------------------
         Page
 --------------------*/
 
@@ -151,3 +161,15 @@
 
 @solidWhiteBorderColor         : #555555;
 @selectedSolidWhiteBorderColor : #999999;
+
+/*******************************
+             States
+*******************************/
+
+/*-------------------
+      Disabled
+--------------------*/
+
+@disabledOpacity: 0.7;
+@disabledTextColor: @textColor;
+@invertedDisabledTextColor: rgba(0, 0, 0, 0.3);

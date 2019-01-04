@@ -1,7 +1,26 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React from "react"
 import { connect } from "react-redux"
-import Section from "../components/primitives/Section"
-import Modal from "../components/primitives/Modal"
+import Section, {
+  Provider as SectionProvider
+} from "../components/primitives/Section"
+import Window from "../components/primitives/Window"
 import Href from "../components/primitives/Href"
 import CreateAlertContainer from "./CreateAlertContainer"
 import * as uiActions from "../store/ui/actions"
@@ -32,9 +51,8 @@ const lowStyle = {
 const lowPriceColumn = {
   id: "lowPrice",
   Header: "Low price",
-  Cell: ({ original }) => original.low
-    ? original.low.thresholdAsString
-    : "--",
+  Cell: ({ original }) =>
+    original.low ? original.low.thresholdAsString : "--",
   headerStyle: numberStyle,
   style: lowStyle,
   resizable: true,
@@ -44,9 +62,8 @@ const lowPriceColumn = {
 const highPriceColumn = {
   id: "highPrice",
   Header: "High price",
-  Cell: ({ original }) => original.high
-    ? original.high.thresholdAsString
-    : "--",
+  Cell: ({ original }) =>
+    original.high ? original.high.thresholdAsString : "--",
   headerStyle: numberStyle,
   style: highStyle,
   resizable: true,
@@ -109,27 +126,19 @@ class ManageAlertsContainer extends React.Component {
         job.tickTrigger.counter === coin.counter
     )
     return (
-      <Modal mobile={this.props.mobile}>
-        <Section
-          id="manageAlerts"
-          heading={"Manage alerts for " + coin.name}
-          buttons={() => (
-            <Href
-              data-orko="close"
-              title="Close"
-              onClick={() => this.props.dispatch(uiActions.closeAlerts())}
-            >
-              <Icon fitted name="close" />
-            </Href>
-          )}
+      <Window mobile={this.props.mobile}>
+        <SectionProvider
+          value={{ onHide: () => this.props.dispatch(uiActions.closeAlerts()) }}
         >
-          <Alerts
-            alerts={alerts}
-            onDelete={job => this.props.dispatch(jobActions.deleteJob(job))}
-          />
-          <CreateAlertContainer coin={coin} />
-        </Section>
-      </Modal>
+          <Section id="manageAlerts" heading={"Manage alerts for " + coin.name}>
+            <Alerts
+              alerts={alerts}
+              onDelete={job => this.props.dispatch(jobActions.deleteJob(job))}
+            />
+            <CreateAlertContainer coin={coin} />
+          </Section>
+        </SectionProvider>
+      </Window>
     )
   }
 }

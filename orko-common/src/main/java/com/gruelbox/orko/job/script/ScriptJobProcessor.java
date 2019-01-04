@@ -1,3 +1,20 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.job.LimitOrderJob.Direction.BUY;
@@ -60,7 +77,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptJobProcessor.class);
 
-  private final ScriptJob job;
   private final JobControl jobControl;
   private ScriptEngine engine;
 
@@ -71,6 +87,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   private final Hasher hasher;
   private final OrkoConfiguration configuration;
 
+  private volatile ScriptJob job;
   private volatile boolean done;
 
   @AssistedInject
@@ -117,6 +134,11 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       notifyAndLogError("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
       throw new RuntimeException(e.getMessage(), e);
     }
+  }
+
+  @Override
+  public void setReplacedJob(ScriptJob job) {
+    this.job = job;
   }
 
   @Override

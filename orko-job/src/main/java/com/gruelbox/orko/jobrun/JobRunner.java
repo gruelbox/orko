@@ -1,8 +1,45 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.gruelbox.orko.jobrun;
+
+/*-
+ * ===============================================================================L
+ * Orko Job
+ * ================================================================================
+ * Copyright (C) 2018 - 2019 Graham Crockford
+ * ================================================================================
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ===============================================================================E
+ */
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.hibernate.BaseSessionEventListener;
 import org.hibernate.SessionFactory;
@@ -69,7 +106,7 @@ class JobRunner {
    */
   public boolean submitExisting(Job job) {
     if (jobLocker.attemptLock(job.id(), uuid)) {
-      startAfterCommit(jobAccess.load(job.id()), false);
+      startAfterCommit(jobAccess.load(job.id()));
       return true;
     }
     return false;
@@ -100,16 +137,16 @@ class JobRunner {
     if (!attemptLock(job, reject)) {
       throw new RuntimeException("Created but could not immediately lock new job");
     }
-    startAfterCommit(job, false);
+    startAfterCommit(job);
   }
 
-  private void startAfterCommit(Job job, boolean replacement) {
+  private void startAfterCommit(Job job) {
     sessionFactory.get().getCurrentSession().addEventListeners(new BaseSessionEventListener() {
       private static final long serialVersionUID = 4340675209658497123L;
       @Override
       public void transactionCompletion(boolean successful) {
         if (successful) {
-          executorService.execute(() -> new JobLifetimeManager(job).start(replacement));
+          executorService.execute(() -> new JobLifetimeManager(job).start());
         }
       }
     });
@@ -155,31 +192,28 @@ class JobRunner {
 
   private final class JobLifetimeManager implements JobControl {
 
-    private final Job job;
     private final JobProcessor<Job> processor;
-    private final AtomicReference<JobStatus> status = new AtomicReference<>(JobStatus.CREATED);
+
+    private volatile Job job;
+    private volatile JobStatus status = JobStatus.CREATED;
 
     JobLifetimeManager(Job job) {
       this.job = job;
       processor = JobProcessor.createProcessor(job, this, injector);
     }
 
-    private void start(boolean replacement) {
+    private synchronized void start() {
 
-      // Ensure this lifetime manager can only be used once (when replacing, we
-      // create a new lifetime manager).
-      if (!status.compareAndSet(JobStatus.CREATED, JobStatus.STARTING))
+      // Ensure this lifetime manager can only be used once
+      if (!status.equals(JobStatus.CREATED))
         throw new IllegalStateException("Job lifecycle status indicates re-use of lifetime manager: " + job);
 
-      // We do record that a new startup is a replacement, though, so don't log
-      // startup if that's the case
-      if (!replacement)
-        LOGGER.info("{} starting...", job);
+      status = JobStatus.STARTING;
+      LOGGER.info("{} starting...", job);
 
       // Attempt to run the startup method on the job and send a status update
       Status result = safeStart();
-      if (!replacement || !result.equals(Status.RUNNING))
-        statusUpdateService.status(job.id(), result);
+      statusUpdateService.status(job.id(), result);
 
       switch (result) {
         case FAILURE_PERMANENT:
@@ -191,7 +225,7 @@ class JobRunner {
           LOGGER.debug("{} finished immediately ({}), cleaning up", job, result);
           transactionally.allowingNested().run(() -> jobAccess.delete(job.id()));
           safeStop();
-          status.set(JobStatus.STOPPED);
+          status = JobStatus.STOPPED;
           LOGGER.debug("{} cleaned up", job);
           break;
 
@@ -208,7 +242,7 @@ class JobRunner {
         case RUNNING:
 
           // We are now running, so register for events
-          register(replacement);
+          register();
           break;
 
         default:
@@ -217,9 +251,9 @@ class JobRunner {
     }
 
     @Subscribe
-    public void onKeepAlive(KeepAliveEvent keepAlive) {
+    public synchronized void onKeepAlive(KeepAliveEvent keepAlive) {
       LOGGER.debug("{} checking lock...", job);
-      if (!status.get().equals(JobStatus.RUNNING))
+      if (!status.equals(JobStatus.RUNNING))
         return;
       LOGGER.debug("{} updating lock...", job);
       if (!transactionally.call(() -> jobLocker.updateLock(job.id(), uuid))) {
@@ -230,39 +264,45 @@ class JobRunner {
     }
 
     @Subscribe
-    public void stop(StopEvent stop) {
+    public synchronized void stop(StopEvent stop) {
       LOGGER.debug("{} stopping due to shutdown", job);
-      if (stopAndUnregister()) {
-        transactionally.allowingNested().run(() -> jobLocker.releaseLock(job.id(), uuid));
-        LOGGER.debug("{} stopped due to shutdown", job);
+      if (!stopAndUnregister()) {
+        LOGGER.warn("Stop of job which is already shutting down. Status={}, job={}", status, job);
+        return;
       }
+      transactionally.allowingNested().run(() -> jobLocker.releaseLock(job.id(), uuid));
+      LOGGER.debug("{} stopped due to shutdown", job);
     }
 
     @Override
-    public void replace(Job newVersion) {
+    public synchronized void replace(Job newVersion) {
       Preconditions.checkNotNull(newVersion, "Job replaced with null");
 
-      LOGGER.debug("{} replacing...", job);
-      if (!stopAndUnregister()) {
-        LOGGER.warn("Replacement of job which is already shutting down: " + job);
+      LOGGER.debug("{} replacing...", newVersion);
+      if (!JobStatus.RUNNING.equals(status)) {
+        LOGGER.warn("Replacement of job which is already shutting down. Status={}, job={}", status, newVersion);
         return;
       }
+
       // The job might be transactional, so participate if necessary
       transactionally.allowingNested().run(() -> {
         jobAccess.update(newVersion);
-        startAfterCommit(newVersion, true);
       });
+
+      job = newVersion;
+      processor.setReplacedJob(newVersion);
+
       LOGGER.debug("{} replaced", newVersion);
     }
 
     @Override
-    public void finish(Status status) {
+    public synchronized void finish(Status status) {
       Preconditions.checkArgument(status == Status.FAILURE_PERMANENT || status == Status.SUCCESS, "Finish condition must be success or permanent failure");
 
       LOGGER.info(job + " finishing ({})...", status);
       statusUpdateService.status(job.id(), status);
       if (!stopAndUnregister()) {
-        LOGGER.warn("Finish of job which is already shutting down: {}", job);
+        LOGGER.warn("Finish of job which is already shutting down. Status={}, job={}", this.status, job);
         return;
       }
       // If this gets rolled back due to the job itself being transactional, that's
@@ -271,24 +311,26 @@ class JobRunner {
       LOGGER.info(job + " finished");
     }
 
-    private synchronized void register(boolean replacement) {
-      if (status.compareAndSet(JobStatus.STARTING, JobStatus.RUNNING)) {
-        eventBus.register(this);
-        if (!replacement)
-          LOGGER.info("{} started", job);
+    private void register() {
+      if (!status.equals(JobStatus.STARTING)) {
+        return;
       }
+      status = JobStatus.RUNNING;
+      eventBus.register(this);
+      LOGGER.info("{} started", job);
     }
 
-    private synchronized boolean stopAndUnregister() {
-      if (status.compareAndSet(JobStatus.RUNNING, JobStatus.STOPPING)) {
+    private boolean stopAndUnregister() {
+      if (status.equals(JobStatus.RUNNING)) {
+        status = JobStatus.STOPPING;
         safeStop();
         eventBus.unregister(this);
-        status.set(JobStatus.STOPPED);
+        status = JobStatus.STOPPED;
         return true;
-      } else if (status.compareAndSet(JobStatus.STARTING, JobStatus.STOPPED)) {
+      } else if (status.equals(JobStatus.STARTING)) {
+        status = JobStatus.STOPPED;
         return true;
       } else {
-        LOGGER.info("Stop of job which is already shutting down. Status={}, job={}", status.get(), job);
         return false;
       }
     }

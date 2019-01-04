@@ -1,28 +1,40 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React, { Component } from "react"
 import styled from "styled-components"
 
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
 import Tab from "./primitives/Tab"
-import Span from "./primitives/Span"
 
 const CHART_INTERVAL_KEY = "Chart.interval"
 
 const CONTAINER_ID = "tradingview-widget-container"
 
-const NewWindowChartContent = ({coin, url}) => (
-  <Section id="chart" heading="Chart">
+const NewWindowChartContent = ({ coin, url, onHide }) => (
+  <>
     <Para>TradingView does not support charts for this exchange.</Para>
     <Para>
-      <a
-        target="_blank"
-        rel="noopener noreferrer"
-        href={url}
-      >
+      <a target="_blank" rel="noopener noreferrer" href={url}>
         Open in {coin.exchange}
       </a>
     </Para>
-  </Section>
+  </>
 )
 
 const ChartOuter = styled.div`
@@ -40,7 +52,10 @@ const ChartInner = styled.div`
 
 class TradingViewChartContent extends Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
-    return this.props.coin.key !== nextProps.coin.key || this.props.interval !== nextProps.interval
+    return (
+      this.props.coin.key !== nextProps.coin.key ||
+      this.props.interval !== nextProps.interval
+    )
   }
 
   componentDidMount = () => {
@@ -74,7 +89,7 @@ class TradingViewChartContent extends Component {
       popup_height: "650",
       container_id: CONTAINER_ID,
       hide_side_toolbar: false,
-      studies: ["RSI@tv-basicstudies"]
+      studies: []
     })
   }
 
@@ -106,57 +121,95 @@ class Chart extends React.Component {
   }
 
   render() {
+    var content
+    var buttons
+
     const coin = this.props.coin
 
     if (!coin) {
-      return (
-        <Section id="chart" heading="Chart">
-          <Para>No coin selected</Para>
-        </Section>
+      content = <Para>No coin selected</Para>
+    } else if (coin.exchange === "kucoin") {
+      content = (
+        <NewWindowChartContent
+          coin={coin}
+          url={
+            "https://www.kucoin.com/#/trade.pro/" +
+            coin.base +
+            "-" +
+            coin.counter
+          }
+        />
       )
-    }
-
-    if (coin.exchange === "kucoin") {
-      return (
-        <NewWindowChartContent coin={coin} url={"https://www.kucoin.com/#/trade.pro/" + coin.base + "-" + coin.counter}/>
+    } else if (coin.exchange === "cryptopia") {
+      content = (
+        <NewWindowChartContent
+          coin={coin}
+          url={
+            "https://www.cryptopia.co.nz/Exchange/?market=" +
+            coin.base +
+            "_" +
+            coin.counter
+          }
+        />
       )
-    }
-
-    if (coin.exchange === "cryptopia") {
-      return (
-        <NewWindowChartContent coin={coin} url={"https://www.cryptopia.co.nz/Exchange/?market=" + coin.base + "_" + coin.counter}/>
+    } else {
+      const Interval = ({ name, code, selected, description }) => (
+        <Tab
+          selected={selected === code}
+          onClick={() => {
+            localStorage.setItem(CHART_INTERVAL_KEY, code)
+            this.setState({ interval: code })
+          }}
+          title={
+            "Select the " +
+            description +
+            " chart (this option will be remembered, unlike selecting the interval from the TradingView chart)"
+          }
+        >
+          {name}
+        </Tab>
       )
-    }
-
-    const Interval = ({ name, code, selected }) => (
-      <Tab
-        selected={selected === code}
-        onClick={() => {
-          localStorage.setItem(CHART_INTERVAL_KEY, code)
-          this.setState({ interval: code })
-        }}
-      >
-        {name}
-      </Tab>
-    )
-
-    return (
-      <Section
-        id="chart"
-        heading="Chart"
-        expand
-        buttons={() => (
-          <span>
-            <Span>Default interval</Span>
-            <Interval selected={this.state.interval} code="W" name="W" />
-            <Interval selected={this.state.interval} code="D" name="D" />
-            <Interval selected={this.state.interval} code="240" name="4h" />
-            <Interval selected={this.state.interval} code="60" name="1h" />
-            <Interval selected={this.state.interval} code="15" name="15m" />
-          </span>
-        )}
-      >
+      buttons = () => (
+        <span>
+          <Interval
+            selected={this.state.interval}
+            code="W"
+            name="W"
+            description="weekly"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="D"
+            name="D"
+            description="daily"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="240"
+            name="4H"
+            description="4 hour"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="60"
+            name="1H"
+            description="1 hour"
+          />
+          <Interval
+            selected={this.state.interval}
+            code="15"
+            name="15m"
+            description="15 minute"
+          />
+        </span>
+      )
+      content = (
         <TradingViewChartContent coin={coin} interval={this.state.interval} />
+      )
+    }
+    return (
+      <Section id="chart" heading="Chart" buttons={buttons}>
+        {content}
       </Section>
     )
   }

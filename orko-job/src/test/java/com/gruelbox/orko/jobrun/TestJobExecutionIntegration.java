@@ -1,18 +1,60 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.gruelbox.orko.jobrun;
 
+/*-
+ * ===============================================================================L
+ * Orko Job
+ * ================================================================================
+ * Copyright (C) 2018 - 2019 Graham Crockford
+ * ================================================================================
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * ===============================================================================E
+ */
+
 import static org.alfasoftware.morf.metadata.SchemaUtils.schema;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -26,6 +68,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
@@ -97,6 +140,20 @@ public class TestJobExecutionIntegration {
       @Override
       public JobProcessor<TestingJob> create(TestingJob job, JobControl jobControl) {
         return new TestingJobProcessor(job, jobControl, eventBus);
+      }
+    });
+
+    when(injector.getInstance(AsynchronouslySelfStoppingJobProcessor.Factory.class)).thenReturn(new AsynchronouslySelfStoppingJobProcessor.Factory() {
+      @Override
+      public JobProcessor<AsynchronouslySelfStoppingJob> create(AsynchronouslySelfStoppingJob job, JobControl jobControl) {
+        return new AsynchronouslySelfStoppingJobProcessor(job, jobControl, eventBus);
+      }
+    });
+
+    when(injector.getInstance(CounterJobProcessor.Factory.class)).thenReturn(new CounterJobProcessor.Factory() {
+      @Override
+      public JobProcessor<CounterJob> create(CounterJob job, JobControl jobControl) {
+        return new CounterJobProcessor(job, jobControl, eventBus);
       }
     });
 
@@ -200,6 +257,54 @@ public class TestJobExecutionIntegration {
 
 
   /**
+   * Ensures that a job shutdown is handled correctly if it tries to finish
+   * asynchronously during the setup phase
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCompleteDuringSetup() throws Exception {
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(AsynchronouslySelfStoppingJob.builder().id(JOB1).build());
+      start();
+      Assert.assertTrue(listener1.awaitFinish());
+
+      InOrder inOrder = inOrder(statusUpdateService);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.SUCCESS);
+      verifyNoMoreInteractions(statusUpdateService);
+    }
+  }
+
+
+  /**
+   * Check for race conditions by using persistent state for a counter.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCounter() throws Exception {
+    try (Listener listener1 = new Listener(JOB1)) {
+      addJob(CounterJob.builder().id(JOB1).build());
+      start();
+      Assert.assertTrue(listener1.awaitFinish());
+
+      InOrder inOrder = inOrder(statusUpdateService);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
+      inOrder.verify(statusUpdateService).status(JOB1, Status.SUCCESS);
+      verifyNoMoreInteractions(statusUpdateService);
+
+      List<Integer> actual = listener1.counters;
+      List<Integer> expected = IntStream.range(2, 101).boxed().collect(Collectors.toList());
+
+      LOGGER.info("actual={}", actual);
+      LOGGER.info("expected={}", expected);
+      assertEquals(expected, actual);
+    }
+  }
+
+
+  /**
    * Ensures that we correctly handle a mid-run abort
    * @throws Exception
    */
@@ -279,13 +384,12 @@ public class TestJobExecutionIntegration {
    */
   @Test
   public void testUpdate() throws Exception {
-    try (Listener listener1 = new Listener(JOB1, 2, 2)) {
+    try (Listener listener1 = new Listener(JOB1)) {
 
       addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).update(true).build());
 
       start();
 
-      // We expect to have started twice but finished once
       Assert.assertTrue(listener1.awaitStart());
       Assert.assertFalse(listener1.awaitFinish());
 
@@ -386,15 +490,12 @@ public class TestJobExecutionIntegration {
     private final CountDownLatch started;
     private final CountDownLatch completed;
     private final String jobId;
+    private final List<Integer> counters = Lists.newCopyOnWriteArrayList();
 
     Listener(String jobId) {
-      this(jobId, 1, 1);
-    }
-
-    public Listener(String jobId, int startCount, int finishCount) {
       this.jobId = jobId;
-      started = new CountDownLatch(startCount);
-      completed = new CountDownLatch(finishCount);
+      started = new CountDownLatch(1);
+      completed = new CountDownLatch(1);
       eventBus.register(this);
     }
 
@@ -406,6 +507,11 @@ public class TestJobExecutionIntegration {
       if (event.eventType() == EventType.START && event.jobId().equals(jobId)) {
         started.countDown();
       }
+    }
+
+    @Subscribe
+    void onCount(Integer event) {
+      counters.add(event);
     }
 
     boolean awaitFinish() throws InterruptedException {

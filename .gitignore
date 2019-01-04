@@ -32,3 +32,5 @@
 /orko-end-to-end-testing/node
 /orko-end-to-end-testing/app.log
 /orko-end-to-end-testing/cypress/screenshots/**/*
+**/*.versionsBackup
+**/*.releaseBackup

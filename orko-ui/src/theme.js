@@ -1,10 +1,27 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { keyframes, css } from "styled-components"
 import { lighten, darken, rgba, transparentize } from "polished"
 import { createGlobalStyle } from "styled-components"
 
 const theme = {
   breakpoints: ["62em"],
-  fontSizes: [11, 12, 13, 16],
+  fontSizes: [11, 12, 13, 16, 24, 36],
   fonts: {
     sans: "Trebuchet MS, Tahoma, Arial, sans-serif",
     mono: "Menlo, monospace",
@@ -31,7 +48,7 @@ const theme = {
     disabledBg: lighten(0.03, "#2F3241"),
     fore: "#aaa",
     emphasis: "#3BB3E4",
-    deemphasis: "#555",
+    deemphasis: rgba("#aaa", 0.7),
     heading: "#fff",
     toolbar: "white",
     boxBorder: "#131722",

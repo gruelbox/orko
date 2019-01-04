@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React from "react"
 import Immutable from "seamless-immutable"
 
@@ -19,7 +36,7 @@ const LimitOrder = props => {
 
   return (
     <Form data-orko="limitOrder" as={RawForm}>
-      <Form.Group style={{ flex: "1" }}>
+      <Form.Group>
         <Form.Input
           id="limitPrice"
           required
@@ -48,6 +65,16 @@ const LimitOrder = props => {
           <input />
           <Label>{props.coin.base}</Label>
         </Form.Input>
+      </Form.Group>
+      <Form.Group style={{ flex: "1" }}>
+        <Form.Checkbox
+          title="Use margin account (if supported by the exchange)"
+          id="useMargin"
+          label="Use margin"
+          checked={false}
+          onChange={e => onChange("useMargin", e.target.checked)}
+          disabled={true}
+        />
       </Form.Group>
       <FormButtonBar>
         <Form.Button disabled={!valid} onClick={props.onSell} color="red">

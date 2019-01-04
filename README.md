@@ -1,15 +1,25 @@
-# Orko
+# Orko [![Twitter](http://i.imgur.com/wWzX9uB.png)](https://twitter.com/orkotrading)
 
 [![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master)
 [![Cypress.io tests](https://img.shields.io/badge/cypress.io-tests-green.svg?style=flat-square)](https://cypress.io)
 
-[![Twitter](http://i.imgur.com/wWzX9uB.png)](https://twitter.com/orkotrading)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
 
-Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko).
+Are you up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to automate your trading with advanced features such as trailing stops, one-cancels-other, soft stops which ignore sharp wicks?
+
+Orko is a web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko).
 
 ## Status
 
-Early alpha. Please use with caution. [What does this mean?](https://github.com/badgerwithagun/orko/wiki/Project-status)
+**Beta**.
+
+The application is in active daily use by me (I built it for myself after all), but has only just been made available to the public.  As it started off as a personal project, there are [quite a lot](https://github.com/badgerwithagun/orko/issues) of known issues, but a [clear roadmap](https://github.com/badgerwithagun/orko/projects) to getting those resolved.
+
+**If you are a user**, please use with caution and report any [issues you find](https://github.com/badgerwithagun/orko/issues).
+
+**If you are a developer**, I really need Java and Javascript/React developers to help taking the project to the next level, so please get in contact if you want to help.
+
+[Read more...](https://github.com/badgerwithagun/orko/wiki/Project-status)
 
 ## User Guide
 
@@ -33,7 +43,7 @@ Note that this mode has numerous limitations. You need to do some more setup to 
 
 Okta is preconfigured and optimised to run securely on [Heroku](https://www.heroku.com/). The Hobby account is cheap at \$7/pm per server if running constantly. To instantly deploy your own instance of the application, just click the button below.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
 
 If that doesn't work, or you don't trust it, you can [install the application manually](https://github.com/badgerwithagun/orko/wiki/Manual-installation-on-Heroku).
 

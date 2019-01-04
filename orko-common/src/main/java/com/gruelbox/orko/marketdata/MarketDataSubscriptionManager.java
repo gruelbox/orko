@@ -1,3 +1,20 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.gruelbox.orko.marketdata;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
@@ -504,7 +521,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       // Work out how often we can poll the exchange safely.
       Set<MarketDataSubscription> polls = activePollsForExchange(exchangeName);
-      long interApiSleep = sleepTime(exchangeName, defaultSleep, polls.isEmpty() ? 10 : polls.size());
+      long interApiSleep = sleepTime(exchangeName);
 
       // Pause after a resubscription since it probably counts as an API call and thus
       // toward the rate limit
@@ -599,14 +616,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
   }
 
-  private long sleepTime(String exchangeName, long defaultSleep, int pollCount) {
-    try {
-      return exchangeService.safePollDelay(exchangeName)
-          .orElse(defaultSleep / pollCount);
-    } catch (Exception e) {
-      LOGGER.error("Failed to fetch exchange safe poll delay for " + exchangeName, e);
-      return defaultSleep / pollCount;
-    }
+  private long sleepTime(String exchangeName) {
+    return exchangeService.safePollDelay(exchangeName);
   }
 
   private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) throws IOException {
