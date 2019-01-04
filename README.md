@@ -19,6 +19,10 @@ Orko is a web application which provides a unified dashboard to control numerous
 - [One-click install on Heroku](https://github.com/badgerwithagun/orko/wiki/One-click-installation-on-Heroku)
 - [Manual install on Heroku](https://github.com/badgerwithagun/orko/wiki/Manual-installation-on-Heroku)
 
+## Help wanted
+
+At the moment this project is a labour of love for just me, and I [need help](https://github.com/badgerwithagun/orko/issues/111)!
+
 ## Everything else
 
 See [the wiki](https://github.com/badgerwithagun/orko/wiki)!
