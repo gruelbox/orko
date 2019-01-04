@@ -5,11 +5,21 @@
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
 
-Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko).
+Are you up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to automate your trading with advanced features such as trailing stops, one-cancels-other, soft stops which ignore sharp wicks?
+
+Orko is a web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko).
 
 ## Status
 
-Early alpha. Please use with caution. [What does this mean?](https://github.com/badgerwithagun/orko/wiki/Project-status)
+**Beta**.
+
+The application is in active daily use by me (I built it for myself after all), but has only just been made available to the public.  As it started off as a personal project, there are [quite a lot](https://github.com/badgerwithagun/orko/issues) of known issues, but a [clear roadmap](https://github.com/badgerwithagun/orko/projects) to getting those resolved.
+
+**If you are a user**, please use with caution and report any [issues you find](https://github.com/badgerwithagun/orko/issues).
+
+**If you are a developer**, I really need Java and Javascript/React developers to help taking the project to the next level, so please get in contact if you want to help.
+
+[Read more...](https://github.com/badgerwithagun/orko/wiki/Project-status)
 
 ## User Guide
 
