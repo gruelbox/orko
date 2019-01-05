@@ -184,7 +184,8 @@ export default class Framework extends React.Component {
       onResetLayout,
       onLayoutChange,
       onMovePanel,
-      onResizePanel
+      onResizePanel,
+      onInteractPanel
     } = this.props
 
     const Settings = () =>
@@ -311,11 +312,14 @@ export default class Framework extends React.Component {
                   bounds="parent"
                   style={{
                     border: "1px solid " + theme.colors.canvas,
-                    boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)"
+                    boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)",
+                    zIndex: p.stackPosition
                   }}
                   dragHandleClassName="dragMe"
                   position={{ x: p.x ? p.x : 100, y: p.y ? p.y : 100 }}
                   size={{ width: p.w ? p.w : 400, height: p.h ? p.h : 400 }}
+                  onDragStart={() => onInteractPanel(p.key)}
+                  onResizeStart={() => onInteractPanel(p.key)}
                   onDragStop={(e, d) => onMovePanel(p.key, d)}
                   onResizeStop={(e, direction, ref, delta, position) => {
                     onResizePanel(p.key, {

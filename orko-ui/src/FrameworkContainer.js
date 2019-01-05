@@ -72,6 +72,10 @@ class FrameworkContainer extends React.Component {
     this.props.dispatch(uiActions.resizePanel(key, d))
   }
 
+  onInteractPanel = (key, d) => {
+    this.props.dispatch(uiActions.interactPanel(key))
+  }
+
   onLayoutChange = (layout, layouts) => {
     this.props.dispatch(uiActions.updateLayouts(layouts))
   }
@@ -97,6 +101,7 @@ class FrameworkContainer extends React.Component {
         onLayoutChange={this.onLayoutChange}
         onMovePanel={this.onMovePanel}
         onResizePanel={this.onResizePanel}
+        onInteractPanel={this.onInteractPanel}
       />
     )
   }

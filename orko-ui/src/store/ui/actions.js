@@ -42,6 +42,10 @@ export function togglePanelAttached(key) {
   return { type: types.TOGGLE_PANEL_ATTACHED, payload: key }
 }
 
+export function interactPanel(key) {
+  return { type: types.INTERACT_PANEL, payload: key }
+}
+
 export function resetPanels() {
   return { type: types.RESET_PANELS }
 }

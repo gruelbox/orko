@@ -59,42 +59,50 @@ const basePanels = Immutable.merge(
     coins: {
       key: "coins",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     },
     jobs: {
       key: "jobs",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     },
     chart: {
       key: "chart",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     },
     openOrders: {
       key: "openOrders",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     },
     balance: {
       key: "balance",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     },
     tradeSelector: {
       key: "tradeSelector",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     },
     marketData: {
       key: "marketData",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     },
     notifications: {
       key: "notifications",
       visible: true,
-      detached: false
+      detached: false,
+      stackPosition: 0
     }
   },
   basePanelMetadata,
@@ -141,12 +149,20 @@ const initialState = Immutable({
   alertsCoin: null,
   referencePriceCoin: null,
   panels: Immutable.merge(
-    loadedPanels === null ? basePanels : loadedPanels,
-    basePanelMetadata,
+    basePanels,
+    loadedPanels === null
+      ? basePanelMetadata
+      : Immutable.merge(loadedPanels, basePanelMetadata, { deep: true }),
     { deep: true }
   ),
   layouts: loadedLayouts === null ? baseLayouts : loadedLayouts
 })
+
+var nextStackPosition =
+  Object.values(initialState.panels).reduce(
+    (acc, next) => (next.stackPosition > acc ? next.stackPosition : acc),
+    0
+  ) + 1
 
 export default function reduce(state = initialState, action = {}) {
   const panelsUpdate = (key, partial) =>
@@ -171,9 +187,14 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, { referencePriceCoin: action.payload })
     case types.CLOSE_REFERENCE_PRICE:
       return Immutable.merge(state, { referencePriceCoin: null })
+    case types.INTERACT_PANEL:
+      return panelsUpdate(action.payload, {
+        stackPosition: nextStackPosition++
+      })
     case types.TOGGLE_PANEL_ATTACHED:
       return panelsUpdate(action.payload, {
         detached: !state.panels[action.payload].detached,
+        stackPosition: nextStackPosition++,
         layouts: saveToLS(
           "layouts.2",
           Immutable.merge(state.layouts, {
@@ -192,6 +213,7 @@ export default function reduce(state = initialState, action = {}) {
     case types.TOGGLE_PANEL_VISIBLE:
       return panelsUpdate(action.payload, {
         visible: !state.panels[action.payload].visible,
+        stackPosition: nextStackPosition++,
         layouts: saveToLS(
           "layouts.2",
           Immutable.merge(state.layouts, {
