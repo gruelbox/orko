@@ -58,7 +58,7 @@ public class ImmutableOrderBook {
   }
 
   public Date getTimeStamp() {
-    return new Date(timeStamp.getTime());
+    return timeStamp == null ? null : new Date(timeStamp.getTime());
   }
 
   public List<LimitOrder> getAsks() {
