@@ -69,6 +69,11 @@ import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.internal.runtime.ParserException;
 
+/**
+ * Processor for {@link ScriptJob}.
+ *
+ * @author Graham Crockford
+ */
 class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptJobProcessor.class);
