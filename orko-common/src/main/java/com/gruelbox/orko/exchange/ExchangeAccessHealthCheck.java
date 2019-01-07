@@ -26,6 +26,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.exchange.ExchangeResource.Pair;
 
+/**
+ * Just attempts to access binance.
+ *
+ * @author grahamc (Graham Crockford)
+ */
 @Singleton
 class ExchangeAccessHealthCheck extends HealthCheck {
 
