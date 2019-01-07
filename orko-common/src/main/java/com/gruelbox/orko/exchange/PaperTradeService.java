@@ -67,6 +67,10 @@ import com.gruelbox.orko.util.SafelyDispose;
 
 import io.reactivex.disposables.Disposable;
 
+/**
+ * Paper trading implementation.  Note: doesn't work between restarts. Probably not thread
+ * safe either yet.
+ */
 public final class PaperTradeService implements TradeService {
 
   private final AtomicLong orderCounter = new AtomicLong();
