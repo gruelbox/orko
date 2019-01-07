@@ -122,7 +122,7 @@ public class ExchangeResource implements WebResource {
         new Pair("EOS", "Z18"),
         new Pair("ETH", "USD"),
         new Pair("ETH", "Z18"),
-        new Pair("LTC", "Z18"),
+        new Pair("LTC", "H19"),
         new Pair("TRX", "Z18"),
         new Pair("XRP", "Z18")
       );
