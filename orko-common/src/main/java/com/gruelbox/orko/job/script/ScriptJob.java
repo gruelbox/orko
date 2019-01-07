@@ -34,6 +34,11 @@ import com.gruelbox.orko.jobrun.spi.JobBuilder;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 
+/**
+ * Provides the context for a Javascript job.
+ *
+ * @author Graham Crockford
+ */
 @AutoValue
 @JsonDeserialize(builder = ScriptJob.Builder.class)
 public abstract class ScriptJob implements Job {
