@@ -65,6 +65,9 @@ import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
+/**
+ * Access to exchange information.
+ */
 @Path("/exchanges")
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
