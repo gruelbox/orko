@@ -45,6 +45,11 @@ import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.notification.NotificationService;
 
+/**
+ * Processor for {@link LimitOrderJob}.
+ *
+ * @author Graham Crockford
+ */
 class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LimitOrderJobProcessor.class);
