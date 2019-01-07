@@ -32,12 +32,6 @@ import com.google.common.base.Suppliers;
 import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange;
 import info.bitrich.xchangestream.core.StreamingExchange;
 
-/**
- * Converts the friendly name for an exchange into the exchange class.
- *
- * @param friendlyName The friendly class name.
- * @return The exchange class
- */
 public final class Exchanges {
 
   private Exchanges() {
@@ -66,7 +60,12 @@ public final class Exchanges {
       .stream()
       .collect(Collectors.toList()));
 
-
+  /**
+   * Converts the friendly name for an exchange into the exchange class.
+   *
+   * @param friendlyName The friendly class name.
+   * @return The exchange class
+   */
   public static Class<? extends Exchange> friendlyNameToClass(String friendlyName) {
 
     if (friendlyName.equals(GDAX) || friendlyName.equals(GDAX_SANDBOX))
