@@ -12,10 +12,6 @@ auth:
 #    secret: CHANGEME!!!!!!!!23423rwefsdf13cr123de1234d1243d1ewdfsdfcsdfsdf12222
 #    secondFactorSecret: YOURTOKEN
 #    expirationMinutes: 1440
-#  okta:
-#    baseUrl: SEE
-#    issuer: THE
-#    clientId: README
 database:
   connectionString: h2:file:./orko;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000
 # telegram:

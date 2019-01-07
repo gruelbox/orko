@@ -13,10 +13,6 @@ auth:
     secret: ${SIMPLE_AUTH_SECRET:-}
     secondFactorSecret: ${SIMPLE_AUTH_SECOND_FACTOR:-}
     expirationMinutes: ${SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES:-1440}
-  okta:
-    baseUrl: ${OKTA_BASEURL:-}
-    issuer: ${OKTA_ISSUER:-}
-    clientId: ${OKTA_CLIENTID:-}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN:-}
   chatId: ${TELEGRAM_CHAT_ID:-}
