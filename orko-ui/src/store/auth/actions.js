@@ -59,7 +59,6 @@ export function attemptConnect() {
       dispatch(connect())
     } else {
       dispatch(notificationActions.trace("Not logged in"))
-      dispatch(fetchOktaConfig())
       dispatch({ type: types.LOGOUT, payload: {} })
     }
   }
@@ -67,12 +66,7 @@ export function attemptConnect() {
 
 function connect() {
   return async (dispatch, getState, socket) => {
-    var { config } = getState().auth
-    if (config && config.clientId) {
-      await dispatch(notificationActions.trace("Connecting using Okta"))
-    } else {
-      await dispatch(notificationActions.trace("Connecting using main auth"))
-    }
+    await dispatch(notificationActions.trace("Connecting"))
     var coinPromise = dispatch(coinActions.fetch())
     var scriptsPromise = dispatch(scriptActions.fetch())
     var metaPromise = dispatch(supportActions.fetchMetadata())
@@ -114,22 +108,6 @@ export function clearWhitelist() {
     await dispatch({ type: types.WHITELIST_UPDATE, payload: false })
     await socket.disconnect()
     dispatch(checkWhiteList())
-  }
-}
-
-function fetchOktaConfig() {
-  return async (dispatch, getState, socket) => {
-    dispatch(notificationActions.trace("Fetching auth config"))
-    try {
-      const config = await authService.config()
-      dispatch(notificationActions.trace("Successfully fetched auth config"))
-      dispatch({ type: types.SET_OKTA_CONFIG, payload: config })
-    } catch (error) {
-      notificationActions.localError(
-        "Could not fetch authentication data: " + error.message
-      )
-      return
-    }
   }
 }
 
