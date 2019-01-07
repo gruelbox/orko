@@ -67,6 +67,15 @@ class UserTradeSignalGenerator implements Managed {
     eventBus.unregister(this);
   }
 
+  /**
+   * Filters out {@link UserTrade}s from the trade stream for an exchange
+   * and reposts them.  Deduplicates recent trades which might have arrived
+   * from {@link #onTradeHistory(TradeHistoryEvent)} in case support is
+   * quietly added to an exchange without updating
+   * {@link #NATIVELY_SUPPORTED_EXCHANGES}.
+   *
+   * @param tradeEvent The trade event.
+   */
   @Subscribe
   void onTrade(TradeEvent tradeEvent) {
     if (tradeEvent.trade() instanceof UserTrade && cache(tradeEvent.trade().getId())) {
