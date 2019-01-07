@@ -29,6 +29,11 @@ import org.hibernate.validator.constraints.Length;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * A parameter for a {@link Script}.
+ *
+ * @author Graham Crockford
+ */
 @Entity(name = ScriptParameter.TABLE_NAME)
 class ScriptParameter {
 
