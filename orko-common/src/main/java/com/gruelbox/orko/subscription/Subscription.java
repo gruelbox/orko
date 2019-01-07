@@ -28,6 +28,11 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.spi.TickerSpec;
 
+/**
+ * Persistence object for subscriptions.
+ *
+ * @author Graham Crockford
+ */
 @Entity(name = Subscription.TABLE_NAME)
 final class Subscription {
 
