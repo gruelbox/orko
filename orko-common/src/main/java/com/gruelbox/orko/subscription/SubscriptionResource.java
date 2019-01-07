@@ -43,6 +43,9 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.hibernate.UnitOfWork;
 
+/**
+ * Access to exchange information.
+ */
 @Path("/subscriptions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
