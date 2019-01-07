@@ -48,7 +48,6 @@ import com.google.inject.servlet.RequestScoped;
 import com.gruelbox.orko.auth.blacklist.Blacklisting;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.gruelbox.orko.auth.jwt.JwtModule;
-import com.gruelbox.orko.auth.okta.OktaModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.lifecycle.Managed;
@@ -70,7 +69,6 @@ public class AuthModule extends AbstractModule {
     if (configuration != null) {
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());
-      install(new OktaModule(configuration));
       install(new JwtModule(configuration));
       Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
       Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(Blacklisting.class);

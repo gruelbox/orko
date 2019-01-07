@@ -179,50 +179,23 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+    <guice.version>4.2.2</guice.version>
+    <autovalue.version>1.6.2</autovalue.version>
     <dropwizard.version>1.3.7</dropwizard.version>
-
     <xchange.version>4.3.13</xchange.version>
 
     <!--<xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid> -->
     <xchange.stream.groupid>com.github.badgerwithagun.xchange-stream</xchange.stream.groupid>
     <xchange.stream.version>4.3.11.orko.5</xchange.stream.version>
 
-    <streamex.version>0.6.7</streamex.version>
-    <guice.version>4.2.2</guice.version>
-    <guava.version>27.0-jre</guava.version>
-    <autovalue.version>1.6.2</autovalue.version>
-    <rabbitmq.version>5.4.3</rabbitmq.version>
-    <j00q.version>3.11.7</j00q.version>
-    <mysql.connector.version>8.0.13</mysql.connector.version>
-
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.badgerwithagun.2</morf.version>
 
-    <reflections.version>0.9.11</reflections.version>
-    <googleauth.version>1.1.5</googleauth.version>
-    <okta-jwt-verifier-version>0.3.0</okta-jwt-verifier-version>
-    <jose4j.version>0.6.4</jose4j.version>
-    <dropwizard-websockets-version>1.3.2</dropwizard-websockets-version>
-    <urlrewritefilter.version>4.0.4</urlrewritefilter.version>
-    <dropwizard.https.redirect.version>0.0.3</dropwizard.https.redirect.version>
-    <dropwizard.guice.box.version>0.0.1</dropwizard.guice.box.version>
-
-    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
-    <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     <maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
-    <maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
-    <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
     <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
     <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
     <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
-    <license.maven.plugin.version>3.0</license.maven.plugin.version>
-    <spotbugs-maven-plugin.version>3.1.10</spotbugs-maven-plugin.version>
-    <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
     <process.exec.maven.plugin.version>0.7</process.exec.maven.plugin.version>
-    <checkstyle.version>8.12</checkstyle.version>
-    <jacoco.version>0.8.1</jacoco.version>
-    <mockito.version>1.10.19</mockito.version>
-    <hamcrest.version>1.3</hamcrest.version>
   </properties>
 
   <dependencyManagement>
@@ -237,17 +210,17 @@
       <dependency>
         <groupId>com.gruelbox</groupId>
         <artifactId>dropwizard-https-redirect</artifactId>
-        <version>${dropwizard.https.redirect.version}</version>
+        <version>0.0.3</version>
       </dependency>
       <dependency>
         <groupId>com.gruelbox</groupId>
         <artifactId>dropwizard-guice-box</artifactId>
-        <version>${dropwizard.guice.box.version}</version>
+        <version>0.0.1</version>
       </dependency>
       <dependency>
         <groupId>org.tuckey</groupId>
         <artifactId>urlrewritefilter</artifactId>
-        <version>${urlrewritefilter.version}</version>
+        <version>4.0.4</version>
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
@@ -257,12 +230,17 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
+        <version>27.0-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${guice.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-collections4</artifactId>
+        <version>4.2</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject.extensions</groupId>
@@ -288,25 +266,25 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
-        <version>${mockito.version}</version>
+        <version>1.10.19</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
-        <version>${hamcrest.version}</version>
+        <version>1.3</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.rabbitmq</groupId>
         <artifactId>amqp-client</artifactId>
-        <version>${rabbitmq.version}</version>
+        <version>5.4.3</version>
       </dependency>
 
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>${mysql.connector.version}</version>
+        <version>8.0.13</version>
       </dependency>
       <dependency>
         <groupId>${morf.groupid}</groupId>
@@ -356,7 +334,7 @@
       <dependency>
         <groupId>org.jooq</groupId>
         <artifactId>jooq</artifactId>
-        <version>${j00q.version}</version>
+        <version>3.11.7</version>
       </dependency>
 
       <dependency>
@@ -367,27 +345,22 @@
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>${reflections.version}</version>
+        <version>0.9.11</version>
       </dependency>
       <dependency>
         <groupId>com.warrenstrange</groupId>
         <artifactId>googleauth</artifactId>
-        <version>${googleauth.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.okta.jwt</groupId>
-        <artifactId>okta-jwt-verifier</artifactId>
-        <version>${okta-jwt-verifier-version}</version>
+        <version>1.1.5</version>
       </dependency>
       <dependency>
         <groupId>org.bitbucket.b_c</groupId>
         <artifactId>jose4j</artifactId>
-        <version>${jose4j.version}</version>
+        <version>0.6.4</version>
       </dependency>
       <dependency>
         <groupId>com.liveperson</groupId>
         <artifactId>dropwizard-websockets</artifactId>
-        <version>${dropwizard-websockets-version}</version>
+        <version>1.3.2</version>
       </dependency>
 
       <dependency>
@@ -465,7 +438,7 @@
       <plugins>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven.compiler.plugin.version}</version>
+          <version>3.7.0</version>
           <configuration>
             <source>${maven.compiler.source}</source>
             <target>${maven.compiler.target}</target>
@@ -486,7 +459,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>${maven-dependency-plugin-version}</version>
+          <version>3.0.2</version>
           <executions>
             <execution>
               <id>copy-dependencies</id>
@@ -511,7 +484,7 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>${spotbugs-maven-plugin.version}</version>
+          <version>3.1.10</version>
           <configuration>
             <excludeFilterFile>../etc/findbugs-exclude.xml</excludeFilterFile>
           </configuration>
@@ -528,12 +501,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>${maven-checkstyle-plugin.version}</version>
+          <version>2.17</version>
           <dependencies>
             <dependency>
               <groupId>com.puppycrawl.tools</groupId>
               <artifactId>checkstyle</artifactId>
-              <version>${checkstyle.version}</version>
+              <version>8.12</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -559,7 +532,7 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>${license.maven.plugin.version}</version>
+          <version>3.0</version>
           <configuration>
             <header>etc/HEADER</header>
             <includes>

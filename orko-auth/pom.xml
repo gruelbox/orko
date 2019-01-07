@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -16,13 +18,13 @@
   <name>Orko Auth</name>
 
   <dependencies>
-  
+
     <dependency>
       <groupId>com.gruelbox</groupId>
       <artifactId>orko-base</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.gruelbox</groupId>
       <artifactId>orko-db-testsupport</artifactId>
@@ -36,8 +38,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.okta.jwt</groupId>
-      <artifactId>okta-jwt-verifier</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
       <groupId>org.bitbucket.b_c</groupId>
@@ -47,7 +49,7 @@
       <groupId>com.warrenstrange</groupId>
       <artifactId>googleauth</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
@@ -94,7 +96,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven.jar.plugin.version}</version>
         <configuration>
           <archive>
             <manifest>
