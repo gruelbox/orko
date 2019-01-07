@@ -267,6 +267,9 @@ public final class OrkoWebSocketServer {
     };
   }
 
+  /**
+   * Workaround for lack of serializability of the XChange object
+   */
   private Object serialise(UserTradeEvent e) {
     return ImmutableMap.of(
       "spec", e.spec(),
