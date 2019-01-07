@@ -51,6 +51,9 @@ import com.gruelbox.orko.util.CheckedExceptions;
 
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 
+/**
+ * API-friendly name mapping for exchanges.
+ */
 @Singleton
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
