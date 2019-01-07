@@ -36,6 +36,9 @@ import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.server.AbstractServerFactory;
 
+/**
+ * Runtime config. Should really be broken up.
+ */
 public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration {
 
   /**
