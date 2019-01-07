@@ -38,6 +38,11 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.spi.TickerSpec;
 
+/**
+ * Subscription persistence.
+ *
+ * @author Graham Crockford
+ */
 @Singleton
 class SubscriptionAccess {
 
