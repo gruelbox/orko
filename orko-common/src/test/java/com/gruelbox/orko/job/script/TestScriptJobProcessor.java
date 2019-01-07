@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
@@ -84,7 +85,6 @@ public class TestScriptJobProcessor {
     }).when(transactionally).run(Mockito.any(Runnable.class));
   }
 
-  /* -------------------------------------------------------------------------------------- */
 
   @Test
   public void testTransientExceptionOnStart() throws Exception {
