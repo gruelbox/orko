@@ -58,6 +58,9 @@ import io.reactivex.disposables.Disposable;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 import jersey.repackaged.com.google.common.collect.Maps;
 
+/**
+ * Stack tests for {@link MarketDataSubscriptionManager}. Actually connects to exchanges.
+ */
 public class TestMarketDataIntegration {
   private static final TickerSpec binance = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BINANCE).build();
   private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.BITFINEX).build();
