@@ -25,6 +25,11 @@ import com.gruelbox.orko.job.script.ScriptJob;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobTypeContribution;
 
+/**
+ * Orko jobs (registered by {@link ServiceLoader}).
+ *
+ * @author Graham Crockford
+ */
 public class JobTypes implements JobTypeContribution {
   @Override
   public Iterable<Class<? extends Job>> jobTypes() {
