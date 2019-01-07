@@ -113,12 +113,18 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscribeUnsubscribe() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
   }
 
   @Test
   public void testSubscribePauseAndUnsubscribe() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
     Thread.sleep(2500);
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
