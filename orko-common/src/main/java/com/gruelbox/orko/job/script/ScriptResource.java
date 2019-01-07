@@ -44,6 +44,9 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.hibernate.UnitOfWork;
 
+/**
+ * Submission and management of scripts and script jobs.
+ */
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
