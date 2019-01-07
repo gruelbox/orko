@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.websocket;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
@@ -266,9 +267,6 @@ public final class OrkoWebSocketServer {
     };
   }
 
-  /**
-   * Workaround for lack of serializability of the XChange object
-   */
   private Object serialise(UserTradeEvent e) {
     return ImmutableMap.of(
       "spec", e.spec(),

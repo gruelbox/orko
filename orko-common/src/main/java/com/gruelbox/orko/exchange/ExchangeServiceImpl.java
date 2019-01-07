@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import java.util.Arrays;
@@ -50,9 +51,6 @@ import com.gruelbox.orko.util.CheckedExceptions;
 
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 
-/**
- * API-friendly name mapping for exchanges.
- */
 @Singleton
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {

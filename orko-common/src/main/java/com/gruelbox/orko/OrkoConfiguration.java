@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko;
 
 import java.util.Map;
@@ -35,9 +36,6 @@ import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.server.AbstractServerFactory;
 
-/**
- * Runtime config. Should really be broken up.
- */
 public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration {
 
   /**

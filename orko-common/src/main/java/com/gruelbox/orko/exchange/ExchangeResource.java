@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import java.io.IOException;
@@ -64,9 +65,6 @@ import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
-/**
- * Access to exchange information.
- */
 @Path("/exchanges")
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton

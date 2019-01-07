@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko;
 
 import javax.ws.rs.core.Response;
@@ -25,14 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 
-/**
- * Implementation if {@link ExceptionMapper} to send down a "400 Bad Request"
- * response in the event that unmappable JSON is received. <p> Note that
- * {@link javax.ws.rs.ext.Provider} annotation was include up to Jackson 2.7,
- * but removed from 2.8 (as per [jaxrs-providers#22]
- *
- * @since 2.2
- */
 public class JerseyMappingErrorLoggingExceptionHandler implements ExceptionMapper<JsonMappingException> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JerseyMappingErrorLoggingExceptionHandler.class);

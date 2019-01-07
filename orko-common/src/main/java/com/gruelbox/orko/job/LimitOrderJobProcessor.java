@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
@@ -44,11 +45,6 @@ import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.notification.NotificationService;
 
-/**
- * Processor for {@link LimitOrderJob}.
- *
- * @author Graham Crockford
- */
 class LimitOrderJobProcessor implements LimitOrderJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LimitOrderJobProcessor.class);

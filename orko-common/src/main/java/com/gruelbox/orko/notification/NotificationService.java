@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.notification;
 
 import static com.gruelbox.orko.notification.NotificationLevel.ALERT;
@@ -23,9 +24,6 @@ import static com.gruelbox.orko.notification.NotificationLevel.INFO;
 
 import com.google.inject.ImplementedBy;
 
-/**
- * Service for notifying the user of an important event.
- */
 @ImplementedBy(RetryingMessageService.class)
 public interface NotificationService {
 

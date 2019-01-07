@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import java.io.Serializable;
@@ -28,11 +29,6 @@ import org.hibernate.validator.constraints.Length;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * A parameter for a {@link Script}.
- *
- * @author Graham Crockford
- */
 @Entity(name = ScriptParameter.TABLE_NAME)
 class ScriptParameter {
 

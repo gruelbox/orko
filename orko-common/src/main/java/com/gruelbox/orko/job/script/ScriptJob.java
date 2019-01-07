@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import java.util.Map;
@@ -33,11 +34,6 @@ import com.gruelbox.orko.jobrun.spi.JobBuilder;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 
-/**
- * Provides the context for a Javscript job.
- *
- * @author Graham Crockford
- */
 @AutoValue
 @JsonDeserialize(builder = ScriptJob.Builder.class)
 public abstract class ScriptJob implements Job {

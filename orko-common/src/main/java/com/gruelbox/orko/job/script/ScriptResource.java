@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import javax.annotation.security.RolesAllowed;
@@ -43,9 +44,6 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.hibernate.UnitOfWork;
 
-/**
- * Submission and management of scripts and script jobs.
- */
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

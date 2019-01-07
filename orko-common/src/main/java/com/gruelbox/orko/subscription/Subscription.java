@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.subscription;
 
 import java.math.BigDecimal;
@@ -27,11 +28,6 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.spi.TickerSpec;
 
-/**
- * Persistence object for subscriptions.
- *
- * @author Graham Crockford
- */
 @Entity(name = Subscription.TABLE_NAME)
 final class Subscription {
 

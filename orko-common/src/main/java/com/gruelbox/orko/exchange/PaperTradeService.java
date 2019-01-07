@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
@@ -66,10 +67,6 @@ import com.gruelbox.orko.util.SafelyDispose;
 
 import io.reactivex.disposables.Disposable;
 
-/**
- * Paper trading implementation.  Note: doesn't work between restarts. Probably not thread
- * safe either yet.
- */
 public final class PaperTradeService implements TradeService {
 
   private final AtomicLong orderCounter = new AtomicLong();

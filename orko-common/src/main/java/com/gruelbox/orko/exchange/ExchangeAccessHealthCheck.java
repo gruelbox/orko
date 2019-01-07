@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -25,11 +26,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.exchange.ExchangeResource.Pair;
 
-/**
- * Just attempts to access binance.
- *
- * @author grahamc (Graham Crockford)
- */
 @Singleton
 class ExchangeAccessHealthCheck extends HealthCheck {
 

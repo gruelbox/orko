@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import java.util.List;
@@ -60,12 +61,6 @@ public final class Exchanges {
       .collect(Collectors.toList()));
 
 
-  /**
-   * Converts the friendly name for an exchange into the exchange class.
-   *
-   * @param friendlyName The friendly class name.
-   * @return The exchange class
-   */
   public static Class<? extends Exchange> friendlyNameToClass(String friendlyName) {
 
     if (friendlyName.equals(GDAX) || friendlyName.equals(GDAX_SANDBOX))

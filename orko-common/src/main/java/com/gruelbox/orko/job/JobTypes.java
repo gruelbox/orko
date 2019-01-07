@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job;
 
 import java.util.ServiceLoader;
@@ -24,11 +25,6 @@ import com.gruelbox.orko.job.script.ScriptJob;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobTypeContribution;
 
-/**
- * Orko jobs (registered by {@link ServiceLoader}).
- *
- * @author Graham Crockford
- */
 public class JobTypes implements JobTypeContribution {
   @Override
   public Iterable<Class<? extends Job>> jobTypes() {

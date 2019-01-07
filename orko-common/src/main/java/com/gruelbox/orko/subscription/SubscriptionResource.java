@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.subscription;
 
 import java.math.BigDecimal;
@@ -42,9 +43,6 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.hibernate.UnitOfWork;
 
-/**
- * Access to exchange information.
- */
 @Path("/subscriptions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

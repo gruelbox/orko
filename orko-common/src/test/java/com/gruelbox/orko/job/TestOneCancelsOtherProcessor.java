@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
@@ -98,7 +99,6 @@ public class TestOneCancelsOtherProcessor {
     when(subscription.getTickers()).thenAnswer((args) -> tickerData);
   }
 
-  /* -------------------------------------------------------------------------------------- */
 
   @Test
   public void testAtLowNoJob() throws Exception {

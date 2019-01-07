@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.job.LimitOrderJob.Direction.BUY;
@@ -68,11 +69,6 @@ import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.internal.runtime.ParserException;
 
-/**
- * Processor for {@link ScriptJob}.
- *
- * @author Graham Crockford
- */
 class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptJobProcessor.class);
