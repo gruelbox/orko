@@ -58,7 +58,7 @@ import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
 
-  private static final long SENSIBLE_MINIMUM_POLL_DELAY = 2000;
+  private static final long SENSIBLE_MINIMUM_POLL_DELAY = 4000; // TODO this is too long to be usable. Trying to deal with rate limitations on several exchanges
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
