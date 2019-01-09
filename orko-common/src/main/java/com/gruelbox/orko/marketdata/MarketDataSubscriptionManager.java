@@ -500,103 +500,100 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private void pollExchange(String exchangeName) {
     Thread.currentThread().setName(getClass().getSimpleName() + "-" + exchangeName);
-    long defaultSleep = (long) configuration.getLoopSeconds() * 1000;
-    while (!phaser.isTerminated()) {
+    try {
+      while (!phaser.isTerminated()) {
 
-      // Before we check for the presence of polls, determine which phase
-      // we are going to wait for if there's no work to do - i.e. the
-      // next wakeup.
-      int phase = phaser.getPhase();
-      if (phase == -1)
-        break;
-
-      // Handle any pending resubscriptions.
-      LOGGER.debug("{} - start subscription check", exchangeName);
-      boolean subscriptionsFailed = false;
-      boolean resubscribed = false;
-      try {
-        resubscribed = doSubscriptionChanges(exchangeName);
-      } catch (Exception e) {
-        subscriptionsFailed = true;
-      }
-
-      // Work out how often we can poll the exchange safely.
-      Set<MarketDataSubscription> polls = activePollsForExchange(exchangeName);
-      long interApiSleep = sleepTime(exchangeName);
-
-      // Pause after a resubscription since it probably counts as an API call and thus
-      // toward the rate limit
-      if (resubscribed) {
-        if (!sleep(exchangeName, interApiSleep)) {
+        // Before we check for the presence of polls, determine which phase
+        // we are going to wait for if there's no work to do - i.e. the
+        // next wakeup.
+        int phase = phaser.getPhase();
+        if (phase == -1)
           break;
-        }
-      }
 
-      // Check if we have any polling to do. If not, go to sleep until awoken
-      // by a subscription change, unless we failed to process subscriptions,
-      // in which case wake ourselves up in a few seconds to try again
-      if (polls.isEmpty()) {
-        LOGGER.debug("{} - poll going to sleep", exchangeName);
+        // Handle any pending resubscriptions. Pause after a resubscription
+        // since it probably counts as an API call and thus toward the
+        // rate limit
+        LOGGER.debug("{} - start subscription check", exchangeName);
+        boolean subscriptionsFailed = false;
         try {
-          if (subscriptionsFailed) {
-            phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
-          } else {
-            LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase);
-            phaser.awaitAdvanceInterruptibly(phase);
-            LOGGER.debug("{} - poll woken up on request", exchangeName);
+          if (doSubscriptionChanges(exchangeName)) {
+            sleep(exchangeName);
           }
-          continue;
         } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          break;
-        } catch (TimeoutException e) {
-          continue;
+          throw e;
         } catch (Exception e) {
-          LOGGER.error("Failure in phaser wait for " + exchangeName, e);
+          subscriptionsFailed = true;
+        }
+
+        // Check if we have any polling to do. If not, go to sleep until awoken
+        // by a subscription change, unless we failed to process subscriptions,
+        // in which case wake ourselves up in a few seconds to try again
+        Set<MarketDataSubscription> polls = activePollsForExchange(exchangeName);
+        if (polls.isEmpty()) {
+          suspendPollThread(exchangeName, phase, subscriptionsFailed);
           continue;
         }
-      }
 
-      LOGGER.debug("{} - start poll", exchangeName);
-      Set<String> balanceCurrencies = new HashSet<>();
-      for (MarketDataSubscription subscription : polls) {
-        if (phaser.isTerminated())
-          break;
-        if (subscription.type().equals(BALANCE)) {
-          balanceCurrencies.add(subscription.spec().base());
-          balanceCurrencies.add(subscription.spec().counter());
-        } else {
-          fetchAndBroadcast(subscription);
-          if (!sleep(exchangeName, interApiSleep))
+        LOGGER.debug("{} - start poll", exchangeName);
+        Set<String> balanceCurrencies = new HashSet<>();
+        for (MarketDataSubscription subscription : polls) {
+          if (phaser.isTerminated())
             break;
-        }
-      }
-
-      if (phaser.isTerminated())
-        break;
-
-      // We'll be extending this sort of batching to more market data types...
-      if (!balanceCurrencies.isEmpty()) {
-        try {
-          fetchBalances(exchangeName, balanceCurrencies)
-            .forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b)));
-        } catch (NotAvailableFromExchangeException e) {
-          LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
-          Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
-        } catch (Exception e) {
-          if (Exchanges.KUCOIN.equals(exchangeName)) {
-            // Kucoin does this literally all the time, so to save our logs, just write the message
-            LOGGER.error("Error fetching balance on " + exchangeName + " (" + e.getMessage() + ")");
+          if (subscription.type().equals(BALANCE)) {
+            balanceCurrencies.add(subscription.spec().base());
+            balanceCurrencies.add(subscription.spec().counter());
           } else {
-            LOGGER.error("Error fetching balance on " + exchangeName, e);
+            fetchAndBroadcast(subscription);
+            sleep(exchangeName);
           }
         }
+
         if (phaser.isTerminated())
           break;
-        if (!sleep(exchangeName, interApiSleep))
-          break;
-      }
 
+        // We'll be extending this sort of batching to more market data types...
+        if (!balanceCurrencies.isEmpty()) {
+          try {
+            fetchBalances(exchangeName, balanceCurrencies)
+              .forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b)));
+          } catch (NotAvailableFromExchangeException e) {
+            LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
+            Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
+          } catch (Exception e) {
+            if (Exchanges.KUCOIN.equals(exchangeName)) {
+              // Kucoin does this literally all the time, so to save our logs, just write the message
+              LOGGER.error("Error fetching balance on " + exchangeName + " (" + e.getMessage() + ")");
+            } else {
+              LOGGER.error("Error fetching balance on " + exchangeName, e);
+            }
+          }
+          if (phaser.isTerminated())
+            break;
+          sleep(exchangeName);
+        }
+
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+
+  private void suspendPollThread(String exchangeName, int phase, boolean subscriptionsFailed) {
+    LOGGER.debug("{} - poll going to sleep", exchangeName);
+    try {
+      if (subscriptionsFailed) {
+        long defaultSleep = (long) configuration.getLoopSeconds() * 1000;
+        phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
+      } else {
+        LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase);
+        phaser.awaitAdvanceInterruptibly(phase);
+        LOGGER.debug("{} - poll woken up on request", exchangeName);
+      }
+    } catch (TimeoutException e) {
+      // fine
+    } catch (Exception e) {
+      LOGGER.error("Failure in phaser wait for " + exchangeName, e);
     }
   }
 
@@ -606,19 +603,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         .filter(s -> !unavailableSubscriptions.contains(s)).toSet();
   }
 
-  private boolean sleep(String exchangeName, long sleepTime) {
+  private void sleep(String exchangeName) throws InterruptedException {
     LOGGER.debug("{} pausing between API calls", exchangeName);
-    try {
-      Thread.sleep(sleepTime);
-      return true;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return false;
-    }
-  }
-
-  private long sleepTime(String exchangeName) {
-    return exchangeService.safePollDelay(exchangeName);
+    Thread.sleep(exchangeService.safePollDelay(exchangeName));
   }
 
   private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) throws IOException {
