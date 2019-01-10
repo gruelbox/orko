@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,6 +74,20 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 @Singleton
 public class ExchangeResource implements WebResource {
 
+  // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
+  public static final List<Pair> BITMEX_PAIRS = ImmutableList.of(
+    new Pair("XBT", "USD"),
+    new Pair("XBT", "H19"),
+    new Pair("ADA", "H19"),
+    new Pair("BCH", "H19"),
+    new Pair("EOS", "H19"),
+    new Pair("ETH", "USD"),
+    new Pair("ETH", "H19"),
+    new Pair("LTC", "H19"),
+    new Pair("TRX", "H19"),
+    new Pair("XRP", "H19")
+  );
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeResource.class);
 
   private final ExchangeService exchanges;
@@ -114,18 +129,7 @@ public class ExchangeResource implements WebResource {
 
     // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
     if (Exchanges.BITMEX.equals(exchangeName)) {
-      return ImmutableList.of(
-        new Pair("XBT", "USD"),
-        new Pair("XBT", "Z18"),
-        new Pair("ADA", "Z18"),
-        new Pair("BCH", "Z18"),
-        new Pair("EOS", "Z18"),
-        new Pair("ETH", "USD"),
-        new Pair("ETH", "Z18"),
-        new Pair("LTC", "H19"),
-        new Pair("TRX", "Z18"),
-        new Pair("XRP", "Z18")
-      );
+      return BITMEX_PAIRS;
     } else {
       return exchanges.get(exchangeName)
           .getExchangeMetaData()

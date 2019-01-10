@@ -19,6 +19,7 @@
 package com.gruelbox.orko.marketdata;
 
 import static com.gruelbox.orko.db.TestingUtils.skipIfSlowTestsDisabled;
+import static com.gruelbox.orko.exchange.Exchanges.BITMEX;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
@@ -46,6 +47,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
+import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.ExchangeServiceImpl;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
@@ -78,6 +80,7 @@ public class TestMarketDataIntegration {
     )
     .toSet();
 
+  private ExchangeServiceImpl exchangeServiceImpl;
   private MarketDataSubscriptionManager marketDataSubscriptionManager;
   private ExchangeEventBus exchangeEventBus;
 
@@ -89,7 +92,7 @@ public class TestMarketDataIntegration {
 
     OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
     orkoConfiguration.setLoopSeconds(2);
-    ExchangeServiceImpl exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
+    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
       exchangeServiceImpl,
       orkoConfiguration,
@@ -121,6 +124,55 @@ public class TestMarketDataIntegration {
   }
 
   @Test
+  public void testBitmexContracts() throws InterruptedException {
+
+    skipIfSlowTestsDisabled();
+
+    Set<TickerSpec> coins = FluentIterable.from(ExchangeResource.BITMEX_PAIRS)
+        .transform(c -> TickerSpec.builder()
+            .base(c.base)
+            .counter(c.counter)
+            .exchange(BITMEX)
+            .build())
+        .toSet();
+
+    System.out.println(coins);
+
+    ImmutableSet<MarketDataSubscription> bitmexSubscriptions = FluentIterable.from(coins)
+        .transform(t -> MarketDataSubscription.create(t, TICKER)).toSet();
+
+    ImmutableMap<MarketDataSubscription, CountDownLatch> latchesBySubscriber = Maps.toMap(
+        bitmexSubscriptions,
+        sub -> new CountDownLatch(2)
+      );
+
+    Set<Disposable> disposables = null;
+
+    marketDataSubscriptionManager.updateSubscriptions(bitmexSubscriptions);
+    try {
+
+      disposables = FluentIterable.from(bitmexSubscriptions).transform(sub ->
+        getSubscription(marketDataSubscriptionManager, sub).subscribe(t -> latchesBySubscriber.get(sub).countDown())
+      ).toSet();
+
+      latchesBySubscriber.entrySet().stream().parallel().forEach(entry -> {
+        MarketDataSubscription sub = entry.getKey();
+        CountDownLatch latch = entry.getValue();
+        try {
+          assertTrue("No response for " + sub, latch.await(120, TimeUnit.SECONDS));
+          System.out.println("Found responses for " + sub);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      });
+
+    } finally {
+      SafelyDispose.of(disposables);
+      marketDataSubscriptionManager.updateSubscriptions(emptySet());
+    }
+  }
+
+  @Test
   public void testSubscribePauseAndUnsubscribe() throws InterruptedException {
 
     skipIfSlowTestsDisabled();
@@ -136,12 +188,13 @@ public class TestMarketDataIntegration {
     skipIfSlowTestsDisabled();
 
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
+    Set<Disposable> disposables = null;
     try {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber = Maps.toMap(
         subscriptions,
         sub -> ImmutableList.of(new CountDownLatch(2), new CountDownLatch(2))
       );
-      Set<Disposable> disposables = FluentIterable.from(subscriptions).transformAndConcat(sub -> ImmutableSet.<Disposable>of(
+      disposables = FluentIterable.from(subscriptions).transformAndConcat(sub -> ImmutableSet.<Disposable>of(
         getSubscription(marketDataSubscriptionManager, sub).subscribe(t -> {
           latchesBySubscriber.get(sub).get(0).countDown();
         }),
@@ -161,8 +214,8 @@ public class TestMarketDataIntegration {
           throw new RuntimeException(e);
         }
       });
-      SafelyDispose.of(disposables);
     } finally {
+      SafelyDispose.of(disposables);
       marketDataSubscriptionManager.updateSubscriptions(emptySet());
     }
   }

@@ -712,28 +712,25 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private Object[] bitmexArgs(TickerSpec spec) {
-    // TODO need to think about how to manage differnet Bitmex contracts,
-    // in the meantime just assume we'll use perps if we can and monthly
-    // otherwise
+    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
     return new Object[] {
-        (spec.base().equals("XBT") || spec.base().equals("ETH"))
+        spec.counter().equals("USD")
           ? BitmexPrompt.PERPETUAL
           : BitmexPrompt.QUARTERLY
     };
-  }
-
-  private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
-    // TODO need solution for https://github.com/knowm/XChange/issues/2886
-    if (spec.counter().equals("Z18"))
-      return new CurrencyPair(spec.base(), "BTC");
-    else
-      return spec.currencyPair();
   }
 
   private CurrencyPair exchangePair(TickerSpec spec) {
     return spec.exchange().equals(Exchanges.BITMEX)
         ? bitmexCurrencyPair(spec)
         : spec.currencyPair();
+  }
+
+  private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
+    // TODO need solution for https://github.com/knowm/XChange/issues/2886
+    return spec.counter().equals("USD")
+        ? spec.currencyPair()
+        : new CurrencyPair(spec.base(), "BTC");
   }
 
   private void pollAndEmitOrderbook(TickerSpec spec, MarketDataService marketDataService) throws IOException {
