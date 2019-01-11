@@ -52,6 +52,8 @@ import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
 import org.knowm.xchange.service.trade.TradeService;
+import org.knowm.xchange.service.trade.params.CancelOrderParams;
+import org.knowm.xchange.service.trade.params.DefaultCancelOrderParamId;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -361,12 +363,14 @@ public class ExchangeResource implements WebResource {
                               @PathParam("id") String id,
                               @QueryParam("orderType") org.knowm.xchange.dto.Order.OrderType orderType) throws IOException {
     try {
-      // KucoinCancelOrderParams is the superset - pair, id and order type. Should work with pretty much any exchange.
+      // KucoinCancelOrderParams is the superset - pair, id and order type. Should work with pretty much any exchange,
+      // except Bitmex
+      // TODO PR to fix bitmex
+      CancelOrderParams cancelOrderParams = exchange.equals(Exchanges.BITMEX)
+          ? new DefaultCancelOrderParamId(id)
+          : new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType);
       return Response.ok()
-        .entity(
-          tradeServiceFactory.getForExchange(exchange)
-            .cancelOrder(new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType))
-        )
+        .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(cancelOrderParams))
         .build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();

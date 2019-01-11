@@ -37,6 +37,9 @@ exchanges:
   bitfinex:
     apiKey: ${BITFINEX_API_KEY:-}
     secretKey: ${BITFINEX_SECRET:-}
+  bitmex:
+    apiKey: ${BITMEX_API_KEY:-}
+    secretKey: ${BITMEX_SECRET:-}
   bittrex:
     apiKey: ${BITTREX_API_KEY:-}
     secretKey: ${BITTREX_SECRET:-}

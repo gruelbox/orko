@@ -57,6 +57,7 @@ import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
+import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.TradeHistoryParamCurrencyPair;
@@ -763,8 +764,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private TradeHistoryParams tradeHistoryParams(MarketDataSubscription subscription, TradeService tradeService) {
     TradeHistoryParams params;
 
-    // TODO fix with pull request
-    if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+    // TODO fix with pull requests
+    if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
       params = new TradeHistoryParamCurrencyPair() {
 
         private CurrencyPair pair;
@@ -799,9 +800,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
   private OpenOrdersParams openOrdersParams(MarketDataSubscription subscription, TradeService tradeService) {
-    OpenOrdersParams params = tradeService.createOpenOrdersParams();
+    OpenOrdersParams params = null;
+    try {
+      params = tradeService.createOpenOrdersParams();
+    } catch (NotYetImplementedForExchangeException e) {
+      // Fiiiiine Bitmex
+    }
     if (params == null) {
-      // Bitfinex
+      // Bitfinex & Bitmex
       params = new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair());
     } else if (params instanceof OpenOrdersParamCurrencyPair) {
       ((OpenOrdersParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
