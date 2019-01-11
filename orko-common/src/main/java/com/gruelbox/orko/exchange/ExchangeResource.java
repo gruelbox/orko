@@ -169,8 +169,8 @@ public class ExchangeResource implements WebResource {
 
     // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
     CurrencyPair currencyPair = new CurrencyPair(
-      base.equals("Z18") ? "BTC" : base,
-      counter.equals("Z18") ? "BTC" : counter
+      base,
+      counter.equals("Z19") ? "BTC" : counter
     );
     return new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
   }
