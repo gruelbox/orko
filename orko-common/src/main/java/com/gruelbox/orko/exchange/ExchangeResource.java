@@ -129,17 +129,20 @@ public class ExchangeResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public Collection<Pair> pairs(@PathParam("exchange") String exchangeName) {
 
+    Collection<Pair> pairs = exchanges.get(exchangeName)
+        .getExchangeMetaData()
+        .getCurrencyPairs()
+        .keySet()
+        .stream()
+        .map(Pair::new)
+        .collect(Collectors.toSet());
+
     // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
     if (Exchanges.BITMEX.equals(exchangeName)) {
+      LOGGER.warn("Bitmex reported pairs: {}, converted to {}", pairs, BITMEX_PAIRS);
       return BITMEX_PAIRS;
     } else {
-      return exchanges.get(exchangeName)
-          .getExchangeMetaData()
-          .getCurrencyPairs()
-          .keySet()
-          .stream()
-          .map(Pair::new)
-          .collect(Collectors.toSet());
+      return pairs;
     }
   }
 

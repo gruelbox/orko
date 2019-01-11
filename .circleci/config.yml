@@ -31,7 +31,7 @@ jobs:
           keys:
             - cypress-v2-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
 
-      - run: mvn -Pintegration-test clean install -DskipSlowTests=true -T 1C
+      - run: mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
 
       - save_cache:
           paths:
@@ -84,7 +84,7 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
-      - run: mvn -Pwebdev surefire:test -Dmorf.mysql.noadmin=true -DskipSlowTests=true -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+      - run: mvn -B -Pwebdev surefire:test -Dmorf.mysql.noadmin=true -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
 
       - run:
           name: Saving test results (MySQL)
