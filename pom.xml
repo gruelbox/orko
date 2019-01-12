@@ -11,7 +11,7 @@
     <connection>scm:git:https://github.com/badgerwithagun/orko.git</connection>
     <developerConnection>scm:git:git@github.com:badgerwithagun/orko.git</developerConnection>
     <url>https://github.com/badgerwithagun/orko</url>
-    <tag>HEAD</tag>
+    <tag>0.9.0</tag>
   </scm>
 
   <issueManagement>
@@ -40,7 +40,7 @@
 
   <groupId>com.gruelbox</groupId>
   <artifactId>orko-parent</artifactId>
-  <version>0.8.11-SNAPSHOT</version>
+  <version>0.9.0</version>
   <packaging>pom</packaging>
 
   <modules>
