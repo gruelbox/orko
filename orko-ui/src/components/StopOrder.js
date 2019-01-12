@@ -19,6 +19,7 @@ import React from "react"
 import Immutable from "seamless-immutable"
 
 import RawForm from "./primitives/RawForm"
+import Para from "./primitives/Para"
 import FormButtonBar from "./primitives/FormButtonBar"
 import { Form, Label } from "semantic-ui-react"
 
@@ -34,6 +35,10 @@ const StopOrder = props => {
           })
         )
     : () => {}
+
+  if (!props.enabled) {
+    return <Para>Not supported for exchange</Para>
+  }
 
   return (
     <Form data-orko="stopOrder" as={RawForm}>

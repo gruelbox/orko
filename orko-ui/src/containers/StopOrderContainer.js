@@ -74,13 +74,19 @@ class StopOrderContainer extends React.Component {
   }
 
   render() {
+    const supported =
+      this.props.coin.exchange !== "kucoin" &&
+      this.props.coin.exchange !== "bittrex" &&
+      this.props.coin.exchange !== "cryptopia"
     const stopPriceValid =
       this.state.order.stopPrice &&
       isValidNumber(this.state.order.stopPrice) &&
       this.state.order.stopPrice > 0
 
     const coinAllowsMarketStops = this.props.coin.exchange !== "binance"
-    const coinAllowsLimitStops = this.props.coin.exchange !== "bitfinex"
+    const coinAllowsLimitStops =
+      this.props.coin.exchange !== "bitfinex" &&
+      this.props.coin.exchange !== "bitmex"
     const coinAllowsStopBuy = this.props.coin.exchange !== "binance"
     const blankLimitPrice = this.state.order.limitPrice === ""
     const validLimitPrice =
@@ -108,6 +114,7 @@ class StopOrderContainer extends React.Component {
         coin={this.props.coin}
         allowLimit={coinAllowsLimitStops}
         allowMarket={coinAllowsMarketStops}
+        enabled={supported}
       />
     )
   }
