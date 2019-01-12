@@ -24,7 +24,6 @@ export default function reduce(
 ) {
   switch (action.type) {
     case types.SET_META:
-      console.log("System metadata", action.payload)
       return Immutable.merge(state, { meta: action.payload })
     default:
       return state
