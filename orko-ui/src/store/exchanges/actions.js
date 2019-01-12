@@ -45,7 +45,7 @@ export function fetchPairs(exchange) {
   )
 }
 
-export function submitOrder(exchange, order) {
+export function submitLimitOrder(exchange, order) {
   return authActions.wrappedRequest(
     auth => exchangesService.submitOrder(exchange, order),
     response =>
@@ -59,6 +59,27 @@ export function submitOrder(exchange, order) {
         status: "PENDING_NEW",
         type: order.type,
         limitPrice: order.limitPrice,
+        cumulativeAmount: 0
+      }),
+    error =>
+      errorActions.setForeground("Could not submit order: " + error.message)
+  )
+}
+
+export function submitStopOrder(exchange, order) {
+  return authActions.wrappedRequest(
+    auth => exchangesService.submitOrder(exchange, order),
+    response =>
+      coinActions.addOrder({
+        currencyPair: {
+          base: order.base,
+          counter: order.counter
+        },
+        originalAmount: order.amount,
+        id: response.id,
+        status: "PENDING_NEW",
+        type: order.type,
+        stopPrice: order.stopPrice,
         cumulativeAmount: 0
       }),
     error =>

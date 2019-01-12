@@ -22,7 +22,7 @@ import Immutable from "seamless-immutable"
 import StopOrder from "../components/StopOrder"
 
 import * as focusActions from "../store/focus/actions"
-//import * as exchangesActions from "../store/exchanges/actions"
+import * as exchangesActions from "../store/exchanges/actions"
 import { isValidNumber } from "../util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 
@@ -67,10 +67,10 @@ class StopOrderContainer extends React.Component {
   })
 
   onSubmit = async direction => {
-    //const order = this.createOrder(direction)
-    //this.props.dispatch(
-    //  exchangesActions.submitStopOrder(this.props.coin.exchange, order)
-    //)
+    const order = this.createOrder(direction)
+    this.props.dispatch(
+      exchangesActions.submitStopOrder(this.props.coin.exchange, order)
+    )
   }
 
   render() {
@@ -78,10 +78,18 @@ class StopOrderContainer extends React.Component {
       this.state.order.stopPrice &&
       isValidNumber(this.state.order.stopPrice) &&
       this.state.order.stopPrice > 0
-    const limitPriceValid =
-      this.state.order.limitPrice &&
+
+    const coinAllowsMarketStops = this.props.coin.exchange !== "binance"
+    const coinAllowsLimitStops = this.props.coin.exchange !== "bitfinex"
+    const coinAllowsStopBuy = this.props.coin.exchange !== "binance"
+    const blankLimitPrice = this.state.order.limitPrice === ""
+    const validLimitPrice =
       isValidNumber(this.state.order.limitPrice) &&
       this.state.order.limitPrice > 0
+    const limitPriceValid =
+      (validLimitPrice && coinAllowsLimitStops) ||
+      (blankLimitPrice && coinAllowsMarketStops)
+
     const amountValid =
       this.state.order.amount &&
       isValidNumber(this.state.order.amount) &&
@@ -92,12 +100,14 @@ class StopOrderContainer extends React.Component {
         order={this.state.order}
         onChange={this.onChange}
         onFocus={this.onFocus}
-        onBuy={() => this.onSubmit("BUY")}
+        onBuy={coinAllowsStopBuy ? () => this.onSubmit("BUY") : null}
         onSell={() => this.onSubmit("SELL")}
         stopPriceValid={stopPriceValid}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
         coin={this.props.coin}
+        allowLimit={coinAllowsLimitStops}
+        allowMarket={coinAllowsMarketStops}
       />
     )
   }

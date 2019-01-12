@@ -118,7 +118,7 @@ public class BitfinexTradeService extends BitfinexTradeServiceRaw implements Tra
         stopOrder.getCurrencyPair(),
         stopOrder.getId(),
         stopOrder.getTimestamp(),
-        stopOrder.getLimitPrice());
+        stopOrder.getStopPrice());
     limitOrder.setOrderFlags(stopOrder.getOrderFlags());
     limitOrder.setLeverage(stopOrder.getLeverage());
     limitOrder.addOrderFlag(BitfinexOrderFlags.STOP);

@@ -84,13 +84,13 @@ export default class TradeSelector extends React.Component {
       content = <Para>No coin selected</Para>
     } else {
       if (this.state.selected === "limit") {
-        content = <LimitOrderContainer coin={coin} />
+        content = <LimitOrderContainer key={coin.key} coin={coin} />
       } else if (this.state.selected === "stop") {
-        content = <StopOrderContainer coin={coin} />
+        content = <StopOrderContainer key={coin.key} coin={coin} />
       } else if (this.state.selected === "trailing") {
-        content = <TrailingStopOrderContainer coin={coin} />
+        content = <TrailingStopOrderContainer key={coin.key} coin={coin} />
       } else if (this.state.selected === "oco") {
-        content = <StopTakeProfitContainer coin={coin} />
+        content = <StopTakeProfitContainer key={coin.key} coin={coin} />
       } else if (this.state.selected === "custom") {
         content = <ScriptContainer />
       }

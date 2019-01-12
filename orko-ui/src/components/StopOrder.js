@@ -37,7 +37,6 @@ const StopOrder = props => {
 
   return (
     <Form data-orko="stopOrder" as={RawForm}>
-      <p>Not supported fully yet. Coming soon.</p>
       <Form.Group>
         <Form.Input
           id="stopPrice"
@@ -56,10 +55,15 @@ const StopOrder = props => {
         <Form.Input
           id="limitPrice"
           error={!!props.order.limitPrice && !props.limitPriceValid}
-          disabled={true}
+          disabled={!props.allowLimit}
+          required={!props.allowMarket}
           label="Limit price"
           labelPosition="right"
-          placeholder="Not supported by exchange"
+          placeholder={
+            props.allowLimit
+              ? "Enter limit price..."
+              : "Not supported for exchange"
+          }
           value={props.order.limitPrice ? props.order.limitPrice : ""}
           onChange={e => onChange("limitPrice", e.target.value)}
           onFocus={e => props.onFocus("limitPrice")}
@@ -103,19 +107,19 @@ const StopOrder = props => {
       <FormButtonBar>
         <Form.Button
           title="Submit sell stop order"
-          disabled={true || !valid}
+          disabled={!valid || !props.onSell}
           onClick={props.onSell}
           color="red"
         >
-          Submit sell stop
+          {!!props.onSell ? "Submit sell stop" : "Sell stop not supported"}
         </Form.Button>
         <Form.Button
           title="Submit buy stop order"
-          disabled={true || !valid}
+          disabled={!valid || !props.onBuy}
           onClick={props.onBuy}
           color="green"
         >
-          Submit buy stop
+          {!!props.onBuy ? "Submit buy stop" : "Buy stop not supported"}
         </Form.Button>
       </FormButtonBar>
     </Form>

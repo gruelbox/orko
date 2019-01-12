@@ -66,7 +66,7 @@ class LimitOrderContainer extends React.Component {
   onSubmit = async direction => {
     const order = this.createOrder(direction)
     this.props.dispatch(
-      exchangesActions.submitOrder(this.props.coin.exchange, order)
+      exchangesActions.submitLimitOrder(this.props.coin.exchange, order)
     )
   }
 

@@ -42,8 +42,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.Order.OrderStatus;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
@@ -230,11 +232,20 @@ public class ExchangeResource implements WebResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response postOrder(@PathParam("exchange") String exchange, Map<String, String> order) throws IOException {
 
-    if (!order.containsKey("stopPrice") && !order.containsKey("limitPrice"))
+    if (!order.containsKey("stopPrice") && StringUtils.isEmpty(order.get("limitPrice")))
       return Response.status(400).entity(ImmutableMap.of("message", "Market orders not supported at the moment.")).build();
 
-    if (order.containsKey("stopPrice") && order.containsKey("limitPrice"))
-      return Response.status(400).entity(ImmutableMap.of("message", "Stop limit orders not supported at the moment.")).build();
+    if (order.containsKey("stopPrice")) {
+      if (StringUtils.isNotEmpty(order.get("limitPrice"))) {
+        if (exchange.equals(Exchanges.BITFINEX)) {
+          return Response.status(400).entity(ImmutableMap.of("message", "Stop limit orders not supported for Bitfinex at the moment.")).build();
+        }
+      } else {
+        if (exchange.equals(Exchanges.BINANCE)) {
+          return Response.status(400).entity(ImmutableMap.of("message", "Stop market orders not supported for Binance at the moment. Specify a limit price.")).build();
+        }
+      }
+    }
 
     TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
 
@@ -266,14 +277,19 @@ public class ExchangeResource implements WebResource {
   }
 
   private String postStopOrder(String exchange, Map<String, String> order, TradeService tradeService) throws IOException {
+    String limitPrice = order.get("limitPrice");
     return tradeService.placeStopOrder(
       new StopOrder(
-          OrderType.valueOf(order.get("type")),
-          new BigDecimal(order.get("amount")),
-          new CurrencyPair(order.get("base"), order.get("counter")),
+        OrderType.valueOf(order.get("type")),
+        new BigDecimal(order.get("amount")),
+        new CurrencyPair(order.get("base"), order.get("counter")),
         null,
         new Date(),
-        new BigDecimal(order.get("stopPrice"))
+        new BigDecimal(order.get("stopPrice")),
+        StringUtils.isEmpty(limitPrice) ? null : new BigDecimal(limitPrice),
+        BigDecimal.ZERO,
+        BigDecimal.ZERO,
+        OrderStatus.PENDING_NEW
       )
     );
   }
