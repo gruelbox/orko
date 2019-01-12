@@ -19,9 +19,6 @@
 package com.gruelbox.orko;
 
 import javax.inject.Inject;
-import javax.servlet.FilterRegistration;
-
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 import com.google.inject.Module;
 import com.gruelbox.orko.websocket.WebSocketBundleInit;
@@ -35,6 +32,7 @@ import io.dropwizard.websockets.WebsocketBundle;
 public abstract class WebHostApplication extends BaseApplication {
 
   @Inject private WebSocketBundleInit webSocketBundleInit;
+  @Inject private UrlRewriteEnvironment urlRewriteEnvironment;
 
   private WebsocketBundle websocketBundle;
 
@@ -52,15 +50,8 @@ public abstract class WebHostApplication extends BaseApplication {
 
   @Override
   public final void run(final OrkoConfiguration configuration, final Environment environment) {
-
-    // Rewrite all UI URLs to index.html
-    FilterRegistration.Dynamic urlRewriteFilter = environment.servlets()
-        .addFilter("UrlRewriteFilter", new UrlRewriteFilter());
-    urlRewriteFilter.addMappingForUrlPatterns(null, true, "/*");
-    urlRewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-
+    urlRewriteEnvironment.init(environment);
     super.run(configuration, environment);
-
     webSocketBundleInit.init(websocketBundle);
   }
 }
