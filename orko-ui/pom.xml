@@ -82,7 +82,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven.jar.plugin.version}</version>
       </plugin>
     </plugins>
   </build>
