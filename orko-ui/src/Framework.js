@@ -21,7 +21,6 @@ import { Route } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
 import { Rnd } from "react-rnd"
 import styled from "styled-components"
-import { Tab } from "semantic-ui-react"
 import theme from "./theme"
 
 import CoinsContainer from "./containers/CoinsContainer"
@@ -204,137 +203,76 @@ export default class Framework extends React.Component {
       <ManageScriptsContainer {...props} key={props.match.params.id} />
     )
 
-    const header = [
-      <ToolbarContainer
-        key="tools"
-        mobile={isMobile}
-        onShowViewSettings={onToggleViewSettings}
-        onTogglePanelVisible={onTogglePanelVisible}
-        on
-        panels={panels}
-        width={width}
-      />,
-      <Route
-        key="addCoin"
-        exact
-        path="/addCoin"
-        component={AddCoinContainer}
-      />,
-      <Route
-        key="scriptsNoId"
-        exact
-        path="/scripts"
-        component={ManageScripts}
-      />,
-      <Route
-        key="scripts"
-        exact
-        path="/scripts/:id"
-        component={ManageScripts}
-      />,
-      <Route key="job" path="/job/:jobId" component={JobContainer} />,
-      <PositioningWrapper key="dialogs" mobile={isMobile}>
-        <Settings />
-        <ManageAlertsContainer mobile={isMobile} />
-        <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
-      </PositioningWrapper>
-    ]
-
-    if (isMobile) {
-      return (
-        <div style={{ height: "100%" }}>
-          {header}
-          <Tab
-            menu={{ inverted: true, color: "blue" }}
-            panes={[
-              { menuItem: "Coins", render: this.panelsRenderers.coins },
-              {
-                menuItem: "Chart",
-                render: () => <ChartContainer />
-              },
-              {
-                menuItem: "Book",
-                render: () => <MarketContainer allowAnimate={false} />
-              },
-              {
-                menuItem: "Trading",
-                render: () => (
-                  <React.Fragment>
-                    <div style={{ marginBottom: "4px" }}>
-                      {this.panelsRenderers.balance()}
-                    </div>
-                    {this.panelsRenderers.tradeSelector()}
-                  </React.Fragment>
-                )
-              },
-              { menuItem: "Orders", render: this.panelsRenderers.openOrders },
-              {
-                menuItem: "Status",
-                render: () => (
-                  <div>
-                    <div style={{ marginBottom: "4px" }}>
-                      {this.panelsRenderers.notifications()}
-                    </div>
-                    {this.panelsRenderers.jobs()}
-                  </div>
-                )
-              }
-            ]}
+    return (
+      <>
+        <ToolbarContainer
+          mobile={isMobile}
+          onShowViewSettings={onToggleViewSettings}
+          onTogglePanelVisible={onTogglePanelVisible}
+          on
+          panels={panels}
+          width={width}
+        />
+        <Route exact path="/addCoin" component={AddCoinContainer} />
+        <Route exact path="/scripts" component={ManageScripts} />
+        <Route exact path="/scripts/:id" component={ManageScripts} />
+        <Route path="/job/:jobId" component={JobContainer} />
+        <PositioningWrapper mobile={isMobile}>
+          <Settings />
+          <ManageAlertsContainer mobile={isMobile} />
+          <SetReferencePriceContainer
+            key="setreferenceprice"
+            mobile={isMobile}
           />
-        </div>
-      )
-    } else {
-      return (
-        <>
-          {header}
-          <div style={{ padding: "-" + theme.space[1] + "px" }}>
-            <ResponsiveReactGridLayout
-              breakpoints={{ lg: 1630, md: 992, sm: 0 }}
-              cols={{ lg: 40, md: 32, sm: 4 }}
-              rowHeight={24}
-              layouts={layouts.asMutable()}
-              onLayoutChange={onLayoutChange}
-              margin={[theme.space[1], theme.space[1]]}
-              containerPadding={[theme.space[1], theme.space[1]]}
-              draggableHandle=".dragMe"
-            >
-              {panels
-                .filter(p => !p.detached)
-                .filter(p => p.visible)
-                .map(p => this.panelsRenderers[p.key]())}
-            </ResponsiveReactGridLayout>
+        </PositioningWrapper>
+        <div style={{ padding: "-" + theme.space[1] + "px" }}>
+          <ResponsiveReactGridLayout
+            breakpoints={{ lg: 1630, md: 992, sm: 0 }}
+            cols={{ lg: 40, md: 32, sm: 4 }}
+            rowHeight={24}
+            layouts={layouts.asMutable()}
+            onLayoutChange={onLayoutChange}
+            margin={[theme.space[1], theme.space[1]]}
+            containerPadding={[theme.space[1], theme.space[1]]}
+            draggableHandle=".dragMe"
+          >
             {panels
-              .filter(p => p.detached)
+              .filter(p => !p.detached)
               .filter(p => p.visible)
-              .map(p => (
-                <Rnd
-                  key={p.key}
-                  bounds="parent"
-                  style={{
-                    border: "1px solid " + theme.colors.canvas,
-                    boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)",
-                    zIndex: p.stackPosition
-                  }}
-                  dragHandleClassName="dragMe"
-                  position={{ x: p.x ? p.x : 100, y: p.y ? p.y : 100 }}
-                  size={{ width: p.w ? p.w : 400, height: p.h ? p.h : 400 }}
-                  onDragStart={() => onInteractPanel(p.key)}
-                  onResizeStart={() => onInteractPanel(p.key)}
-                  onDragStop={(e, d) => onMovePanel(p.key, d)}
-                  onResizeStop={(e, direction, ref, delta, position) => {
-                    onResizePanel(p.key, {
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      ...position
-                    })
-                  }}
-                >
-                  {this.panelsRenderers[p.key]()}
-                </Rnd>
-              ))}
-          </div>
-        </>
-      )
-    }
+              .map(p => this.panelsRenderers[p.key]())}
+          </ResponsiveReactGridLayout>
+          {panels
+            .filter(p => p.detached)
+            .filter(p => p.visible)
+            .map(p => (
+              <Rnd
+                key={p.key}
+                bounds="parent"
+                style={{
+                  border: "1px solid " + theme.colors.canvas,
+                  boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)",
+                  zIndex: p.stackPosition
+                }}
+                disableDragging={isMobile}
+                dragHandleClassName="dragMe"
+                position={{ x: p.x ? p.x : 100, y: p.y ? p.y : 100 }}
+                size={{ width: p.w ? p.w : 400, height: p.h ? p.h : 400 }}
+                onDragStart={() => onInteractPanel(p.key)}
+                onResizeStart={() => onInteractPanel(p.key)}
+                onDragStop={(e, d) => onMovePanel(p.key, d)}
+                onResizeStop={(e, direction, ref, delta, position) => {
+                  onResizePanel(p.key, {
+                    width: ref.offsetWidth,
+                    height: ref.offsetHeight,
+                    ...position
+                  })
+                }}
+              >
+                {this.panelsRenderers[p.key]()}
+              </Rnd>
+            ))}
+        </div>
+      </>
+    )
   }
 }
