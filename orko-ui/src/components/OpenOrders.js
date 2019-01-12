@@ -38,8 +38,17 @@ const orderTypeColumn = {
   Cell: ({ original }) => (
     <Icon
       fitted
-      name={original.type === "BID" ? "arrow up" : "arrow down"}
-      title={original.type === "BID" ? "Buy" : "Sell"}
+      name={
+        !!original.stopPrice
+          ? "stop circle"
+          : original.type === "BID"
+          ? "arrow up"
+          : "arrow down"
+      }
+      title={
+        (!!original.stopPrice ? "STOP " : "") +
+        (original.type === "BID" ? "Buy" : "Sell")
+      }
     />
   ),
   headerStyle: textStyle,
@@ -85,16 +94,19 @@ const createdDateColumn = {
 
 const limitPriceColumn = coin => ({
   Header: "Limit",
-  Cell: ({ original }) => (
-    <Price
-      color={original.type === "BID" ? "buy" : "sell"}
-      noflash
-      bare
-      coin={coin}
-    >
-      {original.limitPrice}
-    </Price>
-  ),
+  Cell: ({ original }) =>
+    !!original.stopPrice && !original.limitPrice ? (
+      "MARKET"
+    ) : (
+      <Price
+        color={original.type === "BID" ? "buy" : "sell"}
+        noflash
+        bare
+        coin={coin}
+      >
+        {original.limitPrice}
+      </Price>
+    ),
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
