@@ -19,7 +19,6 @@ import React from "react"
 import Immutable from "seamless-immutable"
 
 import RawForm from "./primitives/RawForm"
-import Para from "./primitives/Para"
 import FormButtonBar from "./primitives/FormButtonBar"
 import { Form, Label } from "semantic-ui-react"
 
@@ -35,10 +34,6 @@ const StopOrder = props => {
           })
         )
     : () => {}
-
-  if (!props.enabled) {
-    return <Para>Not supported for exchange</Para>
-  }
 
   return (
     <Form data-orko="stopOrder" as={RawForm}>
@@ -97,7 +92,7 @@ const StopOrder = props => {
         label="Place on exchange"
         checked={props.order.useExchange}
         onChange={e => onChange("useExchange", e.target.checked)}
-        disabled={true}
+        disabled={!props.allowServerSide}
       />
       <Form.Group style={{ flex: "1" }}>
         <Form.Checkbox
@@ -116,7 +111,11 @@ const StopOrder = props => {
           onClick={props.onSell}
           color="red"
         >
-          {!!props.onSell ? "Submit sell stop" : "Sell stop not supported"}
+          {!!props.onSell
+            ? props.order.useExchange
+              ? "Sell stop"
+              : "Soft sell stop"
+            : "Sell stop not supported"}
         </Form.Button>
         <Form.Button
           title="Submit buy stop order"
@@ -124,7 +123,11 @@ const StopOrder = props => {
           onClick={props.onBuy}
           color="green"
         >
-          {!!props.onBuy ? "Submit buy stop" : "Buy stop not supported"}
+          {!!props.onBuy
+            ? props.order.useExchange
+              ? "Buy stop"
+              : "Soft buy stop"
+            : "Buy stop not supported"}
         </Form.Button>
       </FormButtonBar>
     </Form>

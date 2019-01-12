@@ -26,6 +26,26 @@ import * as exchangesActions from "../store/exchanges/actions"
 import { isValidNumber } from "../util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 
+import * as jobActions from "../store/job/actions"
+import * as jobTypes from "../services/jobTypes"
+import uuidv4 from "uuid/v4"
+
+function coinServerSideSupported(coin) {
+  return !["kucoin", "bittrex", "cryptopia"].includes(coin.exchange)
+}
+
+function coinAllowsLimitStops(coin, useExchange) {
+  return !useExchange || !["bitfinex", "bitmex"].includes(coin.exchange)
+}
+
+function coinAllowsMarketStops(coin, useExchange) {
+  return useExchange && coin.exchange !== "binance"
+}
+
+function coinAllowsBuyStops(coin, useExchange) {
+  return !useExchange || coin.exchange !== "binance"
+}
+
 class StopOrderContainer extends React.Component {
   constructor(props) {
     super(props)
@@ -34,14 +54,20 @@ class StopOrderContainer extends React.Component {
         stopPrice: "",
         limitPrice: "",
         amount: "",
-        useExchange: true
+        useExchange: coinServerSideSupported(props.coin)
       })
     }
   }
 
   onChange = order => {
     this.setState({
-      order
+      order: {
+        ...order,
+        // Clear the limit price if it's not supported anymore
+        limitPrice: coinAllowsLimitStops(this.props.coin, order.useExchange)
+          ? order.limitPrice
+          : ""
+      }
     })
   }
 
@@ -66,28 +92,47 @@ class StopOrderContainer extends React.Component {
     limitPrice: this.state.order.limitPrice
   })
 
+  createJob = direction => ({
+    jobType: jobTypes.OCO,
+    id: uuidv4(),
+    tickTrigger: {
+      exchange: this.props.coin.exchange,
+      counter: this.props.coin.counter,
+      base: this.props.coin.base
+    },
+    [direction === "BUY" ? "high" : "low"]: {
+      thresholdAsString: this.state.order.stopPrice,
+      job: {
+        jobType: jobTypes.LIMIT_ORDER,
+        id: uuidv4(),
+        direction: direction,
+        tickTrigger: {
+          exchange: this.props.coin.exchange,
+          counter: this.props.coin.counter,
+          base: this.props.coin.base
+        },
+        amount: this.state.order.amount,
+        limitPrice: this.state.order.limitPrice
+      }
+    }
+  })
+
   onSubmit = async direction => {
-    const order = this.createOrder(direction)
-    this.props.dispatch(
-      exchangesActions.submitStopOrder(this.props.coin.exchange, order)
-    )
+    if (this.state.order.useExchange) {
+      const order = this.createOrder(direction)
+      this.props.dispatch(
+        exchangesActions.submitStopOrder(this.props.coin.exchange, order)
+      )
+    } else {
+      this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
+    }
   }
 
   render() {
-    const supported =
-      this.props.coin.exchange !== "kucoin" &&
-      this.props.coin.exchange !== "bittrex" &&
-      this.props.coin.exchange !== "cryptopia"
     const stopPriceValid =
       this.state.order.stopPrice &&
       isValidNumber(this.state.order.stopPrice) &&
       this.state.order.stopPrice > 0
-
-    const coinAllowsMarketStops = this.props.coin.exchange !== "binance"
-    const coinAllowsLimitStops =
-      this.props.coin.exchange !== "bitfinex" &&
-      this.props.coin.exchange !== "bitmex"
-    const coinAllowsStopBuy = this.props.coin.exchange !== "binance"
     const blankLimitPrice = this.state.order.limitPrice === ""
     const validLimitPrice =
       isValidNumber(this.state.order.limitPrice) &&
@@ -106,15 +151,28 @@ class StopOrderContainer extends React.Component {
         order={this.state.order}
         onChange={this.onChange}
         onFocus={this.onFocus}
-        onBuy={coinAllowsStopBuy ? () => this.onSubmit("BUY") : null}
+        onBuy={
+          coinAllowsBuyStops(this.props.coin, this.state.order.useExchange)
+            ? () => this.onSubmit("BUY")
+            : null
+        }
         onSell={() => this.onSubmit("SELL")}
         stopPriceValid={stopPriceValid}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
         coin={this.props.coin}
-        allowLimit={coinAllowsLimitStops}
-        allowMarket={coinAllowsMarketStops}
-        enabled={supported}
+        allowLimit={coinAllowsLimitStops(
+          this.props.coin,
+          this.state.order.useExchange
+        )}
+        allowMarket={coinAllowsMarketStops(
+          this.props.coin,
+          this.state.order.useExchange
+        )}
+        allowServerSide={coinServerSideSupported(
+          this.props.coin,
+          this.state.order.useExchange
+        )}
       />
     )
   }
