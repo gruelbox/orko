@@ -172,7 +172,7 @@ const Coin = ({ coin }) => (
   </CoinContainer>
 )
 
-const Normal = ({
+const Toolbar = ({
   ticker,
   coin,
   balance,
@@ -184,7 +184,8 @@ const Normal = ({
   onClearWhitelist,
   onShowPanel,
   width,
-  version
+  version,
+  mobile
 }) => (
   <ToolbarBox p={0}>
     <Logo />
@@ -192,6 +193,7 @@ const Normal = ({
     <Coin coin={coin} />
     <RemainingSpace mx={2}>
       <Ticker
+        mobile={mobile}
         coin={coin}
         ticker={ticker}
         onClickNumber={number => {
@@ -201,40 +203,42 @@ const Normal = ({
         }}
       />
     </RemainingSpace>
-    {hiddenPanels
-      .filter(p => p.key === "balance")
-      .map(panel => (
-        <>
-          {width >= 1440 && (
-            <RemainingSpace noleftborder>
+    {!mobile &&
+      hiddenPanels
+        .filter(p => p.key === "balance")
+        .map(panel => (
+          <>
+            {width >= 1440 && (
+              <RemainingSpace noleftborder>
+                <Panel
+                  nomargin
+                  key={panel.key}
+                  panel={panel}
+                  onClick={() => onShowPanel(panel.key)}
+                />
+                <Balance coin={coin} balance={balance} ticker={ticker} />
+              </RemainingSpace>
+            )}
+            {width < 1440 && (
               <Panel
                 nomargin
                 key={panel.key}
                 panel={panel}
                 onClick={() => onShowPanel(panel.key)}
               />
-              <Balance coin={coin} balance={balance} ticker={ticker} />
-            </RemainingSpace>
-          )}
-          {width < 1440 && (
-            <Panel
-              nomargin
-              key={panel.key}
-              panel={panel}
-              onClick={() => onShowPanel(panel.key)}
-            />
-          )}
-        </>
-      ))}
-    {hiddenPanels
-      .filter(p => p.key !== "balance")
-      .map(panel => (
-        <Panel
-          key={panel.key}
-          panel={panel}
-          onClick={() => onShowPanel(panel.key)}
-        />
-      ))}
+            )}
+          </>
+        ))}
+    {!mobile &&
+      hiddenPanels
+        .filter(p => p.key !== "balance")
+        .map(panel => (
+          <Panel
+            key={panel.key}
+            panel={panel}
+            onClick={() => onShowPanel(panel.key)}
+          />
+        ))}
     <TickerSocketState connected={connected} />
     <ScriptsLink />
     <ViewSettings onClick={onShowViewSettings} />
@@ -242,21 +246,5 @@ const Normal = ({
     <InvalidateLink onClick={onClearWhitelist} />
   </ToolbarBox>
 )
-
-const Mobile = ({ coin, connected, onLogout, onClearWhitelist, version }) => (
-  <ToolbarBox>
-    <Logo />
-    <Version version={version} />
-    <Coin coin={coin} />
-    <TickerSocketState connected={connected} />
-    <ScriptsLink />
-    <SignOutLink onClick={onLogout} />
-    <InvalidateLink onClick={onClearWhitelist} />
-  </ToolbarBox>
-)
-
-const Toolbar = props => {
-  return props.mobile ? <Mobile {...props} /> : <Normal {...props} />
-}
 
 export default Toolbar

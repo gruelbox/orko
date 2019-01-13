@@ -86,10 +86,9 @@ export default class Framework extends React.Component {
       <SectionProvider
         value={{
           draggable: true,
+          compactDragHandle: this.props.isMobile,
           icon: icons[id],
-          onHide: this.props.isMobile
-            ? null
-            : () => this.props.onTogglePanelVisible(id),
+          onHide: () => this.props.onTogglePanelVisible(id),
           onToggleAttached: this.props.isMobile
             ? null
             : () => this.props.onTogglePanelAttached(id)
@@ -237,40 +236,40 @@ export default class Framework extends React.Component {
             draggableHandle=".dragMe"
           >
             {panels
-              .filter(p => !p.detached)
+              .filter(p => !p.detached || isMobile)
               .filter(p => p.visible)
               .map(p => this.panelsRenderers[p.key]())}
           </ResponsiveReactGridLayout>
-          {panels
-            .filter(p => p.detached)
-            .filter(p => p.visible)
-            .map(p => (
-              <Rnd
-                key={p.key}
-                bounds="parent"
-                style={{
-                  border: "1px solid " + theme.colors.canvas,
-                  boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)",
-                  zIndex: p.stackPosition
-                }}
-                disableDragging={isMobile}
-                dragHandleClassName="dragMe"
-                position={{ x: p.x ? p.x : 100, y: p.y ? p.y : 100 }}
-                size={{ width: p.w ? p.w : 400, height: p.h ? p.h : 400 }}
-                onDragStart={() => onInteractPanel(p.key)}
-                onResizeStart={() => onInteractPanel(p.key)}
-                onDragStop={(e, d) => onMovePanel(p.key, d)}
-                onResizeStop={(e, direction, ref, delta, position) => {
-                  onResizePanel(p.key, {
-                    width: ref.offsetWidth,
-                    height: ref.offsetHeight,
-                    ...position
-                  })
-                }}
-              >
-                {this.panelsRenderers[p.key]()}
-              </Rnd>
-            ))}
+          {!isMobile &&
+            panels
+              .filter(p => p.detached)
+              .filter(p => p.visible)
+              .map(p => (
+                <Rnd
+                  key={p.key}
+                  bounds="parent"
+                  style={{
+                    border: "1px solid " + theme.colors.canvas,
+                    boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)",
+                    zIndex: p.stackPosition
+                  }}
+                  dragHandleClassName="dragMe"
+                  position={{ x: p.x ? p.x : 100, y: p.y ? p.y : 100 }}
+                  size={{ width: p.w ? p.w : 400, height: p.h ? p.h : 400 }}
+                  onDragStart={() => onInteractPanel(p.key)}
+                  onResizeStart={() => onInteractPanel(p.key)}
+                  onDragStop={(e, d) => onMovePanel(p.key, d)}
+                  onResizeStop={(e, direction, ref, delta, position) => {
+                    onResizePanel(p.key, {
+                      width: ref.offsetWidth,
+                      height: ref.offsetHeight,
+                      ...position
+                    })
+                  }}
+                >
+                  {this.panelsRenderers[p.key]()}
+                </Rnd>
+              ))}
         </div>
       </>
     )
