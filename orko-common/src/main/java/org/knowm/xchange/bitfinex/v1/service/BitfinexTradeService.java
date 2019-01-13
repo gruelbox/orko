@@ -21,7 +21,9 @@ import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.StopOrder;
 import org.knowm.xchange.dto.trade.UserTrades;
 import org.knowm.xchange.exceptions.ExchangeException;
+import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.service.trade.TradeService;
+import org.knowm.xchange.service.trade.params.CancelAllOrders;
 import org.knowm.xchange.service.trade.params.CancelOrderByIdParams;
 import org.knowm.xchange.service.trade.params.CancelOrderParams;
 import org.knowm.xchange.service.trade.params.DefaultTradeHistoryParamsTimeSpan;
@@ -84,34 +86,16 @@ public class BitfinexTradeService extends BitfinexTradeServiceRaw implements Tra
   @Override
   public String placeLimitOrder(LimitOrder limitOrder) throws IOException {
 
-    BitfinexOrderStatusResponse newOrder;
-    if (limitOrder.hasFlag(BitfinexOrderFlags.MARGIN)) {
-      if (limitOrder.hasFlag(BitfinexOrderFlags.FILL_OR_KILL)) {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.MARGIN_FILL_OR_KILL);
-      } else if (limitOrder.hasFlag(BitfinexOrderFlags.TRAILING_STOP)) {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.MARGIN_TRAILING_STOP);
-      } else if (limitOrder.hasFlag(BitfinexOrderFlags.STOP)) {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.MARGIN_STOP);
-      } else {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.MARGIN_LIMIT);
-      }
-    } else {
-      if (limitOrder.hasFlag(BitfinexOrderFlags.FILL_OR_KILL)) {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.FILL_OR_KILL);
-      } else if (limitOrder.hasFlag(BitfinexOrderFlags.TRAILING_STOP)) {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.TRAILING_STOP);
-      } else if (limitOrder.hasFlag(BitfinexOrderFlags.STOP)) {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.STOP);
-      } else {
-        newOrder = placeBitfinexLimitOrder(limitOrder, BitfinexOrderType.LIMIT);
-      }
-    }
-
+    BitfinexOrderType type = BitfinexAdapters.adaptOrderFlagsToType(limitOrder.getOrderFlags());
+    BitfinexOrderStatusResponse newOrder = placeBitfinexLimitOrder(limitOrder, type);
     return String.valueOf(newOrder.getId());
   }
 
   @Override
   public String placeStopOrder(StopOrder stopOrder) throws IOException {
+    if (stopOrder.getLimitPrice() != null) {
+      throw new NotYetImplementedForExchangeException("Limit stops are not supported by the Bitfinex v1 API.");
+    }
     LimitOrder limitOrder = new LimitOrder(
         stopOrder.getType(),
         stopOrder.getOriginalAmount(),
@@ -135,9 +119,13 @@ public class BitfinexTradeService extends BitfinexTradeServiceRaw implements Tra
   public boolean cancelOrder(CancelOrderParams orderParams) throws IOException {
     if (orderParams instanceof CancelOrderByIdParams) {
       return cancelOrder(((CancelOrderByIdParams) orderParams).getOrderId());
-    } else {
-      return false;
     }
+    if (orderParams instanceof CancelAllOrders) {
+      return cancelAllBitfinexOrders();
+    }
+
+    throw new IllegalArgumentException(
+        String.format("Unknown parameter type: %s", orderParams.getClass()));
   }
 
   /**
