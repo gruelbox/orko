@@ -79,8 +79,8 @@
 
     <!-- TODO actually just reactivex -->
     <dependency>
-      <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-stream-core</artifactId>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
     </dependency>
 
   </dependencies>
