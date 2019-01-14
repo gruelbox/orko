@@ -85,7 +85,11 @@ const createdDateColumn = {
   accessor: "timestamp",
   Header: "Created",
   Cell: ({ original }) =>
-    original.timestamp ? dateUtils.formatDate(original.timestamp) : "Unknown",
+    original.timestamp
+      ? dateUtils.formatDate(original.timestamp)
+      : original.runningAt === "SERVER"
+      ? "Not on exchange"
+      : "Confirming...",
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
