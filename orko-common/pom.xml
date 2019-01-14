@@ -118,35 +118,35 @@
     </dependency>
 
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-coinbasepro</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-binance</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-kucoin</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-cryptopia</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bitfinex</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bittrex</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bitmex</artifactId>
     </dependency>
 
