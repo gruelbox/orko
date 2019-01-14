@@ -19,7 +19,6 @@
 package com.gruelbox.orko.exchange;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -70,6 +69,8 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
+import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
@@ -101,12 +102,14 @@ public class ExchangeResource implements WebResource {
   private final ExchangeService exchanges;
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
+  private final OrkoConfiguration configuration;
 
   @Inject
-  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory) {
+  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, OrkoConfiguration configuration) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
+    this.configuration = configuration;
   }
 
 
@@ -120,22 +123,50 @@ public class ExchangeResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public Collection<ExchangeMeta> list() {
     return exchanges.getExchanges().stream()
-        .sorted()
-        .map(code -> new ExchangeMeta(code, capitalize(code), null))
+        .map(code -> {
+          ExchangeConfiguration exchangeConfig = configuration.getExchanges().get(code);
+          return new ExchangeMeta(
+              code,
+              Exchanges.name(code),
+              Exchanges.refLink(code),
+              exchangeConfig == null
+                ? false
+                : StringUtils.isNotBlank(exchangeConfig.getApiKey())
+          );
+        })
+        .sorted(Ordering.natural().onResultOf(ExchangeMeta::getName))
         .collect(toList());
   }
 
 
   public static final class ExchangeMeta {
-    @JsonProperty public String code;
-    @JsonProperty public String name;
-    @JsonProperty public String refLink;
+    @JsonProperty private final String code;
+    @JsonProperty private final String name;
+    @JsonProperty private final String refLink;
+    @JsonProperty private final boolean authenticated;
 
-    private ExchangeMeta(String code, String name, String refLink) {
+    private ExchangeMeta(String code, String name, String refLink, boolean authenticated) {
       super();
       this.code = code;
       this.name = name;
       this.refLink = refLink;
+      this.authenticated = authenticated;
+    }
+
+    String getCode() {
+      return code;
+    }
+
+    String getName() {
+      return name;
+    }
+
+    String getRefLink() {
+      return refLink;
+    }
+
+    boolean isAuthenticated() {
+      return authenticated;
     }
   }
 

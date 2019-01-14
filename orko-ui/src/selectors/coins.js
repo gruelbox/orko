@@ -53,7 +53,8 @@ export const getSelectedCoin = createSelector(
 
 export const getSelectedExchange = createSelector(
   [getSelectedCoin, getExchanges],
-  (coin, exchanges) => exchanges.find(e => e.code === coin.exchange)
+  (coin, exchanges) =>
+    !coin ? null : exchanges.find(e => e.code === coin.exchange)
 )
 
 function jobTriggerMatchesCoin(job, coin) {

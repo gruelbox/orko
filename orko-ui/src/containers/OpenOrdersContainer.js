@@ -17,8 +17,9 @@
  */
 import React from "react"
 import { connect } from "react-redux"
-import Loading from "../components/primitives/Loading"
 import OpenOrders from "../components/OpenOrders"
+import AuthenticatedOnly from "./AuthenticatedOnly"
+import WhileLoading from "../components/WhileLoading"
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
 import { getOrdersForSelectedCoin, getSelectedCoin } from "../selectors/coins"
@@ -33,16 +34,20 @@ class OpenOrdersContainer extends React.Component {
   }
 
   render() {
-    return !this.props.orders ? (
-      <Loading p={2} />
-    ) : (
-      <OpenOrders
-        orders={this.props.orders}
-        onCancelExchange={this.onCancelExchange}
-        onCancelServer={this.onCancelServer}
-        onWatch={this.onWatch}
-        coin={this.coin}
-      />
+    return (
+      <AuthenticatedOnly padded>
+        <WhileLoading data={this.props.orders} padded>
+          {() => (
+            <OpenOrders
+              orders={this.props.orders}
+              onCancelExchange={this.onCancelExchange}
+              onCancelServer={this.onCancelServer}
+              onWatch={this.onWatch}
+              coin={this.coin}
+            />
+          )}
+        </WhileLoading>
+      </AuthenticatedOnly>
     )
   }
 }

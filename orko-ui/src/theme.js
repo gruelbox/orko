@@ -48,7 +48,7 @@ const theme = {
     disabledBg: lighten(0.03, "#2F3241"),
     fore: "#aaa",
     emphasis: "#3BB3E4",
-    deemphasis: rgba("#aaa", 0.7),
+    deemphasis: rgba("#aaa", 0.6),
     heading: "#fff",
     toolbar: "white",
     boxBorder: "#131722",

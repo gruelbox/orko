@@ -15,35 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export function areEqualShallow(a, b) {
-  for (var key in a) {
-    if (!(key in b) || a[key] !== b[key]) {
-      return false
-    }
-  }
-  for (key in b) {
-    if (!(key in a) || a[key] !== b[key]) {
-      return false
-    }
-  }
-  return true
-}
+import React from "react"
+import Loading from "./primitives/Loading"
+import { isFunction } from "../util/objectUtils"
 
-export function replaceInArray(arr, replacement, find) {
-  var result = []
-  var found = false
-  for (let o of arr) {
-    if (find(o)) {
-      result.push(replacement)
-      found = true
-    } else {
-      result.push(o)
-    }
+export default ({ data, padded, children }) => {
+  if (data) {
+    if (isFunction(children)) return children()
+    else return children
+  } else {
+    return <Loading p={padded ? 2 : 0} />
   }
-  if (!found) result.push(replacement)
-  return result
-}
-
-export function isFunction(x) {
-  return Object.prototype.toString.call(x) === "[object Function]"
 }

@@ -15,35 +15,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export function areEqualShallow(a, b) {
-  for (var key in a) {
-    if (!(key in b) || a[key] !== b[key]) {
-      return false
-    }
+import React from "react"
+import { connect } from "react-redux"
+
+import styled from "styled-components"
+import { space } from "styled-system"
+
+import NotAuthenticated from "../components/NotAuthenticated"
+
+import { getSelectedExchange } from "../selectors/coins"
+
+const Padded = styled.div`
+  ${space}
+`
+
+const AuthenticatedOnly = ({ exchange, children, padded }) => {
+  if (!exchange || exchange.authenticated) {
+    return children
+  } else {
+    return (
+      <Padded p={padded ? 2 : 0}>
+        <NotAuthenticated exchange={exchange} />
+      </Padded>
+    )
   }
-  for (key in b) {
-    if (!(key in a) || a[key] !== b[key]) {
-      return false
-    }
-  }
-  return true
 }
 
-export function replaceInArray(arr, replacement, find) {
-  var result = []
-  var found = false
-  for (let o of arr) {
-    if (find(o)) {
-      result.push(replacement)
-      found = true
-    } else {
-      result.push(o)
-    }
-  }
-  if (!found) result.push(replacement)
-  return result
-}
-
-export function isFunction(x) {
-  return Object.prototype.toString.call(x) === "[object Function]"
-}
+export default connect(state => ({
+  exchange: getSelectedExchange(state)
+}))(AuthenticatedOnly)

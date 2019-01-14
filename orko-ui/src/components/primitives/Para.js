@@ -15,16 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import styled from 'styled-components';
-import { fontSize, color, space, fontWeight } from 'styled-system';
+import styled from "styled-components"
+import { fontSize, color, space, fontWeight } from "styled-system"
 
-const Para = styled.p.attrs({
-  fontSize: 2
-})`
+export default styled.p`
   ${color}
   ${fontSize}
   ${fontWeight}
   ${space}
-`;
-
-export default Para;
+`

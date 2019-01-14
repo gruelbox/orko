@@ -21,7 +21,7 @@ import { connect } from "react-redux"
 import { getTopOfOrderBook, getSelectedCoin } from "../selectors/coins"
 import OrderBookSide from "../components/OrderBookSide"
 import styled from "styled-components"
-import Loading from "../components/primitives/Loading"
+import WhileLoading from "../components/WhileLoading"
 
 const Split = styled.section`
   display: flex;
@@ -40,8 +40,6 @@ const AskSide = styled.div`
   flex-grow: 1;
 `
 
-const loading = <Loading p={2} />
-
 class OrderBookContainer extends React.PureComponent {
   constructor(props) {
     super(props)
@@ -59,38 +57,41 @@ class OrderBookContainer extends React.PureComponent {
 
   render() {
     const { orderBook, coin, animate } = this.props
-    if (orderBook && coin) {
+    const haveData = orderBook && coin
+    if (haveData) {
       this.largestOrder = Math.max(
         ...orderBook.bids.map(o => o.remainingAmount),
         ...orderBook.asks.map(o => o.remainingAmount),
         this.largestOrder
       )
     }
-    return orderBook && coin ? (
-      <Split>
-        <AskSide>
-          <OrderBookSide
-            key="asks"
-            animate={animate}
-            orders={orderBook.bids}
-            largestOrder={this.largestOrder}
-            direction="BID"
-            coin={coin}
-          />
-        </AskSide>
-        <BidSide>
-          <OrderBookSide
-            key="buys"
-            animate={animate}
-            orders={orderBook.asks}
-            largestOrder={this.largestOrder}
-            direction="ASK"
-            coin={coin}
-          />
-        </BidSide>
-      </Split>
-    ) : (
-      loading
+    return (
+      <WhileLoading data={haveData} padded>
+        {() => (
+          <Split>
+            <AskSide>
+              <OrderBookSide
+                key="asks"
+                animate={animate}
+                orders={orderBook.bids}
+                largestOrder={this.largestOrder}
+                direction="BID"
+                coin={coin}
+              />
+            </AskSide>
+            <BidSide>
+              <OrderBookSide
+                key="buys"
+                animate={animate}
+                orders={orderBook.asks}
+                largestOrder={this.largestOrder}
+                direction="ASK"
+                coin={coin}
+              />
+            </BidSide>
+          </Split>
+        )}
+      </WhileLoading>
     )
   }
 }
