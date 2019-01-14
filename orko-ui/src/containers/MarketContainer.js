@@ -29,10 +29,10 @@ const LOCAL_STORAGE_KEY = "MarketContainer.animate"
 export default class MarketContainer extends React.Component {
   constructor(props) {
     super(props)
-    var animateSetting = getValueFromLS(LOCAL_STORAGE_KEY) !== "false"
-    if (animateSetting === null) animateSetting = true
+    var animate = getValueFromLS(LOCAL_STORAGE_KEY) !== "false"
+    if (animate === null) animate = true
     this.state = {
-      animate: props.allowAnimate && animateSetting,
+      animate,
       selected: "book"
     }
   }
@@ -40,7 +40,6 @@ export default class MarketContainer extends React.Component {
   buttons = () => (
     <span>
       <Tab
-        visible={this.props.allowAnimate}
         selected={this.state.animate}
         onClick={() => {
           this.setState(
