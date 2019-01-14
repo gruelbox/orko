@@ -30,13 +30,13 @@ import ToolbarContainer from "./containers/ToolbarContainer"
 import AddCoinContainer from "./containers/AddCoinContainer"
 import MarketContainer from "./containers/MarketContainer"
 import OrdersContainer from "./containers/OrdersContainer"
-import TradingContainer from "./containers/TradingContainer"
+import TradeSelector from "./components/TradeSelector"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
-import ChartContainer from "./containers/ChartContainer"
+import Chart from "./components/Chart"
 import ViewSettings from "./components/ViewSettings"
 import { Provider as SectionProvider } from "./components/primitives/Section"
 import { isNull } from "util"
@@ -102,7 +102,7 @@ export default class Framework extends React.Component {
       chart: () => (
         <LayoutBox key="chart" data-grid={this.props.layoutsAsObj.chart}>
           <Panel id="chart">
-            <ChartContainer />
+            <Chart />
           </Panel>
         </LayoutBox>
       ),
@@ -129,7 +129,7 @@ export default class Framework extends React.Component {
           data-grid={this.props.layoutsAsObj.tradeSelector}
         >
           <Panel id="tradeSelector">
-            <TradingContainer />
+            <TradeSelector />
           </Panel>
         </LayoutBox>
       ),

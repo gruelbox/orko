@@ -18,10 +18,11 @@
 import React from "react"
 
 import { connect } from "react-redux"
-import { getTopOfOrderBook, getSelectedCoin } from "../selectors/coins"
+import { getTopOfOrderBook } from "../selectors/coins"
 import OrderBookSide from "../components/OrderBookSide"
 import styled from "styled-components"
 import WhileLoading from "../components/WhileLoading"
+import WithCoin from "./WithCoin"
 
 const Split = styled.section`
   display: flex;
@@ -56,47 +57,51 @@ class OrderBookContainer extends React.PureComponent {
   }
 
   render() {
-    const { orderBook, coin, animate } = this.props
-    const haveData = orderBook && coin
-    if (haveData) {
-      this.largestOrder = Math.max(
-        ...orderBook.bids.map(o => o.remainingAmount),
-        ...orderBook.asks.map(o => o.remainingAmount),
-        this.largestOrder
-      )
-    }
     return (
-      <WhileLoading data={haveData} padded>
-        {() => (
-          <Split>
-            <AskSide>
-              <OrderBookSide
-                key="asks"
-                animate={animate}
-                orders={orderBook.bids}
-                largestOrder={this.largestOrder}
-                direction="BID"
-                coin={coin}
-              />
-            </AskSide>
-            <BidSide>
-              <OrderBookSide
-                key="buys"
-                animate={animate}
-                orders={orderBook.asks}
-                largestOrder={this.largestOrder}
-                direction="ASK"
-                coin={coin}
-              />
-            </BidSide>
-          </Split>
-        )}
-      </WhileLoading>
+      <WithCoin padded>
+        {coin => {
+          const { orderBook, animate } = this.props
+          if (orderBook) {
+            this.largestOrder = Math.max(
+              ...orderBook.bids.map(o => o.remainingAmount),
+              ...orderBook.asks.map(o => o.remainingAmount),
+              this.largestOrder
+            )
+          }
+          return (
+            <WhileLoading data={orderBook} padded>
+              {() => (
+                <Split>
+                  <AskSide>
+                    <OrderBookSide
+                      key="asks"
+                      animate={animate}
+                      orders={orderBook.bids}
+                      largestOrder={this.largestOrder}
+                      direction="BID"
+                      coin={coin}
+                    />
+                  </AskSide>
+                  <BidSide>
+                    <OrderBookSide
+                      key="buys"
+                      animate={animate}
+                      orders={orderBook.asks}
+                      largestOrder={this.largestOrder}
+                      direction="ASK"
+                      coin={coin}
+                    />
+                  </BidSide>
+                </Split>
+              )}
+            </WhileLoading>
+          )
+        }}
+      </WithCoin>
     )
   }
 }
 
 export default connect(state => ({
-  orderBook: getTopOfOrderBook(state),
-  coin: getSelectedCoin(state)
+  orderBook: getTopOfOrderBook(state)
 }))(OrderBookContainer)

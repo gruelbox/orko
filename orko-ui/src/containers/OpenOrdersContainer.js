@@ -19,10 +19,11 @@ import React from "react"
 import { connect } from "react-redux"
 import OpenOrders from "../components/OpenOrders"
 import AuthenticatedOnly from "./AuthenticatedOnly"
+import WithCoin from "./WithCoin"
 import WhileLoading from "../components/WhileLoading"
 import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
-import { getOrdersForSelectedCoin, getSelectedCoin } from "../selectors/coins"
+import { getOrdersForSelectedCoin } from "../selectors/coins"
 
 class OpenOrdersContainer extends React.Component {
   onCancelExchange = (id, orderType) => {
@@ -36,17 +37,21 @@ class OpenOrdersContainer extends React.Component {
   render() {
     return (
       <AuthenticatedOnly padded>
-        <WhileLoading data={this.props.orders} padded>
-          {() => (
-            <OpenOrders
-              orders={this.props.orders}
-              onCancelExchange={this.onCancelExchange}
-              onCancelServer={this.onCancelServer}
-              onWatch={this.onWatch}
-              coin={this.coin}
-            />
+        <WithCoin padded>
+          {coin => (
+            <WhileLoading data={this.props.orders} padded>
+              {() => (
+                <OpenOrders
+                  orders={this.props.orders}
+                  onCancelExchange={this.onCancelExchange}
+                  onCancelServer={this.onCancelServer}
+                  onWatch={this.onWatch}
+                  coin={coin}
+                />
+              )}
+            </WhileLoading>
           )}
-        </WhileLoading>
+        </WithCoin>
       </AuthenticatedOnly>
     )
   }
@@ -54,8 +59,7 @@ class OpenOrdersContainer extends React.Component {
 
 function mapStateToProps(state, props) {
   return {
-    orders: getOrdersForSelectedCoin(state),
-    coin: getSelectedCoin(state)
+    orders: getOrdersForSelectedCoin(state)
   }
 }
 

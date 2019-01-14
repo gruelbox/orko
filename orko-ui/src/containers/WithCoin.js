@@ -16,16 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import React from "react"
-import Chart from "../components/Chart"
-import { getSelectedCoin } from "../selectors/coins"
 import { connect } from "react-redux"
 
-class ChartContainer extends React.Component {
-  render() {
-    return <Chart coin={this.props.coin} />
-  }
-}
+import NoCoinSelected from "../components/NoCoinSelected"
 
-export default connect((state, props) => ({
+import { getSelectedCoin } from "../selectors/coins"
+
+export default connect(state => ({
   coin: getSelectedCoin(state)
-}))(ChartContainer)
+}))(({ coin, children, padded }) => {
+  if (!!coin) {
+    return children(coin)
+  } else {
+    return <NoCoinSelected padded={padded} />
+  }
+})

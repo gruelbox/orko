@@ -20,20 +20,25 @@ import { connect } from "react-redux"
 import TradeHistory from "../components/TradeHistory"
 import WhileLoading from "../components/WhileLoading"
 import AuthenticatedOnly from "./AuthenticatedOnly"
+import WithCoin from "./WithCoin"
 import { getUserTradeHistory, getSelectedCoin } from "../selectors/coins"
 
 class UserTradeHistoryContainer extends React.Component {
   render() {
     return (
       <AuthenticatedOnly padded>
-        <WhileLoading data={this.props.tradeHistory} padded>
-          {() => (
-            <TradeHistory
-              coin={this.props.coin}
-              trades={this.props.tradeHistory}
-            />
+        <WithCoin padded>
+          (() => (
+          <WhileLoading data={this.props.tradeHistory} padded>
+            {() => (
+              <TradeHistory
+                coin={this.props.coin}
+                trades={this.props.tradeHistory}
+              />
+            )}
+          </WhileLoading>
           )}
-        </WhileLoading>
+        </WithCoin>
       </AuthenticatedOnly>
     )
   }

@@ -21,6 +21,7 @@ import styled from "styled-components"
 import Section from "./primitives/Section"
 import Para from "./primitives/Para"
 import Tab from "./primitives/Tab"
+import WithCoin from "../containers/WithCoin"
 
 const CHART_INTERVAL_KEY = "Chart.interval"
 
@@ -120,96 +121,97 @@ class Chart extends React.Component {
     this.state = { interval }
   }
 
+  Interval = ({ name, code, selected, description }) => (
+    <Tab
+      selected={selected === code}
+      onClick={() => {
+        localStorage.setItem(CHART_INTERVAL_KEY, code)
+        this.setState({ interval: code })
+      }}
+      title={
+        "Select the " +
+        description +
+        " chart (this option will be remembered, unlike selecting the interval from the TradingView chart)"
+      }
+    >
+      {name}
+    </Tab>
+  )
+
+  Buttons = () => (
+    <>
+      <this.Interval
+        selected={this.state.interval}
+        code="W"
+        name="W"
+        description="weekly"
+      />
+      <this.Interval
+        selected={this.state.interval}
+        code="D"
+        name="D"
+        description="daily"
+      />
+      <this.Interval
+        selected={this.state.interval}
+        code="240"
+        name="4H"
+        description="4 hour"
+      />
+      <this.Interval
+        selected={this.state.interval}
+        code="60"
+        name="1H"
+        description="1 hour"
+      />
+      <this.Interval
+        selected={this.state.interval}
+        code="15"
+        name="15m"
+        description="15 minute"
+      />
+    </>
+  )
+
   render() {
-    var content
-    var buttons
-
-    const coin = this.props.coin
-
-    if (!coin) {
-      content = <Para>No coin selected</Para>
-    } else if (coin.exchange === "kucoin") {
-      content = (
-        <NewWindowChartContent
-          coin={coin}
-          url={
-            "https://www.kucoin.com/#/trade.pro/" +
-            coin.base +
-            "-" +
-            coin.counter
-          }
-        />
-      )
-    } else if (coin.exchange === "cryptopia") {
-      content = (
-        <NewWindowChartContent
-          coin={coin}
-          url={
-            "https://www.cryptopia.co.nz/Exchange/?market=" +
-            coin.base +
-            "_" +
-            coin.counter
-          }
-        />
-      )
-    } else {
-      const Interval = ({ name, code, selected, description }) => (
-        <Tab
-          selected={selected === code}
-          onClick={() => {
-            localStorage.setItem(CHART_INTERVAL_KEY, code)
-            this.setState({ interval: code })
-          }}
-          title={
-            "Select the " +
-            description +
-            " chart (this option will be remembered, unlike selecting the interval from the TradingView chart)"
-          }
-        >
-          {name}
-        </Tab>
-      )
-      buttons = () => (
-        <span>
-          <Interval
-            selected={this.state.interval}
-            code="W"
-            name="W"
-            description="weekly"
-          />
-          <Interval
-            selected={this.state.interval}
-            code="D"
-            name="D"
-            description="daily"
-          />
-          <Interval
-            selected={this.state.interval}
-            code="240"
-            name="4H"
-            description="4 hour"
-          />
-          <Interval
-            selected={this.state.interval}
-            code="60"
-            name="1H"
-            description="1 hour"
-          />
-          <Interval
-            selected={this.state.interval}
-            code="15"
-            name="15m"
-            description="15 minute"
-          />
-        </span>
-      )
-      content = (
-        <TradingViewChartContent coin={coin} interval={this.state.interval} />
-      )
-    }
     return (
-      <Section id="chart" heading="Chart" buttons={buttons}>
-        {content}
+      <Section id="chart" heading="Chart" buttons={this.Buttons}>
+        <WithCoin>
+          {coin => {
+            if (coin.exchange === "kucoin") {
+              return (
+                <NewWindowChartContent
+                  coin={coin}
+                  url={
+                    "https://www.kucoin.com/#/trade.pro/" +
+                    coin.base +
+                    "-" +
+                    coin.counter
+                  }
+                />
+              )
+            } else if (coin.exchange === "cryptopia") {
+              return (
+                <NewWindowChartContent
+                  coin={coin}
+                  url={
+                    "https://www.cryptopia.co.nz/Exchange/?market=" +
+                    coin.base +
+                    "_" +
+                    coin.counter
+                  }
+                />
+              )
+            } else {
+              return (
+                <TradingViewChartContent
+                  coin={coin}
+                  interval={this.state.interval}
+                />
+              )
+            }
+          }}
+        </WithCoin>
       </Section>
     )
   }
