@@ -47,6 +47,7 @@ public final class Exchanges {
   public static final String BITFINEX = "bitfinex";
   public static final String CRYPTOPIA = "cryptopia";
   public static final String BITMEX = "bitmex";
+  public static final String KRAKEN = "kraken";
 
   static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
       () -> new Reflections("org.knowm.xchange")
@@ -101,6 +102,9 @@ public final class Exchanges {
         return "Coinbase Pro";
       case GDAX_SANDBOX:
         return "Coinbase Pro (Sandbox)";
+      case BITMEX:
+      case KRAKEN:
+        return StringUtils.capitalize(exchange) + " (beta)";
       default:
         return StringUtils.capitalize(exchange);
     }
@@ -125,7 +129,8 @@ public final class Exchanges {
       case BITTREX : return "https://bittrex.com/";
       case BITFINEX : return "https://www.bitfinex.com/";
       case CRYPTOPIA : return "https://www.cryptopia.co.nz/";
-      default : return null;
+      case KRAKEN : return "https://www.kraken.com/";
+      default : return "#";
     }
   }
 }
