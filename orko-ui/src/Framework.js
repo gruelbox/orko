@@ -213,25 +213,32 @@ export default class Framework extends React.Component {
 
     return (
       <>
-        <ToolbarContainer
-          mobile={isMobile}
-          onShowViewSettings={onToggleViewSettings}
-          onTogglePanelVisible={onTogglePanelVisible}
-          on
-          panels={panels}
-          width={width}
-        />
-        <Route exact path="/addCoin" component={AddCoinContainer} />
-        <Route exact path="/scripts" component={ManageScripts} />
-        <Route exact path="/scripts/:id" component={ManageScripts} />
-        <Route path="/job/:jobId" component={JobContainer} />
-        <PositioningWrapper mobile={isMobile}>
-          <Settings />
-          <ManageAlertsContainer mobile={isMobile} />
-          <SetReferencePriceContainer
-            key="setreferenceprice"
+        <ErrorBoundary>
+          <ToolbarContainer
             mobile={isMobile}
+            onShowViewSettings={onToggleViewSettings}
+            onTogglePanelVisible={onTogglePanelVisible}
+            on
+            panels={panels}
+            width={width}
           />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <Route exact path="/addCoin" component={AddCoinContainer} />
+          <Route exact path="/scripts" component={ManageScripts} />
+          <Route exact path="/scripts/:id" component={ManageScripts} />
+          <Route path="/job/:jobId" component={JobContainer} />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <Settings />
+        </ErrorBoundary>
+        <PositioningWrapper mobile={isMobile}>
+          <ErrorBoundary>
+            <ManageAlertsContainer mobile={isMobile} />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <SetReferencePriceContainer mobile={isMobile} />
+          </ErrorBoundary>
         </PositioningWrapper>
         <div style={{ padding: "-" + theme.space[1] + "px" }}>
           <ResponsiveReactGridLayout
