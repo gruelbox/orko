@@ -29,7 +29,6 @@ import static org.knowm.xchange.dto.Order.OrderType.BID;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -81,7 +80,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
@@ -736,12 +734,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private void pollAndEmitOrderbook(TickerSpec spec, MarketDataService marketDataService) throws IOException {
     OrderBook orderBook = marketDataService.getOrderBook(exchangePair(spec), exchangeOrderbookArgs(spec));
-
-    // TODO pending https://github.com/knowm/XChange/pull/2887
-    if (Exchanges.BITMEX.equals(spec.exchange())) {
-      Collections.sort(orderBook.getAsks(), Ordering.natural().onResultOf(LimitOrder::getLimitPrice));
-    }
-
     orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
   }
 
