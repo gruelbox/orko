@@ -740,10 +740,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private Object[] exchangeOrderbookArgs(TickerSpec spec) {
     if (spec.exchange().equals(Exchanges.BITMEX)) {
       return bitmexArgs(spec);
-    } else if (spec.exchange().equals(Exchanges.CRYPTOPIA)) {
-      // TODO submit a PR to xChange for this
-      long longValue = ORDERBOOK_DEPTH;
-      return new Object[] { longValue, longValue };
     } else {
       return new Object[] { ORDERBOOK_DEPTH, ORDERBOOK_DEPTH };
     }
