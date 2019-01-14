@@ -30,7 +30,7 @@ import ToolbarContainer from "./containers/ToolbarContainer"
 import AddCoinContainer from "./containers/AddCoinContainer"
 import MarketContainer from "./containers/MarketContainer"
 import OrdersContainer from "./containers/OrdersContainer"
-import TradeSelector from "./components/TradeSelector"
+import TradeContainer from "./containers/TradeContainer"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
@@ -129,7 +129,7 @@ export default class Framework extends React.Component {
           data-grid={this.props.layoutsAsObj.tradeSelector}
         >
           <Panel id="tradeSelector">
-            <TradeSelector />
+            <TradeContainer />
           </Panel>
         </LayoutBox>
       ),

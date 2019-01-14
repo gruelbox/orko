@@ -77,7 +77,15 @@ export default class TradeSelector extends React.Component {
 
   render() {
     return (
-      <Section id="trading" heading="Trading" buttons={this.Buttons}>
+      <Section
+        id="trading"
+        heading={
+          this.props.exchange && this.props.exchange.authenticated
+            ? "Trading"
+            : "Paper Trading"
+        }
+        buttons={this.Buttons}
+      >
         <WithCoin>
           {coin => {
             if (this.state.selected === "limit") {

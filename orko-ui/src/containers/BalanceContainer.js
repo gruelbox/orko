@@ -30,14 +30,11 @@ class BalanceContainer extends React.Component {
         <AuthenticatedOnly>
           <WithCoin>
             {coin => (
-              <>
-                <span>3</span>
-                <Balance
-                  coin={coin}
-                  balance={this.props.balance}
-                  ticker={this.props.ticker}
-                />
-              </>
+              <Balance
+                coin={coin}
+                balance={this.props.balance}
+                ticker={this.props.ticker}
+              />
             )}
           </WithCoin>
         </AuthenticatedOnly>
