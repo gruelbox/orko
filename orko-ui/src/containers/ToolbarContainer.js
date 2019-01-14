@@ -21,7 +21,11 @@ import { connect } from "react-redux"
 import Toolbar from "../components/Toolbar"
 
 import { formatNumber } from "../util/numberUtils"
-import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
+import {
+  getSelectedCoinTicker,
+  getSelectedCoin,
+  getSelectedExchange
+} from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
 import * as authActions from "../store/auth/actions"
 
@@ -49,6 +53,7 @@ const ToolbarContainer = props => {
       onClearWhitelist={() => props.dispatch(authActions.clearWhitelist())}
       onShowPanel={key => props.onTogglePanelVisible(key)}
       balance={props.balance}
+      exchangeMetadata={props.exchangeMetadata}
     />
   )
 }
@@ -65,6 +70,7 @@ export default connect((state, props) => {
     balance: state.coin.balance,
     coin,
     coinMetadata:
-      coin && state.coins.meta ? state.coins.meta[coin.key] : undefined
+      coin && state.coins.meta ? state.coins.meta[coin.key] : undefined,
+    exchangeMetadata: getSelectedExchange(state)
   }
 })(ToolbarContainer)

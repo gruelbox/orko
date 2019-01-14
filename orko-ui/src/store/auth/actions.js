@@ -22,6 +22,7 @@ import * as errorActions from "../error/actions"
 import * as coinActions from "../coins/actions"
 import * as scriptActions from "../scripting/actions"
 import * as supportActions from "../support/actions"
+import * as exchangesActions from "../exchanges/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
@@ -67,10 +68,10 @@ export function attemptConnect() {
 function connect() {
   return async (dispatch, getState, socket) => {
     await dispatch(notificationActions.trace("Connecting"))
-    var coinPromise = dispatch(coinActions.fetch())
     var scriptsPromise = dispatch(scriptActions.fetch())
     var metaPromise = dispatch(supportActions.fetchMetadata())
-    await coinPromise
+    await dispatch(exchangesActions.fetchExchanges())
+    await dispatch(coinActions.fetch())
     await dispatch(coinActions.fetchReferencePrices())
     await scriptsPromise
     await metaPromise

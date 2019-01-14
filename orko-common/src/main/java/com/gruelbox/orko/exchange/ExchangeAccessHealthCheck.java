@@ -47,12 +47,12 @@ class ExchangeAccessHealthCheck extends HealthCheck {
 
     exchangeResource.list().stream().filter(ex -> !Exchanges.GDAX_SANDBOX.equals(ex)).forEach(exchange -> {
       try {
-        Pair pair = Iterables.getFirst(exchangeResource.pairs(exchange), null);
+        Pair pair = Iterables.getFirst(exchangeResource.pairs(exchange.code), null);
         if (pair == null) {
-          result.withDetail(exchange, "No pairs");
+          result.withDetail(exchange.code, "No pairs");
           result.unhealthy();
         } else {
-          Ticker ticker = exchangeResource.ticker(exchange, pair.counter, pair.base);
+          Ticker ticker = exchangeResource.ticker(exchange.code, pair.counter, pair.base);
           if (ticker.getLast() == null) {
             result.withDetail(exchange + "/" + pair.counter + "/" + pair.base, "Nothing returned");
             result.unhealthy();
@@ -61,7 +61,7 @@ class ExchangeAccessHealthCheck extends HealthCheck {
           }
         }
       } catch (Exception e) {
-        result.withDetail(exchange, "Exception: " + e.getMessage());
+        result.withDetail(exchange.code, "Exception: " + e.getMessage());
         result.unhealthy(e);
       }
     });

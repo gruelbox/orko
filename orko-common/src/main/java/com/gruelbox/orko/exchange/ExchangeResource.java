@@ -18,6 +18,9 @@
 
 package com.gruelbox.orko.exchange;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.capitalize;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -115,8 +118,25 @@ public class ExchangeResource implements WebResource {
   @GET
   @Timed
   @RolesAllowed(Roles.TRADER)
-  public Collection<String> list() {
-    return exchanges.getExchanges();
+  public Collection<ExchangeMeta> list() {
+    return exchanges.getExchanges().stream()
+        .sorted()
+        .map(code -> new ExchangeMeta(code, capitalize(code), null))
+        .collect(toList());
+  }
+
+
+  public static final class ExchangeMeta {
+    @JsonProperty public String code;
+    @JsonProperty public String name;
+    @JsonProperty public String refLink;
+
+    private ExchangeMeta(String code, String name, String refLink) {
+      super();
+      this.code = code;
+      this.name = name;
+      this.refLink = refLink;
+    }
   }
 
 
@@ -176,7 +196,7 @@ public class ExchangeResource implements WebResource {
     // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
     CurrencyPair currencyPair = new CurrencyPair(
       base,
-      counter.equals("Z19") ? "BTC" : counter
+      counter.equals("Z19") || counter.equals("H19") ? "BTC" : counter
     );
     return new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
             }

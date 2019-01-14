@@ -165,10 +165,12 @@ const CoinExchange = styled.h2`
   color: ${props => props.theme.colors.fore};
 `
 
-const Coin = ({ coin }) => (
+const Coin = ({ coin, exchangeMetadata }) => (
   <CoinContainer px={3} data-orko="selectedCoin">
     <CoinTicker>{coin ? coin.base + "/" + coin.counter : ""}</CoinTicker>
-    <CoinExchange>{coin ? coin.exchange : ""}</CoinExchange>
+    <CoinExchange>
+      {coin && exchangeMetadata ? exchangeMetadata.name : ""}
+    </CoinExchange>
   </CoinContainer>
 )
 
@@ -185,12 +187,13 @@ const Toolbar = ({
   onShowPanel,
   width,
   version,
-  mobile
+  mobile,
+  exchangeMetadata
 }) => (
   <ToolbarBox p={0}>
     <Logo />
     <Version version={version} />
-    <Coin coin={coin} />
+    <Coin coin={coin} exchangeMetadata={exchangeMetadata} />
     <RemainingSpace mx={2}>
       <Ticker
         mobile={mobile}

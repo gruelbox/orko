@@ -74,11 +74,13 @@ class AddCoinContainer extends Component {
                 fluid
                 selection
                 loading={exchanges.length === 0}
-                value={this.state.exchange}
+                value={
+                  this.state.exchange ? this.state.exchange.code : undefined
+                }
                 options={exchanges.map(exchange => ({
-                  key: exchange,
-                  text: exchange,
-                  value: exchange
+                  key: exchange.code,
+                  text: exchange.name,
+                  value: exchange.code
                 }))}
                 onChange={this.onChangeExchange}
               />
