@@ -57,7 +57,7 @@ export function clearBalances() {
 }
 
 export function cancelOrder(coin, orderId, orderType) {
-  return async (dispatch, getState) => {
+  return async dispatch => {
     dispatch({ type: types.CANCEL_ORDER, payload: orderId })
     dispatch(doCancelOrder(coin, orderId, orderType))
   }
