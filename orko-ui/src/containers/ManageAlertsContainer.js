@@ -128,7 +128,10 @@ class ManageAlertsContainer extends React.Component {
     return (
       <Window mobile={this.props.mobile}>
         <SectionProvider
-          value={{ onHide: () => this.props.dispatch(uiActions.closeAlerts()) }}
+          value={{
+            draggable: !this.props.mobile,
+            onHide: () => this.props.dispatch(uiActions.closeAlerts())
+          }}
         >
           <Section id="manageAlerts" heading={"Manage alerts for " + coin.name}>
             <Alerts
