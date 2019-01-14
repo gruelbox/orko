@@ -19,6 +19,8 @@ import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 import { getFromLS, saveToLS } from "../../util/localStorage"
 
+const VERSION = 1
+
 const basePanelMetadata = Immutable({
   coins: {
     title: "Coins",
@@ -131,32 +133,34 @@ const baseLayouts = Immutable({
     notifications: { i: "notifications", x: 20, y: 400, w: 12, h: 7 }
   },
   sm: {
-    chart: { i: "chart", x: 0, y: 100, w: 4, h: 12 },
-    openOrders: { i: "openOrders", x: 0, y: 200, w: 4, h: 6 },
-    balance: { i: "balance", x: 0, y: 300, w: 4, h: 4 },
-    tradeSelector: { i: "tradeSelector", x: 0, y: 400, w: 4, h: 9 },
-    coins: { i: "coins", x: 0, y: 500, w: 4, h: 6 },
-    jobs: { i: "jobs", x: 0, y: 600, w: 4, h: 6 },
-    marketData: { i: "marketData", x: 0, y: 700, w: 4, h: 6 },
+    coins: { i: "coins", x: 0, y: 100, w: 4, h: 12 },
+    chart: { i: "chart", x: 0, y: 200, w: 4, h: 12 },
+    openOrders: { i: "openOrders", x: 0, y: 300, w: 4, h: 6 },
+    balance: { i: "balance", x: 0, y: 400, w: 4, h: 4 },
+    tradeSelector: { i: "tradeSelector", x: 0, y: 500, w: 4, h: 9 },
+    marketData: { i: "marketData", x: 0, y: 600, w: 4, h: 6 },
+    jobs: { i: "jobs", x: 0, y: 700, w: 4, h: 6 },
     notifications: { i: "notifications", x: 0, y: 800, w: 4, h: 6 }
   }
 })
 
 const loadedPanels = getFromLS("panels")
-const loadedLayouts = getFromLS("layouts.2")
+const loadedLayouts = getFromLS("layouts")
+const meta = getFromLS("layoutMeta")
+const version = meta ? (meta.version ? meta.version : 0) : 0
 
 const initialState = Immutable({
   alertsCoin: null,
   referencePriceCoin: null,
-  panels: Immutable.merge(
-    basePanels,
-    loadedPanels === null
-      ? basePanelMetadata
-      : Immutable.merge(loadedPanels, basePanelMetadata, { deep: true }),
-    { deep: true }
-  ),
-  layouts: loadedLayouts === null ? baseLayouts : loadedLayouts
+  panels:
+    loadedPanels === null || version < VERSION ? basePanels : loadedPanels,
+  layouts:
+    loadedLayouts === null || version < VERSION ? baseLayouts : loadedLayouts
 })
+
+if (version < VERSION) {
+  saveToLS("layoutMeta", { version: VERSION })
+}
 
 var nextStackPosition =
   Object.values(initialState.panels).reduce(
@@ -196,7 +200,7 @@ export default function reduce(state = initialState, action = {}) {
         detached: !state.panels[action.payload].detached,
         stackPosition: nextStackPosition++,
         layouts: saveToLS(
-          "layouts.2",
+          "layouts",
           Immutable.merge(state.layouts, {
             lg: Immutable.merge(state.layouts.lg, {
               [action.payload]: baseLayouts.lg[action.payload]
@@ -215,7 +219,7 @@ export default function reduce(state = initialState, action = {}) {
         visible: !state.panels[action.payload].visible,
         stackPosition: nextStackPosition++,
         layouts: saveToLS(
-          "layouts.2",
+          "layouts",
           Immutable.merge(state.layouts, {
             lg: Immutable.merge(state.layouts.lg, {
               [action.payload]: baseLayouts.lg[action.payload]
@@ -235,12 +239,12 @@ export default function reduce(state = initialState, action = {}) {
       })
     case types.RESET_ALL_LAYOUTS:
       return Immutable.merge(state, {
-        layouts: saveToLS("layouts.2", baseLayouts)
+        layouts: saveToLS("layouts", baseLayouts)
       })
     case types.UPDATE_LAYOUTS:
       return Immutable.merge(state, {
         layouts: saveToLS(
-          "layouts.2",
+          "layouts",
           Immutable.merge(baseLayouts, action.payload, { deep: true })
         )
       })

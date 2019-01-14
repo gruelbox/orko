@@ -20,35 +20,21 @@ import { connect } from "react-redux"
 import * as uiActions from "./store/ui/actions"
 import { getAllPanels, getAllLayouts } from "./selectors/ui"
 import Framework from "./Framework"
+import theme from "./theme"
 
 const windowToBreakpoint = width =>
-  width < 1630 ? (width < 992 ? "sm" : "md") : "lg"
+  width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg"
 
 class FrameworkContainer extends React.Component {
   constructor(props) {
     super(props)
+    const breakpoint = windowToBreakpoint(window.innerWidth)
     this.state = {
-      isMobile: window.innerWidth <= 500,
-      breakpoint: windowToBreakpoint(window.innerWidth),
+      isMobile: breakpoint === "sm",
+      breakpoint,
       width: window.innerWidth,
       showSettings: false
     }
-  }
-
-  componentWillMount() {
-    window.addEventListener("resize", this.handleWindowSizeChange)
-  }
-
-  handleWindowSizeChange = () => {
-    const width = window.innerWidth
-    const isMobile = width <= 500
-    const breakpoint = windowToBreakpoint(width)
-    if (
-      isMobile !== this.state.isMobile ||
-      breakpoint !== this.state.breakpoint ||
-      width !== this.state.width
-    )
-      this.setState({ isMobile, breakpoint, width })
   }
 
   onResetLayout = () => {
@@ -84,6 +70,13 @@ class FrameworkContainer extends React.Component {
     this.setState(state => ({ showSettings: !state.showSettings }))
   }
 
+  onBreakpointChange = breakpoint => {
+    this.setState({
+      breakpoint,
+      isMobile: breakpoint === "sm"
+    })
+  }
+
   render() {
     return (
       <Framework
@@ -102,6 +95,7 @@ class FrameworkContainer extends React.Component {
         onMovePanel={this.onMovePanel}
         onResizePanel={this.onResizePanel}
         onInteractPanel={this.onInteractPanel}
+        onBreakpointChange={this.onBreakpointChange}
       />
     )
   }

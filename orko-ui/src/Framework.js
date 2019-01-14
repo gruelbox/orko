@@ -183,7 +183,8 @@ export default class Framework extends React.Component {
       onLayoutChange,
       onMovePanel,
       onResizePanel,
-      onInteractPanel
+      onInteractPanel,
+      onBreakpointChange
     } = this.props
 
     const Settings = () =>
@@ -231,6 +232,7 @@ export default class Framework extends React.Component {
             rowHeight={24}
             layouts={layouts.asMutable()}
             onLayoutChange={onLayoutChange}
+            onBreakpointChange={onBreakpointChange}
             margin={[theme.space[1], theme.space[1]]}
             containerPadding={[theme.space[1], theme.space[1]]}
             draggableHandle=".dragMe"
