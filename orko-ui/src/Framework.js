@@ -37,7 +37,9 @@ import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
 import Chart from "./components/Chart"
+import Section from "./components/primitives/Section"
 import ViewSettings from "./components/ViewSettings"
+import ErrorBoundary from "./components/ErrorBoundary"
 import { Provider as SectionProvider } from "./components/primitives/Section"
 import { isNull } from "util"
 
@@ -82,19 +84,25 @@ export default class Framework extends React.Component {
       return accumulator
     }, {})
 
-    const Panel = ({ id, children }) => (
+    const Panel = props => (
       <SectionProvider
         value={{
           draggable: true,
           compactDragHandle: this.props.isMobile,
-          icon: icons[id],
-          onHide: () => this.props.onTogglePanelVisible(id),
+          icon: icons[props.id],
+          onHide: () => this.props.onTogglePanelVisible(props.id),
           onToggleAttached: this.props.isMobile
             ? null
-            : () => this.props.onTogglePanelAttached(id)
+            : () => this.props.onTogglePanelAttached(props.id)
         }}
       >
-        {children}
+        <ErrorBoundary
+          wrapper={({ message, children }) => (
+            <Section heading={message}>{children}</Section>
+          )}
+        >
+          {props.children}
+        </ErrorBoundary>
       </SectionProvider>
     )
 
