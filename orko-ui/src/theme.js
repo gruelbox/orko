@@ -94,6 +94,11 @@ const theme = {
         ${css(...args)};
       }
     `
+  },
+  panelBreakpoints: {
+    lg: 1630,
+    md: 992,
+    sm: 0
   }
 }
 

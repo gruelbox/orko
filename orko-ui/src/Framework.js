@@ -226,7 +226,7 @@ export default class Framework extends React.Component {
         </PositioningWrapper>
         <div style={{ padding: "-" + theme.space[1] + "px" }}>
           <ResponsiveReactGridLayout
-            breakpoints={{ lg: 1630, md: 992, sm: 0 }}
+            breakpoints={theme.panelBreakpoints}
             cols={{ lg: 40, md: 32, sm: 4 }}
             rowHeight={24}
             layouts={layouts.asMutable()}
