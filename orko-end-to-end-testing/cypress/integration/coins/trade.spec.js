@@ -41,7 +41,7 @@ context("Trading", () => {
     cy.o("section/coinList").within(() => {
       cy.o("bitfinex/USD/BTC/name").click()
     })
-    cy.o("selectedCoin").contains("bitfinex")
+    cy.o("selectedCoin").contains("Bitfinex")
     cy.o("selectedCoin").contains("BTC/USD")
     cy.o("section/trading/tabs").within(() => {
       cy.o("stopTakeProfit").click()
