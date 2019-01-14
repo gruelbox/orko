@@ -28,15 +28,15 @@ class UserTradeHistoryContainer extends React.Component {
     return (
       <AuthenticatedOnly padded>
         <WithCoin padded>
-          (() => (
-          <WhileLoading data={this.props.tradeHistory} padded>
-            {() => (
-              <TradeHistory
-                coin={this.props.coin}
-                trades={this.props.tradeHistory}
-              />
-            )}
-          </WhileLoading>
+          {() => (
+            <WhileLoading data={this.props.tradeHistory} padded>
+              {() => (
+                <TradeHistory
+                  coin={this.props.coin}
+                  trades={this.props.tradeHistory}
+                />
+              )}
+            </WhileLoading>
           )}
         </WithCoin>
       </AuthenticatedOnly>
