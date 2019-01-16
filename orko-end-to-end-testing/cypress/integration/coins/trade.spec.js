@@ -47,6 +47,7 @@ context("Trading", () => {
       cy.o("stopTakeProfit").click()
     })
     cy.o("section/trading").within(() => {
+      cy.o("enablePaperTrading").click()
       cy.o("stopTakeProfit").within(() => {
         cy.o("BUY").click()
         cy.o("lowPrice").type("1000")
