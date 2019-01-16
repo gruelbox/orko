@@ -7,7 +7,9 @@
 
 Are you up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to use advanced order types on exchanges that don't support them, such as trailing stops or one-cancels-other?
 
-Orko is a **self hosted** web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. 
+Orko is a **self hosted** web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen. It works seamlessly on desktop and mobile, so you can have the same trading experience wherever you go.
+
+All this without sharing your API keys with anyone.  
 
 ![Screenshot](.github/app1.PNG)
 
@@ -18,6 +20,8 @@ Feel like creating your own special order types, such as soft stops which ignore
 And best of all, it's completely [free](https://www.fsf.org/about/what-is-free-software) (as in "free speech" as well as "free beer"). 
 
 Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/badgerwithagun/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/badgerwithagun/orko/wiki/Financial-Support) and [how to help](https://github.com/badgerwithagun/orko/wiki/Project-status).
+
+<img align="right" src=".github/mobile1.png" width="281" height="609"/>
 
 ## Status
 
