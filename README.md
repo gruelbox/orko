@@ -5,9 +5,19 @@
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
 
-Are you up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to automate your trading with advanced features such as trailing stops, one-cancels-other or soft stops which ignore sharp wicks?
+Are you up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to use advanced order types on exchanges that don't support them, such as trailing stops or one-cancels-other?
 
-Orko is a **self hosted** web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko).
+Orko is a **self hosted** web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. 
+
+![Screenshot](.github/app1.PNG)
+
+Feel like creating your own special order types, such as soft stops which ignore sharp wicks or stops triggered off the price of a different asset?  Orko features a [scripting](https://github.com/badgerwithagun/orko/wiki/Scripting) API allowing you to design your own bespoke order types.
+
+![Scripting UI](.github/scripting1.PNG)
+
+And best of all, it's completely [free](https://www.fsf.org/about/what-is-free-software) (as in "free speech" as well as "free beer"). 
+
+Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/badgerwithagun/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/badgerwithagun/orko/wiki/Financial-Support) and [how to help](https://github.com/badgerwithagun/orko/wiki/Project-status).
 
 ## Status
 
