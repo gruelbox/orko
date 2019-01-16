@@ -150,6 +150,7 @@ const meta = getFromLS("layoutMeta")
 const version = meta ? (meta.version ? meta.version : 0) : 0
 
 const initialState = Immutable({
+  paperTrading: false,
   alertsCoin: null,
   referencePriceCoin: null,
   panels:
@@ -259,6 +260,10 @@ export default function reduce(state = initialState, action = {}) {
         y: action.payload.dimensions.y,
         w: action.payload.dimensions.width,
         h: action.payload.dimensions.height
+      })
+    case types.ACCEPT_PAPER_TRADING:
+      return Immutable.merge(state, {
+        paperTrading: true
       })
     default:
       return state

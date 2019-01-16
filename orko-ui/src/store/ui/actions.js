@@ -18,6 +18,10 @@
 import * as types from "./actionTypes"
 import Immutable from "seamless-immutable"
 
+export function acceptPaperTrading() {
+  return { type: types.ACCEPT_PAPER_TRADING }
+}
+
 export function openAlerts(coin) {
   return { type: types.OPEN_ALERTS, payload: coin }
 }

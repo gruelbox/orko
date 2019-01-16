@@ -24,6 +24,7 @@ import TrailingStopOrderContainer from "../containers/TrailingStopOrderContainer
 import StopTakeProfitContainer from "../containers/StopTakeProfitContainer"
 import ScriptContainer from "../containers/ScriptContainer"
 import WithCoin from "../containers/WithCoin"
+import AuthenticatedOnly from "../containers/AuthenticatedOnly"
 
 export default class TradeSelector extends React.Component {
   constructor(props) {
@@ -86,21 +87,23 @@ export default class TradeSelector extends React.Component {
         }
         buttons={this.Buttons}
       >
-        <WithCoin>
-          {coin => {
-            if (this.state.selected === "limit") {
-              return <LimitOrderContainer key={coin.key} coin={coin} />
-            } else if (this.state.selected === "stop") {
-              return <StopOrderContainer key={coin.key} coin={coin} />
-            } else if (this.state.selected === "trailing") {
-              return <TrailingStopOrderContainer key={coin.key} coin={coin} />
-            } else if (this.state.selected === "oco") {
-              return <StopTakeProfitContainer key={coin.key} coin={coin} />
-            } else if (this.state.selected === "custom") {
-              return <ScriptContainer />
-            }
-          }}
-        </WithCoin>
+        <AuthenticatedOnly>
+          <WithCoin>
+            {coin => {
+              if (this.state.selected === "limit") {
+                return <LimitOrderContainer key={coin.key} coin={coin} />
+              } else if (this.state.selected === "stop") {
+                return <StopOrderContainer key={coin.key} coin={coin} />
+              } else if (this.state.selected === "trailing") {
+                return <TrailingStopOrderContainer key={coin.key} coin={coin} />
+              } else if (this.state.selected === "oco") {
+                return <StopTakeProfitContainer key={coin.key} coin={coin} />
+              } else if (this.state.selected === "custom") {
+                return <ScriptContainer />
+              }
+            }}
+          </WithCoin>
+        </AuthenticatedOnly>
       </Section>
     )
   }

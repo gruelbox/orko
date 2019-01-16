@@ -24,23 +24,34 @@ import { space } from "styled-system"
 import NotAuthenticated from "../components/NotAuthenticated"
 
 import { getSelectedExchange } from "../selectors/coins"
+import * as uiActions from "../store/ui/actions"
 
 const Padded = styled.div`
   ${space}
 `
 
-const AuthenticatedOnly = ({ exchange, children, padded }) => {
-  if (!exchange || exchange.authenticated) {
+const AuthenticatedOnly = ({
+  exchange,
+  children,
+  padded,
+  dispatch,
+  paperTrading
+}) => {
+  if (paperTrading || !exchange || exchange.authenticated) {
     return children
   } else {
     return (
       <Padded p={padded ? 2 : 0}>
-        <NotAuthenticated exchange={exchange} />
+        <NotAuthenticated
+          exchange={exchange}
+          onEnablePaperTrading={() => dispatch(uiActions.acceptPaperTrading())}
+        />
       </Padded>
     )
   }
 }
 
 export default connect(state => ({
-  exchange: getSelectedExchange(state)
+  exchange: getSelectedExchange(state),
+  paperTrading: state.ui.paperTrading
 }))(AuthenticatedOnly)
