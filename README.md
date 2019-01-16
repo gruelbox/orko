@@ -13,6 +13,8 @@ Orko is a **self hosted** web application which provides a unified dashboard to 
 
 **Beta**. Please read the [project status page](https://github.com/badgerwithagun/orko/wiki/Project-status).
 
+Particularly, please note that the application has only so far been tested on Chrome desktop and Chrome mobile.
+
 ## Quick-start Installation
 
 - [On a local machine](https://github.com/badgerwithagun/orko/wiki/Local-installation)
@@ -21,7 +23,7 @@ Orko is a **self hosted** web application which provides a unified dashboard to 
 
 ## Help wanted
 
-At the moment this project is a labour of love for just me, and I [need help](https://github.com/badgerwithagun/orko/issues/111)!
+At the moment this project is a labour of love for just me, I am creating new bug and enhancement issues faster than I am closing them, and I [need help](https://github.com/badgerwithagun/orko/issues/111)!
 
 ## Everything else
 
