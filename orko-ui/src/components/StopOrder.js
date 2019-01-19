@@ -49,7 +49,7 @@ const StopOrder = props => {
           onChange={e => onChange("stopPrice", e.target.value)}
           onFocus={e => props.onFocus("stopPrice")}
         >
-          <input />
+          <input data-orko="stopPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         <Form.Input
@@ -68,7 +68,7 @@ const StopOrder = props => {
           onChange={e => onChange("limitPrice", e.target.value)}
           onFocus={e => props.onFocus("limitPrice")}
         >
-          <input />
+          <input data-orko="limitPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         <Form.Input
@@ -82,7 +82,7 @@ const StopOrder = props => {
           onChange={e => onChange("amount", e.target.value)}
           onFocus={e => props.onFocus("amount")}
         >
-          <input />
+          <input data-orko="amount" />
           <Label>{props.coin.base}</Label>
         </Form.Input>
       </Form.Group>

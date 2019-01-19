@@ -61,13 +61,13 @@ class StopOrderContainer extends React.Component {
 
   onChange = order => {
     this.setState({
-      order: {
+      order: Immutable({
         ...order,
         // Clear the limit price if it's not supported anymore
         limitPrice: coinAllowsLimitStops(this.props.coin, order.useExchange)
           ? order.limitPrice
           : ""
-      }
+      })
     })
   }
 

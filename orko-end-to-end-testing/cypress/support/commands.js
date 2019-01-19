@@ -76,7 +76,7 @@ Cypress.Commands.add("requestNoFail", (url, options) =>
   })
 )
 
-Cypress.Commands.add("clearWhitelist", (options) =>
+Cypress.Commands.add("clearWhitelist", options =>
   cy.request({
     method: "DELETE",
     url: "/api/auth",

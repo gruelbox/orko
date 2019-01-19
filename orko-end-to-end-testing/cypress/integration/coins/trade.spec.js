@@ -25,19 +25,52 @@ context("Trading", () => {
   beforeEach(function() {
     cy.whitelist()
     cy.loginApi().then(() => {
-      clearSubscriptions().then(() =>
+      clearSubscriptions().then(() => {
         addSubscription({
           exchange: "bitfinex",
           counter: "USD",
           base: "BTC"
         })
-      )
+        addSubscription({
+          exchange: "binance",
+          counter: "USDT",
+          base: "BTC"
+        })
+      })
       clearJobs()
     })
     cy.visit("/")
   })
 
-  it("Server-side buy order", () => {
+  it("Stop: on exchange", () => {
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/BTC/price").contains(/^[0-9\.]*/, {
+        timeout: 20000
+      })
+      cy.o("binance/USDT/BTC/name").click()
+    })
+    cy.o("selectedCoin").contains("Binance")
+    cy.o("selectedCoin").contains("BTC/USD")
+    cy.o("section/trading/tabs").within(() => {
+      cy.o("stop").click()
+    })
+    cy.o("section/trading").within(() => {
+      cy.o("enablePaperTrading").click()
+      cy.o("stopOrder").within(() => {
+        cy.o("stopPrice").type("1000")
+        cy.o("limitPrice").click()
+      })
+    })
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/BTC/price").click()
+    })
+    cy.o("stopOrder").within(() => {
+      cy.o("limitPrice").contains(/^[\0-9\.]*/)
+    })
+    // TODO actually submit once paper trading supports it
+  })
+
+  it("OCO: Buy only", () => {
     cy.o("section/coinList").within(() => {
       cy.o("bitfinex/USD/BTC/name").click()
     })

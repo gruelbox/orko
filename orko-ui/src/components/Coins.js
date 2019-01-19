@@ -42,7 +42,7 @@ const exchangeColumn = {
       to={"/coin/" + original.key}
       title="Open coin"
     >
-      {original.exchangeMeta.name}
+      {original.exchangeMeta ? original.exchangeMeta.name : original.exchange}
     </Link>
   ),
   headerStyle: textStyle,
