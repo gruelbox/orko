@@ -31,7 +31,7 @@ import org.alfasoftware.morf.upgrade.TableContribution;
 import org.alfasoftware.morf.upgrade.UpgradeStep;
 
 import com.google.common.collect.ImmutableList;
-import com.gruelbox.orko.db.EntityContribution;
+import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 
 class ScriptContribution implements EntityContribution, TableContribution {
 

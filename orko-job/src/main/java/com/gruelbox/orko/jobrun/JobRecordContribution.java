@@ -36,7 +36,7 @@ import org.alfasoftware.morf.upgrade.UpgradeStep;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.db.EntityContribution;
+import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 
 @Singleton
 class JobRecordContribution implements TableContribution, EntityContribution {

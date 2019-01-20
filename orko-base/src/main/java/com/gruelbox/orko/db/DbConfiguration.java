@@ -26,8 +26,13 @@ import javax.validation.constraints.NotNull;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.alfasoftware.morf.jdbc.DatabaseType;
+import org.hibernate.cfg.AvailableSettings;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.util.Duration;
+import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 public class DbConfiguration {
 
@@ -92,5 +97,22 @@ public class DbConfiguration {
 
   public String getStartPositionFile() {
     return startPositionFile;
+  }
+
+  public DataSourceFactory toDataSourceFactory() {
+    DataSourceFactory dsf = new DataSourceFactory();
+    dsf.setDriverClass(getDriverClassName());
+    dsf.setUrl(getJdbcUrl());
+    dsf.setProperties(ImmutableMap.of(
+        "charset", "UTF-8",
+        "hibernate.dialect", com.gruelbox.orko.db.DialectResolver.hibernateDialect(toConnectionResources().getDatabaseType()),
+        AvailableSettings.LOG_SESSION_METRICS, "false"
+    ));
+    dsf.setMaxWaitForConnection(Duration.seconds(1));
+    dsf.setValidationQuery("/* Health Check */ SELECT 1");
+    dsf.setMinSize(1);
+    dsf.setMaxSize(4); // 10 is the max on Heroku
+    dsf.setCheckConnectionWhileIdle(false);
+    return dsf;
   }
 }

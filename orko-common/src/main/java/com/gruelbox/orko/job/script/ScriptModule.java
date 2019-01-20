@@ -22,7 +22,7 @@ import org.alfasoftware.morf.upgrade.TableContribution;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.db.EntityContribution;
+import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 public class ScriptModule extends AbstractModule {
