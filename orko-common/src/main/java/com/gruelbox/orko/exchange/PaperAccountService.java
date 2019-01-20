@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,20 +33,29 @@ class PaperAccountService implements AccountService {
   private static final BigDecimal INITIAL_BALANCE = new BigDecimal(1000);
 
   private final ConcurrentMap<Currency, AtomicReference<BigDecimal>> balances;
+  private final String exchange;
 
-  PaperAccountService(Set<Currency> currencies) {
+  PaperAccountService(String exchange, Set<Currency> currencies) {
+    this.exchange = exchange;
     this.balances = new ConcurrentHashMap<>(FluentIterable.from(currencies).toMap(k -> new AtomicReference<>(INITIAL_BALANCE)));
   }
 
   @Override
   public AccountInfo getAccountInfo() throws IOException {
-    return new AccountInfo(
-      new Wallet(
-        balances.entrySet().stream()
-          .map(e -> new Balance(e.getKey(), e.getValue().get()))
-          .collect(toList())
-      )
-    );
+    List<Balance> balanceList = balances.entrySet().stream()
+      .map(e -> new Balance(e.getKey(), e.getValue().get()))
+      .collect(toList());
+    if (exchange.equals(Exchanges.BITFINEX)) {
+      return new AccountInfo(
+        new Wallet("margin", Collections.emptyList()),
+        new Wallet("funding", Collections.emptyList()),
+        new Wallet("exchange", balanceList)
+      );
+    } else {
+      return new AccountInfo(
+        new Wallet(balanceList)
+      );
+    }
   }
 
   @Override
@@ -89,7 +99,7 @@ class PaperAccountService implements AccountService {
     private final LoadingCache<String, PaperAccountService> services = CacheBuilder.newBuilder().initialCapacity(1000).build(new CacheLoader<String, PaperAccountService>() {
       @Override
       public PaperAccountService load(String exchangeName) throws Exception {
-        return new PaperAccountService(exchangeService.get(exchangeName).getExchangeMetaData().getCurrencies().keySet());
+        return new PaperAccountService(exchangeName, exchangeService.get(exchangeName).getExchangeMetaData().getCurrencies().keySet());
       }
     });
 
