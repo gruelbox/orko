@@ -19,7 +19,8 @@ import {
   clearSubscriptions,
   addSubscription,
   clearJobs,
-  clearOrders
+  clearOrders,
+  listOrders
 } from "../../support/tools"
 
 const BITFINEX_BTC = {
@@ -51,7 +52,7 @@ context("Trading", () => {
     cy.visit("/")
   })
 
-  const setupLimitTrade = () => {
+  const limitTrade = (button, priceDifferential, amount) => {
     cy.o("section/coinList").within(() => {
       cy.o("binance/USDT/BTC/name").click()
     })
@@ -67,43 +68,70 @@ context("Trading", () => {
       })
     })
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/price").contains(NUMBER_REGEX)
+      cy.o("binance/USDT/BTC/price").contains(NUMBER_REGEX, {
+        timeout: 20000
+      })
       cy.o("binance/USDT/BTC/price").click()
+    })
+    cy.o("limitOrder").within(() => {
+      cy.o("limitPrice")
+        .invoke("val")
+        .as("price")
+        .then(price => {
+          cy.o("limitPrice")
+            .clear()
+            .type(0 + Number(price) + priceDifferential)
+        })
+      cy.o("amount").type(amount)
+      cy.o(button).click()
+    })
+    cy.get("@price").then(price => {
+      cy.o("section/orders").within(() => {
+        cy.get("[data-type='openOrder/" + button + "']").within(() => {
+          cy.o("createdDate").contains("Confirming...")
+          cy.o("amount").contains(amount)
+          cy.o("limitPrice").contains(0 + Number(price) + priceDifferential)
+          cy.o("createdDate")
+            .contains("Confirming...", {
+              timeout: 20000
+            })
+            .should("not.exist")
+        })
+      })
+      listOrders(BINANCE_BTC).should($orders => {
+        expect($orders.openOrders.length, "Open order count").to.eql(1)
+        expect($orders.hiddenOrders, "Hidden orders").to.be.empty
+        expect($orders.openOrders[0].limitPrice, "Limit price").to.eql(
+          0 + Number(price) + priceDifferential
+        )
+        expect($orders.openOrders[0].originalAmount, "Amount").to.eql(amount)
+        expect($orders.openOrders[0].type).to.eql(
+          button == "buy" ? "BID" : "ASK"
+        )
+      })
+      cy.o("section/orders").within(() => {
+        cy.get("[data-type='openOrder/" + button + "']").within(() => {
+          cy.o("amount").contains(amount)
+          cy.o("limitPrice").contains(0 + Number(price) + priceDifferential)
+          cy.o("cancel").click()
+        })
+        listOrders(BINANCE_BTC).should($orders => {
+          expect($orders.openOrders, "Open orders").to.be.empty
+          expect($orders.hiddenOrders, "Hidden orders").to.be.empty
+        })
+        cy.get("[data-type='openOrder/" + button + "']", {
+          timeout: 20000
+        }).should("not.exist")
+      })
     })
   }
 
-  it("Limit buy", () => {
-    setupLimitTrade()
-    cy.o("limitOrder").within(() => {
-      cy.o("limitPrice")
-        .invoke("val")
-        .then(text =>
-          cy
-            .o("limitPrice")
-            .clear()
-            .type(0 + text - 100)
-        )
-      cy.o("amount").type("0.1")
-      cy.o("buy").click()
-    })
-    // TODO check order is displayed
+  it("Limit buy and cancel", () => {
+    limitTrade("buy", -100, 0.1)
   })
 
-  it("Limit sell", () => {
-    setupLimitTrade()
-    cy.o("limitOrder").within(() => {
-      cy.o("limitPrice")
-        .invoke("val")
-        .then(text =>
-          cy
-            .o("limitPrice")
-            .clear()
-            .type(0 + text + 100)
-        )
-      cy.o("amount").type("0.2")
-      cy.o("sell").click()
-    })
-    // TODO check order is displayed
+  it("Limit sell and cancel", () => {
+    limitTrade("sell", 100, 0.2)
   })
 
   it("Stop: on exchange", () => {

@@ -143,9 +143,14 @@ const alertColumn = onClickAlerts => ({
   resizable: false
 })
 
+export const DATA_ATTRIBUTE = "data-orko"
+
 const Coins = ({ data, onRemove, onClickAlerts, onClickReferencePrice }) => (
   <ReactTable
     data={data}
+    getTrProps={(state, rowInfo) => ({
+      [DATA_ATTRIBUTE]: "coin/" + rowInfo.original.key
+    })}
     columns={[
       closeColumn(onRemove),
       exchangeColumn,

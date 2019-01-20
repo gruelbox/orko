@@ -31,6 +31,9 @@ const numberStyle = {
   textAlign: "right"
 }
 
+const DATA_ATTRIBUTE = "data-orko"
+const DATA_TYPE = "data-type"
+
 const orderTypeColumn = {
   id: "orderType",
   Header: <Icon fitted name="sort" title="Direction" />,
@@ -90,6 +93,9 @@ const createdDateColumn = {
       : original.runningAt === "SERVER"
       ? "Not on exchange"
       : "Confirming...",
+  getProps: () => ({
+    [DATA_ATTRIBUTE]: "createdDate"
+  }),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
@@ -103,6 +109,7 @@ const limitPriceColumn = coin => ({
       "MARKET"
     ) : (
       <Price
+        data-orko="limitPrice"
         color={original.type === "BID" ? "buy" : "sell"}
         noflash
         bare
@@ -123,6 +130,7 @@ const stopPriceColumn = coin => ({
   Header: "Trigger",
   Cell: ({ original }) => (
     <Price
+      data-orko="stopPrice"
       color={original.type === "BID" ? "buy" : "sell"}
       noflash
       bare
@@ -142,6 +150,7 @@ const amountColumn = coin => ({
   Header: "Amount",
   Cell: ({ original }) => (
     <Amount
+      data-orko="amount"
       color={original.type === "BID" ? "buy" : "sell"}
       noflash
       bare
@@ -161,6 +170,7 @@ const filledColumn = coin => ({
   Header: "Filled",
   Cell: ({ original }) => (
     <Amount
+      data-orko="filled"
       color={original.type === "BID" ? "buy" : "sell"}
       noflash
       bare
@@ -182,6 +192,7 @@ const cancelColumn = (onCancelExchange, onCancelServer) => ({
   Cell: ({ original }) =>
     original.status === "CANCELED" ? null : (
       <Href
+        data-orko="cancel"
         onClick={() => {
           if (original.runningAt === "SERVER") {
             onCancelServer(original.jobId)
@@ -208,7 +219,10 @@ const OpenOrders = props => (
       className:
         (rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell") +
         " oco-" +
-        rowInfo.original.status
+        rowInfo.original.status,
+      [DATA_ATTRIBUTE]: "openOrder/" + rowInfo.original.id,
+      [DATA_TYPE]:
+        "openOrder/" + (rowInfo.original.type === "BID" ? "buy" : "sell")
     })}
     columns={[
       cancelColumn(props.onCancelExchange, props.onCancelServer),

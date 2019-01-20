@@ -58,7 +58,7 @@ export function cancelOrder(tickerSpec, order) {
   })
 }
 
-export function clearOrders(tickerSpec) {
+export function listOrders(tickerSpec) {
   return cy
     .secureRequest({
       url:
@@ -74,8 +74,14 @@ export function clearOrders(tickerSpec) {
     .should(response => {
       expect(response.status).to.eq(200)
       expect(response.body).to.be.an.object
-      response.body.openOrders.forEach(order => cancelOrder(tickerSpec, order))
     })
+    .its("body")
+}
+
+export function clearOrders(tickerSpec) {
+  return listOrders(tickerSpec).then(body => {
+    body.openOrders.forEach(order => cancelOrder(tickerSpec, order))
+  })
 }
 
 export function addSubscription(ticker) {
