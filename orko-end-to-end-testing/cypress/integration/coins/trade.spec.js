@@ -18,28 +18,67 @@
 import {
   clearSubscriptions,
   addSubscription,
-  clearJobs
+  clearJobs,
+  clearOrders
 } from "../../support/tools"
+
+const BITFINEX_BTC = {
+  exchange: "bitfinex",
+  counter: "USD",
+  base: "BTC"
+}
+
+const BINANCE_BTC = {
+  exchange: "binance",
+  counter: "USDT",
+  base: "BTC"
+}
 
 context("Trading", () => {
   beforeEach(function() {
     cy.whitelist()
     cy.loginApi().then(() => {
+      clearOrders(BITFINEX_BTC)
+      clearOrders(BINANCE_BTC)
       clearSubscriptions().then(() => {
-        addSubscription({
-          exchange: "bitfinex",
-          counter: "USD",
-          base: "BTC"
-        })
-        addSubscription({
-          exchange: "binance",
-          counter: "USDT",
-          base: "BTC"
-        })
+        addSubscription(BITFINEX_BTC)
+        addSubscription(BINANCE_BTC)
       })
       clearJobs()
     })
     cy.visit("/")
+  })
+
+  it("Limit: on exchange", () => {
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/BTC/price").contains(/^[0-9\.]*/, {
+        timeout: 20000
+      })
+      cy.o("binance/USDT/BTC/name").click()
+    })
+    cy.o("selectedCoin").contains("Binance")
+    cy.o("selectedCoin").contains("BTC/USD")
+    cy.o("section/trading/tabs").within(() => {
+      cy.o("limit").click()
+    })
+    cy.o("section/trading").within(() => {
+      cy.o("enablePaperTrading").click()
+      cy.o("limitOrder").within(() => {
+        cy.o("limitPrice").click()
+      })
+    })
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/BTC/price").click()
+    })
+    cy.o("limitOrder").within(() => {
+      cy.o("limitPrice").contains(/^[\0-9\.]*/)
+      cy.o("limitPrice")
+        .invoke("text")
+        .then(text => cy.o("limitPrice").type(Number(text) + 100))
+      cy.o("amount").type("0.2")
+      cy.o("sell").click()
+    })
+    // TODO check order is displayed
   })
 
   it("Stop: on exchange", () => {
@@ -68,6 +107,7 @@ context("Trading", () => {
       cy.o("limitPrice").contains(/^[\0-9\.]*/)
     })
     // TODO actually submit once paper trading supports it
+    // TODO check order is displayed
   })
 
   it("OCO: Buy only", () => {
@@ -98,6 +138,6 @@ context("Trading", () => {
     cy.o("errorModal").should("not.exist")
 
     // TODO verify text
-    // TODO verify that the job has appeared in the trades list
+    // TODO check order is displayed
   })
 })
