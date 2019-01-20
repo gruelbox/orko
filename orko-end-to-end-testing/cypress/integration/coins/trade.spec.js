@@ -34,6 +34,8 @@ const BINANCE_BTC = {
   base: "BTC"
 }
 
+const NUMBER_REGEX = /[0-9]+\.?[0-9]*/
+
 context("Trading", () => {
   beforeEach(function() {
     cy.whitelist()
@@ -49,11 +51,8 @@ context("Trading", () => {
     cy.visit("/")
   })
 
-  it("Limit: on exchange", () => {
+  const setupLimitTrade = () => {
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/price").contains(/^[0-9\.]*/, {
-        timeout: 20000
-      })
       cy.o("binance/USDT/BTC/name").click()
     })
     cy.o("selectedCoin").contains("Binance")
@@ -68,13 +67,39 @@ context("Trading", () => {
       })
     })
     cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/BTC/price").contains(NUMBER_REGEX)
       cy.o("binance/USDT/BTC/price").click()
     })
+  }
+
+  it("Limit buy", () => {
+    setupLimitTrade()
     cy.o("limitOrder").within(() => {
-      cy.o("limitPrice").contains(/^[\0-9\.]*/)
       cy.o("limitPrice")
-        .invoke("text")
-        .then(text => cy.o("limitPrice").type(Number(text) + 100))
+        .invoke("val")
+        .then(text =>
+          cy
+            .o("limitPrice")
+            .clear()
+            .type(0 + text - 100)
+        )
+      cy.o("amount").type("0.1")
+      cy.o("buy").click()
+    })
+    // TODO check order is displayed
+  })
+
+  it("Limit sell", () => {
+    setupLimitTrade()
+    cy.o("limitOrder").within(() => {
+      cy.o("limitPrice")
+        .invoke("val")
+        .then(text =>
+          cy
+            .o("limitPrice")
+            .clear()
+            .type(0 + text + 100)
+        )
       cy.o("amount").type("0.2")
       cy.o("sell").click()
     })
@@ -83,7 +108,7 @@ context("Trading", () => {
 
   it("Stop: on exchange", () => {
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/price").contains(/^[0-9\.]*/, {
+      cy.o("binance/USDT/BTC/price").contains(NUMBER_REGEX, {
         timeout: 20000
       })
       cy.o("binance/USDT/BTC/name").click()
@@ -104,7 +129,7 @@ context("Trading", () => {
       cy.o("binance/USDT/BTC/price").click()
     })
     cy.o("stopOrder").within(() => {
-      cy.o("limitPrice").contains(/^[\0-9\.]*/)
+      cy.o("limitPrice").contains(/^[0-9\\.]*/)
     })
     // TODO actually submit once paper trading supports it
     // TODO check order is displayed

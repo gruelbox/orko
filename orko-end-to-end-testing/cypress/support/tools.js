@@ -41,7 +41,7 @@ export function clearJobs() {
   })
 }
 
-export function cancelOrder(order) {
+export function cancelOrder(tickerSpec, order) {
   cy.secureRequest({
     url:
       "/api/exchanges/" +
@@ -74,7 +74,7 @@ export function clearOrders(tickerSpec) {
     .should(response => {
       expect(response.status).to.eq(200)
       expect(response.body).to.be.an.object
-      response.body.openOrders.forEach(cancelOrder)
+      response.body.openOrders.forEach(order => cancelOrder(tickerSpec, order))
     })
 }
 
