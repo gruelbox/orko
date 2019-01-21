@@ -78,8 +78,15 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
     }
 
     String xsrf = request.getHeader(Headers.X_XSRF_TOKEN);
+
+    if (xsrf == null) {
+      LOGGER.warn(fullPath + ": failed cross-site scripting check (no xsrf header)");
+      response.sendError(401);
+      return false;
+    }
+
     if (!claim.get().equals(xsrf)) {
-      LOGGER.warn(fullPath + ": failed cross-site scripting check");
+      LOGGER.warn(fullPath + ": failed cross-site scripting check (mismatch)");
       response.sendError(401);
       return false;
     }
