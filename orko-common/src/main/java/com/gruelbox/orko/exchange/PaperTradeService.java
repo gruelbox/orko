@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
+import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.marketdata.Trades.TradeSortType;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.MarketOrder;
@@ -86,6 +87,7 @@ final class PaperTradeService implements TradeService {
   private final ConcurrentMap<Long, LimitOrder> openOrders = new ConcurrentHashMap<>();
   private final ConcurrentMap<Long, Date> placedDates = new ConcurrentHashMap<>();
   private final List<UserTrade> tradeHistory = new CopyOnWriteArrayList<>();
+  private final ConcurrentMap<CurrencyPair, Ticker> lastTickers = new ConcurrentHashMap<>();
   private final PaperAccountService paperAccountService;
 
   private final String exchange;
@@ -143,6 +145,7 @@ final class PaperTradeService implements TradeService {
       BigDecimal.ZERO,
       Order.OrderStatus.NEW
     );
+    paperAccountService.reserve(limitOrder);
     openOrders.put(id, newOrder);
     placedDates.put(id, new Date());
     updateTickerRegistry();
@@ -184,6 +187,9 @@ final class PaperTradeService implements TradeService {
       return false;
     }
     limitOrder.setOrderStatus(Order.OrderStatus.CANCELED);
+
+    paperAccountService.releaseBalances(limitOrder);
+
     updateTickerRegistry();
     return true;
   }
@@ -268,45 +274,50 @@ final class PaperTradeService implements TradeService {
    * Handles a tick by updating any affected orders.
    */
   private synchronized void updateAgainstMarket(TickerEvent tickerEvent) {
+    lastTickers.put(tickerEvent.spec().currencyPair(), tickerEvent.ticker());
     Set<LimitOrder> filledOrders = new HashSet<>();
     openOrders.values().stream()
       .filter(o -> o.getCurrencyPair().counter.getCurrencyCode().equals(tickerEvent.spec().counter()) &&
                    o.getCurrencyPair().base.getCurrencyCode().equals(tickerEvent.spec().base())
       ).forEach(order -> {
-        switch (order.getType()) {
-          case ASK:
-            if (tickerEvent.ticker().getBid().compareTo(order.getLimitPrice()) >= 0) {
-              order.setCumulativeAmount(order.getOriginalAmount());
-              order.setAveragePrice(tickerEvent.ticker().getBid());
-              order.setOrderStatus(Order.OrderStatus.FILLED);
-              paperAccountService.incrementAndGet(tickerEvent.spec().base(), order.getOriginalAmount().negate());
-              paperAccountService.incrementAndGet(tickerEvent.spec().counter(), order.getOriginalAmount().multiply(tickerEvent.ticker().getBid()));
-              filledOrders.add(order);
-              addTradeHistory(tickerEvent, order, tickerEvent.ticker().getBid());
-              return;
-            }
-            break;
-          case BID:
-            if (tickerEvent.ticker().getAsk().compareTo(order.getLimitPrice()) <= 0) {
-              order.setCumulativeAmount(order.getOriginalAmount());
-              order.setAveragePrice(tickerEvent.ticker().getAsk());
-              order.setOrderStatus(Order.OrderStatus.FILLED);
-              paperAccountService.incrementAndGet(tickerEvent.spec().base(), order.getOriginalAmount());
-              paperAccountService.incrementAndGet(tickerEvent.spec().counter(), order.getOriginalAmount().negate().multiply(tickerEvent.ticker().getAsk()));
-              filledOrders.add(order);
-              addTradeHistory(tickerEvent, order, tickerEvent.ticker().getAsk());
-              return;
-            }
-            break;
-          default:
-            throw new NotAvailableFromExchangeException();
+        if (fillOrder(tickerEvent.ticker(), order)) {
+          paperAccountService.fillLimitOrder(order);
+          filledOrders.add(order);
         }
       });
-    filledOrders.stream().map(o -> Long.valueOf(o.getId())).forEach(openOrders::remove);
-    filledOrders.stream().map(o -> Long.valueOf(o.getId())).forEach(placedDates::remove);
+    filledOrders.stream().map(o -> Long.valueOf(o.getId())).forEach(o -> {
+      openOrders.remove(o);
+      placedDates.remove(o);
+    });
   }
 
-  private void addTradeHistory(TickerEvent tickerEvent, LimitOrder order, BigDecimal price) {
+  private boolean fillOrder(Ticker ticker, LimitOrder order) {
+    switch (order.getType()) {
+      case ASK:
+        if (ticker.getBid().compareTo(order.getLimitPrice()) >= 0) {
+          order.setCumulativeAmount(order.getOriginalAmount());
+          order.setAveragePrice(ticker.getBid());
+          order.setOrderStatus(Order.OrderStatus.FILLED);
+          addTradeHistory(order, ticker.getBid());
+          return true;
+        }
+        break;
+      case BID:
+        if (ticker.getAsk().compareTo(order.getLimitPrice()) <= 0) {
+          order.setCumulativeAmount(order.getOriginalAmount());
+          order.setAveragePrice(ticker.getAsk());
+          order.setOrderStatus(Order.OrderStatus.FILLED);
+          addTradeHistory(order, ticker.getAsk());
+          return true;
+        }
+        break;
+      default:
+        throw new NotAvailableFromExchangeException("Order type " + order.getType() + " not supported");
+    }
+    return false;
+  }
+
+  private void addTradeHistory(LimitOrder order, BigDecimal price) {
     tradeHistory.add(new UserTrade(
       order.getType(),
       order.getOriginalAmount(),
