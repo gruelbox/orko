@@ -28,6 +28,7 @@ import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,7 +38,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -57,6 +60,7 @@ import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
+import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.TradeHistoryParamCurrencyPair;
@@ -266,228 +270,37 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   }
 
 
-  /**
-   * Actually performs the subscription changes. Occurs synchronously in the
-   * poll loop.
-   */
-  private boolean doSubscriptionChanges(String exchangeName) throws Exception {
-    Set<MarketDataSubscription> subscriptions = nextSubscriptions.get(exchangeName).getAndSet(null);
-    if (subscriptions == null)
-      return false;
-    try {
-
-      LOGGER.info("Updating {} subscriptions to: {}", exchangeName, subscriptions);
-
-      // Remember all our old subscriptions for a moment...
-      Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(
-          subscriptionsPerExchange.get(exchangeName),
-          pollsPerExchange.get(exchangeName)
-        ))
-        .toSet();
-
-      // Disconnect any streaming exchanges where the tickers currently
-      // subscribed mismatch the ones we want.
-      if (subscriptions.equals(oldSubscriptions)) {
-        return false;
-      } else {
-
-        if (!oldSubscriptions.isEmpty()) {
-          disconnectExchange(exchangeName);
-        }
-
-        // Clear cached tickers and order books for anything we've unsubscribed so that we don't feed out-of-date data
-        Sets.difference(oldSubscriptions, subscriptions)
-          .forEach(s -> {
-            tickersOut.removeFromCache(s.spec());
-            orderbookOut.removeFromCache(s.spec());
-            openOrdersOut.removeFromCache(s.spec());
-            userTradeHistoryOut.removeFromCache(s.spec());
-            balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().base());
-            balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().counter());
-          });
-
-        // Add new subscriptions if we have any
-        if (!subscriptions.isEmpty()) {
-          subscribe(exchangeName, subscriptions);
-        }
-
-        return true;
-
-      }
-
-    } catch (Exception e) {
-      LOGGER.error("Error updating subscriptions", e);
-      if (nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions)) {
-        int phase = phaser.arrive();
-        LOGGER.debug("Progressing to phase {}", phase);
-      }
-      throw e;
-    }
-  }
-
-  private void disconnectExchange(String exchangeName) {
-    Exchange exchange = exchangeService.get(exchangeName);
-    if (exchange instanceof StreamingExchange) {
-      SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
-      try {
-        ((StreamingExchange) exchange).disconnect().blockingAwait();
-      } catch (Exception e) {
-        LOGGER.error("Error disconnecting from " + exchangeName, e);
-      }
-    } else {
-      Iterator<Entry<TickerSpec, Instant>> iterator = mostRecentTrades.entrySet().iterator();
-      while (iterator.hasNext()) {
-        if (iterator.next().getKey().exchange().equals(exchangeName))
-          iterator.remove();
-      }
-    }
-  }
-
-  private void subscribe(String exchangeName, Set<MarketDataSubscription> subscriptions) {
-
-    Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
-
-    Exchange exchange = exchangeService.get(exchangeName);
-
-    if (isStreamingExchange(exchange)) {
-      Set<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptions).filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
-      if (!streamingSubscriptions.isEmpty()) {
-        openSubscriptions(exchangeName, exchange, streamingSubscriptions);
-      }
-      pollingBuilder.addAll(FluentIterable.from(subscriptions).filter(s -> !STREAMING_MARKET_DATA.contains(s.type())).toSet());
-    } else {
-      pollingBuilder.addAll(subscriptions);
-    }
-
-    Set<MarketDataSubscription> polls = pollingBuilder.build();
-    pollsPerExchange.put(exchangeName, pollingBuilder.build());
-    LOGGER.debug("Polls now set to: {}", polls);
-  }
-
-
-  private void openSubscriptions(String exchangeName, Exchange exchange, Set<MarketDataSubscription> streamingSubscriptions) {
-    subscriptionsPerExchange.put(exchangeName, streamingSubscriptions);
-    subscribeExchange((StreamingExchange)exchange, streamingSubscriptions, exchangeName);
-
-    StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
-
-    disposablesPerExchange.putAll(
-      exchangeName,
-      FluentIterable.from(streamingSubscriptions).transform(sub -> {
-        switch (sub.type()) {
-          case ORDERBOOK:
-            return streaming.getOrderBook(sub.spec().currencyPair())
-                .map(t -> OrderBookEvent.create(sub.spec(), t))
-                .subscribe(orderbookOut::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
-          case TICKER:
-            LOGGER.debug("Subscribing to {}", sub.spec());
-            return streaming.getTicker(sub.spec().currencyPair())
-                .map(t -> TickerEvent.create(sub.spec(), t))
-                .subscribe(tickersOut::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
-          case TRADES:
-            return streaming.getTrades(sub.spec().currencyPair())
-                .map(t -> convertBinanceOrderType(sub, t))
-                .map(t -> TradeEvent.create(sub.spec(), t))
-                .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
-          default:
-            throw new IllegalStateException("Unexpected market data type: " + sub.type());
-        }
-      })
-    );
-
-    if (Exchanges.BINANCE.equals(exchangeName) && hasBinanceApiKey()) {
-      BinanceStreamingMarketDataService binance = (BinanceStreamingMarketDataService) streaming;
-      disposablesPerExchange.put(
-        exchangeName,
-        binance.getRawExecutionReports()
-          .subscribe(
-            binanceExecutionReportsOut::emit,
-            e -> LOGGER.error("Error in binance execution report stream", e)
-          )
-      );
-    }
-  }
-
-
-  private boolean hasBinanceApiKey() {
-    if (configuration.getExchanges() == null)
-      return false;
-    ExchangeConfiguration binanceConfiguration = configuration.getExchanges().get(Exchanges.BINANCE);
-    if (binanceConfiguration == null)
-      return false;
-    return !StringUtils.isEmpty(binanceConfiguration.getApiKey());
-  }
-
-  /**
-   * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
-   */
-  private Trade convertBinanceOrderType(MarketDataSubscription sub, Trade t) {
-    if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
-      return new Trade(
-        t.getType() == BID ? ASK : BID,
-        t.getOriginalAmount(),
-        t.getCurrencyPair(),
-        t.getPrice(),
-        t.getTimestamp(),
-        t.getId()
-      );
-    } else {
-      return t;
-    }
-  }
-
-  private void subscribeExchange(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptionsForExchange, String exchangeName) {
-    if (subscriptionsForExchange.isEmpty())
-      return;
-    LOGGER.info("Connecting to exchange: " + exchangeName);
-    openConnections(streamingExchange, subscriptionsForExchange);
-    LOGGER.info("Connected to exchange: " + exchangeName);
-  }
-
-  private void openConnections(StreamingExchange streamingExchange, Collection<MarketDataSubscription> subscriptionsForExchange) {
-    ProductSubscriptionBuilder builder = ProductSubscription.create();
-    subscriptionsForExchange.stream()
-      .forEach(s -> {
-        if (s.type().equals(TICKER)) {
-          builder.addTicker(s.spec().currencyPair());
-        }
-        if (s.type().equals(ORDERBOOK)) {
-          builder.addOrderbook(s.spec().currencyPair());
-        }
-        if (s.type().equals(TRADES)) {
-          builder.addTrades(s.spec().currencyPair());
-        }
-      });
-    streamingExchange.connect(builder.build()).blockingAwait();
-  }
-
   @Override
   protected void run() {
-    Thread.currentThread().setName("Market data subscription manager");
+    Thread.currentThread().setName(MarketDataSubscriptionManager.class.getSimpleName());
     LOGGER.info("{} started", this);
-    ForkJoinPool forkJoinPool = new ForkJoinPool(exchangeService.getExchanges().size() + 1);
+    ExecutorService threadPool = Executors.newFixedThreadPool(exchangeService.getExchanges().size());
     try {
-      forkJoinPool.submit(() ->
-        exchangeService.getExchanges()
-          .stream()
-          .parallel()
-          .forEach(this::pollExchange)
-      ).get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return;
-    } catch (ExecutionException e1) {
-      throw new RuntimeException(e1);
+      try {
+        List<Future<?>> futures = new ArrayList<>(exchangeService.getExchanges().size());
+        for (String exchange : exchangeService.getExchanges()) {
+          futures.add(threadPool.submit(new Poller(exchange)));
+        }
+        for (Future<?> future : futures) {
+          future.get();
+        }
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    } finally {
+      threadPool.shutdownNow();
+      updateSubscriptions(emptySet());
+      this.tickersOut.dispose();
+      this.openOrdersOut.dispose();
+      this.orderbookOut.dispose();
+      this.tradesOut.dispose();
+      this.userTradeHistoryOut.dispose();
+      this.balanceOut.dispose();
+      this.binanceExecutionReportsOut.dispose();
+      LOGGER.info(this + " stopped");
     }
-    updateSubscriptions(emptySet());
-    this.tickersOut.dispose();
-    this.openOrdersOut.dispose();
-    this.orderbookOut .dispose();
-    this.tradesOut.dispose();
-    this.userTradeHistoryOut.dispose();
-    this.balanceOut.dispose();
-    this.binanceExecutionReportsOut.dispose();
-    LOGGER.info(this + " stopped");
   }
 
   @Override
@@ -497,316 +310,532 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     phaser.forceTermination();
   }
 
-  private void pollExchange(String exchangeName) {
-    Thread.currentThread().setName(getClass().getSimpleName() + "-" + exchangeName);
-    try {
-      while (!phaser.isTerminated()) {
+  /**
+   * Handles the market data polling and subscription cycle for an exchange.
+   *
+   * @author Graham Crockford
+   */
+  private final class Poller implements Runnable {
 
-        // Before we check for the presence of polls, determine which phase
-        // we are going to wait for if there's no work to do - i.e. the
-        // next wakeup.
-        int phase = phaser.getPhase();
-        if (phase == -1)
-          break;
+    private final String exchangeName;
+    private final Exchange exchange;
+    private final StreamingExchange streamingExchange;
+    private final AccountService accountService;
+    private final MarketDataService marketDataService;
+    private final TradeService tradeService;
 
-        // Handle any pending resubscriptions. Pause after a resubscription
-        // since it probably counts as an API call and thus toward the
-        // rate limit
-        LOGGER.debug("{} - start subscription check", exchangeName);
-        boolean subscriptionsFailed = false;
-        try {
-          if (doSubscriptionChanges(exchangeName)) {
-            sleep(exchangeName);
-          }
-        } catch (InterruptedException e) {
-          throw e;
-        } catch (Exception e) {
-          subscriptionsFailed = true;
-        }
+    private int phase;
+    private boolean subscriptionsFailed;
 
-        // Check if we have any polling to do. If not, go to sleep until awoken
-        // by a subscription change, unless we failed to process subscriptions,
-        // in which case wake ourselves up in a few seconds to try again
-        Set<MarketDataSubscription> polls = activePollsForExchange(exchangeName);
-        if (polls.isEmpty()) {
-          suspendPollThread(exchangeName, phase, subscriptionsFailed);
-          continue;
-        }
+    private Poller(String exchangeName) {
+      this.exchangeName = exchangeName;
+      this.exchange = exchangeService.get(exchangeName);
+      this.streamingExchange = exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
+      this.accountService = accountServiceFactory.getForExchange(exchangeName);
+      this.marketDataService = exchange.getMarketDataService();
+      this.tradeService = tradeServiceFactory.getForExchange(exchangeName);
+    }
 
-        LOGGER.debug("{} - start poll", exchangeName);
-        Set<String> balanceCurrencies = new HashSet<>();
-        for (MarketDataSubscription subscription : polls) {
-          if (phaser.isTerminated())
+    @Override
+    public void run() {
+      Thread.currentThread().setName(exchangeName);
+      try {
+        while (!phaser.isTerminated()) {
+
+          // Before we check for the presence of polls, determine which phase
+          // we are going to wait for if there's no work to do - i.e. the
+          // next wakeup.
+          phase = phaser.getPhase();
+          if (phase == -1)
             break;
-          if (subscription.type().equals(BALANCE)) {
-            balanceCurrencies.add(subscription.spec().base());
-            balanceCurrencies.add(subscription.spec().counter());
-          } else {
-            fetchAndBroadcast(subscription);
-            sleep(exchangeName);
-          }
-        }
 
+          loop();
+
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+
+
+    private void loop() throws InterruptedException {
+
+      // Handle any pending resubscriptions. Pause after a resubscription
+      // since it probably counts as an API call and thus toward the
+      // rate limit
+      LOGGER.debug("{} - start subscription check", exchangeName);
+      subscriptionsFailed = false;
+      try {
+        if (doSubscriptionChanges()) {
+          sleep();
+        }
+      } catch (InterruptedException e) {
+        throw e;
+      } catch (Exception e) {
+        subscriptionsFailed = true;
+      }
+
+      // Check if we have any polling to do. If not, go to sleep until awoken
+      // by a subscription change, unless we failed to process subscriptions,
+      // in which case wake ourselves up in a few seconds to try again
+      Set<MarketDataSubscription> polls = activePolls();
+      if (polls.isEmpty()) {
+        suspend();
+        return;
+      }
+
+      LOGGER.debug("{} - start poll", exchangeName);
+      Set<String> balanceCurrencies = new HashSet<>();
+      for (MarketDataSubscription subscription : polls) {
         if (phaser.isTerminated())
           break;
+        if (subscription.type().equals(BALANCE)) {
+          balanceCurrencies.add(subscription.spec().base());
+          balanceCurrencies.add(subscription.spec().counter());
+        } else {
+          fetchAndBroadcast(subscription);
+          sleep();
+        }
+      }
 
-        // We'll be extending this sort of batching to more market data types...
-        if (!balanceCurrencies.isEmpty()) {
-          try {
-            fetchBalances(exchangeName, balanceCurrencies)
-              .forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b)));
-          } catch (NotAvailableFromExchangeException e) {
-            LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
-            Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
-          } catch (Exception e) {
-            if (Exchanges.KUCOIN.equals(exchangeName)) {
-              // Kucoin does this literally all the time, so to save our logs, just write the message
-              LOGGER.error("Error fetching balance on " + exchangeName + " (" + e.getMessage() + ")");
-            } else {
-              LOGGER.error("Error fetching balance on " + exchangeName, e);
-            }
+      if (phaser.isTerminated())
+        return;
+
+      // We'll be extending this sort of batching to more market data types...
+      if (!balanceCurrencies.isEmpty()) {
+        try {
+          fetchBalances(balanceCurrencies)
+            .forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b)));
+        } catch (NotAvailableFromExchangeException e) {
+          LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
+          Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
+        } catch (Exception e) {
+          if (Exchanges.KUCOIN.equals(exchangeName)) {
+            // Kucoin does this literally all the time, so to save our logs, just write the message
+            LOGGER.error("Error fetching balance on " + exchangeName + " (" + e.getMessage() + ")");
+          } else {
+            LOGGER.error("Error fetching balance on " + exchangeName, e);
           }
-          if (phaser.isTerminated())
-            break;
-          sleep(exchangeName);
+        }
+        if (phaser.isTerminated())
+          return;
+        sleep();
+      }
+    }
+
+
+    /**
+     * Actually performs the subscription changes. Occurs synchronously in the
+     * poll loop.
+     */
+    private boolean doSubscriptionChanges() throws Exception {
+      Set<MarketDataSubscription> subscriptions = nextSubscriptions.get(exchangeName).getAndSet(null);
+      if (subscriptions == null)
+        return false;
+      try {
+
+        LOGGER.info("Updating {} subscriptions to: {}", exchangeName, subscriptions);
+
+        // Remember all our old subscriptions for a moment...
+        Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(
+            subscriptionsPerExchange.get(exchangeName),
+            pollsPerExchange.get(exchangeName)
+          ))
+          .toSet();
+
+        // Disconnect any streaming exchanges where the tickers currently
+        // subscribed mismatch the ones we want.
+        if (subscriptions.equals(oldSubscriptions)) {
+          return false;
+        } else {
+
+          if (!oldSubscriptions.isEmpty()) {
+            disconnect();
+          }
+
+          // Clear cached tickers and order books for anything we've unsubscribed so that we don't feed out-of-date data
+          Sets.difference(oldSubscriptions, subscriptions)
+            .forEach(s -> {
+              tickersOut.removeFromCache(s.spec());
+              orderbookOut.removeFromCache(s.spec());
+              openOrdersOut.removeFromCache(s.spec());
+              userTradeHistoryOut.removeFromCache(s.spec());
+              balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().base());
+              balanceOut.removeFromCache(s.spec().exchange() + "/" + s.spec().counter());
+            });
+
+          // Add new subscriptions if we have any
+          if (!subscriptions.isEmpty()) {
+            subscribe(subscriptions);
+          }
+
+          return true;
+
         }
 
+      } catch (Exception e) {
+        LOGGER.error("Error updating subscriptions", e);
+        if (nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions)) {
+          int phase = phaser.arrive();
+          LOGGER.debug("Progressing to phase {}", phase);
+        }
+        throw e;
       }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
     }
-  }
 
+    private ImmutableSet<MarketDataSubscription> activePolls() {
+      return FluentIterable.from(pollsPerExchange.get(exchangeName))
+          .filter(s -> !unavailableSubscriptions.contains(s)).toSet();
+    }
 
-  private void suspendPollThread(String exchangeName, int phase, boolean subscriptionsFailed) {
-    LOGGER.debug("{} - poll going to sleep", exchangeName);
-    try {
-      if (subscriptionsFailed) {
-        long defaultSleep = (long) configuration.getLoopSeconds() * 1000;
-        phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
+    private void disconnect() {
+      Exchange exchange = exchangeService.get(exchangeName);
+      if (exchange instanceof StreamingExchange) {
+        SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
+        try {
+          ((StreamingExchange) exchange).disconnect().blockingAwait();
+        } catch (Exception e) {
+          LOGGER.error("Error disconnecting from " + exchangeName, e);
+        }
       } else {
-        LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase);
-        phaser.awaitAdvanceInterruptibly(phase);
-        LOGGER.debug("{} - poll woken up on request", exchangeName);
+        Iterator<Entry<TickerSpec, Instant>> iterator = mostRecentTrades.entrySet().iterator();
+        while (iterator.hasNext()) {
+          if (iterator.next().getKey().exchange().equals(exchangeName))
+            iterator.remove();
+        }
       }
-    } catch (TimeoutException e) {
-      // fine
-    } catch (Exception e) {
-      LOGGER.error("Failure in phaser wait for " + exchangeName, e);
     }
-  }
 
+    private void subscribe(Set<MarketDataSubscription> subscriptions) {
 
-  private ImmutableSet<MarketDataSubscription> activePollsForExchange(String exchangeName) {
-    return FluentIterable.from(pollsPerExchange.get(exchangeName))
-        .filter(s -> !unavailableSubscriptions.contains(s)).toSet();
-  }
+      Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
 
-  private void sleep(String exchangeName) throws InterruptedException {
-    LOGGER.debug("{} pausing between API calls", exchangeName);
-    Thread.sleep(exchangeService.safePollDelay(exchangeName));
-  }
-
-  private Iterable<Balance> fetchBalances(String exchangeName, Collection<String> currencyCodes) throws IOException {
-    return FluentIterable.from(exchangeWallet(exchangeName).getBalances().entrySet())
-      .transform(Map.Entry::getValue)
-      .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
-      .transform(Balance::create);
-  }
-
-  private Wallet exchangeWallet(String exchangeName) throws IOException {
-    if (exchangeName.equals("bitfinex")) {
-      return accountServiceFactory.getForExchange(exchangeName)
-          .getAccountInfo()
-          .getWallet("exchange");
-    } else {
-      return accountServiceFactory.getForExchange(exchangeName)
-        .getAccountInfo()
-        .getWallet();
-    }
-  }
-
-  private void fetchAndBroadcast(MarketDataSubscription subscription) {
-    try {
-      TickerSpec spec = subscription.spec();
-      MarketDataService marketDataService = exchangeService.get(spec.exchange()).getMarketDataService();
-      switch (subscription.type()) {
-        case TICKER:
-          pollAndEmitTicker(spec, marketDataService);
-          break;
-        case ORDERBOOK:
-          pollAndEmitOrderbook(spec, marketDataService);
-          break;
-        case TRADES:
-          pollAndEmitTrades(subscription, marketDataService);
-          break;
-        case OPEN_ORDERS:
-          pollAndEmitOpenOrders(subscription, spec);
-          break;
-        case USER_TRADE_HISTORY:
-          pollAndEmitUserTradeHistory(subscription, spec);
-          break;
-        default:
-          throw new IllegalStateException("Market data type " + subscription.type() + " not supported in this way");
-      }
-    } catch (NotAvailableFromExchangeException e) {
-      LOGGER.warn(subscription.type() + " not available on " + subscription.spec().exchange());
-      unavailableSubscriptions.add(subscription);
-    } catch (Exception e) {
-      if (Exchanges.KUCOIN.equals(subscription.spec().exchange())) {
-        // Kucoin does this literally all the time, so to save our logs, just write the message
-        LOGGER.error("Error fetching market data: " + subscription + " (" + e.getMessage() + ")");
+      if (streamingExchange != null) {
+        Set<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptions).filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
+        if (!streamingSubscriptions.isEmpty()) {
+          openSubscriptions(streamingSubscriptions);
+        }
+        pollingBuilder.addAll(FluentIterable.from(subscriptions).filter(s -> !STREAMING_MARKET_DATA.contains(s.type())).toSet());
       } else {
-        LOGGER.error("Error fetching market data: " + subscription, e);
+        pollingBuilder.addAll(subscriptions);
       }
-    }
-  }
 
-  private void pollAndEmitUserTradeHistory(MarketDataSubscription subscription, TickerSpec spec) throws IOException {
-    TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-    TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription, tradeService);
-    ImmutableList<UserTrade> trades = ImmutableList.copyOf(tradeService.getTradeHistory(tradeHistoryParams).getUserTrades());
-    userTradeHistoryOut.emit(TradeHistoryEvent.create(spec, trades));
-  }
-
-  @SuppressWarnings("unchecked")
-  private void pollAndEmitOpenOrders(MarketDataSubscription subscription, TickerSpec spec) throws IOException {
-    TradeService tradeService = tradeServiceFactory.getForExchange(subscription.spec().exchange());
-    OpenOrdersParams openOrdersParams = openOrdersParams(subscription, tradeService);
-    OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
-
-    // TODO GDAX PR required
-    if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
-      ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
-      ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
-      fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
+      Set<MarketDataSubscription> polls = pollingBuilder.build();
+      pollsPerExchange.put(exchangeName, pollingBuilder.build());
+      LOGGER.debug("Polls now set to: {}", polls);
     }
 
-    openOrdersOut.emit(OpenOrdersEvent.create(spec, fetched));
-  }
 
-  private void pollAndEmitTrades(MarketDataSubscription subscription, MarketDataService marketDataService) throws IOException {
-    marketDataService.getTrades(exchangePair(subscription.spec()), exchangeTradesArgs(subscription.spec()))
-      .getTrades()
-      .stream()
-      .forEach(t -> {
-        mostRecentTrades.compute(subscription.spec(), (k, previousTiming) -> {
-          Instant thisTradeTiming = t.getTimestamp().toInstant();
-          Instant newMostRecent = previousTiming;
-          if (previousTiming == null) {
-            newMostRecent = thisTradeTiming;
-          } else if (thisTradeTiming.isAfter(previousTiming)) {
-            newMostRecent = thisTradeTiming;
-            tradesOut.emit(TradeEvent.create(subscription.spec(), t));
+    private void openSubscriptions(Set<MarketDataSubscription> streamingSubscriptions) {
+      subscriptionsPerExchange.put(exchangeName, streamingSubscriptions);
+      subscribeExchange(streamingSubscriptions);
+
+      StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
+
+      disposablesPerExchange.putAll(
+        exchangeName,
+        FluentIterable.from(streamingSubscriptions).transform(sub -> {
+          switch (sub.type()) {
+            case ORDERBOOK:
+              return streaming.getOrderBook(sub.spec().currencyPair())
+                  .map(t -> OrderBookEvent.create(sub.spec(), t))
+                  .subscribe(orderbookOut::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
+            case TICKER:
+              LOGGER.debug("Subscribing to {}", sub.spec());
+              return streaming.getTicker(sub.spec().currencyPair())
+                  .map(t -> TickerEvent.create(sub.spec(), t))
+                  .subscribe(tickersOut::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
+            case TRADES:
+              return streaming.getTrades(sub.spec().currencyPair())
+                  .map(t -> convertBinanceOrderType(sub, t))
+                  .map(t -> TradeEvent.create(sub.spec(), t))
+                  .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
+            default:
+              throw new IllegalStateException("Unexpected market data type: " + sub.type());
           }
-          return newMostRecent;
+        })
+      );
+
+      if (Exchanges.BINANCE.equals(exchangeName) && hasBinanceApiKey()) {
+        BinanceStreamingMarketDataService binance = (BinanceStreamingMarketDataService) streaming;
+        disposablesPerExchange.put(
+          exchangeName,
+          binance.getRawExecutionReports()
+            .subscribe(
+              binanceExecutionReportsOut::emit,
+              e -> LOGGER.error("Error in binance execution report stream", e)
+            )
+        );
+      }
+    }
+
+
+    private boolean hasBinanceApiKey() {
+      if (configuration.getExchanges() == null)
+        return false;
+      ExchangeConfiguration binanceConfiguration = configuration.getExchanges().get(Exchanges.BINANCE);
+      if (binanceConfiguration == null)
+        return false;
+      return !StringUtils.isEmpty(binanceConfiguration.getApiKey());
+    }
+
+    /**
+     * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
+     */
+    private Trade convertBinanceOrderType(MarketDataSubscription sub, Trade t) {
+      if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
+        return new Trade(
+          t.getType() == BID ? ASK : BID,
+          t.getOriginalAmount(),
+          t.getCurrencyPair(),
+          t.getPrice(),
+          t.getTimestamp(),
+          t.getId()
+        );
+      } else {
+        return t;
+      }
+    }
+
+    private void subscribeExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
+      if (subscriptionsForExchange.isEmpty())
+        return;
+      LOGGER.info("Connecting to exchange: " + exchangeName);
+      openConnections(subscriptionsForExchange);
+      LOGGER.info("Connected to exchange: " + exchangeName);
+    }
+
+    private void openConnections(Collection<MarketDataSubscription> subscriptionsForExchange) {
+      ProductSubscriptionBuilder builder = ProductSubscription.create();
+      subscriptionsForExchange.stream()
+        .forEach(s -> {
+          if (s.type().equals(TICKER)) {
+            builder.addTicker(s.spec().currencyPair());
+          }
+          if (s.type().equals(ORDERBOOK)) {
+            builder.addOrderbook(s.spec().currencyPair());
+          }
+          if (s.type().equals(TRADES)) {
+            builder.addTrades(s.spec().currencyPair());
+          }
         });
-      });
-  }
-
-  private Object[] exchangeTradesArgs(TickerSpec spec) {
-    return spec.exchange().equals(Exchanges.BITMEX)
-        ? bitmexArgs(spec)
-        : new Object[] {};
-  }
-
-  private Object[] bitmexArgs(TickerSpec spec) {
-    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-    return new Object[] {
-        spec.counter().equals("USD")
-          ? BitmexPrompt.PERPETUAL
-          : BitmexPrompt.QUARTERLY
-    };
-  }
-
-  private CurrencyPair exchangePair(TickerSpec spec) {
-    return spec.exchange().equals(Exchanges.BITMEX)
-        ? bitmexCurrencyPair(spec)
-        : spec.currencyPair();
-  }
-
-  private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
-    // TODO need solution for https://github.com/knowm/XChange/issues/2886
-    return spec.counter().equals("USD")
-        ? spec.currencyPair()
-        : new CurrencyPair(spec.base(), "BTC");
-  }
-
-  private void pollAndEmitOrderbook(TickerSpec spec, MarketDataService marketDataService) throws IOException {
-    OrderBook orderBook = marketDataService.getOrderBook(exchangePair(spec), exchangeOrderbookArgs(spec));
-    orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
-  }
-
-  private Object[] exchangeOrderbookArgs(TickerSpec spec) {
-    if (spec.exchange().equals(Exchanges.BITMEX)) {
-      return bitmexArgs(spec);
-    } else {
-      return new Object[] { ORDERBOOK_DEPTH, ORDERBOOK_DEPTH };
+      streamingExchange.connect(builder.build()).blockingAwait();
     }
-  }
 
-  private void pollAndEmitTicker(TickerSpec spec, MarketDataService marketDataService) throws IOException {
-    tickersOut.emit(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
-  }
+    private void sleep() throws InterruptedException {
+      LOGGER.debug("{} pausing between API calls", exchangeName);
+      Thread.sleep(exchangeService.safePollDelay(exchangeName));
+    }
 
-  private TradeHistoryParams tradeHistoryParams(MarketDataSubscription subscription, TradeService tradeService) {
-    TradeHistoryParams params;
-
-    // TODO fix with pull requests
-    if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
-      params = new TradeHistoryParamCurrencyPair() {
-
-        private CurrencyPair pair;
-
-        @Override
-        public void setCurrencyPair(CurrencyPair pair) {
-          this.pair = pair;
+    private void suspend() {
+      LOGGER.debug("{} - poll going to sleep", exchangeName);
+      try {
+        if (subscriptionsFailed) {
+          long defaultSleep = (long) configuration.getLoopSeconds() * 1000;
+          phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
+        } else {
+          LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase);
+          phaser.awaitAdvanceInterruptibly(phase);
+          LOGGER.debug("{} - poll woken up on request", exchangeName);
         }
+      } catch (TimeoutException e) {
+        // fine
+      } catch (Exception e) {
+        LOGGER.error("Failure in phaser wait for " + exchangeName, e);
+      }
+    }
 
-        @Override
-        public CurrencyPair getCurrencyPair() {
-          return pair;
+    private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException {
+      return FluentIterable.from(wallet().getBalances().entrySet())
+        .transform(Map.Entry::getValue)
+        .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
+        .transform(Balance::create);
+    }
+
+    private Wallet wallet() throws IOException {
+      if (exchangeName.equals("bitfinex")) {
+        return accountService.getAccountInfo().getWallet("exchange");
+      } else {
+        return accountService.getAccountInfo().getWallet();
+      }
+    }
+
+    private void fetchAndBroadcast(MarketDataSubscription subscription) {
+      try {
+        TickerSpec spec = subscription.spec();
+        switch (subscription.type()) {
+          case TICKER:
+            pollAndEmitTicker(spec);
+            break;
+          case ORDERBOOK:
+            pollAndEmitOrderbook(spec);
+            break;
+          case TRADES:
+            pollAndEmitTrades(subscription);
+            break;
+          case OPEN_ORDERS:
+            pollAndEmitOpenOrders(subscription, spec);
+            break;
+          case USER_TRADE_HISTORY:
+            pollAndEmitUserTradeHistory(subscription, spec);
+            break;
+          default:
+            throw new IllegalStateException("Market data type " + subscription.type() + " not supported in this way");
         }
+      } catch (NotAvailableFromExchangeException e) {
+        LOGGER.warn(subscription.type() + " not available on " + subscription.spec().exchange());
+        unavailableSubscriptions.add(subscription);
+      } catch (Exception e) {
+        if (Exchanges.KUCOIN.equals(subscription.spec().exchange())) {
+          // Kucoin does this literally all the time, so to save our logs, just write the message
+          LOGGER.error("Error fetching market data: " + subscription + " (" + e.getMessage() + ")");
+        } else {
+          LOGGER.error("Error fetching market data: " + subscription, e);
+        }
+      }
+    }
+
+    private void pollAndEmitUserTradeHistory(MarketDataSubscription subscription, TickerSpec spec) throws IOException {
+      TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription);
+      ImmutableList<UserTrade> trades = ImmutableList.copyOf(tradeService.getTradeHistory(tradeHistoryParams).getUserTrades());
+      userTradeHistoryOut.emit(TradeHistoryEvent.create(spec, trades));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void pollAndEmitOpenOrders(MarketDataSubscription subscription, TickerSpec spec) throws IOException {
+      OpenOrdersParams openOrdersParams = openOrdersParams(subscription);
+      OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
+
+      // TODO GDAX PR required
+      if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+        ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
+        ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
+        fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
+      }
+
+      openOrdersOut.emit(OpenOrdersEvent.create(spec, fetched));
+    }
+
+    private void pollAndEmitTrades(MarketDataSubscription subscription) throws IOException {
+      marketDataService.getTrades(exchangePair(subscription.spec()), exchangeTradesArgs(subscription.spec()))
+        .getTrades()
+        .stream()
+        .forEach(t -> {
+          mostRecentTrades.compute(subscription.spec(), (k, previousTiming) -> {
+            Instant thisTradeTiming = t.getTimestamp().toInstant();
+            Instant newMostRecent = previousTiming;
+            if (previousTiming == null) {
+              newMostRecent = thisTradeTiming;
+            } else if (thisTradeTiming.isAfter(previousTiming)) {
+              newMostRecent = thisTradeTiming;
+              tradesOut.emit(TradeEvent.create(subscription.spec(), t));
+            }
+            return newMostRecent;
+          });
+        });
+    }
+
+    private Object[] exchangeTradesArgs(TickerSpec spec) {
+      return spec.exchange().equals(Exchanges.BITMEX)
+          ? bitmexArgs(spec)
+          : new Object[] {};
+    }
+
+    private Object[] bitmexArgs(TickerSpec spec) {
+      // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
+      return new Object[] {
+          spec.counter().equals("USD")
+            ? BitmexPrompt.PERPETUAL
+            : BitmexPrompt.QUARTERLY
       };
-    } else {
-      params = tradeService.createTradeHistoryParams();
     }
 
-    if (params instanceof TradeHistoryParamCurrencyPair) {
-      ((TradeHistoryParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
-    } else {
-      throw new UnsupportedOperationException("Don't know how to read user trades on this exchange: " + subscription.spec().exchange());
+    private CurrencyPair exchangePair(TickerSpec spec) {
+      return spec.exchange().equals(Exchanges.BITMEX)
+          ? bitmexCurrencyPair(spec)
+          : spec.currencyPair();
     }
-    if (params instanceof TradeHistoryParamLimit) {
-      ((TradeHistoryParamLimit) params).setLimit(MAX_TRADES);
-    }
-    if (params instanceof TradeHistoryParamPaging) {
-      ((TradeHistoryParamPaging) params).setPageLength(MAX_TRADES);
-      ((TradeHistoryParamPaging) params).setPageNumber(0);
-    }
-    return params;
-  }
 
-  private OpenOrdersParams openOrdersParams(MarketDataSubscription subscription, TradeService tradeService) {
-    OpenOrdersParams params = null;
-    try {
-      params = tradeService.createOpenOrdersParams();
-    } catch (NotYetImplementedForExchangeException e) {
-      // Fiiiiine Bitmex
+    private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
+      // TODO need solution for https://github.com/knowm/XChange/issues/2886
+      return spec.counter().equals("USD")
+          ? spec.currencyPair()
+          : new CurrencyPair(spec.base(), "BTC");
     }
-    if (params == null) {
-      // Bitfinex & Bitmex
-      params = new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair());
-    } else if (params instanceof OpenOrdersParamCurrencyPair) {
-      ((OpenOrdersParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
-    } else {
-      throw new UnsupportedOperationException("Don't know how to read open orders on this exchange: " + subscription.spec().exchange());
-    }
-    return params;
-  }
 
-  private boolean isStreamingExchange(Exchange exchange) {
-    return exchange instanceof StreamingExchange;
+    private void pollAndEmitOrderbook(TickerSpec spec) throws IOException {
+      OrderBook orderBook = marketDataService.getOrderBook(exchangePair(spec), exchangeOrderbookArgs(spec));
+      orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
+    }
+
+    private Object[] exchangeOrderbookArgs(TickerSpec spec) {
+      if (spec.exchange().equals(Exchanges.BITMEX)) {
+        return bitmexArgs(spec);
+      } else {
+        return new Object[] { ORDERBOOK_DEPTH, ORDERBOOK_DEPTH };
+      }
+    }
+
+    private void pollAndEmitTicker(TickerSpec spec) throws IOException {
+      tickersOut.emit(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
+    }
+
+    private TradeHistoryParams tradeHistoryParams(MarketDataSubscription subscription) {
+      TradeHistoryParams params;
+
+      // TODO fix with pull requests
+      if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+        params = new TradeHistoryParamCurrencyPair() {
+
+          private CurrencyPair pair;
+
+          @Override
+          public void setCurrencyPair(CurrencyPair pair) {
+            this.pair = pair;
+          }
+
+          @Override
+          public CurrencyPair getCurrencyPair() {
+            return pair;
+          }
+        };
+      } else {
+        params = tradeService.createTradeHistoryParams();
+      }
+
+      if (params instanceof TradeHistoryParamCurrencyPair) {
+        ((TradeHistoryParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
+      } else {
+        throw new UnsupportedOperationException("Don't know how to read user trades on this exchange: " + subscription.spec().exchange());
+      }
+      if (params instanceof TradeHistoryParamLimit) {
+        ((TradeHistoryParamLimit) params).setLimit(MAX_TRADES);
+      }
+      if (params instanceof TradeHistoryParamPaging) {
+        ((TradeHistoryParamPaging) params).setPageLength(MAX_TRADES);
+        ((TradeHistoryParamPaging) params).setPageNumber(0);
+      }
+      return params;
+    }
+
+    private OpenOrdersParams openOrdersParams(MarketDataSubscription subscription) {
+      OpenOrdersParams params = null;
+      try {
+        params = tradeService.createOpenOrdersParams();
+      } catch (NotYetImplementedForExchangeException e) {
+        // Fiiiiine Bitmex
+      }
+      if (params == null) {
+        // Bitfinex & Bitmex
+        params = new DefaultOpenOrdersParamCurrencyPair(subscription.spec().currencyPair());
+      } else if (params instanceof OpenOrdersParamCurrencyPair) {
+        ((OpenOrdersParamCurrencyPair) params).setCurrencyPair(subscription.spec().currencyPair());
+      } else {
+        throw new UnsupportedOperationException("Don't know how to read open orders on this exchange: " + subscription.spec().exchange());
+      }
+      return params;
+    }
+
   }
 
   private class PersistentPublisher<T> implements Disposable {
