@@ -100,6 +100,8 @@ export default class TradeSelector extends React.Component {
                 return <StopTakeProfitContainer key={coin.key} coin={coin} />
               } else if (this.state.selected === "custom") {
                 return <ScriptContainer />
+              } else {
+                return null
               }
             }}
           </WithCoin>

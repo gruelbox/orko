@@ -63,21 +63,12 @@ Cypress.Commands.add("o", dataAttribute =>
 )
 
 Cypress.Commands.add("secureRequest", options =>
-  cy
-    .get("@auth")
-    .its("body.xsrf")
-    .then(xsrf => {
-      // This is a grisly hack to try and avoid some race conditions apparently
-      // caused by localStorage getting cleared mid test
-      // (see https://github.com/cypress-io/cypress/issues/686)
-      window.localStorage.setItem(XSRF_LOCAL_STORAGE, xsrf)
-      cy.request({
-        ...options,
-        headers: {
-          "x-xsrf-token": window.localStorage.getItem(XSRF_LOCAL_STORAGE)
-        }
-      })
-    })
+  cy.request({
+    ...options,
+    headers: {
+      "x-xsrf-token": window.localStorage.getItem(XSRF_LOCAL_STORAGE)
+    }
+  })
 )
 
 Cypress.Commands.add("requestNoFail", (url, options) =>
@@ -150,7 +141,6 @@ Cypress.Commands.add("loginApi", options => {
         expect(response.status).to.eq(403)
       }
     })
-    .as("auth")
 })
 
 Cypress.Commands.add("login", options => {

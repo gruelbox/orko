@@ -18,10 +18,18 @@
 import { clearSubscriptions, addSubscription } from "../../support/tools"
 
 context("Coins", () => {
-  it("Add and remove a coin", () => {
+  beforeEach(function() {
+    // Unload the site so that XHR requests overlapping setup don't
+    // log the app back out again
+    cy.visit("/empty.html")
+    // Now start the login process
     cy.whitelist()
+  })
+
+  it("Add and remove a coin", () => {
     cy.loginApi().then(() => clearSubscriptions())
     cy.visit("/")
+    cy.o("loginModal").should("not.exist")
     cy.o("addCoin").click()
     cy.o("addCoinModal").within(() => {
       cy.o("selectExchange").click()
@@ -48,7 +56,6 @@ context("Coins", () => {
   })
 
   it("Visit a coin directly and work with it", () => {
-    cy.whitelist()
     cy.loginApi().then(() => {
       clearSubscriptions().then(() =>
         addSubscription({
@@ -59,6 +66,7 @@ context("Coins", () => {
       )
     })
     cy.visit("/coin/binance/USDT/ETH")
+    cy.o("loginModal").should("not.exist")
     cy.o("selectedCoin").contains("Binance")
     cy.o("selectedCoin").contains("ETH/USD")
     cy.o("section/coinList").within(() => {
