@@ -68,12 +68,12 @@ public class TestMarketDataIntegration {
   private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.BITFINEX).build();
   private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.GDAX).build();
   private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BITTREX).build();
-  private static final TickerSpec cryptopia = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.CRYPTOPIA).build();
+  //private static final TickerSpec cryptopia = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.CRYPTOPIA).build();
   private static final TickerSpec kucoin = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.KUCOIN).build();
   private static final TickerSpec kraken = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.KRAKEN).build();
 
   private static final Set<MarketDataSubscription> subscriptions = FluentIterable.concat(
-      FluentIterable.of(binance, bitfinex, gdax, bittrex, cryptopia, kucoin, kraken)
+      FluentIterable.of(binance, bitfinex, gdax, bittrex, kucoin, kraken)
         .transformAndConcat(spec -> ImmutableSet.of(
           MarketDataSubscription.create(spec, TICKER),
           MarketDataSubscription.create(spec, ORDERBOOK),
