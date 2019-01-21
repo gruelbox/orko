@@ -89,6 +89,7 @@ const StopOrder = props => {
       <Form.Checkbox
         title="If enabled and supported, runs the stop on the exchange itself. This will usually incur less slippage, but locks the balance, and is not supported on all exchanges."
         id="onExchange"
+        data-orko="onExchange"
         label="Place on exchange"
         checked={props.order.useExchange}
         onChange={e => onChange("useExchange", e.target.checked)}
@@ -109,6 +110,7 @@ const StopOrder = props => {
           title="Submit sell stop order"
           disabled={!valid || !props.onSell}
           onClick={props.onSell}
+          data-orko="sell"
           color="red"
         >
           {!!props.onSell
@@ -121,6 +123,7 @@ const StopOrder = props => {
           title="Submit buy stop order"
           disabled={!valid || !props.onBuy}
           onClick={props.onBuy}
+          data-orko="buy"
           color="green"
         >
           {!!props.onBuy
