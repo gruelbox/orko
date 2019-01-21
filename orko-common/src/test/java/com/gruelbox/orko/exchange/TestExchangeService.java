@@ -44,6 +44,6 @@ public class TestExchangeService {
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITFINEX));
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.KUCOIN));
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITTREX));
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.CRYPTOPIA));
+    //Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.CRYPTOPIA));
   }
 }
