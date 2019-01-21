@@ -20,6 +20,7 @@ package com.gruelbox.orko.exchange;
 
 import java.util.Collection;
 
+import org.apache.commons.lang3.concurrent.TimedSemaphore;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -39,8 +40,10 @@ public interface ExchangeService {
 
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
 
-  long safePollDelay(String name);
+  TimedSemaphore rateLimiter(String name);
 
   boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair);
+
+  void temporarilyThrottle(String exchange);
 
 }

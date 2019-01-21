@@ -74,6 +74,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -96,6 +97,7 @@ import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
 import com.gruelbox.orko.spi.TickerSpec;
+import com.gruelbox.orko.util.CheckedExceptions;
 import com.gruelbox.orko.util.SafelyDispose;
 
 import info.bitrich.xchangestream.binance.BinanceStreamingMarketDataService;
@@ -146,7 +148,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
-  private final Phaser phaser  = new Phaser(1);
+  private final Phaser phaser = new Phaser(1);
 
 
   @Inject
@@ -360,20 +362,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     private void loop() throws InterruptedException {
 
-      // Handle any pending resubscriptions. Pause after a resubscription
-      // since it probably counts as an API call and thus toward the
-      // rate limit
-      LOGGER.debug("{} - start subscription check", exchangeName);
-      subscriptionsFailed = false;
-      try {
-        if (doSubscriptionChanges()) {
-          sleep();
-        }
-      } catch (InterruptedException e) {
-        throw e;
-      } catch (Exception e) {
-        subscriptionsFailed = true;
-      }
+      // Check if there is a queued subscription change.  If so, apply it
+      doSubscriptionChanges();
 
       // Check if we have any polling to do. If not, go to sleep until awoken
       // by a subscription change, unless we failed to process subscriptions,
@@ -394,7 +384,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           balanceCurrencies.add(subscription.spec().counter());
         } else {
           fetchAndBroadcast(subscription);
-          sleep();
         }
       }
 
@@ -403,52 +392,68 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       // We'll be extending this sort of batching to more market data types...
       if (!balanceCurrencies.isEmpty()) {
-        try {
-          fetchBalances(balanceCurrencies)
-            .forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b)));
-        } catch (NotAvailableFromExchangeException e) {
-          LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
-          Iterables.addAll(unavailableSubscriptions, FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
-        } catch (Exception e) {
-          if (Exchanges.KUCOIN.equals(exchangeName)) {
-            // Kucoin does this literally all the time, so to save our logs, just write the message
-            LOGGER.error("Error fetching balance on " + exchangeName + " (" + e.getMessage() + ")");
-          } else {
-            LOGGER.error("Error fetching balance on " + exchangeName, e);
-          }
-        }
+        manageExchangeExceptions(
+            () -> fetchBalances(balanceCurrencies).forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b))),
+            () -> FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE))
+        );
         if (phaser.isTerminated())
           return;
-        sleep();
       }
     }
 
+    private void manageExchangeExceptions(CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
+      try {
+        runnable.run();
+      } catch (InterruptedException e) {
+        throw e;
+      } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
+        LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
+        Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
+      } catch (Exception e) {
+        if (Exchanges.KUCOIN.equals(exchangeName)) {
+          // Kucoin does this literally all the time, so to save our logs, just write the message
+          LOGGER.error("Error fetching data for " + exchangeName + " (" + e.getMessage() + ")");
+        } else {
+          LOGGER.error("Error fetching data for " + exchangeName, e);
+        }
+        exchangeService.temporarilyThrottle(exchangeName);
+      }
+    }
 
     /**
      * Actually performs the subscription changes. Occurs synchronously in the
      * poll loop.
      */
-    private boolean doSubscriptionChanges() throws Exception {
-      Set<MarketDataSubscription> subscriptions = nextSubscriptions.get(exchangeName).getAndSet(null);
-      if (subscriptions == null)
-        return false;
+    private void doSubscriptionChanges() throws InterruptedException {
+      LOGGER.debug("{} - start subscription check", exchangeName);
+      subscriptionsFailed = false;
       try {
 
-        LOGGER.info("Updating {} subscriptions to: {}", exchangeName, subscriptions);
+        // Pull the subscription change off the queue. If there isn't one,
+        // we're done
+        Set<MarketDataSubscription> subscriptions = nextSubscriptions.get(exchangeName).getAndSet(null);
+        if (subscriptions == null)
+          return;
 
-        // Remember all our old subscriptions for a moment...
-        Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(
-            subscriptionsPerExchange.get(exchangeName),
-            pollsPerExchange.get(exchangeName)
-          ))
-          .toSet();
+        try {
 
-        // Disconnect any streaming exchanges where the tickers currently
-        // subscribed mismatch the ones we want.
-        if (subscriptions.equals(oldSubscriptions)) {
-          return false;
-        } else {
+          // Get the current subscriptions
+          Set<MarketDataSubscription> oldSubscriptions = FluentIterable.from(Iterables.concat(
+              subscriptionsPerExchange.get(exchangeName),
+              pollsPerExchange.get(exchangeName)
+            ))
+            .toSet();
 
+          // If there's no difference, we're good, done
+          if (subscriptions.equals(oldSubscriptions)) {
+            return;
+          }
+
+          // Otherwise, let's crack on
+          LOGGER.info("Updating {} subscriptions to: {} from {}", exchangeName, subscriptions);
+
+          // Disconnect any streaming exchanges where the tickers currently
+          // subscribed mismatch the ones we want.
           if (!oldSubscriptions.isEmpty()) {
             disconnect();
           }
@@ -469,17 +474,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             subscribe(subscriptions);
           }
 
-          return true;
+          return;
 
+        } catch (Exception e) {
+          LOGGER.error("Error updating subscriptions", e);
+          if (nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions)) {
+            int phase = phaser.arrive();
+            LOGGER.debug("Progressing to phase {}", phase);
+          }
+          throw e;
         }
-
-      } catch (Exception e) {
-        LOGGER.error("Error updating subscriptions", e);
-        if (nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions)) {
-          int phase = phaser.arrive();
-          LOGGER.debug("Progressing to phase {}", phase);
-        }
+      } catch (InterruptedException e) {
         throw e;
+      } catch (Exception e) {
+        subscriptionsFailed = true;
       }
     }
 
@@ -506,7 +514,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    private void subscribe(Set<MarketDataSubscription> subscriptions) {
+    private void subscribe(Set<MarketDataSubscription> subscriptions) throws InterruptedException {
 
       Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
 
@@ -526,7 +534,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
 
-    private void openSubscriptions(Set<MarketDataSubscription> streamingSubscriptions) {
+    private void openSubscriptions(Set<MarketDataSubscription> streamingSubscriptions) throws InterruptedException {
       subscriptionsPerExchange.put(exchangeName, streamingSubscriptions);
       subscribeExchange(streamingSubscriptions);
 
@@ -597,7 +605,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    private void subscribeExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
+    private void subscribeExchange(Collection<MarketDataSubscription> subscriptionsForExchange) throws InterruptedException {
       if (subscriptionsForExchange.isEmpty())
         return;
       LOGGER.info("Connecting to exchange: " + exchangeName);
@@ -605,7 +613,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       LOGGER.info("Connected to exchange: " + exchangeName);
     }
 
-    private void openConnections(Collection<MarketDataSubscription> subscriptionsForExchange) {
+    private void openConnections(Collection<MarketDataSubscription> subscriptionsForExchange) throws InterruptedException {
       ProductSubscriptionBuilder builder = ProductSubscription.create();
       subscriptionsForExchange.stream()
         .forEach(s -> {
@@ -619,12 +627,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             builder.addTrades(s.spec().currencyPair());
           }
         });
+      exchangeService.rateLimiter(exchangeName).acquire();
       streamingExchange.connect(builder.build()).blockingAwait();
-    }
-
-    private void sleep() throws InterruptedException {
-      LOGGER.debug("{} pausing between API calls", exchangeName);
-      Thread.sleep(exchangeService.safePollDelay(exchangeName));
     }
 
     private void suspend() {
@@ -645,14 +649,15 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException {
+    private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException, InterruptedException {
       return FluentIterable.from(wallet().getBalances().entrySet())
         .transform(Map.Entry::getValue)
         .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
         .transform(Balance::create);
     }
 
-    private Wallet wallet() throws IOException {
+    private Wallet wallet() throws IOException, InterruptedException {
+      exchangeService.rateLimiter(exchangeName).acquire();
       if (exchangeName.equals("bitfinex")) {
         return accountService.getAccountInfo().getWallet("exchange");
       } else {
@@ -660,39 +665,33 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    private void fetchAndBroadcast(MarketDataSubscription subscription) {
-      try {
-        TickerSpec spec = subscription.spec();
-        switch (subscription.type()) {
-          case TICKER:
-            pollAndEmitTicker(spec);
-            break;
-          case ORDERBOOK:
-            pollAndEmitOrderbook(spec);
-            break;
-          case TRADES:
-            pollAndEmitTrades(subscription);
-            break;
-          case OPEN_ORDERS:
-            pollAndEmitOpenOrders(subscription, spec);
-            break;
-          case USER_TRADE_HISTORY:
-            pollAndEmitUserTradeHistory(subscription, spec);
-            break;
-          default:
-            throw new IllegalStateException("Market data type " + subscription.type() + " not supported in this way");
-        }
-      } catch (NotAvailableFromExchangeException e) {
-        LOGGER.warn(subscription.type() + " not available on " + subscription.spec().exchange());
-        unavailableSubscriptions.add(subscription);
-      } catch (Exception e) {
-        if (Exchanges.KUCOIN.equals(subscription.spec().exchange())) {
-          // Kucoin does this literally all the time, so to save our logs, just write the message
-          LOGGER.error("Error fetching market data: " + subscription + " (" + e.getMessage() + ")");
-        } else {
-          LOGGER.error("Error fetching market data: " + subscription, e);
-        }
-      }
+    private void fetchAndBroadcast(MarketDataSubscription subscription) throws InterruptedException {
+      exchangeService.rateLimiter(exchangeName).acquire();
+      TickerSpec spec = subscription.spec();
+      manageExchangeExceptions(
+          () -> {
+            switch (subscription.type()) {
+              case TICKER:
+                pollAndEmitTicker(spec);
+                break;
+              case ORDERBOOK:
+                pollAndEmitOrderbook(spec);
+                break;
+              case TRADES:
+                pollAndEmitTrades(subscription);
+                break;
+              case OPEN_ORDERS:
+                pollAndEmitOpenOrders(subscription, spec);
+                break;
+              case USER_TRADE_HISTORY:
+                pollAndEmitUserTradeHistory(subscription, spec);
+                break;
+              default:
+                throw new IllegalStateException("Market data type " + subscription.type() + " not supported in this way");
+            }
+          },
+          () -> ImmutableList.of(subscription)
+      );
     }
 
     private void pollAndEmitUserTradeHistory(MarketDataSubscription subscription, TickerSpec spec) throws IOException {

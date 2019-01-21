@@ -51,6 +51,7 @@ import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.ExchangeServiceImpl;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyDispose;
 
@@ -88,6 +89,7 @@ public class TestMarketDataIntegration {
   private ExchangeServiceImpl exchangeServiceImpl;
   private MarketDataSubscriptionManager marketDataSubscriptionManager;
   private ExchangeEventBus exchangeEventBus;
+  private final NotificationService notificationService = mock(NotificationService.class);
 
 
   @Before
@@ -97,7 +99,7 @@ public class TestMarketDataIntegration {
 
     OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
     orkoConfiguration.setLoopSeconds(2);
-    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
+    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration, notificationService);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
       exchangeServiceImpl,
       orkoConfiguration,

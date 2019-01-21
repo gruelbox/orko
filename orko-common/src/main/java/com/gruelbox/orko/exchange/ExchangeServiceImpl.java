@@ -18,16 +18,19 @@
 
 package com.gruelbox.orko.exchange;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.concurrent.TimedSemaphore;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
@@ -40,12 +43,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
+import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions;
 
@@ -58,11 +64,13 @@ import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
 
-  private static final long SENSIBLE_MINIMUM_POLL_DELAY = 3000; // TODO this is too long to be usable. Trying to deal with rate limitations on several exchanges
+  private static final RateLimit THROTTLED_RATE = new RateLimit(1, 10, TimeUnit.SECONDS);
+  private static final RateLimit DEFAULT_RATE = new RateLimit(1, 3, TimeUnit.SECONDS);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
   private final OrkoConfiguration configuration;
+  private final NotificationService notificationService;
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
@@ -122,9 +130,16 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
   });
 
-  private final LoadingCache<String, Long> safePollDelays = CacheBuilder.newBuilder().build(new CacheLoader<String, Long>() {
+  private final Cache<String, TimedSemaphore> throttledLimits = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofSeconds(120)).build();
+
+  private final LoadingCache<String, TimedSemaphore> rateLimiters = CacheBuilder.newBuilder().build(new CacheLoader<String, TimedSemaphore>() {
     @Override
-    public Long load(String exchangeName) throws Exception {
+    public TimedSemaphore load(String exchangeName) throws Exception {
+      RateLimit rateLimit = getLimit(exchangeName);
+      return new TimedSemaphore(rateLimit.timeSpan, rateLimit.timeUnit, rateLimit.calls);
+    }
+
+    private RateLimit getLimit(String exchangeName) {
       try {
 
         ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
@@ -136,41 +151,29 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (metaData.getPublicRateLimits() != null)
           rateLimits = Stream.concat(rateLimits, Arrays.asList(metaData.getPublicRateLimits()).stream());
 
-        // We floor the poll delay at a sensible minimum in case the above calculation goes
-        // wrong (frequently when something's up with the exchange metadata).
-        Optional<Long> limit = rateLimits
-          .map(RateLimit::getPollDelayMillis)
-          .max(Comparator.naturalOrder())
-          .map(result -> {
-            if (result < SENSIBLE_MINIMUM_POLL_DELAY) {
-              LOGGER.warn("Exchange [[{}] reported suspicious pollDelayMillis ({}). Reset to {}",
-                  exchangeName, result, SENSIBLE_MINIMUM_POLL_DELAY);
-              return SENSIBLE_MINIMUM_POLL_DELAY;
-            } else {
-              return result;
-            }
-          });
+        Optional<RateLimit> limit = rateLimits
+          .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis));
 
         if (limit.isPresent()) {
-          LOGGER.info("Safe poll delay for exchange [{}] is {}ms", exchangeName, limit.get());
+          LOGGER.info("Rate limit for [{}]: {}", exchangeName, limit.get());
           return limit.get();
         } else {
-          LOGGER.info("Safe poll delay for exchange [{}] is unknown, defaulting to {}", exchangeName, SENSIBLE_MINIMUM_POLL_DELAY);
-          return SENSIBLE_MINIMUM_POLL_DELAY;
+          LOGGER.info("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
+          return DEFAULT_RATE;
         }
 
       } catch (Exception e) {
-        LOGGER.warn("Failed to fetch exchange metadata for [" + exchangeName + "], defaulting to " + SENSIBLE_MINIMUM_POLL_DELAY + "ms", e);
-        return SENSIBLE_MINIMUM_POLL_DELAY;
+        LOGGER.warn("Failed to fetch rate limit for [" + exchangeName + "], defaulting to " + DEFAULT_RATE, e);
+        return DEFAULT_RATE;
       }
     }
   });
 
-
   @Inject
   @VisibleForTesting
-  public ExchangeServiceImpl(OrkoConfiguration configuration) {
+  public ExchangeServiceImpl(OrkoConfiguration configuration, NotificationService notificationService) {
     this.configuration = configuration;
+    this.notificationService = notificationService;
   }
 
 
@@ -225,8 +228,13 @@ public class ExchangeServiceImpl implements ExchangeService {
 
 
   @Override
-  public long safePollDelay(String exchangeName) {
-    return safePollDelays.getUnchecked(exchangeName);
+  public TimedSemaphore rateLimiter(String exchangeName) {
+    @Nullable TimedSemaphore throttled = throttledLimits.getIfPresent(exchangeName);
+    if (throttled == null) {
+      return rateLimiters.getUnchecked(exchangeName);
+    } else {
+      return throttled;
+    }
   }
 
 
@@ -238,5 +246,14 @@ public class ExchangeServiceImpl implements ExchangeService {
         .keySet()
         .stream()
         .anyMatch(pair -> pair.equals(currencyPair));
+  }
+
+
+  @Override
+  public void temporarilyThrottle(String exchange) {
+    if (throttledLimits.getIfPresent(exchange) == null) {
+      throttledLimits.put(exchange, new TimedSemaphore(THROTTLED_RATE.timeSpan, THROTTLED_RATE.timeUnit, THROTTLED_RATE.calls));
+      notificationService.error("Throttling access to " + exchange + " due to server error. Check logs");
+    }
   }
 }

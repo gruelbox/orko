@@ -18,11 +18,14 @@
 
 package com.gruelbox.orko.exchange;
 
+import static org.mockito.Mockito.mock;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.gruelbox.orko.OrkoConfiguration;
+import com.gruelbox.orko.notification.NotificationService;
 
 public class TestExchangeService {
 
@@ -30,7 +33,7 @@ public class TestExchangeService {
 
   @Before
   public void setup() {
-    exchangeService = new ExchangeServiceImpl(new OrkoConfiguration());
+    exchangeService = new ExchangeServiceImpl(new OrkoConfiguration(), mock(NotificationService.class));
   }
 
   @Test
