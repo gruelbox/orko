@@ -18,10 +18,11 @@
 
 package com.gruelbox.orko.exchange;
 
+import static java.util.stream.Stream.concat;
+
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -29,7 +30,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.concurrent.TimedSemaphore;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -50,6 +51,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
+import com.google.common.util.concurrent.RateLimiter;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -66,6 +68,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   private static final RateLimit THROTTLED_RATE = new RateLimit(1, 10, TimeUnit.SECONDS);
   private static final RateLimit DEFAULT_RATE = new RateLimit(1, 3, TimeUnit.SECONDS);
+  private static final RateLimit[] NO_LIMITS = new RateLimit[0];
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
@@ -130,46 +133,23 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
   });
 
-  private final Cache<String, TimedSemaphore> throttledLimits = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofSeconds(120)).build();
+  private final Cache<String, RateLimiter> throttledLimits = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofSeconds(120)).build();
 
-  private final LoadingCache<String, TimedSemaphore> rateLimiters = CacheBuilder.newBuilder().build(new CacheLoader<String, TimedSemaphore>() {
+  private final LoadingCache<String, RateLimiter> rateLimiters = CacheBuilder.newBuilder().build(new CacheLoader<String, RateLimiter>() {
     @Override
-    public TimedSemaphore load(String exchangeName) throws Exception {
-      RateLimit rateLimit = getLimit(exchangeName);
-      return new TimedSemaphore(rateLimit.timeSpan, rateLimit.timeUnit, rateLimit.calls);
-    }
-
-    private RateLimit getLimit(String exchangeName) {
+    public RateLimiter load(String exchangeName) throws Exception {
       try {
-        
-        // TODO XChange PR https://bittrex.github.io/api/v1-1
-        if (exchangeName.equals(Exchanges.BITTREX)) {
-          return new RateLimit(60, 1, TimeUnit.MINUTES);
-        }
-
         ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
-
-        Stream<RateLimit> rateLimits = Stream.empty();
-
-        if (metaData.getPrivateRateLimits() != null)
-          rateLimits = Arrays.asList(metaData.getPrivateRateLimits()).stream();
-        if (metaData.getPublicRateLimits() != null)
-          rateLimits = Stream.concat(rateLimits, Arrays.asList(metaData.getPublicRateLimits()).stream());
-
-        Optional<RateLimit> limit = rateLimits
-          .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis));
-
-        if (limit.isPresent()) {
-          LOGGER.info("Rate limit for [{}]: {}", exchangeName, limit.get());
-          return limit.get();
-        } else {
-          LOGGER.info("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
-          return DEFAULT_RATE;
-        }
-
+        return concat(asStream(metaData.getPrivateRateLimits()), asStream(metaData.getPublicRateLimits()))
+            .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis))
+            .map(ExchangeServiceImpl::asLimiter)
+            .orElseGet(() -> {
+              LOGGER.info("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
+              return asLimiter(DEFAULT_RATE);
+            });
       } catch (Exception e) {
         LOGGER.warn("Failed to fetch rate limit for [" + exchangeName + "], defaulting to " + DEFAULT_RATE, e);
-        return DEFAULT_RATE;
+        return asLimiter(DEFAULT_RATE);
       }
     }
   });
@@ -181,6 +161,13 @@ public class ExchangeServiceImpl implements ExchangeService {
     this.notificationService = notificationService;
   }
 
+  private static Stream<RateLimit> asStream(RateLimit[] limits) {
+    return Arrays.stream(MoreObjects.firstNonNull(limits, NO_LIMITS));
+  }
+
+  private static RateLimiter asLimiter(RateLimit rateLimit) {
+    return RateLimiter.create(((double)rateLimit.calls / rateLimit.timeUnit.toSeconds(rateLimit.timeSpan)) - 0.01);
+  }
 
   /**
    * @see com.gruelbox.orko.exchange.ExchangeService#getExchanges()
@@ -233,8 +220,8 @@ public class ExchangeServiceImpl implements ExchangeService {
 
 
   @Override
-  public TimedSemaphore rateLimiter(String exchangeName) {
-    @Nullable TimedSemaphore throttled = throttledLimits.getIfPresent(exchangeName);
+  public RateLimiter rateLimiter(String exchangeName) {
+    @Nullable RateLimiter throttled = throttledLimits.getIfPresent(exchangeName);
     if (throttled == null) {
       return rateLimiters.getUnchecked(exchangeName);
     } else {
@@ -257,8 +244,8 @@ public class ExchangeServiceImpl implements ExchangeService {
   @Override
   public void temporarilyThrottle(String exchange, String message) {
     if (throttledLimits.getIfPresent(exchange) == null) {
-      throttledLimits.put(exchange, new TimedSemaphore(THROTTLED_RATE.timeSpan, THROTTLED_RATE.timeUnit, THROTTLED_RATE.calls));
       notificationService.error("Throttling access to " + exchange + " due to server error (" + message + "). Check logs");
+      throttledLimits.put(exchange, asLimiter(THROTTLED_RATE));
     }
   }
 }

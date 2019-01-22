@@ -185,7 +185,7 @@
     
     <!--<xchange.groupid>org.knowm.xchange</xchange.groupid>-->
     <xchange.groupid>com.github.badgerwithagun.XChange</xchange.groupid>
-    <xchange.version>4.3.14.orko.2</xchange.version>
+    <xchange.version>4.3.14.orko.3</xchange.version>
 
     <!--<xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid> -->
     <xchange.stream.groupid>com.github.badgerwithagun.xchange-stream</xchange.stream.groupid>
