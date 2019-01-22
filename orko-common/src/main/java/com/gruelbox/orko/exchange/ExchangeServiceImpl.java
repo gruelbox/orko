@@ -58,6 +58,7 @@ import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions;
 
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
+import info.bitrich.xchangestream.service.ConnectableService;
 
 /**
  * API-friendly name mapping for exchanges.
@@ -128,6 +129,11 @@ public class ExchangeServiceImpl implements ExchangeService {
         LOGGER.info("Using sandbox GDAX");
         exSpec.setSslUri("https://api-public.sandbox.pro.coinbase.com");
         exSpec.setHost("api-public.sandbox.pro.coinbase.com");
+        RateLimiter rateLimiter = RateLimiter.create(0.25);
+        exSpec.setExchangeSpecificParametersItem(
+          ConnectableService.BEFORE_CONNECTION_HANDLER,
+          (Runnable) rateLimiter::acquire
+        );
       }
       return exSpec;
     }
