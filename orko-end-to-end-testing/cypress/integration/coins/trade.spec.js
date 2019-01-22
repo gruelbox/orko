@@ -128,7 +128,7 @@ context("Trading", () => {
               .contains("Confirming...", { timeout: LONG_WAIT })
               .should("not.exist")
           })
-          cy.get("[data-type='openOrder/" + button + "']").within(() => {
+          cy.get("[data-type='openOrder/" + button + "']", { timeout: LONG_WAIT }).within(() => {
             cy.o("amount")
               .invoke("text")
               .then(text => Number(text))
