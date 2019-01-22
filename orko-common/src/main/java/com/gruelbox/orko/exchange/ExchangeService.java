@@ -44,6 +44,6 @@ public interface ExchangeService {
 
   boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair);
 
-  void temporarilyThrottle(String exchange);
+  void temporarilyThrottle(String exchange, String message);
 
 }

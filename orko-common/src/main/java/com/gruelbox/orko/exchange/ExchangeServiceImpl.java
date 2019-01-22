@@ -250,10 +250,10 @@ public class ExchangeServiceImpl implements ExchangeService {
 
 
   @Override
-  public void temporarilyThrottle(String exchange) {
+  public void temporarilyThrottle(String exchange, String message) {
     if (throttledLimits.getIfPresent(exchange) == null) {
       throttledLimits.put(exchange, new TimedSemaphore(THROTTLED_RATE.timeSpan, THROTTLED_RATE.timeUnit, THROTTLED_RATE.calls));
-      notificationService.error("Throttling access to " + exchange + " due to server error. Check logs");
+      notificationService.error("Throttling access to " + exchange + " due to server error (" + message + "). Check logs");
     }
   }
 }

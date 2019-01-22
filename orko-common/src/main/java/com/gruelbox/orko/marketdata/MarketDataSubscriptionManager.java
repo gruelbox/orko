@@ -416,7 +416,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         } else {
           LOGGER.error("Error fetching data for " + exchangeName, e);
         }
-        exchangeService.temporarilyThrottle(exchangeName);
+        exchangeService.temporarilyThrottle(exchangeName, e.getMessage());
       }
     }
 
