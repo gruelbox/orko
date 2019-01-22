@@ -5,5 +5,7 @@
   "reporterOptions": {
     "mochaFile": "target/mocha-reports/mocha-results.[hash].xml",
     "toConsole": true
-  }
+  },
+  "viewportWidth": 1920,
+  "viewportHeight": 1080
 }
