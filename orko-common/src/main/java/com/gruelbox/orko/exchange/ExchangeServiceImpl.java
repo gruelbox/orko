@@ -141,6 +141,11 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private RateLimit getLimit(String exchangeName) {
       try {
+        
+        // TODO XChange PR https://bittrex.github.io/api/v1-1
+        if (exchangeName.equals(Exchanges.BITTREX)) {
+          return new RateLimit(60, 1, TimeUnit.MINUTES);
+        }
 
         ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
 
