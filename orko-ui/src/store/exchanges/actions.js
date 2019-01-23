@@ -47,7 +47,7 @@ export function fetchPairs(exchange) {
 
 export function submitLimitOrder(exchange, order) {
   return authActions.wrappedRequest(
-    auth => exchangesService.submitOrder(exchange, order),
+    () => exchangesService.submitOrder(exchange, order),
     response =>
       coinActions.addOrder({
         currencyPair: {
