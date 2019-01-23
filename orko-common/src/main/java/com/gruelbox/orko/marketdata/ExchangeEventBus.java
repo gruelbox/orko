@@ -69,8 +69,12 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     private final String name;
 
     SubscriptionImpl(Set<MarketDataSubscription> subscriptions) {
+      this(subscriptions, UUID.randomUUID().toString());
+    }
+
+    SubscriptionImpl(Set<MarketDataSubscription> subscriptions, String name) {
       this.subscriptions = subscriptions;
-      this.name = UUID.randomUUID().toString();
+      this.name = name;
       if (subscribeAll())
         updateSubscriptions();
     }
@@ -209,8 +213,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     public ExchangeEventSubscription replace(Set<MarketDataSubscription> targetSubscriptions) {
       if (targetSubscriptions.equals(subscriptions))
         return this;
-      unsubscribeAll();
-      return new SubscriptionImpl(targetSubscriptions);
+      if (unsubscribeAll()) {
+        updateSubscriptions();
+      }
+      return new SubscriptionImpl(targetSubscriptions, name);
     }
   }
 }

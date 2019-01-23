@@ -93,7 +93,7 @@ final class JobTypeResolver extends TypeIdResolverBase {
     FluentIterable<Class<? extends Job>> jobs = FluentIterable.from(serviceLoader).transformAndConcat(c -> c.jobTypes());
     try {
       ImmutableMap<String, Class<? extends Job>> result = jobs.uniqueIndex(c -> c.getSimpleName().replaceAll("AutoValue_", ""));
-      LOGGER.info("Job types registered: {}", result);
+      LOGGER.debug("Job types registered: {}", result);
       return result;
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Duplication job names registered", e);

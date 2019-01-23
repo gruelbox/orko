@@ -450,7 +450,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           }
 
           // Otherwise, let's crack on
-          LOGGER.info("Updating {} subscriptions to: {} from {}", exchangeName, subscriptions);
+          LOGGER.info("{} - updating subscriptions to: {} from {}", exchangeName, subscriptions, oldSubscriptions);
 
           // Disconnect any streaming exchanges where the tickers currently
           // subscribed mismatch the ones we want.
@@ -470,7 +470,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             });
 
           // Add new subscriptions if we have any
-          if (!subscriptions.isEmpty()) {
+          if (subscriptions.isEmpty()) {
+            pollsPerExchange.put(exchangeName, ImmutableSet.of());
+            LOGGER.debug("{} - polls cleared", exchangeName);
+          } else {
             subscribe(subscriptions);
           }
 
@@ -530,7 +533,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       Set<MarketDataSubscription> polls = pollingBuilder.build();
       pollsPerExchange.put(exchangeName, pollingBuilder.build());
-      LOGGER.debug("Polls now set to: {}", polls);
+      LOGGER.debug("{} - polls now set to: {}", exchangeName, polls);
     }
 
 

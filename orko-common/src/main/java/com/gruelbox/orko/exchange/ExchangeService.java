@@ -25,7 +25,6 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 
-import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.ImplementedBy;
 import com.gruelbox.orko.spi.TickerSpec;
 
@@ -40,7 +39,7 @@ public interface ExchangeService {
 
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
 
-  RateLimiter rateLimiter(String name);
+  RateController rateLimiter(String name);
 
   boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair);
 

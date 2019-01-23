@@ -89,7 +89,7 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private Exchange publicApi(String name) {
       try {
-        LOGGER.warn("No API connection details.  Connecting to public API: " + name);
+        LOGGER.debug("No API connection details.  Connecting to public API: {}", name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name);
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException e) {
@@ -100,7 +100,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     private Exchange privateApi(String name, final ExchangeConfiguration exchangeConfiguration) {
       try {
 
-        LOGGER.info("Connecting to private API: " + name);
+        LOGGER.debug("Connecting to private API: {}", name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name);
         if (name.equalsIgnoreCase(Exchanges.GDAX_SANDBOX) || name.equalsIgnoreCase(Exchanges.GDAX)) {
           exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
@@ -126,10 +126,10 @@ public class ExchangeServiceImpl implements ExchangeService {
     private ExchangeSpecification createExchangeSpecification(String exchangeName) throws InstantiationException, IllegalAccessException {
       final ExchangeSpecification exSpec = Exchanges.friendlyNameToClass(exchangeName).newInstance().getDefaultExchangeSpecification();
       if (exchangeName.equalsIgnoreCase(Exchanges.GDAX_SANDBOX)) {
-        LOGGER.info("Using sandbox GDAX");
+        LOGGER.debug("Using sandbox GDAX");
         exSpec.setSslUri("https://api-public.sandbox.pro.coinbase.com");
         exSpec.setHost("api-public.sandbox.pro.coinbase.com");
-        RateLimiter rateLimiter = RateLimiter.create(0.25);
+        RateLimiter rateLimiter = RateLimiter.create(0.25); // TODO make this exchange specific
         exSpec.setExchangeSpecificParametersItem(
           ConnectableService.BEFORE_CONNECTION_HANDLER,
           (Runnable) rateLimiter::acquire
@@ -148,9 +148,12 @@ public class ExchangeServiceImpl implements ExchangeService {
         ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
         return concat(asStream(metaData.getPrivateRateLimits()), asStream(metaData.getPublicRateLimits()))
             .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis))
-            .map(ExchangeServiceImpl::asLimiter)
+            .map(rateLimit -> {
+              LOGGER.debug("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
+              return asLimiter(rateLimit);
+            })
             .orElseGet(() -> {
-              LOGGER.info("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
+              LOGGER.debug("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
               return asLimiter(DEFAULT_RATE);
             });
       } catch (Exception e) {
@@ -172,7 +175,9 @@ public class ExchangeServiceImpl implements ExchangeService {
   }
 
   private static RateLimiter asLimiter(RateLimit rateLimit) {
-    return RateLimiter.create(((double)rateLimit.calls / rateLimit.timeUnit.toSeconds(rateLimit.timeSpan)) - 0.01);
+    double permitsPerSecond = ((double)rateLimit.calls / rateLimit.timeUnit.toSeconds(rateLimit.timeSpan)) - 0.01;
+    LOGGER.debug("Permits per second = {}", permitsPerSecond);
+    return RateLimiter.create(permitsPerSecond);
   }
 
   /**
@@ -226,13 +231,17 @@ public class ExchangeServiceImpl implements ExchangeService {
 
 
   @Override
-  public RateLimiter rateLimiter(String exchangeName) {
-    @Nullable RateLimiter throttled = throttledLimits.getIfPresent(exchangeName);
-    if (throttled == null) {
-      return rateLimiters.getUnchecked(exchangeName);
-    } else {
-      return throttled;
-    }
+  public RateController rateLimiter(String exchangeName) {
+    return () -> {
+      @Nullable RateLimiter throttled = throttledLimits.getIfPresent(exchangeName);
+      if (throttled == null) {
+        rateLimiters.getUnchecked(exchangeName).acquire();
+        LOGGER.debug("Acquired API ticket for {}", exchangeName);
+      } else {
+        throttled.acquire();
+        LOGGER.debug("Acquired throttled API ticket for {}", exchangeName);
+      }
+    };
   }
 
 
