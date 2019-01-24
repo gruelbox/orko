@@ -343,7 +343,7 @@ final class PaperTradeService implements TradeService {
     private final LoadingCache<String, TradeService> services = CacheBuilder.newBuilder().initialCapacity(1000).build(new CacheLoader<String, TradeService>() {
       @Override
       public TradeService load(String exchange) throws Exception {
-        LOGGER.warn("No API connection details for {}.  Using paper trading.", exchange);
+        LOGGER.debug("No API connection details for {}.  Using paper trading.", exchange);
         return new PaperTradeService(exchange, exchangeEventRegistry, accountServiceFactory.getForExchange(exchange));
       }
     });
