@@ -440,9 +440,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void manageExchangeExceptions(CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
       try {
         runnable.run();
-        if (lastPollException != null) {
-          LOGGER.info("");
-        }
       } catch (InterruptedException e) {
         throw e;
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
