@@ -30,7 +30,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -66,9 +64,9 @@ import info.bitrich.xchangestream.service.ConnectableService;
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
 
-  private static final RateLimit THROTTLED_RATE = new RateLimit(1, 10, TimeUnit.SECONDS);
   private static final RateLimit DEFAULT_RATE = new RateLimit(1, 3, TimeUnit.SECONDS);
   private static final RateLimit[] NO_LIMITS = new RateLimit[0];
+  private static final Duration THROTTLE_DURATION = Duration.ofMinutes(2);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
@@ -137,11 +135,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
   });
 
-  private final Cache<String, RateLimiter> throttledLimits = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofSeconds(120)).build();
-
-  private final LoadingCache<String, RateLimiter> rateLimiters = CacheBuilder.newBuilder().build(new CacheLoader<String, RateLimiter>() {
+  private final LoadingCache<String, RateController> rateLimiters = CacheBuilder.newBuilder().build(new CacheLoader<String, RateController>() {
     @Override
-    public RateLimiter load(String exchangeName) throws Exception {
+    public RateController load(String exchangeName) throws Exception {
       try {
         ExchangeMetaData metaData = get(exchangeName).getExchangeMetaData();
         return concat(asStream(metaData.getPrivateRateLimits()), asStream(metaData.getPublicRateLimits()))
@@ -150,13 +146,14 @@ public class ExchangeServiceImpl implements ExchangeService {
               LOGGER.debug("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
               return asLimiter(rateLimit);
             })
+            .map(rateLimiter -> new RateController(exchangeName, rateLimiter, THROTTLE_DURATION))
             .orElseGet(() -> {
               LOGGER.debug("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
-              return asLimiter(DEFAULT_RATE);
+              return new RateController(exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
             });
       } catch (Exception e) {
         LOGGER.warn("Failed to fetch rate limit for [" + exchangeName + "], defaulting to " + DEFAULT_RATE, e);
-        return asLimiter(DEFAULT_RATE);
+        return new RateController(exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
       }
     }
   });
@@ -177,9 +174,6 @@ public class ExchangeServiceImpl implements ExchangeService {
     return RateLimiter.create(permitsPerSecond);
   }
 
-  /**
-   * @see com.gruelbox.orko.exchange.ExchangeService#getExchanges()
-   */
   @Override
   public Collection<String> getExchanges() {
     return ImmutableSet.<String>builder()
@@ -193,19 +187,11 @@ public class ExchangeServiceImpl implements ExchangeService {
         .build();
   }
 
-
-  /**
-   * @see com.gruelbox.orko.exchange.ExchangeService#get(java.lang.String)
-   */
   @Override
   public Exchange get(String name) {
     return exchanges.getUnchecked(name);
   }
 
-
-  /**
-   * @see com.gruelbox.orko.exchange.ExchangeService#fetchTicker(com.gruelbox.orko.spi.TickerSpec)
-   */
   @Override
   public Ticker fetchTicker(TickerSpec ex) {
     return CheckedExceptions.callUnchecked(() ->
@@ -214,10 +200,6 @@ public class ExchangeServiceImpl implements ExchangeService {
       .getTicker(ex.currencyPair()));
   }
 
-
-  /**
-   * @see com.gruelbox.orko.exchange.ExchangeService#fetchCurrencyPairMetaData(com.gruelbox.orko.spi.TickerSpec)
-   */
   @Override
   public CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex) {
     return get(ex.exchange())
@@ -226,21 +208,10 @@ public class ExchangeServiceImpl implements ExchangeService {
       .get(ex.currencyPair());
   }
 
-
   @Override
-  public RateController rateLimiter(String exchangeName) {
-    return () -> {
-      @Nullable RateLimiter throttled = throttledLimits.getIfPresent(exchangeName);
-      if (throttled == null) {
-        rateLimiters.getUnchecked(exchangeName).acquire();
-        LOGGER.debug("Acquired API ticket for {}", exchangeName);
-      } else {
-        throttled.acquire();
-        LOGGER.debug("Acquired throttled API ticket for {}", exchangeName);
-      }
-    };
+  public RateController rateController(String exchangeName) {
+    return rateLimiters.getUnchecked(exchangeName);
   }
-
 
   @Override
   public boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair) {
@@ -250,13 +221,5 @@ public class ExchangeServiceImpl implements ExchangeService {
         .keySet()
         .stream()
         .anyMatch(pair -> pair.equals(currencyPair));
-  }
-
-
-  @Override
-  public void temporarilyThrottle(String exchange, String message) {
-    if (throttledLimits.getIfPresent(exchange) == null) {
-      throttledLimits.put(exchange, asLimiter(THROTTLED_RATE));
-    }
   }
 }

@@ -39,10 +39,8 @@ public interface ExchangeService {
 
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
 
-  RateController rateLimiter(String name);
+  RateController rateController(String name);
 
   boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair);
-
-  void temporarilyThrottle(String exchange, String message);
 
 }

@@ -458,7 +458,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           LOGGER.error("Repeated error fetching data for " + exchangeName + " (" + e.getMessage() + ")");
         }
         lastPollException = e;
-        exchangeService.temporarilyThrottle(exchangeName, e.getMessage());
+        exchangeService.rateController(exchangeName).throttle();
       }
     }
 
@@ -672,7 +672,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             builder.addTrades(s.spec().currencyPair());
           }
         });
-      exchangeService.rateLimiter(exchangeName).acquire();
+      exchangeService.rateController(exchangeName).acquire();
       streamingExchange.connect(builder.build()).blockingAwait();
     }
 
@@ -704,7 +704,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private Wallet wallet() throws IOException, InterruptedException {
-      exchangeService.rateLimiter(exchangeName).acquire();
+      exchangeService.rateController(exchangeName).acquire();
       if (exchangeName.equals("bitfinex")) {
         return accountService.getAccountInfo().getWallet("exchange");
       } else {
@@ -713,7 +713,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private void fetchAndBroadcast(MarketDataSubscription subscription) throws InterruptedException {
-      exchangeService.rateLimiter(exchangeName).acquire();
+      exchangeService.rateController(exchangeName).acquire();
       TickerSpec spec = subscription.spec();
       manageExchangeExceptions(
           () -> {

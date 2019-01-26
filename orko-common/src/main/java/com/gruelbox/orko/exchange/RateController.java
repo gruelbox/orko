@@ -17,8 +17,85 @@
  */
 package com.gruelbox.orko.exchange;
 
-public interface RateController {
+import java.time.Duration;
 
-  void acquire() throws InterruptedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.RateLimiter;
+
+/**
+ * Wraps {@link RateLimiter} to perform exponential backoff.
+ *
+ * @author Graham Crockford
+ */
+public class RateController {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RateController.class);
+  private static final int DEGREES_PERMITTED = 3;
+  private static final int DIVISOR = 3;
+  private final String exchangeName;
+  private final RateLimiter rateLimiter;
+  private final long throttleBy;
+  private final double defaultRate;
+
+  private volatile long throttleExpiryTime;
+  private volatile int throttleLevel;
+
+  /**
+   * Constructor.
+   *
+   * @param exchangeName Exchange name.
+   * @param rateLimiter The underlying rate limiter.
+   * @param throttleBy The length of time a throttling should last.
+   */
+  RateController(String exchangeName, RateLimiter rateLimiter, Duration throttleBy) {
+    this.exchangeName = exchangeName;
+    this.rateLimiter = rateLimiter;
+    this.throttleBy = throttleBy.toMillis();
+    this.defaultRate = rateLimiter.getRate();
+  }
+
+  /**
+   * @see RateLimiter#acquire()
+   */
+  public void acquire() throws InterruptedException {
+    rateLimiter.acquire();
+    LOGGER.debug("Acquired API ticket for {}", exchangeName);
+    if (throttleExpired()) {
+      synchronized (this) {
+        if (throttleExpired()) {
+          throttleExpiryTime = 0L;
+          throttleLevel = 0;
+          rateLimiter.setRate(defaultRate);
+          LOGGER.info("Throttle on {} expired. Restored rate to {} calls/sec", exchangeName, rateLimiter.getRate());
+        }
+      }
+    }
+  }
+
+  /**
+   * Cuts the throughput rate significantly on a temporary basis. This throttle
+   * will expire after a period of time.
+   */
+  public void throttle() {
+    if (canThrottleFurther()) {
+      synchronized (this) {
+        if (canThrottleFurther()) {
+          throttleExpiryTime = System.currentTimeMillis() + throttleBy;
+          throttleLevel++;
+          rateLimiter.setRate(rateLimiter.getRate() / DIVISOR);
+          LOGGER.info("Throttled {} rate to {} calls/sec", exchangeName, rateLimiter.getRate());
+        }
+      }
+    }
+  }
+
+  private boolean canThrottleFurther() {
+    return throttleLevel < DEGREES_PERMITTED;
+  }
+
+  private boolean throttleExpired() {
+    return throttleLevel != 0 && throttleExpiryTime < System.currentTimeMillis();
+  }
 }
