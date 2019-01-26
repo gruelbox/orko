@@ -18,6 +18,7 @@
 
 package com.gruelbox.orko.exchange;
 
+import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static io.reactivex.schedulers.Schedulers.single;
 import static java.lang.System.currentTimeMillis;
@@ -33,6 +34,7 @@ import com.google.inject.Singleton;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
+import com.gruelbox.orko.marketdata.TradeEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
@@ -49,7 +51,7 @@ final class MonitorExchangeSocketHealth implements Managed {
 
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final AtomicLong lastTradeTime = new AtomicLong();
-  private volatile Disposable disposable;
+  private volatile Disposable trades;
   private volatile Disposable poll;
   private final NotificationService notificationService;
   private ExchangeEventSubscription subscription;
@@ -64,12 +66,16 @@ final class MonitorExchangeSocketHealth implements Managed {
   public void start() throws Exception {
     lastTradeTime.set(currentTimeMillis());
     subscription = exchangeEventRegistry.subscribe(
-      MarketDataSubscription.create(TickerSpec.builder().exchange(Exchanges.BINANCE).base("BTC").counter("USDT").build(), TRADES)
+      MarketDataSubscription.create(TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), TRADES)
     );
-    disposable = subscription.getTrades().forEach(t -> lastTradeTime.set(currentTimeMillis()));
+    trades = subscription.getTrades().forEach(t -> onTrade(t));
     poll = Observable.interval(10, TimeUnit.MINUTES)
         .observeOn(single())
         .subscribe(i -> runOneIteration());
+  }
+
+  private void onTrade(TradeEvent t) {
+    lastTradeTime.set(currentTimeMillis());
   }
 
   private void runOneIteration() {
@@ -83,7 +89,7 @@ final class MonitorExchangeSocketHealth implements Managed {
 
   @Override
   public void stop() throws Exception {
-    SafelyDispose.of(poll, disposable);
+    SafelyDispose.of(poll, trades);
     SafelyClose.the(subscription);
   }
 }

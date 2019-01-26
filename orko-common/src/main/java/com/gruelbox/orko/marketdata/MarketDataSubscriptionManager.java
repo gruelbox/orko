@@ -22,14 +22,18 @@ import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
+import static java.time.LocalDateTime.now;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.Collections.emptySet;
+import static jersey.repackaged.com.google.common.base.MoreObjects.firstNonNull;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -96,6 +100,7 @@ import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
+import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions;
 import com.gruelbox.orko.util.SafelyDispose;
@@ -131,6 +136,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final AccountServiceFactory accountServiceFactory;
   private final OrkoConfiguration configuration;
   private final EventBus eventBus;
+  private final NotificationService notificationService;
 
   private final Map<String, AtomicReference<Set<MarketDataSubscription>>> nextSubscriptions;
   private final ConcurrentMap<String, Set<MarketDataSubscription>> subscriptionsPerExchange = Maps.newConcurrentMap();
@@ -153,12 +159,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   @Inject
   @VisibleForTesting
-  public MarketDataSubscriptionManager(ExchangeService exchangeService, OrkoConfiguration configuration, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, EventBus eventBus) {
+  public MarketDataSubscriptionManager(ExchangeService exchangeService, OrkoConfiguration configuration, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, EventBus eventBus, NotificationService notificationService) {
     this.exchangeService = exchangeService;
     this.configuration = configuration;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
     this.eventBus = eventBus;
+    this.notificationService = notificationService;
 
     this.nextSubscriptions = FluentIterable.from(exchangeService.getExchanges())
         .toMap(e -> new AtomicReference<>());
@@ -279,17 +286,24 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     ExecutorService threadPool = Executors.newFixedThreadPool(exchangeService.getExchanges().size());
     try {
       try {
-        List<Future<?>> futures = new ArrayList<>(exchangeService.getExchanges().size());
+        Map<String, Future<?>> futures = new HashMap<>();
         for (String exchange : exchangeService.getExchanges()) {
-          futures.add(threadPool.submit(new Poller(exchange)));
+          futures.put(exchange, threadPool.submit(new Poller(exchange)));
         }
-        for (Future<?> future : futures) {
-          future.get();
+        for (Entry<String, Future<?>> entry : futures.entrySet()) {
+          try {
+            entry.getValue().get();
+          } catch (ExecutionException e) {
+            LOGGER.error(entry.getKey() + " failed with uncaught exception and will not restart", e);
+          }
         }
-      } catch (ExecutionException e) {
-        throw new RuntimeException(e);
+        LOGGER.info(this + " stopping; all exchanges have shut down");
       } catch (InterruptedException e) {
+        LOGGER.info(this + " stopping due to interrupt");
         Thread.currentThread().interrupt();
+      } catch (Throwable e) {
+        LOGGER.error(this + " stopping due to uncaught exception", e);
+        throw new RuntimeException(e);
       }
     } finally {
       threadPool.shutdownNow();
@@ -320,28 +334,27 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final class Poller implements Runnable {
 
     private final String exchangeName;
-    private final Exchange exchange;
-    private final StreamingExchange streamingExchange;
-    private final AccountService accountService;
-    private final MarketDataService marketDataService;
-    private final TradeService tradeService;
+    private Exchange exchange;
+    private StreamingExchange streamingExchange;
+    private AccountService accountService;
+    private MarketDataService marketDataService;
+    private TradeService tradeService;
 
     private int phase;
     private boolean subscriptionsFailed;
+    private Exception lastPollException;
+    private LocalDateTime lastPollErrorNotificationTime;
 
     private Poller(String exchangeName) {
       this.exchangeName = exchangeName;
-      this.exchange = exchangeService.get(exchangeName);
-      this.streamingExchange = exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
-      this.accountService = accountServiceFactory.getForExchange(exchangeName);
-      this.marketDataService = exchange.getMarketDataService();
-      this.tradeService = tradeServiceFactory.getForExchange(exchangeName);
     }
 
     @Override
     public void run() {
       Thread.currentThread().setName(exchangeName);
+      LOGGER.info(exchangeName + " starting");
       try {
+        initialise();
         while (!phaser.isTerminated()) {
 
           // Before we check for the presence of polls, determine which phase
@@ -354,11 +367,34 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           loop();
 
         }
+        LOGGER.info(exchangeName + " shutting down due to termination");
       } catch (InterruptedException e) {
+        LOGGER.info(exchangeName + " shutting down due to interrupt");
         Thread.currentThread().interrupt();
+      } catch (Throwable e) {
+        LOGGER.error(exchangeName + " shutting down due to uncaught exception", e);
       }
     }
 
+    /**
+     * This may fail when the exchange is not available, so keep trying.
+     * @throws InterruptedException
+     */
+    private void initialise() throws InterruptedException {
+      while (isRunning()) {
+        try {
+          this.exchange = exchangeService.get(exchangeName);
+          this.streamingExchange = exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
+          this.accountService = accountServiceFactory.getForExchange(exchangeName);
+          this.marketDataService = exchange.getMarketDataService();
+          this.tradeService = tradeServiceFactory.getForExchange(exchangeName);
+          break;
+        } catch (Exception e) {
+          LOGGER.error(exchangeName + " - failing initialising. Will retry in one minute.", e);
+          Thread.sleep(60000);
+        }
+      }
+    }
 
     private void loop() throws InterruptedException {
 
@@ -404,18 +440,27 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void manageExchangeExceptions(CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
       try {
         runnable.run();
+        if (lastPollException != null) {
+          LOGGER.info("");
+        }
       } catch (InterruptedException e) {
         throw e;
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
         LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
       } catch (Exception e) {
-        if (Exchanges.KUCOIN.equals(exchangeName)) {
-          // Kucoin does this literally all the time, so to save our logs, just write the message
-          LOGGER.error("Error fetching data for " + exchangeName + " (" + e.getMessage() + ")");
-        } else {
+        LocalDateTime now = now();
+        if (lastPollException == null ||
+            !lastPollException.getClass().equals(e.getClass()) ||
+            !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
+            lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
+          lastPollErrorNotificationTime = now;
           LOGGER.error("Error fetching data for " + exchangeName, e);
+          notificationService.error("Throttling access to " + exchange + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + "). Check logs");
+        } else {
+          LOGGER.error("Repeated error fetching data for " + exchangeName + " (" + e.getMessage() + ")");
         }
+        lastPollException = e;
         exchangeService.temporarilyThrottle(exchangeName, e.getMessage());
       }
     }
@@ -634,7 +679,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       streamingExchange.connect(builder.build()).blockingAwait();
     }
 
-    private void suspend() {
+    private void suspend() throws InterruptedException {
       LOGGER.debug("{} - poll going to sleep", exchangeName);
       try {
         if (subscriptionsFailed) {
@@ -647,6 +692,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         }
       } catch (TimeoutException e) {
         // fine
+      } catch (InterruptedException e) {
+        throw e;
       } catch (Exception e) {
         LOGGER.error("Failure in phaser wait for " + exchangeName, e);
       }

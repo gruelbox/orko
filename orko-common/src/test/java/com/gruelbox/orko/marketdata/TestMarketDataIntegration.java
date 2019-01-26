@@ -99,13 +99,14 @@ public class TestMarketDataIntegration {
 
     OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
     orkoConfiguration.setLoopSeconds(2);
-    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration, notificationService);
+    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
       exchangeServiceImpl,
       orkoConfiguration,
       exchange -> exchangeServiceImpl.get(exchange).getTradeService(),
       mock(AccountServiceFactory.class),
-      new EventBus()
+      new EventBus(),
+      notificationService
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
     marketDataSubscriptionManager.startAsync().awaitRunning(20, SECONDS);

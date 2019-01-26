@@ -53,7 +53,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.RateLimiter;
 import com.gruelbox.orko.OrkoConfiguration;
-import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions;
 
@@ -74,7 +73,6 @@ public class ExchangeServiceImpl implements ExchangeService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
   private final OrkoConfiguration configuration;
-  private final NotificationService notificationService;
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
@@ -165,9 +163,8 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Inject
   @VisibleForTesting
-  public ExchangeServiceImpl(OrkoConfiguration configuration, NotificationService notificationService) {
+  public ExchangeServiceImpl(OrkoConfiguration configuration) {
     this.configuration = configuration;
-    this.notificationService = notificationService;
   }
 
   private static Stream<RateLimit> asStream(RateLimit[] limits) {
@@ -259,7 +256,6 @@ public class ExchangeServiceImpl implements ExchangeService {
   @Override
   public void temporarilyThrottle(String exchange, String message) {
     if (throttledLimits.getIfPresent(exchange) == null) {
-      notificationService.error("Throttling access to " + exchange + " due to server error (" + message + "). Check logs");
       throttledLimits.put(exchange, asLimiter(THROTTLED_RATE));
     }
   }
