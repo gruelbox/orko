@@ -121,6 +121,14 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     }
 
     @Override
+    public Flowable<OrderStatusChangeEvent> getOrderStatusChanges() {
+      Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.ORDER_STATUS_CHANGE);
+      return marketDataSubscriptionManager.getOrderStatusChanges()
+          .filter(e -> filtered.contains(e.spec()))
+          .onBackpressureLatest();
+    }
+
+    @Override
     public Flowable<TradeHistoryEvent> getUserTradeHistory() {
       Set<TickerSpec> filtered = subscriptionsFor(USER_TRADE_HISTORY);
       return marketDataSubscriptionManager.getUserTradeHistory()

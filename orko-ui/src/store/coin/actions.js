@@ -20,12 +20,16 @@ import exchangesService from "../../services/exchanges"
 import * as authActions from "../auth/actions"
 import * as errorActions from "../error/actions"
 
-export function setOrders(orders) {
-  return { type: types.SET_ORDERS, payload: orders }
+export function setOrders(orders, timestamp) {
+  return { type: types.SET_ORDERS, payload: { orders, timestamp } }
 }
 
-export function addOrder(order) {
-  return { type: types.ADD_ORDER, payload: order }
+export function addOrder(order, timestamp) {
+  return { type: types.ADD_ORDER, payload: { order, timestamp } }
+}
+
+export function orderAdded(detail, timestamp) {
+  return { type: types.ORDER_ADDED, payload: { detail, timestamp } }
 }
 
 export function setOrderBook(orderBook) {
@@ -56,17 +60,17 @@ export function clearBalances() {
   return { type: types.CLEAR_BALANCES }
 }
 
-export function cancelOrder(coin, orderId, orderType) {
-  return async dispatch => {
-    dispatch({ type: types.CANCEL_ORDER, payload: orderId })
-    dispatch(doCancelOrder(coin, orderId, orderType))
-  }
+export function orderRemoved(orderId, timestamp) {
+  return { type: types.ORDER_REMOVED, payload: { orderId, timestamp } }
 }
 
-function doCancelOrder(coin, orderId, orderType) {
+export function cancelOrder(coin, orderId, orderType) {
   return authActions.wrappedRequest(
-    auth => exchangesService.cancelOrder(coin, orderId, orderType),
-    null,
+    () => exchangesService.cancelOrder(coin, orderId, orderType),
+    timestamp => ({
+      type: types.CANCEL_ORDER,
+      payload: { orderId, timestamp }
+    }),
     error =>
       errorActions.setForeground("Could not cancel order: " + error.message)
   )

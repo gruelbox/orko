@@ -301,11 +301,12 @@ public class ExchangeResource implements WebResource {
     TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
 
     try {
+      Date now = new Date();
       String id = order.containsKey("stopPrice")
           ? postStopOrder(exchange, order, tradeService)
           : postLimitOrder(order, tradeService);
       return Response.ok()
-          .entity(ImmutableMap.of("id", id))
+          .entity(ImmutableMap.of("id", id, "timestamp", now))
           .build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).entity(ImmutableMap.of("message", "Order type not currently supported by exchange.")).build();
@@ -463,9 +464,11 @@ public class ExchangeResource implements WebResource {
       CancelOrderParams cancelOrderParams = exchange.equals(Exchanges.BITMEX)
           ? new DefaultCancelOrderParamId(id)
           : new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType);
-      return Response.ok()
-        .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(cancelOrderParams))
-        .build();
+      Date now = new Date();
+      if (!tradeServiceFactory.getForExchange(exchange).cancelOrder(cancelOrderParams)) {
+        throw new IllegalStateException("Order could not be cancelled");
+      }
+      return Response.ok().entity(now).build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
@@ -489,30 +492,6 @@ public class ExchangeResource implements WebResource {
       return Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).getOrder(id))
           .build();
-    } catch (NotAvailableFromExchangeException e) {
-      return Response.status(503).build();
-    }
-  }
-
-
-  /**
-   * Cancels the specified order. Often not supported.
-   * See {@link ExchangeResource#cancelOrder(String, String, String, String)}.
-   *
-   * @param exchange The exchange.
-   * @param id The oirder id.
-   * @return The matching orders.
-   * @throws IOException If thrown by exchange.
-   */
-  @DELETE
-  @Path("{exchange}/orders/{id}")
-  @Timed
-  @RolesAllowed(Roles.TRADER)
-  public Response cancelOrder(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
-    try {
-      return Response.ok()
-        .entity(tradeServiceFactory.getForExchange(exchange).cancelOrder(id))
-        .build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }

@@ -24,7 +24,7 @@ import * as coinActions from "../coin/actions"
 
 export function fetchExchanges() {
   return authActions.wrappedRequest(
-    auth => exchangesService.fetchExchanges(),
+    () => exchangesService.fetchExchanges(),
     exchanges => ({ type: types.SET_EXCHANGES, payload: exchanges }),
     error =>
       errorActions.setForeground("Could not fetch exchanges: " + error.message)
@@ -33,7 +33,7 @@ export function fetchExchanges() {
 
 export function fetchPairs(exchange) {
   return authActions.wrappedRequest(
-    auth => exchangesService.fetchPairs(exchange),
+    () => exchangesService.fetchPairs(exchange),
     json => ({
       type: types.SET_PAIRS,
       payload: json.map(p => augmentCoin(p, exchange))
@@ -49,18 +49,21 @@ export function submitLimitOrder(exchange, order) {
   return authActions.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
-      coinActions.addOrder({
-        currencyPair: {
-          base: order.base,
-          counter: order.counter
+      coinActions.addOrder(
+        {
+          currencyPair: {
+            base: order.base,
+            counter: order.counter
+          },
+          originalAmount: order.amount,
+          id: response.id,
+          status: "PENDING_NEW",
+          type: order.type,
+          limitPrice: order.limitPrice,
+          cumulativeAmount: 0
         },
-        originalAmount: order.amount,
-        id: response.id,
-        status: "PENDING_NEW",
-        type: order.type,
-        limitPrice: order.limitPrice,
-        cumulativeAmount: 0
-      }),
+        response.timestamp
+      ),
     error =>
       errorActions.setForeground("Could not submit order: " + error.message)
   )
@@ -68,20 +71,23 @@ export function submitLimitOrder(exchange, order) {
 
 export function submitStopOrder(exchange, order) {
   return authActions.wrappedRequest(
-    auth => exchangesService.submitOrder(exchange, order),
+    () => exchangesService.submitOrder(exchange, order),
     response =>
-      coinActions.addOrder({
-        currencyPair: {
-          base: order.base,
-          counter: order.counter
+      coinActions.addOrder(
+        {
+          currencyPair: {
+            base: order.base,
+            counter: order.counter
+          },
+          originalAmount: order.amount,
+          id: response.id,
+          status: "PENDING_NEW",
+          type: order.type,
+          stopPrice: order.stopPrice,
+          cumulativeAmount: 0
         },
-        originalAmount: order.amount,
-        id: response.id,
-        status: "PENDING_NEW",
-        type: order.type,
-        stopPrice: order.stopPrice,
-        cumulativeAmount: 0
-      }),
+        response.timestamp
+      ),
     error =>
       errorActions.setForeground("Could not submit order: " + error.message)
   )

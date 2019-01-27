@@ -21,6 +21,7 @@ package com.gruelbox.orko.websocket;
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
+import static com.gruelbox.orko.marketdata.MarketDataType.ORDER_STATUS_CHANGE;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
@@ -137,6 +138,9 @@ public final class OrkoWebSocketServer {
         case CHANGE_BALANCE:
           mutateSubscriptions(BALANCE, request.tickers());
           break;
+        case CHANGE_ORDER_STATUS_CHANGE:
+          mutateSubscriptions(ORDER_STATUS_CHANGE, request.tickers());
+          break;
         case UPDATE_SUBSCRIPTIONS:
           updateSubscriptions(session);
           break;
@@ -216,35 +220,36 @@ public final class OrkoWebSocketServer {
           .flatMap(f -> f)
           .subscribe(e -> send(e, Nature.TICKER));
 
-      // Trade history should only be sent with long periods between each. The rest of the time the user trades
-      // stream should be used.
-      private final Disposable userTradeHistory = Flowable.fromIterable(subscription.getUserTradeHistorySplit())
-          .map(f -> f.filter(o -> isReady()).throttleLast(5, TimeUnit.SECONDS))
-          .flatMap(f -> f)
-          .map(e -> serialise(e))
-          .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
+      // Order book should be throttled globally
+      private final Disposable orderBook = subscription.getOrderBooks()
+          .filter(o -> isReady())
+          .throttleLast(2, TimeUnit.SECONDS)
+          .subscribe(e -> send(e, Nature.ORDERBOOK));
 
-      // Trades are unthrottled - the assumption is that you need the lot
+      // Trades and order status changes are unthrottled - the assumption is that you need the lot
       private final Disposable trades = subscription.getTrades()
           .filter(o -> isReady())
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.TRADE));
+      private final Disposable orderStatusChanges = subscription.getOrderStatusChanges()
+          .filter(o -> isReady())
+          .subscribe(e -> send(e, Nature.ORDER_STATUS_CHANGE));
+
+      // And the rest are fetched by poll, so there's no benefit to throttling
       private final Disposable userTrades = Observable.create((ObservableEmitter<UserTradeEvent> emitter) -> { new UserTradesSubscriber(emitter); })
           .share()
           .filter(o -> isReady())
           .filter(e -> marketDataSubscriptions.get().contains(MarketDataSubscription.create(e.spec(), USER_TRADE_HISTORY)))
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.USER_TRADE));
-
-      // For all others apply throttles globally
+      private final Disposable userTradeHistory = Flowable.fromIterable(subscription.getUserTradeHistorySplit())
+          .map(f -> f.filter(o -> isReady()))
+          .flatMap(f -> f)
+          .map(e -> serialise(e))
+          .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
       private final Disposable openOrders = subscription.getOpenOrders()
           .filter(o -> isReady())
-          .throttleLast(1, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.OPEN_ORDERS));
-      private final Disposable orderBook = subscription.getOrderBooks()
-          .filter(o -> isReady())
-          .throttleLast(2, TimeUnit.SECONDS)
-          .subscribe(e -> send(e, Nature.ORDERBOOK));
       private final Disposable balance = subscription.getBalance()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.BALANCE));
@@ -255,6 +260,7 @@ public final class OrkoWebSocketServer {
             orderBook.isDisposed() &&
             tickers.isDisposed() &&
             trades.isDisposed() &&
+            orderStatusChanges.isDisposed() &&
             userTrades.isDisposed() &&
             userTradeHistory.isDisposed() &&
             balance.isDisposed();
@@ -262,7 +268,7 @@ public final class OrkoWebSocketServer {
 
       @Override
       public void dispose() {
-        SafelyDispose.of(openOrders, orderBook, tickers, trades, userTrades, userTradeHistory, balance);
+        SafelyDispose.of(openOrders, orderBook, tickers, trades, orderStatusChanges, userTrades, userTradeHistory, balance);
       }
     };
   }

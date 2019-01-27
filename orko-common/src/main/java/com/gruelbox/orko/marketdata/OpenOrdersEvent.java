@@ -18,6 +18,8 @@
 
 package com.gruelbox.orko.marketdata;
 
+import java.util.Date;
+
 import org.knowm.xchange.dto.trade.OpenOrders;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -32,8 +34,9 @@ public abstract class OpenOrdersEvent {
 
   @JsonCreator
   public static OpenOrdersEvent create(@JsonProperty("spec") TickerSpec spec,
-                                       @JsonProperty("openOrders") OpenOrders openOrders) {
-    return new AutoValue_OpenOrdersEvent(spec, openOrders);
+                                       @JsonProperty("openOrders") OpenOrders openOrders,
+                                       @JsonProperty("timestamp") Date timestamp) {
+    return new AutoValue_OpenOrdersEvent(spec, openOrders, timestamp);
   }
 
   @JsonProperty
@@ -41,4 +44,7 @@ public abstract class OpenOrdersEvent {
 
   @JsonProperty
   public abstract OpenOrders openOrders();
+
+  @JsonProperty
+  public abstract Date timestamp();
 }

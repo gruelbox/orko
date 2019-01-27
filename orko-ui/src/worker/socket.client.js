@@ -25,9 +25,10 @@ var handleConnectionStateChange = connected => {}
 var handleNotification = message => {}
 var handleStatusUpdate = message => {}
 var handleTicker = (coin, ticker) => {}
-var handleOrders = (coin, orders) => {}
+var handleOrders = (coin, orders, timestamp) => {}
 var handleOrderBook = (coin, orderBook) => {}
 var handleTrade = (coin, trade) => {}
+var handleOrderStatusChange = (coin, orderStatusChange, timestamp) => {}
 var handleUserTrade = (coin, trade) => {}
 var handleUserTradeHistory = (coin, trades) => {}
 var handleBalance = (exchange, currency, balance) => {}
@@ -71,6 +72,10 @@ export function onTrade(handler) {
   handleTrade = handler
 }
 
+export function onOrderStatusChange(handler) {
+  handleOrderStatusChange = handler
+}
+
 export function onUserTrade(handler) {
   handleUserTrade = handler
 }
@@ -100,10 +105,25 @@ export function connect() {
     handleConnectionStateChange(false)
   }
   socket.onmessage = evt => {
+    var content
     try {
-      receive(preProcess(JSON.parse(evt.data)))
+      content = JSON.parse(evt.data)
     } catch (e) {
-      console.log("Invalid message from server", evt.data)
+      console.log("Failed to parse message from server (" + e + ")", evt.data)
+      return
+    }
+    try {
+      content = preProcess(content)
+    } catch (e) {
+      console.log(
+        "Failed to pre-process message from server (" + e + ")",
+        evt.data
+      )
+    }
+    try {
+      receive(content)
+    } catch (e) {
+      console.log("Failed to handle message from server (" + e + ")", evt.data)
     }
   }
   timer = setInterval(() => send({ command: socketMessages.READY }), 3000)
@@ -148,6 +168,10 @@ export function resubscribe() {
     tickers: serverSelectedCoinTickers
   })
   send({
+    command: socketMessages.CHANGE_ORDER_STATUS_CHANGE,
+    tickers: serverSelectedCoinTickers
+  })
+  send({
     command: socketMessages.CHANGE_USER_TRADE_HISTORY,
     tickers: serverSelectedCoinTickers
   })
@@ -188,7 +212,11 @@ function receive(message) {
         break
 
       case socketMessages.OPEN_ORDERS:
-        handleOrders(augmentCoin(message.data.spec), message.data.openOrders)
+        handleOrders(
+          augmentCoin(message.data.spec),
+          message.data.openOrders,
+          message.data.timestamp
+        )
         break
 
       case socketMessages.ORDERBOOK:
@@ -197,6 +225,14 @@ function receive(message) {
 
       case socketMessages.TRADE:
         handleTrade(augmentCoin(message.data.spec), message.data.trade)
+        break
+
+      case socketMessages.ORDER_STATUS_CHANGE:
+        handleOrderStatusChange(
+          augmentCoin(message.data.spec),
+          message.data.orderStatusChange,
+          message.data.timestamp
+        )
         break
 
       case socketMessages.USER_TRADE:

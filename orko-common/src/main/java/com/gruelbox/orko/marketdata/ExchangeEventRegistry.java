@@ -37,6 +37,7 @@ public interface ExchangeEventRegistry {
     Flowable<OpenOrdersEvent> getOpenOrders();
     Flowable<OrderBookEvent> getOrderBooks();
     Flowable<TradeEvent> getTrades();
+    Flowable<OrderStatusChangeEvent> getOrderStatusChanges();
     Flowable<TradeHistoryEvent> getUserTradeHistory();
     Flowable<BalanceEvent> getBalance();
 
