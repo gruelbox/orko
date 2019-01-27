@@ -129,6 +129,18 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private static final int ORDERBOOK_DEPTH = 20;
   private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK, MarketDataType.ORDER_STATUS_CHANGE);
 
+  private static final Disposable DUMMY_DISPOSABLE = new Disposable() {
+    @Override
+    public boolean isDisposed() {
+      return true;
+    }
+
+    @Override
+    public void dispose() {
+      // No-op
+    }
+  };
+
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
@@ -602,9 +614,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                   .map(t -> TradeEvent.create(sub.spec(), t))
                   .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
             case ORDER_STATUS_CHANGE:
-              return streaming.getOrderStatusChanges(sub.spec().currencyPair())
-                  .map(t -> OrderStatusChangeEvent.create(sub.spec(), t, new Date()))
-                  .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order status stream for " + sub, e));
+              try {
+                return streaming.getOrderStatusChanges(sub.spec().currencyPair())
+                    .map(t -> OrderStatusChangeEvent.create(sub.spec(), t, new Date()))
+                    .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order status stream for " + sub, e));
+              } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
+                // Fine. We don't rely on this anyway
+                return DUMMY_DISPOSABLE;
+              }
             default:
               throw new IllegalStateException("Unexpected market data type: " + sub.type());
           }
