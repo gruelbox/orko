@@ -20,6 +20,7 @@ package com.gruelbox.orko.marketdata;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
+import static com.gruelbox.orko.marketdata.MarketDataType.ORDER_STATUS_CHANGE;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static java.time.LocalDateTime.now;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -51,7 +53,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.bitmex.BitmexPrompt;
 import org.knowm.xchange.currency.CurrencyPair;
@@ -96,7 +97,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
-import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
@@ -105,8 +105,6 @@ import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions;
 import com.gruelbox.orko.util.SafelyDispose;
 
-import info.bitrich.xchangestream.binance.BinanceStreamingMarketDataService;
-import info.bitrich.xchangestream.binance.dto.ExecutionReportBinanceUserTransaction;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
@@ -129,7 +127,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private static final int MAX_TRADES = 20;
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
-  private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK);
+  private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK, MarketDataType.ORDER_STATUS_CHANGE);
 
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
@@ -150,7 +148,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final PersistentPublisher<TradeEvent> tradesOut;
   private final CachingPersistentPublisher<TradeHistoryEvent, TickerSpec> userTradeHistoryOut;
   private final CachingPersistentPublisher<BalanceEvent, String> balanceOut;
-  private final PersistentPublisher<ExecutionReportBinanceUserTransaction> binanceExecutionReportsOut;
+  private final PersistentPublisher<OrderStatusChangeEvent> orderStatusChangeOut;
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
@@ -181,7 +179,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     this.tradesOut = new PersistentPublisher<>();
     this.userTradeHistoryOut = new CachingPersistentPublisher<>(TradeHistoryEvent::spec);
     this.balanceOut = new CachingPersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.currency());
-    this.binanceExecutionReportsOut = new PersistentPublisher<>();
+    this.orderStatusChangeOut = new PersistentPublisher<>();
   }
 
 
@@ -245,7 +243,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * @return The stream.
    */
   public Flowable<TradeEvent> getTrades() {
-    return tradesOut.getAll().filter(t -> !UserTrade.class.isInstance(t));
+    return tradesOut.getAll();
   }
 
 
@@ -274,8 +272,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    *
    * @return The stream.
    */
-  public Flowable<ExecutionReportBinanceUserTransaction> getBinanceExecutionReports() {
-    return binanceExecutionReportsOut.getAll();
+  public Flowable<OrderStatusChangeEvent> getOrderStatusChanges() {
+    return orderStatusChangeOut.getAll();
   }
 
 
@@ -314,7 +312,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       this.tradesOut.dispose();
       this.userTradeHistoryOut.dispose();
       this.balanceOut.dispose();
-      this.binanceExecutionReportsOut.dispose();
+      this.orderStatusChangeOut.dispose();
       LOGGER.info(this + " stopped");
     }
   }
@@ -603,33 +601,15 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                   .map(t -> convertBinanceOrderType(sub, t))
                   .map(t -> TradeEvent.create(sub.spec(), t))
                   .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
+            case ORDER_STATUS_CHANGE:
+              return streaming.getOrderStatusChanges(sub.spec().currencyPair())
+                  .map(t -> OrderStatusChangeEvent.create(sub.spec(), t, new Date()))
+                  .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order status stream for " + sub, e));
             default:
               throw new IllegalStateException("Unexpected market data type: " + sub.type());
           }
         })
       );
-
-      if (Exchanges.BINANCE.equals(exchangeName) && hasBinanceApiKey()) {
-        BinanceStreamingMarketDataService binance = (BinanceStreamingMarketDataService) streaming;
-        disposablesPerExchange.put(
-          exchangeName,
-          binance.getRawExecutionReports()
-            .subscribe(
-              binanceExecutionReportsOut::emit,
-              e -> LOGGER.error("Error in binance execution report stream", e)
-            )
-        );
-      }
-    }
-
-
-    private boolean hasBinanceApiKey() {
-      if (configuration.getExchanges() == null)
-        return false;
-      ExchangeConfiguration binanceConfiguration = configuration.getExchanges().get(Exchanges.BINANCE);
-      if (binanceConfiguration == null)
-        return false;
-      return !StringUtils.isEmpty(binanceConfiguration.getApiKey());
     }
 
     /**
@@ -670,6 +650,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           }
           if (s.type().equals(TRADES)) {
             builder.addTrades(s.spec().currencyPair());
+          }
+          if (s.type().equals(ORDER_STATUS_CHANGE)) {
+            builder.addOrderStatusChange(s.spec().currencyPair());
           }
         });
       exchangeService.rateController(exchangeName).acquire();
@@ -733,6 +716,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               case USER_TRADE_HISTORY:
                 pollAndEmitUserTradeHistory(subscription, spec);
                 break;
+              case ORDER_STATUS_CHANGE:
+                // Not currently support by poll
+                break;
               default:
                 throw new IllegalStateException("Market data type " + subscription.type() + " not supported in this way");
             }
@@ -750,6 +736,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     @SuppressWarnings("unchecked")
     private void pollAndEmitOpenOrders(MarketDataSubscription subscription, TickerSpec spec) throws IOException {
       OpenOrdersParams openOrdersParams = openOrdersParams(subscription);
+
+      Date originatingTimestamp = new Date();
       OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
 
       // TODO GDAX PR required
@@ -759,7 +747,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
       }
 
-      openOrdersOut.emit(OpenOrdersEvent.create(spec, fetched));
+      openOrdersOut.emit(OpenOrdersEvent.create(spec, fetched, originatingTimestamp));
     }
 
     private void pollAndEmitTrades(MarketDataSubscription subscription) throws IOException {

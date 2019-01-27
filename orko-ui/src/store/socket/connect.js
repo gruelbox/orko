@@ -132,11 +132,11 @@ export function initialise(s, history) {
     if (sameCoin(coin, selectedCoin()))
       bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(orderBook))
   })
-  socketClient.onOrders((coin, orders) => {
+  socketClient.onOrders((coin, orders, timestamp) => {
     if (sameCoin(coin, selectedCoin()))
       bufferAction(
         ACTION_KEY_ORDERS,
-        coinActions.setOrders(orders.allOpenOrders)
+        coinActions.setOrders(orders.allOpenOrders, timestamp)
       )
   })
   socketClient.onTrade((coin, trade) => {
@@ -150,6 +150,30 @@ export function initialise(s, history) {
   socketClient.onUserTradeHistory((coin, trades) => {
     if (sameCoin(coin, selectedCoin()))
       store.dispatch(coinActions.setUserTrades(trades))
+  })
+  socketClient.onOrderStatusChange((coin, orderStatusChange, timestamp) => {
+    if (sameCoin(coin, selectedCoin())) {
+      if (orderStatusChange.type === "OPENED") {
+        store.dispatch(
+          coinActions.orderAdded(
+            {
+              currencyPair: {
+                base: coin.base,
+                counter: coin.counter
+              },
+              id: orderStatusChange.orderId,
+              status: "NEW",
+              timestamp: orderStatusChange.timestamp
+            },
+            timestamp
+          )
+        )
+      } else if (orderStatusChange.type === "CLOSED") {
+        store.dispatch(
+          coinActions.orderRemoved(orderStatusChange.orderId, timestamp)
+        )
+      }
+    }
   })
 }
 
