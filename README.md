@@ -39,6 +39,10 @@ Particularly, please note that the application has only so far been tested on Ch
 
 At the moment this project is a labour of love for just me, I am creating new bug and enhancement issues faster than I am closing them, and I [need help](https://github.com/badgerwithagun/orko/issues/111)!
 
+The **back-end server** is written in Java and is based on [XChange](https://github.com/knowm/XChange) and [xstream-stream](https://github.com/bitrich-info/xchange-stream), to which the project is a significant contributor. Please consider helping these great projects - it has a knock-on effect on Orko.
+
+The **front-end UI** (mobile and desktop) is written in Javascript and is based on React+Redux.
+
 ## Everything else
 
 See [the wiki](https://github.com/badgerwithagun/orko/wiki)!
