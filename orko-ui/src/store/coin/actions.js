@@ -16,21 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import exchangesService from "../../services/exchanges"
-import * as authActions from "../auth/actions"
-import * as errorActions from "../error/actions"
-
-export function setOrders(orders, timestamp) {
-  return { type: types.SET_ORDERS, payload: { orders, timestamp } }
-}
-
-export function addOrder(order, timestamp) {
-  return { type: types.ADD_ORDER, payload: { order, timestamp } }
-}
-
-export function orderAdded(detail, timestamp) {
-  return { type: types.ORDER_ADDED, payload: { detail, timestamp } }
-}
 
 export function setOrderBook(orderBook) {
   return { type: types.SET_ORDERBOOK, payload: orderBook }
@@ -60,18 +45,10 @@ export function clearBalances() {
   return { type: types.CLEAR_BALANCES }
 }
 
-export function orderRemoved(orderId, timestamp) {
-  return { type: types.ORDER_REMOVED, payload: { orderId, timestamp } }
+export function orderUpdated(order, timestamp) {
+  return { type: types.ORDER_UPDATED, payload: { order, timestamp } }
 }
 
-export function cancelOrder(coin, orderId, orderType) {
-  return authActions.wrappedRequest(
-    () => exchangesService.cancelOrder(coin, orderId, orderType),
-    timestamp => ({
-      type: types.CANCEL_ORDER,
-      payload: { orderId, timestamp }
-    }),
-    error =>
-      errorActions.setForeground("Could not cancel order: " + error.message)
-  )
+export function clearOrders() {
+  return { type: types.CLEAR_ORDERS }
 }

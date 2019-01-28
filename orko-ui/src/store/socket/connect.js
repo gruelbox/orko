@@ -25,7 +25,8 @@ import { batchActions } from "redux-batched-actions"
 import * as jobActions from "../job/actions"
 
 var store
-var actionBuffer = {}
+var deduplicatedActionBuffer = {}
+var allActionBuffer = []
 var initialising = true
 var jobFetch
 var previousCoin
@@ -39,13 +40,21 @@ function selectedCoin() {
 }
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
-const ACTION_KEY_ORDERS = "orders"
-const ACTION_KEY_TRADE = "trade"
 const ACTION_KEY_BALANCE = "balance"
 const ACTION_KEY_TICKER = "ticker"
 
-function bufferAction(key, action) {
-  actionBuffer[key] = action
+function bufferLatestAction(key, action) {
+  deduplicatedActionBuffer[key] = action
+}
+
+function bufferAllActions(action) {
+  allActionBuffer.push(action)
+}
+
+function clearActionsForPrefix(prefix) {
+  for (const key of Object.keys(deduplicatedActionBuffer)) {
+    if (key.startsWith(prefix)) delete deduplicatedActionBuffer[key]
+  }
 }
 
 export function initialise(s, history) {
@@ -53,8 +62,11 @@ export function initialise(s, history) {
 
   // Buffer and dispatch as a batch all the actions from the socket once a second
   const actionDispatch = () => {
-    const batch = Object.values(actionBuffer)
-    actionBuffer = {}
+    const batch = Object.values(deduplicatedActionBuffer).concat(
+      allActionBuffer
+    )
+    deduplicatedActionBuffer = {}
+    allActionBuffer = []
     store.dispatch(batchActions(batch))
   }
   setInterval(actionDispatch, 1000)
@@ -68,11 +80,12 @@ export function initialise(s, history) {
       console.log("Resubscribing following coin change")
       socketClient.changeSubscriptions(subscribedCoins(), coin)
       socketClient.resubscribe()
-      store.dispatch(coinActions.setUserTrades(null))
-      bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
-      bufferAction(ACTION_KEY_ORDERS, coinActions.setOrders(null))
-      bufferAction(ACTION_KEY_TRADE, coinActions.clearTrades())
-      bufferAction(ACTION_KEY_BALANCE, coinActions.clearBalances())
+      clearActionsForPrefix(ACTION_KEY_BALANCE)
+      bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
+      bufferAllActions(coinActions.setUserTrades(null))
+      store.dispatch(coinActions.clearOrders())
+      bufferAllActions(coinActions.clearTrades())
+      bufferAllActions(coinActions.clearBalances())
       actionDispatch()
     }
   })
@@ -84,33 +97,33 @@ export function initialise(s, history) {
       store.dispatch(socketActions.setConnectionState(connected))
       if (connected) {
         if (initialising) {
-          store.dispatch(notificationActions.localMessage("Socket connected"))
+          bufferAllActions(notificationActions.localMessage("Socket connected"))
           initialising = false
         } else {
-          store.dispatch(notificationActions.localAlert("Socket reconnected"))
+          bufferAllActions(notificationActions.localAlert("Socket reconnected"))
         }
         resubscribe()
       } else {
-        store.dispatch(notificationActions.localError("Socket disconnected"))
+        bufferAllActions(notificationActions.localError("Socket disconnected"))
       }
     }
   })
 
   // Dispatch notifications etc to the store
   socketClient.onError(message =>
-    store.dispatch(notificationActions.localError(message))
+    bufferAllActions(notificationActions.localError(message))
   )
   socketClient.onNotification(message =>
-    store.dispatch(notificationActions.add(message))
+    bufferAllActions(notificationActions.add(message))
   )
   socketClient.onStatusUpdate(message =>
-    store.dispatch(notificationActions.statusUpdate(message))
+    bufferAllActions(notificationActions.statusUpdate(message))
   )
 
   // Dispatch market data to the store
   const sameCoin = (left, right) => left && right && left.key === right.key
   socketClient.onTicker((coin, ticker) =>
-    bufferAction(
+    bufferLatestAction(
       ACTION_KEY_TICKER + "/" + coin.key,
       tickerActions.setTicker(coin, ticker)
     )
@@ -122,7 +135,7 @@ export function initialise(s, history) {
       coin.exchange === exchange &&
       (coin.base === currency || coin.counter === currency)
     ) {
-      bufferAction(
+      bufferLatestAction(
         ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
         coinActions.setBalance(exchange, currency, balance)
       )
@@ -130,48 +143,59 @@ export function initialise(s, history) {
   })
   socketClient.onOrderBook((coin, orderBook) => {
     if (sameCoin(coin, selectedCoin()))
-      bufferAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(orderBook))
-  })
-  socketClient.onOrders((coin, orders, timestamp) => {
-    if (sameCoin(coin, selectedCoin()))
-      bufferAction(
-        ACTION_KEY_ORDERS,
-        coinActions.setOrders(orders.allOpenOrders, timestamp)
+      bufferLatestAction(
+        ACTION_KEY_ORDERBOOK,
+        coinActions.setOrderBook(orderBook)
       )
   })
   socketClient.onTrade((coin, trade) => {
     if (sameCoin(coin, selectedCoin()))
-      bufferAction(ACTION_KEY_TRADE + trade.id, coinActions.addTrade(trade))
+      bufferAllActions(coinActions.addTrade(trade))
   })
   socketClient.onUserTrade((coin, trade) => {
     if (sameCoin(coin, selectedCoin()))
-      store.dispatch(coinActions.addUserTrade(trade))
+      bufferAllActions(coinActions.addUserTrade(trade))
   })
   socketClient.onUserTradeHistory((coin, trades) => {
     if (sameCoin(coin, selectedCoin()))
-      store.dispatch(coinActions.setUserTrades(trades))
+      bufferAllActions(coinActions.setUserTrades(trades))
   })
-  socketClient.onOrderStatusChange((coin, orderStatusChange, timestamp) => {
+
+  socketClient.onOrderUpdate((coin, order, timestamp) => {
+    if (sameCoin(coin, selectedCoin()))
+      store.dispatch(coinActions.orderUpdated(order, timestamp))
+  })
+
+  // This is a bit hacky. The intent is to move this logic server side,
+  // so the presence of a snapshot/poll loop is invisible to the client.
+  // In the meantime, I'm not polluting the reducer with it.
+  socketClient.onOrdersSnapshot((coin, orders, timestamp) => {
     if (sameCoin(coin, selectedCoin())) {
-      if (orderStatusChange.type === "OPENED") {
-        store.dispatch(
-          coinActions.orderAdded(
-            {
-              currencyPair: {
-                base: coin.base,
-                counter: coin.counter
-              },
-              id: orderStatusChange.orderId,
-              status: "NEW",
-              timestamp: orderStatusChange.timestamp
-            },
-            timestamp
-          )
-        )
-      } else if (orderStatusChange.type === "CLOSED") {
-        store.dispatch(
-          coinActions.orderRemoved(orderStatusChange.orderId, timestamp)
-        )
+      var idsPresent = []
+      if (orders.length === 0) {
+        // Update that there are no orders
+        store.dispatch(coinActions.orderUpdated(null, timestamp))
+      } else {
+        // Updates for every order mentioned
+        orders.forEach(o => {
+          idsPresent.push(o.id)
+          store.dispatch(coinActions.orderUpdated(o, timestamp))
+        })
+      }
+
+      // Any order not mentioned should be removed
+      if (store.getState().coin.orders) {
+        store
+          .getState()
+          .coin.orders.filter(o => !idsPresent.includes(o.id))
+          .forEach(o => {
+            store.dispatch(
+              coinActions.orderUpdated(
+                { id: o.id, status: "CANCELED" },
+                timestamp
+              )
+            )
+          })
       }
     }
   })

@@ -24,8 +24,7 @@ const initialState = Immutable({
   orders: undefined,
   orderBook: undefined,
   userTradeHistory: undefined,
-  trades: undefined,
-  lastOrderUpdate: undefined
+  trades: undefined
 })
 
 export default function reduce(state = initialState, action = {}) {
@@ -70,12 +69,6 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         balance: null
       })
-    case types.SET_ORDERS:
-      return setOrders(
-        state,
-        action.payload.orders,
-        new Date(action.payload.timestamp)
-      )
     case types.SET_ORDERBOOK:
       return Immutable.merge(state, {
         orderBook: action.payload
@@ -84,112 +77,81 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, {
         userTradeHistory: action.payload
       })
-    case types.CANCEL_ORDER:
-      console.log("Order cancelled", action.payload)
-      return cancelOrder(
-        state,
-        action.payload.orderId,
-        new Date(action.payload.timestamp)
-      )
-    case types.ADD_ORDER:
-      console.log("Added order", action.payload)
-      return addOrder(
-        state,
-        action.payload.order,
-        new Date(action.payload.timestamp)
-      )
-    case types.ORDER_ADDED:
-      console.log("Order added", action.payload)
-      return orderAdded(
-        state,
-        action.payload.detail,
-        new Date(action.payload.timestamp)
-      )
-    case types.ORDER_REMOVED:
-      console.log("Order removed", action.payload)
-      return removeOrder(
-        state,
-        action.payload.orderId,
-        new Date(action.payload.timestamp)
-      )
+    case types.ORDER_UPDATED:
+      return orderUpdated(state, action.payload.order, action.payload.timestamp)
+    case types.CLEAR_ORDERS:
+      return Immutable.merge(state, {
+        orders: undefined
+      })
     default:
       return state
   }
 
-  function isOrderUpdateLate(state, timestamp) {
-    return (
-      state.lastOrderUpdate &&
-      timestamp.getTime() < state.lastOrderUpdate.getTime()
-    )
+  function orderUpdated(state, order, timestamp) {
+    if (order === null) {
+      return Immutable.merge(state, {
+        orders: []
+      })
+    }
+
+    const isRemoval =
+      order.status === "EXPIRED" ||
+      order.status === "CANCELED" ||
+      order.status === "FILLED"
+
+    // No orders at all yet
+    if (!state.orders) {
+      if (isRemoval) return state
+      return Immutable.merge(state, {
+        orders: [
+          {
+            ...order,
+            deleted: false,
+            serverTimestamp: timestamp
+          }
+        ]
+      })
+    }
+
+    // This order never seen before
+    const index = state.orders.findIndex(o => o.id === order.id)
+    if (index === -1) {
+      if (isRemoval) return state
+      return Immutable.merge(state, {
+        orders: state.orders.concat({
+          ...order,
+          deleted: false,
+          serverTimestamp: timestamp
+        })
+      })
+    }
+
+    // If we've previously registered the order as removed, then assume
+    // this update is late and stop
+    const prevVersion = state.orders[index]
+    if (prevVersion.deleted) return state
+
+    // If it's a removal, remove
+    if (isRemoval) return replaceOrderContent(index, { deleted: true })
+
+    // If the previous version is derived from a later timestamp than
+    // this update, stop
+    if (prevVersion.serverTimestamp > timestamp) return state
+
+    // Overwrite existing state with any values provided in the
+    // update
+    return replaceOrderContent(index, { ...order, serverTimestamp: timestamp })
   }
 
-  function setOrders(state, orders, timestamp) {
-    if (isOrderUpdateLate(state, timestamp)) {
-      console.log("Ignoring orders. Late")
-      return state
-    }
-    return Immutable.merge(state, { orders, lastOrderUpdate: timestamp })
-  }
-
-  function cancelOrder(state, orderId, timestamp) {
-    if (isOrderUpdateLate(state, timestamp)) {
-      console.log("Ignoring cancel order. Late")
-      return state
-    }
-    if (!state.orders) return state
-    const index = state.orders.findIndex(o => o.id === orderId)
-    if (index === -1) return state
+  function replaceOrderContent(index, replacement) {
     const orders = Immutable.asMutable(state.orders, { deep: true })
-    orders[index].status = "CANCELED"
-    return Immutable.merge(state, {
-      orders,
-      lastOrderUpdate: timestamp
-    })
-  }
-
-  function removeOrder(state, orderId, timestamp) {
-    if (isOrderUpdateLate(state, timestamp)) {
-      console.log("Ignoring remove order. Late")
-      return state
+    const existing = orders[index]
+    for (const key of Object.keys(replacement)) {
+      const val = replacement[key]
+      if (val !== undefined && val !== null) {
+        existing[key] = val
+      }
     }
-    if (!state.orders) return state
-    return Immutable.merge(state, {
-      orders: state.orders.filter(o => o.id !== orderId),
-      lastOrderUpdate: timestamp
-    })
-  }
-
-  function addOrder(state, order, timestamp) {
-    // When adding an order, assume that any state for it already in the store is more up to date,
-    // so use that in preference
-    if (!state.orders) return Immutable([order])
-    const index = state.orders.findIndex(o => o.id === order.id)
-    if (index === -1) {
-      return Immutable.merge(state, {
-        orders: state.orders.concat(order)
-      })
-    }
-    const orders = Immutable.asMutable(state.orders)
-    orders[index] = Immutable.merge(order, orders[index])
-    return Immutable.merge(state, { orders, lastOrderUpdate: timestamp })
-  }
-
-  function orderAdded(state, order, timestamp) {
-    if (isOrderUpdateLate(state, timestamp)) {
-      console.log("Ignoring order added. Late")
-      return state
-    }
-    // When reporting an order added, overwrite any existing state for it
-    if (!state.orders) return Immutable([order])
-    const index = state.orders.findIndex(o => o.id === order.id)
-    if (index === -1) {
-      return Immutable.merge(state, {
-        orders: state.orders.concat(order),
-        lastOrderUpdate: timestamp
-      })
-    }
-    const orders = Immutable.asMutable(state.orders)
-    orders[index] = Immutable.merge(orders[index], order)
-    return Immutable.merge(state, { orders, lastOrderUpdate: timestamp })
+    return Immutable.merge(state, { orders })
   }
 }

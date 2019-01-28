@@ -25,5 +25,5 @@ public enum MarketDataType {
   OPEN_ORDERS,
   USER_TRADE_HISTORY,
   BALANCE,
-  ORDER_STATUS_CHANGE,
+  ORDER,
 }

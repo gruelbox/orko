@@ -20,30 +20,31 @@ package com.gruelbox.orko.marketdata;
 
 import java.util.Date;
 
+import org.knowm.xchange.dto.Order;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.auto.value.AutoValue;
 import com.gruelbox.orko.spi.TickerSpec;
 
-import info.bitrich.xchangestream.core.OrderStatusChange;
 
 @AutoValue
 @JsonDeserialize
-public abstract class OrderStatusChangeEvent {
+public abstract class OrderChangeEvent {
 
   @JsonCreator
-  public static OrderStatusChangeEvent create(@JsonProperty("spec") TickerSpec spec,
-                                              @JsonProperty("orderStatusChange") OrderStatusChange orderStatusChange,
-                                              @JsonProperty("timestamp") Date timestamp) {
-    return new AutoValue_OrderStatusChangeEvent(spec, orderStatusChange, timestamp);
+  public static OrderChangeEvent create(@JsonProperty("spec") TickerSpec spec,
+                                        @JsonProperty("order") Order order,
+                                        @JsonProperty("timestamp") Date timestamp) {
+    return new AutoValue_OrderChangeEvent(spec, order, timestamp);
   }
 
   @JsonProperty
   public abstract TickerSpec spec();
 
   @JsonProperty
-  public abstract OrderStatusChange orderStatusChange();
+  public abstract Order order();
 
   @JsonProperty
   public abstract Date timestamp();

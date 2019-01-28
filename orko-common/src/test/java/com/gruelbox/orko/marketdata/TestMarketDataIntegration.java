@@ -266,15 +266,15 @@ public class TestMarketDataIntegration {
   private <T> Flowable<T> getSubscription(MarketDataSubscriptionManager manager, MarketDataSubscription sub) {
     switch (sub.type()) {
       case OPEN_ORDERS:
-        return (Flowable<T>) manager.getOpenOrders().filter(o -> o.spec().equals(sub.spec()));
+        return (Flowable<T>) manager.getOrderSnapshots().filter(o -> o.spec().equals(sub.spec()));
       case ORDERBOOK:
-        return (Flowable<T>) manager.getOrderBooks().filter(o -> o.spec().equals(sub.spec()));
+        return (Flowable<T>) manager.getOrderBookSnapshots().filter(o -> o.spec().equals(sub.spec()));
       case TICKER:
         return (Flowable<T>) manager.getTickers().filter(o -> o.spec().equals(sub.spec()));
       case TRADES:
         return (Flowable<T>) manager.getTrades().filter(o -> o.spec().equals(sub.spec()));
       case USER_TRADE_HISTORY:
-        return (Flowable<T>) manager.getUserTradeHistory().filter(o -> o.spec().equals(sub.spec()));
+        return (Flowable<T>) manager.getUserTradeHistorySnapshots().filter(o -> o.spec().equals(sub.spec()));
       case BALANCE:
         return (Flowable<T>) manager.getBalances().filter(b -> b.currency().equals(sub.spec().base()) || b.currency().equals(sub.spec().counter()));
       default:
@@ -286,7 +286,7 @@ public class TestMarketDataIntegration {
   private <T> Flowable<T> getSubscription(ExchangeEventSubscription subscription, MarketDataSubscription sub) {
     switch (sub.type()) {
       case OPEN_ORDERS:
-        return (Flowable<T>) subscription.getOpenOrders();
+        return (Flowable<T>) subscription.getOrderSnapshots();
       case ORDERBOOK:
         return (Flowable<T>) subscription.getOrderBooks();
       case TICKER:
@@ -294,9 +294,9 @@ public class TestMarketDataIntegration {
       case TRADES:
         return (Flowable<T>) subscription.getTrades();
       case USER_TRADE_HISTORY:
-        return (Flowable<T>) subscription.getUserTradeHistory();
+        return (Flowable<T>) subscription.getUserTradeHistorySnapshots();
       case BALANCE:
-        return (Flowable<T>) subscription.getBalance();
+        return (Flowable<T>) subscription.getBalances();
       default:
         throw new IllegalArgumentException("Unknown market data type");
     }

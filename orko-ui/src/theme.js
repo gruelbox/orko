@@ -142,7 +142,7 @@ i {
   color: ${props => props.theme.colors.sell};
 }
 
-.oco-CANCELED {
+.oco-PENDING_CANCEL {
   opacity: 0.4;
 }
 

@@ -21,7 +21,7 @@ package com.gruelbox.orko.strategy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
-import com.gruelbox.orko.marketdata.OrderStatusChangeEvent;
+import com.gruelbox.orko.marketdata.OrderChangeEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.util.SafelyDispose;
 
@@ -29,21 +29,21 @@ import io.dropwizard.lifecycle.Managed;
 import io.reactivex.disposables.Disposable;
 
 @Singleton
-class OrderStatusChangeLogger implements Managed {
+class OrderChangeLogger implements Managed {
 
   private final MarketDataSubscriptionManager marketDataSubscriptionManager;
   private Disposable disposable;
   private final NotificationService notificationService;
 
   @Inject
-  OrderStatusChangeLogger(MarketDataSubscriptionManager marketDataSubscriptionManager, NotificationService notificationService) {
+  OrderChangeLogger(MarketDataSubscriptionManager marketDataSubscriptionManager, NotificationService notificationService) {
     this.marketDataSubscriptionManager = marketDataSubscriptionManager;
     this.notificationService = notificationService;
   }
 
   @Override
   public void start() throws Exception {
-    disposable = marketDataSubscriptionManager.getOrderStatusChanges().subscribe(this::onStatusChange);
+    disposable = marketDataSubscriptionManager.getOrderChanges().subscribe(this::onChange);
   }
 
   @Override
@@ -51,10 +51,10 @@ class OrderStatusChangeLogger implements Managed {
     SafelyDispose.of(disposable);
   }
 
-  private void onStatusChange(OrderStatusChangeEvent e) {
+  private void onChange(OrderChangeEvent e) {
     notificationService.info(String.format("%s order [%s] on %s %s market",
-      e.orderStatusChange().getType(),
-      e.orderStatusChange().getOrderId(),
+      e.order().getStatus(),
+      e.order().getId(),
       e.spec().exchange(),
       e.spec().pairName()
     ));

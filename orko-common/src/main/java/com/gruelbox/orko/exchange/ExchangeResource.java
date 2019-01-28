@@ -47,6 +47,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -73,6 +74,8 @@ import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.marketdata.Balance;
+import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
+import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
@@ -103,12 +106,18 @@ public class ExchangeResource implements WebResource {
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
   private final OrkoConfiguration configuration;
+  private final MarketDataSubscriptionManager subscriptionManager;
 
   @Inject
-  ExchangeResource(ExchangeService exchanges, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, OrkoConfiguration configuration) {
+  ExchangeResource(ExchangeService exchanges,
+                   TradeServiceFactory tradeServiceFactory,
+                   AccountServiceFactory accountServiceFactory,
+                   MarketDataSubscriptionManager subscriptionManager,
+                   OrkoConfiguration configuration) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
+    this.subscriptionManager = subscriptionManager;
     this.configuration = configuration;
   }
 
@@ -301,13 +310,11 @@ public class ExchangeResource implements WebResource {
     TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
 
     try {
-      Date now = new Date();
-      String id = order.containsKey("stopPrice")
+      Order result = order.containsKey("stopPrice")
           ? postStopOrder(exchange, order, tradeService)
           : postLimitOrder(order, tradeService);
-      return Response.ok()
-          .entity(ImmutableMap.of("id", id, "timestamp", now))
-          .build();
+      postOrderToSubscribers(exchange, result);
+      return Response.ok().entity(result).build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).entity(ImmutableMap.of("message", "Order type not currently supported by exchange.")).build();
     } catch (Exception e) {
@@ -316,36 +323,48 @@ public class ExchangeResource implements WebResource {
     }
   }
 
-  private String postLimitOrder(Map<String, String> order, TradeService tradeService) throws IOException {
-    return tradeService.placeLimitOrder(
-      new LimitOrder(
-        OrderType.valueOf(order.get("type")),
-        new BigDecimal(order.get("amount")),
-        new CurrencyPair(order.get("base"), order.get("counter")),
-        null,
-        new Date(),
-        new BigDecimal(order.get("limitPrice"))
-      ));
+  private LimitOrder postLimitOrder(Map<String, String> order, TradeService tradeService) throws IOException {
+    LimitOrder limitOrder = new LimitOrder(
+      OrderType.valueOf(order.get("type")),
+      new BigDecimal(order.get("amount")),
+      new CurrencyPair(order.get("base"), order.get("counter")),
+      null,
+      new Date(),
+      new BigDecimal(order.get("limitPrice"))
+    );
+    String id = tradeService.placeLimitOrder(limitOrder);
+    return LimitOrder.Builder.from(limitOrder).id(id).orderStatus(OrderStatus.NEW).build();
   }
 
-  private String postStopOrder(String exchange, Map<String, String> order, TradeService tradeService) throws IOException {
+  private StopOrder postStopOrder(String exchange, Map<String, String> order, TradeService tradeService) throws IOException {
     String limitPrice = order.get("limitPrice");
-    return tradeService.placeStopOrder(
-      new StopOrder(
-        OrderType.valueOf(order.get("type")),
-        new BigDecimal(order.get("amount")),
-        new CurrencyPair(order.get("base"), order.get("counter")),
-        null,
-        new Date(),
-        new BigDecimal(order.get("stopPrice")),
-        StringUtils.isEmpty(limitPrice) ? null : new BigDecimal(limitPrice),
-        BigDecimal.ZERO,
-        BigDecimal.ZERO,
-        OrderStatus.PENDING_NEW
-      )
+    StopOrder stopOrder = new StopOrder(
+      OrderType.valueOf(order.get("type")),
+      new BigDecimal(order.get("amount")),
+      new CurrencyPair(order.get("base"), order.get("counter")),
+      null,
+      new Date(),
+      new BigDecimal(order.get("stopPrice")),
+      StringUtils.isEmpty(limitPrice) ? null : new BigDecimal(limitPrice),
+      BigDecimal.ZERO,
+      BigDecimal.ZERO,
+      OrderStatus.PENDING_NEW
+    );
+    String id = tradeService.placeStopOrder(stopOrder);
+    return StopOrder.Builder.from(stopOrder).id(id).orderStatus(OrderStatus.NEW).build();
+  }
+
+  private void postOrderToSubscribers(String exchange, Order order) {
+    CurrencyPair currencyPair = order.getCurrencyPair();
+    subscriptionManager.postOrder(
+      TickerSpec.builder()
+        .exchange(exchange)
+        .base(currencyPair.base.getCurrencyCode())
+        .counter(currencyPair.counter.getCurrencyCode())
+        .build(),
+      order
     );
   }
-
 
   /**
    * Fetches all open orders the the specified currency, on all pairs

@@ -20,8 +20,8 @@ package com.gruelbox.orko.websocket;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
+import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDER_STATUS_CHANGE;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
@@ -139,7 +139,7 @@ public final class OrkoWebSocketServer {
           mutateSubscriptions(BALANCE, request.tickers());
           break;
         case CHANGE_ORDER_STATUS_CHANGE:
-          mutateSubscriptions(ORDER_STATUS_CHANGE, request.tickers());
+          mutateSubscriptions(ORDER, request.tickers());
           break;
         case UPDATE_SUBSCRIPTIONS:
           updateSubscriptions(session);
@@ -231,7 +231,7 @@ public final class OrkoWebSocketServer {
           .filter(o -> isReady())
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.TRADE));
-      private final Disposable orderStatusChanges = subscription.getOrderStatusChanges()
+      private final Disposable orders = subscription.getOrderChanges()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.ORDER_STATUS_CHANGE));
 
@@ -247,10 +247,10 @@ public final class OrkoWebSocketServer {
           .flatMap(f -> f)
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
-      private final Disposable openOrders = subscription.getOpenOrders()
+      private final Disposable openOrders = subscription.getOrderSnapshots()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.OPEN_ORDERS));
-      private final Disposable balance = subscription.getBalance()
+      private final Disposable balance = subscription.getBalances()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.BALANCE));
 
@@ -260,7 +260,7 @@ public final class OrkoWebSocketServer {
             orderBook.isDisposed() &&
             tickers.isDisposed() &&
             trades.isDisposed() &&
-            orderStatusChanges.isDisposed() &&
+            orders.isDisposed() &&
             userTrades.isDisposed() &&
             userTradeHistory.isDisposed() &&
             balance.isDisposed();
@@ -268,7 +268,7 @@ public final class OrkoWebSocketServer {
 
       @Override
       public void dispose() {
-        SafelyDispose.of(openOrders, orderBook, tickers, trades, orderStatusChanges, userTrades, userTradeHistory, balance);
+        SafelyDispose.of(openOrders, orderBook, tickers, trades, orders, userTrades, userTradeHistory, balance);
       }
     };
   }

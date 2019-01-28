@@ -70,7 +70,7 @@ export const getOrdersForSelectedCoin = createSelector(
   (orders, stopJobs, selectedCoin) => {
     if (!selectedCoin) return null
 
-    var result = !orders ? [] : orders
+    var result = !orders ? [] : orders.filter(o => !o.deleted)
 
     const server = stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))

@@ -21,7 +21,7 @@ package com.gruelbox.orko.subscription;
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDER_STATUS_CHANGE;
+import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
@@ -100,7 +100,7 @@ class SubscriptionManager implements Managed {
       MarketDataSubscription.create(spec, USER_TRADE_HISTORY),
       MarketDataSubscription.create(spec, BALANCE),
       MarketDataSubscription.create(spec, TRADES),
-      MarketDataSubscription.create(spec, ORDER_STATUS_CHANGE)
+      MarketDataSubscription.create(spec, ORDER)
     );
   }
 }

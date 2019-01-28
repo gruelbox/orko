@@ -21,13 +21,13 @@ import OpenOrders from "../components/OpenOrders"
 import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
 import WhileLoading from "../components/WhileLoading"
-import * as coinActions from "../store/coin/actions"
+import * as exchangeActions from "../store/exchanges/actions"
 import * as jobActions from "../store/job/actions"
 import { getOrdersForSelectedCoin } from "../selectors/coins"
 
 class OpenOrdersContainer extends React.Component {
   onCancelExchange = (id, orderType, coin) => {
-    this.props.dispatch(coinActions.cancelOrder(coin, id, orderType))
+    this.props.dispatch(exchangeActions.cancelOrder(coin, id, orderType))
   }
 
   onCancelServer = jobId => {

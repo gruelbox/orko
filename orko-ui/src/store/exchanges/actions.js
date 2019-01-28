@@ -49,20 +49,12 @@ export function submitLimitOrder(exchange, order) {
   return authActions.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
-      coinActions.addOrder(
+      coinActions.orderUpdated(
         {
-          currencyPair: {
-            base: order.base,
-            counter: order.counter
-          },
-          originalAmount: order.amount,
-          id: response.id,
-          status: "PENDING_NEW",
-          type: order.type,
-          limitPrice: order.limitPrice,
-          cumulativeAmount: 0
+          ...response,
+          status: "PENDING_NEW"
         },
-        response.timestamp
+        0 // Deliberately old timestamp
       ),
     error =>
       errorActions.setForeground("Could not submit order: " + error.message)
@@ -73,22 +65,37 @@ export function submitStopOrder(exchange, order) {
   return authActions.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
-      coinActions.addOrder(
+      coinActions.orderUpdated(
         {
-          currencyPair: {
-            base: order.base,
-            counter: order.counter
-          },
-          originalAmount: order.amount,
-          id: response.id,
-          status: "PENDING_NEW",
-          type: order.type,
-          stopPrice: order.stopPrice,
-          cumulativeAmount: 0
+          ...response,
+          status: "PENDING_NEW"
         },
-        response.timestamp
+        0 // Deliberately old timestamp
       ),
     error =>
       errorActions.setForeground("Could not submit order: " + error.message)
   )
+}
+
+export function cancelOrder(coin, orderId, orderType) {
+  return async (dispatch, getState) => {
+    dispatch(
+      coinActions.orderUpdated(
+        {
+          id: orderId,
+          status: "PENDING_CANCEL"
+        },
+        // Deliberately new enough to be relevant now but get immediately overwritten
+        getState().coin.orders.find(o => o.id === orderId).serverTimestamp + 1
+      )
+    )
+    dispatch(
+      authActions.wrappedRequest(
+        () => exchangesService.cancelOrder(coin, orderId, orderType),
+        null,
+        error =>
+          errorActions.setForeground("Could not cancel order: " + error.message)
+      )
+    )
+  }
 }

@@ -97,9 +97,9 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     }
 
     @Override
-    public Flowable<OpenOrdersEvent> getOpenOrders() {
+    public Flowable<OpenOrdersEvent> getOrderSnapshots() {
       Set<TickerSpec> filtered = subscriptionsFor(OPEN_ORDERS);
-      return marketDataSubscriptionManager.getOpenOrders()
+      return marketDataSubscriptionManager.getOrderSnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -107,7 +107,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     @Override
     public Flowable<OrderBookEvent> getOrderBooks() {
       Set<TickerSpec> filtered = subscriptionsFor(ORDERBOOK);
-      return marketDataSubscriptionManager.getOrderBooks()
+      return marketDataSubscriptionManager.getOrderBookSnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -121,17 +121,17 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     }
 
     @Override
-    public Flowable<OrderStatusChangeEvent> getOrderStatusChanges() {
-      Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.ORDER_STATUS_CHANGE);
-      return marketDataSubscriptionManager.getOrderStatusChanges()
+    public Flowable<OrderChangeEvent> getOrderChanges() {
+      Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.ORDER);
+      return marketDataSubscriptionManager.getOrderChanges()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
 
     @Override
-    public Flowable<TradeHistoryEvent> getUserTradeHistory() {
+    public Flowable<TradeHistoryEvent> getUserTradeHistorySnapshots() {
       Set<TickerSpec> filtered = subscriptionsFor(USER_TRADE_HISTORY);
-      return marketDataSubscriptionManager.getUserTradeHistory()
+      return marketDataSubscriptionManager.getUserTradeHistorySnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -140,13 +140,13 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     public Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit() {
       return FluentIterable
           .from(subscriptionsFor(USER_TRADE_HISTORY))
-          .transform(spec -> marketDataSubscriptionManager.getUserTradeHistory()
+          .transform(spec -> marketDataSubscriptionManager.getUserTradeHistorySnapshots()
               .filter(e -> e.spec().equals(spec))
               .onBackpressureLatest());
     }
 
     @Override
-    public Flowable<BalanceEvent> getBalance() {
+    public Flowable<BalanceEvent> getBalances() {
       ImmutableSet<String> exchangeCurrenciesSubscribed = FluentIterable.from(subscriptionsFor(BALANCE))
         .transformAndConcat(s -> ImmutableSet.of(s.exchange() + "/" + s.base(), s.exchange() + "/" + s.counter()))
         .toSet();

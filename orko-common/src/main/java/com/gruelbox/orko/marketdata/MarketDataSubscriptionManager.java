@@ -19,8 +19,8 @@
 package com.gruelbox.orko.marketdata;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
+import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDER_STATUS_CHANGE;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static java.time.LocalDateTime.now;
@@ -127,7 +127,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private static final int MAX_TRADES = 20;
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
-  private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK, MarketDataType.ORDER_STATUS_CHANGE);
+  private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK, MarketDataType.ORDER);
 
   private static final Disposable DUMMY_DISPOSABLE = new Disposable() {
     @Override
@@ -160,7 +160,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final PersistentPublisher<TradeEvent> tradesOut;
   private final CachingPersistentPublisher<TradeHistoryEvent, TickerSpec> userTradeHistoryOut;
   private final CachingPersistentPublisher<BalanceEvent, String> balanceOut;
-  private final PersistentPublisher<OrderStatusChangeEvent> orderStatusChangeOut;
+  private final PersistentPublisher<OrderChangeEvent> orderStatusChangeOut;
 
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
@@ -234,7 +234,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    *
    * @return The stream.
    */
-  public Flowable<OpenOrdersEvent> getOpenOrders() {
+  public Flowable<OpenOrdersEvent> getOrderSnapshots() {
     return openOrdersOut.getAll();
   }
 
@@ -244,7 +244,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    *
    * @return The stream.
    */
-  public Flowable<OrderBookEvent> getOrderBooks() {
+  public Flowable<OrderBookEvent> getOrderBookSnapshots() {
     return orderbookOut.getAll();
   }
 
@@ -264,7 +264,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    *
    *  @return The stream.
    */
-  public Flowable<TradeHistoryEvent> getUserTradeHistory() {
+  public Flowable<TradeHistoryEvent> getUserTradeHistorySnapshots() {
     return userTradeHistoryOut.getAll();
   }
 
@@ -280,11 +280,22 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
   /**
+   * Call immediately after submitting an order to ensure the full order details appear
+   * in the event stream at some point (allows for Coinbase not providing everything).
+   *
+   * TODO temporary until better support is arrange in xchange-stream
+   */
+  public void postOrder(TickerSpec spec, Order order) {
+    orderStatusChangeOut.emit(OrderChangeEvent.create(spec, order, new Date()));
+  }
+
+
+  /**
    * Gets a stream with binance execution reports.
    *
    * @return The stream.
    */
-  public Flowable<OrderStatusChangeEvent> getOrderStatusChanges() {
+  public Flowable<OrderChangeEvent> getOrderChanges() {
     return orderStatusChangeOut.getAll();
   }
 
@@ -613,11 +624,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                   .map(t -> convertBinanceOrderType(sub, t))
                   .map(t -> TradeEvent.create(sub.spec(), t))
                   .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
-            case ORDER_STATUS_CHANGE:
+            case ORDER:
               try {
-                return streaming.getOrderStatusChanges(sub.spec().currencyPair())
-                    .map(t -> OrderStatusChangeEvent.create(sub.spec(), t, new Date()))
-                    .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order status stream for " + sub, e));
+                return streaming.getOrderChanges(sub.spec().currencyPair())
+                    .map(t -> OrderChangeEvent.create(sub.spec(), t, new Date()))
+                    .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order stream for " + sub, e));
               } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
                 // Fine. We don't rely on this anyway
                 return DUMMY_DISPOSABLE;
@@ -668,8 +679,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           if (s.type().equals(TRADES)) {
             builder.addTrades(s.spec().currencyPair());
           }
-          if (s.type().equals(ORDER_STATUS_CHANGE)) {
-            builder.addOrderStatusChange(s.spec().currencyPair());
+          if (s.type().equals(ORDER)) {
+            builder.addOrders(s.spec().currencyPair());
           }
         });
       exchangeService.rateController(exchangeName).acquire();
@@ -733,7 +744,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               case USER_TRADE_HISTORY:
                 pollAndEmitUserTradeHistory(subscription, spec);
                 break;
-              case ORDER_STATUS_CHANGE:
+              case ORDER:
                 // Not currently support by poll
                 break;
               default:

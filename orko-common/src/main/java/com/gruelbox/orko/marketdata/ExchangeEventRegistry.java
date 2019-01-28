@@ -34,12 +34,12 @@ public interface ExchangeEventRegistry {
 
   public interface ExchangeEventSubscription extends AutoCloseable {
     Flowable<TickerEvent> getTickers();
-    Flowable<OpenOrdersEvent> getOpenOrders();
+    Flowable<OpenOrdersEvent> getOrderSnapshots();
     Flowable<OrderBookEvent> getOrderBooks();
     Flowable<TradeEvent> getTrades();
-    Flowable<OrderStatusChangeEvent> getOrderStatusChanges();
-    Flowable<TradeHistoryEvent> getUserTradeHistory();
-    Flowable<BalanceEvent> getBalance();
+    Flowable<OrderChangeEvent> getOrderChanges();
+    Flowable<TradeHistoryEvent> getUserTradeHistorySnapshots();
+    Flowable<BalanceEvent> getBalances();
 
     Iterable<Flowable<TickerEvent>> getTickersSplit();
     Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit();
