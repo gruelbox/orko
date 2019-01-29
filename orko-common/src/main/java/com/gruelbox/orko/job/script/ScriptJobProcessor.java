@@ -72,8 +72,11 @@ import jdk.nashorn.internal.runtime.ParserException;
 /**
  * Processor for {@link ScriptJob}.
  *
+ * TODO move to Rhino or GraalVM.
+ *
  * @author Graham Crockford
  */
+@SuppressWarnings("restriction")
 class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptJobProcessor.class);
