@@ -21,6 +21,7 @@ package com.gruelbox.orko.jobrun;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.spi.Job;
@@ -50,6 +52,8 @@ class GuardianLoop extends AbstractExecutionThreadService {
   private final EventBus eventBus;
   private final JobRunConfiguration config;
   private final Transactionally transactionally;
+  private final Provider<SessionFactory> sessionFactory;
+
   private volatile boolean kill;
   private final CountDownLatch killed = new CountDownLatch(1);
 
@@ -58,12 +62,14 @@ class GuardianLoop extends AbstractExecutionThreadService {
                JobRunner jobRunner,
                EventBus eventBus,
                JobRunConfiguration config,
-               Transactionally transactionally) {
+               Transactionally transactionally,
+               Provider<SessionFactory> sessionFactory) {
     jobAccess = jobaccess;
     this.jobRunner = jobRunner;
     this.eventBus = eventBus;
     this.config = config;
     this.transactionally = transactionally;
+    this.sessionFactory = sessionFactory;
   }
 
   @Override
@@ -73,22 +79,27 @@ class GuardianLoop extends AbstractExecutionThreadService {
     while (isRunning() && !Thread.currentThread().isInterrupted() && !kill) {
       try {
 
+        // When the app is forcibly killed, this seems to happen a lot
+        // and sends the app into an endless loop, so for the time being this
+        // will break the cycle.
+        if (sessionFactory.get().isClosed()) {
+          LOGGER.info(this + " shutting down due to closure of the session factory");
+          break;
+        }
+
         LOGGER.debug("Checking and restarting jobs");
         lockAndStartInactiveJobs();
 
         LOGGER.debug("Sleeping");
-        try {
-          Thread.sleep((long) config.getGuardianLoopSeconds() * 1000);
-        } catch (InterruptedException e) {
-          LOGGER.info("Shutting down " + this);
-          Thread.currentThread().interrupt();
-          break;
-        }
+        Thread.sleep((long) config.getGuardianLoopSeconds() * 1000);
 
-        // Refresh the locks on the running jobs
         LOGGER.debug("Refreshing locks");
         eventBus.post(KeepAliveEvent.INSTANCE);
 
+      } catch (InterruptedException e) {
+        LOGGER.info("Shutting down " + this);
+        Thread.currentThread().interrupt();
+        break;
       } catch (Exception e) {
         LOGGER.error("Error in keep-alive loop", e);
       }
