@@ -63,16 +63,7 @@
       </releases>
       <snapshots>
         <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>snapshots-repo</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
       </snapshots>
     </repository>
   </repositories>
@@ -185,7 +176,7 @@
     
     <!--<xchange.groupid>org.knowm.xchange</xchange.groupid>-->
     <xchange.groupid>com.github.badgerwithagun.XChange</xchange.groupid>
-    <xchange.version>4.3.14.orko.3</xchange.version>
+    <xchange.version>orko-SNAPSHOT</xchange.version>
 
     <!--<xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid> -->
     <xchange.stream.groupid>com.github.badgerwithagun.xchange-stream</xchange.stream.groupid>
