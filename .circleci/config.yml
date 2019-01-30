@@ -37,7 +37,7 @@ jobs:
       - save_cache:
           paths:
             - ~/usr/local/lib/node_modules
-          key: node-v3-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
+          key: node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
 
       - run:
           name: Saving checkstyle reports
