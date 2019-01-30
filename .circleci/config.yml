@@ -24,12 +24,9 @@ jobs:
             - maven-repo-v2-
       - restore_cache:
           keys:
-            - node-v3-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
-            - node-v3-{{ .Branch }}-
-            - node-v3-
-      - restore_cache:
-          keys:
-            - cypress-v2-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
+            - node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
+            - node-v4-{{ .Branch }}-
+            - node-v4-
 
       - run: mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
 
@@ -39,17 +36,8 @@ jobs:
           key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
       - save_cache:
           paths:
-            - /usr/local/lib/node_modules
-            - orko-ui/node_modules
-            - orko-ui/node
-          key: node-v3-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
-      - save_cache:
-          key: cypress-v2-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package.json" }}
-          paths:
-            - orko-end-to-end-testing/node_modules
-            - orko-end-to-end-testing/node
-            - ~/.npm
-            - ~/.cache
+            - ~/usr/local/lib/node_modules
+          key: node-v3-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
 
       - run:
           name: Saving checkstyle reports
