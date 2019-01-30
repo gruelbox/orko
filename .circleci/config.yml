@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk-node-browsers
+      - image: circleci/openjdk:8-jdk-browsers@sha256:6e5886b4f5f90f1ae5184a26f70e1d9a308e4675693a695da796ebd2a709022d
         environment:
           MAVEN_OPTS: -Xmx3200m
       - image: circleci/mysql:5.7
