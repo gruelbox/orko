@@ -123,7 +123,10 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>DEBUG=cypress:* run cypress:run</arguments>
+              <arguments>run cypress:run</arguments>
+              <environmentVariables>
+                <DEBUG>cypress:*</DEBUG>
+              </environmentVariables> 
             </configuration>
           </execution>
         </executions>
