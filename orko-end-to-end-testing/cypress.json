@@ -1,5 +1,6 @@
 {
   "baseUrl": "http://localhost:8080",
+  "port": 8081,
   "video": false,
   "reporter": "junit",
   "reporterOptions": {
