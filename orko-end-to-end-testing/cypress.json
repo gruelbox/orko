@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://localhost:8080",
-  "port": 8081,
+  "blacklistHosts": "accounts.google.com,clientservices.googleapis.com",
   "video": false,
   "reporter": "junit",
   "reporterOptions": {
