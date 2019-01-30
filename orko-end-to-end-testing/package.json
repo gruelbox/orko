@@ -4,7 +4,7 @@
   "description": "Runs the entire application and performs sanity checks",
   "main": "index.js",
   "scripts": {
-    "cypress:open": "cypress open --browser chrome",
+    "cypress:open": "cypress open",
     "cypress:run": "cypress run --browser chrome",
     "cypress:verify": "cypress verify"
   },
