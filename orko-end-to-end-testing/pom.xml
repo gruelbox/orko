@@ -124,9 +124,6 @@
             </goals>
             <configuration>
               <arguments>run cypress:run</arguments>
-              <environmentVariables>
-                <DEBUG>cypress:*</DEBUG>
-              </environmentVariables> 
             </configuration>
           </execution>
         </executions>
