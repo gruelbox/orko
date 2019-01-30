@@ -97,27 +97,27 @@ export function initialise(s, history) {
       store.dispatch(socketActions.setConnectionState(connected))
       if (connected) {
         if (initialising) {
-          bufferAllActions(notificationActions.localMessage("Socket connected"))
+          store.dispatch(notificationActions.localMessage("Socket connected"))
           initialising = false
         } else {
-          bufferAllActions(notificationActions.localAlert("Socket reconnected"))
+          store.dispatch(notificationActions.localAlert("Socket reconnected"))
         }
         resubscribe()
       } else {
-        bufferAllActions(notificationActions.localError("Socket disconnected"))
+        store.dispatch(notificationActions.localError("Socket disconnected"))
       }
     }
   })
 
   // Dispatch notifications etc to the store
   socketClient.onError(message =>
-    bufferAllActions(notificationActions.localError(message))
+    store.dispatch(notificationActions.localError(message))
   )
   socketClient.onNotification(message =>
-    bufferAllActions(notificationActions.add(message))
+    store.dispatch(notificationActions.add(message))
   )
   socketClient.onStatusUpdate(message =>
-    bufferAllActions(notificationActions.statusUpdate(message))
+    store.dispatch(notificationActions.statusUpdate(message))
   )
 
   // Dispatch market data to the store
