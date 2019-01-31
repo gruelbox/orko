@@ -27,8 +27,6 @@ matrix:
       name: "JUnit tests"
       script: mvn -B -U -T 1C -Pproduction clean install -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     - name: "Integration tests"
-      env: NODE_VERSION="11.3.0"
-      before_install: nvm install $NODE_VERSION
       env: CYPRESS_RECORD_KEY=a9198746-9196-45b3-ae90-2a7b7468051e
       script: mvn -B -U -T 1C -Pintegration-test clean integration-test -Dskip.surefire.tests=true -Dspotbugs.skip=true -Dcheckstyle.skip -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     - name: "MySQL tests"
