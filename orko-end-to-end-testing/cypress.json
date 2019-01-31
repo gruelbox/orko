@@ -1,6 +1,9 @@
 {
   "baseUrl": "http://localhost:8080",
-  "blacklistHosts": ["accounts.google.com","clientservices.googleapis.com"],
+  "blacklistHosts": [
+    "accounts.google.com",
+    "clientservices.googleapis.com"
+  ],
   "video": false,
   "reporter": "junit",
   "reporterOptions": {
@@ -8,5 +11,6 @@
     "toConsole": true
   },
   "viewportWidth": 1920,
-  "viewportHeight": 1080
+  "viewportHeight": 1080,
+  "projectId": "ttud56"
 }

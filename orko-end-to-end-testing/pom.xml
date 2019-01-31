@@ -56,7 +56,6 @@
             <configuration>
               <name>orko</name>
               <workingDir>../../orko-app</workingDir>
-              <waitForInterrupt>false</waitForInterrupt>
               <healthcheckUrl>http://localhost:8080/</healthcheckUrl>
               <arguments>
                 <argument>java</argument>
@@ -86,17 +85,6 @@
         <version>${frontend-maven-plugin-version}</version>
         <executions>
           <execution>
-            <id>install node and npm</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <configuration>
-              <nodeVersion>v8.11.1</nodeVersion>
-              <npmVersion>6.4.1</npmVersion>
-            </configuration>
-          </execution>
-          <execution>
             <id>npm ci</id>
             <phase>pre-integration-test</phase>
             <goals>
@@ -123,7 +111,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run cypress:run</arguments>
+              <arguments>run cypress:runrecord</arguments>
             </configuration>
           </execution>
         </executions>
