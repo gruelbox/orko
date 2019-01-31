@@ -19,7 +19,7 @@ Feel like creating your own special order types, such as soft stops which ignore
 
 And best of all, it's completely [free](https://www.fsf.org/about/what-is-free-software) (as in "free speech" as well as "free beer"). 
 
-Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/badgerwithagun/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/badgerwithagun/orko/wiki/Financial-Support) and [how to help](https://github.com/badgerwithagun/orko/wiki/Project-status).
+Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/badgerwithagun/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/badgerwithagun/orko/wiki/Supporting_The_Project) and [how to help](https://github.com/badgerwithagun/orko/wiki/Project-status).
 
 <img align="right" src=".github/mobile1.png" width="281" height="609"/>
 
