@@ -113,7 +113,6 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Maintains subscriptions to multiple exchanges' market data, using web sockets where it can
@@ -908,8 +907,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     PersistentPublisher() {
       this.flowable = setup(Flowable.create((FlowableEmitter<T> e) -> emitter.set(e.serialize()), BackpressureStrategy.MISSING))
           .share()
-          .onBackpressureLatest()
-          .observeOn(Schedulers.computation());
+          .onBackpressureLatest();
       subscription = this.flowable.subscribe(eventBus::post);
     }
 
