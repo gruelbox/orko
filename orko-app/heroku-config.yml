@@ -66,4 +66,5 @@ logging:
     "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.binance": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.binance.BinanceUserDataStreamingService": ${LOG_LEVEL_BINANCE_RAW_USER:-INFO}
     "si.mazi.rescu": ERROR
