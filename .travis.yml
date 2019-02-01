@@ -26,7 +26,7 @@ matrix:
     - name: "MySQL tests"
       services: mysql
       before_install: mysql -e 'CREATE DATABASE test;'
-      script: mvn -B -U clean test -Dmorf.mysql.noadmin=true -Dskip.surefire.tests=true -Dspotbugs.skip=true -Dcheckstyle.skip -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://travis@127.0.0.1/test
+      script: mvn -B -U clean test -Dmorf.mysql.noadmin=true -Dspotbugs.skip=true -Dcheckstyle.skip -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://travis@127.0.0.1/test
 cache:
   npm: true
   directories:
