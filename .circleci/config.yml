@@ -22,7 +22,7 @@ jobs:
             - node-v4-{{ .Branch }}-
             - node-v4-
 
-      - run: mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+      - run: mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
 
       - save_cache:
           paths:
