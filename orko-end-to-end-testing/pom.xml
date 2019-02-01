@@ -56,7 +56,6 @@
             <configuration>
               <name>orko</name>
               <workingDir>../../orko-app</workingDir>
-              <waitForInterrupt>false</waitForInterrupt>
               <healthcheckUrl>http://localhost:8080/</healthcheckUrl>
               <arguments>
                 <argument>java</argument>
@@ -123,7 +122,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run cypress:run</arguments>
+              <arguments>run cypress:runrecord</arguments>
             </configuration>
           </execution>
         </executions>

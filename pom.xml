@@ -99,6 +99,35 @@
       </modules>
     </profile>
     <profile>
+      <id>ci</id>
+      <modules>
+        <module>orko-ui</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <properties>
+                <property>
+                  <name>listener</name>
+                  <value>org.sonar.java.jacoco.JUnitListener</value>
+                </property>
+              </properties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.sonarsource.java</groupId>
+          <artifactId>sonar-jacoco-listeners</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
       <id>integration-test</id>
       <modules>
         <module>orko-ui</module>
@@ -202,6 +231,7 @@
     <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
     <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
     <process.exec.maven.plugin.version>0.7</process.exec.maven.plugin.version>
+    <sonar-jacoco-listeners.version>3.8</sonar-jacoco-listeners.version>
   </properties>
 
   <dependencyManagement>
@@ -450,7 +480,11 @@
         <artifactId>xchange-coinbasepro</artifactId>
         <version>${xchange.stream.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.sonarsource.java</groupId>
+        <artifactId>sonar-jacoco-listeners</artifactId>
+        <version>${sonar-jacoco-listeners.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
