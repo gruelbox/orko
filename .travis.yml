@@ -4,7 +4,7 @@ addons:
   sonarcloud:
     organization: "gruelbox"
     token:
-      secure: "Scn/sAb/OHXzaGu5Kb0cFP/fe7tC8aLU+LZDdoi+WN3TuIGoopistN2lbKvi9OUw0tcqdIhk2D8OBnNUMpJpjJh11QBfG3z/GlPDiDanoarg6aYRp1hzUa1NQee0FRa31zVYuvlSOBX4JS5qYoXCAXP0N3HwVwcaTmtdY66FplckFSmTZfc4xrzcy1H4c7E3A68aHRwObreNTCLx86j922yhYSzLU0GQxdPXsp2utjNOA1xR6fdMKOi/AGK6Z+TvxkZfDMS+4PNCWbbFmwWQ9Sq4PSCNn5zk8NqROjdlFXBsXNtuKFMlx2oUTDnh1KMC1RK4rjWFzgkXGTDqg83WGGiR8JXG5n0B/sNuJlogc2CuaprxBQoPiJSMRYAv4IDepHz1wXfTPfO5we9fhFnD+1FOuCXxa9bsY+tDyXSvzZcvxQLBLzCduGHnqQg3HO2dIn4iXS0iWwdyJQDgax1WBNzF8lsFlT5HltGki87TLjEeCndvtWaPyd3/1SOZR95TtEhrR0JYxJz1bfV+U6e90WF3AUR8boIrJv9AYVX/a9+4CFsD7602q2NyMWILZerLJKV6RMMmOUO0ssPfpHIVhTlPgarYbPi4BZB5cTwFshGknufdtz0JP9JFg7+70y46Y4gD1jq/FH5T+2tKgYH7zt3hHzfwrou5feNfCWrOa1A="
+      secure: "aqwLJklwSgFIlYnEvhcEXOQpsjdLMjSIzh/2C4hgH3dvUx+WwlvUX/jBYEja0QVLHZ6WVNiOQswQVXLuvdzkeCZFIF+oFTpd/b25SoujF9mTiegLmmFHpVymE82cOHnagfO6wCvwPKT0cAXZ+c1dFi8KavCzjGzOrxZQO23/0lbnH8eqEUd4csECJ9g9pGc1bh77P5ph2WP23HzyHnrcrr2DUQbHHKBzIRLMxF95ZcbdeJU7oA8zOKYJ5AsVs2NqZJUB6Nxu35wBvfowLz+nAZV2z3ieDnVCTN2KlQpDlcykiuN0OeOj+f3ZeRT6kE7MQeyuaMQbRjQcUr4Et/86kqKLjqJ9Z20r9GAGSksfSNI5SxlWmA6OFKDpBYfdtUG8lfPeAg5yssJ2fnX691FjqP16tD4eA2RmAr3NGL1knT2MD9khPi/kmqts14MLZN8tFHnIbHTmE9mtMqw1pou1YbRXk+qTk9TbX3REf+8slO8KL89D+X2p0Jk3V0Qye/uWkfvEI1DG7F7hrZqU+gK3i5AKk9a5m6KuzqKuSj3+RCFxSPKWc7++432uN0YbuKj0bUXbqwdV2z+2jWGYQD4TjzA3ny302S+s9+XhuAKBlSo6XiXkOrT0tRUaKx3o6c1qxXkvngBDDFAIYo3YDI4/j9sjnqOAJyXgtQRHxjaPSc8="
 notifications:
   slack: gruelbox:KxlNRVRsbXFQkO94YtHSdAmS
 jdk: openjdk8
@@ -13,13 +13,13 @@ matrix:
   include:
     - if: repo = gruelbox/orko AND branch = master AND NOT type = pull_request
       name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
-      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent test sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     - if: repo = gruelbox/orko AND NOT branch = master AND NOT type = pull_request
       name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
-      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent test sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
+      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
     - if: repo = gruelbox/orko AND head_repo = gruelbox/orko AND type = pull_request
       name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
-      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent test sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST -Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_BRANCH -Dsonar.pullrequest.base=$TRAVIS_BRANCH
+      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST -Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_BRANCH -Dsonar.pullrequest.base=$TRAVIS_BRANCH
     - if: (repo = gruelbox/orko AND NOT head_repo = gruelbox/orko AND type = pull_request) OR NOT repo = gruelbox/orko
       name: "JUnit tests, Spotbugs and Checkstyle"
       script: mvn -B -U clean test -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
