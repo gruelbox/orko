@@ -273,7 +273,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     public Disposable setTick(JSObject callback, JSObject tickerSpec) {
       return onTick(
-        event -> processEvent(() -> transactionally.run(() -> callback.call(null, event))),
+        event -> processEvent(() -> callback.call(null, event)),
         convertTickerSpec(tickerSpec),
         callback.toString()
       );
@@ -281,7 +281,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     public Disposable setInterval(JSObject callback, Integer timeout) {
       return onInterval(
-        () -> processEvent(() -> transactionally.run(() -> callback.call(null))),
+        () -> processEvent(() -> callback.call(null)),
         timeout,
         callback.toString()
       );
@@ -305,10 +305,14 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       if (done)
         return;
       try {
-        runnable.run();
+        transactionally.run(() -> {
+          try {
+            runnable.run();
+          } catch (ExitException e) {
+            // Fine. We're done
+          }
+        });
         successfulPoll();
-      } catch (ExitException e) {
-        // Fine. We're done
       } catch (PermanentFailureException e) {
         notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
         jobControl.finish(FAILURE_PERMANENT);
