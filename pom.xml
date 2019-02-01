@@ -3,30 +3,30 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <url>http://github.com/badgerwithagun/orko</url>
+  <url>http://github.com/gruelbox/orko</url>
   <description>Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.</description>
   <inceptionYear>2018</inceptionYear>
 
   <scm>
-    <connection>scm:git:https://github.com/badgerwithagun/orko.git</connection>
-    <developerConnection>scm:git:git@github.com:badgerwithagun/orko.git</developerConnection>
-    <url>https://github.com/badgerwithagun/orko</url>
+    <connection>scm:git:https://github.com/gruelbox/orko.git</connection>
+    <developerConnection>scm:git:git@github.com:gruelbox/orko.git</developerConnection>
+    <url>https://github.com/gruelbox/orko</url>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
     <system>GitHub</system>
-    <url>https://circleci.com/gh/badgerwithagun/orko/issues</url>
+    <url>https://github.com/gruelbox/orko/issues</url>
   </issueManagement>
 
   <ciManagement>
     <system>CircleCI</system>
-    <url>https://circleci.com/gh/badgerwithagun/orko</url>
+    <url>https://circleci.com/gh/gruelbox/orko</url>
   </ciManagement>
 
   <organization>
     <name>Graham Crockford</name>
-    <url>http://github.com/badgerwithagun</url>
+    <url>http://github.com/gruelbox</url>
   </organization>
 
   <licenses>
