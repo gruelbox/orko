@@ -115,10 +115,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
 
   private void lockAndStartInactiveJobs() {
     boolean foundJobs = false;
-    boolean locksFailed = false;
-
-    Iterable<Job> jobs = transactionally.call(() -> jobAccess.list());
-    for (Job job : jobs) {
+    for (Job job : transactionally.call(() -> jobAccess.list())) {
       foundJobs = true;
       try {
         transactionally.callChecked(() -> {
@@ -131,8 +128,6 @@ class GuardianLoop extends AbstractExecutionThreadService {
     }
     if (!foundJobs) {
       LOGGER.debug("Nothing running");
-    } else if (locksFailed) {
-      LOGGER.debug("Nothing new to run");
     }
   }
 

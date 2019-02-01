@@ -179,7 +179,7 @@ class ScriptParameter {
     int result = 1;
     result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
     result = prime * result + ((description == null) ? 0 : description.hashCode());
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + id.hashCode();
     result = prime * result + (mandatory ? 1231 : 1237);
     return result;
   }
@@ -203,10 +203,7 @@ class ScriptParameter {
         return false;
     } else if (!description.equals(other.description))
       return false;
-    if (id == null) {
-      if (other.id != null)
-        return false;
-    } else if (!id.equals(other.id))
+    if (!id.equals(other.id))
       return false;
     if (mandatory != other.mandatory)
       return false;

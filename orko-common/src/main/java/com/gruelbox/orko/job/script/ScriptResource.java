@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
@@ -112,9 +113,39 @@ public class ScriptResource implements WebResource {
         .build());
   }
 
+  /**
+   * A partially defined script sent by the client.
+   *
+   * @author Graham Crockford
+   */
   public static final class ScriptJobPrototype {
-    public String id;
-    public String name;
-    public String script;
+
+    @JsonProperty private String id;
+    @JsonProperty private String name;
+    @JsonProperty private String script;
+
+    public String getId() {
+      return id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getScript() {
+      return script;
+    }
+
+    public void setScript(String script) {
+      this.script = script;
+    }
   }
 }

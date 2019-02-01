@@ -124,7 +124,7 @@ class UserTradeSignalGenerator implements Managed {
   private boolean cache(String id) {
     boolean result = recentTradeIds.asMap().putIfAbsent(id, Boolean.TRUE) == null;
     if (result) {
-      LOGGER.info("Skipped reporting trade {} as already reported");
+      LOGGER.info("Skipped reporting trade {} as already reported", id);
     }
     return result;
   }

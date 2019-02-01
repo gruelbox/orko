@@ -27,7 +27,6 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
@@ -100,12 +99,12 @@ class ScriptAccess {
     return scripts.values();
   }
 
-  private boolean scriptValid(@Nullable Script s) {
+  private boolean scriptValid(Script s) {
     if (StringUtils.isEmpty(config.getScriptSigningKey()))
       return true;
     boolean valid = hasher.hashWithString(s.script(), config.getScriptSigningKey()).equals(s.scriptHash());
     if (!valid)
-      LOGGER.warn("Ignoring script [{}] since script hash mismatches. Possible DB intrusion?");
+      LOGGER.warn("Ignoring script [{}] since script hash mismatches. Possible DB intrusion?", s.id());
     return valid;
   }
 
