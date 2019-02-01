@@ -386,8 +386,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     public void limitOrder(JSObject request) {
       TickerSpec spec = convertTickerSpec((JSObject) request.getMember("market"));
       Direction direction = (Direction) request.getMember("direction");
-      BigDecimal price =  (BigDecimal) request.getMember("price");
-      BigDecimal amount =  (BigDecimal) request.getMember("amount");
+      BigDecimal price =  new BigDecimal(request.getMember("price").toString());
+      BigDecimal amount =  new BigDecimal(request.getMember("amount").toString());
       LOGGER.info("Script job '{}' Submitting limit order: {} {} {} on {} at {}",
           job.name(), direction, amount, spec.base(), spec, price);
       jobSubmitter.submitNewUnchecked(
