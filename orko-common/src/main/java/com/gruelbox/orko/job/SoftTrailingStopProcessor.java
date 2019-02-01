@@ -1,3 +1,21 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
@@ -56,14 +74,15 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   private final NotificationService notificationService;
   private final ExchangeService exchangeService;
   private final JobSubmitter jobSubmitter;
-  private final SoftTrailingStop job;
   private final JobControl jobControl;
   private final ExchangeEventRegistry exchangeEventRegistry;
-  private volatile boolean done;
-
-  private volatile ExchangeEventSubscription subscription;
-  private volatile Disposable disposable;
   private final Transactionally transactionally;
+
+  private volatile boolean done;
+  private volatile SoftTrailingStop job;
+
+  private ExchangeEventSubscription subscription;
+  private Disposable disposable;
 
 
   @Inject
@@ -90,6 +109,11 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     subscription = exchangeEventRegistry.subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
     disposable = subscription.getTickers().subscribe(this::tick);
     return Status.RUNNING;
+  }
+
+  @Override
+  public void setReplacedJob(SoftTrailingStop job) {
+    this.job = job;
   }
 
   @Override
@@ -169,13 +193,14 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
           .stopPrice(job.stopPrice().add(ticker.getBid()).subtract(job.lastSyncPrice()))
           .build()
       );
+      return;
     }
 
     if (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(job.lastSyncPrice()) < 0 ) {
       jobControl.replace(
         job.toBuilder()
           .lastSyncPrice(ticker.getAsk())
-          .stopPrice(job.stopPrice().subtract(ticker.getAsk()).add(job.lastSyncPrice()))
+          .stopPrice(job.stopPrice().add(ticker.getAsk()).subtract(job.lastSyncPrice()))
           .build()
       );
     }

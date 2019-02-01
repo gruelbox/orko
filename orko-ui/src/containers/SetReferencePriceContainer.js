@@ -1,14 +1,31 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React, { Component } from "react"
 
 import { connect } from "react-redux"
 
-import Section from "../components/primitives/Section"
-import Modal from "../components/primitives/Modal"
-import Href from "../components/primitives/Href"
+import Section, {
+  Provider as SectionProvider
+} from "../components/primitives/Section"
+import Window from "../components/primitives/Window"
 import * as uiActions from "../store/ui/actions"
 import * as coinsActions from "../store/coins/actions"
 import * as focusActions from "../store/focus/actions"
-import { Icon } from "semantic-ui-react"
 import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
@@ -50,52 +67,51 @@ class SetReferencePriceContainer extends Component {
       isValidNumber(this.state.price) &&
       this.state.price > 0
     return (
-      <Modal mobile={this.props.mobile}>
-        <Section
-          id="referencePrice"
-          heading={"Set reference price for " + this.props.coin.name}
-          buttons={() => (
-            <Href
-              title="Close"
-              onClick={() =>
-                this.props.dispatch(uiActions.closeReferencePrice())
-              }
-            >
-              <Icon fitted name="close" />
-            </Href>
-          )}
+      <Window mobile={this.props.mobile}>
+        <SectionProvider
+          value={{
+            draggable: !this.props.mobile,
+            onHide: () => this.props.dispatch(uiActions.closeReferencePrice())
+          }}
         >
-          <Form
-            buttons={() => (
-              <>
-                <Button data-orko="doClear" onClick={this.onClear}>
-                  Clear
-                </Button>
-                <Button
-                  data-orko="doSubmit"
-                  disabled={!ready}
-                  onClick={this.onSubmit}
-                >
-                  Set
-                </Button>
-              </>
-            )}
+          <Section
+            id="referencePrice"
+            heading={"Set reference price for " + this.props.coin.name}
           >
-            <Input
-              id="price"
-              error={ready}
-              label="Reference price"
-              type="number"
-              placeholder="Enter price..."
-              value={
-                this.state.price ? this.state.price : this.props.referencePrice
-              }
-              onChange={this.onChangePrice}
-              onFocus={this.onFocus}
-            />
-          </Form>
-        </Section>
-      </Modal>
+            <Form
+              buttons={() => (
+                <>
+                  <Button data-orko="doClear" onClick={this.onClear}>
+                    Clear
+                  </Button>
+                  <Button
+                    data-orko="doSubmit"
+                    disabled={!ready}
+                    onClick={this.onSubmit}
+                  >
+                    Set
+                  </Button>
+                </>
+              )}
+            >
+              <Input
+                id="price"
+                error={ready}
+                label="Reference price"
+                type="number"
+                placeholder="Enter price..."
+                value={
+                  this.state.price
+                    ? this.state.price
+                    : this.props.referencePrice
+                }
+                onChange={this.onChangePrice}
+                onFocus={this.onFocus}
+              />
+            </Form>
+          </Section>
+        </SectionProvider>
+      </Window>
     )
   }
 }

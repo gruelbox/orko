@@ -10,7 +10,7 @@
 **/.checkstyle
 **/.fbExcludeFilterFile
 **/dependency-reduced-pom.xml
-
+/release.properties
 /my-config.yml
 /orko-worker/my-config.yml
 /orko-web/my-config.yml
@@ -32,3 +32,5 @@
 /orko-end-to-end-testing/node
 /orko-end-to-end-testing/app.log
 /orko-end-to-end-testing/cypress/screenshots/**/*
+**/*.versionsBackup
+**/*.releaseBackup

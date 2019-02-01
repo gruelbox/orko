@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React from "react"
 
 import styled from "styled-components"
@@ -17,21 +34,22 @@ class Ticker extends React.Component {
   }
 
   render() {
-    const coin = this.props.coin
-    const ticker = this.props.ticker
-    const onClickNumber = this.props.onClickNumber
+    const { coin, ticker, onClickNumber, mobile } = this.props
     if (coin) {
       return (
         <Container>
-          <Price
-            coin={coin}
-            name="Bid"
-            nameColor="buy"
-            icon="chevron up"
-            onClick={onClickNumber}
-          >
-            {ticker ? ticker.bid : undefined}
-          </Price>
+          {!mobile && (
+            <Price
+              coin={coin}
+              name="Bid"
+              nameColor="buy"
+              icon="chevron up"
+              onClick={onClickNumber}
+            >
+              {ticker ? ticker.bid : undefined}
+            </Price>
+          )}
+
           <Price
             coin={coin}
             name="Last"
@@ -40,24 +58,28 @@ class Ticker extends React.Component {
           >
             {ticker ? ticker.last : undefined}
           </Price>
-          <Price
-            coin={coin}
-            name="Ask"
-            nameColor="sell"
-            icon="chevron down"
-            onClick={onClickNumber}
-          >
-            {ticker ? ticker.ask : undefined}
-          </Price>
-          <Price coin={coin} name="Open" onClick={onClickNumber}>
-            {ticker ? ticker.open : undefined}
-          </Price>
-          <Price coin={coin} name="24h Low" onClick={onClickNumber}>
-            {ticker ? ticker.low : undefined}
-          </Price>
-          <Price coin={coin} name="24h High" onClick={onClickNumber}>
-            {ticker ? ticker.high : undefined}
-          </Price>
+          {!mobile && (
+            <>
+              <Price
+                coin={coin}
+                name="Ask"
+                nameColor="sell"
+                icon="chevron down"
+                onClick={onClickNumber}
+              >
+                {ticker ? ticker.ask : undefined}
+              </Price>
+              <Price coin={coin} name="Open" onClick={onClickNumber}>
+                {ticker ? ticker.open : undefined}
+              </Price>
+              <Price coin={coin} name="24h Low" onClick={onClickNumber}>
+                {ticker ? ticker.low : undefined}
+              </Price>
+              <Price coin={coin} name="24h High" onClick={onClickNumber}>
+                {ticker ? ticker.high : undefined}
+              </Price>
+            </>
+          )}
         </Container>
       )
     } else {

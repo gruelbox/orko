@@ -1,3 +1,21 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.gruelbox.orko.job.script;
 
 import javax.annotation.security.RolesAllowed;
@@ -16,6 +34,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
@@ -94,9 +113,39 @@ public class ScriptResource implements WebResource {
         .build());
   }
 
+  /**
+   * A partially defined script sent by the client.
+   *
+   * @author Graham Crockford
+   */
   public static final class ScriptJobPrototype {
-    public String id;
-    public String name;
-    public String script;
+
+    @JsonProperty private String id;
+    @JsonProperty private String name;
+    @JsonProperty private String script;
+
+    public String getId() {
+      return id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getScript() {
+      return script;
+    }
+
+    public void setScript(String script) {
+      this.script = script;
+    }
   }
 }

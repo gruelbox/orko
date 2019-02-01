@@ -13,10 +13,6 @@ auth:
     secret: ${SIMPLE_AUTH_SECRET:-}
     secondFactorSecret: ${SIMPLE_AUTH_SECOND_FACTOR:-}
     expirationMinutes: ${SIMPLE_AUTH_TOKEN_EXPIRY_MINUTES:-1440}
-  okta:
-    baseUrl: ${OKTA_BASEURL:-}
-    issuer: ${OKTA_ISSUER:-}
-    clientId: ${OKTA_CLIENTID:-}
 telegram:
   botToken: ${TELEGRAM_BOT_TOKEN:-}
   chatId: ${TELEGRAM_CHAT_ID:-}
@@ -41,6 +37,9 @@ exchanges:
   bitfinex:
     apiKey: ${BITFINEX_API_KEY:-}
     secretKey: ${BITFINEX_SECRET:-}
+  bitmex:
+    apiKey: ${BITMEX_API_KEY:-}
+    secretKey: ${BITMEX_SECRET:-}
   bittrex:
     apiKey: ${BITTREX_API_KEY:-}
     secretKey: ${BITTREX_SECRET:-}
@@ -67,4 +66,5 @@ logging:
     "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.binance": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.binance.BinanceUserDataStreamingService": ${LOG_LEVEL_BINANCE_RAW_USER:-INFO}
     "si.mazi.rescu": ERROR

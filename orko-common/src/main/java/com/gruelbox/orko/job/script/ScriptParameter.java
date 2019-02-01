@@ -1,3 +1,21 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.gruelbox.orko.job.script;
 
 import java.io.Serializable;
@@ -161,7 +179,7 @@ class ScriptParameter {
     int result = 1;
     result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
     result = prime * result + ((description == null) ? 0 : description.hashCode());
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + id.hashCode();
     result = prime * result + (mandatory ? 1231 : 1237);
     return result;
   }
@@ -185,10 +203,7 @@ class ScriptParameter {
         return false;
     } else if (!description.equals(other.description))
       return false;
-    if (id == null) {
-      if (other.id != null)
-        return false;
-    } else if (!id.equals(other.id))
+    if (!id.equals(other.id))
       return false;
     if (mandatory != other.mandatory)
       return false;

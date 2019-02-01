@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import runtimeEnv from "@mars/heroku-js-runtime-env"
 import * as socketMessages from "./socketMessages"
 import ReconnectingWebSocket from "reconnecting-websocket"
@@ -8,9 +25,10 @@ var handleConnectionStateChange = connected => {}
 var handleNotification = message => {}
 var handleStatusUpdate = message => {}
 var handleTicker = (coin, ticker) => {}
-var handleOrders = (coin, orders) => {}
 var handleOrderBook = (coin, orderBook) => {}
 var handleTrade = (coin, trade) => {}
+var handleOrdersSnapshot = (coin, orders, timestamp) => {}
+var handleOrderUpdate = (coin, order, timestamp) => {}
 var handleUserTrade = (coin, trade) => {}
 var handleUserTradeHistory = (coin, trades) => {}
 var handleBalance = (exchange, currency, balance) => {}
@@ -42,16 +60,20 @@ export function onTicker(handler) {
   handleTicker = handler
 }
 
-export function onOrders(handler) {
-  handleOrders = handler
-}
-
 export function onOrderBook(handler) {
   handleOrderBook = handler
 }
 
 export function onTrade(handler) {
   handleTrade = handler
+}
+
+export function onOrdersSnapshot(handler) {
+  handleOrdersSnapshot = handler
+}
+
+export function onOrderUpdate(handler) {
+  handleOrderUpdate = handler
 }
 
 export function onUserTrade(handler) {
@@ -83,10 +105,25 @@ export function connect() {
     handleConnectionStateChange(false)
   }
   socket.onmessage = evt => {
+    var content
     try {
-      receive(preProcess(JSON.parse(evt.data)))
+      content = JSON.parse(evt.data)
     } catch (e) {
-      console.log("Invalid message from server", evt.data)
+      console.log("Failed to parse message from server (" + e + ")", evt.data)
+      return
+    }
+    try {
+      content = preProcess(content)
+    } catch (e) {
+      console.log(
+        "Failed to pre-process message from server (" + e + ")",
+        evt.data
+      )
+    }
+    try {
+      receive(content)
+    } catch (e) {
+      console.log("Failed to handle message from server (" + e + ")", evt.data)
     }
   }
   timer = setInterval(() => send({ command: socketMessages.READY }), 3000)
@@ -131,6 +168,10 @@ export function resubscribe() {
     tickers: serverSelectedCoinTickers
   })
   send({
+    command: socketMessages.CHANGE_ORDER_STATUS_CHANGE,
+    tickers: serverSelectedCoinTickers
+  })
+  send({
     command: socketMessages.CHANGE_USER_TRADE_HISTORY,
     tickers: serverSelectedCoinTickers
   })
@@ -171,7 +212,11 @@ function receive(message) {
         break
 
       case socketMessages.OPEN_ORDERS:
-        handleOrders(augmentCoin(message.data.spec), message.data.openOrders)
+        handleOrdersSnapshot(
+          augmentCoin(message.data.spec),
+          message.data.openOrders.allOpenOrders,
+          message.data.timestamp
+        )
         break
 
       case socketMessages.ORDERBOOK:
@@ -180,6 +225,14 @@ function receive(message) {
 
       case socketMessages.TRADE:
         handleTrade(augmentCoin(message.data.spec), message.data.trade)
+        break
+
+      case socketMessages.ORDER_STATUS_CHANGE:
+        handleOrderUpdate(
+          augmentCoin(message.data.spec),
+          message.data.order,
+          message.data.timestamp
+        )
         break
 
       case socketMessages.USER_TRADE:

@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -32,7 +49,10 @@ import {
   LOGIN_SECRET,
   LOGIN_SECRET_INVALID
 } from "../util/constants"
+
 import { tokenForSecret } from "../util/token"
+
+const XSRF_LOCAL_STORAGE = "x-xsrf-token"
 
 function option(options, name) {
   return options === undefined || options[name] === undefined || options[name]
@@ -46,7 +66,7 @@ Cypress.Commands.add("secureRequest", options =>
   cy.request({
     ...options,
     headers: {
-      "x-xsrf-token": window.localStorage.getItem("x-xsrf-token")
+      "x-xsrf-token": window.localStorage.getItem(XSRF_LOCAL_STORAGE)
     }
   })
 )
@@ -59,7 +79,7 @@ Cypress.Commands.add("requestNoFail", (url, options) =>
   })
 )
 
-Cypress.Commands.add("clearWhitelist", (options) =>
+Cypress.Commands.add("clearWhitelist", options =>
   cy.request({
     method: "DELETE",
     url: "/api/auth",
@@ -99,27 +119,24 @@ Cypress.Commands.add("loginApi", options => {
   const validPassword = option(options, "validPassword")
   const validToken = option(options, "validToken")
   const valid = validUser && validPassword && validToken
-
-  const body = {
-    username: validUser ? LOGIN_USER : LOGIN_USER + "x",
-    password: validPassword ? LOGIN_PW : LOGIN_PW + "x",
-    secondFactor: tokenForSecret(
-      validToken ? LOGIN_SECRET : LOGIN_SECRET_INVALID
-    )
-  }
-
   return cy
     .request({
       method: "POST",
       url: "/api/auth/login",
       failOnStatusCode: valid,
-      body
+      body: {
+        username: validUser ? LOGIN_USER : LOGIN_USER + "x",
+        password: validPassword ? LOGIN_PW : LOGIN_PW + "x",
+        secondFactor: tokenForSecret(
+          validToken ? LOGIN_SECRET : LOGIN_SECRET_INVALID
+        )
+      }
     })
     .should(response => {
       if (valid) {
         expect(response.status).to.eq(200)
         expect(response.body).to.have.property("xsrf")
-        window.localStorage.setItem("x-xsrf-token", response.body.xsrf)
+        window.localStorage.setItem(XSRF_LOCAL_STORAGE, response.body.xsrf)
       } else {
         expect(response.status).to.eq(403)
       }

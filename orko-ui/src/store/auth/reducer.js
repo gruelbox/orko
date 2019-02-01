@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 import { clearXsrfToken } from "../../services/fetchUtil"
@@ -5,7 +22,6 @@ import { clearXsrfToken } from "../../services/fetchUtil"
 const initialState = Immutable({
   whitelisted: false,
   loggedIn: true,
-  config: null,
   loading: true
 })
 
@@ -16,10 +32,6 @@ export default function reduce(state = initialState, action = {}) {
         whitelisted: action.payload === true,
         error: action.error ? action.payload.message : null,
         loading: false
-      })
-    case types.SET_OKTA_CONFIG:
-      return Immutable.merge(state, {
-        config: action.payload
       })
     case types.LOGIN:
       return Immutable.merge(state, {

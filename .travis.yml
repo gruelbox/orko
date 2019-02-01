@@ -1,0 +1,34 @@
+language: java
+install: true
+addons:
+  sonarcloud:
+    organization: "gruelbox"
+    token:
+      secure: "aqwLJklwSgFIlYnEvhcEXOQpsjdLMjSIzh/2C4hgH3dvUx+WwlvUX/jBYEja0QVLHZ6WVNiOQswQVXLuvdzkeCZFIF+oFTpd/b25SoujF9mTiegLmmFHpVymE82cOHnagfO6wCvwPKT0cAXZ+c1dFi8KavCzjGzOrxZQO23/0lbnH8eqEUd4csECJ9g9pGc1bh77P5ph2WP23HzyHnrcrr2DUQbHHKBzIRLMxF95ZcbdeJU7oA8zOKYJ5AsVs2NqZJUB6Nxu35wBvfowLz+nAZV2z3ieDnVCTN2KlQpDlcykiuN0OeOj+f3ZeRT6kE7MQeyuaMQbRjQcUr4Et/86kqKLjqJ9Z20r9GAGSksfSNI5SxlWmA6OFKDpBYfdtUG8lfPeAg5yssJ2fnX691FjqP16tD4eA2RmAr3NGL1knT2MD9khPi/kmqts14MLZN8tFHnIbHTmE9mtMqw1pou1YbRXk+qTk9TbX3REf+8slO8KL89D+X2p0Jk3V0Qye/uWkfvEI1DG7F7hrZqU+gK3i5AKk9a5m6KuzqKuSj3+RCFxSPKWc7++432uN0YbuKj0bUXbqwdV2z+2jWGYQD4TjzA3ny302S+s9+XhuAKBlSo6XiXkOrT0tRUaKx3o6c1qxXkvngBDDFAIYo3YDI4/j9sjnqOAJyXgtQRHxjaPSc8="
+notifications:
+  slack: gruelbox:KxlNRVRsbXFQkO94YtHSdAmS
+jdk: openjdk8
+matrix:
+  fast_finish: true
+  include:
+    - if: repo = gruelbox/orko AND branch = master AND NOT type = pull_request
+      name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
+      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    - if: repo = gruelbox/orko AND NOT branch = master AND NOT type = pull_request
+      name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
+      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
+    - if: repo = gruelbox/orko AND head_repo = gruelbox/orko AND type = pull_request
+      name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
+      script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST -Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_BRANCH -Dsonar.pullrequest.base=$TRAVIS_BRANCH
+    - if: (repo = gruelbox/orko AND NOT head_repo = gruelbox/orko AND type = pull_request) OR NOT repo = gruelbox/orko
+      name: "JUnit tests, Spotbugs and Checkstyle"
+      script: mvn -B -U clean test -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    - name: "MySQL tests"
+      services: mysql
+      before_install: mysql -e 'CREATE DATABASE test;'
+      script: mvn -B -U clean test -Dmorf.mysql.noadmin=true -Dspotbugs.skip=true -Dcheckstyle.skip -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://travis@127.0.0.1/test
+cache:
+  npm: true
+  directories:
+    - "$HOME/.m2/repository"
+    - "$HOME/.sonar/cache"

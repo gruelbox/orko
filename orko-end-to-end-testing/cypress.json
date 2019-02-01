@@ -1,9 +1,16 @@
 {
   "baseUrl": "http://localhost:8080",
+  "blacklistHosts": [
+    "accounts.google.com",
+    "clientservices.googleapis.com"
+  ],
   "video": false,
   "reporter": "junit",
   "reporterOptions": {
     "mochaFile": "target/mocha-reports/mocha-results.[hash].xml",
     "toConsole": true
-  }
+  },
+  "viewportWidth": 1920,
+  "viewportHeight": 1080,
+  "projectId": "ttud56"
 }

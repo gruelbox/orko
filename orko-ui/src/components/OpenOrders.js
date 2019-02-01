@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React from "react"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
@@ -14,6 +31,9 @@ const numberStyle = {
   textAlign: "right"
 }
 
+const DATA_ATTRIBUTE = "data-orko"
+const DATA_TYPE = "data-type"
+
 const orderTypeColumn = {
   id: "orderType",
   Header: <Icon fitted name="sort" title="Direction" />,
@@ -21,8 +41,17 @@ const orderTypeColumn = {
   Cell: ({ original }) => (
     <Icon
       fitted
-      name={original.type === "BID" ? "arrow up" : "arrow down"}
-      title={original.type === "BID" ? "Buy" : "Sell"}
+      name={
+        !!original.stopPrice
+          ? "stop circle"
+          : original.type === "BID"
+          ? "arrow up"
+          : "arrow down"
+      }
+      title={
+        (!!original.stopPrice ? "STOP " : "") +
+        (original.type === "BID" ? "Buy" : "Sell")
+      }
     />
   ),
   headerStyle: textStyle,
@@ -59,7 +88,14 @@ const createdDateColumn = {
   accessor: "timestamp",
   Header: "Created",
   Cell: ({ original }) =>
-    original.timestamp ? dateUtils.formatDate(original.timestamp) : "Unknown",
+    original.timestamp
+      ? dateUtils.formatDate(original.timestamp)
+      : original.runningAt === "SERVER"
+      ? "Not on exchange"
+      : "Confirming...",
+  getProps: () => ({
+    [DATA_ATTRIBUTE]: "createdDate"
+  }),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
@@ -68,16 +104,20 @@ const createdDateColumn = {
 
 const limitPriceColumn = coin => ({
   Header: "Limit",
-  Cell: ({ original }) => (
-    <Price
-      color={original.type === "BID" ? "buy" : "sell"}
-      noflash
-      bare
-      coin={coin}
-    >
-      {original.limitPrice}
-    </Price>
-  ),
+  Cell: ({ original }) =>
+    !!original.stopPrice && !original.limitPrice ? (
+      "MARKET"
+    ) : (
+      <Price
+        data-orko="limitPrice"
+        color={original.type === "BID" ? "buy" : "sell"}
+        noflash
+        bare
+        coin={coin}
+      >
+        {original.limitPrice}
+      </Price>
+    ),
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
@@ -90,6 +130,7 @@ const stopPriceColumn = coin => ({
   Header: "Trigger",
   Cell: ({ original }) => (
     <Price
+      data-orko="stopPrice"
       color={original.type === "BID" ? "buy" : "sell"}
       noflash
       bare
@@ -109,6 +150,7 @@ const amountColumn = coin => ({
   Header: "Amount",
   Cell: ({ original }) => (
     <Amount
+      data-orko="amount"
       color={original.type === "BID" ? "buy" : "sell"}
       noflash
       bare
@@ -128,6 +170,7 @@ const filledColumn = coin => ({
   Header: "Filled",
   Cell: ({ original }) => (
     <Amount
+      data-orko="filled"
       color={original.type === "BID" ? "buy" : "sell"}
       noflash
       bare
@@ -149,6 +192,7 @@ const cancelColumn = (onCancelExchange, onCancelServer) => ({
   Cell: ({ original }) =>
     original.status === "CANCELED" ? null : (
       <Href
+        data-orko="cancel"
         onClick={() => {
           if (original.runningAt === "SERVER") {
             onCancelServer(original.jobId)
@@ -175,7 +219,10 @@ const OpenOrders = props => (
       className:
         (rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell") +
         " oco-" +
-        rowInfo.original.status
+        rowInfo.original.status,
+      [DATA_ATTRIBUTE]: "openOrder/" + rowInfo.original.id,
+      [DATA_TYPE]:
+        "openOrder/" + (rowInfo.original.type === "BID" ? "buy" : "sell")
     })}
     columns={[
       cancelColumn(props.onCancelExchange, props.onCancelServer),

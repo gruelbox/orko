@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React, { Component } from "react"
 
 import { ThemeProvider } from "styled-components"
@@ -5,31 +22,27 @@ import theme from "./theme"
 import { GlobalStyle } from "./theme"
 
 import { Provider as ReduxProvider } from "react-redux"
-import { compose, createStore, applyMiddleware, combineReducers } from "redux"
+import { compose, createStore, applyMiddleware } from "redux"
 
 import createHistory from "history/createBrowserHistory"
-import {
-  ConnectedRouter,
-  connectRouter,
-  routerMiddleware
-} from "connected-react-router"
+import { ConnectedRouter, routerMiddleware } from "connected-react-router"
 
 import { enableBatching } from "redux-batched-actions"
 
 import thunk from "redux-thunk"
-import * as reducers from "./store/reducers"
+import createRootReducer from "./store/reducers"
 import * as socket from "./store/socket/connect"
 
 import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"
-import Framework from "./Framework"
+import FrameworkContainer from "./FrameworkContainer"
 
 import * as authActions from "./store/auth/actions"
 
 const history = createHistory()
 
 const store = createStore(
-  enableBatching(connectRouter(history)(combineReducers(reducers))),
+  enableBatching(createRootReducer(history)),
   compose(
     applyMiddleware(routerMiddleware(history), thunk.withExtraArgument(socket))
   )
@@ -47,7 +60,7 @@ export default class App extends Component {
             <GlobalStyle />
             <ErrorContainer />
             <ConnectedRouter history={history}>
-              <Framework />
+              <FrameworkContainer />
             </ConnectedRouter>
             <AuthContainer />
           </>

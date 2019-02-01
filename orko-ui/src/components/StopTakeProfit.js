@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React from "react"
 import Immutable from "seamless-immutable"
 import { isValidNumber } from "../util/numberUtils"
@@ -102,9 +119,9 @@ const StopTakeProfit = props => {
           <Form.Input
             id="initialTrailingStop"
             error={!!props.job.initialTrailingStop && !initialTrailingStopValid}
-            label="Trailing stop price"
+            label="... with trailing stop starting at"
             labelPosition="right"
-            placeholder="Enter price..."
+            placeholder="Price (above trigger price)..."
             value={
               props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
             }
@@ -159,9 +176,9 @@ const StopTakeProfit = props => {
           <Form.Input
             id="initialTrailingStop"
             error={!!props.job.initialTrailingStop && !initialTrailingStopValid}
-            label="Trailing stop price"
+            label="... with trailing stop starting at"
             labelPosition="right"
-            placeholder="Enter difference..."
+            placeholder="Price (below trigger price)..."
             value={
               props.job.initialTrailingStop ? props.job.initialTrailingStop : ""
             }
@@ -190,26 +207,36 @@ const StopTakeProfit = props => {
         </Form.Input>
       </Form.Group>
       <FormButtonBar>
-        {props.job.direction === "BUY" && (
+        <Form.Group>
+          {props.job.direction === "BUY" && (
+            <Form.Checkbox
+              title="Enable trailing buy stop"
+              id="lowTrailing"
+              label="Trailing"
+              checked={props.job.lowTrailing}
+              style={{ verticalAlign: "middle" }}
+              onChange={e => onChange("lowTrailing", e.target.checked)}
+            />
+          )}
+          {props.job.direction === "SELL" && (
+            <Form.Checkbox
+              title="Enable trailing sell stop"
+              id="highTrailing"
+              label="Trailing"
+              checked={props.job.highTrailing}
+              inline
+              onChange={e => onChange("highTrailing", e.target.checked)}
+            />
+          )}
           <Form.Checkbox
-            title="Enable trailing buy stop"
-            id="lowTrailing"
-            label="Trailing"
-            checked={props.job.lowTrailing}
-            style={{ verticalAlign: "middle" }}
-            onChange={e => onChange("lowTrailing", e.target.checked)}
+            title="Use margin account (if supported by the exchange)"
+            id="useMargin"
+            label="Use margin"
+            checked={false}
+            onChange={e => onChange("useMargin", e.target.checked)}
+            disabled={true}
           />
-        )}
-        {props.job.direction === "SELL" && (
-          <Form.Checkbox
-            title="Enable trailing sell stop"
-            id="highTrailing"
-            label="Trailing"
-            checked={props.job.highTrailing}
-            inline
-            onChange={e => onChange("highTrailing", e.target.checked)}
-          />
-        )}
+        </Form.Group>
         <Button.Group>
           <Button
             id="BUY"

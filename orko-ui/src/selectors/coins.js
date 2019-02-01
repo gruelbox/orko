@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { createSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getAlertJobs, getStopJobs } from "./jobs"
@@ -8,6 +25,7 @@ const getReferencePrices = state => state.coins.referencePrices
 const getTickers = state => state.ticker.coins
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
+const getExchanges = state => state.exchanges.exchanges
 
 export const getUserTradeHistory = state => state.coin.userTradeHistory
 
@@ -33,6 +51,12 @@ export const getSelectedCoin = createSelector(
   location => locationToCoin(location)
 )
 
+export const getSelectedExchange = createSelector(
+  [getSelectedCoin, getExchanges],
+  (coin, exchanges) =>
+    !coin ? null : exchanges.find(e => e.code === coin.exchange)
+)
+
 function jobTriggerMatchesCoin(job, coin) {
   return (
     job.tickTrigger.exchange === coin.exchange &&
@@ -46,7 +70,7 @@ export const getOrdersForSelectedCoin = createSelector(
   (orders, stopJobs, selectedCoin) => {
     if (!selectedCoin) return null
 
-    var result = !orders ? [] : orders
+    var result = !orders ? [] : orders.filter(o => !o.deleted)
 
     const server = stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
@@ -86,13 +110,14 @@ export const getSelectedCoinTicker = createSelector(
 )
 
 export const getCoinsForDisplay = createSelector(
-  [getAlertJobs, getCoins, getTickers, getReferencePrices],
-  (alertJobs, coins, tickers, referencePrices) =>
+  [getAlertJobs, getCoins, getTickers, getReferencePrices, getExchanges],
+  (alertJobs, coins, tickers, referencePrices, exchanges) =>
     coins.map(coin => {
       const referencePrice = referencePrices[coin.key]
       const ticker = tickers[coin.key]
       return {
         ...coin,
+        exchangeMeta: exchanges.find(e => e.code === coin.exchange),
         ticker,
         hasAlert: !!alertJobs.find(
           job =>

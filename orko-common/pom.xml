@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -11,7 +9,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.6.2-SNAPSHOT</version>
+    <version>0.10.3-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -120,36 +118,40 @@
     </dependency>
 
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-coinbasepro</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-binance</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-kucoin</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.knowm.xchange</groupId>
+    <!--<dependency>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-cryptopia</artifactId>
-    </dependency>
+    </dependency>-->
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bitfinex</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bittrex</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.knowm.xchange</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bitmex</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>${xchange.groupid}</groupId>
+      <artifactId>xchange-kraken</artifactId>
     </dependency>
 
     <dependency>
@@ -171,21 +173,17 @@
 
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>license-maven-plugin</artifactId>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/filtered-resources</directory>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
     <plugins>
 
       <!-- Hopefully temporary fix for CircleCI build (https://stackoverflow.com/questions/50661648/spring-boot-fails-to-run-maven-surefire-plugin-classnotfoundexception-org-apache/50661649#50661649) -->
@@ -202,8 +200,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -211,7 +209,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven.jar.plugin.version}</version>
         <configuration>
           <archive>
             <manifest>

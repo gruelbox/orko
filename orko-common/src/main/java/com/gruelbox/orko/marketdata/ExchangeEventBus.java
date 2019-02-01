@@ -1,3 +1,21 @@
+/**
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.gruelbox.orko.marketdata;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
@@ -51,8 +69,12 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     private final String name;
 
     SubscriptionImpl(Set<MarketDataSubscription> subscriptions) {
+      this(subscriptions, UUID.randomUUID().toString());
+    }
+
+    SubscriptionImpl(Set<MarketDataSubscription> subscriptions, String name) {
       this.subscriptions = subscriptions;
-      this.name = UUID.randomUUID().toString();
+      this.name = name;
       if (subscribeAll())
         updateSubscriptions();
     }
@@ -75,9 +97,9 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     }
 
     @Override
-    public Flowable<OpenOrdersEvent> getOpenOrders() {
+    public Flowable<OpenOrdersEvent> getOrderSnapshots() {
       Set<TickerSpec> filtered = subscriptionsFor(OPEN_ORDERS);
-      return marketDataSubscriptionManager.getOpenOrders()
+      return marketDataSubscriptionManager.getOrderSnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -85,7 +107,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     @Override
     public Flowable<OrderBookEvent> getOrderBooks() {
       Set<TickerSpec> filtered = subscriptionsFor(ORDERBOOK);
-      return marketDataSubscriptionManager.getOrderBooks()
+      return marketDataSubscriptionManager.getOrderBookSnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -99,9 +121,17 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     }
 
     @Override
-    public Flowable<TradeHistoryEvent> getUserTradeHistory() {
+    public Flowable<OrderChangeEvent> getOrderChanges() {
+      Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.ORDER);
+      return marketDataSubscriptionManager.getOrderChanges()
+          .filter(e -> filtered.contains(e.spec()))
+          .onBackpressureLatest();
+    }
+
+    @Override
+    public Flowable<TradeHistoryEvent> getUserTradeHistorySnapshots() {
       Set<TickerSpec> filtered = subscriptionsFor(USER_TRADE_HISTORY);
-      return marketDataSubscriptionManager.getUserTradeHistory()
+      return marketDataSubscriptionManager.getUserTradeHistorySnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -110,13 +140,13 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     public Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit() {
       return FluentIterable
           .from(subscriptionsFor(USER_TRADE_HISTORY))
-          .transform(spec -> marketDataSubscriptionManager.getUserTradeHistory()
+          .transform(spec -> marketDataSubscriptionManager.getUserTradeHistorySnapshots()
               .filter(e -> e.spec().equals(spec))
               .onBackpressureLatest());
     }
 
     @Override
-    public Flowable<BalanceEvent> getBalance() {
+    public Flowable<BalanceEvent> getBalances() {
       ImmutableSet<String> exchangeCurrenciesSubscribed = FluentIterable.from(subscriptionsFor(BALANCE))
         .transformAndConcat(s -> ImmutableSet.of(s.exchange() + "/" + s.base(), s.exchange() + "/" + s.counter()))
         .toSet();
@@ -191,8 +221,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     public ExchangeEventSubscription replace(Set<MarketDataSubscription> targetSubscriptions) {
       if (targetSubscriptions.equals(subscriptions))
         return this;
-      unsubscribeAll();
-      return new SubscriptionImpl(targetSubscriptions);
+      if (unsubscribeAll()) {
+        updateSubscriptions();
+      }
+      return new SubscriptionImpl(targetSubscriptions, name);
     }
   }
 }

@@ -1,3 +1,20 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import React, { Component } from "react"
 
 import { connect } from "react-redux"
@@ -41,7 +58,7 @@ class AddCoinContainer extends Component {
       <FixedModal
         data-orko="addCoinModal"
         closeIcon
-        onClose={() => this.props.history.goBack()}
+        onClose={() => this.props.history.push("/")}
       >
         <Modal.Header>
           <Icon name="bitcoin" />
@@ -57,11 +74,13 @@ class AddCoinContainer extends Component {
                 fluid
                 selection
                 loading={exchanges.length === 0}
-                value={this.state.exchange}
+                value={
+                  this.state.exchange ? this.state.exchange.code : undefined
+                }
                 options={exchanges.map(exchange => ({
-                  key: exchange,
-                  text: exchange,
-                  value: exchange
+                  key: exchange.code,
+                  text: exchange.name,
+                  value: exchange.code
                 }))}
                 onChange={this.onChangeExchange}
               />
