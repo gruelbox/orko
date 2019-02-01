@@ -94,8 +94,8 @@ final class PaperTradeService implements TradeService {
 
   private final Random random = new Random();
 
-  private volatile Disposable disposable;
-  private volatile ExchangeEventSubscription subscription;
+  private Disposable disposable;
+  private ExchangeEventSubscription subscription;
 
   private PaperTradeService(String exchange, ExchangeEventRegistry exchangeEventRegistry, PaperAccountService paperAccountService) {
     this.exchange = exchange;

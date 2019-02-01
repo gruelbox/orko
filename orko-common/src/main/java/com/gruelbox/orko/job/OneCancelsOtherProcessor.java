@@ -69,14 +69,13 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final JobControl jobControl;
   private final ExchangeService exchangeService;
+  private final Transactionally transactionally;
 
   private volatile OneCancelsOther job;
   private volatile boolean done;
-  private volatile ExchangeEventSubscription subscription;
-  private volatile Disposable disposable;
 
-  private final Transactionally transactionally;
-
+  private ExchangeEventSubscription subscription;
+  private Disposable disposable;
 
   @AssistedInject
   OneCancelsOtherProcessor(@Assisted OneCancelsOther job,

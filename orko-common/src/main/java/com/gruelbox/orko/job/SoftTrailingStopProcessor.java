@@ -76,12 +76,13 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   private final JobSubmitter jobSubmitter;
   private final JobControl jobControl;
   private final ExchangeEventRegistry exchangeEventRegistry;
-  private volatile boolean done;
-
-  private volatile SoftTrailingStop job;
-  private volatile ExchangeEventSubscription subscription;
-  private volatile Disposable disposable;
   private final Transactionally transactionally;
+
+  private volatile boolean done;
+  private volatile SoftTrailingStop job;
+
+  private ExchangeEventSubscription subscription;
+  private Disposable disposable;
 
 
   @Inject

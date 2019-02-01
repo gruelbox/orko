@@ -91,12 +91,13 @@ public final class OrkoWebSocketServer {
   @Inject private ObjectMapper objectMapper;
   @Inject private EventBus eventBus;
 
-  private volatile Session session;
+  private final AtomicLong lastReadyTime = new AtomicLong();
+  private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
+
+  private Session session;
+
   private volatile Disposable disposable;
   private volatile ExchangeEventSubscription subscription;
-  private final AtomicLong lastReadyTime = new AtomicLong();
-
-  private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
 
 
   @OnOpen

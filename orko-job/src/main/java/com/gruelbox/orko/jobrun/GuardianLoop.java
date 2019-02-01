@@ -115,7 +115,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
 
   private void lockAndStartInactiveJobs() {
     boolean foundJobs = false;
-    for (Job job : transactionally.call(() -> jobAccess.list())) {
+    for (Job job : transactionally.call(jobAccess::list)) {
       foundJobs = true;
       try {
         transactionally.callChecked(() -> {

@@ -51,10 +51,11 @@ final class MonitorExchangeSocketHealth implements Managed {
 
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final AtomicLong lastTradeTime = new AtomicLong();
-  private volatile Disposable trades;
-  private volatile Disposable poll;
   private final NotificationService notificationService;
+
   private ExchangeEventSubscription subscription;
+  private Disposable trades;
+  private Disposable poll;
 
   @Inject
   MonitorExchangeSocketHealth(ExchangeEventRegistry exchangeEventRegistry, NotificationService notificationService) {
