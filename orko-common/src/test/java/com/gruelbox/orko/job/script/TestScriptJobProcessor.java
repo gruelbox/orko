@@ -26,6 +26,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,8 +51,6 @@ import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.LimitOrderJob;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
-import com.gruelbox.orko.job.script.ScriptJob;
-import com.gruelbox.orko.job.script.ScriptJobProcessor;
 import com.gruelbox.orko.job.script.ScriptJob.Builder;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.JobControl;
@@ -193,7 +192,12 @@ public class TestScriptJobProcessor {
         + "  notifications.alert('Alert')\n"
         + "  notifications.info('Info')\n"
         + "  notifications.error('Error')\n"
-        + "  if (count >= 3) { control.done() } else { count++ }\n"
+        + "  if (count >= 3) {\n"
+        + "    control.done()\n"
+        + "    notifications.info('Should not get here')\n"
+        + "  } else {\n"
+        + "    count++\n"
+        + "  }\n"
         + "}\n"
         + "function stop() {\n"
         + "  clearInterval(interval)\n"
@@ -216,6 +220,7 @@ public class TestScriptJobProcessor {
 
     assertTrue(latch.await(5, TimeUnit.SECONDS));
     verify(processor).onInterval(Mockito.any(Runnable.class), Mockito.eq(250L), Mockito.anyString());
+    verify(notificationService, never()).info("Should not get here");
     verify(notificationService, times(3)).alert("Alert");
     verify(notificationService, times(3)).info("Info");
     verify(notificationService, times(3)).error("Error");
@@ -296,7 +301,6 @@ public class TestScriptJobProcessor {
 
     assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-//    InOrder inOrder = Mockito.inOrder(notificationService, jobSubmitter, subscription, jobControl);
     verify(notificationService).info(TickerEvent.create(spec, ticker1).toString());
     verify(jobSubmitter).submitNewUnchecked(LimitOrderJob.builder()
         .direction(Direction.BUY)

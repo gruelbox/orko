@@ -20,8 +20,8 @@ package com.gruelbox.orko.subscription;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
+import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
@@ -58,8 +58,8 @@ class SubscriptionManager implements Managed {
 
   @Inject
   SubscriptionManager(SubscriptionAccess subscriptionAccess,
-                               ExchangeEventRegistry exchangeEventRegistry,
-                               Transactionally transactionally) {
+                      ExchangeEventRegistry exchangeEventRegistry,
+                      Transactionally transactionally) {
     this.subscriptionAccess = subscriptionAccess;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.transactionally = transactionally;
