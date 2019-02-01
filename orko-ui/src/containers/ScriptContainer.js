@@ -45,6 +45,7 @@ class ScriptContainer extends React.Component {
 
   onChangeScript = script => {
     this.setState({
+      name: script.name,
       script,
       parameters: script.parameters.reduce((o, p) => {
         o[p.name] = p.default ? p.default : ""
