@@ -18,12 +18,12 @@
   <dependencies>
 
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-auth</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-base</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -115,7 +115,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-db-testsupport</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

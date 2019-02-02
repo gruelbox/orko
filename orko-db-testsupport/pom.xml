@@ -18,7 +18,7 @@
   <dependencies>
 
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-base</artifactId>
       <version>${project.version}</version>
     </dependency>
