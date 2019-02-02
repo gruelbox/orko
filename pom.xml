@@ -218,7 +218,7 @@
 
     <!--<xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid> -->
     <xchange.stream.groupid>com.github.badgerwithagun.xchange-stream</xchange.stream.groupid>
-    <xchange.stream.version>orko-SNAPSHOT</xchange.stream.version>
+    <xchange.stream.version>orko.1</xchange.stream.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.badgerwithagun.2</morf.version>
