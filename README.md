@@ -36,6 +36,16 @@ Particularly, please note that the application has only so far been tested on Ch
 
 Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/gruelbox/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/gruelbox/orko/wiki/Supporting_The_Project) and [how to help](https://github.com/gruelbox/orko/wiki/Project-status).
 
+## Demo site
+
+Note that this uses very limited and not particularly sophisticated **paper trading**, which doesn't work fantastically, but it allows you to get an idea of how it all works.  It's also a shared environment, so could easily be broken, and finally it takes 15-30 second to spin up on first use.  With all that out of the way:
+
+- **Address:** https://orko-demo.herokuapp.com/
+- **Username:** trader1
+- **Password:** givemeshitcoins
+- **Second factor:** Leave blank
+
+
 ## Quick-start Installation
 
 - [On a local machine](https://github.com/gruelbox/orko/wiki/Local-installation)
