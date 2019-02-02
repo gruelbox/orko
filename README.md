@@ -24,7 +24,7 @@ Feel like creating your own special order types, such as soft stops which ignore
 
 And best of all, it's completely [free](https://www.fsf.org/about/what-is-free-software) (as in "free speech" as well as "free beer").
 
-Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/gruelbox/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/gruelbox/orko/wiki/Supporting_The_Project) and [how to help](https://github.com/gruelbox/orko/wiki/Project-status).
+Read about some more [things it can do](https://github.com/gruelbox/orko/wiki/Example-Use-Cases).
 
 <img align="right" src=".github/mobile1.png" width="281" height="609"/>
 
@@ -33,6 +33,8 @@ Orko is a new application which has missing features and some well-known bugs. I
 **Beta**. Please read the [project status page](https://github.com/gruelbox/orko/wiki/Project-status).
 
 Particularly, please note that the application has only so far been tested on Chrome desktop and Chrome mobile.
+
+Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/gruelbox/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/gruelbox/orko/wiki/Supporting_The_Project) and [how to help](https://github.com/gruelbox/orko/wiki/Project-status).
 
 ## Quick-start Installation
 
