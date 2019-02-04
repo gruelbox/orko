@@ -50,6 +50,7 @@ class UserTradeNotifier implements Managed {
     Date startDate = new Date();
     subscription = marketDataSubscriptionManager.getUserTrades()
         .filter(t -> t.trade().getTimestamp().after(startDate))
+        .distinct(t -> t.spec().exchange() + "-" + t.trade().getId())
         .subscribe(this::onUserTrade);
   }
 
