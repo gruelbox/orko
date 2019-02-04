@@ -112,6 +112,7 @@ import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 /**
@@ -126,7 +127,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private static final int MAX_TRADES = 20;
   private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
-  private static final Set<MarketDataType> STREAMING_MARKET_DATA = ImmutableSet.of(TICKER, TRADES, ORDERBOOK, MarketDataType.ORDER);
 
   private static final Disposable DUMMY_DISPOSABLE = new Disposable() {
     @Override
@@ -584,11 +584,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
 
       if (streamingExchange != null) {
-        Set<MarketDataSubscription> streamingSubscriptions = FluentIterable.from(subscriptions).filter(s -> STREAMING_MARKET_DATA.contains(s.type())).toSet();
-        if (!streamingSubscriptions.isEmpty()) {
-          openSubscriptions(streamingSubscriptions);
-        }
-        pollingBuilder.addAll(FluentIterable.from(subscriptions).filter(s -> !STREAMING_MARKET_DATA.contains(s.type())).toSet());
+        Set<MarketDataSubscription> remainingSubscriptions = openSubscriptionsWherePossible(subscriptions);
+        pollingBuilder.addAll(remainingSubscriptions);
       } else {
         pollingBuilder.addAll(subscriptions);
       }
@@ -599,44 +596,58 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
 
-    private void openSubscriptions(Set<MarketDataSubscription> streamingSubscriptions) throws InterruptedException {
-      subscriptionsPerExchange.put(exchangeName, streamingSubscriptions);
-      subscribeExchange(streamingSubscriptions);
+    private Set<MarketDataSubscription> openSubscriptionsWherePossible(Set<MarketDataSubscription> subscriptions) throws InterruptedException {
+      Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
+
+      subscribeExchange(subscriptions);
+      subscriptionsPerExchange.put(exchangeName, subscriptions);
 
       StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
 
       disposablesPerExchange.putAll(
         exchangeName,
-        FluentIterable.from(streamingSubscriptions).transform(sub -> {
-          switch (sub.type()) {
-            case ORDERBOOK:
-              return streaming.getOrderBook(sub.spec().currencyPair())
-                  .map(t -> OrderBookEvent.create(sub.spec(), t))
-                  .subscribe(orderbookOut::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
-            case TICKER:
-              LOGGER.debug("Subscribing to {}", sub.spec());
-              return streaming.getTicker(sub.spec().currencyPair())
-                  .map(t -> TickerEvent.create(sub.spec(), t))
-                  .subscribe(tickersOut::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
-            case TRADES:
-              return streaming.getTrades(sub.spec().currencyPair())
-                  .map(t -> convertBinanceOrderType(sub, t))
-                  .map(t -> TradeEvent.create(sub.spec(), t))
-                  .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
-            case ORDER:
-              try {
+        FluentIterable.from(subscriptions).transform(sub -> {
+          try {
+            switch (sub.type()) {
+              case ORDERBOOK:
+                return streaming.getOrderBook(sub.spec().currencyPair())
+                    .map(t -> OrderBookEvent.create(sub.spec(), t))
+                    .subscribe(orderbookOut::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
+              case TICKER:
+                LOGGER.debug("Subscribing to {}", sub.spec());
+                return streaming.getTicker(sub.spec().currencyPair())
+                    .map(t -> TickerEvent.create(sub.spec(), t))
+                    .subscribe(tickersOut::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
+              case TRADES:
+                return streaming.getTrades(sub.spec().currencyPair())
+                    .map(t -> convertBinanceOrderType(sub, t))
+                    .map(t -> TradeEvent.create(sub.spec(), t))
+                    .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
+              case ORDER:
                 return streaming.getOrderChanges(sub.spec().currencyPair())
-                    .map(t -> OrderChangeEvent.create(sub.spec(), t, new Date()))
+                    .map(t -> OrderChangeEvent.create(sub.spec(), t, new Date())) // TODO need server side timestamping
                     .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order stream for " + sub, e));
-              } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
-                // Fine. We don't rely on this anyway
-                return DUMMY_DISPOSABLE;
-              }
-            default:
-              throw new IllegalStateException("Unexpected market data type: " + sub.type());
+              case BALANCE:
+                CurrencyPair currencyPair = sub.spec().currencyPair();
+                remainder.add(sub); // TODO for now I don't trust this, so keep polling anyway
+                return Observable.merge(
+                      streaming.getBalanceChanges(currencyPair.base),
+                      streaming.getBalanceChanges(currencyPair.counter)
+                    )
+                    .map(Balance::create)
+                    .map(b -> BalanceEvent.create(sub.spec().exchange(), b.currency(), b)) // TODO consider timestamping?
+                    .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + sub, e));
+              default:
+                throw new NotAvailableFromExchangeException();
+            }
+          } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
+            remainder.add(sub);
+            subscriptionsPerExchange.remove(exchangeName, sub);
+            return DUMMY_DISPOSABLE;
           }
         })
       );
+      return remainder.build();
     }
 
     /**
@@ -680,6 +691,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           }
           if (s.type().equals(ORDER)) {
             builder.addOrders(s.spec().currencyPair());
+          }
+          if (s.type().equals(BALANCE)) {
+            builder.addBalances(s.spec().currencyPair());
           }
         });
       exchangeService.rateController(exchangeName).acquire();

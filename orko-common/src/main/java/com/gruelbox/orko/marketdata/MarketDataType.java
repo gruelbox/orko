@@ -25,5 +25,5 @@ public enum MarketDataType {
   OPEN_ORDERS,
   USER_TRADE_HISTORY,
   BALANCE,
-  ORDER,
+  ORDER, // TODO merge this and OPEN_ORDERS to create single, sequential API
 }
