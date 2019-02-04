@@ -631,8 +631,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                 CurrencyPair currencyPair = sub.spec().currencyPair();
                 remainder.add(sub); // TODO for now I don't trust this, so keep polling anyway
                 return Observable.merge(
-                      streaming.getBalanceChanges(currencyPair.base),
-                      streaming.getBalanceChanges(currencyPair.counter)
+                      streaming.getBalanceChanges(currencyPair.base, "exchange"), // TODO bitfinex walletId. Should manage multiple wallets properly
+                      streaming.getBalanceChanges(currencyPair.counter, "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
                     )
                     .map(Balance::create)
                     .map(b -> BalanceEvent.create(sub.spec().exchange(), b.currency(), b)) // TODO consider timestamping?
@@ -693,7 +693,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             builder.addOrders(s.spec().currencyPair());
           }
           if (s.type().equals(BALANCE)) {
-            builder.addBalances(s.spec().currencyPair());
+            builder.addBalances(s.spec().currencyPair().base);
+            builder.addBalances(s.spec().currencyPair().counter);
           }
         });
       exchangeService.rateController(exchangeName).acquire();
