@@ -24,7 +24,7 @@ import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
+import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +51,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -64,17 +63,14 @@ import com.gruelbox.orko.marketdata.MarketDataSubscription;
 import com.gruelbox.orko.marketdata.MarketDataType;
 import com.gruelbox.orko.marketdata.SerializableTrade;
 import com.gruelbox.orko.marketdata.TradeEvent;
-import com.gruelbox.orko.marketdata.TradeHistoryEvent;
+import com.gruelbox.orko.marketdata.UserTradeEvent;
 import com.gruelbox.orko.notification.Notification;
-import com.gruelbox.orko.signal.UserTradeEvent;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
 import com.gruelbox.orko.util.SafelyDispose;
 import com.gruelbox.orko.websocket.OrkoWebSocketOutgoingMessage.Nature;
 
 import io.reactivex.Flowable;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
 import io.reactivex.disposables.Disposable;
 
 @Metered
@@ -133,8 +129,8 @@ public final class OrkoWebSocketServer {
         case CHANGE_TRADES:
           mutateSubscriptions(TRADES, request.tickers());
           break;
-        case CHANGE_USER_TRADE_HISTORY:
-          mutateSubscriptions(USER_TRADE_HISTORY, request.tickers());
+        case CHANGE_USER_TRADES:
+          mutateSubscriptions(USER_TRADE, request.tickers());
           break;
         case CHANGE_BALANCE:
           mutateSubscriptions(BALANCE, request.tickers());
@@ -227,7 +223,7 @@ public final class OrkoWebSocketServer {
           .throttleLast(2, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
 
-      // Trades and order status changes are unthrottled - the assumption is that you need the lot
+      // Trades, balances and order status changes are unthrottled - the assumption is that you need the lot
       private final Disposable trades = subscription.getTrades()
           .filter(o -> isReady())
           .map(e -> serialise(e))
@@ -235,25 +231,18 @@ public final class OrkoWebSocketServer {
       private final Disposable orders = subscription.getOrderChanges()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.ORDER_STATUS_CHANGE));
-
-      // And the rest are fetched by poll, so there's no benefit to throttling
-      private final Disposable userTrades = Observable.create((ObservableEmitter<UserTradeEvent> emitter) -> { new UserTradesSubscriber(emitter); })
-          .share()
+      private final Disposable userTrades = subscription.getUserTrades()
           .filter(o -> isReady())
-          .filter(e -> marketDataSubscriptions.get().contains(MarketDataSubscription.create(e.spec(), USER_TRADE_HISTORY)))
           .map(e -> serialise(e))
           .subscribe(e -> send(e, Nature.USER_TRADE));
-      private final Disposable userTradeHistory = Flowable.fromIterable(subscription.getUserTradeHistorySplit())
-          .map(f -> f.filter(o -> isReady()))
-          .flatMap(f -> f)
-          .map(e -> serialise(e))
-          .subscribe(e -> send(e, Nature.USER_TRADE_HISTORY));
-      private final Disposable openOrders = subscription.getOrderSnapshots()
-          .filter(o -> isReady())
-          .subscribe(e -> send(e, Nature.OPEN_ORDERS));
       private final Disposable balance = subscription.getBalances()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.BALANCE));
+
+      // And the rest are fetched by poll, so there's no benefit to throttling
+      private final Disposable openOrders = subscription.getOrderSnapshots()
+          .filter(o -> isReady())
+          .subscribe(e -> send(e, Nature.OPEN_ORDERS));
 
       @Override
       public boolean isDisposed() {
@@ -263,13 +252,12 @@ public final class OrkoWebSocketServer {
             trades.isDisposed() &&
             orders.isDisposed() &&
             userTrades.isDisposed() &&
-            userTradeHistory.isDisposed() &&
             balance.isDisposed();
       }
 
       @Override
       public void dispose() {
-        SafelyDispose.of(openOrders, orderBook, tickers, trades, orders, userTrades, userTradeHistory, balance);
+        SafelyDispose.of(openOrders, orderBook, tickers, trades, orders, userTrades, balance);
       }
     };
   }
@@ -291,16 +279,6 @@ public final class OrkoWebSocketServer {
     return ImmutableMap.of(
       "spec", e.spec(),
       "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
-    );
-  }
-
-  /**
-   * Workaround for lack of serializability of the XChange object
-   */
-  private Object serialise(TradeHistoryEvent e) {
-    return ImmutableMap.of(
-      "spec", e.spec(),
-      "trades", Lists.transform(e.trades(), t -> SerializableTrade.create(e.spec().exchange(), t))
     );
   }
 
@@ -333,28 +311,6 @@ public final class OrkoWebSocketServer {
       return objectMapper.writeValueAsString(OrkoWebSocketOutgoingMessage.create(nature, data));
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  private final class UserTradesSubscriber {
-
-    private final ObservableEmitter<UserTradeEvent> emitter;
-
-    UserTradesSubscriber(ObservableEmitter<UserTradeEvent> emitter) {
-      this.emitter = emitter;
-      eventBus.register(this);
-      emitter.setCancellable(() -> {
-        eventBus.unregister(this);
-      });
-    }
-
-    @Subscribe
-    void onUserTrade(UserTradeEvent e) {
-      try {
-        emitter.onNext(e);
-      } catch (Exception t) {
-        emitter.onError(t);
-      }
     }
   }
 }

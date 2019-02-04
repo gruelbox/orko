@@ -46,7 +46,6 @@ abstract class OrkoWebSocketOutgoingMessage {
     ORDERBOOK,
     USER_TRADE,
     TRADE,
-    USER_TRADE_HISTORY,
     BALANCE,
     NOTIFICATION,
     STATUS_UPDATE,

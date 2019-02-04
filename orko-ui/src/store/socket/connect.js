@@ -82,7 +82,7 @@ export function initialise(s, history) {
       socketClient.resubscribe()
       clearActionsForPrefix(ACTION_KEY_BALANCE)
       bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
-      bufferAllActions(coinActions.setUserTrades(null))
+      bufferAllActions(coinActions.clearUserTrades())
       store.dispatch(coinActions.clearOrders())
       bufferAllActions(coinActions.clearTrades())
       bufferAllActions(coinActions.clearBalances())
@@ -156,11 +156,6 @@ export function initialise(s, history) {
     if (sameCoin(coin, selectedCoin()))
       bufferAllActions(coinActions.addUserTrade(trade))
   })
-  socketClient.onUserTradeHistory((coin, trades) => {
-    if (sameCoin(coin, selectedCoin()))
-      bufferAllActions(coinActions.setUserTrades(trades))
-  })
-
   socketClient.onOrderUpdate((coin, order, timestamp) => {
     if (sameCoin(coin, selectedCoin()))
       store.dispatch(coinActions.orderUpdated(order, timestamp))

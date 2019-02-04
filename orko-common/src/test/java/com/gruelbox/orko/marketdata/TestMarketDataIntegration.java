@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.eventbus.EventBus;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeResource;
@@ -105,7 +104,6 @@ public class TestMarketDataIntegration {
       orkoConfiguration,
       exchange -> exchangeServiceImpl.get(exchange).getTradeService(),
       mock(AccountServiceFactory.class),
-      new EventBus(),
       notificationService
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
@@ -273,8 +271,8 @@ public class TestMarketDataIntegration {
         return (Flowable<T>) manager.getTickers().filter(o -> o.spec().equals(sub.spec()));
       case TRADES:
         return (Flowable<T>) manager.getTrades().filter(o -> o.spec().equals(sub.spec()));
-      case USER_TRADE_HISTORY:
-        return (Flowable<T>) manager.getUserTradeHistorySnapshots().filter(o -> o.spec().equals(sub.spec()));
+      case USER_TRADE:
+        return (Flowable<T>) manager.getUserTrades().filter(o -> o.spec().equals(sub.spec()));
       case BALANCE:
         return (Flowable<T>) manager.getBalances().filter(b -> b.currency().equals(sub.spec().base()) || b.currency().equals(sub.spec().counter()));
       default:
@@ -293,8 +291,8 @@ public class TestMarketDataIntegration {
         return (Flowable<T>) subscription.getTickers();
       case TRADES:
         return (Flowable<T>) subscription.getTrades();
-      case USER_TRADE_HISTORY:
-        return (Flowable<T>) subscription.getUserTradeHistorySnapshots();
+      case USER_TRADE:
+        return (Flowable<T>) subscription.getUserTrades();
       case BALANCE:
         return (Flowable<T>) subscription.getBalances();
       default:

@@ -18,35 +18,44 @@
 
 package com.gruelbox.orko.strategy;
 
-import com.google.common.eventbus.EventBus;
+import java.util.Date;
+
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
+import com.gruelbox.orko.marketdata.UserTradeEvent;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.signal.UserTradeEvent;
+import com.gruelbox.orko.util.SafelyDispose;
 
 import io.dropwizard.lifecycle.Managed;
+import io.reactivex.disposables.Disposable;
 
 @Singleton
 class UserTradeNotifier implements Managed {
 
-  private final EventBus eventBus;
   private final NotificationService notificationService;
+  private final MarketDataSubscriptionManager marketDataSubscriptionManager;
+
+  private Disposable subscription;
 
   @Inject
-  UserTradeNotifier(EventBus eventBus, NotificationService notificationService) {
-    this.eventBus = eventBus;
+  UserTradeNotifier(MarketDataSubscriptionManager marketDataSubscriptionManager, NotificationService notificationService) {
+    this.marketDataSubscriptionManager = marketDataSubscriptionManager;
     this.notificationService = notificationService;
   }
 
   @Override
   public void start() throws Exception {
-    eventBus.register(this);
+    Date startDate = new Date();
+    subscription = marketDataSubscriptionManager.getUserTrades()
+        .filter(t -> t.trade().getTimestamp().after(startDate))
+        .subscribe(this::onUserTrade);
   }
 
   @Override
   public void stop() throws Exception {
-    eventBus.unregister(this);
+    SafelyDispose.of(subscription);
   }
 
   @Subscribe

@@ -29,7 +29,6 @@ import com.gruelbox.orko.jobrun.JobRunModule;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.marketdata.MarketDataModule;
 import com.gruelbox.orko.notification.NotificationModule;
-import com.gruelbox.orko.signal.SignalModule;
 import com.gruelbox.orko.strategy.StrategyModule;
 import com.gruelbox.orko.subscription.SubscriptionModule;
 import com.gruelbox.orko.support.SupportModule;
@@ -53,7 +52,6 @@ class CommonModule extends AbstractModule {
     install(new SubscriptionModule());
     install(new JobsModule());
     install(new NotificationModule());
-    install(new SignalModule());
     install(new StrategyModule());
     install(new SupportModule());
   }

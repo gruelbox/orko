@@ -38,11 +38,10 @@ public interface ExchangeEventRegistry {
     Flowable<OrderBookEvent> getOrderBooks();
     Flowable<TradeEvent> getTrades();
     Flowable<OrderChangeEvent> getOrderChanges();
-    Flowable<TradeHistoryEvent> getUserTradeHistorySnapshots();
+    Flowable<UserTradeEvent> getUserTrades();
     Flowable<BalanceEvent> getBalances();
 
     Iterable<Flowable<TickerEvent>> getTickersSplit();
-    Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit();
 
     public ExchangeEventSubscription replace(Set<MarketDataSubscription> targetSubscriptions);
 

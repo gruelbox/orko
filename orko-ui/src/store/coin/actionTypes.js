@@ -17,7 +17,7 @@
  */
 export const SET_BALANCE = "coin.SET_BALANCE"
 export const SET_ORDERBOOK = "coin.SET_ORDERBOOK"
-export const SET_USER_TRADES = "coin.SET_USER_TRADES"
+export const CLEAR_USER_TRADES = "coin.CLEAR_USER_TRADES"
 export const ADD_USER_TRADE = "coin.ADD_USER_TRADE"
 export const ADD_TRADE = "coin.ADD_TRADE"
 export const CLEAR_TRADES = "coin.CLEAR_TRADES"
