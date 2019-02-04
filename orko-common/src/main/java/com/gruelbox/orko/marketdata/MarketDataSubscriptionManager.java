@@ -57,6 +57,7 @@ import java.util.function.Function;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.bitmex.BitmexPrompt;
+import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.account.Wallet;
@@ -113,7 +114,6 @@ import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
-import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 
 /**
@@ -587,6 +587,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       List<Disposable> disposables = new ArrayList<>();
       for (MarketDataSubscription sub : subscriptions) {
+        if (sub.type().equals(BALANCE))
+          continue;
         try {
           switch (sub.type()) {
             case ORDERBOOK:
@@ -617,17 +619,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                   .map(t -> OrderChangeEvent.create(sub.spec(), t, new Date())) // TODO need server side timestamping
                   .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order stream for " + sub, e)));
               break;
-            case BALANCE:
-              CurrencyPair currencyPair = sub.spec().currencyPair();
-              remainder.add(sub); // TODO for now I don't trust this, so keep polling anyway
-              disposables.add(Observable.merge(
-                    streaming.getBalanceChanges(currencyPair.base, "exchange"), // TODO bitfinex walletId. Should manage multiple wallets properly
-                    streaming.getBalanceChanges(currencyPair.counter, "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-                  )
-                  .map(Balance::create)
-                  .map(b -> BalanceEvent.create(sub.spec().exchange(), b.currency(), b)) // TODO consider timestamping?
-                  .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + sub, e)));
-              break;
             default:
               throw new NotAvailableFromExchangeException();
           }
@@ -637,9 +628,33 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         }
       }
 
+      ImmutableSet<String> currencies = FluentIterable.from(subscriptions)
+          .filter(s -> s.type().equals(BALANCE))
+          .filter(s -> {
+            remainder.add(s); // TODO for now I don't trust this, so keep polling anyway
+            return true;
+          })
+          .transformAndConcat(s -> ImmutableList.of(s.spec().base(), s.spec().counter()))
+          .toSet();
+      try {
+        for (String currency : currencies) {
+          disposables.add(
+            streaming.getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
+              .map(Balance::create)
+              .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
+              .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
+          );
+        }
+      } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
+        FluentIterable.from(subscriptions)
+          .filter(s -> s.type().equals(BALANCE))
+          .forEach(s -> subscriptionsPerExchange.remove(exchangeName, s));
+      }
+
       disposablesPerExchange.putAll(exchangeName, disposables);
       return remainder.build();
     }
+
 
     /**
      * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
