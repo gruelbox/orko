@@ -18,6 +18,8 @@
 
 package com.gruelbox.orko.exchange;
 
+import static com.gruelbox.orko.exchange.Exchanges.GDAX_SANDBOX;
+import static info.bitrich.xchangestream.service.ConnectableService.BEFORE_CONNECTION_HANDLER;
 import static java.util.stream.Stream.concat;
 
 import java.time.Duration;
@@ -55,7 +57,6 @@ import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions;
 
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
-import info.bitrich.xchangestream.service.ConnectableService;
 
 /**
  * API-friendly name mapping for exchanges.
@@ -121,16 +122,14 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private ExchangeSpecification createExchangeSpecification(String exchangeName) throws InstantiationException, IllegalAccessException {
       final ExchangeSpecification exSpec = Exchanges.friendlyNameToClass(exchangeName).newInstance().getDefaultExchangeSpecification();
-      if (exchangeName.equalsIgnoreCase(Exchanges.GDAX_SANDBOX)) {
-        LOGGER.debug("Using sandbox GDAX");
-        exSpec.setSslUri("https://api-public.sandbox.pro.coinbase.com");
-        exSpec.setHost("api-public.sandbox.pro.coinbase.com");
-        RateLimiter rateLimiter = RateLimiter.create(0.25); // TODO make this exchange specific
-        exSpec.setExchangeSpecificParametersItem(
-          ConnectableService.BEFORE_CONNECTION_HANDLER,
-          (Runnable) rateLimiter::acquire
-        );
+      if (exchangeName.equalsIgnoreCase(GDAX_SANDBOX)) {
+        exSpec.setExchangeSpecificParametersItem("Use_Sandbox", true);
       }
+      RateLimiter rateLimiter = RateLimiter.create(0.25); // TODO make this exchange specific
+      exSpec.setExchangeSpecificParametersItem(
+        BEFORE_CONNECTION_HANDLER,
+        (Runnable) rateLimiter::acquire
+      );
       return exSpec;
     }
   });

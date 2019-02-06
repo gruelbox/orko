@@ -27,6 +27,5 @@ public class StrategyModule extends AbstractModule {
   @Override
   protected void configure() {
     Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(UserTradeNotifier.class);
-    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(OrderChangeLogger.class);
   }
 }

@@ -21,8 +21,8 @@ export function setOrderBook(orderBook) {
   return { type: types.SET_ORDERBOOK, payload: orderBook }
 }
 
-export function setUserTrades(trades) {
-  return { type: types.SET_USER_TRADES, payload: trades }
+export function clearUserTrades(trades) {
+  return { type: types.CLEAR_USER_TRADES }
 }
 
 export function addUserTrade(trade) {
