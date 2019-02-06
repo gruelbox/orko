@@ -45,7 +45,6 @@ import com.gruelbox.orko.util.SafelyDispose;
 import io.dropwizard.lifecycle.Managed;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 @Singleton
 class JobLockerImpl implements JobLocker, Managed {
@@ -75,7 +74,6 @@ class JobLockerImpl implements JobLocker, Managed {
   @Override
   public void start() throws Exception {
     interval = Observable.interval(configuration.getGuardianLoopSeconds(), TimeUnit.SECONDS)
-        .observeOn(Schedulers.single())
         .subscribe(x -> transactionally.run(() -> cleanup(now())));
   }
 

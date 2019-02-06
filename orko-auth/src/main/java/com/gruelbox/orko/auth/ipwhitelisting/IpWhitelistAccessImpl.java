@@ -39,7 +39,6 @@ import com.gruelbox.orko.util.SafelyDispose;
 import io.dropwizard.lifecycle.Managed;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 @Singleton
 class IpWhitelistAccessImpl implements IpWhitelistAccess, Managed {
@@ -72,7 +71,6 @@ class IpWhitelistAccessImpl implements IpWhitelistAccess, Managed {
   @Override
   public void start() throws Exception {
     subscription = Observable.interval(expiry, expiryUnits)
-        .observeOn(Schedulers.single())
         .subscribe(x -> transactionally.run(this::cleanup));
   }
 
