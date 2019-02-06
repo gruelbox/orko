@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Dmorf.mysql.noadmin=true -Ddw.server.connector.port=$PORT -cp orko-app/target/classes:orko-app/target/dependency/* com.gruelbox.orko.app.monolith.MonolithApplication server orko-app/heroku-config.yml
+web: java $JAVA_OPTS -Dmorf.mysql.noadmin=true -Ddw.server.connector.port=$PORT -jar orko-app/target/orko-app.jar server orko-app/heroku-config.yml
