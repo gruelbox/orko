@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -578,10 +579,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
     private Set<MarketDataSubscription> openSubscriptionsWherePossible(Set<MarketDataSubscription> subscriptions) throws InterruptedException {
-      Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
 
-      subscribeExchange(subscriptions);
-      subscriptionsPerExchange.put(exchangeName, subscriptions);
+      connectExchange(subscriptions);
+
+      HashSet<MarketDataSubscription> connected = new HashSet<>(subscriptions);
+      Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
 
       StreamingMarketDataService streaming = ((StreamingExchange)exchange).getStreamingMarketDataService();
 
@@ -624,7 +626,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           }
         } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
           remainder.add(sub);
-          subscriptionsPerExchange.remove(exchangeName, sub);
+          connected.remove(sub);
         }
       }
 
@@ -648,9 +650,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
         FluentIterable.from(subscriptions)
           .filter(s -> s.type().equals(BALANCE))
-          .forEach(s -> subscriptionsPerExchange.remove(exchangeName, s));
+          .forEach(s -> connected.remove(s));
       }
 
+      subscriptionsPerExchange.put(exchangeName, Collections.unmodifiableSet(connected));
       disposablesPerExchange.putAll(exchangeName, disposables);
       return remainder.build();
     }
@@ -674,15 +677,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    private void subscribeExchange(Collection<MarketDataSubscription> subscriptionsForExchange) throws InterruptedException {
+    private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) throws InterruptedException {
       if (subscriptionsForExchange.isEmpty())
         return;
       LOGGER.info("Connecting to exchange: " + exchangeName);
-      openConnections(subscriptionsForExchange);
-      LOGGER.info("Connected to exchange: " + exchangeName);
-    }
-
-    private void openConnections(Collection<MarketDataSubscription> subscriptionsForExchange) throws InterruptedException {
       ProductSubscriptionBuilder builder = ProductSubscription.create();
       subscriptionsForExchange.stream()
         .forEach(s -> {
@@ -708,6 +706,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         });
       exchangeService.rateController(exchangeName).acquire();
       streamingExchange.connect(builder.build()).blockingAwait();
+      LOGGER.info("Connected to exchange: " + exchangeName);
     }
 
     private void suspend() throws InterruptedException {

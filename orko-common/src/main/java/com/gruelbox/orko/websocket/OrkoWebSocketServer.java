@@ -97,7 +97,7 @@ public final class OrkoWebSocketServer {
 
 
   @OnOpen
-  public void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
+  public synchronized void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
     LOGGER.info("Opening socket");
     markReady();
     injectMembers(session);
@@ -148,7 +148,7 @@ public final class OrkoWebSocketServer {
 
     } catch (Exception e) {
       LOGGER.error("Error processing message: " + message, e);
-      session.getAsyncRemote().sendText(message(Nature.ERROR, "Error processing message"));
+      send("Error processing message", Nature.ERROR);
     }
   }
 
