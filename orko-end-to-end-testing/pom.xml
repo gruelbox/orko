@@ -45,6 +45,7 @@
       <plugin>
         <groupId>com.bazaarvoice.maven.plugins</groupId>
         <artifactId>process-exec-maven-plugin</artifactId>
+        <version>${process.exec.maven.plugin.version}</version>
         <executions>
           <execution>
             <id>application</id>
@@ -59,8 +60,9 @@
               <arguments>
                 <argument>java</argument>
                 <argument>-Dmorf.mysql.noadmin=true</argument>
-                <argument>-jar</argument>
-                <argument>target/orko-app.jar</argument>
+                <argument>-cp</argument>
+                <argument>target/classes:target/dependency/*</argument>
+                <argument>com.gruelbox.orko.app.monolith.MonolithApplication</argument>
                 <argument>server</argument>
                 <argument>integration-test-config.yml</argument>
               </arguments>
@@ -80,6 +82,7 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
+        <version>${frontend-maven-plugin-version}</version>
         <executions>
           <execution>
             <id>install node and npm</id>
