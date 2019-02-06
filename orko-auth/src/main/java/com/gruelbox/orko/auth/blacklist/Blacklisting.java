@@ -19,7 +19,6 @@
 package com.gruelbox.orko.auth.blacklist;
 
 
-import static io.reactivex.schedulers.Schedulers.single;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import java.util.concurrent.TimeUnit;
@@ -44,13 +43,13 @@ import io.reactivex.disposables.Disposable;
 
 @Singleton
 public class Blacklisting implements Managed {
-  
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Blacklisting.class);
-  
+
   private final Cache<String, AtomicInteger> blacklist;
-  private AuthConfiguration authConfiguration;
-  private Provider<RequestUtils> requestUtils;
-  private AtomicInteger attemptTickets = new AtomicInteger(0);
+  private final AuthConfiguration authConfiguration;
+  private final Provider<RequestUtils> requestUtils;
+  private final AtomicInteger attemptTickets = new AtomicInteger(0);
 
   private Disposable disposable;
 
@@ -61,23 +60,23 @@ public class Blacklisting implements Managed {
     this.authConfiguration = authConfiguration;
     this.blacklist = CacheBuilder.newBuilder().expireAfterAccess(authConfiguration.getBlacklistingExpirySeconds(), TimeUnit.SECONDS).build();
   }
-  
+
   @Override
   public void start() throws Exception {
     LOGGER.debug("Resetting available tickets");
-    disposable = Observable.interval(1, MINUTES).observeOn(single()).subscribe(x -> attemptTickets.set(0));
-  } 
-  
+    disposable = Observable.interval(1, MINUTES).subscribe(x -> attemptTickets.set(0));
+  }
+
   @Override
   public void stop() throws Exception {
     SafelyDispose.of(disposable);
   }
-  
+
   public void failure() {
     logGlobalFailure();
     logIpFailure();
   }
-  
+
   private void logGlobalFailure() {
     int attempt = attemptTickets.incrementAndGet();
     if (attempt > 50)
@@ -99,7 +98,7 @@ public class Blacklisting implements Managed {
     if (count.incrementAndGet() == authConfiguration.getAttemptsBeforeBlacklisting())
       LOGGER.warn("Banned IP: " + ip);
   }
-  
+
   public void success() {
     blacklist.invalidate(requestUtils.get().sourceIp());
   }
@@ -109,7 +108,7 @@ public class Blacklisting implements Managed {
       return true;
     return isIpBlacklisted();
   }
-  
+
   private boolean isGloballyBlacklisted() {
     return attemptTickets.get() >= 100;
   }
@@ -122,7 +121,7 @@ public class Blacklisting implements Managed {
       LOGGER.warn("Access attempt from banned IP: " + ip);
     return result;
   }
-  
+
   @VisibleForTesting
   public void cleanUp() {
     attemptTickets.set(0);
