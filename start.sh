@@ -1,6 +1,6 @@
 #!/bin/bash
-java \
--jar \
-orko-app/target/orko-app.jar \
+java -cp \
+orko-app/target/classes:orko-app/target/dependency/* \
+com.gruelbox.orko.app.monolith.MonolithApplication \
 server \
 ./orko-app/example-config.yml
