@@ -66,6 +66,7 @@ import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
+import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.service.account.AccountService;
@@ -613,6 +614,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             case USER_TRADE:
               remainder.add(sub); // TODO for now I don't trust this, so keep polling anyway
               disposables.add(streaming.getUserTrades(sub.spec().currencyPair())
+                  .map(t -> convertBinanceUserOrderType(sub, t))
                   .map(t -> UserTradeEvent.create(sub.spec(), t))
                   .subscribe(userTradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e)));
               break;
@@ -664,14 +666,19 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
      */
     private Trade convertBinanceOrderType(MarketDataSubscription sub, Trade t) {
       if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
-        return new Trade(
-          t.getType() == BID ? ASK : BID,
-          t.getOriginalAmount(),
-          t.getCurrencyPair(),
-          t.getPrice(),
-          t.getTimestamp(),
-          t.getId()
-        );
+        return Trade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
+      } else {
+        return t;
+      }
+    }
+
+
+    /**
+     * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
+     */
+    private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
+      if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
+        return UserTrade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
       } else {
         return t;
       }
