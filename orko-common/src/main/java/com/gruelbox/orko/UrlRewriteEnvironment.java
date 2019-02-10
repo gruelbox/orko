@@ -55,7 +55,13 @@ class UrlRewriteEnvironment implements EnvironmentInitialiser {
       ServletContext context = filterConfig.getServletContext();
       try {
         final URL confUrl = getClass().getClassLoader().getResource(confPath);
+        if (confUrl == null) {
+          throw new IllegalArgumentException("Could not locate configuration at " + confPath);
+        }
         final InputStream config = getClass().getClassLoader().getResourceAsStream(confPath);
+        if (config == null) {
+          throw new IllegalArgumentException("Could not get configuration stream at " + confPath);
+        }
         Conf conf = new Conf(context, config, confPath, confUrl.toString(), false);
         checkConf(conf);
       } catch (Throwable e) {
