@@ -12,7 +12,7 @@
   "author": "",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "cypress": "^3.1.4"
+    "cypress": "^3.1.5"
   },
   "dependencies": {
     "otplib": "^10.0.1"
