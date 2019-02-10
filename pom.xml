@@ -549,7 +549,7 @@
             </dependency>
           </dependencies>
           <configuration>
-            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <sourceDirectories>${project.build.sourceDirectory}</sourceDirectories>
             <suppressionsLocation>../etc/checkstyle-suppressions.xml</suppressionsLocation>
             <configLocation>../etc/checkstyle.xml</configLocation>
             <encoding>UTF-8</encoding>
