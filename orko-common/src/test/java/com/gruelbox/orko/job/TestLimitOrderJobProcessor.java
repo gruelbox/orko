@@ -285,7 +285,7 @@ public class TestLimitOrderJobProcessor {
     processor.stop();
 
     verifyLimitBuy();
-    verifySentError();
+    verifySentTransientError();
     Assert.assertEquals(Status.FAILURE_TRANSIENT, result);
     verifyDidNothingElse();
   }
@@ -330,6 +330,10 @@ public class TestLimitOrderJobProcessor {
 
   private void verifySentError() {
     verify(notificationService).error(Mockito.anyString(), Mockito.any(RuntimeException.class));
+  }
+
+  private void verifySentTransientError() {
+    verify(notificationService).error(Mockito.anyString(), Mockito.any(BinanceExceptionClassifier.RetriableBinanceException.class));
   }
 
   private void verifySentMessage() {

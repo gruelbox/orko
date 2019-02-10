@@ -67,7 +67,6 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import jdk.nashorn.internal.runtime.ParserException;
 
 /**
  * Processor for {@link ScriptJob}.
@@ -160,7 +159,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
   }
 
-  private void initialiseEngine() throws ScriptException, ParserException {
+  private void initialiseEngine() throws ScriptException {
     engine = new NashornScriptEngineFactory().getScriptEngine(new String[] { "--no-java" });
     createBindings();
     engine.eval(job.script());
