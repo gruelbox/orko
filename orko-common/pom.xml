@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.10.3-SNAPSHOT</version>
+    <version>0.11.2-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -18,12 +18,12 @@
   <dependencies>
 
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-auth</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-base</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -92,6 +92,10 @@
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -111,7 +115,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-db-testsupport</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -190,7 +194,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-plugin-version}</version>
         <configuration>
           <useSystemClassLoader>false</useSystemClassLoader>
         </configuration>

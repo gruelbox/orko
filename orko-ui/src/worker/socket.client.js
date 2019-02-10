@@ -30,7 +30,6 @@ var handleTrade = (coin, trade) => {}
 var handleOrdersSnapshot = (coin, orders, timestamp) => {}
 var handleOrderUpdate = (coin, order, timestamp) => {}
 var handleUserTrade = (coin, trade) => {}
-var handleUserTradeHistory = (coin, trades) => {}
 var handleBalance = (exchange, currency, balance) => {}
 
 var subscribedCoins = []
@@ -78,10 +77,6 @@ export function onOrderUpdate(handler) {
 
 export function onUserTrade(handler) {
   handleUserTrade = handler
-}
-
-export function onUserTradeHistory(handler) {
-  handleUserTradeHistory = handler
 }
 
 export function onBalance(handler) {
@@ -172,7 +167,7 @@ export function resubscribe() {
     tickers: serverSelectedCoinTickers
   })
   send({
-    command: socketMessages.CHANGE_USER_TRADE_HISTORY,
+    command: socketMessages.CHANGE_USER_TRADES,
     tickers: serverSelectedCoinTickers
   })
   send({
@@ -239,13 +234,6 @@ function receive(message) {
         handleUserTrade(augmentCoin(message.data.spec), message.data.trade)
         break
 
-      case socketMessages.USER_TRADE_HISTORY:
-        handleUserTradeHistory(
-          augmentCoin(message.data.spec),
-          message.data.trades
-        )
-        break
-
       case socketMessages.BALANCE:
         handleBalance(
           message.data.exchange,
@@ -288,15 +276,6 @@ function preProcess(obj) {
         orderBook.bids = orderBook.bids.slice(0, 16)
       }
       return obj
-
-    case socketMessages.USER_TRADE_HISTORY:
-      obj.data.trades = obj.data.trades.sort((a, b) => b.d - a.d)
-      return obj
-
-    case socketMessages.USER_TRADE:
-      obj.data.trade.t = obj.data.trade.t === "BID" ? "ASK" : "BID"
-      return obj
-
     default:
       return obj
   }

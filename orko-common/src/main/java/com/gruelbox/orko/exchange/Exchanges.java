@@ -103,6 +103,7 @@ public final class Exchanges {
       case GDAX_SANDBOX:
         return "Coinbase Pro (Sandbox)";
       case BITMEX:
+      case BITTREX:
       case KRAKEN:
         return StringUtils.capitalize(exchange) + " (beta)";
       default:

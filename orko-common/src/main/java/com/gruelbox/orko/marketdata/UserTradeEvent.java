@@ -18,8 +18,6 @@
 
 package com.gruelbox.orko.marketdata;
 
-import java.util.List;
-
 import org.knowm.xchange.dto.trade.UserTrade;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -30,17 +28,17 @@ import com.gruelbox.orko.spi.TickerSpec;
 
 @AutoValue
 @JsonDeserialize
-public abstract class TradeHistoryEvent {
+public abstract class UserTradeEvent {
 
   @JsonCreator
-  public static TradeHistoryEvent create(@JsonProperty("spec") TickerSpec spec,
-                                         @JsonProperty("openOrders") List<UserTrade> trades) {
-    return new AutoValue_TradeHistoryEvent(spec, trades);
+  public static UserTradeEvent create(@JsonProperty("spec") TickerSpec spec,
+                                      @JsonProperty("trade") UserTrade trade) {
+    return new AutoValue_UserTradeEvent(spec, trade);
   }
 
   @JsonProperty
   public abstract TickerSpec spec();
 
   @JsonProperty
-  public abstract List<UserTrade> trades();
+  public abstract UserTrade trade();
 }

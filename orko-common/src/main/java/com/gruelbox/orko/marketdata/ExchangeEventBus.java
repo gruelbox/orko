@@ -23,7 +23,6 @@ import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE_HISTORY;
 
 import java.util.Set;
 import java.util.UUID;
@@ -117,7 +116,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
       Set<TickerSpec> filtered = subscriptionsFor(TRADES);
       return marketDataSubscriptionManager.getTrades()
           .filter(e -> filtered.contains(e.spec()))
-          .onBackpressureLatest();
+          .onBackpressureBuffer();
     }
 
     @Override
@@ -125,24 +124,15 @@ class ExchangeEventBus implements ExchangeEventRegistry {
       Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.ORDER);
       return marketDataSubscriptionManager.getOrderChanges()
           .filter(e -> filtered.contains(e.spec()))
-          .onBackpressureLatest();
+          .onBackpressureBuffer();
     }
 
     @Override
-    public Flowable<TradeHistoryEvent> getUserTradeHistorySnapshots() {
-      Set<TickerSpec> filtered = subscriptionsFor(USER_TRADE_HISTORY);
-      return marketDataSubscriptionManager.getUserTradeHistorySnapshots()
+    public Flowable<UserTradeEvent> getUserTrades() {
+      Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.USER_TRADE);
+      return marketDataSubscriptionManager.getUserTrades()
           .filter(e -> filtered.contains(e.spec()))
-          .onBackpressureLatest();
-    }
-
-    @Override
-    public Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit() {
-      return FluentIterable
-          .from(subscriptionsFor(USER_TRADE_HISTORY))
-          .transform(spec -> marketDataSubscriptionManager.getUserTradeHistorySnapshots()
-              .filter(e -> e.spec().equals(spec))
-              .onBackpressureLatest());
+          .onBackpressureBuffer();
     }
 
     @Override

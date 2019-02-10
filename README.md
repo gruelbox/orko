@@ -8,7 +8,7 @@
 [![Sonarcloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=com.gruelbox%3Aorko-parent&metric=coverage)](https://sonarcloud.io/dashboard?id=com.gruelbox%3Aorko-parent)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=com.gruelbox%3Aorko-parent&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.gruelbox%3Aorko-parent)
 
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gruelbox/orko)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gruelbox/orko/tree/stable)
 
 Are you fed up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to use advanced order types on exchanges that don't support them, such as trailing stops or one-cancels-other?
 
@@ -24,7 +24,7 @@ Feel like creating your own special order types, such as soft stops which ignore
 
 And best of all, it's completely [free](https://www.fsf.org/about/what-is-free-software) (as in "free speech" as well as "free beer").
 
-Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/gruelbox/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/gruelbox/orko/wiki/Supporting_The_Project) and [how to help](https://github.com/gruelbox/orko/wiki/Project-status).
+Read about some more [things it can do](https://github.com/gruelbox/orko/wiki/Example-Use-Cases).
 
 <img align="right" src=".github/mobile1.png" width="281" height="609"/>
 
@@ -34,11 +34,36 @@ Orko is a new application which has missing features and some well-known bugs. I
 
 Particularly, please note that the application has only so far been tested on Chrome desktop and Chrome mobile.
 
+Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/gruelbox/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/gruelbox/orko/wiki/Supporting_The_Project) and [how to help](https://github.com/gruelbox/orko/wiki/Project-status).
+
+## Demo site
+
+Note that this uses very limited and not particularly sophisticated **paper trading**, which doesn't work fantastically, but it allows you to get an idea of how it all works.  It's also a shared environment, so could easily be broken, and finally it takes 15-30 second to spin up on first use.  With all that out of the way:
+
+- **Address:** https://orko-demo.herokuapp.com/
+- **Username:** trader1
+- **Password:** givemeshitcoins
+- **Second factor:** Leave blank
+
 ## Quick-start Installation
 
 - [On a local machine](https://github.com/gruelbox/orko/wiki/Local-installation)
 - [One-click install on Heroku](https://github.com/gruelbox/orko/wiki/One-click-installation-on-Heroku)
 - [Manual install on Heroku](https://github.com/gruelbox/orko/wiki/Manual-installation-on-Heroku)
+
+## Exchange Support
+
+| Exchange | Support level | Missing features |Notes |
+| -------- | ------------- | ---- | ----- |
+| Binance  | Near perfect  | Deposits, withdrawals, dust conversion, account management | Mostly as responsive, or more so, than the Binance website at trading. In particular, it is much more responsive during periods of high load, such as during a pump on BTC. |
+| Bitfinex | Excellent     | Deposits, withdrawals, [margin trading](https://github.com/gruelbox/orko/issues/83), funding, true OCO trades, post only, reduce only, visibility of trades and positions on chart, account management | Similar quality of experience to Binance, but more obviously short on features compared to Bitfinex's own site. |
+| Coinbase Pro | Excellent | Deposits, withdrawals, post only, good-till, account management | Again, very good user experience, but with a few small UI glitches. |
+| Bittrex | Working | **Streaming**, deposits, withdrawals, stop orders, account management | Perfectly working for low frequency trading but not as smooth an experience. |
+| Kucoin | Working | **Streaming**, deposits, withdrawals, stop orders, account management | Perfectly working for low frequency trading but not as smooth an experience. May shortly stop working, since Kucoin have upgraded to a 2.0 API and are closing the 1.0 API on which this depends. |
+| Kraken | Minimal | **Streaming**, margin trading, deposits, withdrawals, stop orders, account management | As with Kucoin, with a few specific high-profile issues needing resolving. |
+| Bitmex | Minimal | **Streaming**, deposits, withdrawals, account management, most complex order types, position management, leverage setting, balances, historical trades | Bare minimum for placing and cancelling simple limit trades and stops at your currently selected leverage. This has only just started to be implemented. |
+
+* **Streaming** = Websocket streaming updates. Most operations such as trades occur immediately but can take a short while to show in the UI. Without streaming, exchange data is fetched periodically instead. This is quick to implement in Orko but provides a less fluid user experience.  It is usually the first phase in implementing an exchange.
 
 ## Help wanted
 

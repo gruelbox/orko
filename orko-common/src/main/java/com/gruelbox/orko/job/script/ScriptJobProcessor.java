@@ -244,15 +244,19 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public final class Control {
 
     public void fail() {
+      done = true;
       throw new PermanentFailureException();
     }
 
     public void restart() {
+      done = true;
       throw new TransientFailureException();
     }
 
     public void done() {
+      done = true;
       jobControl.finish(SUCCESS);
+      throw new ExitException();
     }
 
     @Override
@@ -267,23 +271,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     private final AtomicBoolean failing = new AtomicBoolean(false);
 
     public Disposable setTick(JSObject callback, JSObject tickerSpec) {
-
       return onTick(
-        event -> {
-          synchronized(ScriptJobProcessor.this) {
-            if (done)
-              return;
-            try {
-              transactionally.run(() -> callback.call(null, event));
-              successfulPoll();
-            } catch (PermanentFailureException e) {
-              notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
-              jobControl.finish(FAILURE_PERMANENT);
-            } catch (Exception e) {
-              failingPoll(e);
-            }
-          }
-        },
+        event -> processEvent(() -> callback.call(null, event)),
         convertTickerSpec(tickerSpec),
         callback.toString()
       );
@@ -291,21 +280,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     public Disposable setInterval(JSObject callback, Integer timeout) {
       return onInterval(
-        () -> {
-          synchronized(ScriptJobProcessor.this) {
-            if (done)
-              return;
-            try {
-              transactionally.run(() -> callback.call(null));
-              successfulPoll();
-            } catch (PermanentFailureException e) {
-              notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
-              jobControl.finish(FAILURE_PERMANENT);
-            } catch (Exception e) {
-              failingPoll(e);
-            }
-          }
-        },
+        () -> processEvent(() -> callback.call(null)),
         timeout,
         callback.toString()
       );
@@ -322,6 +297,26 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         notifyAndLogError("Script job '" + job.name() + "' failing: " + e.getMessage(), e);
       } else {
         LOGGER.error("Script job '" + job.name() + "' failed again: " + e.getMessage());
+      }
+    }
+
+    private synchronized void processEvent(Runnable runnable) {
+      if (done)
+        return;
+      try {
+        transactionally.run(() -> {
+          try {
+            runnable.run();
+          } catch (ExitException e) {
+            // Fine. We're done
+          }
+        });
+        successfulPoll();
+      } catch (PermanentFailureException e) {
+        notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
+        jobControl.finish(FAILURE_PERMANENT);
+      } catch (Exception e) {
+        failingPoll(e);
       }
     }
 
@@ -390,8 +385,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     public void limitOrder(JSObject request) {
       TickerSpec spec = convertTickerSpec((JSObject) request.getMember("market"));
       Direction direction = (Direction) request.getMember("direction");
-      BigDecimal price =  (BigDecimal) request.getMember("price");
-      BigDecimal amount =  (BigDecimal) request.getMember("amount");
+      BigDecimal price =  new BigDecimal(request.getMember("price").toString());
+      BigDecimal amount =  new BigDecimal(request.getMember("amount").toString());
       LOGGER.info("Script job '{}' Submitting limit order: {} {} {} on {} at {}",
           job.name(), direction, amount, spec.base(), spec, price);
       jobSubmitter.submitNewUnchecked(
@@ -491,5 +486,15 @@ class ScriptJobProcessor implements ScriptJob.Processor {
           .implement(ScriptJob.Processor.class, ScriptJobProcessor.class)
           .build(ScriptJob.Processor.ProcessorFactory.class));
     }
+  }
+
+  /**
+   * Slightly filthy. Exception which forces execution to
+   * exit after calling control.done(). Otherwise it's too easy for
+   * a scriptwriter to cause an endless loop by not realising that
+   * control.done() doesn't cause exit.
+   */
+  private static final class ExitException extends RuntimeException {
+    private static final long serialVersionUID = 7680880935814943979L;
   }
 }

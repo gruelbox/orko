@@ -17,8 +17,15 @@
  */
 package com.gruelbox.orko;
 
-import javax.servlet.FilterRegistration;
+import java.io.InputStream;
+import java.net.URL;
 
+import javax.servlet.FilterConfig;
+import javax.servlet.FilterRegistration;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
+import org.tuckey.web.filters.urlrewrite.Conf;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
@@ -29,8 +36,31 @@ class UrlRewriteEnvironment implements EnvironmentInitialiser {
   @Override
   public void init(Environment environment) {
     FilterRegistration.Dynamic urlRewriteFilter = environment.servlets()
-        .addFilter("UrlRewriteFilter", new UrlRewriteFilter());
+        .addFilter("UrlRewriteFilter", new UrlRewriteFilterFixed());
     urlRewriteFilter.addMappingForUrlPatterns(null, true, "/*");
     urlRewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
+  }
+
+
+  /**
+   * TODO See https://github.com/paultuckey/urlrewritefilter/issues/224
+   * Should be fixed by https://github.com/paultuckey/urlrewritefilter/pull/225
+   * and can be removed if a 4.0.2+ version of UrlRewriteFilter is released.
+   */
+  private static final class UrlRewriteFilterFixed extends UrlRewriteFilter {
+
+    @Override
+    protected void loadUrlRewriter(FilterConfig filterConfig) throws ServletException {
+      String confPath = filterConfig.getInitParameter("confPath");
+      ServletContext context = filterConfig.getServletContext();
+      try {
+        final URL confUrl = getClass().getClassLoader().getResource(confPath);
+        final InputStream config = getClass().getClassLoader().getResourceAsStream(confPath);
+        Conf conf = new Conf(context, config, confPath, confUrl.toString(), false);
+        checkConf(conf);
+      } catch (Throwable e) {
+        throw new ServletException(e);
+      }
+    }
   }
 }

@@ -20,7 +20,6 @@ package com.gruelbox.orko.exchange;
 
 import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static io.reactivex.schedulers.Schedulers.single;
 import static java.lang.System.currentTimeMillis;
 
 import java.util.concurrent.TimeUnit;
@@ -71,7 +70,6 @@ final class MonitorExchangeSocketHealth implements Managed {
     );
     trades = subscription.getTrades().forEach(t -> onTrade(t));
     poll = Observable.interval(10, TimeUnit.MINUTES)
-        .observeOn(single())
         .subscribe(i -> runOneIteration());
   }
 
