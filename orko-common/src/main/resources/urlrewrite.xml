@@ -1,6 +1,0 @@
-<urlrewrite>
-    <rule>
-        <from>^/?(addCoin|scripts|job|coin).*$</from>
-        <to type="forward">/index.html</to>
-    </rule>
-</urlrewrite>

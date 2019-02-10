@@ -18,16 +18,17 @@
 package com.gruelbox.orko;
 
 import java.io.InputStream;
-import java.net.URL;
 
 import javax.servlet.FilterConfig;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
+import org.apache.commons.io.IOUtils;
 import org.tuckey.web.filters.urlrewrite.Conf;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
+import com.google.common.base.Charsets;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
@@ -54,15 +55,13 @@ class UrlRewriteEnvironment implements EnvironmentInitialiser {
       String confPath = filterConfig.getInitParameter("confPath");
       ServletContext context = filterConfig.getServletContext();
       try {
-        final URL confUrl = getClass().getClassLoader().getResource(confPath);
-        if (confUrl == null) {
-          throw new IllegalArgumentException("Could not locate configuration at " + confPath);
-        }
-        final InputStream config = getClass().getClassLoader().getResourceAsStream(confPath);
-        if (config == null) {
-          throw new IllegalArgumentException("Could not get configuration stream at " + confPath);
-        }
-        Conf conf = new Conf(context, config, confPath, confUrl.toString(), false);
+        InputStream config = IOUtils.toInputStream("<urlrewrite>\n" +
+            "    <rule>\n" +
+            "        <from>^/?(addCoin|scripts|job|coin).*$</from>\n" +
+            "        <to type=\"forward\">/index.html</to>\n" +
+            "    </rule>\n" +
+            "</urlrewrite>", Charsets.UTF_8);
+        Conf conf = new Conf(context, config, confPath, "HARDCODED", false);
         checkConf(conf);
       } catch (Throwable e) {
         throw new ServletException(e);
