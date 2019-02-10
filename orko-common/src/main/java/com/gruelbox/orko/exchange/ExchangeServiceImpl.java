@@ -90,7 +90,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         LOGGER.debug("No API connection details.  Connecting to public API: {}", name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name);
         return createExchange(exSpec);
-      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException e) {
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
     }
@@ -108,7 +108,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
         return createExchange(exSpec);
 
-      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException e) {
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
     }
