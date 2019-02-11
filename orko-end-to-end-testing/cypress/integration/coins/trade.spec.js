@@ -25,10 +25,10 @@ import {
 
 import { NUMBER_REGEX, LONG_WAIT } from "../../util/constants"
 
-const BITFINEX_BTC = {
-  exchange: "bitfinex",
-  counter: "USD",
-  base: "BTC"
+const BINANCE_ETH = {
+  exchange: "binance",
+  counter: "USDT",
+  base: "ETH"
 }
 
 const BINANCE_BTC = {
@@ -55,17 +55,14 @@ function checkCancelServerSideOrder({
       cy.o("createdDate").contains("Not on exchange")
       cy.o("amount")
         .invoke("text")
-        .should("eq", amount)
+        .then(text => expect(Number(text)).to.equal(Number(amount)))
       cy.o("stopPrice")
         .invoke("text")
-        .should("eq", stopPrice)
+        .then(text => expect(Number(text)).to.equal(Number(stopPrice)))
       cy.o("limitPrice")
         .invoke("text")
-        .should("eq", limitPrice)
-      cy.o("cancel")
-        .invoke("width")
-        .should("be.gt", 0)
-      cy.o("cancel").click({ force: true })
+        .then(text => expect(Number(text)).to.equal(Number(limitPrice)))
+      cy.o("cancel").safeClick()
     })
     cy.get("[data-type='openOrder/" + direction + "']", {
       timeout: LONG_WAIT
@@ -81,10 +78,10 @@ context("Trading", () => {
     // Now start the login process
     cy.whitelist()
     cy.loginApi().then(() => {
-      clearOrders(BITFINEX_BTC)
+      clearOrders(BINANCE_ETH)
       clearOrders(BINANCE_BTC)
       clearSubscriptions().then(() => {
-        addSubscription(BITFINEX_BTC)
+        addSubscription(BINANCE_ETH)
         addSubscription(BINANCE_BTC)
       })
       clearJobs()
@@ -103,10 +100,11 @@ context("Trading", () => {
         })
       })
       cy.o("section/coinList").within(() => {
-        cy.o("binance/USDT/BTC/price").contains(NUMBER_REGEX, {
-          timeout: LONG_WAIT
-        })
-        cy.o("binance/USDT/BTC/price").click()
+        cy.o("binance/USDT/BTC/price")
+          .contains(NUMBER_REGEX, {
+            timeout: LONG_WAIT
+          })
+          .click()
       })
       cy.o("limitOrder").within(() => {
         cy.o("limitPrice")
@@ -156,10 +154,7 @@ context("Trading", () => {
         })
         cy.o("section/orders").within(() => {
           cy.get("[data-type='openOrder/" + button + "']").within(() => {
-            cy.o("cancel")
-              .invoke("width")
-              .should("be.gt", 0)
-            cy.o("cancel").click({ force: true })
+            cy.o("cancel").safeClick()
           })
           cy.get("[data-type='openOrder/" + button + "']", {
             timeout: LONG_WAIT
@@ -221,94 +216,116 @@ context("Trading", () => {
     }
 
     cy.o("section/coinList").within(() => {
-      cy.o("bitfinex/USD/BTC/name").click()
+      cy.o("binance/USDT/BTC/name").click()
+      cy.o("binance/USDT/BTC/price")
+        .contains(NUMBER_REGEX, {
+          timeout: LONG_WAIT
+        })
+        .invoke("text")
+        .as("price")
     })
-    cy.o("selectedCoin").contains("Bitfinex")
-    cy.o("selectedCoin").contains("BTC/USD")
+    cy.o("selectedCoin").contains("Binance")
+    cy.o("selectedCoin").contains("BTC/USDT")
     cy.o("section/trading/tabs").within(() => {
       cy.o("stopTakeProfit").click()
     })
     cy.o("section/trading").within(() => {
       cy.o("enablePaperTrading").click()
     })
+    cy.get("@price").then(priceText => {
+      const price = Number(priceText)
 
-    createHiddenOrder({
-      direction: "BUY",
-      highPrice: 90000,
-      highLimitPrice: 100000,
-      amount: 1
-    })
-    checkCancelServerSideOrder({
-      direction: "buy",
-      amount: "1",
-      stopPrice: "90000",
-      limitPrice: "100000"
-    })
+      createHiddenOrder({
+        direction: "BUY",
+        highPrice: price + 1000,
+        highLimitPrice: price + 1100,
+        amount: 1
+      })
+      checkCancelServerSideOrder({
+        direction: "buy",
+        amount: "1",
+        stopPrice: price + 1000,
+        limitPrice: price + 1100
+      })
 
-    createHiddenOrder({
-      direction: "BUY",
-      lowPrice: 99,
-      lowLimitPrice: 100,
-      amount: 1
-    })
-    checkCancelServerSideOrder({
-      direction: "buy",
-      amount: "1",
-      stopPrice: "99",
-      limitPrice: "100"
-    })
+      createHiddenOrder({
+        direction: "BUY",
+        lowPrice: price - 900,
+        lowLimitPrice: price - 1000,
+        amount: 1
+      })
+      checkCancelServerSideOrder({
+        direction: "buy",
+        amount: "1",
+        stopPrice: price - 900,
+        limitPrice: price - 1000
+      })
 
-    createHiddenOrder({
-      direction: "SELL",
-      lowPrice: 100,
-      lowLimitPrice: 99,
-      amount: 1
-    })
-    checkCancelServerSideOrder({
-      direction: "sell",
-      amount: "1",
-      stopPrice: "100",
-      limitPrice: "99"
-    })
+      createHiddenOrder({
+        direction: "SELL",
+        lowPrice: price - 1000,
+        lowLimitPrice: price - 900,
+        amount: 1
+      })
+      checkCancelServerSideOrder({
+        direction: "sell",
+        amount: "1",
+        stopPrice: price - 1000,
+        limitPrice: price - 900
+      })
 
-    createHiddenOrder({
-      direction: "SELL",
-      highPrice: 100000,
-      highLimitPrice: 90000,
-      amount: 1
-    })
-    checkCancelServerSideOrder({
-      direction: "sell",
-      amount: "1",
-      stopPrice: "100000",
-      limitPrice: "90000"
+      createHiddenOrder({
+        direction: "SELL",
+        highPrice: price + 1100,
+        highLimitPrice: price + 1000,
+        amount: 1
+      })
+      checkCancelServerSideOrder({
+        direction: "sell",
+        amount: "1",
+        stopPrice: price + 1100,
+        limitPrice: price + 1000
+      })
     })
   })
 
   it("Stops (server)", () => {
     cy.o("section/coinList").within(() => {
-      cy.o("bitfinex/USD/BTC/name").click()
+      cy.o("binance/USDT/BTC/name").click()
+      cy.o("binance/USDT/BTC/price")
+        .contains(NUMBER_REGEX, {
+          timeout: LONG_WAIT
+        })
+        .invoke("text")
+        .as("price")
     })
-    cy.o("selectedCoin").contains("Bitfinex")
-    cy.o("selectedCoin").contains("BTC/USD")
+    cy.o("selectedCoin").contains("Binance")
+    cy.o("selectedCoin").contains("BTC/USDT")
     cy.o("section/trading/tabs").within(() => {
       cy.o("stop").click()
     })
-    cy.o("section/trading").within(() => {
-      cy.o("enablePaperTrading").click()
-      cy.o("stopOrder").within(() => {
-        cy.o("stopPrice").type("100")
-        cy.o("amount").type("1")
-        cy.get("[data-orko='onExchange'] input").uncheck({ force: true })
-        cy.o("limitPrice").type("99")
-        cy.o("sell").click()
+    cy.get("@price").then(priceText => {
+      const price = Number(priceText)
+      const stopPrice = price - 1000
+      const limitPrice = price - 1100
+
+      cy.o("section/trading").within(() => {
+        cy.o("enablePaperTrading").click()
+        cy.o("stopOrder").within(() => {
+          cy.o("stopPrice").type(stopPrice)
+          cy.o("amount").type("1")
+          cy.get("[data-orko='onExchange'] input").uncheck({ force: true })
+          cy.o("limitPrice").type(limitPrice)
+          cy.o("sell").click()
+        })
       })
-    })
-    checkCancelServerSideOrder({
-      direction: "sell",
-      amount: "1",
-      stopPrice: "100",
-      limitPrice: "99"
+
+      checkCancelServerSideOrder({
+        direction: "sell",
+        amount: "1",
+        stopPrice,
+        limitPrice
+      })
     })
   })
 

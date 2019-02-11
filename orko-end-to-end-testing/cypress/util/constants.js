@@ -24,4 +24,4 @@ export const LOGIN_PW = "tester"
 
 export const PERCENT_CHANGE_REGEX = /-?[0-9]\d*(\.\d+)?%/
 export const NUMBER_REGEX = /-?[0-9]\d*(\.\d+)?/
-export const LONG_WAIT = 30000
+export const LONG_WAIT = 60000
