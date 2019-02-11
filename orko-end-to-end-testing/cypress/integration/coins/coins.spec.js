@@ -88,7 +88,9 @@ context("Coins", () => {
         })
         .invoke("text")
         .as("currentPrice")
-      cy.o("binance/USDT/ETH/setReferencePrice").contains("--")
+      cy.o("binance/USDT/ETH/setReferencePrice")
+        .invoke("text")
+        .should("eq", "--")
       cy.o("binance/USDT/ETH/setReferencePrice").click({ force: true })
     })
     cy.o("section/referencePrice").within(() => {
@@ -110,7 +112,9 @@ context("Coins", () => {
     })
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/setReferencePrice").contains("--")
+      cy.o("binance/USDT/ETH/setReferencePrice")
+        .invoke("text")
+        .should("eq", "--")
       cy.o("binance/USDT/ETH/alerts")
         .invoke("width")
         .should("be.gt", 0)
