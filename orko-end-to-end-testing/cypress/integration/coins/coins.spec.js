@@ -118,12 +118,10 @@ context("Coins", () => {
       cy.o("doClear").click()
     })
     cy.o("section/referencePrice").should("not.exist")
-    cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/setReferencePrice", {
-        timeout: LONG_WAIT
-      }).should("have.text", "--")
-      cy.o("binance/USDT/ETH/alerts").safeClick()
-    })
+    cy.o("binance/USDT/ETH/setReferencePrice", {
+      timeout: LONG_WAIT
+    }).should("have.text", "--")
+    cy.o("binance/USDT/ETH/alerts").safeClick()
     cy.o("section/manageAlerts").within(() => {
       cy.get("@currentPrice").then(currentPrice =>
         cy.o("highPrice").type(Number(currentPrice) + 500)
