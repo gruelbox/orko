@@ -62,7 +62,10 @@ function checkCancelServerSideOrder({
       cy.o("limitPrice")
         .invoke("text")
         .should("eq", limitPrice)
-      cy.o("cancel").click()
+      cy.o("cancel")
+        .invoke("width")
+        .should("be.gt", 0)
+      cy.o("cancel").click({ force: true })
     })
     cy.get("[data-type='openOrder/" + direction + "']", {
       timeout: LONG_WAIT
