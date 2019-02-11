@@ -23,6 +23,8 @@ import {
   listOrders
 } from "../../support/tools"
 
+import { NUMBER_REGEX, LONG_WAIT } from "../../util/constants"
+
 const BITFINEX_BTC = {
   exchange: "bitfinex",
   counter: "USD",
@@ -34,9 +36,6 @@ const BINANCE_BTC = {
   counter: "USDT",
   base: "BTC"
 }
-
-const NUMBER_REGEX = /[0-9]+\.?[0-9]*/
-const LONG_WAIT = 30000
 
 function checkCancelServerSideOrder({
   direction,
@@ -128,7 +127,9 @@ context("Trading", () => {
               .contains("Confirming...", { timeout: LONG_WAIT })
               .should("not.exist")
           })
-          cy.get("[data-type='openOrder/" + button + "']", { timeout: LONG_WAIT }).within(() => {
+          cy.get("[data-type='openOrder/" + button + "']", {
+            timeout: LONG_WAIT
+          }).within(() => {
             cy.o("amount")
               .invoke("text")
               .then(text => Number(text))

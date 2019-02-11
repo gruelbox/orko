@@ -16,6 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { clearSubscriptions, addSubscription } from "../../support/tools"
+import {
+  NUMBER_REGEX,
+  PERCENT_CHANGE_REGEX,
+  LONG_WAIT
+} from "../../util/constants"
 
 context("Coins", () => {
   beforeEach(function() {
@@ -49,7 +54,9 @@ context("Coins", () => {
     cy.o("section/coinList").within(() => {
       cy.o("bitfinex/USD/BTC/exchange").contains("Bitfinex")
       cy.o("bitfinex/USD/BTC/name").contains("BTC/USD")
-      cy.o("bitfinex/USD/BTC/price").contains(/^[0-9\.]*/)
+      cy.o("bitfinex/USD/BTC/price").contains(NUMBER_REGEX, {
+        timeout: LONG_WAIT
+      })
       cy.o("bitfinex/USD/BTC/remove").click()
       cy.o("bitfinex/USD/BTC/exchange").should("not.exist")
     })
@@ -73,11 +80,13 @@ context("Coins", () => {
       cy.o("binance/USDT/ETH/exchange").contains("Binance")
       cy.o("binance/USDT/ETH/name").contains("ETH/USD")
       cy.o("binance/USDT/ETH/price")
-        .contains(/^[0-9\.]*/)
+        .contains(NUMBER_REGEX, {
+          timeout: LONG_WAIT
+        })
         .invoke("text")
         .as("currentPrice")
       cy.o("binance/USDT/ETH/setReferencePrice").contains("--")
-      cy.o("binance/USDT/ETH/setReferencePrice").click()
+      cy.o("binance/USDT/ETH/setReferencePrice").click({ force: true })
     })
     cy.o("section/referencePrice").within(() => {
       cy.get("@currentPrice").then(currentPrice =>
@@ -87,8 +96,8 @@ context("Coins", () => {
     })
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/setReferencePrice").contains(/^[\-0-9\.]*%/)
-      cy.o("binance/USDT/ETH/setReferencePrice").click()
+      cy.o("binance/USDT/ETH/setReferencePrice").contains(PERCENT_CHANGE_REGEX)
+      cy.o("binance/USDT/ETH/setReferencePrice").click({ force: true })
     })
     cy.o("section/referencePrice").within(() => {
       cy.o("doClear").click()
@@ -99,7 +108,9 @@ context("Coins", () => {
       cy.o("binance/USDT/ETH/alerts").click()
     })
     cy.o("section/manageAlerts").within(() => {
-      cy.o("highPrice").type("6000")
+      cy.get("@currentPrice").then(currentPrice =>
+        cy.o("highPrice").type(Number(currentPrice) + 500)
+      )
       cy.o("lowPrice").type("1")
       cy.o("doCreateAlert").click()
     })
