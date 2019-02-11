@@ -22,6 +22,6 @@ export const LOGIN_SECRET_INVALID = "O546XLKJMJIQM3PX"
 export const LOGIN_USER = "ci"
 export const LOGIN_PW = "tester"
 
-export const PERCENT_CHANGE_REGEX = /[\-0-9]+\.?[0-9]*%/
-export const NUMBER_REGEX = /[0-9]+\.?[0-9]*/
+export const PERCENT_CHANGE_REGEX = /-?[0-9]\d*(\.\d+)?%/
+export const NUMBER_REGEX = /-?[0-9]\d*(\.\d+)?/
 export const LONG_WAIT = 30000
