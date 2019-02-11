@@ -23,19 +23,12 @@ import {
   listOrders
 } from "../../support/tools"
 
-import { NUMBER_REGEX, LONG_WAIT } from "../../util/constants"
-
-const BINANCE_ETH = {
-  exchange: "binance",
-  counter: "USDT",
-  base: "ETH"
-}
-
-const BINANCE_BTC = {
-  exchange: "binance",
-  counter: "USDT",
-  base: "BTC"
-}
+import {
+  NUMBER_REGEX,
+  LONG_WAIT,
+  BINANCE_ETH,
+  BINANCE_BTC
+} from "../../util/constants"
 
 function checkCancelServerSideOrder({
   direction,
