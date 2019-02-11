@@ -47,7 +47,8 @@ import {
   LOGIN_USER,
   LOGIN_PW,
   LOGIN_SECRET,
-  LOGIN_SECRET_INVALID
+  LOGIN_SECRET_INVALID,
+  LONG_WAIT
 } from "../util/constants"
 
 import { tokenForSecret } from "../util/token"
@@ -58,8 +59,8 @@ function option(options, name) {
   return options === undefined || options[name] === undefined || options[name]
 }
 
-Cypress.Commands.add("o", dataAttribute =>
-  cy.get("[data-orko='" + dataAttribute + "']")
+Cypress.Commands.add("o", (dataAttribute, options) =>
+  cy.get("[data-orko='" + dataAttribute + "']", options)
 )
 
 Cypress.Commands.add("secureRequest", options =>
@@ -69,6 +70,17 @@ Cypress.Commands.add("secureRequest", options =>
       "x-xsrf-token": window.localStorage.getItem(XSRF_LOCAL_STORAGE)
     }
   })
+)
+
+Cypress.Commands.add(
+  "safeClick",
+  { prevSubject: "true" },
+  (subject, options) => {
+    cy.wrap(subject)
+      .invoke("width")
+      .should("be.gt", 0)
+    cy.wrap(subject).click({ ...options, force: true })
+  }
 )
 
 Cypress.Commands.add("requestNoFail", (url, options) =>

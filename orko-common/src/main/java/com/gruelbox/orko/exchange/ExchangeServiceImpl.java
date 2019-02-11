@@ -222,4 +222,16 @@ public class ExchangeServiceImpl implements ExchangeService {
         .stream()
         .anyMatch(pair -> pair.equals(currencyPair));
   }
+
+  @Override
+  public boolean isAuthenticated(String name) {
+    if (configuration.getExchanges() == null)
+      return false;
+    ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(name);
+    if (exchangeConfiguration == null)
+      return false;
+    if (StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
+      return false;
+    return true;
+  }
 }
