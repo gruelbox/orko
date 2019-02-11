@@ -22,12 +22,13 @@ jobs:
             - node-v4-{{ .Branch }}-
             - node-v4-
 
-      - run: |
-        if [[ $(echo "$CIRCLE_PROJECT_USERNAME") -eq "gruelbox" ]]; then
-          mvn -B -Pintegration-test clean install -Dcypress.command=runrecord -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
-        else
-          mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
-        fi
+      - run:
+          command: |
+            if [[ $(echo "$CIRCLE_PROJECT_USERNAME") -eq "gruelbox" ]]; then
+              mvn -B -Pintegration-test clean install -Dcypress.command=runrecord -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+            else
+              mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+            fi
 
       - save_cache:
           paths:
