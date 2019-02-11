@@ -156,7 +156,10 @@ context("Trading", () => {
         })
         cy.o("section/orders").within(() => {
           cy.get("[data-type='openOrder/" + button + "']").within(() => {
-            cy.o("cancel").click()
+            cy.o("cancel")
+              .invoke("width")
+              .should("be.gt", 0)
+            cy.o("cancel").click({ force: true })
           })
           cy.get("[data-type='openOrder/" + button + "']", {
             timeout: LONG_WAIT

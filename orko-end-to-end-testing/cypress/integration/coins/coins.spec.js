@@ -57,7 +57,10 @@ context("Coins", () => {
       cy.o("bitfinex/USD/BTC/price").contains(NUMBER_REGEX, {
         timeout: LONG_WAIT
       })
-      cy.o("bitfinex/USD/BTC/remove").click()
+      cy.o("bitfinex/USD/BTC/remove")
+        .invoke("width")
+        .should("be.gt", 0)
+      cy.o("bitfinex/USD/BTC/remove").click({ force: true })
       cy.o("bitfinex/USD/BTC/exchange").should("not.exist")
     })
   })
@@ -126,7 +129,10 @@ context("Coins", () => {
     })
     cy.o("section/manageAlerts").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/remove").click()
+      cy.o("binance/USDT/ETH/remove")
+        .invoke("width")
+        .should("be.gt", 0)
+      cy.o("binance/USDT/ETH/remove").click({ force: true })
       cy.o("binance/USDT/ETH/exchange").should("not.exist")
     })
   })
