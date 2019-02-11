@@ -73,17 +73,6 @@ context("Coins", () => {
     })
   })
 
-  it("Verify regex assumptions", () => {
-    cy.wrap("0.00%").should(text => expect(text).to.match(PERCENT_CHANGE_REGEX))
-    cy.wrap("-0.00%").should(text =>
-      expect(text).to.match(PERCENT_CHANGE_REGEX)
-    )
-    cy.wrap("-1.00%").should(text =>
-      expect(text).to.match(PERCENT_CHANGE_REGEX)
-    )
-    cy.wrap("1.00%").should(text => expect(text).to.match(PERCENT_CHANGE_REGEX))
-  })
-
   it("Visit a coin directly and work with it", () => {
     cy.loginApi().then(() => {
       clearOrders(BINANCE_ETH)
@@ -116,6 +105,10 @@ context("Coins", () => {
     })
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
+      //This almost always fails on headless Chrome
+      //and I can't work out why. This pause seems
+      //to resolve it.
+      cy.wait(1000)
       cy.o("binance/USDT/ETH/setReferencePrice")
         .invoke("text")
         .should("match", PERCENT_CHANGE_REGEX)
