@@ -113,6 +113,7 @@ import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
 import info.bitrich.xchangestream.core.StreamingMarketDataService;
+import info.bitrich.xchangestream.service.exception.NotConnectedException;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
@@ -612,6 +613,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                   .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e)));
               break;
             case USER_TRADE:
+              if (!exchangeService.isAuthenticated(exchangeName)) {
+                throw new NotConnectedException();
+              }
               remainder.add(sub); // TODO for now I don't trust this, so keep polling anyway
               disposables.add(streaming.getUserTrades(sub.spec().currencyPair())
                   .map(t -> convertBinanceUserOrderType(sub, t))
@@ -619,6 +623,9 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                   .subscribe(userTradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e)));
               break;
             case ORDER:
+              if (!exchangeService.isAuthenticated(exchangeName)) {
+                throw new NotConnectedException();
+              }
               disposables.add(streaming.getOrderChanges(sub.spec().currencyPair())
                   .map(t -> OrderChangeEvent.create(sub.spec(), t, new Date())) // TODO need server side timestamping
                   .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order stream for " + sub, e)));
@@ -626,33 +633,42 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             default:
               throw new NotAvailableFromExchangeException();
           }
-        } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
+        } catch (NotConnectedException | NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
           remainder.add(sub);
           connected.remove(sub);
         }
       }
 
-      ImmutableSet<String> currencies = FluentIterable.from(subscriptions)
+      Runnable pollAllBalances = () -> FluentIterable.from(subscriptions)
           .filter(s -> s.type().equals(BALANCE))
-          .filter(s -> {
-            remainder.add(s); // TODO for now I don't trust this, so keep polling anyway
-            return true;
-          })
-          .transformAndConcat(s -> ImmutableList.of(s.spec().base(), s.spec().counter()))
-          .toSet();
-      try {
-        for (String currency : currencies) {
-          disposables.add(
-            streaming.getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-              .map(Balance::create)
-              .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
-              .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
-          );
+          .forEach(s -> {
+            connected.remove(s);
+            remainder.add(s);
+          });
+
+      if (exchangeService.isAuthenticated(exchangeName)) {
+        ImmutableSet<String> currencies = FluentIterable.from(subscriptions)
+            .filter(s -> s.type().equals(BALANCE))
+            .filter(s -> {
+              remainder.add(s); // TODO for now I don't trust this, so keep polling anyway
+              return true;
+            })
+            .transformAndConcat(s -> ImmutableList.of(s.spec().base(), s.spec().counter()))
+            .toSet();
+        try {
+          for (String currency : currencies) {
+            disposables.add(
+              streaming.getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
+                .map(Balance::create)
+                .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
+                .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
+            );
+          }
+        } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
+          pollAllBalances.run();
         }
-      } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
-        FluentIterable.from(subscriptions)
-          .filter(s -> s.type().equals(BALANCE))
-          .forEach(s -> connected.remove(s));
+      } else {
+        pollAllBalances.run();
       }
 
       subscriptionsPerExchange.put(exchangeName, Collections.unmodifiableSet(connected));

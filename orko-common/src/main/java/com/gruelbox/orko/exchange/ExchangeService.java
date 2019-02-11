@@ -37,6 +37,8 @@ public interface ExchangeService {
 
   Ticker fetchTicker(TickerSpec ex);
 
+  boolean isAuthenticated(String name);
+
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
 
   RateController rateController(String name);
