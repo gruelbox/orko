@@ -62,6 +62,17 @@ context("Coins", () => {
     })
   })
 
+  it.only("Verify regex assumptions", () => {
+    cy.wrap("0.00%").should(text => expect(text).to.match(PERCENT_CHANGE_REGEX))
+    cy.wrap("-0.00%").should(text =>
+      expect(text).to.match(PERCENT_CHANGE_REGEX)
+    )
+    cy.wrap("-1.00%").should(text =>
+      expect(text).to.match(PERCENT_CHANGE_REGEX)
+    )
+    cy.wrap("1.00%").should(text => expect(text).to.match(PERCENT_CHANGE_REGEX))
+  })
+
   it("Visit a coin directly and work with it", () => {
     cy.loginApi().then(() => {
       clearSubscriptions().then(() =>
@@ -99,12 +110,11 @@ context("Coins", () => {
     })
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/setReferencePrice").contains(
-        PERCENT_CHANGE_REGEX,
-        {
-          timeout: LONG_WAIT
-        }
-      )
+      cy.o("binance/USDT/ETH/setReferencePrice", {
+        timeout: LONG_WAIT
+      })
+        .invoke("text")
+        .should(text => expect(text).to.match(PERCENT_CHANGE_REGEX))
       cy.o("binance/USDT/ETH/setReferencePrice").safeClick()
     })
     cy.o("section/referencePrice").within(() => {
