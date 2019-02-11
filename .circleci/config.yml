@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk-browsers@sha256:6e5886b4f5f90f1ae5184a26f70e1d9a308e4675693a695da796ebd2a709022d
+      - image: circleci/openjdk:8-jdk-browsers
         environment:
           MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
@@ -22,7 +22,20 @@ jobs:
             - node-v4-{{ .Branch }}-
             - node-v4-
 
-      - run: mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+      - run:
+          command: |
+            echo "Branch: $CIRCLE_BRANCH"
+            echo "Project: $CIRCLE_REPOSITORY_URL"
+            echo " - Username: $CIRCLE_PROJECT_USERNAME"
+            echo " - Repository: $CIRCLE_PROJECT_REPONAME"
+            echo "Pull request: $CIRCLE_PULL_REQUEST"
+            echo " - Username: $CIRCLE_PR_USERNAME"
+            echo " - Repository: $CIRCLE_PR_REPONAME"
+            if [[ $CIRCLE_PROJECT_USERNAME == "gruelbox" ]]; then
+              mvn -B -Pintegration-test clean install -Dcypress.command=runrecord -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+            else
+              mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+            fi
 
       - save_cache:
           paths:
