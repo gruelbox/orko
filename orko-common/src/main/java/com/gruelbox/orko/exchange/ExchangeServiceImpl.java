@@ -227,9 +227,7 @@ public class ExchangeServiceImpl implements ExchangeService {
     if (configuration.getExchanges() == null)
       return false;
     ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(name);
-    if (exchangeConfiguration == null)
-      return false;
-    if (StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
+    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
       return false;
     return true;
   }
