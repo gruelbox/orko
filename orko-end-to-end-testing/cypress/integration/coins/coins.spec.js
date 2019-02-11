@@ -62,7 +62,7 @@ context("Coins", () => {
     })
   })
 
-  it.only("Verify regex assumptions", () => {
+  it("Verify regex assumptions", () => {
     cy.wrap("0.00%").should(text => expect(text).to.match(PERCENT_CHANGE_REGEX))
     cy.wrap("-0.00%").should(text =>
       expect(text).to.match(PERCENT_CHANGE_REGEX)

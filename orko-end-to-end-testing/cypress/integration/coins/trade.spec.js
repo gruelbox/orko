@@ -55,13 +55,25 @@ function checkCancelServerSideOrder({
       cy.o("createdDate").contains("Not on exchange")
       cy.o("amount")
         .invoke("text")
-        .then(text => expect(Number(text)).to.equal(Number(amount)))
+        .then(text =>
+          expect(parseFloat(text).toFixed(2)).to.equal(
+            parseFloat(amount).toFixed(2)
+          )
+        )
       cy.o("stopPrice")
         .invoke("text")
-        .then(text => expect(Number(text)).to.equal(Number(stopPrice)))
+        .then(text =>
+          expect(parseFloat(text).toFixed(2)).to.equal(
+            parseFloat(stopPrice).toFixed(2)
+          )
+        )
       cy.o("limitPrice")
         .invoke("text")
-        .then(text => expect(Number(text)).to.equal(Number(limitPrice)))
+        .then(text =>
+          expect(parseFloat(text).toFixed(2)).to.equal(
+            parseFloat(limitPrice).toFixed(2)
+          )
+        )
       cy.o("cancel").safeClick()
     })
     cy.get("[data-type='openOrder/" + direction + "']", {
