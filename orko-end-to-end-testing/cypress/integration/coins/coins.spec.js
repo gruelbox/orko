@@ -111,7 +111,7 @@ context("Coins", () => {
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
       cy.o("binance/USDT/ETH/setReferencePrice", { timeout: LONG_WAIT })
-        .contains(PERCENT_CHANGE_REGEX, { timeout: LONG_WAIT })
+        .contains("%", { timeout: LONG_WAIT })
         .safeClick()
     })
     cy.o("section/referencePrice").within(() => {
