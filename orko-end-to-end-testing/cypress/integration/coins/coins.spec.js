@@ -96,9 +96,7 @@ context("Coins", () => {
         })
         .invoke("text")
         .as("currentPrice")
-      cy.o("binance/USDT/ETH/setReferencePrice", {
-        timeout: LONG_WAIT
-      })
+      cy.o("binance/USDT/ETH/setReferencePrice")
         .should("have.text", "--")
         .safeClick()
     })
@@ -109,17 +107,20 @@ context("Coins", () => {
       cy.o("doSubmit").click()
     })
     cy.o("section/referencePrice").should("not.exist")
-    cy.o("binance/USDT/ETH/setReferencePrice", { timeout: LONG_WAIT })
-      .contains("%", { timeout: LONG_WAIT })
-      .safeClick()
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/ETH/setReferencePrice")
+        .invoke("text")
+        .should("match", PERCENT_CHANGE_REGEX)
+      cy.o("binance/USDT/ETH/setReferencePrice").safeClick()
+    })
     cy.o("section/referencePrice").within(() => {
       cy.o("doClear").click()
     })
     cy.o("section/referencePrice").should("not.exist")
-    cy.o("binance/USDT/ETH/setReferencePrice", {
-      timeout: LONG_WAIT
-    }).should("have.text", "--")
-    cy.o("binance/USDT/ETH/alerts").safeClick()
+    cy.o("section/coinList").within(() => {
+      cy.o("binance/USDT/ETH/setReferencePrice").should("have.text", "--")
+      cy.o("binance/USDT/ETH/alerts").safeClick()
+    })
     cy.o("section/manageAlerts").within(() => {
       cy.get("@currentPrice").then(currentPrice =>
         cy.o("highPrice").type(Number(currentPrice) + 500)
