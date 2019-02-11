@@ -54,9 +54,9 @@ context("Coins", () => {
     cy.o("section/coinList").within(() => {
       cy.o("bitfinex/USD/BTC/exchange").contains("Bitfinex")
       cy.o("bitfinex/USD/BTC/name").contains("BTC/USD")
-      cy.o("bitfinex/USD/BTC/price").contains(NUMBER_REGEX, {
+      cy.o("bitfinex/USD/BTC/price", {
         timeout: LONG_WAIT
-      })
+      }).shouldMatch(NUMBER_REGEX)
       cy.o("bitfinex/USD/BTC/remove")
         .invoke("width")
         .should("be.gt", 0)
@@ -82,11 +82,10 @@ context("Coins", () => {
     cy.o("section/coinList").within(() => {
       cy.o("binance/USDT/ETH/exchange").contains("Binance")
       cy.o("binance/USDT/ETH/name").contains("ETH/USD")
-      cy.o("binance/USDT/ETH/price")
-        .contains(NUMBER_REGEX, {
-          timeout: LONG_WAIT
-        })
-        .invoke("text")
+      cy.o("binance/USDT/ETH/price", {
+        timeout: LONG_WAIT
+      })
+        .shouldMatch(NUMBER_REGEX)
         .as("currentPrice")
       cy.o("binance/USDT/ETH/setReferencePrice")
         .invoke("text")
@@ -101,7 +100,9 @@ context("Coins", () => {
     })
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/setReferencePrice").contains(PERCENT_CHANGE_REGEX)
+      cy.o("binance/USDT/ETH/setReferencePrice").shouldMatch(
+        PERCENT_CHANGE_REGEX
+      )
       cy.o("binance/USDT/ETH/setReferencePrice")
         .invoke("width")
         .should("be.gt", 0)

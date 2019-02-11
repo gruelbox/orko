@@ -79,6 +79,18 @@ Cypress.Commands.add("requestNoFail", (url, options) =>
   })
 )
 
+Cypress.Commands.add(
+  "shouldMatch",
+  {
+    prevSubject: true
+  },
+  (subject, regex) =>
+    cy
+      .wrap(subject)
+      .invoke("text")
+      .should(text => expect(text).to.match(regex))
+)
+
 Cypress.Commands.add("clearWhitelist", options =>
   cy.request({
     method: "DELETE",
