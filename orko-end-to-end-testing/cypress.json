@@ -10,7 +10,7 @@
     "mochaFile": "target/mocha-reports/mocha-results.[hash].xml",
     "toConsole": true
   },
-  "viewportWidth": 1920,
+  "viewportWidth": 1200,
   "viewportHeight": 1080,
   "projectId": "ttud56"
 }

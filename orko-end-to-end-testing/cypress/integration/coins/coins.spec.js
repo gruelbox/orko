@@ -15,11 +15,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { clearSubscriptions, addSubscription } from "../../support/tools"
+import {
+  clearSubscriptions,
+  addSubscription,
+  clearOrders,
+  clearJobs
+} from "../../support/tools"
 import {
   NUMBER_REGEX,
   PERCENT_CHANGE_REGEX,
-  LONG_WAIT
+  LONG_WAIT,
+  BINANCE_ETH,
+  BINANCE_BTC
 } from "../../util/constants"
 
 context("Coins", () => {
@@ -32,7 +39,11 @@ context("Coins", () => {
   })
 
   it("Add and remove a coin", () => {
-    cy.loginApi().then(() => clearSubscriptions())
+    cy.loginApi().then(() => {
+      clearOrders(BINANCE_BTC)
+      clearJobs()
+      clearSubscriptions()
+    })
     cy.visit("/")
     cy.o("loginModal").should("not.exist")
     cy.o("addCoin").click()
@@ -75,13 +86,10 @@ context("Coins", () => {
 
   it("Visit a coin directly and work with it", () => {
     cy.loginApi().then(() => {
-      clearSubscriptions().then(() =>
-        addSubscription({
-          exchange: "binance",
-          counter: "USDT",
-          base: "ETH"
-        })
-      )
+      clearOrders(BINANCE_ETH)
+      clearOrders(BINANCE_BTC)
+      clearJobs()
+      clearSubscriptions().then(() => addSubscription(BINANCE_ETH))
     })
     cy.visit("/coin/binance/USDT/ETH")
     cy.o("loginModal").should("not.exist")

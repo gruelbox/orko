@@ -25,3 +25,15 @@ export const LOGIN_PW = "tester"
 export const PERCENT_CHANGE_REGEX = /-?[0-9]\d*(\.\d+)?%/
 export const NUMBER_REGEX = /-?[0-9]\d*(\.\d+)?/
 export const LONG_WAIT = 60000
+
+export const BINANCE_ETH = {
+  exchange: "binance",
+  counter: "USDT",
+  base: "ETH"
+}
+
+export const BINANCE_BTC = {
+  exchange: "binance",
+  counter: "USDT",
+  base: "BTC"
+}
