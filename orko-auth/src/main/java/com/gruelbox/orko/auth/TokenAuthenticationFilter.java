@@ -54,7 +54,7 @@ public abstract class TokenAuthenticationFilter extends AbstractHttpSecurityServ
 
     Optional<String> token = accessToken.get();
     if (!token.isPresent()) {
-      LOGGER.warn(fullPath + ": no access token");
+      LOGGER.warn("{}: no access token", fullPath);
       response.sendError(401);
       return false;
     }
@@ -66,7 +66,7 @@ public abstract class TokenAuthenticationFilter extends AbstractHttpSecurityServ
     }
 
     if (!authenticatedUserAuthorizer.authorize(principal.get(), Roles.TRADER)) {
-      LOGGER.warn(fullPath + ": user [" + principal.get().getName() + "] not authorised");
+      LOGGER.warn("{}: user [{}] not authorised", fullPath, principal.get().getName());
       response.sendError(401);
       return false;
     }

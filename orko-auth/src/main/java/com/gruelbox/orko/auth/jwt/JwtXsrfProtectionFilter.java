@@ -66,13 +66,13 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
           try {
             return claims.getClaimValue("xsrf", String.class);
           } catch (MalformedClaimException e) {
-            LOGGER.warn(fullPath + ": malformed XSRF claim");
+            LOGGER.warn("{}: malformed XSRF claim", fullPath);
             return null;
           }
         });
 
     if (!claim.isPresent()) {
-      LOGGER.warn(fullPath + ": failed cross-site scripting check (no claim)");
+      LOGGER.warn("{}: failed cross-site scripting check (no claim)", fullPath);
       response.sendError(401);
       return false;
     }
@@ -80,13 +80,13 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
     String xsrf = request.getHeader(Headers.X_XSRF_TOKEN);
 
     if (xsrf == null) {
-      LOGGER.warn(fullPath + ": failed cross-site scripting check (no xsrf header)");
+      LOGGER.warn("{}: failed cross-site scripting check (no xsrf header)", fullPath);
       response.sendError(401);
       return false;
     }
 
     if (!claim.get().equals(xsrf)) {
-      LOGGER.warn(fullPath + ": failed cross-site scripting check (mismatch)");
+      LOGGER.warn("{}: failed cross-site scripting check (mismatch)", fullPath);
       response.sendError(401);
       return false;
     }

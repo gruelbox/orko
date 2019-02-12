@@ -55,6 +55,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.bitmex.BitmexPrompt;
@@ -804,9 +806,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription);
       tradeService.getTradeHistory(tradeHistoryParams)
         .getUserTrades()
-        .forEach(trade -> {
-          userTradesOut.emit(UserTradeEvent.create(subscription.spec(), trade));
-        });
+        .forEach(trade -> userTradesOut.emit(UserTradeEvent.create(subscription.spec(), trade)));
     }
 
     @SuppressWarnings("unchecked")
@@ -991,16 +991,16 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       latest.remove(key);
     }
 
-    void removeFromCache(Function<T, Boolean> matcher) {
+    void removeFromCache(Predicate<T> matcher) {
       Set<U> removals = new HashSet<>();
       latest.entrySet().stream()
-        .filter(e -> matcher.apply(e.getValue()))
+        .filter(e -> matcher.test(e.getValue()))
         .map(Entry::getKey)
         .forEach(removals::add);
       removals.forEach(latest::remove);
     }
 
-    public CachingPersistentPublisher<T, U> orderInitialSnapshotBy(Function<Iterable<T>, Iterable<T>> ordering) {
+    public CachingPersistentPublisher<T, U> orderInitialSnapshotBy(UnaryOperator<Iterable<T>> ordering) {
       this.initialSnapshotSortFunction = ordering;
       return this;
     }
