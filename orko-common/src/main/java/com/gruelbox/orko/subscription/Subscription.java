@@ -37,16 +37,16 @@ import com.gruelbox.orko.spi.TickerSpec;
 final class Subscription {
 
   static final String TABLE_NAME = "Subscription";
-  static final String TICKER = "ticker";
-  static final String REFERENCE_PRICE = "referencePrice";
+  static final String TICKER_FIELD = "ticker";
+  static final String REFERENCE_PRICE_FIELD = "referencePrice";
 
   @Id
-  @Column(name = TICKER, nullable = false)
+  @Column(name = TICKER_FIELD, nullable = false)
   @NotNull
   @JsonProperty
   private String ticker;
 
-  @Column(name = REFERENCE_PRICE)
+  @Column(name = REFERENCE_PRICE_FIELD)
   @JsonProperty
   private BigDecimal referencePrice;
 

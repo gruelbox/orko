@@ -42,8 +42,8 @@ class IpWhitelistContribution implements TableContribution, EntityContribution {
     return ImmutableList.of(
       table(IpWhitelist.TABLE_NAME)
         .columns(
-          column(IpWhitelist.IP, DataType.STRING, 45).primaryKey(),
-          column(IpWhitelist.EXPIRES, DataType.BIG_INTEGER)
+          column(IpWhitelist.IP_FIELD, DataType.STRING, 45).primaryKey(),
+          column(IpWhitelist.EXPIRES_FIELD, DataType.BIG_INTEGER)
         )
         .indexes(
           index(IpWhitelist.TABLE_NAME + "_1").columns("expires")
