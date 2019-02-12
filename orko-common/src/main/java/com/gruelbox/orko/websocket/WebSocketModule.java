@@ -27,5 +27,6 @@ public class WebSocketModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    // No-op
   }
 }

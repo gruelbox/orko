@@ -25,7 +25,11 @@ import org.apache.commons.collections4.iterators.EnumerationIterator;
 
 import com.google.common.collect.FluentIterable;
 
-public class Headers {
+public final class Headers {
+
+  private Headers() {
+    // Not constructable
+  }
 
   public static final String SEC_WEBSOCKET_PROTOCOL = "sec-websocket-protocol";
   public static final String X_FORWARDED_FOR = "X-Forwarded-For";
@@ -34,6 +38,6 @@ public class Headers {
   public static final String STRICT_CONTENT_SECURITY = "Strict-Transport-Security";
 
   public static FluentIterable<String> listForRequest(HttpServletRequest request) {
-    return FluentIterable.from(() -> new EnumerationIterator<String>(request.getHeaderNames()));
+    return FluentIterable.from(() -> new EnumerationIterator<>(request.getHeaderNames()));
   }
 }

@@ -64,7 +64,7 @@ class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
     if (credentials == null) {
       LOGGER.warn("Invalid login attempt (no credentials)");
     } else {
-      LOGGER.warn("Invalid login attempt by [" + credentials.getUsername() + "]");
+      LOGGER.warn("Invalid login attempt by [{}]", credentials.getUsername());
     }
     return Optional.empty();
   }
