@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -49,7 +50,6 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
-import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
@@ -290,13 +290,13 @@ public class ExchangeResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response postOrder(@PathParam("exchange") String exchange, Map<String, String> order) throws IOException {
+  public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) throws IOException {
 
-    if (!order.containsKey("stopPrice") && StringUtils.isEmpty(order.get("limitPrice")))
+    if (!order.isStop() && !order.isLimit())
       return Response.status(400).entity(ImmutableMap.of("message", "Market orders not supported at the moment.")).build();
 
-    if (order.containsKey("stopPrice")) {
-      if (StringUtils.isNotEmpty(order.get("limitPrice"))) {
+    if (order.isStop()) {
+      if (order.isLimit()) {
         if (exchange.equals(Exchanges.BITFINEX)) {
           return Response.status(400).entity(ImmutableMap.of("message", "Stop limit orders not supported for Bitfinex at the moment.")).build();
         }
@@ -310,8 +310,8 @@ public class ExchangeResource implements WebResource {
     TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
 
     try {
-      Order result = order.containsKey("stopPrice")
-          ? postStopOrder(exchange, order, tradeService)
+      Order result = order.isStop()
+          ? postStopOrder(order, tradeService)
           : postLimitOrder(order, tradeService);
       postOrderToSubscribers(exchange, result);
       return Response.ok().entity(result).build();
@@ -323,29 +323,28 @@ public class ExchangeResource implements WebResource {
     }
   }
 
-  private LimitOrder postLimitOrder(Map<String, String> order, TradeService tradeService) throws IOException {
+  private LimitOrder postLimitOrder(OrderPrototype order, TradeService tradeService) throws IOException {
     LimitOrder limitOrder = new LimitOrder(
-      OrderType.valueOf(order.get("type")),
-      new BigDecimal(order.get("amount")),
-      new CurrencyPair(order.get("base"), order.get("counter")),
+      order.getType(),
+      order.getAmount(),
+      new CurrencyPair(order.getBase(), order.getCounter()),
       null,
       new Date(),
-      new BigDecimal(order.get("limitPrice"))
+      order.getLimitPrice()
     );
     String id = tradeService.placeLimitOrder(limitOrder);
     return LimitOrder.Builder.from(limitOrder).id(id).orderStatus(OrderStatus.NEW).build();
   }
 
-  private StopOrder postStopOrder(String exchange, Map<String, String> order, TradeService tradeService) throws IOException {
-    String limitPrice = order.get("limitPrice");
+  private StopOrder postStopOrder(OrderPrototype order, TradeService tradeService) throws IOException {
     StopOrder stopOrder = new StopOrder(
-      OrderType.valueOf(order.get("type")),
-      new BigDecimal(order.get("amount")),
-      new CurrencyPair(order.get("base"), order.get("counter")),
+      order.getType(),
+      order.getAmount(),
+      new CurrencyPair(order.getBase(), order.getCounter()),
       null,
       new Date(),
-      new BigDecimal(order.get("stopPrice")),
-      StringUtils.isEmpty(limitPrice) ? null : new BigDecimal(limitPrice),
+      order.getStopPrice(),
+      order.getLimitPrice(),
       BigDecimal.ZERO,
       BigDecimal.ZERO,
       OrderStatus.PENDING_NEW
@@ -576,5 +575,72 @@ public class ExchangeResource implements WebResource {
     return exchanges.get(exchange)
         .getMarketDataService()
         .getTicker(new CurrencyPair(base, counter));
+  }
+
+
+  public static final class OrderPrototype {
+
+    @JsonProperty private String counter;
+    @JsonProperty private String base;
+    @JsonProperty @Nullable private BigDecimal stopPrice;
+    @JsonProperty @Nullable private BigDecimal limitPrice;
+    @JsonProperty private Order.OrderType type;
+    @JsonProperty private BigDecimal amount;
+
+    public String getCounter() {
+      return counter;
+    }
+
+    public String getBase() {
+      return base;
+    }
+
+    public BigDecimal getStopPrice() {
+      return stopPrice;
+    }
+
+    public BigDecimal getLimitPrice() {
+      return limitPrice;
+    }
+
+    public Order.OrderType getType() {
+      return type;
+    }
+
+    public BigDecimal getAmount() {
+      return amount;
+    }
+
+    boolean isStop() {
+      return stopPrice != null;
+    }
+
+    boolean isLimit() {
+      return limitPrice != null;
+    }
+
+    void setCounter(String counter) {
+      this.counter = counter;
+    }
+
+    void setBase(String base) {
+      this.base = base;
+    }
+
+    void setStopPrice(BigDecimal stopPrice) {
+      this.stopPrice = stopPrice;
+    }
+
+    void setLimitPrice(BigDecimal limitPrice) {
+      this.limitPrice = limitPrice;
+    }
+
+    void setType(Order.OrderType type) {
+      this.type = type;
+    }
+
+    void setAmount(BigDecimal amount) {
+      this.amount = amount;
+    }
   }
 }
