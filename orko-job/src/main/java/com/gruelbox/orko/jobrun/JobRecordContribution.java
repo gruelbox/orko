@@ -19,9 +19,9 @@
 package com.gruelbox.orko.jobrun;
 
 
-import static com.gruelbox.orko.jobrun.JobRecord.CONTENT;
-import static com.gruelbox.orko.jobrun.JobRecord.ID;
-import static com.gruelbox.orko.jobrun.JobRecord.PROCESSED;
+import static com.gruelbox.orko.jobrun.JobRecord.CONTENT_FIELD;
+import static com.gruelbox.orko.jobrun.JobRecord.ID_FIELD;
+import static com.gruelbox.orko.jobrun.JobRecord.PROCESSED_FIELD;
 import static com.gruelbox.orko.jobrun.JobRecord.TABLE_NAME;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
 import static org.alfasoftware.morf.metadata.SchemaUtils.index;
@@ -46,12 +46,12 @@ class JobRecordContribution implements TableContribution, EntityContribution {
     return ImmutableList.of(
       table(TABLE_NAME)
         .columns(
-          column(ID, DataType.STRING, 45).primaryKey(),
-          column(CONTENT, DataType.CLOB).nullable(),
-          column(PROCESSED, DataType.BOOLEAN)
+          column(ID_FIELD, DataType.STRING, 45).primaryKey(),
+          column(CONTENT_FIELD, DataType.CLOB).nullable(),
+          column(PROCESSED_FIELD, DataType.BOOLEAN)
         )
         .indexes(
-          index(TABLE_NAME + "_1").columns(PROCESSED)
+          index(TABLE_NAME + "_1").columns(PROCESSED_FIELD)
         )
     );
   }

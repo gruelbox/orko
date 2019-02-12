@@ -34,17 +34,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Entity(name = IpWhitelist.TABLE_NAME)
 final class IpWhitelist {
 
-  static final String IP = "ip";
-  static final String EXPIRES = "expires";
+  static final String IP_FIELD = "ip";
+  static final String EXPIRES_FIELD = "expires";
   static final String TABLE_NAME = "IpWhitelist";
 
   @Id
-  @Column(name = IP, nullable = false)
+  @Column(name = IP_FIELD, nullable = false)
   @NotNull
   @JsonProperty
   private String ip;
 
-  @Column(name = EXPIRES, nullable = false)
+  @Column(name = EXPIRES_FIELD, nullable = false)
   @NotNull
   @JsonProperty
   private long expires;

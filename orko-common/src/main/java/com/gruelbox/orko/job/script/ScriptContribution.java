@@ -45,18 +45,18 @@ class ScriptContribution implements EntityContribution, TableContribution {
     return ImmutableList.of(
       table(Script.TABLE_NAME)
         .columns(
-          column(Script.ID, STRING, 45).primaryKey(),
-          column(Script.NAME, STRING, 255),
-          column(Script.SCRIPT, CLOB),
-          column(Script.SCRIPT_HASH, STRING, 255)
+          column(Script.ID_FIELD, STRING, 45).primaryKey(),
+          column(Script.NAME_FIELD, STRING, 255),
+          column(Script.SCRIPT_FIELD, CLOB),
+          column(Script.SCRIPT_HASH_FIELD, STRING, 255)
         ),
       table(ScriptParameter.TABLE_NAME)
         .columns(
-          column(ScriptParameter.SCRIPT_ID, STRING, 45).primaryKey(),
-          column(ScriptParameter.NAME, STRING, 255).primaryKey(),
-          column(ScriptParameter.DESCRIPTION, STRING, 255),
-          column(ScriptParameter.DEFAULT_VALUE, STRING, 255).nullable(),
-          column(ScriptParameter.MANDATORY, BOOLEAN)
+          column(ScriptParameter.SCRIPT_ID_FIELD, STRING, 45).primaryKey(),
+          column(ScriptParameter.NAME_FIELD, STRING, 255).primaryKey(),
+          column(ScriptParameter.DESCRIPTION_FIELD, STRING, 255),
+          column(ScriptParameter.DEFAULT_VALUE_FIELD, STRING, 255).nullable(),
+          column(ScriptParameter.MANDATORY_FIELD, BOOLEAN)
         )
     );
   }
