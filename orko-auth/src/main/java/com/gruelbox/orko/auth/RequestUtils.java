@@ -42,7 +42,7 @@ public class RequestUtils {
   public RequestUtils(HttpServletRequest request, AuthConfiguration authConfiguration) {
     this.request = request;
     this.authConfiguration = authConfiguration;
-    this.sourceIp = Suppliers.memoize(() -> readSourceIp());
+    this.sourceIp = Suppliers.memoize(this::readSourceIp);
   }
 
   public String sourceIp() {

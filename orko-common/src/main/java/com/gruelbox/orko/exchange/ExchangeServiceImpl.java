@@ -155,22 +155,22 @@ public class ExchangeServiceImpl implements ExchangeService {
         return new RateController(exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
       }
     }
+
+    private Stream<RateLimit> asStream(RateLimit[] limits) {
+      return Arrays.stream(MoreObjects.firstNonNull(limits, NO_LIMITS));
+    }
+
+    private RateLimiter asLimiter(RateLimit rateLimit) {
+      double permitsPerSecond = ((double)rateLimit.calls / rateLimit.timeUnit.toSeconds(rateLimit.timeSpan)) - 0.01;
+      LOGGER.debug("Permits per second = {}", permitsPerSecond);
+      return RateLimiter.create(permitsPerSecond);
+    }
   });
 
   @Inject
   @VisibleForTesting
   public ExchangeServiceImpl(OrkoConfiguration configuration) {
     this.configuration = configuration;
-  }
-
-  private static Stream<RateLimit> asStream(RateLimit[] limits) {
-    return Arrays.stream(MoreObjects.firstNonNull(limits, NO_LIMITS));
-  }
-
-  private static RateLimiter asLimiter(RateLimit rateLimit) {
-    double permitsPerSecond = ((double)rateLimit.calls / rateLimit.timeUnit.toSeconds(rateLimit.timeSpan)) - 0.01;
-    LOGGER.debug("Permits per second = {}", permitsPerSecond);
-    return RateLimiter.create(permitsPerSecond);
   }
 
   @Override

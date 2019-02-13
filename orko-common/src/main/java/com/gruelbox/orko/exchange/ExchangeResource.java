@@ -68,7 +68,6 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
@@ -229,7 +228,7 @@ public class ExchangeResource implements WebResource {
   @Timed
   @Path("{exchange}/pairs/{base}-{counter}")
   @RolesAllowed(Roles.TRADER)
-  public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) throws IOException {
+  public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) {
 
     Exchange exchange = exchanges.get(exchangeName);
 
@@ -293,16 +292,16 @@ public class ExchangeResource implements WebResource {
   public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) throws IOException {
 
     if (!order.isStop() && !order.isLimit())
-      return Response.status(400).entity(ImmutableMap.of("message", "Market orders not supported at the moment.")).build();
+      return Response.status(400).entity(new ErrorResponse("Market orders not supported at the moment.")).build();
 
     if (order.isStop()) {
       if (order.isLimit()) {
         if (exchange.equals(Exchanges.BITFINEX)) {
-          return Response.status(400).entity(ImmutableMap.of("message", "Stop limit orders not supported for Bitfinex at the moment.")).build();
+          return Response.status(400).entity(new ErrorResponse("Stop limit orders not supported for Bitfinex at the moment.")).build();
         }
       } else {
         if (exchange.equals(Exchanges.BINANCE)) {
-          return Response.status(400).entity(ImmutableMap.of("message", "Stop market orders not supported for Binance at the moment. Specify a limit price.")).build();
+          return Response.status(400).entity(new ErrorResponse("Stop market orders not supported for Binance at the moment. Specify a limit price.")).build();
         }
       }
     }
@@ -316,10 +315,10 @@ public class ExchangeResource implements WebResource {
       postOrderToSubscribers(exchange, result);
       return Response.ok().entity(result).build();
     } catch (NotAvailableFromExchangeException e) {
-      return Response.status(503).entity(ImmutableMap.of("message", "Order type not currently supported by exchange.")).build();
+      return Response.status(503).entity(new ErrorResponse("Order type not currently supported by exchange.")).build();
     } catch (Exception e) {
       LOGGER.error("Failed to submit order", e);
-      return Response.status(500).entity(ImmutableMap.of("message", "Failed to submit order. " + e.getMessage())).build();
+      return Response.status(500).entity(new ErrorResponse("Failed to submit order. " + e.getMessage())).build();
     }
   }
 
@@ -547,7 +546,7 @@ public class ExchangeResource implements WebResource {
         .transform(Balance::create);
 
       return Response.ok()
-          .entity(Maps.uniqueIndex(balances, balance -> balance.currency()))
+          .entity(Maps.uniqueIndex(balances, Balance::currency))
           .build();
 
     } catch (NotAvailableFromExchangeException e) {
@@ -641,6 +640,16 @@ public class ExchangeResource implements WebResource {
 
     void setAmount(BigDecimal amount) {
       this.amount = amount;
+    }
+  }
+
+  public static final class ErrorResponse {
+
+    @JsonProperty private final String message;
+
+    ErrorResponse(String message) {
+      super();
+      this.message = message;
     }
   }
 }

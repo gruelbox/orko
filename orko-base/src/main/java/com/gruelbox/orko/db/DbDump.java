@@ -34,9 +34,13 @@ import org.alfasoftware.morf.xml.XmlDataSetProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class DbDump {
+final class DbDump {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbDump.class);
+
+  private DbDump() {
+    // Not instantiatable
+  }
 
   static File dump(ConnectionResources connectionResources) throws IOException {
     LOGGER.info("Dumping database...");

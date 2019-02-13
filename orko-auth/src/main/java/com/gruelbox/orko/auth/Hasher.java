@@ -19,7 +19,7 @@
 package com.gruelbox.orko.auth;
 
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -39,7 +38,7 @@ public class Hasher {
 
   private static final Pattern EXTRACT_HASH = Pattern.compile("HASH\\(.*\\)");
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) {
     Injector injector = Guice.createInjector();
     if (args[0].equals("--salt")) {
       System.out.println("Salt: " + injector.getInstance(Hasher.class).salt());
@@ -63,7 +62,7 @@ public class Hasher {
 
   public String hashWithString(String value, String stringSalt) {
     Preconditions.checkNotNull(stringSalt);
-    String salt = Base64.getEncoder().encodeToString(stringSalt.getBytes(Charsets.UTF_8));
+    String salt = Base64.getEncoder().encodeToString(stringSalt.getBytes(StandardCharsets.UTF_8));
     return hash(value, salt);
   }
 

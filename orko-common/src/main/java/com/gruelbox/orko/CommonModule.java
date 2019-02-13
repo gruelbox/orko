@@ -41,9 +41,8 @@ class CommonModule extends AbstractModule {
   protected void configure() {
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
       .addBinding()
-      .toInstance(environment -> {
-        environment.jersey().register(new JerseyMappingErrorLoggingExceptionHandler());
-      });
+      .toInstance(environment -> environment.jersey()
+          .register(new JerseyMappingErrorLoggingExceptionHandler()));
     install(new WiringModule());
     install(new DbModule());
     install(new JobRunModule());

@@ -25,7 +25,11 @@ import org.hibernate.dialect.H2Dialect;
 import org.hibernate.dialect.MySQL57Dialect;
 import org.jooq.SQLDialect;
 
-class DialectResolver {
+final class DialectResolver {
+
+  private DialectResolver() {
+    // Not instantiatable
+  }
 
   static String hibernateDialect(String databaseType) {
     switch (databaseType) {

@@ -30,7 +30,6 @@ import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
@@ -67,7 +66,7 @@ public class DbResource implements WebResource {
   public Response check() {
     return Response.ok(new StreamingOutput() {
       @Override
-      public void write(OutputStream output) throws IOException, WebApplicationException {
+      public void write(OutputStream output) throws IOException {
         File tempFile = DbDump.dump(connectionResources);
         try {
           try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(tempFile))) {
