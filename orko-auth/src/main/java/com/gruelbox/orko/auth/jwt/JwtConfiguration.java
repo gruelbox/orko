@@ -19,10 +19,11 @@
 package com.gruelbox.orko.auth.jwt;
 
 
+import java.nio.charset.StandardCharsets;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 
 public class JwtConfiguration {
@@ -44,7 +45,7 @@ public class JwtConfiguration {
 
   public byte[] getSecretBytes() {
     Preconditions.checkNotNull(secret);
-    return secret.getBytes(Charsets.UTF_8);
+    return secret.getBytes(StandardCharsets.UTF_8);
   }
 
   public String getUserName() {
