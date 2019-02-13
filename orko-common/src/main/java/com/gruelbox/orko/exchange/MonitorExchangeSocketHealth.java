@@ -33,7 +33,6 @@ import com.google.inject.Singleton;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.TradeEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
@@ -68,12 +67,12 @@ final class MonitorExchangeSocketHealth implements Managed {
     subscription = exchangeEventRegistry.subscribe(
       MarketDataSubscription.create(TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), TRADES)
     );
-    trades = subscription.getTrades().forEach(t -> onTrade(t));
+    trades = subscription.getTrades().forEach(t -> onTrade());
     poll = Observable.interval(10, TimeUnit.MINUTES)
         .subscribe(i -> runOneIteration());
   }
 
-  private void onTrade(TradeEvent t) {
+  private void onTrade() {
     lastTradeTime.set(currentTimeMillis());
   }
 
