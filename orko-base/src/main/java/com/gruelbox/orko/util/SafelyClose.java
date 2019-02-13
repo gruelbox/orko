@@ -24,7 +24,11 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SafelyClose {
+public final class SafelyClose {
+
+  private SafelyClose() {
+    // Not instantiatable
+  }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SafelyClose.class);
 
