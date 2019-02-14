@@ -311,7 +311,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     } finally {
       threadPool.shutdownNow();
       updateSubscriptions(emptySet());
-      LOGGER.info("{} stopped");
+      LOGGER.info("{} stopped", this);
     }
   }
 
