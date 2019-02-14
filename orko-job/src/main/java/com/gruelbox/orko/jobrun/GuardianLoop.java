@@ -75,7 +75,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
   @Override
   public void run() {
     Thread.currentThread().setName("Guardian loop");
-    LOGGER.info(this + " started");
+    LOGGER.info("{} started", this);
     while (isRunning() && !Thread.currentThread().isInterrupted() && !kill) {
       try {
 
@@ -83,21 +83,21 @@ class GuardianLoop extends AbstractExecutionThreadService {
         // and sends the app into an endless loop, so for the time being this
         // will break the cycle.
         if (sessionFactory.get().isClosed()) {
-          LOGGER.info(this + " shutting down due to closure of the session factory");
+          LOGGER.info("{} shutting down due to closure of the session factory", this);
           break;
         }
 
-        LOGGER.debug("Checking and restarting jobs");
+        LOGGER.debug("{} checking and restarting jobs", this);
         lockAndStartInactiveJobs();
 
-        LOGGER.debug("Sleeping");
+        LOGGER.debug("{} sleeping", this);
         Thread.sleep((long) config.getGuardianLoopSeconds() * 1000);
 
-        LOGGER.debug("Refreshing locks");
+        LOGGER.debug("{} refreshing locks", this);
         eventBus.post(KeepAliveEvent.INSTANCE);
 
       } catch (InterruptedException e) {
-        LOGGER.info("Shutting down " + this);
+        LOGGER.info("{} shutting down ", this);
         Thread.currentThread().interrupt();
         break;
       } catch (Exception e) {
@@ -106,10 +106,10 @@ class GuardianLoop extends AbstractExecutionThreadService {
     }
     if (kill) {
       killed.countDown();
-      LOGGER.warn(this + " killed (should only ever happen in test code)");
+      LOGGER.warn("{} killed (should only ever happen in test code)", this);
     } else {
       eventBus.post(StopEvent.INSTANCE);
-      LOGGER.info(this + " stopped");
+      LOGGER.info("{} stopped", this);
     }
   }
 

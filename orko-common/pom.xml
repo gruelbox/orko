@@ -133,10 +133,6 @@
       <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-kucoin</artifactId>
     </dependency>
-    <!--<dependency>
-      <groupId>${xchange.groupid}</groupId>
-      <artifactId>xchange-cryptopia</artifactId>
-    </dependency>-->
     <dependency>
       <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bitfinex</artifactId>

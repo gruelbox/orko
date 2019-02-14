@@ -26,7 +26,6 @@ import org.alfasoftware.morf.jdbc.h2.H2;
 import org.alfasoftware.morf.metadata.Schema;
 import org.alfasoftware.morf.upgrade.Deployment;
 
-import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Module;
@@ -37,12 +36,7 @@ public class CreateJ00qClasses {
 
   public static void main(String[] args) throws Exception {
     Guice.createInjector(
-      new Module() {
-        @Override
-        public void configure(Binder binder) {
-          binder.bind(DbConfiguration.class).toInstance(new DbConfiguration());
-        }
-      },
+      (Module) binder -> binder.bind(DbConfiguration.class).toInstance(new DbConfiguration()),
       new DbModule()
     ).getInstance(CreateJ00qClasses.class).run();
   }

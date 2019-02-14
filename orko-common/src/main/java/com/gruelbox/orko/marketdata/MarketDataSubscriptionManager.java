@@ -702,7 +702,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) throws InterruptedException {
+    private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
       if (subscriptionsForExchange.isEmpty())
         return;
       LOGGER.info("Connecting to exchange: " + exchangeName);
@@ -761,7 +761,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         .transform(Balance::create);
     }
 
-    private Wallet wallet() throws IOException, InterruptedException {
+    private Wallet wallet() throws IOException {
       exchangeService.rateController(exchangeName).acquire();
       if (exchangeName.equals("bitfinex")) {
         return accountService.getAccountInfo().getWallet("exchange");

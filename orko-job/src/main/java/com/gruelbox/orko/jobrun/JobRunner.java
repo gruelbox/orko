@@ -139,7 +139,7 @@ class JobRunner {
       locked = jobLocker.attemptLock(job.id(), uuid);
     } catch (Exception t) {
       reject.run();
-      LOGGER.warn("Job " + job.id() + " could not be locked. Request rejected.");
+      LOGGER.warn("Job {} could not be locked. Request rejected.", job.id());
       throw t;
     }
     return locked;
@@ -149,7 +149,7 @@ class JobRunner {
     try {
       jobAccess.insert(job);
     } catch (JobAlreadyExistsException e) {
-      LOGGER.info("Job " + job.id() + " already exists. Request ignored.");
+      LOGGER.info("Job {} already exists. Request ignored.", job.id());
       ack.run();
       throw e;
     } catch (Exception t) {
@@ -215,7 +215,7 @@ class JobRunner {
           // Stop and let the job get picked up again. We don't release
           // the lock, instead let it expire naturally, giving us an
           // inherent retry delay
-          LOGGER.warn(job + " temporary failure. Sending back to queue for retry");
+          LOGGER.warn("{}: temporary failure. Sending back to queue for retry", job);
           safeStop();
           LOGGER.debug("{} cleaned up", job);
           break;
@@ -266,9 +266,9 @@ class JobRunner {
       }
 
       // The job might be transactional, so participate if necessary
-      transactionally.allowingNested().run(() -> {
-        jobAccess.update(newVersion);
-      });
+      transactionally.allowingNested().run(() ->
+        jobAccess.update(newVersion)
+      );
 
       job = newVersion;
       processor.setReplacedJob(newVersion);
@@ -280,7 +280,7 @@ class JobRunner {
     public synchronized void finish(Status status) {
       Preconditions.checkArgument(status == Status.FAILURE_PERMANENT || status == Status.SUCCESS, "Finish condition must be success or permanent failure");
 
-      LOGGER.info(job + " finishing ({})...", status);
+      LOGGER.info("{} finishing ({})...", job, status);
       statusUpdateService.status(job.id(), status);
       if (!stopAndUnregister()) {
         LOGGER.warn("Finish of job which is already shutting down. Status={}, job={}", this.status, job);
@@ -289,7 +289,7 @@ class JobRunner {
       // If this gets rolled back due to the job itself being transactional, that's
       // fine; we'll lose the lock anyway
       transactionally.allowingNested().run(() -> jobAccess.delete(job.id()));
-      LOGGER.info(job + " finished");
+      LOGGER.info("{} finished", job);
     }
 
     private void register() {
