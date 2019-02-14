@@ -37,6 +37,8 @@ public abstract class AbstractHttpSecurityServletFilter extends AbstractHttpServ
   public final void doFilter(HttpServletRequest httpRequest, HttpServletResponse httpResponse, FilterChain chain) throws IOException, ServletException {
     LOGGER.debug("Request to {} : {} : {}", httpRequest.getContextPath(), httpRequest.getServletPath(), httpRequest.getPathInfo());
 
+    // TODO security-bypassed URI patterns should be provided on a modular
+    // plugin basis
     if ("/favicon.ico".equals(httpRequest.getServletPath()) ||
         "/favicon.ico".equals(httpRequest.getPathInfo()) ||
         (httpRequest.getPathInfo() != null && httpRequest.getPathInfo().startsWith("/auth"))) {
