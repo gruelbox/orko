@@ -392,7 +392,6 @@ public class ExchangeResource implements WebResource {
           .keySet()
           .stream()
           .filter(p -> p.base.getCurrencyCode().equals(currency) || p.counter.getCurrencyCode().equals(currency))
-          .peek(p -> LOGGER.info("Checking " + p))
           .flatMap(p -> {
             try {
               Thread.sleep(200);

@@ -119,11 +119,6 @@ class ScriptParameter {
   @Column(name = MANDATORY_FIELD, nullable = false)
   private boolean mandatory;
 
-  // Handling associations outside Hibernate for now.
-//  @ManyToOne(optional = false, fetch = FetchType.LAZY)
-//  @JoinColumn(name = SCRIPT_ID, insertable = false, updatable = false)
-//  private Script parent;
-
   @JsonProperty
   public String scriptId() {
     return id.scriptId;
@@ -170,7 +165,6 @@ class ScriptParameter {
 
   void setParent(Script script) {
     this.id.scriptId = script.id();
-//    this.parent = script;
   }
 
   @Override

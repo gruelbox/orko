@@ -63,7 +63,7 @@ class ScriptAccess {
       script.setScriptHash(UNSIGNED);
     }
     script.parameters().forEach(p -> p.setParent(script));
-    LOGGER.debug("Saving script: " + script);
+    LOGGER.debug("Saving script: {}", script);
 
     List<String> parameterNames = script.parameters().stream().map(ScriptParameter::name).collect(toList());
     if (parameterNames.isEmpty()) {
@@ -95,7 +95,7 @@ class ScriptAccess {
         script.parameters().add(p);
       }
     });
-    if (LOGGER.isDebugEnabled()) LOGGER.debug("Loaded scripts: " + scripts.values());
+    if (LOGGER.isDebugEnabled()) LOGGER.debug("Loaded scripts: {}", scripts.values());
     return scripts.values();
   }
 

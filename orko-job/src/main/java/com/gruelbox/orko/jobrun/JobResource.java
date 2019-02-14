@@ -45,7 +45,6 @@ import com.gruelbox.orko.jobrun.JobAccess.JobDoesNotExistException;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
-import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.hibernate.UnitOfWork;
 
 /**
@@ -70,7 +69,7 @@ public class JobResource implements WebResource {
   @Timed
   @UnitOfWork(readOnly = true)
   @RolesAllowed(Roles.TRADER)
-  public Collection<Job> list() throws AuthenticationException {
+  public Collection<Job> list() {
     return ImmutableList.copyOf(jobAccess.list());
   }
 
@@ -79,7 +78,7 @@ public class JobResource implements WebResource {
   @Path("/{id}")
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
-  public Response put(@PathParam("id") String id, Job job) throws AuthenticationException {
+  public Response put(@PathParam("id") String id, Job job) {
     if (StringUtils.isEmpty(job.id()) || !job.id().equals(id))
       return Response.status(400)
           .entity(ImmutableMap.of("error", "id not set or query and body do not match"))
@@ -92,16 +91,15 @@ public class JobResource implements WebResource {
   @Timed
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
-  public Job post(Job job) throws AuthenticationException {
-    Job created = jobSubmitter.submitNewUnchecked(job);
-    return created;
+  public Job post(Job job) {
+    return jobSubmitter.submitNewUnchecked(job);
   }
 
   @DELETE
   @Timed
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
-  public void deleteAllJobs() throws AuthenticationException {
+  public void deleteAllJobs() {
     jobAccess.deleteAll();
   }
 

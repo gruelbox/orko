@@ -37,11 +37,13 @@ import ch.qos.logback.classic.Level;
 import io.dropwizard.logging.BootstrapLogging;
 import io.dropwizard.testing.junit.DAOTestRule;
 
-public class DbTesting {
+public final class DbTesting {
 
   static {
     BootstrapLogging.bootstrap(Level.INFO);
   }
+
+  private DbTesting() {}
 
   private static final ConnectionResources CONNECTION_RESOURCES;
   private static final DbConfiguration DB_CONFIGURATION = new DbConfiguration();

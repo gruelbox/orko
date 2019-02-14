@@ -90,7 +90,7 @@ final class JobTypeResolver extends TypeIdResolverBase {
 
   private static Map<String, Class<? extends Job>> loadJobClasses() {
     ServiceLoader<JobTypeContribution> serviceLoader = ServiceLoader.load(JobTypeContribution.class);
-    FluentIterable<Class<? extends Job>> jobs = FluentIterable.from(serviceLoader).transformAndConcat(c -> c.jobTypes());
+    FluentIterable<Class<? extends Job>> jobs = FluentIterable.from(serviceLoader).transformAndConcat(JobTypeContribution::jobTypes);
     try {
       ImmutableMap<String, Class<? extends Job>> result = jobs.uniqueIndex(c -> c.getSimpleName().replaceAll("AutoValue_", ""));
       LOGGER.debug("Job types registered: {}", result);

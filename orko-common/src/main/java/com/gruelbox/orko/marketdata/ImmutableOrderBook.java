@@ -90,7 +90,6 @@ public class ImmutableOrderBook {
 
   @Override
   public boolean equals(Object obj) {
-
     if (obj == null) {
       return false;
     }
@@ -103,23 +102,7 @@ public class ImmutableOrderBook {
         : !this.timeStamp.equals(other.timeStamp)) {
       return false;
     }
-    if (this.bids.size() != other.bids.size()) {
-      return false;
-    }
-    for (int index = 0; index < this.bids.size(); index++) {
-      if (!this.bids.get(index).equals(other.bids.get(index))) {
-        return false;
-      }
-    }
-    if (this.asks.size() != other.asks.size()) {
-      return false;
-    }
-    for (int index = 0; index < this.asks.size(); index++) {
-      if (!this.asks.get(index).equals(other.asks.get(index))) {
-        return false;
-      }
-    }
-    return true;
+    return ordersEqual(other);
   }
 
   /**
@@ -128,18 +111,28 @@ public class ImmutableOrderBook {
    * OrderBooks are equal but their timestamps are unequal. It returns false if false if any order
    * between the two are different.
    *
-   * @param ob
+   * @param other
    * @return
    */
-  public boolean ordersEqual(ImmutableOrderBook ob) {
-    Date timestamp = new Date();
-    if (this != null && ob != null) {
-      ImmutableOrderBook thisOb = new ImmutableOrderBook(timestamp, this.getAsks(), this.getBids());
-      ImmutableOrderBook thatOb = new ImmutableOrderBook(timestamp, ob.getAsks(), ob.getBids());
-      return thisOb.equals(thatOb);
-    } else {
-      return this.equals(ob);
+  public boolean ordersEqual(ImmutableOrderBook other) {
+    if (other == null) {
+      return false;
     }
+    if (asks == null) {
+      if (other.asks != null) {
+        return false;
+      }
+    } else if (!asks.equals(other.asks)) {
+      return false;
+    }
+    if (bids == null) {
+      if (other.bids != null) {
+        return false;
+      }
+    } else if (!bids.equals(other.bids)) {
+      return false;
+    }
+    return true;
   }
 
   @Override
