@@ -70,7 +70,7 @@ class TelegramService {
         )
       );
     if (response.getStatus() != 200) {
-      LOGGER.error("Could not send telegram message: " + response.getEntity());
+      LOGGER.error("Could not send telegram message: {}", response.getEntity());
     }
   }
 }

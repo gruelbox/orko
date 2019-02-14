@@ -86,8 +86,7 @@ public class SubscriptionResource implements WebResource {
   @RolesAllowed(Roles.TRADER)
   public Map<String, BigDecimal> listReferencePrices() {
     Map<String, Entry<TickerSpec, BigDecimal>> rekeyed = Maps.uniqueIndex(subscriptionAccess.getReferencePrices().entrySet(), e -> e.getKey().key());
-    Map<String, BigDecimal> result = Maps.transformValues(rekeyed, e -> e.getValue());
-    return result;
+    return Maps.transformValues(rekeyed, Entry<TickerSpec, BigDecimal>::getValue);
   }
 
   @PUT

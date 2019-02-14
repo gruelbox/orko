@@ -42,7 +42,6 @@ import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.JobResource;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
-import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.hibernate.UnitOfWork;
 
 /**
@@ -72,7 +71,7 @@ public class ScriptResource implements WebResource {
   @Path("/scripts/{id}")
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
-  public Response putScript(@PathParam("id") String id, Script script) throws AuthenticationException {
+  public Response putScript(@PathParam("id") String id, Script script) {
     if (!id.equals(script.id()))
       return Response.status(400).entity(ImmutableMap.of("error", "id doesn't match endpoint")).build();
     scriptAccess.saveOrUpdate(script);
@@ -84,7 +83,7 @@ public class ScriptResource implements WebResource {
   @Path("/scripts/{id}")
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
-  public void deleteScript(@PathParam("id") String id) throws AuthenticationException {
+  public void deleteScript(@PathParam("id") String id) {
     scriptAccess.delete(id);
   }
 
@@ -93,7 +92,7 @@ public class ScriptResource implements WebResource {
   @Path("/scripts")
   @UnitOfWork(readOnly = true)
   @RolesAllowed(Roles.TRADER)
-  public Iterable<Script> listScripts() throws AuthenticationException {
+  public Iterable<Script> listScripts() {
     return scriptAccess.list();
   }
 
@@ -102,7 +101,7 @@ public class ScriptResource implements WebResource {
   @Path("/scriptjobs/{id}")
   @UnitOfWork
   @RolesAllowed(Roles.TRADER)
-  public Response putJob(@PathParam("id") String id, ScriptJobPrototype job) throws AuthenticationException {
+  public Response putJob(@PathParam("id") String id, ScriptJobPrototype job) {
     return jobResource.put(id, ScriptJob.builder()
         .id(job.id)
         .name(job.name)

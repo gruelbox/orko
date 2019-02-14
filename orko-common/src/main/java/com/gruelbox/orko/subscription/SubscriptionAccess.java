@@ -72,7 +72,7 @@ class SubscriptionAccess {
 
   Set<TickerSpec> all() {
     List<Subscription> results = session().createQuery("from " + TABLE_NAME, Subscription.class).list();
-    return FluentIterable.from(results).transform(s -> s.getTicker()).toSet();
+    return FluentIterable.from(results).transform(Subscription::getTicker).toSet();
   }
 
   void setReferencePrice(TickerSpec tickerSpec, BigDecimal price) {
