@@ -1,5 +1,6 @@
 #!/bin/bash
-java -cp \
-orko-auth/target/classes:orko-app/target/dependency/* \
+java \
+-cp \
+orko-app/target/orko-app.jar \
 com.gruelbox.orko.auth.Hasher \
 --hash $1 $2
