@@ -14,9 +14,15 @@ matrix:
     - if: repo = gruelbox/orko AND branch = master AND NOT type = pull_request
       name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
       script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    - if: repo = gruelbox/orko AND NOT branch = master AND NOT type = pull_request
+    - if: repo = gruelbox/orko AND NOT branch = master AND NOT tag IS present AND NOT type = pull_request
       name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
       script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
+    - if: repo = gruelbox/orko AND NOT branch = master AND tag IS present AND NOT type = pull_request
+      name: "JUnit tests, Spotbugs, Checkstyle, Sonar and release to Github"
+      script: |
+        mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
+        cd orko-app
+        mvn -B -U github-release:release --settings ../etc/.maven-settings.xml -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     - if: repo = gruelbox/orko AND head_repo = gruelbox/orko AND type = pull_request
       name: "JUnit tests, Spotbugs, Checkstyle and Sonar"
       script: mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=orko -Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST -Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_BRANCH -Dsonar.pullrequest.base=$TRAVIS_BRANCH

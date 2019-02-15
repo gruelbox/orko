@@ -122,6 +122,30 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>de.jutzig</groupId>
+        <artifactId>github-release-plugin</artifactId>
+        <configuration>
+            <description>${project.version}</description>
+            <releaseName>${project.version}</releaseName>
+            <repositoryId>gruelbox/orko</repositoryId>
+            <tag>${project.version}</tag>
+            <fileSets>
+              <fileSet>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>example-config.yml</include>
+                </includes>
+              </fileSet>
+              <fileSet>
+                <directory>${project.build.directory}</directory>
+                <includes>
+                    <include>${project.artifactId}.jar</include>
+                </includes>
+              </fileSet>
+            </fileSets>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
