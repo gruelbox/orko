@@ -21,7 +21,6 @@ package com.gruelbox.orko.jobrun;
 
 import java.util.Collection;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -40,7 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.JobAccess.JobDoesNotExistException;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
@@ -68,7 +66,6 @@ public class JobResource implements WebResource {
   @GET
   @Timed
   @UnitOfWork(readOnly = true)
-  @RolesAllowed(Roles.TRADER)
   public Collection<Job> list() {
     return ImmutableList.copyOf(jobAccess.list());
   }
@@ -77,7 +74,6 @@ public class JobResource implements WebResource {
   @Timed
   @Path("/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public Response put(@PathParam("id") String id, Job job) {
     if (StringUtils.isEmpty(job.id()) || !job.id().equals(id))
       return Response.status(400)
@@ -90,7 +86,6 @@ public class JobResource implements WebResource {
   @POST
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public Job post(Job job) {
     return jobSubmitter.submitNewUnchecked(job);
   }
@@ -98,7 +93,6 @@ public class JobResource implements WebResource {
   @DELETE
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public void deleteAllJobs() {
     jobAccess.deleteAll();
   }
@@ -107,7 +101,6 @@ public class JobResource implements WebResource {
   @Path("{id}")
   @Timed
   @UnitOfWork(readOnly = true)
-  @RolesAllowed(Roles.TRADER)
   public Response fetchJob(@PathParam("id") String id) {
     try {
       return Response.ok().entity(jobAccess.load(id)).build();
@@ -120,7 +113,6 @@ public class JobResource implements WebResource {
   @Path("{id}")
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
     jobAccess.delete(id);
   }

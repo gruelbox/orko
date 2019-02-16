@@ -18,7 +18,6 @@
 
 package com.gruelbox.orko.job.script;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -38,7 +37,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.JobResource;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
@@ -70,7 +68,6 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scripts/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public Response putScript(@PathParam("id") String id, Script script) {
     if (!id.equals(script.id()))
       return Response.status(400).entity(ImmutableMap.of("error", "id doesn't match endpoint")).build();
@@ -82,7 +79,6 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scripts/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public void deleteScript(@PathParam("id") String id) {
     scriptAccess.delete(id);
   }
@@ -91,7 +87,6 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scripts")
   @UnitOfWork(readOnly = true)
-  @RolesAllowed(Roles.TRADER)
   public Iterable<Script> listScripts() {
     return scriptAccess.list();
   }
@@ -100,7 +95,6 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scriptjobs/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public Response putJob(@PathParam("id") String id, ScriptJobPrototype job) {
     return jobResource.put(id, ScriptJob.builder()
         .id(job.id)
