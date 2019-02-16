@@ -24,7 +24,6 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
-import java.util.regex.Pattern;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -33,10 +32,11 @@ import com.google.common.base.Preconditions;
 
 public class Hasher {
 
-  private static final Pattern EXTRACT_HASH = Pattern.compile("HASH\\(.*\\)");
-
   public boolean isHash(String storedPassword) {
-    return EXTRACT_HASH.matcher(storedPassword).find();
+    return storedPassword != null &&
+           storedPassword.startsWith("HASH(") &&
+           storedPassword.endsWith(")") &&
+           !storedPassword.equals("HASH()");
   }
 
   public String salt() {
