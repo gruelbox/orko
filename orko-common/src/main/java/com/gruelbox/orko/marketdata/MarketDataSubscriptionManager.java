@@ -158,6 +158,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   private final Phaser phaser = new Phaser(1);
 
+  private LifecycleListener lifecycleListener = new LifecycleListener() {};
 
   @Inject
   @VisibleForTesting
@@ -184,6 +185,12 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         .orderInitialSnapshotBy(iterable -> Ordering.natural().onResultOf((UserTradeEvent e) -> e.trade().getTimestamp()).sortedCopy(iterable));
     this.balanceOut = new CachingPersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.currency());
     this.orderStatusChangeOut = new PersistentPublisher<>();
+  }
+
+
+  @VisibleForTesting
+  void setLifecycleListener(LifecycleListener listener) {
+    this.lifecycleListener = listener;
   }
 
 
@@ -311,6 +318,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       threadPool.shutdownNow();
       updateSubscriptions(emptySet());
       LOGGER.info("{} stopped", this);
+      lifecycleListener.onStopMain();
     }
   }
 
@@ -382,6 +390,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         Thread.currentThread().interrupt();
       } catch (Exception e) {
         LOGGER.error(exchangeName + " shutting down due to uncaught exception", e);
+      } finally {
+        lifecycleListener.onStop(exchangeName);
       }
     }
 
@@ -735,6 +745,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           phaser.awaitAdvanceInterruptibly(phase, defaultSleep, TimeUnit.MILLISECONDS);
         } else {
           LOGGER.debug("{} - sleeping until phase {}", exchangeName, phase);
+          lifecycleListener.onBlocked(exchangeName);
           phaser.awaitAdvanceInterruptibly(phase);
           LOGGER.debug("{} - poll woken up on request", exchangeName);
         }
@@ -1006,5 +1017,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         return super.getAll().startWith(Flowable.defer(() -> Flowable.fromIterable(initialSnapshotSortFunction.apply(latest.values()))));
       }
     }
+  }
+
+  /**
+   * For testing. Fires signals at key events allowing tests to orchestrate.
+   */
+  interface LifecycleListener {
+    default void onBlocked(String exchange) {};
+    default void onStop(String exchange) {};
+    default void onStopMain() {};
   }
 }
