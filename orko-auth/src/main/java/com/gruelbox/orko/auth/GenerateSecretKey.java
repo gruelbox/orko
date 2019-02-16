@@ -22,6 +22,7 @@ package com.gruelbox.orko.auth;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
@@ -32,24 +33,29 @@ import com.warrenstrange.googleauth.IGoogleAuthenticator;
 
 public class GenerateSecretKey {
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String... args) throws IOException {
     Injector injector = Guice.createInjector(new GoogleAuthenticatorModule());
-    otp(injector.getInstance(GenerateSecretKey.class));
+    otp(injector.getInstance(GenerateSecretKey.class), !Arrays.asList(args).contains("--nocheck"));
   }
 
-  private static void otp(final GenerateSecretKey generator) throws IOException {
+  private static void otp(final GenerateSecretKey generator, boolean doCheck) throws IOException {
     final String key = generator.createNewKey();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, Charsets.UTF_8))) {
       while (true) {
         System.out.println("Here's your key. Enter it into Google Authenticator:");
         System.out.println(key);
-        System.out.println("Now enter the current value from Google Authenticator:");
-        String response = reader.readLine();
-        if (response != null && generator.checkKey(key, Integer.parseInt(response))) {
-          System.out.println("Yep, that's working.");
-          break;
+
+        if (doCheck) {
+          System.out.println("Now enter the current value from Google Authenticator:");
+          String response = reader.readLine();
+          if (response != null && generator.checkKey(key, response)) {
+            System.out.println("Yep, that's working.");
+            break;
+          } else {
+            System.out.println("Invalid input. Try again.");
+          }
         } else {
-          System.out.println("Something's wrong. Try again.");
+          break;
         }
       }
     }
@@ -73,7 +79,17 @@ public class GenerateSecretKey {
   }
 
   @VisibleForTesting
-  public  boolean checkKey(String key, int value) {
+  private boolean checkKey(String key, String value) {
+    try {
+      return googleAuthenticator.authorize(key, Integer.parseInt(value));
+    } catch (Exception e) {
+      System.out.println(e);
+      return false;
+    }
+  }
+
+  @VisibleForTesting
+  public boolean checkKey(String key, int value) {
     return googleAuthenticator.authorize(key, value);
   }
 }
