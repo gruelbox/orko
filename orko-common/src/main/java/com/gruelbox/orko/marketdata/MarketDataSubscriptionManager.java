@@ -579,7 +579,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
 
-    private Set<MarketDataSubscription> openSubscriptionsWherePossible(Set<MarketDataSubscription> subscriptions) throws InterruptedException {
+    private Set<MarketDataSubscription> openSubscriptionsWherePossible(Set<MarketDataSubscription> subscriptions) {
 
       connectExchange(subscriptions);
 
@@ -617,14 +617,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             .filter(s -> s.type().equals(BALANCE))
             .flatMap(s -> ImmutableList.of(s.spec().base(), s.spec().counter()).stream())
             .distinct()
-            .forEach(currency -> {
+            .forEach(currency ->
               disposables.add(
-                  streaming.getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-                    .map(Balance::create)
-                    .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
-                    .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
-                );
-            });
+                streaming.getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
+                  .map(Balance::create)
+                  .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
+                  .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
+              )
+            );
         } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
           pollAllBalances.run();
         }

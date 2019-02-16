@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -71,7 +70,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -128,7 +126,6 @@ public class ExchangeResource implements WebResource {
    */
   @GET
   @Timed
-  @RolesAllowed(Roles.TRADER)
   public Collection<ExchangeMeta> list() {
     return exchanges.getExchanges().stream()
         .map(code -> {
@@ -188,7 +185,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Timed
   @Path("{exchange}/pairs")
-  @RolesAllowed(Roles.TRADER)
   public Collection<Pair> pairs(@PathParam("exchange") String exchangeName) {
 
     Collection<Pair> pairs = exchanges.get(exchangeName)
@@ -227,7 +223,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Timed
   @Path("{exchange}/pairs/{base}-{counter}")
-  @RolesAllowed(Roles.TRADER)
   public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) {
 
     Exchange exchange = exchanges.get(exchangeName);
@@ -264,7 +259,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Path("{exchange}/orders")
   @Timed
-  @RolesAllowed(Roles.TRADER)
   public Response orders(@PathParam("exchange") String exchange) throws IOException {
     try {
       return Response.ok()
@@ -286,7 +280,6 @@ public class ExchangeResource implements WebResource {
   @POST
   @Path("{exchange}/orders")
   @Timed
-  @RolesAllowed(Roles.TRADER)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) throws IOException {
@@ -377,7 +370,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Path("{exchange}/currencies/{currency}/orders")
   @Timed
-  @RolesAllowed(Roles.TRADER)
   public Response orders(@PathParam("exchange") String exchangeCode,
                          @PathParam("currency") String currency) throws IOException {
 
@@ -430,7 +422,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Path("{exchange}/markets/{base}-{counter}/orders")
   @Timed
-  @RolesAllowed(Roles.TRADER)
   public Response orders(@PathParam("exchange") String exchange,
                            @PathParam("counter") String counter,
                            @PathParam("base") String base) throws IOException {
@@ -467,7 +458,6 @@ public class ExchangeResource implements WebResource {
   @DELETE
   @Path("{exchange}/markets/{base}-{counter}/orders/{id}")
   @Timed
-  @RolesAllowed(Roles.TRADER)
   public Response cancelOrder(@PathParam("exchange") String exchange,
                               @PathParam("counter") String counter,
                               @PathParam("base") String base,
@@ -502,7 +492,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Path("{exchange}/orders/{id}")
   @Timed
-  @RolesAllowed(Roles.TRADER)
   public Response order(@PathParam("exchange") String exchange, @PathParam("id") String id) throws IOException {
     try {
       return Response.ok()
@@ -525,7 +514,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Path("{exchange}/balance/{currencies}")
   @Timed
-  @RolesAllowed(Roles.TRADER)
   public Response balances(@PathParam("exchange") String exchange, @PathParam("currencies") String currenciesAsString) throws IOException {
 
     Set<String> currencies = Stream.of(currenciesAsString.split(","))
@@ -566,7 +554,6 @@ public class ExchangeResource implements WebResource {
   @GET
   @Path("{exchange}/markets/{base}-{counter}/ticker")
   @Timed
-  @RolesAllowed(Roles.PUBLIC)
   public Ticker ticker(@PathParam("exchange") String exchange,
                        @PathParam("counter") String counter,
                        @PathParam("base") String base) throws IOException {

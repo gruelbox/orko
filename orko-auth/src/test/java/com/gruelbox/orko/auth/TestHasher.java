@@ -20,7 +20,9 @@ package com.gruelbox.orko.auth;
 
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -35,6 +37,17 @@ public class TestHasher {
   @Before
   public void setup() {
     hasher = new Hasher();
+  }
+
+  @Test
+  public void testIsHash() {
+    assertTrue(hasher.isHash("HASH(YES)"));
+    assertFalse(hasher.isHash("HASH(NOTAHASH"));
+    assertFalse(hasher.isHash("NOTAHASH)"));
+    assertFalse(hasher.isHash("hash(NOTAHASH)"));
+    assertFalse(hasher.isHash("NOTAHASH"));
+    assertFalse(hasher.isHash("HASH()"));
+    assertFalse(hasher.isHash(null));
   }
 
   @Test

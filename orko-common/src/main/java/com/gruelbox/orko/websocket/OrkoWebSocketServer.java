@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.security.RolesAllowed;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -54,7 +53,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
@@ -76,7 +74,6 @@ import io.reactivex.disposables.Disposable;
 @Timed
 @ExceptionMetered
 @ServerEndpoint(WebSocketModule.ENTRY_POINT)
-@RolesAllowed(Roles.TRADER)
 public final class OrkoWebSocketServer {
 
   private static final int READY_TIMEOUT = 5000;
