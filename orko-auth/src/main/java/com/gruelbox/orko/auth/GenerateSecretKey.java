@@ -40,24 +40,29 @@ public class GenerateSecretKey {
 
   private static void otp(final GenerateSecretKey generator, boolean doCheck) throws IOException {
     final String key = generator.createNewKey();
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, Charsets.UTF_8))) {
-      while (true) {
-        System.out.println("Here's your key. Enter it into Google Authenticator:");
-        System.out.println(key);
+    displayKey(key);
+    if (doCheck) {
+      checkKey(generator, key);
+    }
+  }
 
-        if (doCheck) {
-          System.out.println("Now enter the current value from Google Authenticator:");
-          String response = reader.readLine();
-          if (response != null && generator.checkKey(key, response)) {
-            System.out.println("Yep, that's working.");
-            break;
-          } else {
-            System.out.println("Invalid input. Try again.");
-          }
+  private static void displayKey(final String key) {
+    System.out.println("Here's your key. Enter it into Google Authenticator:");
+    System.out.println(key);
+  }
+
+  private static void checkKey(final GenerateSecretKey generator, final String key) throws IOException {
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, Charsets.UTF_8))) {
+      String response = null;
+      while (response == null || !generator.checkKey(key, response)) {
+        if (response == null) {
+          System.out.println("Now confirm the current value from Google Authenticator:");
         } else {
-          break;
+          System.out.println("Invalid input. Try again.");
         }
+        response = reader.readLine();
       }
+      System.out.println("Correct.");
     }
   }
 

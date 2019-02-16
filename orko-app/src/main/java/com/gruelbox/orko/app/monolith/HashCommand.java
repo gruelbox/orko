@@ -44,9 +44,10 @@ class HashCommand extends Command {
   @Override
   public void configure(Subparser subparser) {
     subparser.addArgument("--salt", "-s")
-      .help("An encryption salt. If not provided, a new one will be returned.");
+      .help("An encryption salt. If not provided, a new one will be used and returned.");
     subparser.addArgument("value")
-      .help("The value for which to create a hash");
+      .required(true)
+      .help("The value for which to create a hash.");
   }
 
   @Override

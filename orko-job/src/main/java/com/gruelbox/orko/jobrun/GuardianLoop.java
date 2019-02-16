@@ -32,6 +32,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.exception.OrkoAbortException;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
@@ -83,8 +84,7 @@ class GuardianLoop extends AbstractExecutionThreadService {
         // and sends the app into an endless loop, so for the time being this
         // will break the cycle.
         if (sessionFactory.get().isClosed()) {
-          LOGGER.info("{} shutting down due to closure of the session factory", this);
-          break;
+          throw new OrkoAbortException(this + " shutting down due to closure of the session factory");
         }
 
         LOGGER.debug("{} checking and restarting jobs", this);
