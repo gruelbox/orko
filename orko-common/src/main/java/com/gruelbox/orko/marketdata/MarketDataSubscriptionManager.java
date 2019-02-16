@@ -517,9 +517,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         } else {
           subscribe(subscriptions);
         }
-      } catch (InterruptedException e) {
-        subscriptionsFailed = true;
-        throw e;
       } catch (Exception e) {
         subscriptionsFailed = true;
         LOGGER.error("Error updating subscriptions", e);
@@ -562,7 +559,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       }
     }
 
-    private void subscribe(Set<MarketDataSubscription> subscriptions) throws InterruptedException {
+    private void subscribe(Set<MarketDataSubscription> subscriptions) {
 
       Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
 
