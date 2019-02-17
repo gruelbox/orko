@@ -114,7 +114,6 @@ import com.gruelbox.orko.util.SafelyDispose;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
-import info.bitrich.xchangestream.core.StreamingMarketDataService;
 import info.bitrich.xchangestream.service.exception.NotConnectedException;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
@@ -610,33 +609,26 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         }
       });
 
-      StreamingMarketDataService streaming = streamingExchange.getStreamingMarketDataService();
-      Runnable pollAllBalances = () -> subscriptions.stream()
+      try {
+        subscriptions.stream()
+          .filter(s -> s.type().equals(BALANCE))
+          .flatMap(s -> ImmutableList.of(s.spec().base(), s.spec().counter()).stream())
+          .distinct()
+          .forEach(currency ->
+            disposables.add(
+              streamingExchange.getStreamingAccountService().getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
+                .map(Balance::create)
+                .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
+                .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
+            )
+          );
+      } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException | NotConnectedException e) {
+        subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
           .forEach(s -> {
             connected.remove(s);
             remainder.add(s);
           });
-
-      if (exchangeService.isAuthenticated(exchangeName)) {
-        try {
-          subscriptions.stream()
-            .filter(s -> s.type().equals(BALANCE))
-            .flatMap(s -> ImmutableList.of(s.spec().base(), s.spec().counter()).stream())
-            .distinct()
-            .forEach(currency ->
-              disposables.add(
-                streaming.getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-                  .map(Balance::create)
-                  .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
-                  .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
-              )
-            );
-        } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
-          pollAllBalances.run();
-        }
-      } else {
-        pollAllBalances.run();
       }
 
       subscriptionsPerExchange.put(exchangeName, Collections.unmodifiableSet(connected));
@@ -645,35 +637,28 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private Disposable connectSubscription(MarketDataSubscription sub) {
-      StreamingMarketDataService streaming = streamingExchange.getStreamingMarketDataService();
       switch (sub.type()) {
         case ORDERBOOK:
-          return streaming.getOrderBook(sub.spec().currencyPair())
+          return streamingExchange.getStreamingMarketDataService().getOrderBook(sub.spec().currencyPair())
               .map(t -> OrderBookEvent.create(sub.spec(), t))
               .subscribe(orderbookOut::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
         case TICKER:
           LOGGER.debug("Subscribing to {}", sub.spec());
-          return streaming.getTicker(sub.spec().currencyPair())
+          return streamingExchange.getStreamingMarketDataService().getTicker(sub.spec().currencyPair())
               .map(t -> TickerEvent.create(sub.spec(), t))
               .subscribe(tickersOut::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
         case TRADES:
-          return streaming.getTrades(sub.spec().currencyPair())
+          return streamingExchange.getStreamingMarketDataService().getTrades(sub.spec().currencyPair())
               .map(t -> convertBinanceOrderType(sub, t))
               .map(t -> TradeEvent.create(sub.spec(), t))
               .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case USER_TRADE:
-          if (!exchangeService.isAuthenticated(exchangeName)) {
-            throw new NotConnectedException();
-          }
-          return streaming.getUserTrades(sub.spec().currencyPair())
+          return streamingExchange.getStreamingTradeService().getUserTrades(sub.spec().currencyPair())
               .map(t -> convertBinanceUserOrderType(sub, t))
               .map(t -> UserTradeEvent.create(sub.spec(), t))
               .subscribe(userTradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case ORDER:
-          if (!exchangeService.isAuthenticated(exchangeName)) {
-            throw new NotConnectedException();
-          }
-          return streaming.getOrderChanges(sub.spec().currencyPair())
+          return streamingExchange.getStreamingTradeService().getOrderChanges(sub.spec().currencyPair())
               .map(t -> OrderChangeEvent.create(sub.spec(), t, new Date())) // TODO need server side timestamping
               .subscribe(orderStatusChangeOut::emit, e -> LOGGER.error("Error in order stream for " + sub, e));
         default:
