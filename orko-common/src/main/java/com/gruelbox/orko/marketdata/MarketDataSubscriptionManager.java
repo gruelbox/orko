@@ -483,7 +483,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
      * Actually performs the subscription changes. Occurs synchronously in the
      * poll loop.
      */
-    private void doSubscriptionChanges() throws InterruptedException {
+    private void doSubscriptionChanges() {
       LOGGER.debug("{} - start subscription check", exchangeName);
       subscriptionsFailed = false;
 
@@ -1023,8 +1023,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * For testing. Fires signals at key events allowing tests to orchestrate.
    */
   interface LifecycleListener {
-    default void onBlocked(String exchange) {};
-    default void onStop(String exchange) {};
-    default void onStopMain() {};
+    default void onBlocked(String exchange) {}
+    default void onStop(String exchange) {}
+    default void onStopMain() {}
   }
 }
