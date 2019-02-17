@@ -61,6 +61,7 @@ import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -111,16 +112,15 @@ final class PaperTradeService implements TradeService {
   @SuppressWarnings("unchecked")
   @Override
   public OpenOrders getOpenOrders(OpenOrdersParams params) throws IOException {
-    OpenOrders all = getOpenOrders();
-    if (params instanceof OpenOrdersParamCurrencyPair) {
-      CurrencyPair pair = ((OpenOrdersParamCurrencyPair) params).getCurrencyPair();
-      return new OpenOrders(
-        all.getOpenOrders().stream().filter(o -> o.getCurrencyPair().equals(pair)).collect(Collectors.toList()),
-        (List<Order>) all.getHiddenOrders().stream().filter(o -> o.getCurrencyPair().equals(pair)).collect(Collectors.toList())
-      );
-    } else{
-      return all;
+    if (!(params instanceof OpenOrdersParamCurrencyPair)) {
+      throw new ExchangeException("Currency pair required to list open orders.");
     }
+    OpenOrders all = getOpenOrders();
+    CurrencyPair pair = ((OpenOrdersParamCurrencyPair) params).getCurrencyPair();
+    return new OpenOrders(
+      all.getOpenOrders().stream().filter(o -> o.getCurrencyPair().equals(pair)).collect(Collectors.toList()),
+      (List<Order>) all.getHiddenOrders().stream().filter(o -> o.getCurrencyPair().equals(pair)).collect(Collectors.toList())
+    );
   }
 
   @Override
@@ -152,6 +152,11 @@ final class PaperTradeService implements TradeService {
     return strId;
   }
 
+  @VisibleForTesting
+  void shutdown() {
+    SafelyDispose.of(disposable);
+  }
+
   private void updateTickerRegistry() {
     SafelyDispose.of(disposable);
     subscription = subscription.replace(
@@ -181,7 +186,7 @@ final class PaperTradeService implements TradeService {
     final Long id = Long.valueOf(orderId);
     final LimitOrder limitOrder = openOrders.get(id);
     if (limitOrder == null) {
-      throw new IllegalArgumentException("No such order: " + orderId);
+      throw new ExchangeException("No such order: " + orderId);
     }
     if (!isOpen(limitOrder)) {
       return false;
@@ -207,7 +212,7 @@ final class PaperTradeService implements TradeService {
   @Override
   public UserTrades getTradeHistory(TradeHistoryParams params) throws IOException {
     if (!(params instanceof TradeHistoryParamCurrencyPair)) {
-      throw new IllegalArgumentException("Requires currency pair");
+      throw new ExchangeException("Requires currency pair");
     }
     TradeHistoryParamCurrencyPair currencyPairParams = (TradeHistoryParamCurrencyPair) params;
     return new UserTrades(
@@ -219,7 +224,7 @@ final class PaperTradeService implements TradeService {
   }
 
   @Override
-  public TradeHistoryParams createTradeHistoryParams() {
+  public TradeHistoryParamCurrencyPair createTradeHistoryParams() {
     return new TradeHistoryParamCurrencyPair() {
 
       private CurrencyPair pair;
@@ -237,7 +242,7 @@ final class PaperTradeService implements TradeService {
   }
 
   @Override
-  public OpenOrdersParams createOpenOrdersParams() {
+  public OpenOrdersParamCurrencyPair createOpenOrdersParams() {
     return new DefaultOpenOrdersParamCurrencyPair();
   }
 
@@ -343,7 +348,7 @@ final class PaperTradeService implements TradeService {
     private final LoadingCache<String, TradeService> services = CacheBuilder.newBuilder().initialCapacity(1000).build(new CacheLoader<String, TradeService>() {
       @Override
       public TradeService load(String exchange) throws Exception {
-        LOGGER.debug("No API connection details for {}.  Using paper trading.", exchange);
+        LOGGER.debug("No API connection details for {}. Using paper trading.", exchange);
         return new PaperTradeService(exchange, exchangeEventRegistry, accountServiceFactory.getForExchange(exchange));
       }
     });

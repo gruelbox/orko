@@ -125,6 +125,7 @@ class PaperAccountService implements AccountService {
               return Balance.Builder
                 .from(b)
                 .available(b.getAvailable().subtract(askAmount))
+                .frozen(b.getFrozen().add(askAmount))
                 .build();
             }
           );
@@ -141,6 +142,7 @@ class PaperAccountService implements AccountService {
               return Balance.Builder
                 .from(b)
                 .available(b.getAvailable().subtract(bidAmount))
+                .frozen(b.getFrozen().add(bidAmount))
                 .build();
             }
           );
@@ -163,6 +165,7 @@ class PaperAccountService implements AccountService {
             b -> Balance.Builder
               .from(b)
               .total(b.getTotal().subtract(order.getCumulativeAmount()))
+              .frozen(b.getFrozen().subtract(order.getCumulativeAmount()))
               .build()
           );
         balances.computeIfAbsent(order.getCurrencyPair().counter, this::defaultBalance)
@@ -188,6 +191,7 @@ class PaperAccountService implements AccountService {
             b -> Balance.Builder
               .from(b)
               .available(b.getAvailable().add(originalCounterAmount).subtract(counterAmount))
+              .frozen(b.getFrozen().subtract(counterAmount))
               .total(b.getTotal().subtract(counterAmount))
               .build()
           );
