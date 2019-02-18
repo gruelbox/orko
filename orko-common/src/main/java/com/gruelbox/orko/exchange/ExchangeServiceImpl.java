@@ -181,6 +181,7 @@ public class ExchangeServiceImpl implements ExchangeService {
                   .transform(s -> s.replace("Exchange", ""))
                   .transform(String::toLowerCase)
                   .transform(s -> s.equals("coinbasepro") ? "gdax" : s)
+                  .filter(s -> !s.equals(Exchanges.KUCOIN)) // TODO temporarily disabled while 2.0 support is added
         )
         .add(Exchanges.GDAX_SANDBOX)
         .build();
