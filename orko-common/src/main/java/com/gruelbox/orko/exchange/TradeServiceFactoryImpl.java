@@ -18,37 +18,33 @@
 
 package com.gruelbox.orko.exchange;
 
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.service.trade.TradeService;
 
 import com.google.inject.Inject;
 import com.gruelbox.orko.OrkoConfiguration;
 
-class TradeServiceFactoryImpl implements TradeServiceFactory {
+class TradeServiceFactoryImpl extends AbstractExchangeServiceFactory<TradeService>
+                              implements TradeServiceFactory {
 
   private final ExchangeService exchangeService;
-  private final OrkoConfiguration configuration;
   private final PaperTradeService.Factory paperTradeServiceFactory;
 
   @Inject
-  TradeServiceFactoryImpl(ExchangeService exchangeService, OrkoConfiguration configuration, PaperTradeService.Factory paperTradeServiceFactory) {
+  TradeServiceFactoryImpl(ExchangeService exchangeService,
+                          OrkoConfiguration configuration,
+                          PaperTradeService.Factory paperTradeServiceFactory) {
+    super(configuration);
     this.exchangeService = exchangeService;
-    this.configuration = configuration;
     this.paperTradeServiceFactory = paperTradeServiceFactory;
   }
 
   @Override
-  public TradeService getForExchange(String exchange) {
-    Map<String, ExchangeConfiguration> exchangeConfig = configuration.getExchanges();
-    if (exchangeConfig == null) {
-      return paperTradeServiceFactory.getForExchange(exchange);
-    }
-    final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(exchange);
-    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey())) {
-      return paperTradeServiceFactory.getForExchange(exchange);
-    }
-    return exchangeService.get(exchange).getTradeService();
+  protected ExchangeServiceFactory<TradeService> getRealFactory() {
+    return exchange -> exchangeService.get(exchange).getTradeService();
+  }
+
+  @Override
+  protected ExchangeServiceFactory<TradeService> getPaperFactory() {
+    return paperTradeServiceFactory;
   }
 }
