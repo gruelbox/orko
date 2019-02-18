@@ -17,9 +17,10 @@ matrix:
         git fetch --unshallow --quiet
         mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     - if: repo = gruelbox/orko AND NOT branch = master AND NOT tag IS present AND NOT type = pull_request
-      name: "JUnit, Spotbugs, Checkstyle, Sonar"
+      name: "JUnit, Spotbugs, Checkstyle, Sonar (branch)"
       script: |
         git fetch --unshallow --quiet
+        git fetch origin master
         mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
     - if: repo = gruelbox/orko AND NOT branch = master AND tag IS present AND NOT type = pull_request
       name: "JUnit, Spotbugs, Checkstyle, Sonar, release to Github"
@@ -32,7 +33,7 @@ matrix:
       name: "JUnit, Spotbugs, Checkstyle, Sonar (PR)"
       script: |
         git fetch --unshallow --quiet
-        get fetch origin master
+        git fetch origin master
         mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=gruelbox/orko -Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST -Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_BRANCH -Dsonar.pullrequest.base=$TRAVIS_BRANCH
     - if: (repo = gruelbox/orko AND NOT head_repo = gruelbox/orko AND type = pull_request) OR NOT repo = gruelbox/orko
       name: "JUnit tests, Spotbugs and Checkstyle"
