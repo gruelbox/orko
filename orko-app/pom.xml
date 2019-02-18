@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.8.8-SNAPSHOT</version>
+    <version>0.11.4-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -21,7 +21,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-common</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -32,6 +32,19 @@
     <dependency>
       <groupId>org.tuckey</groupId>
       <artifactId>urlrewritefilter</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
     </dependency>
   </dependencies>
 
@@ -76,16 +89,71 @@
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-      </plugin>
-      <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                  <addHeader>false</addHeader>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>de.jutzig</groupId>
+        <artifactId>github-release-plugin</artifactId>
+        <configuration>
+          <description>${project.version}</description>
+          <releaseName>${project.version}</releaseName>
+          <repositoryId>gruelbox/orko</repositoryId>
+          <tag>${project.version}</tag>
+          <fileSets>
+            <fileSet>
+              <directory>${project.basedir}</directory>
+              <includes>
+                <include>example-config.yml</include>
+              </includes>
+            </fileSet>
+            <fileSet>
+              <directory>${project.build.directory}</directory>
+              <includes>
+                <include>${project.artifactId}.jar</include>
+              </includes>
+            </fileSet>
+          </fileSets>
+        </configuration>
       </plugin>
     </plugins>
   </build>

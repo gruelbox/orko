@@ -70,6 +70,7 @@ class SetReferencePriceContainer extends Component {
       <Window mobile={this.props.mobile}>
         <SectionProvider
           value={{
+            draggable: !this.props.mobile,
             onHide: () => this.props.dispatch(uiActions.closeReferencePrice())
           }}
         >

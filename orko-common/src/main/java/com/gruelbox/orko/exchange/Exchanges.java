@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.knowm.xchange.BaseExchange;
 import org.knowm.xchange.Exchange;
 import org.reflections.Reflections;
@@ -45,6 +47,7 @@ public final class Exchanges {
   public static final String BITFINEX = "bitfinex";
   public static final String CRYPTOPIA = "cryptopia";
   public static final String BITMEX = "bitmex";
+  public static final String KRAKEN = "kraken";
 
   static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
       () -> new Reflections("org.knowm.xchange")
@@ -58,7 +61,6 @@ public final class Exchanges {
       .getSubTypesOf(StreamingExchange.class)
       .stream()
       .collect(Collectors.toList()));
-
 
   /**
    * Converts the friendly name for an exchange into the exchange class.
@@ -85,5 +87,51 @@ public final class Exchanges {
     if (!result.isPresent())
       throw new IllegalArgumentException("Unknown exchange [" + friendlyName + "]");
     return result.get();
+  }
+
+
+  /**
+   * Friendly names for exchanges.
+   *
+   * @param exchange The exchange code.
+   * @return The friendly name.
+   */
+  public static String name(String exchange) {
+    switch(exchange) {
+      case GDAX:
+        return "Coinbase Pro";
+      case GDAX_SANDBOX:
+        return "Coinbase Pro (Sandbox)";
+      case BITMEX:
+      case BITTREX:
+      case KRAKEN:
+        return StringUtils.capitalize(exchange) + " (beta)";
+      default:
+        return StringUtils.capitalize(exchange);
+    }
+  }
+
+
+  /**
+   * Hard coded reflinks for the exchanges. This is intended to support the project.
+   * I don't expect much use but every little bit can help keep the project alive,
+   * so please don't modify these.
+   *
+   * @param exchange The exchange name.
+   * @return The reflink.
+   */
+  public static String refLink(String exchange) {
+    switch(exchange) {
+      case BINANCE : return "https://www.binance.com/?ref=11396297";
+      case BITMEX : return "https://www.bitmex.com/register/vQIGWT";
+      case GDAX : return "https://pro.coinbase.com";
+      case GDAX_SANDBOX  : return "https://public.sandbox.pro.coinbase.com/";
+      case KUCOIN : return "https://www.kucoin.com/#/?r=E649ku";
+      case BITTREX : return "https://bittrex.com/";
+      case BITFINEX : return "https://www.bitfinex.com/";
+      case CRYPTOPIA : return "https://www.cryptopia.co.nz/";
+      case KRAKEN : return "https://www.kraken.com/";
+      default : return "#";
+    }
   }
 }

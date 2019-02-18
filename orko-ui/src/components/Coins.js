@@ -42,7 +42,7 @@ const exchangeColumn = {
       to={"/coin/" + original.key}
       title="Open coin"
     >
-      {original.exchange}
+      {original.exchangeMeta ? original.exchangeMeta.name : original.exchange}
     </Link>
   ),
   headerStyle: textStyle,
@@ -143,9 +143,14 @@ const alertColumn = onClickAlerts => ({
   resizable: false
 })
 
+export const DATA_ATTRIBUTE = "data-orko"
+
 const Coins = ({ data, onRemove, onClickAlerts, onClickReferencePrice }) => (
   <ReactTable
     data={data}
+    getTrProps={(state, rowInfo) => ({
+      [DATA_ATTRIBUTE]: "coin/" + rowInfo.original.key
+    })}
     columns={[
       closeColumn(onRemove),
       exchangeColumn,

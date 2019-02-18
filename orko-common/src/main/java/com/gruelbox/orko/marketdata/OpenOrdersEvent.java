@@ -15,7 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.marketdata;
+
+import java.util.Date;
 
 import org.knowm.xchange.dto.trade.OpenOrders;
 
@@ -31,8 +34,9 @@ public abstract class OpenOrdersEvent {
 
   @JsonCreator
   public static OpenOrdersEvent create(@JsonProperty("spec") TickerSpec spec,
-                                       @JsonProperty("openOrders") OpenOrders openOrders) {
-    return new AutoValue_OpenOrdersEvent(spec, openOrders);
+                                       @JsonProperty("openOrders") OpenOrders openOrders,
+                                       @JsonProperty("timestamp") Date timestamp) {
+    return new AutoValue_OpenOrdersEvent(spec, openOrders, timestamp);
   }
 
   @JsonProperty
@@ -40,4 +44,7 @@ public abstract class OpenOrdersEvent {
 
   @JsonProperty
   public abstract OpenOrders openOrders();
+
+  @JsonProperty
+  public abstract Date timestamp();
 }

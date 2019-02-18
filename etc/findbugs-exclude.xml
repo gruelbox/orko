@@ -12,4 +12,8 @@
      <Match>
        <Bug code="UwF" />
      </Match>
+     <Match>
+       <!-- Shame that this is bugged and triggers even if all modification is synchronised -->
+       <Bug code="VO" />
+     </Match>
 </FindBugsFilter>

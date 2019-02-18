@@ -34,21 +34,22 @@ class Ticker extends React.Component {
   }
 
   render() {
-    const coin = this.props.coin
-    const ticker = this.props.ticker
-    const onClickNumber = this.props.onClickNumber
+    const { coin, ticker, onClickNumber, mobile } = this.props
     if (coin) {
       return (
         <Container>
-          <Price
-            coin={coin}
-            name="Bid"
-            nameColor="buy"
-            icon="chevron up"
-            onClick={onClickNumber}
-          >
-            {ticker ? ticker.bid : undefined}
-          </Price>
+          {!mobile && (
+            <Price
+              coin={coin}
+              name="Bid"
+              nameColor="buy"
+              icon="chevron up"
+              onClick={onClickNumber}
+            >
+              {ticker ? ticker.bid : undefined}
+            </Price>
+          )}
+
           <Price
             coin={coin}
             name="Last"
@@ -57,24 +58,28 @@ class Ticker extends React.Component {
           >
             {ticker ? ticker.last : undefined}
           </Price>
-          <Price
-            coin={coin}
-            name="Ask"
-            nameColor="sell"
-            icon="chevron down"
-            onClick={onClickNumber}
-          >
-            {ticker ? ticker.ask : undefined}
-          </Price>
-          <Price coin={coin} name="Open" onClick={onClickNumber}>
-            {ticker ? ticker.open : undefined}
-          </Price>
-          <Price coin={coin} name="24h Low" onClick={onClickNumber}>
-            {ticker ? ticker.low : undefined}
-          </Price>
-          <Price coin={coin} name="24h High" onClick={onClickNumber}>
-            {ticker ? ticker.high : undefined}
-          </Price>
+          {!mobile && (
+            <>
+              <Price
+                coin={coin}
+                name="Ask"
+                nameColor="sell"
+                icon="chevron down"
+                onClick={onClickNumber}
+              >
+                {ticker ? ticker.ask : undefined}
+              </Price>
+              <Price coin={coin} name="Open" onClick={onClickNumber}>
+                {ticker ? ticker.open : undefined}
+              </Price>
+              <Price coin={coin} name="24h Low" onClick={onClickNumber}>
+                {ticker ? ticker.low : undefined}
+              </Price>
+              <Price coin={coin} name="24h High" onClick={onClickNumber}>
+                {ticker ? ticker.high : undefined}
+              </Price>
+            </>
+          )}
         </Container>
       )
     } else {

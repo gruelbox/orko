@@ -15,40 +15,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.jobrun;
 
-/*-
- * ===============================================================================L
- * Orko Job
- * ================================================================================
- * Copyright (C) 2018 - 2019 Graham Crockford
- * ================================================================================
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * ===============================================================================E
- */
 
 import java.util.concurrent.CountDownLatch;
 
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.exception.OrkoAbortException;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
@@ -67,66 +52,74 @@ class GuardianLoop extends AbstractExecutionThreadService {
   private final JobAccess jobAccess;
   private final JobRunner jobRunner;
   private final EventBus eventBus;
-  private final JobRunConfiguration config;
   private final Transactionally transactionally;
+  private final Provider<SessionFactory> sessionFactory;
+  private final RateLimiter rateLimiter;
+
   private volatile boolean kill;
   private final CountDownLatch killed = new CountDownLatch(1);
+
 
   @Inject
   GuardianLoop(JobAccess jobaccess,
                JobRunner jobRunner,
                EventBus eventBus,
                JobRunConfiguration config,
-               Transactionally transactionally) {
+               Transactionally transactionally,
+               Provider<SessionFactory> sessionFactory) {
     jobAccess = jobaccess;
     this.jobRunner = jobRunner;
     this.eventBus = eventBus;
-    this.config = config;
     this.transactionally = transactionally;
+    this.sessionFactory = sessionFactory;
+    this.rateLimiter = RateLimiter.create(2.0D / config.getGuardianLoopSeconds());
   }
 
   @Override
   public void run() {
     Thread.currentThread().setName("Guardian loop");
-    LOGGER.info(this + " started");
-    while (isRunning() && !Thread.currentThread().isInterrupted() && !kill) {
+    LOGGER.info("{} started", this);
+    while (isRunning() && !kill) {
       try {
 
-        LOGGER.debug("Checking and restarting jobs");
-        lockAndStartInactiveJobs();
-
-        LOGGER.debug("Sleeping");
-        try {
-          Thread.sleep((long) config.getGuardianLoopSeconds() * 1000);
-        } catch (InterruptedException e) {
-          LOGGER.info("Shutting down " + this);
-          Thread.currentThread().interrupt();
-          break;
+        if (Thread.currentThread().isInterrupted()) {
+          throw new OrkoAbortException("thread interrupted");
         }
 
-        // Refresh the locks on the running jobs
-        LOGGER.debug("Refreshing locks");
+        // When the app is forcibly killed, this seems to happen a lot
+        // and sends the app into an endless loop, so for the time being this
+        // will break the cycle.
+        if (sessionFactory.get().isClosed()) {
+          throw new OrkoAbortException("session factory closed");
+        }
+
+        rateLimiter.acquire();
+        LOGGER.debug("{} checking and restarting jobs", this);
+        lockAndStartInactiveJobs();
+
+        rateLimiter.acquire();
+        LOGGER.debug("{} refreshing locks", this);
         eventBus.post(KeepAliveEvent.INSTANCE);
 
+      } catch (OrkoAbortException e) {
+        LOGGER.info("{} shutting down: {}", this, e.getMessage());
+        break;
       } catch (Exception e) {
         LOGGER.error("Error in keep-alive loop", e);
       }
     }
     if (kill) {
       killed.countDown();
-      LOGGER.warn(this + " killed (should only ever happen in test code)");
+      LOGGER.warn("{} killed (should only ever happen in test code)", this);
     } else {
       eventBus.post(StopEvent.INSTANCE);
-      LOGGER.info(this + " stopped");
+      LOGGER.info("{} stopped", this);
     }
   }
 
   private void lockAndStartInactiveJobs() {
     boolean foundJobs = false;
-    boolean locksFailed = false;
-
-    Iterable<Job> jobs = transactionally.call(() -> jobAccess.list());
-    for (Job job : jobs) {
+    for (Job job : transactionally.call(jobAccess::list)) {
       foundJobs = true;
       try {
         transactionally.callChecked(() -> {
@@ -139,8 +132,6 @@ class GuardianLoop extends AbstractExecutionThreadService {
     }
     if (!foundJobs) {
       LOGGER.debug("Nothing running");
-    } else if (locksFailed) {
-      LOGGER.debug("Nothing new to run");
     }
   }
 

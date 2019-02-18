@@ -21,7 +21,6 @@ import { Route } from "react-router-dom"
 import { WidthProvider, Responsive } from "react-grid-layout"
 import { Rnd } from "react-rnd"
 import styled from "styled-components"
-import { Tab } from "semantic-ui-react"
 import theme from "./theme"
 
 import CoinsContainer from "./containers/CoinsContainer"
@@ -31,14 +30,16 @@ import ToolbarContainer from "./containers/ToolbarContainer"
 import AddCoinContainer from "./containers/AddCoinContainer"
 import MarketContainer from "./containers/MarketContainer"
 import OrdersContainer from "./containers/OrdersContainer"
-import TradingContainer from "./containers/TradingContainer"
+import TradeContainer from "./containers/TradeContainer"
 import BalanceContainer from "./containers/BalanceContainer"
 import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
-import ChartContainer from "./containers/ChartContainer"
+import Chart from "./components/Chart"
+import Section from "./components/primitives/Section"
 import ViewSettings from "./components/ViewSettings"
+import ErrorBoundary from "./components/ErrorBoundary"
 import { Provider as SectionProvider } from "./components/primitives/Section"
 import { isNull } from "util"
 
@@ -83,20 +84,25 @@ export default class Framework extends React.Component {
       return accumulator
     }, {})
 
-    const Panel = ({ id, children }) => (
+    const Panel = props => (
       <SectionProvider
         value={{
           draggable: true,
-          icon: icons[id],
-          onHide: this.props.isMobile
-            ? null
-            : () => this.props.onTogglePanelVisible(id),
+          compactDragHandle: this.props.isMobile,
+          icon: icons[props.id],
+          onHide: () => this.props.onTogglePanelVisible(props.id),
           onToggleAttached: this.props.isMobile
             ? null
-            : () => this.props.onTogglePanelAttached(id)
+            : () => this.props.onTogglePanelAttached(props.id)
         }}
       >
-        {children}
+        <ErrorBoundary
+          wrapper={({ message, children }) => (
+            <Section heading={message}>{children}</Section>
+          )}
+        >
+          {props.children}
+        </ErrorBoundary>
       </SectionProvider>
     )
 
@@ -104,7 +110,7 @@ export default class Framework extends React.Component {
       chart: () => (
         <LayoutBox key="chart" data-grid={this.props.layoutsAsObj.chart}>
           <Panel id="chart">
-            <ChartContainer />
+            <Chart />
           </Panel>
         </LayoutBox>
       ),
@@ -131,7 +137,7 @@ export default class Framework extends React.Component {
           data-grid={this.props.layoutsAsObj.tradeSelector}
         >
           <Panel id="tradeSelector">
-            <TradingContainer />
+            <TradeContainer />
           </Panel>
         </LayoutBox>
       ),
@@ -184,7 +190,9 @@ export default class Framework extends React.Component {
       onResetLayout,
       onLayoutChange,
       onMovePanel,
-      onResizePanel
+      onResizePanel,
+      onInteractPanel,
+      onBreakpointChange
     } = this.props
 
     const Settings = () =>
@@ -203,106 +211,54 @@ export default class Framework extends React.Component {
       <ManageScriptsContainer {...props} key={props.match.params.id} />
     )
 
-    const header = [
-      <ToolbarContainer
-        key="tools"
-        mobile={isMobile}
-        onShowViewSettings={onToggleViewSettings}
-        onTogglePanelVisible={onTogglePanelVisible}
-        on
-        panels={panels}
-        width={width}
-      />,
-      <Route
-        key="addCoin"
-        exact
-        path="/addCoin"
-        component={AddCoinContainer}
-      />,
-      <Route
-        key="scriptsNoId"
-        exact
-        path="/scripts"
-        component={ManageScripts}
-      />,
-      <Route
-        key="scripts"
-        exact
-        path="/scripts/:id"
-        component={ManageScripts}
-      />,
-      <Route key="job" path="/job/:jobId" component={JobContainer} />,
-      <PositioningWrapper key="dialogs" mobile={isMobile}>
-        <Settings />
-        <ManageAlertsContainer mobile={isMobile} />
-        <SetReferencePriceContainer key="setreferenceprice" mobile={isMobile} />
-      </PositioningWrapper>
-    ]
-
-    if (isMobile) {
-      return (
-        <div style={{ height: "100%" }}>
-          {header}
-          <Tab
-            menu={{ inverted: true, color: "blue" }}
-            panes={[
-              { menuItem: "Coins", render: this.panelsRenderers.coins },
-              {
-                menuItem: "Chart",
-                render: () => <ChartContainer />
-              },
-              {
-                menuItem: "Book",
-                render: () => <MarketContainer allowAnimate={false} />
-              },
-              {
-                menuItem: "Trading",
-                render: () => (
-                  <React.Fragment>
-                    <div style={{ marginBottom: "4px" }}>
-                      {this.panelsRenderers.balance()}
-                    </div>
-                    {this.panelsRenderers.tradeSelector()}
-                  </React.Fragment>
-                )
-              },
-              { menuItem: "Orders", render: this.panelsRenderers.openOrders },
-              {
-                menuItem: "Status",
-                render: () => (
-                  <div>
-                    <div style={{ marginBottom: "4px" }}>
-                      {this.panelsRenderers.notifications()}
-                    </div>
-                    {this.panelsRenderers.jobs()}
-                  </div>
-                )
-              }
-            ]}
+    return (
+      <>
+        <ErrorBoundary>
+          <ToolbarContainer
+            mobile={isMobile}
+            onShowViewSettings={onToggleViewSettings}
+            onTogglePanelVisible={onTogglePanelVisible}
+            on
+            panels={panels}
+            width={width}
           />
-        </div>
-      )
-    } else {
-      return (
-        <>
-          {header}
-          <div style={{ padding: "-" + theme.space[1] + "px" }}>
-            <ResponsiveReactGridLayout
-              breakpoints={{ lg: 1630, md: 992, sm: 0 }}
-              cols={{ lg: 40, md: 32, sm: 4 }}
-              rowHeight={24}
-              layouts={layouts.asMutable()}
-              onLayoutChange={onLayoutChange}
-              margin={[theme.space[1], theme.space[1]]}
-              containerPadding={[theme.space[1], theme.space[1]]}
-              draggableHandle=".dragMe"
-            >
-              {panels
-                .filter(p => !p.detached)
-                .filter(p => p.visible)
-                .map(p => this.panelsRenderers[p.key]())}
-            </ResponsiveReactGridLayout>
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <Route exact path="/addCoin" component={AddCoinContainer} />
+          <Route exact path="/scripts" component={ManageScripts} />
+          <Route exact path="/scripts/:id" component={ManageScripts} />
+          <Route path="/job/:jobId" component={JobContainer} />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <Settings />
+        </ErrorBoundary>
+        <PositioningWrapper mobile={isMobile}>
+          <ErrorBoundary>
+            <ManageAlertsContainer mobile={isMobile} />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <SetReferencePriceContainer mobile={isMobile} />
+          </ErrorBoundary>
+        </PositioningWrapper>
+        <div style={{ padding: "-" + theme.space[1] + "px" }}>
+          <ResponsiveReactGridLayout
+            breakpoints={theme.panelBreakpoints}
+            cols={{ lg: 40, md: 32, sm: 4 }}
+            rowHeight={24}
+            layouts={layouts.asMutable()}
+            onLayoutChange={onLayoutChange}
+            onBreakpointChange={onBreakpointChange}
+            margin={[theme.space[1], theme.space[1]]}
+            containerPadding={[theme.space[1], theme.space[1]]}
+            draggableHandle=".dragMe"
+          >
             {panels
+              .filter(p => !p.detached || isMobile)
+              .filter(p => p.visible)
+              .map(p => this.panelsRenderers[p.key]())}
+          </ResponsiveReactGridLayout>
+          {!isMobile &&
+            panels
               .filter(p => p.detached)
               .filter(p => p.visible)
               .map(p => (
@@ -311,11 +267,14 @@ export default class Framework extends React.Component {
                   bounds="parent"
                   style={{
                     border: "1px solid " + theme.colors.canvas,
-                    boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)"
+                    boxShadow: "0 0 16px rgba(0, 0, 0, 0.4)",
+                    zIndex: p.stackPosition
                   }}
                   dragHandleClassName="dragMe"
                   position={{ x: p.x ? p.x : 100, y: p.y ? p.y : 100 }}
                   size={{ width: p.w ? p.w : 400, height: p.h ? p.h : 400 }}
+                  onDragStart={() => onInteractPanel(p.key)}
+                  onResizeStart={() => onInteractPanel(p.key)}
                   onDragStop={(e, d) => onMovePanel(p.key, d)}
                   onResizeStop={(e, direction, ref, delta, position) => {
                     onResizePanel(p.key, {
@@ -328,9 +287,8 @@ export default class Framework extends React.Component {
                   {this.panelsRenderers[p.key]()}
                 </Rnd>
               ))}
-          </div>
-        </>
-      )
-    }
+        </div>
+      </>
+    )
   }
 }

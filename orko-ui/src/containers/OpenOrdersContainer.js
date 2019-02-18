@@ -17,15 +17,17 @@
  */
 import React from "react"
 import { connect } from "react-redux"
-import Loading from "../components/primitives/Loading"
 import OpenOrders from "../components/OpenOrders"
-import * as coinActions from "../store/coin/actions"
+import AuthenticatedOnly from "./AuthenticatedOnly"
+import WithCoin from "./WithCoin"
+import WhileLoading from "../components/WhileLoading"
+import * as exchangeActions from "../store/exchanges/actions"
 import * as jobActions from "../store/job/actions"
-import { getOrdersForSelectedCoin, getSelectedCoin } from "../selectors/coins"
+import { getOrdersForSelectedCoin } from "../selectors/coins"
 
 class OpenOrdersContainer extends React.Component {
-  onCancelExchange = (id, orderType) => {
-    this.props.dispatch(coinActions.cancelOrder(this.props.coin, id, orderType))
+  onCancelExchange = (id, orderType, coin) => {
+    this.props.dispatch(exchangeActions.cancelOrder(coin, id, orderType))
   }
 
   onCancelServer = jobId => {
@@ -33,24 +35,33 @@ class OpenOrdersContainer extends React.Component {
   }
 
   render() {
-    return !this.props.orders ? (
-      <Loading p={2} />
-    ) : (
-      <OpenOrders
-        orders={this.props.orders}
-        onCancelExchange={this.onCancelExchange}
-        onCancelServer={this.onCancelServer}
-        onWatch={this.onWatch}
-        coin={this.coin}
-      />
+    return (
+      <AuthenticatedOnly padded>
+        <WithCoin padded>
+          {coin => (
+            <WhileLoading data={this.props.orders} padded>
+              {() => (
+                <OpenOrders
+                  orders={this.props.orders}
+                  onCancelExchange={(id, orderType) =>
+                    this.onCancelExchange(id, orderType, coin)
+                  }
+                  onCancelServer={this.onCancelServer}
+                  onWatch={this.onWatch}
+                  coin={coin}
+                />
+              )}
+            </WhileLoading>
+          )}
+        </WithCoin>
+      </AuthenticatedOnly>
     )
   }
 }
 
 function mapStateToProps(state, props) {
   return {
-    orders: getOrdersForSelectedCoin(state),
-    coin: getSelectedCoin(state)
+    orders: getOrdersForSelectedCoin(state)
   }
 }
 

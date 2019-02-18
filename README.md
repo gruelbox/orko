@@ -1,58 +1,78 @@
 # Orko [![Twitter](http://i.imgur.com/wWzX9uB.png)](https://twitter.com/orkotrading)
 
-[![CircleCI](https://circleci.com/gh/badgerwithagun/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/badgerwithagun/orko/tree/master)
-[![Cypress.io tests](https://img.shields.io/badge/cypress.io-tests-green.svg?style=flat-square)](https://cypress.io)
+[![CircleCI](https://circleci.com/gh/gruelbox/orko/tree/master.svg?style=svg&circle-token=3e040c3e064daf7408b29df31c61af9c73ea862a)](https://circleci.com/gh/gruelbox/orko/tree/master)
+[![Cypress.io tests](https://img.shields.io/badge/cypress.io-tests-green.svg?style=flat-square)](https://dashboard.cypress.io/#/projects/ttud56/runs)
+[![Travis](https://travis-ci.org/gruelbox/orko.svg?branch=master)](https://travis-ci.org/gruelbox/orko)
+[![Sonarcloud Security Rating](https://sonarcloud.io/api/project_badges/measure?project=com.gruelbox%3Aorko-parent&metric=security_rating)](https://sonarcloud.io/dashboard?id=com.gruelbox%3Aorko-parent)
+[![Sonarcloud Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=com.gruelbox%3Aorko-parent&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=com.gruelbox%3Aorko-parent)
+[![Sonarcloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=com.gruelbox%3Aorko-parent&metric=coverage)](https://sonarcloud.io/dashboard?id=com.gruelbox%3Aorko-parent)
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=com.gruelbox%3Aorko-parent&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.gruelbox%3Aorko-parent)
 
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gruelbox/orko/tree/stable)
 
-Are you up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to automate your trading with advanced features such as trailing stops, one-cancels-other, soft stops which ignore sharp wicks?
+Are you fed up of logging into multiple separate cryptocurrency exchanges to trade and track your portfolio? Frustrated at the different feature levels exchanges provide? Wanting to use advanced order types on exchanges that don't support them, such as trailing stops or one-cancels-other?
 
-Orko is a web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone. [Read more...](https://github.com/badgerwithagun/orko/wiki/Why-Orko).
+Orko is a **self hosted** web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen. It works seamlessly on desktop and mobile, so you can have the same trading experience wherever you go.
+
+All this without sharing your API keys with anyone.
+
+![Screenshot](.github/app1.PNG)
+
+Feel like creating your own special order types, such as soft stops which ignore sharp wicks or stops triggered off the price of a different asset? Orko features a [scripting](https://github.com/gruelbox/orko/wiki/Scripting) API allowing you to design your own bespoke order types.
+
+![Scripting UI](.github/scripting1.PNG)
+
+And best of all, it's completely [free](https://www.fsf.org/about/what-is-free-software) (as in "free speech" as well as "free beer").
+
+Read about some more [things it can do](https://github.com/gruelbox/orko/wiki/Example-Use-Cases).
+
+<img align="right" src=".github/mobile1.png" width="281" height="609"/>
 
 ## Status
 
-**Beta**.
+**Beta**. Please read the [project status page](https://github.com/gruelbox/orko/wiki/Project-status).
 
-The application is in active daily use by me (I built it for myself after all), but has only just been made available to the public.  As it started off as a personal project, there are [quite a lot](https://github.com/badgerwithagun/orko/issues) of known issues, but a [clear roadmap](https://github.com/badgerwithagun/orko/projects) to getting those resolved.
+Particularly, please note that the application has only so far been tested on Chrome desktop and Chrome mobile.
 
-**If you are a user**, please use with caution and report any [issues you find](https://github.com/badgerwithagun/orko/issues).
+Orko is a new application which has missing features and some well-known bugs. It needs your help. [Read more](https://github.com/gruelbox/orko/wiki/Why-Orko) about Orko, [why it's free](https://github.com/gruelbox/orko/wiki/Supporting_The_Project) and [how to help](https://github.com/gruelbox/orko/wiki/Project-status).
 
-**If you are a developer**, I really need Java and Javascript/React developers to help taking the project to the next level, so please get in contact if you want to help.
+## Demo site
 
-[Read more...](https://github.com/badgerwithagun/orko/wiki/Project-status)
+Note that this uses very limited and not particularly sophisticated **paper trading**, which doesn't work fantastically, but it allows you to get an idea of how it all works.  It's also a shared environment, so could easily be broken, and finally it takes 15-30 second to spin up on first use.  With all that out of the way:
 
-## User Guide
+- **Address:** https://orko-demo.herokuapp.com/
+- **Username:** trader1
+- **Password:** givemeshitcoins
+- **Second factor:** Leave blank
 
-Usage and setup instructions are under construction on [the wiki](https://github.com/badgerwithagun/orko/wiki).
+## Quick-start Installation
 
-## Quick start (local install)
+- [On a local machine](https://github.com/gruelbox/orko/wiki/Local-installation)
+- [One-click install on Heroku](https://github.com/gruelbox/orko/wiki/One-click-installation-on-Heroku)
+- [Manual install on Heroku](https://github.com/gruelbox/orko/wiki/Manual-installation-on-Heroku)
 
-Clone this repository, then from the root directory:
+## Exchange Support
 
-```
-sudo apt-get install maven
-./build.sh
-./start.sh
-```
+| Exchange | Support level | Missing features |Notes |
+| -------- | ------------- | ---- | ----- |
+| Binance  | Near perfect  | Deposits, withdrawals, dust conversion, account management | Mostly as responsive, or more so, than the Binance website at trading. In particular, it is much more responsive during periods of high load, such as during a pump on BTC. |
+| Bitfinex | Excellent     | Deposits, withdrawals, [margin trading](https://github.com/gruelbox/orko/issues/83), funding, true OCO trades, post only, reduce only, visibility of trades and positions on chart, account management | Similar quality of experience to Binance, but more obviously short on features compared to Bitfinex's own site. |
+| Coinbase Pro | Excellent | Deposits, withdrawals, post only, good-till, account management | Again, very good user experience, but with a few small UI glitches. |
+| Bittrex | Working | **Streaming**, deposits, withdrawals, stop orders, account management | Perfectly working for low frequency trading but not as smooth an experience. |
+| Kucoin | Working | **Streaming**, deposits, withdrawals, stop orders, account management | Perfectly working for low frequency trading but not as smooth an experience. May shortly stop working, since Kucoin have upgraded to a 2.0 API and are closing the 1.0 API on which this depends. |
+| Kraken | Minimal | **Streaming**, margin trading, deposits, withdrawals, stop orders, account management | As with Kucoin, with a few specific high-profile issues needing resolving. |
+| Bitmex | Minimal | **Streaming**, deposits, withdrawals, account management, most complex order types, position management, leverage setting, balances, historical trades | Bare minimum for placing and cancelling simple limit trades and stops at your currently selected leverage. This has only just started to be implemented. |
 
-Navigate to http://localhost:8080 to view the application.
+* **Streaming** = Websocket streaming updates. Most operations such as trades occur immediately but can take a short while to show in the UI. Without streaming, exchange data is fetched periodically instead. This is quick to implement in Orko but provides a less fluid user experience.  It is usually the first phase in implementing an exchange.
 
-Note that this mode has numerous limitations. You need to do some more setup to get the full experience. [Read more...](https://github.com/badgerwithagun/orko/wiki/Local-installation)
+## Help wanted
 
-## Deploy on Heroku
+At the moment this project is a labour of love for just me, I am creating new bug and enhancement issues faster than I am closing them, and I [need help](https://github.com/gruelbox/orko/issues/111)!
 
-Okta is preconfigured and optimised to run securely on [Heroku](https://www.heroku.com/). The Hobby account is cheap at \$7/pm per server if running constantly. To instantly deploy your own instance of the application, just click the button below.
+The **back-end server** is written in Java and is based on [XChange](https://github.com/knowm/XChange) and [xstream-stream](https://github.com/bitrich-info/xchange-stream), to which the project is a significant contributor. Please consider helping these great projects - it has a knock-on effect on Orko.
 
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/badgerwithagun/orko)
+The **front-end UI** (mobile and desktop) is written in Javascript and is based on React+Redux.
 
-If that doesn't work, or you don't trust it, you can [install the application manually](https://github.com/badgerwithagun/orko/wiki/Manual-installation-on-Heroku).
+## Everything else
 
-## Donations
-
-Orko was created and is maintained free of charge for you to use. If it helps you, please consider a donation to fund the project.
-
-| Ticker | Name     | Address                                                          |
-| ------ | -------- | ---------------------------------------------------------------- |
-| BTC    | Bitcoin  | bc1qvuhym7rux57ctx2z4fsyg4lzz3gyj0l3mwge9r (SEGWIT ONLY)         |
-| ETH    | Ethereum | TBC                                                              |
-| NANO   | Nano     | xrb_3ix1cmsbpsgjbxq3bx9xt1x7ezhe8u9pqtkq5bnpmbjtw5nymf5ph5duxfpg |
+See [the wiki](https://github.com/gruelbox/orko/wiki)!

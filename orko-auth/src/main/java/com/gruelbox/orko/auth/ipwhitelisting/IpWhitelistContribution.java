@@ -15,28 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.auth.ipwhitelisting;
 
-/*-
- * ===============================================================================L
- * Orko Auth
- * ================================================================================
- * Copyright (C) 2018 - 2019 Graham Crockford
- * ================================================================================
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * ===============================================================================E
- */
 
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
 import static org.alfasoftware.morf.metadata.SchemaUtils.index;
@@ -51,7 +32,7 @@ import org.alfasoftware.morf.upgrade.UpgradeStep;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.db.EntityContribution;
+import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 
 @Singleton
 class IpWhitelistContribution implements TableContribution, EntityContribution {
@@ -61,8 +42,8 @@ class IpWhitelistContribution implements TableContribution, EntityContribution {
     return ImmutableList.of(
       table(IpWhitelist.TABLE_NAME)
         .columns(
-          column(IpWhitelist.IP, DataType.STRING, 45).primaryKey(),
-          column(IpWhitelist.EXPIRES, DataType.BIG_INTEGER)
+          column(IpWhitelist.IP_FIELD, DataType.STRING, 45).primaryKey(),
+          column(IpWhitelist.EXPIRES_FIELD, DataType.BIG_INTEGER)
         )
         .indexes(
           index(IpWhitelist.TABLE_NAME + "_1").columns("expires")

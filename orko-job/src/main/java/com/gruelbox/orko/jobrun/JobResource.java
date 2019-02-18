@@ -15,32 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.jobrun;
 
-/*-
- * ===============================================================================L
- * Orko Job
- * ================================================================================
- * Copyright (C) 2018 - 2019 Graham Crockford
- * ================================================================================
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * ===============================================================================E
- */
 
 import java.util.Collection;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -59,12 +39,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.JobAccess.JobDoesNotExistException;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
-import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.hibernate.UnitOfWork;
 
 /**
@@ -88,8 +66,7 @@ public class JobResource implements WebResource {
   @GET
   @Timed
   @UnitOfWork(readOnly = true)
-  @RolesAllowed(Roles.TRADER)
-  public Collection<Job> list() throws AuthenticationException {
+  public Collection<Job> list() {
     return ImmutableList.copyOf(jobAccess.list());
   }
 
@@ -97,8 +74,7 @@ public class JobResource implements WebResource {
   @Timed
   @Path("/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
-  public Response put(@PathParam("id") String id, Job job) throws AuthenticationException {
+  public Response put(@PathParam("id") String id, Job job) {
     if (StringUtils.isEmpty(job.id()) || !job.id().equals(id))
       return Response.status(400)
           .entity(ImmutableMap.of("error", "id not set or query and body do not match"))
@@ -110,17 +86,14 @@ public class JobResource implements WebResource {
   @POST
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
-  public Job post(Job job) throws AuthenticationException {
-    Job created = jobSubmitter.submitNewUnchecked(job);
-    return created;
+  public Job post(Job job) {
+    return jobSubmitter.submitNewUnchecked(job);
   }
 
   @DELETE
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
-  public void deleteAllJobs() throws AuthenticationException {
+  public void deleteAllJobs() {
     jobAccess.deleteAll();
   }
 
@@ -128,7 +101,6 @@ public class JobResource implements WebResource {
   @Path("{id}")
   @Timed
   @UnitOfWork(readOnly = true)
-  @RolesAllowed(Roles.TRADER)
   public Response fetchJob(@PathParam("id") String id) {
     try {
       return Response.ok().entity(jobAccess.load(id)).build();
@@ -141,7 +113,6 @@ public class JobResource implements WebResource {
   @Path("{id}")
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public void deleteJob(@PathParam("id") String id) {
     jobAccess.delete(id);
   }

@@ -10,7 +10,7 @@
 **/.checkstyle
 **/.fbExcludeFilterFile
 **/dependency-reduced-pom.xml
-
+/release.properties
 /my-config.yml
 /orko-worker/my-config.yml
 /orko-web/my-config.yml

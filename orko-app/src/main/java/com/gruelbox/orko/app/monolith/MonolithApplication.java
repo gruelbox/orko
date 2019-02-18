@@ -15,14 +15,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.app.monolith;
 
 import com.google.inject.Module;
+import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.WebHostApplication;
+
+import io.dropwizard.setup.Bootstrap;
 
 public class MonolithApplication extends WebHostApplication {
 
-  public static void main(final String[] args) throws Exception {
+  public static void main(final String... args) throws Exception {
     new MonolithApplication().run(args);
   }
 
@@ -34,5 +38,13 @@ public class MonolithApplication extends WebHostApplication {
   @Override
   protected Module createApplicationModule() {
     return new MonolithModule();
+  }
+
+  @Override
+  protected void addDefaultCommands(Bootstrap<OrkoConfiguration> bootstrap) {
+    super.addDefaultCommands(bootstrap);
+    bootstrap.addCommand(new OtpCommand());
+    bootstrap.addCommand(new HashCommand());
+    bootstrap.addCommand(new SaltCommand());
   }
 }

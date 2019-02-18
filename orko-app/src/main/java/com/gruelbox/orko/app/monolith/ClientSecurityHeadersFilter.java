@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.app.monolith;
 
 import static com.google.common.net.HttpHeaders.CONTENT_SECURITY_POLICY;
@@ -23,6 +24,7 @@ import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
 import static com.google.common.net.HttpHeaders.X_XSS_PROTECTION;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -31,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.util.URIUtil;
 
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.net.HttpHeaders;
 import com.google.inject.Inject;
@@ -52,7 +53,7 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
   @Inject
   ClientSecurityHeadersFilter(Provider<HttpServletRequest> httpServletRequest, Provider<AuthConfiguration> authConfiguration) {
     this.contentSecurityPolicy = Suppliers.memoize(() -> {
-      final StringBuffer wssUri = new StringBuffer(128);
+      final StringBuilder wssUri = new StringBuilder(128);
       URIUtil.appendSchemeHostPort(wssUri,
           authConfiguration.get().isHttpsOnly() ? "wss" : "ws",
           httpServletRequest.get().getServerName(),
@@ -76,10 +77,8 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
     response.setHeader(CONTENT_SECURITY_POLICY, contentSecurityPolicy.get());
     response.setHeader(X_CONTENT_TYPE_OPTIONS, "nosniff");
     String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
-    if (userAgent != null) {
-      if (userAgent.contains(IE10) || userAgent.contains(IE11)) {
-        response.setHeader(X_CONTENT_SECURITY_POLICY, contentSecurityPolicy.get());
-      }
+    if (userAgent != null && (userAgent.contains(IE10) || userAgent.contains(IE11))) {
+      response.setHeader(X_CONTENT_SECURITY_POLICY, contentSecurityPolicy.get());
     }
     chain.doFilter(request, response);
   }

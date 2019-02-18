@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -44,14 +45,14 @@ class ExchangeAccessHealthCheck extends HealthCheck {
   protected Result check() throws Exception {
     ResultBuilder result = Result.builder().healthy();
 
-    exchangeResource.list().stream().filter(ex -> !Exchanges.GDAX_SANDBOX.equals(ex)).forEach(exchange -> {
+    exchangeResource.list().stream().filter(ex -> !Exchanges.GDAX_SANDBOX.equals(ex.getCode())).forEach(exchange -> {
       try {
-        Pair pair = Iterables.getFirst(exchangeResource.pairs(exchange), null);
+        Pair pair = Iterables.getFirst(exchangeResource.pairs(exchange.getCode()), null);
         if (pair == null) {
-          result.withDetail(exchange, "No pairs");
+          result.withDetail(exchange.getCode(), "No pairs");
           result.unhealthy();
         } else {
-          Ticker ticker = exchangeResource.ticker(exchange, pair.counter, pair.base);
+          Ticker ticker = exchangeResource.ticker(exchange.getCode(), pair.counter, pair.base);
           if (ticker.getLast() == null) {
             result.withDetail(exchange + "/" + pair.counter + "/" + pair.base, "Nothing returned");
             result.unhealthy();
@@ -60,7 +61,7 @@ class ExchangeAccessHealthCheck extends HealthCheck {
           }
         }
       } catch (Exception e) {
-        result.withDetail(exchange, "Exception: " + e.getMessage());
+        result.withDetail(exchange.getCode(), "Exception: " + e.getMessage());
         result.unhealthy(e);
       }
     });

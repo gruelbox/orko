@@ -18,6 +18,8 @@
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 
+const MAX_PUBLIC_TRADES = 48
+
 const initialState = Immutable({
   balance: undefined,
   ticker: undefined,
@@ -46,51 +48,113 @@ export default function reduce(state = initialState, action = {}) {
     case types.ADD_TRADE:
       return Immutable.merge(state, {
         trades: state.trades
-          ? Immutable([action.payload].concat(state.trades.slice(0, 48)))
-          : Immutable([action.payload])
-      })
-    case types.ADD_USER_TRADE:
-      if (
-        !!action.payload.id &&
-        state.userTradeHistory.some(t => t.id === action.payload.id)
-      )
-        return state
-      return Immutable.merge(state, {
-        userTradeHistory: state.userTradeHistory
           ? Immutable(
-              [action.payload].concat(state.userTradeHistory.slice(0, 48))
+              [action.payload].concat(state.trades.slice(0, MAX_PUBLIC_TRADES))
             )
           : Immutable([action.payload])
       })
+    case types.ADD_USER_TRADE:
+      return addUserTrade(state, action.payload)
     case types.CLEAR_BALANCES:
       return Immutable.merge(state, {
         balance: null
-      })
-    case types.SET_ORDERS:
-      return Immutable.merge(state, {
-        orders: action.payload
       })
     case types.SET_ORDERBOOK:
       return Immutable.merge(state, {
         orderBook: action.payload
       })
-    case types.SET_USER_TRADES:
+    case types.CLEAR_USER_TRADES:
       return Immutable.merge(state, {
-        userTradeHistory: action.payload
+        userTradeHistory: undefined
       })
-    case types.CANCEL_ORDER:
-      const index = state.orders.findIndex(o => o.id === action.payload)
-      if (index === -1) return state
-      const orders = Immutable.asMutable(state.orders, { deep: true })
-      orders[index].status = "CANCELED"
+    case types.ORDER_UPDATED:
+      return orderUpdated(state, action.payload.order, action.payload.timestamp)
+    case types.CLEAR_ORDERS:
       return Immutable.merge(state, {
-        orders
-      })
-    case types.ADD_ORDER:
-      return Immutable.merge(state, {
-        orders: state.orders.concat(action.payload)
+        orders: undefined
       })
     default:
       return state
+  }
+
+  function addUserTrade(state, trade) {
+    if (!state.userTradeHistory) {
+      return Immutable.merge(state, {
+        userTradeHistory: Immutable([trade])
+      })
+    }
+    if (!!trade.id && state.userTradeHistory.some(t => t.id === trade.id))
+      return state
+    return Immutable.merge(state, {
+      userTradeHistory: Immutable([trade].concat(state.userTradeHistory))
+    })
+  }
+
+  function orderUpdated(state, order, timestamp) {
+    if (order === null) {
+      return Immutable.merge(state, {
+        orders: []
+      })
+    }
+
+    const isRemoval =
+      order.status === "EXPIRED" ||
+      order.status === "CANCELED" ||
+      order.status === "FILLED"
+
+    // No orders at all yet
+    if (!state.orders) {
+      if (isRemoval) return state
+      return Immutable.merge(state, {
+        orders: [
+          {
+            ...order,
+            deleted: false,
+            serverTimestamp: timestamp
+          }
+        ]
+      })
+    }
+
+    // This order never seen before
+    const index = state.orders.findIndex(o => o.id === order.id)
+    if (index === -1) {
+      if (isRemoval) return state
+      return Immutable.merge(state, {
+        orders: state.orders.concat({
+          ...order,
+          deleted: false,
+          serverTimestamp: timestamp
+        })
+      })
+    }
+
+    // If we've previously registered the order as removed, then assume
+    // this update is late and stop
+    const prevVersion = state.orders[index]
+    if (prevVersion.deleted) return state
+
+    // If it's a removal, remove
+    if (isRemoval) return replaceOrderContent(index, { deleted: true })
+
+    // If the previous version is derived from a later timestamp than
+    // this update, stop
+    if (prevVersion.serverTimestamp > timestamp) return state
+
+    // Overwrite existing state with any values provided in the
+    // update
+    return replaceOrderContent(index, { ...order, serverTimestamp: timestamp })
+  }
+
+  function replaceOrderContent(index, replacement) {
+    const orders = Immutable.asMutable(state.orders, { deep: true })
+    const existing = orders[index]
+    for (const key of Object.keys(replacement)) {
+      const val = replacement[key]
+      if (val !== undefined && val !== null) {
+        existing[key] = val
+      }
+    }
+    return Immutable.merge(state, { orders })
   }
 }

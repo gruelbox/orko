@@ -18,27 +18,34 @@
 import React from "react"
 import { connect } from "react-redux"
 import TradeHistory from "../components/TradeHistory"
-import Loading from "../components/primitives/Loading"
-import { getMarketTradeHistory, getSelectedCoin } from "../selectors/coins"
+import WhileLoading from "../components/WhileLoading"
+import WithCoin from "./WithCoin"
+
+import { getMarketTradeHistory } from "../selectors/coins"
 
 class MarketTradesContainer extends React.Component {
   render() {
-    return !this.props.tradeHistory ? (
-      <Loading p={2} />
-    ) : (
-      <TradeHistory
-        coin={this.props.coin}
-        trades={this.props.tradeHistory}
-        excludeFees={true}
-      />
+    return (
+      <WithCoin padded>
+        {coin => (
+          <WhileLoading data={this.props.tradeHistory} padded>
+            {() => (
+              <TradeHistory
+                coin={coin}
+                trades={this.props.tradeHistory}
+                excludeFees={true}
+              />
+            )}
+          </WhileLoading>
+        )}
+      </WithCoin>
     )
   }
 }
 
 function mapStateToProps(state, props) {
   return {
-    tradeHistory: getMarketTradeHistory(state),
-    coin: getSelectedCoin(state)
+    tradeHistory: getMarketTradeHistory(state)
   }
 }
 

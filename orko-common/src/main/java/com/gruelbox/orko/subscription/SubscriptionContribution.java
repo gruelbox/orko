@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.subscription;
 
-import static com.gruelbox.orko.subscription.Subscription.REFERENCE_PRICE;
+import static com.gruelbox.orko.subscription.Subscription.REFERENCE_PRICE_FIELD;
 import static com.gruelbox.orko.subscription.Subscription.TABLE_NAME;
-import static com.gruelbox.orko.subscription.Subscription.TICKER;
+import static com.gruelbox.orko.subscription.Subscription.TICKER_FIELD;
 import static org.alfasoftware.morf.metadata.DataType.DECIMAL;
 import static org.alfasoftware.morf.metadata.DataType.STRING;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
@@ -33,7 +34,7 @@ import org.alfasoftware.morf.upgrade.UpgradeStep;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.db.EntityContribution;
+import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 
 @Singleton
 class SubscriptionContribution implements TableContribution, EntityContribution {
@@ -43,8 +44,8 @@ class SubscriptionContribution implements TableContribution, EntityContribution 
     return ImmutableList.of(
       table(TABLE_NAME)
         .columns(
-          column(TICKER, STRING, 32).primaryKey(),
-          column(REFERENCE_PRICE, DECIMAL, 13, 8).nullable()
+          column(TICKER_FIELD, STRING, 32).primaryKey(),
+          column(REFERENCE_PRICE_FIELD, DECIMAL, 13, 8).nullable()
         )
     );
   }

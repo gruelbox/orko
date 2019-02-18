@@ -15,12 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.knowm.xchange.bitmex.BitmexExchange;
 import org.knowm.xchange.bittrex.BittrexExchange;
-import org.knowm.xchange.cryptopia.CryptopiaExchange;
+import org.knowm.xchange.kraken.KrakenExchange;
 import org.knowm.xchange.kucoin.KucoinExchange;
 
 import info.bitrich.xchangestream.bitfinex.BitfinexStreamingExchange;
@@ -54,7 +56,17 @@ public class TestExchanges {
   }
 
   @Test
-  public void testCryptopia() {
-    Assert.assertEquals(CryptopiaExchange.class, Exchanges.friendlyNameToClass(Exchanges.CRYPTOPIA));
+  public void testBitmex() {
+    Assert.assertEquals(BitmexExchange.class, Exchanges.friendlyNameToClass(Exchanges.BITMEX));
   }
+
+  @Test
+  public void testKraken() {
+    Assert.assertEquals(KrakenExchange.class, Exchanges.friendlyNameToClass(Exchanges.KRAKEN));
+  }
+
+//  @Test
+//  public void testCryptopia() {
+//    Assert.assertEquals(CryptopiaExchange.class, Exchanges.friendlyNameToClass(Exchanges.CRYPTOPIA));
+//  }
 }

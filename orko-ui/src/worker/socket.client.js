@@ -25,11 +25,11 @@ var handleConnectionStateChange = connected => {}
 var handleNotification = message => {}
 var handleStatusUpdate = message => {}
 var handleTicker = (coin, ticker) => {}
-var handleOrders = (coin, orders) => {}
 var handleOrderBook = (coin, orderBook) => {}
 var handleTrade = (coin, trade) => {}
+var handleOrdersSnapshot = (coin, orders, timestamp) => {}
+var handleOrderUpdate = (coin, order, timestamp) => {}
 var handleUserTrade = (coin, trade) => {}
-var handleUserTradeHistory = (coin, trades) => {}
 var handleBalance = (exchange, currency, balance) => {}
 
 var subscribedCoins = []
@@ -59,10 +59,6 @@ export function onTicker(handler) {
   handleTicker = handler
 }
 
-export function onOrders(handler) {
-  handleOrders = handler
-}
-
 export function onOrderBook(handler) {
   handleOrderBook = handler
 }
@@ -71,12 +67,16 @@ export function onTrade(handler) {
   handleTrade = handler
 }
 
-export function onUserTrade(handler) {
-  handleUserTrade = handler
+export function onOrdersSnapshot(handler) {
+  handleOrdersSnapshot = handler
 }
 
-export function onUserTradeHistory(handler) {
-  handleUserTradeHistory = handler
+export function onOrderUpdate(handler) {
+  handleOrderUpdate = handler
+}
+
+export function onUserTrade(handler) {
+  handleUserTrade = handler
 }
 
 export function onBalance(handler) {
@@ -100,10 +100,25 @@ export function connect() {
     handleConnectionStateChange(false)
   }
   socket.onmessage = evt => {
+    var content
     try {
-      receive(preProcess(JSON.parse(evt.data)))
+      content = JSON.parse(evt.data)
     } catch (e) {
-      console.log("Invalid message from server", evt.data)
+      console.log("Failed to parse message from server (" + e + ")", evt.data)
+      return
+    }
+    try {
+      content = preProcess(content)
+    } catch (e) {
+      console.log(
+        "Failed to pre-process message from server (" + e + ")",
+        evt.data
+      )
+    }
+    try {
+      receive(content)
+    } catch (e) {
+      console.log("Failed to handle message from server (" + e + ")", evt.data)
     }
   }
   timer = setInterval(() => send({ command: socketMessages.READY }), 3000)
@@ -148,7 +163,11 @@ export function resubscribe() {
     tickers: serverSelectedCoinTickers
   })
   send({
-    command: socketMessages.CHANGE_USER_TRADE_HISTORY,
+    command: socketMessages.CHANGE_ORDER_STATUS_CHANGE,
+    tickers: serverSelectedCoinTickers
+  })
+  send({
+    command: socketMessages.CHANGE_USER_TRADES,
     tickers: serverSelectedCoinTickers
   })
   send({
@@ -188,7 +207,11 @@ function receive(message) {
         break
 
       case socketMessages.OPEN_ORDERS:
-        handleOrders(augmentCoin(message.data.spec), message.data.openOrders)
+        handleOrdersSnapshot(
+          augmentCoin(message.data.spec),
+          message.data.openOrders.allOpenOrders,
+          message.data.timestamp
+        )
         break
 
       case socketMessages.ORDERBOOK:
@@ -199,15 +222,16 @@ function receive(message) {
         handleTrade(augmentCoin(message.data.spec), message.data.trade)
         break
 
-      case socketMessages.USER_TRADE:
-        handleUserTrade(augmentCoin(message.data.spec), message.data.trade)
+      case socketMessages.ORDER_STATUS_CHANGE:
+        handleOrderUpdate(
+          augmentCoin(message.data.spec),
+          message.data.order,
+          message.data.timestamp
+        )
         break
 
-      case socketMessages.USER_TRADE_HISTORY:
-        handleUserTradeHistory(
-          augmentCoin(message.data.spec),
-          message.data.trades
-        )
+      case socketMessages.USER_TRADE:
+        handleUserTrade(augmentCoin(message.data.spec), message.data.trade)
         break
 
       case socketMessages.BALANCE:
@@ -252,15 +276,6 @@ function preProcess(obj) {
         orderBook.bids = orderBook.bids.slice(0, 16)
       }
       return obj
-
-    case socketMessages.USER_TRADE_HISTORY:
-      obj.data.trades = obj.data.trades.sort((a, b) => b.d - a.d)
-      return obj
-
-    case socketMessages.USER_TRADE:
-      obj.data.trade.t = obj.data.trade.t === "BID" ? "ASK" : "BID"
-      return obj
-
     default:
       return obj
   }

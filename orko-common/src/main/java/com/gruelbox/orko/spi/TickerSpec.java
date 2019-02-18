@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.spi;
 
 import org.knowm.xchange.currency.CurrencyPair;
@@ -27,7 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
 
 /**
- * A generic trade request.
+ * Represents a specific coin pair on a specific exchange.
  */
 @AutoValue
 @JsonDeserialize(builder = TickerSpec.Builder.class)

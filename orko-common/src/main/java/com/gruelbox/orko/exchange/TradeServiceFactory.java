@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import org.knowm.xchange.service.trade.TradeService;
@@ -22,8 +23,9 @@ import org.knowm.xchange.service.trade.TradeService;
 import com.google.inject.ImplementedBy;
 
 @ImplementedBy(TradeServiceFactoryImpl.class)
-public interface TradeServiceFactory {
+public interface TradeServiceFactory extends ExchangeServiceFactory<TradeService> {
 
+  @Override
   public TradeService getForExchange(String exchange);
 
 }

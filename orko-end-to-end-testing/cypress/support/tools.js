@@ -41,6 +41,49 @@ export function clearJobs() {
   })
 }
 
+export function cancelOrder(tickerSpec, order) {
+  cy.secureRequest({
+    url:
+      "/api/exchanges/" +
+      tickerSpec.exchange +
+      "/markets/" +
+      tickerSpec.base +
+      "-" +
+      tickerSpec.counter +
+      "/orders/" +
+      order.id +
+      "?orderType=" +
+      order.type,
+    method: "DELETE"
+  })
+}
+
+export function listOrders(tickerSpec) {
+  return cy
+    .secureRequest({
+      url:
+        "/api/exchanges/" +
+        tickerSpec.exchange +
+        "/markets/" +
+        tickerSpec.base +
+        "-" +
+        tickerSpec.counter +
+        "/orders",
+      method: "GET"
+    })
+    .should(response => {
+      expect(response.status).to.eq(200)
+      expect(response.body).to.be.an.object
+    })
+    .its("body")
+}
+
+export function clearOrders(tickerSpec) {
+  return listOrders(tickerSpec).then(body => {
+    body.openOrders.forEach(order => cancelOrder(tickerSpec, order))
+  })
+}
+
 export function addSubscription(ticker) {
   return cy.secureRequest({
     method: "PUT",

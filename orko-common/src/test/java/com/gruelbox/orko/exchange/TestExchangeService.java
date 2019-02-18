@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import org.junit.Assert;
@@ -40,6 +41,6 @@ public class TestExchangeService {
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITFINEX));
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.KUCOIN));
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITTREX));
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.CRYPTOPIA));
+    //Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.CRYPTOPIA));
   }
 }

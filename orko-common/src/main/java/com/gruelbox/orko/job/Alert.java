@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job;
 
 import javax.annotation.Nullable;
@@ -65,7 +66,9 @@ public abstract class Alert implements Job {
 
   @Override
   public String toString() {
-    return String.format("send " + notification().level().toString().toLowerCase() + " '%s'", notification().message());
+    return String.format("send %s '%s'",
+        notification().level().toString().toLowerCase(),
+        notification().message());
   }
 
   @JsonIgnore

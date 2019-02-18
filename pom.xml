@@ -3,30 +3,30 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <url>http://github.com/badgerwithagun/orko</url>
+  <url>http://github.com/gruelbox/orko</url>
   <description>Orko is a web application which provides a unified UI and web service API to numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen, and without sharing your API keys with anyone.</description>
   <inceptionYear>2018</inceptionYear>
 
   <scm>
-    <connection>scm:git:https://github.com/badgerwithagun/orko.git</connection>
-    <developerConnection>scm:git:git@github.com:badgerwithagun/orko.git</developerConnection>
-    <url>https://github.com/badgerwithagun/orko</url>
+    <connection>scm:git:https://github.com/gruelbox/orko.git</connection>
+    <developerConnection>scm:git:git@github.com:gruelbox/orko.git</developerConnection>
+    <url>https://github.com/gruelbox/orko</url>
     <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
     <system>GitHub</system>
-    <url>https://circleci.com/gh/badgerwithagun/orko/issues</url>
+    <url>https://github.com/gruelbox/orko/issues</url>
   </issueManagement>
 
   <ciManagement>
     <system>CircleCI</system>
-    <url>https://circleci.com/gh/badgerwithagun/orko</url>
+    <url>https://circleci.com/gh/gruelbox/orko</url>
   </ciManagement>
 
   <organization>
     <name>Graham Crockford</name>
-    <url>http://github.com/badgerwithagun</url>
+    <url>http://github.com/gruelbox</url>
   </organization>
 
   <licenses>
@@ -40,7 +40,7 @@
 
   <groupId>com.gruelbox</groupId>
   <artifactId>orko-parent</artifactId>
-  <version>0.8.8-SNAPSHOT</version>
+  <version>0.11.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -62,7 +62,8 @@
         <checksumPolicy>warn</checksumPolicy>
       </releases>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
       </snapshots>
     </repository>
     <repository>
@@ -73,6 +74,7 @@
       </releases>
       <snapshots>
         <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
       </snapshots>
     </repository>
   </repositories>
@@ -95,6 +97,32 @@
       <modules>
         <module>orko-ui</module>
       </modules>
+    </profile>
+    <profile>
+      <id>ci</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <properties>
+                <property>
+                  <name>listener</name>
+                  <value>org.sonar.java.jacoco.JUnitListener</value>
+                </property>
+              </properties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.sonarsource.java</groupId>
+          <artifactId>sonar-jacoco-listeners</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
     </profile>
     <profile>
       <id>integration-test</id>
@@ -178,51 +206,30 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <skip.surefire.tests>${skipTests}</skip.surefire.tests>
 
-    <dropwizard.version>1.3.7</dropwizard.version>
+    <guice.version>4.2.2</guice.version>
+    <autovalue.version>1.6.3</autovalue.version>
+    <dropwizard.version>1.3.8</dropwizard.version>
 
-    <xchange.version>4.3.13</xchange.version>
+    <!--<xchange.groupid>org.knowm.xchange</xchange.groupid> -->
+    <xchange.groupid>com.github.badgerwithagun.XChange</xchange.groupid>
+    <xchange.version>4.3.15.orko.2</xchange.version>
 
     <!--<xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid> -->
     <xchange.stream.groupid>com.github.badgerwithagun.xchange-stream</xchange.stream.groupid>
-    <xchange.stream.version>4.3.11.orko.5</xchange.stream.version>
-
-    <streamex.version>0.6.7</streamex.version>
-    <guice.version>4.2.2</guice.version>
-    <guava.version>27.0-jre</guava.version>
-    <autovalue.version>1.6.2</autovalue.version>
-    <rabbitmq.version>5.4.3</rabbitmq.version>
-    <j00q.version>3.11.7</j00q.version>
-    <mysql.connector.version>8.0.13</mysql.connector.version>
+    <xchange.stream.version>orko-SNAPSHOT</xchange.stream.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.badgerwithagun.2</morf.version>
 
-    <reflections.version>0.9.11</reflections.version>
-    <googleauth.version>1.1.5</googleauth.version>
-    <okta-jwt-verifier-version>0.3.0</okta-jwt-verifier-version>
-    <jose4j.version>0.6.4</jose4j.version>
-    <dropwizard-websockets-version>1.3.2</dropwizard-websockets-version>
-    <urlrewritefilter.version>4.0.4</urlrewritefilter.version>
-    <dropwizard.https.redirect.version>0.0.3</dropwizard.https.redirect.version>
-    <dropwizard.guice.box.version>0.0.1</dropwizard.guice.box.version>
+    <dropwizard-guice-box-version>0.0.3</dropwizard-guice-box-version>
 
-    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
-    <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
-    <maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
-    <maven-dependency-plugin-version>3.0.2</maven-dependency-plugin-version>
-    <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
-    <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
-    <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
-    <frontend-maven-plugin-version>1.6</frontend-maven-plugin-version>
-    <license.maven.plugin.version>3.0</license.maven.plugin.version>
-    <spotbugs-maven-plugin.version>3.1.10</spotbugs-maven-plugin.version>
-    <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
-    <process.exec.maven.plugin.version>0.7</process.exec.maven.plugin.version>
-    <checkstyle.version>8.12</checkstyle.version>
-    <jacoco.version>0.8.1</jacoco.version>
-    <mockito.version>1.10.19</mockito.version>
-    <hamcrest.version>1.3</hamcrest.version>
+    <!-- Sonar -->
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+    <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+    <sonar.language>java</sonar.language>
   </properties>
 
   <dependencyManagement>
@@ -237,17 +244,22 @@
       <dependency>
         <groupId>com.gruelbox</groupId>
         <artifactId>dropwizard-https-redirect</artifactId>
-        <version>${dropwizard.https.redirect.version}</version>
+        <version>0.0.3</version>
       </dependency>
       <dependency>
         <groupId>com.gruelbox</groupId>
         <artifactId>dropwizard-guice-box</artifactId>
-        <version>${dropwizard.guice.box.version}</version>
+        <version>${dropwizard-guice-box-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.gruelbox</groupId>
+        <artifactId>dropwizard-guice-box-hibernate</artifactId>
+        <version>${dropwizard-guice-box-version}</version>
       </dependency>
       <dependency>
         <groupId>org.tuckey</groupId>
         <artifactId>urlrewritefilter</artifactId>
-        <version>${urlrewritefilter.version}</version>
+        <version>4.0.4</version>
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
@@ -257,12 +269,22 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
+        <version>27.0-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${guice.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-collections4</artifactId>
+        <version>4.3</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.6</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject.extensions</groupId>
@@ -287,26 +309,21 @@
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <version>${mockito.version}</version>
+        <artifactId>mockito-core</artifactId>
+        <version>2.24.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
-        <version>${hamcrest.version}</version>
+        <version>1.3</version>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.rabbitmq</groupId>
-        <artifactId>amqp-client</artifactId>
-        <version>${rabbitmq.version}</version>
       </dependency>
 
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>${mysql.connector.version}</version>
+        <version>8.0.15</version>
       </dependency>
       <dependency>
         <groupId>${morf.groupid}</groupId>
@@ -356,7 +373,7 @@
       <dependency>
         <groupId>org.jooq</groupId>
         <artifactId>jooq</artifactId>
-        <version>${j00q.version}</version>
+        <version>3.11.9</version>
       </dependency>
 
       <dependency>
@@ -367,72 +384,77 @@
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>${reflections.version}</version>
+        <version>0.9.11</version>
       </dependency>
       <dependency>
         <groupId>com.warrenstrange</groupId>
         <artifactId>googleauth</artifactId>
-        <version>${googleauth.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.okta.jwt</groupId>
-        <artifactId>okta-jwt-verifier</artifactId>
-        <version>${okta-jwt-verifier-version}</version>
+        <version>1.2.0</version>
       </dependency>
       <dependency>
         <groupId>org.bitbucket.b_c</groupId>
         <artifactId>jose4j</artifactId>
-        <version>${jose4j.version}</version>
+        <version>0.6.5</version>
       </dependency>
       <dependency>
         <groupId>com.liveperson</groupId>
         <artifactId>dropwizard-websockets</artifactId>
-        <version>${dropwizard-websockets-version}</version>
+        <version>1.3.2</version>
       </dependency>
 
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>io.reactivex.rxjava2</groupId>
+        <artifactId>rxjava</artifactId>
+        <version>2.2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-core</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-binance</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-kucoin</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-coinbasepro</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-cryptopia</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-bitfinex</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-bittrex</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-bitmex</artifactId>
         <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.knowm.xchange</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-okcoin</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${xchange.groupid}</groupId>
+        <artifactId>xchange-kraken</artifactId>
         <version>${xchange.version}</version>
       </dependency>
 
@@ -456,7 +478,11 @@
         <artifactId>xchange-coinbasepro</artifactId>
         <version>${xchange.stream.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.sonarsource.java</groupId>
+        <artifactId>sonar-jacoco-listeners</artifactId>
+        <version>3.8</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -465,7 +491,7 @@
       <plugins>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven.compiler.plugin.version}</version>
+          <version>3.8.0</version>
           <configuration>
             <source>${maven.compiler.source}</source>
             <target>${maven.compiler.target}</target>
@@ -474,7 +500,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>${maven.jar.plugin.version}</version>
+          <version>3.1.1</version>
           <configuration>
             <archive>
               <manifest>
@@ -484,21 +510,11 @@
           </configuration>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <version>${maven-dependency-plugin-version}</version>
-          <executions>
-            <execution>
-              <id>copy-dependencies</id>
-              <phase>package</phase>
-              <goals>
-                <goal>copy-dependencies</goal>
-              </goals>
-              <configuration>
-                <prependGroupId>true</prependGroupId>
-              </configuration>
-            </execution>
-          </executions>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.22.1</version>
+          <configuration>
+            <skipTests>${skip.surefire.tests}</skipTests>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -511,7 +527,7 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>${spotbugs-maven-plugin.version}</version>
+          <version>3.1.11</version>
           <configuration>
             <excludeFilterFile>../etc/findbugs-exclude.xml</excludeFilterFile>
           </configuration>
@@ -528,16 +544,16 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>${maven-checkstyle-plugin.version}</version>
+          <version>3.0.0</version>
           <dependencies>
             <dependency>
               <groupId>com.puppycrawl.tools</groupId>
               <artifactId>checkstyle</artifactId>
-              <version>${checkstyle.version}</version>
+              <version>8.17</version>
             </dependency>
           </dependencies>
           <configuration>
-            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <sourceDirectories>${project.build.sourceDirectory}</sourceDirectories>
             <suppressionsLocation>../etc/checkstyle-suppressions.xml</suppressionsLocation>
             <configLocation>../etc/checkstyle.xml</configLocation>
             <encoding>UTF-8</encoding>
@@ -559,7 +575,7 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>${license.maven.plugin.version}</version>
+          <version>3.0</version>
           <configuration>
             <header>etc/HEADER</header>
             <includes>
@@ -573,6 +589,35 @@
             </excludes>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>com.bazaarvoice.maven.plugins</groupId>
+          <artifactId>process-exec-maven-plugin</artifactId>
+          <version>0.8</version>
+        </plugin>
+        <plugin>
+          <groupId>com.github.eirslett</groupId>
+          <artifactId>frontend-maven-plugin</artifactId>
+          <version>1.6</version>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.8.3</version>
+          <configuration>
+            <destFile>${sonar.jacoco.reportPath}</destFile>
+            <append>true</append>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>de.jutzig</groupId>
+          <artifactId>github-release-plugin</artifactId>
+          <version>1.3.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -580,7 +625,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>${maven.enforcer.plugin.version}</version>
+        <version>1.4.1</version>
         <executions>
           <execution>
             <id>enforce-maven-version</id>

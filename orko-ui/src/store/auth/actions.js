@@ -22,6 +22,7 @@ import * as errorActions from "../error/actions"
 import * as coinActions from "../coins/actions"
 import * as scriptActions from "../scripting/actions"
 import * as supportActions from "../support/actions"
+import * as exchangesActions from "../exchanges/actions"
 
 export function checkWhiteList() {
   return async (dispatch, getState, socket) => {
@@ -59,7 +60,6 @@ export function attemptConnect() {
       dispatch(connect())
     } else {
       dispatch(notificationActions.trace("Not logged in"))
-      dispatch(fetchOktaConfig())
       dispatch({ type: types.LOGOUT, payload: {} })
     }
   }
@@ -67,16 +67,11 @@ export function attemptConnect() {
 
 function connect() {
   return async (dispatch, getState, socket) => {
-    var { config } = getState().auth
-    if (config && config.clientId) {
-      await dispatch(notificationActions.trace("Connecting using Okta"))
-    } else {
-      await dispatch(notificationActions.trace("Connecting using main auth"))
-    }
-    var coinPromise = dispatch(coinActions.fetch())
+    await dispatch(notificationActions.trace("Connecting"))
     var scriptsPromise = dispatch(scriptActions.fetch())
     var metaPromise = dispatch(supportActions.fetchMetadata())
-    await coinPromise
+    await dispatch(exchangesActions.fetchExchanges())
+    await dispatch(coinActions.fetch())
     await dispatch(coinActions.fetchReferencePrices())
     await scriptsPromise
     await metaPromise
@@ -114,22 +109,6 @@ export function clearWhitelist() {
     await dispatch({ type: types.WHITELIST_UPDATE, payload: false })
     await socket.disconnect()
     dispatch(checkWhiteList())
-  }
-}
-
-function fetchOktaConfig() {
-  return async (dispatch, getState, socket) => {
-    dispatch(notificationActions.trace("Fetching auth config"))
-    try {
-      const config = await authService.config()
-      dispatch(notificationActions.trace("Successfully fetched auth config"))
-      dispatch({ type: types.SET_OKTA_CONFIG, payload: config })
-    } catch (error) {
-      notificationActions.localError(
-        "Could not fetch authentication data: " + error.message
-      )
-      return
-    }
   }
 }
 

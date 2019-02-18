@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job;
 
 import java.util.Arrays;
@@ -25,7 +26,11 @@ import org.knowm.xchange.binance.dto.BinanceException;
 
 import jersey.repackaged.com.google.common.collect.ImmutableSet;
 
-class BinanceExceptionClassifier {
+final class BinanceExceptionClassifier {
+
+  private BinanceExceptionClassifier() {
+    // Not instantiatable
+  }
 
   private static final int DUPLICATE_ORDER = -2010;
 

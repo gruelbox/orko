@@ -15,79 +15,37 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.knowm.xchange.currency.Currency;
-import org.knowm.xchange.dto.account.AccountInfo;
-import org.knowm.xchange.dto.account.FundingRecord;
-import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.account.AccountService;
-import org.knowm.xchange.service.trade.params.TradeHistoryParams;
-import org.knowm.xchange.service.trade.params.WithdrawFundsParams;
 
 import com.google.inject.Inject;
 import com.gruelbox.orko.OrkoConfiguration;
+import com.gruelbox.orko.exchange.PaperAccountService.Factory;
 
-class AccountServiceFactoryImpl implements AccountServiceFactory {
+class AccountServiceFactoryImpl extends AbstractExchangeServiceFactory<AccountService>
+                                implements AccountServiceFactory {
 
   private final ExchangeService exchangeService;
-  private final OrkoConfiguration configuration;
-  private final AccountService dummyService;
+  private final Factory paperAccountServiceFactory;
 
   @Inject
-  AccountServiceFactoryImpl(ExchangeService exchangeService, OrkoConfiguration configuration) {
+  AccountServiceFactoryImpl(ExchangeService exchangeService,
+                            OrkoConfiguration configuration,
+                            PaperAccountService.Factory paperAccountServiceFactory) {
+    super(configuration);
     this.exchangeService = exchangeService;
-    this.configuration = configuration;
-    this.dummyService = new AccountService() {
-
-      @Override
-      public String withdrawFunds(Currency currency, BigDecimal amount, String address) throws IOException {
-        throw new NotAvailableFromExchangeException();
-      }
-
-      @Override
-      public String withdrawFunds(WithdrawFundsParams params) throws IOException {
-        throw new NotAvailableFromExchangeException();
-      }
-
-      @Override
-      public String requestDepositAddress(Currency currency, String... args) throws IOException {
-        throw new NotAvailableFromExchangeException();
-      }
-
-      @Override
-      public List<FundingRecord> getFundingHistory(TradeHistoryParams params) throws IOException {
-        throw new NotAvailableFromExchangeException();
-      }
-
-      @Override
-      public AccountInfo getAccountInfo() throws IOException {
-        throw new NotAvailableFromExchangeException();
-      }
-
-      @Override
-      public TradeHistoryParams createFundingHistoryParams() {
-        throw new NotAvailableFromExchangeException();
-      }
-    };
+    this.paperAccountServiceFactory = paperAccountServiceFactory;
   }
 
   @Override
-  public AccountService getForExchange(String exchange) {
-    Map<String, ExchangeConfiguration> exchangeConfig = configuration.getExchanges();
-    if (exchangeConfig == null) {
-      return dummyService;
-    }
-    final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(exchange);
-    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey())) {
-      return dummyService;
-    }
-    return exchangeService.get(exchange).getAccountService();
+  protected ExchangeServiceFactory<AccountService> getRealFactory() {
+    return exchange -> exchangeService.get(exchange).getAccountService();
+  }
+
+  @Override
+  protected ExchangeServiceFactory<AccountService> getPaperFactory() {
+    return paperAccountServiceFactory;
   }
 }

@@ -16,24 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import exchangesService from "../../services/exchanges"
-import * as authActions from "../auth/actions"
-import * as errorActions from "../error/actions"
-
-export function setOrders(orders) {
-  return { type: types.SET_ORDERS, payload: orders }
-}
-
-export function addOrder(order) {
-  return { type: types.ADD_ORDER, payload: order }
-}
 
 export function setOrderBook(orderBook) {
   return { type: types.SET_ORDERBOOK, payload: orderBook }
 }
 
-export function setUserTrades(trades) {
-  return { type: types.SET_USER_TRADES, payload: trades }
+export function clearUserTrades(trades) {
+  return { type: types.CLEAR_USER_TRADES }
 }
 
 export function addUserTrade(trade) {
@@ -56,18 +45,10 @@ export function clearBalances() {
   return { type: types.CLEAR_BALANCES }
 }
 
-export function cancelOrder(coin, orderId, orderType) {
-  return async (dispatch, getState) => {
-    dispatch({ type: types.CANCEL_ORDER, payload: orderId })
-    dispatch(doCancelOrder(coin, orderId, orderType))
-  }
+export function orderUpdated(order, timestamp) {
+  return { type: types.ORDER_UPDATED, payload: { order, timestamp } }
 }
 
-function doCancelOrder(coin, orderId, orderType) {
-  return authActions.wrappedRequest(
-    auth => exchangesService.cancelOrder(coin, orderId, orderType),
-    null,
-    error =>
-      errorActions.setForeground("Could not cancel order: " + error.message)
-  )
+export function clearOrders() {
+  return { type: types.CLEAR_ORDERS }
 }

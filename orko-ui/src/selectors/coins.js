@@ -25,6 +25,7 @@ const getReferencePrices = state => state.coins.referencePrices
 const getTickers = state => state.ticker.coins
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
+const getExchanges = state => state.exchanges.exchanges
 
 export const getUserTradeHistory = state => state.coin.userTradeHistory
 
@@ -50,6 +51,12 @@ export const getSelectedCoin = createSelector(
   location => locationToCoin(location)
 )
 
+export const getSelectedExchange = createSelector(
+  [getSelectedCoin, getExchanges],
+  (coin, exchanges) =>
+    !coin ? null : exchanges.find(e => e.code === coin.exchange)
+)
+
 function jobTriggerMatchesCoin(job, coin) {
   return (
     job.tickTrigger.exchange === coin.exchange &&
@@ -63,7 +70,7 @@ export const getOrdersForSelectedCoin = createSelector(
   (orders, stopJobs, selectedCoin) => {
     if (!selectedCoin) return null
 
-    var result = !orders ? [] : orders
+    var result = !orders ? [] : orders.filter(o => !o.deleted)
 
     const server = stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
@@ -103,13 +110,14 @@ export const getSelectedCoinTicker = createSelector(
 )
 
 export const getCoinsForDisplay = createSelector(
-  [getAlertJobs, getCoins, getTickers, getReferencePrices],
-  (alertJobs, coins, tickers, referencePrices) =>
+  [getAlertJobs, getCoins, getTickers, getReferencePrices, getExchanges],
+  (alertJobs, coins, tickers, referencePrices, exchanges) =>
     coins.map(coin => {
       const referencePrice = referencePrices[coin.key]
       const ticker = tickers[coin.key]
       return {
         ...coin,
+        exchangeMeta: exchanges.find(e => e.code === coin.exchange),
         ticker,
         hasAlert: !!alertJobs.find(
           job =>

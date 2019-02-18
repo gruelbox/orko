@@ -17,11 +17,7 @@
  */
 import {
   IP_WHITELISTING_SECRET,
-  IP_WHITELISTING_SECRET_INVALID,
-  LOGIN_USER,
-  LOGIN_PW,
-  LOGIN_SECRET,
-  LOGIN_SECRET_INVALID
+  IP_WHITELISTING_SECRET_INVALID
 } from "../../util/constants"
 import { tokenForSecret } from "../../util/token"
 

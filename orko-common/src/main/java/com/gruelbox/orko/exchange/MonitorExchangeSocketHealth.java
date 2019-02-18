@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
+import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static io.reactivex.schedulers.Schedulers.single;
 import static java.lang.System.currentTimeMillis;
 
 import java.util.concurrent.TimeUnit;
@@ -48,10 +49,11 @@ final class MonitorExchangeSocketHealth implements Managed {
 
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final AtomicLong lastTradeTime = new AtomicLong();
-  private volatile Disposable disposable;
-  private volatile Disposable poll;
   private final NotificationService notificationService;
+
   private ExchangeEventSubscription subscription;
+  private Disposable trades;
+  private Disposable poll;
 
   @Inject
   MonitorExchangeSocketHealth(ExchangeEventRegistry exchangeEventRegistry, NotificationService notificationService) {
@@ -63,12 +65,15 @@ final class MonitorExchangeSocketHealth implements Managed {
   public void start() throws Exception {
     lastTradeTime.set(currentTimeMillis());
     subscription = exchangeEventRegistry.subscribe(
-      MarketDataSubscription.create(TickerSpec.builder().exchange(Exchanges.BINANCE).base("BTC").counter("USDT").build(), TRADES)
+      MarketDataSubscription.create(TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), TRADES)
     );
-    disposable = subscription.getTrades().forEach(t -> lastTradeTime.set(currentTimeMillis()));
+    trades = subscription.getTrades().forEach(t -> onTrade());
     poll = Observable.interval(10, TimeUnit.MINUTES)
-        .observeOn(single())
         .subscribe(i -> runOneIteration());
+  }
+
+  private void onTrade() {
+    lastTradeTime.set(currentTimeMillis());
   }
 
   private void runOneIteration() {
@@ -82,7 +87,7 @@ final class MonitorExchangeSocketHealth implements Managed {
 
   @Override
   public void stop() throws Exception {
-    SafelyDispose.of(poll, disposable);
+    SafelyDispose.of(poll, trades);
     SafelyClose.the(subscription);
   }
 }

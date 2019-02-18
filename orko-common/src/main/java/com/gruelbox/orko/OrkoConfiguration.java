@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko;
 
 import java.util.Map;
@@ -148,7 +149,10 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
 
   @Override
   public boolean isHttpsOnly() {
-    return auth == null ? false : auth.isHttpsOnly();
+    if (auth == null) {
+      return false;
+    }
+    return auth.isHttpsOnly();
   }
 
   @Override

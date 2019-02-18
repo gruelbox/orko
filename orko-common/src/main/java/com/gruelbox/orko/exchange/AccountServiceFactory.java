@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import org.knowm.xchange.service.account.AccountService;
@@ -22,8 +23,9 @@ import org.knowm.xchange.service.account.AccountService;
 import com.google.inject.ImplementedBy;
 
 @ImplementedBy(AccountServiceFactoryImpl.class)
-public interface AccountServiceFactory {
+public interface AccountServiceFactory extends ExchangeServiceFactory<AccountService> {
 
+  @Override
   public AccountService getForExchange(String exchange);
 
 }

@@ -80,7 +80,11 @@ class Section extends React.Component {
         {context => (
           <SectionBox>
             <SectionHeadingBox
-              className="dragMe"
+              className={
+                context && context.draggable && !context.compactDragHandle
+                  ? "dragMe"
+                  : undefined
+              }
               data-orko={"section/" + this.props.id + "/tabs"}
             >
               <Heading p={0} my={0} ml={0} mr={3} color="heading">
@@ -94,6 +98,15 @@ class Section extends React.Component {
                   >
                     <Icon name="close" />
                   </Href>
+                )}
+                {context && context.draggable && context.compactDragHandle && (
+                  <Span color="deemphasis">
+                    <Icon
+                      name="arrows alternate"
+                      title="Drag to re-order panel"
+                      className="dragMe"
+                    />
+                  </Span>
                 )}
                 {context && context.draggable && !!context.onToggleAttached && (
                   <Href

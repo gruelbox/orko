@@ -22,7 +22,6 @@ import { clearXsrfToken } from "../../services/fetchUtil"
 const initialState = Immutable({
   whitelisted: false,
   loggedIn: true,
-  config: null,
   loading: true
 })
 
@@ -33,10 +32,6 @@ export default function reduce(state = initialState, action = {}) {
         whitelisted: action.payload === true,
         error: action.error ? action.payload.message : null,
         loading: false
-      })
-    case types.SET_OKTA_CONFIG:
-      return Immutable.merge(state, {
-        config: action.payload
       })
     case types.LOGIN:
       return Immutable.merge(state, {

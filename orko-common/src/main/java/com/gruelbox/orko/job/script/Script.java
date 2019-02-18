@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import java.util.ArrayList;
@@ -38,30 +39,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 class Script {
 
   static final String TABLE_NAME = "Script";
-  static final String ID = "id";
-  static final String NAME = "name";
-  static final String SCRIPT = "script";
-  static final String SCRIPT_HASH = "scriptHash";
+  static final String ID_FIELD = "id";
+  static final String NAME_FIELD = "name";
+  static final String SCRIPT_FIELD = "script";
+  static final String SCRIPT_HASH_FIELD = "scriptHash";
 
   @Id
   @JsonProperty
   @Length(min = 1, max = 45)
-  @Column(name = ID, nullable = false, updatable=false)
+  @Column(name = ID_FIELD, nullable = false, updatable=false)
   private String id;
 
   @JsonProperty
   @Length(min = 1, max = 255)
-  @Column(name = NAME, nullable = false)
+  @Column(name = NAME_FIELD, nullable = false)
   private String name;
 
   @JsonProperty
   @Length(min = 1)
-  @Column(name = SCRIPT, nullable = false)
+  @Column(name = SCRIPT_FIELD, nullable = false)
   private String script;
 
   @JsonProperty
   @Length(min = 1, max = 255)
-  @Column(name = SCRIPT_HASH, nullable = false)
+  @Column(name = SCRIPT_HASH_FIELD, nullable = false)
   private String scriptHash;
 
   // Hibernate's associations really don't handle stateless disconnected

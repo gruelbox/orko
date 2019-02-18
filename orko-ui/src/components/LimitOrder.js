@@ -48,7 +48,7 @@ const LimitOrder = props => {
           onChange={e => onChange("limitPrice", e.target.value)}
           onFocus={e => props.onFocus("limitPrice")}
         >
-          <input />
+          <input data-orko="limitPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         <Form.Input
@@ -62,7 +62,7 @@ const LimitOrder = props => {
           onChange={e => onChange("amount", e.target.value)}
           onFocus={e => props.onFocus("amount")}
         >
-          <input />
+          <input data-orko="amount" />
           <Label>{props.coin.base}</Label>
         </Form.Input>
       </Form.Group>
@@ -77,10 +77,20 @@ const LimitOrder = props => {
         />
       </Form.Group>
       <FormButtonBar>
-        <Form.Button disabled={!valid} onClick={props.onSell} color="red">
+        <Form.Button
+          disabled={!valid}
+          onClick={props.onSell}
+          color="red"
+          data-orko="sell"
+        >
           Sell
         </Form.Button>
-        <Form.Button disabled={!valid} onClick={props.onBuy} color="green">
+        <Form.Button
+          disabled={!valid}
+          onClick={props.onBuy}
+          color="green"
+          data-orko="buy"
+        >
           Buy
         </Form.Button>
       </FormButtonBar>

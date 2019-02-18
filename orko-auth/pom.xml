@@ -9,22 +9,22 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.8.8-SNAPSHOT</version>
+    <version>0.11.4-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <name>Orko Auth</name>
 
   <dependencies>
-  
+
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-base</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
+
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-db-testsupport</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -36,8 +36,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.okta.jwt</groupId>
-      <artifactId>okta-jwt-verifier</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
       <groupId>org.bitbucket.b_c</groupId>
@@ -47,10 +47,10 @@
       <groupId>com.warrenstrange</groupId>
       <artifactId>googleauth</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
+      <artifactId>mockito-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -75,7 +75,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-plugin-version}</version>
         <configuration>
           <useSystemClassLoader>false</useSystemClassLoader>
         </configuration>
@@ -94,7 +93,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven.jar.plugin.version}</version>
         <configuration>
           <archive>
             <manifest>

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.job.script.Script.TABLE_NAME;
@@ -26,7 +27,6 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
@@ -63,7 +63,7 @@ class ScriptAccess {
       script.setScriptHash(UNSIGNED);
     }
     script.parameters().forEach(p -> p.setParent(script));
-    LOGGER.debug("Saving script: " + script);
+    LOGGER.debug("Saving script: {}", script);
 
     List<String> parameterNames = script.parameters().stream().map(ScriptParameter::name).collect(toList());
     if (parameterNames.isEmpty()) {
@@ -95,16 +95,16 @@ class ScriptAccess {
         script.parameters().add(p);
       }
     });
-    if (LOGGER.isDebugEnabled()) LOGGER.debug("Loaded scripts: " + scripts.values());
+    if (LOGGER.isDebugEnabled()) LOGGER.debug("Loaded scripts: {}", scripts.values());
     return scripts.values();
   }
 
-  private boolean scriptValid(@Nullable Script s) {
+  private boolean scriptValid(Script s) {
     if (StringUtils.isEmpty(config.getScriptSigningKey()))
       return true;
     boolean valid = hasher.hashWithString(s.script(), config.getScriptSigningKey()).equals(s.scriptHash());
     if (!valid)
-      LOGGER.warn("Ignoring script [{}] since script hash mismatches. Possible DB intrusion?");
+      LOGGER.warn("Ignoring script [{}] since script hash mismatches. Possible DB intrusion?", s.id());
     return valid;
   }
 

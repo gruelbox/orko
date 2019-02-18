@@ -43,3 +43,7 @@ export function replaceInArray(arr, replacement, find) {
   if (!found) result.push(replacement)
   return result
 }
+
+export function isFunction(x) {
+  return Object.prototype.toString.call(x) === "[object Function]"
+}

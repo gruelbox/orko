@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.job.LimitOrderJob.Direction.BUY;
@@ -66,14 +67,19 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import jdk.nashorn.internal.runtime.ParserException;
 
 /**
  * Processor for {@link ScriptJob}.
  *
+ * TODO move to Rhino or GraalVM.
+ *
  * @author Graham Crockford
  */
+@SuppressWarnings("restriction")
 class ScriptJobProcessor implements ScriptJob.Processor {
+
+  private static final String PERMANENTLY_FAILED = "' permanently failed: ";
+  private static final String SCRIPT_JOB_PREFIX = "Script job '";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptJobProcessor.class);
 
@@ -113,25 +119,25 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public Status start() {
     String hash = hasher.hashWithString(job.script(), configuration.getScriptSigningKey());
     if (!hash.equals(job.scriptHash())) {
-      notifyAndLogError("Script job '" + job.name() + "' has invalid hash. Failed permanently");
+      notifyAndLogError(SCRIPT_JOB_PREFIX + job.name() + "' has invalid hash. Failed permanently");
       return Status.FAILURE_PERMANENT;
     }
     try {
       initialiseEngine();
     } catch (Exception e) {
-      notificationService.error("Script job '" + job.name() + "' permanently failed: " + e.getMessage(), e);
-      LOGGER.error("Failed script:\n" + job.script());
+      notificationService.error(SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
+      LOGGER.error("Failed script:\n{}", job.script());
       return Status.FAILURE_PERMANENT;
     }
     try {
       Invocable invocable = (Invocable) engine;
       return (Status) invocable.invokeFunction("start");
     } catch (NoSuchMethodException e) {
-      notificationService.error("Script job '" + job.name() + "' permanently failed: " + e.getMessage(), e);
-      LOGGER.error("Failed script:\n" + job.script());
+      notificationService.error(SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
+      LOGGER.error("Failed script:\n{}", job.script());
       return Status.FAILURE_PERMANENT;
     } catch (Exception e) {
-      notifyAndLogError("Script job '" + job.name() + "' failed and will retry: " + e.getMessage(), e);
+      notifyAndLogError(SCRIPT_JOB_PREFIX + job.name() + "' failed and will retry: " + e.getMessage(), e);
       throw new RuntimeException(e.getMessage(), e);
     }
   }
@@ -156,8 +162,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
   }
 
-  private void initialiseEngine() throws ScriptException, ParserException {
-    engine = new NashornScriptEngineFactory().getScriptEngine(new String[] { "--no-java" });
+  private void initialiseEngine() throws ScriptException {
+    engine = new NashornScriptEngineFactory().getScriptEngine("--no-java");
     createBindings();
     engine.eval(job.script());
   }
@@ -178,27 +184,12 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     bindings.put("console", new Console());
     bindings.put("trading", new Trading());
     bindings.put("state", new State());
-
-    bindings.put("decimal", new Function<String, BigDecimal>() {
-      @Override
-      public BigDecimal apply(String value) {
-        return new BigDecimal(value);
-      }
-    });
-
-    bindings.put("setInterval", new BiFunction<JSObject, Integer, Disposable>() {
-      @Override
-      public Disposable apply(JSObject callback, Integer timeout) {
-        return events.setInterval(callback, timeout);
-      }
-    });
-
-    bindings.put("clearInterval", new Consumer<Disposable>() {
-      @Override
-      public void accept(Disposable disposable) {
-        events.clear(disposable);
-      }
-    });
+    bindings.put("decimal", (Function<String, BigDecimal>) value ->
+      new BigDecimal(value));
+    bindings.put("setInterval", (BiFunction<JSObject, Integer, Disposable>) (callback, timeout) ->
+      events.setInterval(callback, timeout));
+    bindings.put("clearInterval", (Consumer<Disposable>) disposable ->
+      events.clear(disposable));
 
     engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
   }
@@ -241,15 +232,19 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public final class Control {
 
     public void fail() {
+      done = true;
       throw new PermanentFailureException();
     }
 
     public void restart() {
+      done = true;
       throw new TransientFailureException();
     }
 
     public void done() {
+      done = true;
       jobControl.finish(SUCCESS);
+      throw new ExitException();
     }
 
     @Override
@@ -264,23 +259,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     private final AtomicBoolean failing = new AtomicBoolean(false);
 
     public Disposable setTick(JSObject callback, JSObject tickerSpec) {
-
       return onTick(
-        event -> {
-          synchronized(ScriptJobProcessor.this) {
-            if (done)
-              return;
-            try {
-              transactionally.run(() -> callback.call(null, event));
-              successfulPoll();
-            } catch (PermanentFailureException e) {
-              notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
-              jobControl.finish(FAILURE_PERMANENT);
-            } catch (Exception e) {
-              failingPoll(e);
-            }
-          }
-        },
+        event -> processEvent(() -> callback.call(null, event)),
         convertTickerSpec(tickerSpec),
         callback.toString()
       );
@@ -288,21 +268,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     public Disposable setInterval(JSObject callback, Integer timeout) {
       return onInterval(
-        () -> {
-          synchronized(ScriptJobProcessor.this) {
-            if (done)
-              return;
-            try {
-              transactionally.run(() -> callback.call(null));
-              successfulPoll();
-            } catch (PermanentFailureException e) {
-              notifyAndLogError("Script job '" + job.name() + "' failed permanently: " + e.getMessage(), e);
-              jobControl.finish(FAILURE_PERMANENT);
-            } catch (Exception e) {
-              failingPoll(e);
-            }
-          }
-        },
+        () -> processEvent(() -> callback.call(null)),
         timeout,
         callback.toString()
       );
@@ -310,15 +276,35 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     private void successfulPoll() {
       if (failing.compareAndSet(true, false)) {
-        notificationService.alert("Script job '" + job.name() + "' working again");
+        notificationService.alert(SCRIPT_JOB_PREFIX + job.name() + "' working again");
       }
     }
 
     private void failingPoll(Exception e) {
       if (failing.compareAndSet(false, true)) {
-        notifyAndLogError("Script job '" + job.name() + "' failing: " + e.getMessage(), e);
+        notifyAndLogError(SCRIPT_JOB_PREFIX + job.name() + "' failing: " + e.getMessage(), e);
       } else {
-        LOGGER.error("Script job '" + job.name() + "' failed again: " + e.getMessage());
+        LOGGER.error("Script job '{}' failed again: {}", job.name(), e.getMessage());
+      }
+    }
+
+    private synchronized void processEvent(Runnable runnable) {
+      if (done)
+        return;
+      try {
+        transactionally.run(() -> {
+          try {
+            runnable.run();
+          } catch (ExitException e) {
+            // Fine. We're done
+          }
+        });
+        successfulPoll();
+      } catch (PermanentFailureException e) {
+        notifyAndLogError(SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
+        jobControl.finish(FAILURE_PERMANENT);
+      } catch (Exception e) {
+        failingPoll(e);
       }
     }
 
@@ -387,8 +373,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     public void limitOrder(JSObject request) {
       TickerSpec spec = convertTickerSpec((JSObject) request.getMember("market"));
       Direction direction = (Direction) request.getMember("direction");
-      BigDecimal price =  (BigDecimal) request.getMember("price");
-      BigDecimal amount =  (BigDecimal) request.getMember("amount");
+      BigDecimal price =  new BigDecimal(request.getMember("price").toString());
+      BigDecimal amount =  new BigDecimal(request.getMember("amount").toString());
       LOGGER.info("Script job '{}' Submitting limit order: {} {} {} on {} at {}",
           job.name(), direction, amount, spec.base(), spec, price);
       jobSubmitter.submitNewUnchecked(
@@ -488,5 +474,15 @@ class ScriptJobProcessor implements ScriptJob.Processor {
           .implement(ScriptJob.Processor.class, ScriptJobProcessor.class)
           .build(ScriptJob.Processor.ProcessorFactory.class));
     }
+  }
+
+  /**
+   * Slightly filthy. Exception which forces execution to
+   * exit after calling control.done(). Otherwise it's too easy for
+   * a scriptwriter to cause an endless loop by not realising that
+   * control.done() doesn't cause exit.
+   */
+  private static final class ExitException extends RuntimeException {
+    private static final long serialVersionUID = 7680880935814943979L;
   }
 }

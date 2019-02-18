@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import static org.alfasoftware.morf.metadata.DataType.BOOLEAN;
@@ -30,7 +31,7 @@ import org.alfasoftware.morf.upgrade.TableContribution;
 import org.alfasoftware.morf.upgrade.UpgradeStep;
 
 import com.google.common.collect.ImmutableList;
-import com.gruelbox.orko.db.EntityContribution;
+import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 
 class ScriptContribution implements EntityContribution, TableContribution {
 
@@ -44,18 +45,18 @@ class ScriptContribution implements EntityContribution, TableContribution {
     return ImmutableList.of(
       table(Script.TABLE_NAME)
         .columns(
-          column(Script.ID, STRING, 45).primaryKey(),
-          column(Script.NAME, STRING, 255),
-          column(Script.SCRIPT, CLOB),
-          column(Script.SCRIPT_HASH, STRING, 255)
+          column(Script.ID_FIELD, STRING, 45).primaryKey(),
+          column(Script.NAME_FIELD, STRING, 255),
+          column(Script.SCRIPT_FIELD, CLOB),
+          column(Script.SCRIPT_HASH_FIELD, STRING, 255)
         ),
       table(ScriptParameter.TABLE_NAME)
         .columns(
-          column(ScriptParameter.SCRIPT_ID, STRING, 45).primaryKey(),
-          column(ScriptParameter.NAME, STRING, 255).primaryKey(),
-          column(ScriptParameter.DESCRIPTION, STRING, 255),
-          column(ScriptParameter.DEFAULT_VALUE, STRING, 255).nullable(),
-          column(ScriptParameter.MANDATORY, BOOLEAN)
+          column(ScriptParameter.SCRIPT_ID_FIELD, STRING, 45).primaryKey(),
+          column(ScriptParameter.NAME_FIELD, STRING, 255).primaryKey(),
+          column(ScriptParameter.DESCRIPTION_FIELD, STRING, 255),
+          column(ScriptParameter.DEFAULT_VALUE_FIELD, STRING, 255).nullable(),
+          column(ScriptParameter.MANDATORY_FIELD, BOOLEAN)
         )
     );
   }

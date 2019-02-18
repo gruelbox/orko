@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const SET_OKTA_CONFIG = "auth.SET_OKTA_CONFIG"
 export const INVALIDATE_LOGIN = "auth.INVALIDATE_LOGIN"
 export const LOGIN = "auth.LOGIN"
 export const LOGOUT = "auth.LOGOUT"

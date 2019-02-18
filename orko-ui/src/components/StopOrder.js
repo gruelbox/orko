@@ -37,7 +37,6 @@ const StopOrder = props => {
 
   return (
     <Form data-orko="stopOrder" as={RawForm}>
-      <p>Not supported fully yet. Coming soon.</p>
       <Form.Group>
         <Form.Input
           id="stopPrice"
@@ -50,21 +49,26 @@ const StopOrder = props => {
           onChange={e => onChange("stopPrice", e.target.value)}
           onFocus={e => props.onFocus("stopPrice")}
         >
-          <input />
+          <input data-orko="stopPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         <Form.Input
           id="limitPrice"
           error={!!props.order.limitPrice && !props.limitPriceValid}
-          disabled={true}
+          disabled={!props.allowLimit}
+          required={!props.allowMarket}
           label="Limit price"
           labelPosition="right"
-          placeholder="Not supported by exchange"
+          placeholder={
+            props.allowLimit
+              ? "Enter limit price..."
+              : "Not supported for exchange"
+          }
           value={props.order.limitPrice ? props.order.limitPrice : ""}
           onChange={e => onChange("limitPrice", e.target.value)}
           onFocus={e => props.onFocus("limitPrice")}
         >
-          <input />
+          <input data-orko="limitPrice" />
           <Label>{props.coin.counter}</Label>
         </Form.Input>
         <Form.Input
@@ -78,17 +82,18 @@ const StopOrder = props => {
           onChange={e => onChange("amount", e.target.value)}
           onFocus={e => props.onFocus("amount")}
         >
-          <input />
+          <input data-orko="amount" />
           <Label>{props.coin.base}</Label>
         </Form.Input>
       </Form.Group>
       <Form.Checkbox
         title="If enabled and supported, runs the stop on the exchange itself. This will usually incur less slippage, but locks the balance, and is not supported on all exchanges."
         id="onExchange"
+        data-orko="onExchange"
         label="Place on exchange"
         checked={props.order.useExchange}
         onChange={e => onChange("useExchange", e.target.checked)}
-        disabled={true}
+        disabled={!props.allowServerSide}
       />
       <Form.Group style={{ flex: "1" }}>
         <Form.Checkbox
@@ -103,19 +108,29 @@ const StopOrder = props => {
       <FormButtonBar>
         <Form.Button
           title="Submit sell stop order"
-          disabled={true || !valid}
+          disabled={!valid || !props.onSell}
           onClick={props.onSell}
+          data-orko="sell"
           color="red"
         >
-          Submit sell stop
+          {!!props.onSell
+            ? props.order.useExchange
+              ? "Sell stop"
+              : "Soft sell stop"
+            : "Sell stop not supported"}
         </Form.Button>
         <Form.Button
           title="Submit buy stop order"
-          disabled={true || !valid}
+          disabled={!valid || !props.onBuy}
           onClick={props.onBuy}
+          data-orko="buy"
           color="green"
         >
-          Submit buy stop
+          {!!props.onBuy
+            ? props.order.useExchange
+              ? "Buy stop"
+              : "Soft buy stop"
+            : "Buy stop not supported"}
         </Form.Button>
       </FormButtonBar>
     </Form>

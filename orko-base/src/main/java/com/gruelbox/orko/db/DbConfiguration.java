@@ -15,28 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.db;
 
-/*-
- * ===============================================================================L
- * Orko Base
- * ================================================================================
- * Copyright (C) 2018 - 2019 Graham Crockford
- * ================================================================================
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * ===============================================================================E
- */
 
 import java.sql.Driver;
 
@@ -45,8 +26,13 @@ import javax.validation.constraints.NotNull;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.alfasoftware.morf.jdbc.DatabaseType;
+import org.hibernate.cfg.AvailableSettings;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.util.Duration;
+import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 public class DbConfiguration {
 
@@ -71,10 +57,6 @@ public class DbConfiguration {
    */
   @JsonProperty
   private String startPositionFile;
-
-  public String getConnectionString() {
-    return connectionString;
-  }
 
   public void setConnectionString(String connectionString) {
     this.connectionString = connectionString;
@@ -111,5 +93,22 @@ public class DbConfiguration {
 
   public String getStartPositionFile() {
     return startPositionFile;
+  }
+
+  public DataSourceFactory toDataSourceFactory() {
+    DataSourceFactory dsf = new DataSourceFactory();
+    dsf.setDriverClass(getDriverClassName());
+    dsf.setUrl(getJdbcUrl());
+    dsf.setProperties(ImmutableMap.of(
+        "charset", "UTF-8",
+        "hibernate.dialect", com.gruelbox.orko.db.DialectResolver.hibernateDialect(toConnectionResources().getDatabaseType()),
+        AvailableSettings.LOG_SESSION_METRICS, "false"
+    ));
+    dsf.setMaxWaitForConnection(Duration.seconds(1));
+    dsf.setValidationQuery("/* Health Check */ SELECT 1");
+    dsf.setMinSize(1);
+    dsf.setMaxSize(4); // 10 is the max on Heroku
+    dsf.setCheckConnectionWhileIdle(false);
+    return dsf;
   }
 }

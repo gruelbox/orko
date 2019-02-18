@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko;
 
 import com.google.inject.AbstractModule;
@@ -28,7 +29,6 @@ import com.gruelbox.orko.jobrun.JobRunModule;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.marketdata.MarketDataModule;
 import com.gruelbox.orko.notification.NotificationModule;
-import com.gruelbox.orko.signal.SignalModule;
 import com.gruelbox.orko.strategy.StrategyModule;
 import com.gruelbox.orko.subscription.SubscriptionModule;
 import com.gruelbox.orko.support.SupportModule;
@@ -41,9 +41,8 @@ class CommonModule extends AbstractModule {
   protected void configure() {
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
       .addBinding()
-      .toInstance(environment -> {
-        environment.jersey().register(new JerseyMappingErrorLoggingExceptionHandler());
-      });
+      .toInstance(environment -> environment.jersey()
+          .register(new JerseyMappingErrorLoggingExceptionHandler()));
     install(new WiringModule());
     install(new DbModule());
     install(new JobRunModule());
@@ -52,7 +51,6 @@ class CommonModule extends AbstractModule {
     install(new SubscriptionModule());
     install(new JobsModule());
     install(new NotificationModule());
-    install(new SignalModule());
     install(new StrategyModule());
     install(new SupportModule());
   }

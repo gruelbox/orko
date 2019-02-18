@@ -15,5 +15,5 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const SET_EXCHANGES = 'exchanges.SET_EXCHANGES';
-export const SET_PAIRS = 'exchanges.SET_PAIRS';
+export const SET_EXCHANGES = "exchanges.SET_EXCHANGES"
+export const SET_PAIRS = "exchanges.SET_PAIRS"

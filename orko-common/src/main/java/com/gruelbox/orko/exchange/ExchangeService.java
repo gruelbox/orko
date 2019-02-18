@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.exchange;
 
 import java.util.Collection;
@@ -36,9 +37,11 @@ public interface ExchangeService {
 
   Ticker fetchTicker(TickerSpec ex);
 
+  boolean isAuthenticated(String name);
+
   CurrencyPairMetaData fetchCurrencyPairMetaData(TickerSpec ex);
 
-  long safePollDelay(String name);
+  RateController rateController(String name);
 
   boolean exchangeSupportsPair(String exchange, CurrencyPair currencyPair);
 

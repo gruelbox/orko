@@ -7,7 +7,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.8.8-SNAPSHOT</version>
+    <version>0.11.4-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -15,11 +15,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.gruelbox</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>orko-app</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+
+  <properties>
+    <cypress.command>run</cypress.command>
+  </properties>
 
   <build>
     <pluginManagement>
@@ -45,7 +49,6 @@
       <plugin>
         <groupId>com.bazaarvoice.maven.plugins</groupId>
         <artifactId>process-exec-maven-plugin</artifactId>
-        <version>${process.exec.maven.plugin.version}</version>
         <executions>
           <execution>
             <id>application</id>
@@ -56,14 +59,12 @@
             <configuration>
               <name>orko</name>
               <workingDir>../../orko-app</workingDir>
-              <waitForInterrupt>false</waitForInterrupt>
               <healthcheckUrl>http://localhost:8080/</healthcheckUrl>
               <arguments>
                 <argument>java</argument>
                 <argument>-Dmorf.mysql.noadmin=true</argument>
-                <argument>-cp</argument>
-                <argument>target/classes:target/dependency/*</argument>
-                <argument>com.gruelbox.orko.app.monolith.MonolithApplication</argument>
+                <argument>-jar</argument>
+                <argument>target/orko-app.jar</argument>
                 <argument>server</argument>
                 <argument>integration-test-config.yml</argument>
               </arguments>
@@ -83,7 +84,6 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>${frontend-maven-plugin-version}</version>
         <executions>
           <execution>
             <id>install node and npm</id>
@@ -123,7 +123,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run cypress:run</arguments>
+              <arguments>run cypress:${cypress.command}</arguments>
             </configuration>
           </execution>
         </executions>

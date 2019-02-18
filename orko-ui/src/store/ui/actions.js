@@ -18,6 +18,10 @@
 import * as types from "./actionTypes"
 import Immutable from "seamless-immutable"
 
+export function acceptPaperTrading() {
+  return { type: types.ACCEPT_PAPER_TRADING }
+}
+
 export function openAlerts(coin) {
   return { type: types.OPEN_ALERTS, payload: coin }
 }
@@ -40,6 +44,10 @@ export function togglePanelVisible(key) {
 
 export function togglePanelAttached(key) {
   return { type: types.TOGGLE_PANEL_ATTACHED, payload: key }
+}
+
+export function interactPanel(key) {
+  return { type: types.INTERACT_PANEL, payload: key }
 }
 
 export function resetPanels() {

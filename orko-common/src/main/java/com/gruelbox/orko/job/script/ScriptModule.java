@@ -15,13 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
 import org.alfasoftware.morf.upgrade.TableContribution;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.db.EntityContribution;
+import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 public class ScriptModule extends AbstractModule {

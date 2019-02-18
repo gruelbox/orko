@@ -15,33 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.auth.jwt;
 
-/*-
- * ===============================================================================L
- * Orko Auth
- * ================================================================================
- * Copyright (C) 2018 - 2019 Graham Crockford
- * ================================================================================
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * ===============================================================================E
- */
+
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 
 public class JwtConfiguration {
@@ -63,7 +45,7 @@ public class JwtConfiguration {
 
   public byte[] getSecretBytes() {
     Preconditions.checkNotNull(secret);
-    return secret.getBytes(Charsets.UTF_8);
+    return secret.getBytes(StandardCharsets.UTF_8);
   }
 
   public String getUserName() {

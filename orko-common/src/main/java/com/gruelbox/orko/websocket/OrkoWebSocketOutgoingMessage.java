@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.websocket;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -45,9 +46,9 @@ abstract class OrkoWebSocketOutgoingMessage {
     ORDERBOOK,
     USER_TRADE,
     TRADE,
-    USER_TRADE_HISTORY,
     BALANCE,
     NOTIFICATION,
-    STATUS_UPDATE
+    STATUS_UPDATE,
+    ORDER_STATUS_CHANGE
   }
 }

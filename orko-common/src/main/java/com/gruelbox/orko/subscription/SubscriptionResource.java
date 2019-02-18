@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.subscription;
 
 import java.math.BigDecimal;
@@ -22,7 +23,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -36,7 +36,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.collect.Maps;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
@@ -65,7 +64,6 @@ public class SubscriptionResource implements WebResource {
   @GET
   @Timed
   @UnitOfWork(readOnly = true)
-  @RolesAllowed(Roles.TRADER)
   public Collection<TickerSpec> list() {
     return subscriptionAccess.all();
   }
@@ -73,7 +71,6 @@ public class SubscriptionResource implements WebResource {
   @PUT
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public void put(TickerSpec spec) {
     subscriptionManager.add(spec);
   }
@@ -82,18 +79,15 @@ public class SubscriptionResource implements WebResource {
   @Timed
   @UnitOfWork(readOnly = true)
   @Path("referencePrices")
-  @RolesAllowed(Roles.TRADER)
   public Map<String, BigDecimal> listReferencePrices() {
     Map<String, Entry<TickerSpec, BigDecimal>> rekeyed = Maps.uniqueIndex(subscriptionAccess.getReferencePrices().entrySet(), e -> e.getKey().key());
-    Map<String, BigDecimal> result = Maps.transformValues(rekeyed, e -> e.getValue());
-    return result;
+    return Maps.transformValues(rekeyed, Entry<TickerSpec, BigDecimal>::getValue);
   }
 
   @PUT
   @Timed
   @UnitOfWork
   @Path("referencePrices/{exchange}/{base}-{counter}")
-  @RolesAllowed(Roles.TRADER)
   public void setReferencePrice(@PathParam("exchange") String exchange,
                                 @PathParam("counter") String counter,
                                 @PathParam("base") String base,
@@ -104,7 +98,6 @@ public class SubscriptionResource implements WebResource {
   @DELETE
   @Timed
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
   public void delete(TickerSpec spec) {
     subscriptionManager.remove(spec);
   }

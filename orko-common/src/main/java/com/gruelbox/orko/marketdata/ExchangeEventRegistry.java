@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.marketdata;
 
 import java.util.Set;
@@ -33,14 +34,14 @@ public interface ExchangeEventRegistry {
 
   public interface ExchangeEventSubscription extends AutoCloseable {
     Flowable<TickerEvent> getTickers();
-    Flowable<OpenOrdersEvent> getOpenOrders();
+    Flowable<OpenOrdersEvent> getOrderSnapshots();
     Flowable<OrderBookEvent> getOrderBooks();
     Flowable<TradeEvent> getTrades();
-    Flowable<TradeHistoryEvent> getUserTradeHistory();
-    Flowable<BalanceEvent> getBalance();
+    Flowable<OrderChangeEvent> getOrderChanges();
+    Flowable<UserTradeEvent> getUserTrades();
+    Flowable<BalanceEvent> getBalances();
 
     Iterable<Flowable<TickerEvent>> getTickersSplit();
-    Iterable<Flowable<TradeHistoryEvent>> getUserTradeHistorySplit();
 
     public ExchangeEventSubscription replace(Set<MarketDataSubscription> targetSubscriptions);
 

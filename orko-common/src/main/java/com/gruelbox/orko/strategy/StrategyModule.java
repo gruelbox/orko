@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.strategy;
 
 import com.google.inject.AbstractModule;
@@ -26,6 +27,5 @@ public class StrategyModule extends AbstractModule {
   @Override
   protected void configure() {
     Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(UserTradeNotifier.class);
-    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(BinanceExecutionReportLogger.class);
   }
 }

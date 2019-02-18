@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job;
 
 import static org.mockito.Mockito.verify;
@@ -80,7 +81,6 @@ public class TestLimitOrderJobProcessor {
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenAnswer(args -> newTradeId());
   }
 
-  /* -------------------------------------------------------------------------------------- */
 
   @Test
   public void testSell() throws Exception {
@@ -285,7 +285,7 @@ public class TestLimitOrderJobProcessor {
     processor.stop();
 
     verifyLimitBuy();
-    verifySentError();
+    verifySentTransientError();
     Assert.assertEquals(Status.FAILURE_TRANSIENT, result);
     verifyDidNothingElse();
   }
@@ -330,6 +330,10 @@ public class TestLimitOrderJobProcessor {
 
   private void verifySentError() {
     verify(notificationService).error(Mockito.anyString(), Mockito.any(RuntimeException.class));
+  }
+
+  private void verifySentTransientError() {
+    verify(notificationService).error(Mockito.anyString(), Mockito.any(BinanceExceptionClassifier.RetriableBinanceException.class));
   }
 
   private void verifySentMessage() {

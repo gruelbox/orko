@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
@@ -75,12 +76,13 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   private final JobSubmitter jobSubmitter;
   private final JobControl jobControl;
   private final ExchangeEventRegistry exchangeEventRegistry;
-  private volatile boolean done;
-
-  private volatile SoftTrailingStop job;
-  private volatile ExchangeEventSubscription subscription;
-  private volatile Disposable disposable;
   private final Transactionally transactionally;
+
+  private volatile boolean done;
+  private volatile SoftTrailingStop job;
+
+  private ExchangeEventSubscription subscription;
+  private Disposable disposable;
 
 
   @Inject

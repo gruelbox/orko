@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.gruelbox.orko.job.script;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
@@ -33,14 +33,13 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.JobResource;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
-import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.hibernate.UnitOfWork;
 
 /**
@@ -69,8 +68,7 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scripts/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
-  public Response putScript(@PathParam("id") String id, Script script) throws AuthenticationException {
+  public Response putScript(@PathParam("id") String id, Script script) {
     if (!id.equals(script.id()))
       return Response.status(400).entity(ImmutableMap.of("error", "id doesn't match endpoint")).build();
     scriptAccess.saveOrUpdate(script);
@@ -81,8 +79,7 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scripts/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
-  public void deleteScript(@PathParam("id") String id) throws AuthenticationException {
+  public void deleteScript(@PathParam("id") String id) {
     scriptAccess.delete(id);
   }
 
@@ -90,8 +87,7 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scripts")
   @UnitOfWork(readOnly = true)
-  @RolesAllowed(Roles.TRADER)
-  public Iterable<Script> listScripts() throws AuthenticationException {
+  public Iterable<Script> listScripts() {
     return scriptAccess.list();
   }
 
@@ -99,8 +95,7 @@ public class ScriptResource implements WebResource {
   @Timed
   @Path("/scriptjobs/{id}")
   @UnitOfWork
-  @RolesAllowed(Roles.TRADER)
-  public Response putJob(@PathParam("id") String id, ScriptJobPrototype job) throws AuthenticationException {
+  public Response putJob(@PathParam("id") String id, ScriptJobPrototype job) {
     return jobResource.put(id, ScriptJob.builder()
         .id(job.id)
         .name(job.name)
@@ -111,9 +106,39 @@ public class ScriptResource implements WebResource {
         .build());
   }
 
+  /**
+   * A partially defined script sent by the client.
+   *
+   * @author Graham Crockford
+   */
   public static final class ScriptJobPrototype {
-    public String id;
-    public String name;
-    public String script;
+
+    @JsonProperty private String id;
+    @JsonProperty private String name;
+    @JsonProperty private String script;
+
+    public String getId() {
+      return id;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    public String getScript() {
+      return script;
+    }
+
+    public void setScript(String script) {
+      this.script = script;
+    }
   }
 }
