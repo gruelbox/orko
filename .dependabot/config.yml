@@ -3,12 +3,12 @@ version: 1
 update_configs:
   - package_manager: "java:maven"
     directory: "/"
-    update_schedule: "live"
+    update_schedule: "daily"
 
   - package_manager: "javascript"
     directory: "/orko-ui"
-    update_schedule: "live"
+    update_schedule: "daily"
 
   - package_manager: "javascript"
     directory: "/orko-end-to-end-testing"
-    update_schedule: "live"
+    update_schedule: "daily"
