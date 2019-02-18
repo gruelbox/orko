@@ -18,9 +18,6 @@ jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
   connectionRequestTimeout: 5000ms
-exchanges:
-  kucoin: 
-    sandbox: true
 server:
   type: simple
   rootPath: /api/

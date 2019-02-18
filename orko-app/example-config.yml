@@ -26,17 +26,29 @@ exchanges:
   binance:
     apiKey: 
     secretKey:
-    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
+    loadRemoteData: true
   kucoin:
     apiKey: 
     secretKey: 
     passphrase: 
-    sandbox: true # TODO switch to live after Kucoin 2.0 goes live
-    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
+    sandbox: false
+    loadRemoteData: true
   bitfinex:
     apiKey: 
     secretKey:
-    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
+    loadRemoteData: true
+  bitmex:
+    apiKey: 
+    secretKey: 
+    loadRemoteData: true
+  kraken:
+    apiKey: 
+    secretKey: 
+    loadRemoteData: true
+  bittrex:
+    apiKey: 
+    secretKey: 
+    loadRemoteData: 
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms

@@ -34,7 +34,7 @@ exchanges:
     apiKey: ${KUCOIN_API_KEY:-}
     secretKey: ${KUCOIN_SECRET:-}
     passphrase: ${KUCOIN_PASSPHRASE:-}
-    sandbox: ${KUCOIN_SANDBOX:-true}
+    sandbox: ${KUCOIN_SANDBOX:-false}
     loadRemoteData: ${KUCOIN_REMOTE_META:-true}
   bitfinex:
     apiKey: ${BITFINEX_API_KEY:-}
