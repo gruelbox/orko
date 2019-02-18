@@ -77,7 +77,7 @@ export function submitStopOrder(exchange, order) {
   )
 }
 
-export function cancelOrder(coin, orderId, orderType) {
+export function cancelOrder(coin, orderId) {
   return async (dispatch, getState) => {
     dispatch(
       coinActions.orderUpdated(
@@ -91,7 +91,7 @@ export function cancelOrder(coin, orderId, orderType) {
     )
     dispatch(
       authActions.wrappedRequest(
-        () => exchangesService.cancelOrder(coin, orderId, orderType),
+        () => exchangesService.cancelOrder(coin, orderId),
         null,
         error =>
           errorActions.setForeground("Could not cancel order: " + error.message)

@@ -17,26 +17,26 @@ database:
 #   botToken: YOU
 #   chatId: REALLYWANTTHIS
 exchanges:
-  gdax-sandbox:
-    apiKey: 
-    secretKey: 
-    passphrase: 
   gdax:
     apiKey: 
     secretKey: 
     passphrase: 
+    sandbox: false # default
+    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
   binance:
     apiKey: 
     secretKey:
+    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
   kucoin:
     apiKey: 
     secretKey: 
-  cryptopia:
-    apiKey: 
-    secretKey: 
+    passphrase: 
+    sandbox: true # TODO switch to live after Kucoin 2.0 goes live
+    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
   bitfinex:
     apiKey: 
-    secretKey: 
+    secretKey:
+    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms

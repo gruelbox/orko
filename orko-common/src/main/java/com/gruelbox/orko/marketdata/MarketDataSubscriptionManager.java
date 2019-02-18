@@ -806,7 +806,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
 
       // TODO GDAX PR required
-      if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+      if (subscription.spec().exchange().equals(Exchanges.GDAX)) {
         ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
         ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
         fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
@@ -883,7 +883,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       TradeHistoryParams params;
 
       // TODO fix with pull requests
-      if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+      if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX)) {
         params = new TradeHistoryParamCurrencyPair() {
 
           private CurrencyPair pair;
