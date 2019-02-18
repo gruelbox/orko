@@ -102,7 +102,7 @@ class ExchangesService {
     )
   }
 
-  async cancelOrder(coin, id, orderType) {
+  async cancelOrder(coin, id) {
     return await del(
       "exchanges/" +
         coin.exchange +
@@ -111,9 +111,7 @@ class ExchangesService {
         "-" +
         coin.counter +
         "/orders/" +
-        id +
-        "?orderType=" +
-        orderType
+        id
     )
   }
 }

@@ -41,7 +41,6 @@ public final class Exchanges {
 
   public static final String BINANCE = "binance";
   public static final String GDAX = "gdax";
-  public static final String GDAX_SANDBOX = "gdax-sandbox";
   public static final String KUCOIN = "kucoin";
   public static final String BITTREX = "bittrex";
   public static final String BITFINEX = "bitfinex";
@@ -70,7 +69,7 @@ public final class Exchanges {
    */
   public static Class<? extends Exchange> friendlyNameToClass(String friendlyName) {
 
-    if (friendlyName.equals(GDAX) || friendlyName.equals(GDAX_SANDBOX))
+    if (friendlyName.equals(GDAX))
       return CoinbaseProStreamingExchange.class;
 
     Optional<Class<? extends StreamingExchange>> streamingResult = STREAMING_EXCHANGE_TYPES.get()
@@ -100,8 +99,6 @@ public final class Exchanges {
     switch(exchange) {
       case GDAX:
         return "Coinbase Pro";
-      case GDAX_SANDBOX:
-        return "Coinbase Pro (Sandbox)";
       case BITMEX:
       case BITTREX:
       case KRAKEN:
@@ -125,7 +122,6 @@ public final class Exchanges {
       case BINANCE : return "https://www.binance.com/?ref=11396297";
       case BITMEX : return "https://www.bitmex.com/register/vQIGWT";
       case GDAX : return "https://pro.coinbase.com";
-      case GDAX_SANDBOX  : return "https://public.sandbox.pro.coinbase.com/";
       case KUCOIN : return "https://www.kucoin.com/#/?r=E649ku";
       case BITTREX : return "https://bittrex.com/";
       case BITFINEX : return "https://www.bitfinex.com/";

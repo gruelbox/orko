@@ -40,12 +40,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.binance.service.BinanceCancelOrderParams;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
@@ -55,7 +55,6 @@ import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.StopOrder;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
-import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.CancelOrderParams;
 import org.knowm.xchange.service.trade.params.DefaultCancelOrderParamId;
@@ -461,15 +460,14 @@ public class ExchangeResource implements WebResource {
   public Response cancelOrder(@PathParam("exchange") String exchange,
                               @PathParam("counter") String counter,
                               @PathParam("base") String base,
-                              @PathParam("id") String id,
-                              @QueryParam("orderType") org.knowm.xchange.dto.Order.OrderType orderType) throws IOException {
+                              @PathParam("id") String id) throws IOException {
     try {
-      // KucoinCancelOrderParams is the superset - pair, id and order type. Should work with pretty much any exchange,
+      // BinanceCancelOrderParams is the superset - pair and id. Should work with pretty much any exchange,
       // except Bitmex
       // TODO PR to fix bitmex
       CancelOrderParams cancelOrderParams = exchange.equals(Exchanges.BITMEX)
           ? new DefaultCancelOrderParamId(id)
-          : new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType);
+          : new BinanceCancelOrderParams(new CurrencyPair(base, counter), id);
       Date now = new Date();
       if (!tradeServiceFactory.getForExchange(exchange).cancelOrder(cancelOrderParams)) {
         throw new IllegalStateException("Order could not be cancelled");

@@ -70,6 +70,7 @@ import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
+import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.service.account.AccountService;
@@ -114,7 +115,6 @@ import com.gruelbox.orko.util.SafelyDispose;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
-import info.bitrich.xchangestream.service.exception.NotConnectedException;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
@@ -603,7 +603,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       subscriptions.stream().filter(s -> !s.type().equals(BALANCE)).forEach(sub -> {
         try {
           disposables.add(connectSubscription(sub));
-        } catch (NotConnectedException | NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
+        } catch (ExchangeSecurityException | NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
           remainder.add(sub);
           connected.remove(sub);
         }
@@ -622,7 +622,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
                 .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
             )
           );
-      } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException | NotConnectedException e) {
+      } catch (ExchangeSecurityException | NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
         subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
           .forEach(s -> {
@@ -806,7 +806,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
 
       // TODO GDAX PR required
-      if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+      if (subscription.spec().exchange().equals(Exchanges.GDAX)) {
         ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
         ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
         fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
@@ -883,7 +883,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       TradeHistoryParams params;
 
       // TODO fix with pull requests
-      if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+      if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX)) {
         params = new TradeHistoryParamCurrencyPair() {
 
           private CurrencyPair pair;

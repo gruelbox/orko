@@ -22,7 +22,6 @@ import java.util.Collection;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 
 import com.google.inject.ImplementedBy;
@@ -34,8 +33,6 @@ public interface ExchangeService {
   Collection<String> getExchanges();
 
   Exchange get(String name);
-
-  Ticker fetchTicker(TickerSpec ex);
 
   boolean isAuthenticated(String name);
 

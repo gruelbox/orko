@@ -26,8 +26,8 @@ import * as jobActions from "../store/job/actions"
 import { getOrdersForSelectedCoin } from "../selectors/coins"
 
 class OpenOrdersContainer extends React.Component {
-  onCancelExchange = (id, orderType, coin) => {
-    this.props.dispatch(exchangeActions.cancelOrder(coin, id, orderType))
+  onCancelExchange = (id, coin) => {
+    this.props.dispatch(exchangeActions.cancelOrder(coin, id))
   }
 
   onCancelServer = jobId => {
@@ -43,9 +43,7 @@ class OpenOrdersContainer extends React.Component {
               {() => (
                 <OpenOrders
                   orders={this.props.orders}
-                  onCancelExchange={(id, orderType) =>
-                    this.onCancelExchange(id, orderType, coin)
-                  }
+                  onCancelExchange={id => this.onCancelExchange(id, coin)}
                   onCancelServer={this.onCancelServer}
                   onWatch={this.onWatch}
                   coin={coin}

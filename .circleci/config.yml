@@ -5,7 +5,7 @@ notify:
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: circleci/openjdk:8-jdk-browsers@sha256:40ae64c13a503125a452cb5ffb5c01d14742c01d3676d77aa276fc6b956168be
         environment:
           MAVEN_OPTS: -Xmx3200m
     working_directory: ~/orko
