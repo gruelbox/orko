@@ -19,7 +19,6 @@
 package com.gruelbox.orko.exchange;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.knowm.xchange.bitmex.BitmexExchange;
 import org.knowm.xchange.bittrex.BittrexExchange;
@@ -47,7 +46,6 @@ public class TestExchanges {
   }
 
   @Test
-  @Ignore // TODO add this back
   public void testKucoin() {
     Assert.assertEquals(KucoinExchange.class, Exchanges.friendlyNameToClass(Exchanges.KUCOIN));
   }

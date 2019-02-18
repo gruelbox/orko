@@ -20,6 +20,7 @@ package com.gruelbox.orko.exchange;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.gruelbox.orko.OrkoConfiguration;
@@ -34,13 +35,43 @@ public class TestExchangeService {
   }
 
   @Test
-  public void testExchanges() {
+  public void testGdax() {
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.GDAX));
+  }
+
+  @Test
+  public void testGdaxSandbox() {
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.GDAX_SANDBOX));
+  }
+
+  @Test
+  public void testBinance() {
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BINANCE));
+  }
+
+  @Test
+  public void testBitfinex() {
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITFINEX));
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.KUCOIN));
+  }
+
+  @Test
+  public void testBittrex() {
     Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITTREX));
-    //Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.CRYPTOPIA));
+  }
+
+  @Test
+  public void testBitmex() {
+    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITMEX));
+  }
+
+  @Test
+  public void testKraken() {
+    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.KRAKEN));
+  }
+
+  @Test
+  @Ignore // TODO add this back when 2.0 is working
+  public void testKucoin() {
+    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.KUCOIN));
   }
 }
