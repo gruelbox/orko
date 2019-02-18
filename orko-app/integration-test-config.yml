@@ -14,6 +14,27 @@ auth:
     expirationMinutes: 1440
 database:
   connectionString: h2:mem:test;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000
+exchanges:
+  gdax-sandbox:
+    apiKey:
+    secretKey:
+    passphrase:
+  gdax:
+    apiKey:
+    secretKey:
+    passphrase:
+  binance:
+    apiKey:
+    secretKey:
+  kucoin:
+    apiKey:
+    secretKey:
+  cryptopia:
+    apiKey:
+    secretKey:
+  bitfinex:
+    apiKey:
+    secretKey:
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
