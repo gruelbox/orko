@@ -54,8 +54,9 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
 
     String fullPath = request.getContextPath() + request.getServletPath() + request.getPathInfo();
 
-    // Slightly ugly. We want to let the DB dump API through our XSRF controls
-    // since this is normally user-initiated.
+    // TODO Slightly ugly. We want to let the DB dump API through our XSRF controls
+    // since this is normally user-initiated. This should really be modular on
+    // a plugin basis
     if (fullPath.equals("/api/db.zip")) {
       return true;
     }
@@ -66,13 +67,13 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
           try {
             return claims.getClaimValue("xsrf", String.class);
           } catch (MalformedClaimException e) {
-            LOGGER.warn(fullPath + ": malformed XSRF claim");
+            LOGGER.warn("{}: malformed XSRF claim", fullPath);
             return null;
           }
         });
 
     if (!claim.isPresent()) {
-      LOGGER.warn(fullPath + ": failed cross-site scripting check (no claim)");
+      LOGGER.warn("{}: failed cross-site scripting check (no claim)", fullPath);
       response.sendError(401);
       return false;
     }
@@ -80,13 +81,13 @@ class JwtXsrfProtectionFilter extends AbstractHttpSecurityServletFilter {
     String xsrf = request.getHeader(Headers.X_XSRF_TOKEN);
 
     if (xsrf == null) {
-      LOGGER.warn(fullPath + ": failed cross-site scripting check (no xsrf header)");
+      LOGGER.warn("{}: failed cross-site scripting check (no xsrf header)", fullPath);
       response.sendError(401);
       return false;
     }
 
     if (!claim.get().equals(xsrf)) {
-      LOGGER.warn(fullPath + ": failed cross-site scripting check (mismatch)");
+      LOGGER.warn("{}: failed cross-site scripting check (mismatch)", fullPath);
       response.sendError(401);
       return false;
     }

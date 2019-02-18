@@ -84,11 +84,11 @@ class IpWhitelistingService {
       return true;
     String ip = requestUtils.get().sourceIp();
     if (!googleAuthenticator.authorize(configuration.getIpWhitelisting().getSecretKey(), token)) {
-      LOGGER.error("Whitelist attempt failed from: " + ip);
+      LOGGER.error("Whitelist attempt failed from: {}", ip);
       return false;
     }
     ipWhitelistAccess.get().add(ip);
-    LOGGER.info("Whitelisted ip: " + ip);
+    LOGGER.info("Whitelisted ip: {}", ip);
     return true;
   }
 

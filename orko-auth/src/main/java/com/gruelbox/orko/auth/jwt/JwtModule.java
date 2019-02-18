@@ -87,7 +87,7 @@ public class JwtModule extends AbstractModule {
     try {
       return Optional.of(jwtConsumer.process(accessToken.get()));
     } catch (InvalidJwtException e) {
-      LOGGER.warn("Invalid JWT (" + e.getMessage() + ")");
+      LOGGER.warn("Invalid JWT ({})", e.getMessage());
       return Optional.empty();
     }
   }

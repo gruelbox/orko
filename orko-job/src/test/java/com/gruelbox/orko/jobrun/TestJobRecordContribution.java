@@ -19,7 +19,7 @@
 package com.gruelbox.orko.jobrun;
 
 
-import static com.gruelbox.orko.jobrun.JobRecord.PROCESSED;
+import static com.gruelbox.orko.jobrun.JobRecord.PROCESSED_FIELD;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
 import static org.alfasoftware.morf.metadata.SchemaUtils.index;
 import static org.alfasoftware.morf.metadata.SchemaUtils.schema;
@@ -43,7 +43,7 @@ public class TestJobRecordContribution extends AbstractTableContributionTest {
         column("processed", DataType.BOOLEAN)
       )
       .indexes(
-        index("Job_1").columns(PROCESSED)
+        index("Job_1").columns(PROCESSED_FIELD)
       )
     );
   }

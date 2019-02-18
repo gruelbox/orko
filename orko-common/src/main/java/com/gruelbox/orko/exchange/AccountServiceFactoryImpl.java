@@ -18,38 +18,34 @@
 
 package com.gruelbox.orko.exchange;
 
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.service.account.AccountService;
 
 import com.google.inject.Inject;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.PaperAccountService.Factory;
 
-class AccountServiceFactoryImpl implements AccountServiceFactory {
+class AccountServiceFactoryImpl extends AbstractExchangeServiceFactory<AccountService>
+                                implements AccountServiceFactory {
 
   private final ExchangeService exchangeService;
-  private final OrkoConfiguration configuration;
   private final Factory paperAccountServiceFactory;
 
   @Inject
-  AccountServiceFactoryImpl(ExchangeService exchangeService, OrkoConfiguration configuration, PaperAccountService.Factory paperAccountServiceFactory) {
+  AccountServiceFactoryImpl(ExchangeService exchangeService,
+                            OrkoConfiguration configuration,
+                            PaperAccountService.Factory paperAccountServiceFactory) {
+    super(configuration);
     this.exchangeService = exchangeService;
-    this.configuration = configuration;
     this.paperAccountServiceFactory = paperAccountServiceFactory;
   }
 
   @Override
-  public AccountService getForExchange(String exchange) {
-    Map<String, ExchangeConfiguration> exchangeConfig = configuration.getExchanges();
-    if (exchangeConfig == null) {
-      return paperAccountServiceFactory.getForExchange(exchange);
-    }
-    final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(exchange);
-    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey())) {
-      return paperAccountServiceFactory.getForExchange(exchange);
-    }
-    return exchangeService.get(exchange).getAccountService();
+  protected ExchangeServiceFactory<AccountService> getRealFactory() {
+    return exchange -> exchangeService.get(exchange).getAccountService();
+  }
+
+  @Override
+  protected ExchangeServiceFactory<AccountService> getPaperFactory() {
+    return paperAccountServiceFactory;
   }
 }

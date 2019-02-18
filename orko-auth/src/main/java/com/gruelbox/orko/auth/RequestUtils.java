@@ -19,35 +19,36 @@
 package com.gruelbox.orko.auth;
 
 
+import java.util.function.Supplier;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
 @RequestScoped
 public class RequestUtils {
-  
-  private HttpServletRequest request;
-  private AuthConfiguration authConfiguration;
-  private Supplier<String> sourceIp;
+
+  private final HttpServletRequest request;
+  private final AuthConfiguration authConfiguration;
+  private final Supplier<String> sourceIp;
 
   @Inject
   @VisibleForTesting
   public RequestUtils(HttpServletRequest request, AuthConfiguration authConfiguration) {
     this.request = request;
     this.authConfiguration = authConfiguration;
-    this.sourceIp = Suppliers.memoize(() -> readSourceIp());
+    this.sourceIp = Suppliers.memoize(this::readSourceIp);
   }
-  
+
   public String sourceIp() {
     return sourceIp.get();
   }
-  
+
   private String readSourceIp() {
     if (authConfiguration.isProxied()) {
       String header = request.getHeader(Headers.X_FORWARDED_FOR);

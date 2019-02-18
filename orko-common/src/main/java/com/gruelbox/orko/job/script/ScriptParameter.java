@@ -38,11 +38,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 class ScriptParameter {
 
   static final String TABLE_NAME = "ScriptParameter";
-  static final String SCRIPT_ID = "scriptId";
-  static final String NAME = "name";
-  static final String DESCRIPTION = "description";
-  static final String DEFAULT_VALUE = "defaultValue";
-  static final String MANDATORY = "mandatory";
+  static final String SCRIPT_ID_FIELD = "scriptId";
+  static final String NAME_FIELD = "name";
+  static final String DESCRIPTION_FIELD = "description";
+  static final String DEFAULT_VALUE_FIELD = "defaultValue";
+  static final String MANDATORY_FIELD = "mandatory";
 
   @Embeddable
   public static class Id implements Serializable {
@@ -50,11 +50,11 @@ class ScriptParameter {
     private static final long serialVersionUID = -1103388707546786957L;
 
     @Length(min = 1, max = 45)
-    @Column(name = SCRIPT_ID, nullable = false, updatable = false, insertable = true)
+    @Column(name = SCRIPT_ID_FIELD, nullable = false, updatable = false, insertable = true)
     private String scriptId;
 
     @Length(min = 1, max = 255)
-    @Column(name = NAME, nullable = false, updatable = false, insertable = true)
+    @Column(name = NAME_FIELD, nullable = false, updatable = false, insertable = true)
     private String name;
 
     public Id() {}
@@ -107,22 +107,17 @@ class ScriptParameter {
 
   @JsonProperty
   @Length(min = 1, max = 255)
-  @Column(name = DESCRIPTION, nullable = false)
+  @Column(name = DESCRIPTION_FIELD, nullable = false)
   private String description;
 
   @JsonProperty(value = "default")
   @Length(max = 255)
-  @Column(name = DEFAULT_VALUE, nullable = true)
+  @Column(name = DEFAULT_VALUE_FIELD, nullable = true)
   private String defaultValue;
 
   @JsonProperty
-  @Column(name = MANDATORY, nullable = false)
+  @Column(name = MANDATORY_FIELD, nullable = false)
   private boolean mandatory;
-
-  // Handling associations outside Hibernate for now.
-//  @ManyToOne(optional = false, fetch = FetchType.LAZY)
-//  @JoinColumn(name = SCRIPT_ID, insertable = false, updatable = false)
-//  private Script parent;
 
   @JsonProperty
   public String scriptId() {
@@ -170,7 +165,6 @@ class ScriptParameter {
 
   void setParent(Script script) {
     this.id.scriptId = script.id();
-//    this.parent = script;
   }
 
   @Override

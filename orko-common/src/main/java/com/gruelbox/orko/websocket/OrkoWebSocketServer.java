@@ -26,12 +26,10 @@ import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.security.RolesAllowed;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -55,7 +53,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.gruelbox.orko.auth.Roles;
 import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
@@ -77,7 +74,6 @@ import io.reactivex.disposables.Disposable;
 @Timed
 @ExceptionMetered
 @ServerEndpoint(WebSocketModule.ENTRY_POINT)
-@RolesAllowed(Roles.TRADER)
 public final class OrkoWebSocketServer {
 
   private static final int READY_TIMEOUT = 5000;
@@ -91,13 +87,12 @@ public final class OrkoWebSocketServer {
   private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
 
   private Session session;
-
-  private volatile Disposable disposable;
-  private volatile ExchangeEventSubscription subscription;
+  private Disposable disposable;
+  private ExchangeEventSubscription subscription;
 
 
   @OnOpen
-  public synchronized void myOnOpen(final javax.websocket.Session session) throws IOException, InterruptedException {
+  public synchronized void myOnOpen(final javax.websocket.Session session) {
     LOGGER.info("Opening socket");
     markReady();
     injectMembers(session);
@@ -139,7 +134,7 @@ public final class OrkoWebSocketServer {
           mutateSubscriptions(ORDER, request.tickers());
           break;
         case UPDATE_SUBSCRIPTIONS:
-          updateSubscriptions(session);
+          updateSubscriptions();
           break;
         default:
           // Jackson should stop this happening in the try block above, but just for completeness
@@ -174,7 +169,7 @@ public final class OrkoWebSocketServer {
 
   @OnClose
   public synchronized void myOnClose(final javax.websocket.Session session, CloseReason cr) {
-    LOGGER.info("Closing socket ({})", cr.toString());
+    LOGGER.info("Closing socket ({})", cr);
     SafelyDispose.of(disposable);
     disposable = null;
     marketDataSubscriptions.set(ImmutableSet.of());
@@ -202,7 +197,7 @@ public final class OrkoWebSocketServer {
     return request;
   }
 
-  private synchronized void updateSubscriptions(Session session) {
+  private synchronized void updateSubscriptions() {
     SafelyDispose.of(disposable);
     if (subscription == null) {
       subscription = exchangeEventRegistry.subscribe(marketDataSubscriptions.get());
@@ -226,14 +221,14 @@ public final class OrkoWebSocketServer {
       // Trades, balances and order status changes are unthrottled - the assumption is that you need the lot
       private final Disposable trades = subscription.getTrades()
           .filter(o -> isReady())
-          .map(e -> serialise(e))
+          .map(OrkoWebSocketServer.this::serialiseTradeEvent)
           .subscribe(e -> send(e, Nature.TRADE));
       private final Disposable orders = subscription.getOrderChanges()
           .filter(o -> isReady())
           .subscribe(e -> send(e, Nature.ORDER_STATUS_CHANGE));
       private final Disposable userTrades = subscription.getUserTrades()
           .filter(o -> isReady())
-          .map(e -> serialise(e))
+          .map(OrkoWebSocketServer.this::serialiseUserTradeEvent)
           .subscribe(e -> send(e, Nature.USER_TRADE));
       private final Disposable balance = subscription.getBalances()
           .filter(o -> isReady())
@@ -265,7 +260,7 @@ public final class OrkoWebSocketServer {
   /**
    * Workaround for lack of serializability of the XChange object
    */
-  private Object serialise(UserTradeEvent e) {
+  private Object serialiseUserTradeEvent(UserTradeEvent e) {
     return ImmutableMap.of(
       "spec", e.spec(),
       "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
@@ -275,7 +270,7 @@ public final class OrkoWebSocketServer {
   /**
    * Workaround for lack of serializability of the XChange object
    */
-  private Object serialise(TradeEvent e) {
+  private Object serialiseTradeEvent(TradeEvent e) {
     return ImmutableMap.of(
       "spec", e.spec(),
       "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
@@ -302,7 +297,7 @@ public final class OrkoWebSocketServer {
       if (session.isOpen())
         session.getBasicRemote().sendText(message(nature, object));
     } catch (Exception e) {
-      LOGGER.info("Failed to send " + nature + " to socket (" + e.getMessage() + ")");
+      LOGGER.warn("Failed to send {} to socket ({})", nature, e.getMessage());
     }
   }
 

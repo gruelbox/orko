@@ -66,7 +66,9 @@ public abstract class Alert implements Job {
 
   @Override
   public String toString() {
-    return String.format("send " + notification().level().toString().toLowerCase() + " '%s'", notification().message());
+    return String.format("send %s '%s'",
+        notification().level().toString().toLowerCase(),
+        notification().message());
   }
 
   @JsonIgnore

@@ -23,8 +23,9 @@ import org.knowm.xchange.service.account.AccountService;
 import com.google.inject.ImplementedBy;
 
 @ImplementedBy(AccountServiceFactoryImpl.class)
-public interface AccountServiceFactory {
+public interface AccountServiceFactory extends ExchangeServiceFactory<AccountService> {
 
+  @Override
   public AccountService getForExchange(String exchange);
 
 }

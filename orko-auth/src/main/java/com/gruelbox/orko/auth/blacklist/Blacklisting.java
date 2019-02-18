@@ -96,7 +96,7 @@ public class Blacklisting implements Managed {
       }
     }
     if (count.incrementAndGet() == authConfiguration.getAttemptsBeforeBlacklisting())
-      LOGGER.warn("Banned IP: " + ip);
+      LOGGER.warn("Banned IP: {}", ip);
   }
 
   public void success() {
@@ -118,7 +118,7 @@ public class Blacklisting implements Managed {
     AtomicInteger count = blacklist.getIfPresent(ip);
     boolean result = count != null && count.get() >= authConfiguration.getAttemptsBeforeBlacklisting();
     if (result)
-      LOGGER.warn("Access attempt from banned IP: " + ip);
+      LOGGER.warn("Access attempt from banned IP: {}", ip);
     return result;
   }
 

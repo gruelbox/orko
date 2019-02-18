@@ -35,22 +35,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 final class JobRecord {
 
   static final String TABLE_NAME = "Job";
-  static final String ID = "id";
-  static final String CONTENT = "content";
-  static final String PROCESSED = "processed";
+  static final String ID_FIELD = "id";
+  static final String CONTENT_FIELD = "content";
+  static final String PROCESSED_FIELD = "processed";
 
   @Id
-  @Column(name = ID, nullable = false)
+  @Column(name = ID_FIELD, nullable = false)
   @NotNull
   @JsonProperty
   private String id;
 
-  @Column(name = CONTENT, nullable = false)
+  @Column(name = CONTENT_FIELD, nullable = false)
   @NotNull
   @JsonProperty
   private String content;
 
-  @Column(name = PROCESSED, nullable = false)
+  @Column(name = PROCESSED_FIELD, nullable = false)
   @NotNull
   @JsonProperty
   private boolean processed;

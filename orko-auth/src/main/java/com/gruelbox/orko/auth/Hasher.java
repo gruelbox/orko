@@ -18,40 +18,25 @@
 
 package com.gruelbox.orko.auth;
 
-
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
-import java.util.regex.Pattern;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 public class Hasher {
 
-  private static final Pattern EXTRACT_HASH = Pattern.compile("HASH\\(.*\\)");
-
-  public static void main(String[] args) throws IOException {
-    Injector injector = Guice.createInjector();
-    if (args[0].equals("--salt")) {
-      System.out.println("Salt: " + injector.getInstance(Hasher.class).salt());
-    } else if (args[0].equals("--hash")) {
-      System.out.println("Password: " + args[1]);
-      System.out.println("Salt: " + args[2]);
-      System.out.println("Hashed: " + injector.getInstance(Hasher.class).hash(args[1], args[2]));
-    }
-  }
-
   public boolean isHash(String storedPassword) {
-    return EXTRACT_HASH.matcher(storedPassword).find();
+    return storedPassword != null &&
+           storedPassword.startsWith("HASH(") &&
+           storedPassword.endsWith(")") &&
+           !storedPassword.equals("HASH()");
   }
 
   public String salt() {
@@ -63,7 +48,7 @@ public class Hasher {
 
   public String hashWithString(String value, String stringSalt) {
     Preconditions.checkNotNull(stringSalt);
-    String salt = Base64.getEncoder().encodeToString(stringSalt.getBytes(Charsets.UTF_8));
+    String salt = Base64.getEncoder().encodeToString(stringSalt.getBytes(StandardCharsets.UTF_8));
     return hash(value, salt);
   }
 

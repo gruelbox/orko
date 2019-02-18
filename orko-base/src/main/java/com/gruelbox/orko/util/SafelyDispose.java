@@ -26,9 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import io.reactivex.disposables.Disposable;
 
-public class SafelyDispose {
+public final class SafelyDispose {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SafelyDispose.class);
+
+  private SafelyDispose() {
+    // Not instantiatable
+  }
 
   public static void of(Disposable... disposables) {
     of(Arrays.asList(disposables));

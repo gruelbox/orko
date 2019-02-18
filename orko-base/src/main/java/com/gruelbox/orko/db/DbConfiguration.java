@@ -58,10 +58,6 @@ public class DbConfiguration {
   @JsonProperty
   private String startPositionFile;
 
-  public String getConnectionString() {
-    return connectionString;
-  }
-
   public void setConnectionString(String connectionString) {
     this.connectionString = connectionString;
   }

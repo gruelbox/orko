@@ -54,7 +54,7 @@ class IpWhitelistServletFilter extends AbstractHttpSecurityServletFilter {
 
   @Override
   protected boolean filterHttpRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-    if (transactionally.call(READ_ONLY_UNIT, () -> ipWhitelisting.authoriseIp())) {
+    if (transactionally.call(READ_ONLY_UNIT, ipWhitelisting::authoriseIp)) {
       return true;
     }
     response.sendError(Response.Status.FORBIDDEN.getStatusCode());

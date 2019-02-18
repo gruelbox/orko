@@ -59,7 +59,7 @@ public class RateController {
   /**
    * @see RateLimiter#acquire()
    */
-  public void acquire() throws InterruptedException {
+  public void acquire() {
     rateLimiter.acquire();
     LOGGER.debug("Acquired API ticket for {}", exchangeName);
     if (throttleExpired()) {

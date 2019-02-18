@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.11.2-SNAPSHOT</version>
+    <version>0.11.4-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -133,10 +133,6 @@
       <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-kucoin</artifactId>
     </dependency>
-    <!--<dependency>
-      <groupId>${xchange.groupid}</groupId>
-      <artifactId>xchange-cryptopia</artifactId>
-    </dependency>-->
     <dependency>
       <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-bitfinex</artifactId>

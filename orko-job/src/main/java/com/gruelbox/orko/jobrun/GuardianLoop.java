@@ -28,10 +28,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.exception.OrkoAbortException;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
@@ -50,12 +52,13 @@ class GuardianLoop extends AbstractExecutionThreadService {
   private final JobAccess jobAccess;
   private final JobRunner jobRunner;
   private final EventBus eventBus;
-  private final JobRunConfiguration config;
   private final Transactionally transactionally;
   private final Provider<SessionFactory> sessionFactory;
+  private final RateLimiter rateLimiter;
 
   private volatile boolean kill;
   private final CountDownLatch killed = new CountDownLatch(1);
+
 
   @Inject
   GuardianLoop(JobAccess jobaccess,
@@ -67,38 +70,39 @@ class GuardianLoop extends AbstractExecutionThreadService {
     jobAccess = jobaccess;
     this.jobRunner = jobRunner;
     this.eventBus = eventBus;
-    this.config = config;
     this.transactionally = transactionally;
     this.sessionFactory = sessionFactory;
+    this.rateLimiter = RateLimiter.create(2.0D / config.getGuardianLoopSeconds());
   }
 
   @Override
   public void run() {
     Thread.currentThread().setName("Guardian loop");
-    LOGGER.info(this + " started");
-    while (isRunning() && !Thread.currentThread().isInterrupted() && !kill) {
+    LOGGER.info("{} started", this);
+    while (isRunning() && !kill) {
       try {
+
+        if (Thread.currentThread().isInterrupted()) {
+          throw new OrkoAbortException("thread interrupted");
+        }
 
         // When the app is forcibly killed, this seems to happen a lot
         // and sends the app into an endless loop, so for the time being this
         // will break the cycle.
         if (sessionFactory.get().isClosed()) {
-          LOGGER.info(this + " shutting down due to closure of the session factory");
-          break;
+          throw new OrkoAbortException("session factory closed");
         }
 
-        LOGGER.debug("Checking and restarting jobs");
+        rateLimiter.acquire();
+        LOGGER.debug("{} checking and restarting jobs", this);
         lockAndStartInactiveJobs();
 
-        LOGGER.debug("Sleeping");
-        Thread.sleep((long) config.getGuardianLoopSeconds() * 1000);
-
-        LOGGER.debug("Refreshing locks");
+        rateLimiter.acquire();
+        LOGGER.debug("{} refreshing locks", this);
         eventBus.post(KeepAliveEvent.INSTANCE);
 
-      } catch (InterruptedException e) {
-        LOGGER.info("Shutting down " + this);
-        Thread.currentThread().interrupt();
+      } catch (OrkoAbortException e) {
+        LOGGER.info("{} shutting down: {}", this, e.getMessage());
         break;
       } catch (Exception e) {
         LOGGER.error("Error in keep-alive loop", e);
@@ -106,10 +110,10 @@ class GuardianLoop extends AbstractExecutionThreadService {
     }
     if (kill) {
       killed.countDown();
-      LOGGER.warn(this + " killed (should only ever happen in test code)");
+      LOGGER.warn("{} killed (should only ever happen in test code)", this);
     } else {
       eventBus.post(StopEvent.INSTANCE);
-      LOGGER.info(this + " stopped");
+      LOGGER.info("{} stopped", this);
     }
   }
 

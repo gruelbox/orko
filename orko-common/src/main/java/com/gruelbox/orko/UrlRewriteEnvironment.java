@@ -18,6 +18,7 @@
 package com.gruelbox.orko;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import javax.servlet.FilterConfig;
 import javax.servlet.FilterRegistration;
@@ -28,7 +29,6 @@ import org.apache.commons.io.IOUtils;
 import org.tuckey.web.filters.urlrewrite.Conf;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
-import com.google.common.base.Charsets;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.setup.Environment;
@@ -60,10 +60,10 @@ class UrlRewriteEnvironment implements EnvironmentInitialiser {
             "        <from>^/?(addCoin|scripts|job|coin).*$</from>\n" +
             "        <to type=\"forward\">/index.html</to>\n" +
             "    </rule>\n" +
-            "</urlrewrite>", Charsets.UTF_8);
+            "</urlrewrite>", StandardCharsets.UTF_8);
         Conf conf = new Conf(context, config, confPath, "HARDCODED", false);
         checkConf(conf);
-      } catch (Throwable e) {
+      } catch (Exception e) {
         throw new ServletException(e);
       }
     }

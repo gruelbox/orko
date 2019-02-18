@@ -18,9 +18,9 @@
 
 package com.gruelbox.orko.subscription;
 
-import static com.gruelbox.orko.subscription.Subscription.REFERENCE_PRICE;
+import static com.gruelbox.orko.subscription.Subscription.REFERENCE_PRICE_FIELD;
 import static com.gruelbox.orko.subscription.Subscription.TABLE_NAME;
-import static com.gruelbox.orko.subscription.Subscription.TICKER;
+import static com.gruelbox.orko.subscription.Subscription.TICKER_FIELD;
 import static org.alfasoftware.morf.metadata.DataType.DECIMAL;
 import static org.alfasoftware.morf.metadata.DataType.STRING;
 import static org.alfasoftware.morf.metadata.SchemaUtils.column;
@@ -44,8 +44,8 @@ class SubscriptionContribution implements TableContribution, EntityContribution 
     return ImmutableList.of(
       table(TABLE_NAME)
         .columns(
-          column(TICKER, STRING, 32).primaryKey(),
-          column(REFERENCE_PRICE, DECIMAL, 13, 8).nullable()
+          column(TICKER_FIELD, STRING, 32).primaryKey(),
+          column(REFERENCE_PRICE_FIELD, DECIMAL, 13, 8).nullable()
         )
     );
   }

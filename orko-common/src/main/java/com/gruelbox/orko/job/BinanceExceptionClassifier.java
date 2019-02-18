@@ -26,7 +26,11 @@ import org.knowm.xchange.binance.dto.BinanceException;
 
 import jersey.repackaged.com.google.common.collect.ImmutableSet;
 
-class BinanceExceptionClassifier {
+final class BinanceExceptionClassifier {
+
+  private BinanceExceptionClassifier() {
+    // Not instantiatable
+  }
 
   private static final int DUPLICATE_ORDER = -2010;
 
