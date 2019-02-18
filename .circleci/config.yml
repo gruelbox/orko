@@ -1,4 +1,7 @@
 version: 2
+notify:
+  webhooks:
+    - url: https://webhooks.gitter.im/e/d1538bdca20be1aa31d8
 jobs:
   build:
     docker:

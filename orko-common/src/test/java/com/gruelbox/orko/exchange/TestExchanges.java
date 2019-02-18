@@ -64,9 +64,4 @@ public class TestExchanges {
   public void testKraken() {
     Assert.assertEquals(KrakenExchange.class, Exchanges.friendlyNameToClass(Exchanges.KRAKEN));
   }
-
-//  @Test
-//  public void testCryptopia() {
-//    Assert.assertEquals(CryptopiaExchange.class, Exchanges.friendlyNameToClass(Exchanges.CRYPTOPIA));
-//  }
 }
