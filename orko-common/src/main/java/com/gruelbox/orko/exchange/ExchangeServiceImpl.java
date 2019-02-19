@@ -21,7 +21,6 @@ package com.gruelbox.orko.exchange;
 import static info.bitrich.xchangestream.service.ConnectableService.BEFORE_CONNECTION_HANDLER;
 import static java.util.stream.Stream.concat;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
