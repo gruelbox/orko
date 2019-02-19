@@ -140,12 +140,12 @@ public class ExchangeServiceImpl implements ExchangeService {
         return concat(asStream(metaData.getPrivateRateLimits()), asStream(metaData.getPublicRateLimits()))
             .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis))
             .map(rateLimit -> {
-              LOGGER.debug("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
+              LOGGER.info("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
               return asLimiter(rateLimit);
             })
             .map(rateLimiter -> new RateController(exchangeName, rateLimiter, THROTTLE_DURATION))
             .orElseGet(() -> {
-              LOGGER.debug("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
+              LOGGER.info("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
               return new RateController(exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
             });
       } catch (Exception e) {
