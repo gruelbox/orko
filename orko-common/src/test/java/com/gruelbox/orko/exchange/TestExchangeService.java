@@ -18,60 +18,99 @@
 
 package com.gruelbox.orko.exchange;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
+import static com.gruelbox.orko.exchange.Exchanges.BITFINEX;
+import static com.gruelbox.orko.exchange.Exchanges.BITMEX;
+import static com.gruelbox.orko.exchange.Exchanges.BITTREX;
+import static com.gruelbox.orko.exchange.Exchanges.GDAX;
+import static com.gruelbox.orko.exchange.Exchanges.KRAKEN;
+import static com.gruelbox.orko.exchange.Exchanges.KUCOIN;
+import static org.junit.Assert.assertTrue;
 
+import org.junit.Test;
+import org.knowm.xchange.kucoin.KucoinExchange;
+
+import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.OrkoConfiguration;
+
+import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange;
 
 public class TestExchangeService {
 
-  private ExchangeServiceImpl exchangeService;
-
-  @Before
-  public void setup() {
-    exchangeService = new ExchangeServiceImpl(new OrkoConfiguration());
-  }
-
   @Test
   public void testGdax() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.GDAX));
+    ExchangeServiceImpl exchangeService = vanilla(GDAX);
+    assertTrue(exchangeService.getExchanges().contains(GDAX));
   }
 
   @Test
   public void testGdaxSandbox() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.GDAX_SANDBOX));
+    OrkoConfiguration config = baseConfig(GDAX);
+    config.getExchanges().get(GDAX).setSandbox(true);
+    ExchangeServiceImpl exchangeService = of(config);
+    assertTrue(exchangeService.getExchanges().contains(GDAX));
+    assertTrue(exchangeService.get(GDAX) instanceof CoinbaseProStreamingExchange);
   }
 
   @Test
   public void testBinance() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BINANCE));
+    ExchangeServiceImpl exchangeService = vanilla(BINANCE);
+    assertTrue(exchangeService.getExchanges().contains(BINANCE));
   }
 
   @Test
   public void testBitfinex() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITFINEX));
+    ExchangeServiceImpl exchangeService = vanilla(BITFINEX);
+    assertTrue(exchangeService.getExchanges().contains(BITFINEX));
   }
 
   @Test
   public void testBittrex() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITTREX));
+    ExchangeServiceImpl exchangeService = vanilla(BITTREX);
+    assertTrue(exchangeService.getExchanges().contains(BITTREX));
   }
 
   @Test
   public void testBitmex() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.BITMEX));
+    ExchangeServiceImpl exchangeService = vanilla(BITMEX);
+    assertTrue(exchangeService.getExchanges().contains(BITMEX));
   }
 
   @Test
   public void testKraken() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.KRAKEN));
+    ExchangeServiceImpl exchangeService = vanilla(KRAKEN);
+    assertTrue(exchangeService.getExchanges().contains(KRAKEN));
   }
 
   @Test
-  @Ignore // TODO add this back when 2.0 is working
-  public void testKucoin() {
-    Assert.assertTrue(exchangeService.getExchanges().contains(Exchanges.KUCOIN));
+  public void testKucoinVanilla() {
+    ExchangeServiceImpl exchangeService = vanilla(KUCOIN);
+    assertTrue(exchangeService.getExchanges().contains(KUCOIN));
+    assertTrue(exchangeService.get(KUCOIN) instanceof KucoinExchange);
+  }
+
+  @Test
+  public void testKucoinSandbox() {
+    OrkoConfiguration config = baseConfig(KUCOIN);
+    config.getExchanges().get(KUCOIN).setSandbox(true);
+    ExchangeServiceImpl exchangeService = of(config);
+    assertTrue(exchangeService.getExchanges().contains(KUCOIN));
+    assertTrue(exchangeService.get(KUCOIN) instanceof KucoinExchange);
+  }
+
+  private OrkoConfiguration baseConfig(String exchange) {
+    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
+    orkoConfiguration.setExchanges(ImmutableMap.of(exchange, new ExchangeConfiguration()));
+    orkoConfiguration.getExchanges().get(exchange).setLoadRemoteData(false);
+    return orkoConfiguration;
+  }
+
+  private ExchangeServiceImpl vanilla(String exchange) {
+    return of(baseConfig(exchange));
+  }
+
+  private ExchangeServiceImpl of(OrkoConfiguration config) {
+    ExchangeServiceImpl exchangeService = new ExchangeServiceImpl(config);
+    return exchangeService;
   }
 }

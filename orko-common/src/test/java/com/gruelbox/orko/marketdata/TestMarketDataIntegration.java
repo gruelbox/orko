@@ -20,6 +20,7 @@ package com.gruelbox.orko.marketdata;
 
 import static com.gruelbox.orko.db.TestingUtils.skipIfSlowTestsDisabled;
 import static com.gruelbox.orko.exchange.Exchanges.BITMEX;
+import static com.gruelbox.orko.exchange.Exchanges.KUCOIN;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
@@ -46,6 +47,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
+import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.ExchangeServiceImpl;
 import com.gruelbox.orko.exchange.Exchanges;
@@ -69,11 +71,11 @@ public class TestMarketDataIntegration {
   private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.GDAX).build();
   private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BITTREX).build();
   //private static final TickerSpec cryptopia = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.CRYPTOPIA).build();
-  private static final TickerSpec kucoin = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.KUCOIN).build();
+  //private static final TickerSpec kucoin = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.KUCOIN).build();
   private static final TickerSpec kraken = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.KRAKEN).build();
 
   private static final Set<MarketDataSubscription> subscriptions = FluentIterable.concat(
-      FluentIterable.of(binance, bitfinex, gdax, bittrex, kucoin, kraken)
+      FluentIterable.of(binance, bitfinex, gdax, bittrex, kraken)
         .transformAndConcat(spec -> ImmutableSet.of(
           MarketDataSubscription.create(spec, TICKER),
           MarketDataSubscription.create(spec, ORDERBOOK),
@@ -97,6 +99,11 @@ public class TestMarketDataIntegration {
     ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
 
     OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
+
+    // TODO temporary, to be resolved when Kucoin 2.0 is actually live
+    orkoConfiguration.setExchanges(ImmutableMap.of(KUCOIN, new ExchangeConfiguration()));
+    orkoConfiguration.getExchanges().get(KUCOIN).setSandbox(true);
+
     orkoConfiguration.setLoopSeconds(2);
     exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(

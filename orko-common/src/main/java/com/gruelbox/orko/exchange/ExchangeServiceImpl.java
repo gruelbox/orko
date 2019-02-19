@@ -18,7 +18,6 @@
 
 package com.gruelbox.orko.exchange;
 
-import static com.gruelbox.orko.exchange.Exchanges.GDAX_SANDBOX;
 import static info.bitrich.xchangestream.service.ConnectableService.BEFORE_CONNECTION_HANDLER;
 import static java.util.stream.Stream.concat;
 
@@ -37,7 +36,6 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.meta.ExchangeMetaData;
 import org.knowm.xchange.dto.meta.RateLimit;
@@ -55,7 +53,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.RateLimiter;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.util.CheckedExceptions;
 
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 
@@ -66,6 +63,7 @@ import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
 
+  private static final ExchangeConfiguration VANILLA_CONFIG = new ExchangeConfiguration();
   private static final RateLimit DEFAULT_RATE = new RateLimit(1, 3, TimeUnit.SECONDS);
   private static final RateLimit[] NO_LIMITS = new RateLimit[0];
   private static final Duration THROTTLE_DURATION = Duration.ofMinutes(2);
@@ -78,17 +76,19 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Override
     public Exchange load(String name) throws Exception {
       final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges() == null
-        ? null
-        : configuration.getExchanges().get(name);
-      if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
-        return publicApi(name);
-      return privateApi(name, exchangeConfiguration);
+        ? VANILLA_CONFIG
+        : MoreObjects.firstNonNull(configuration.getExchanges().get(name), VANILLA_CONFIG);
+      if (exchangeConfiguration.isAuthenticated()) {
+        return privateApi(name, exchangeConfiguration);
+      } else {
+        return publicApi(name, exchangeConfiguration);
+      }
     }
 
-    private Exchange publicApi(String name) {
+    private Exchange publicApi(String name, ExchangeConfiguration exchangeConfiguration) {
       try {
         LOGGER.debug("No API connection details.  Connecting to public API: {}", name);
-        final ExchangeSpecification exSpec = createExchangeSpecification(name);
+        final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
@@ -97,17 +97,15 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private Exchange privateApi(String name, final ExchangeConfiguration exchangeConfiguration) {
       try {
-
         LOGGER.debug("Connecting to private API: {}", name);
-        final ExchangeSpecification exSpec = createExchangeSpecification(name);
-        if (name.equalsIgnoreCase(Exchanges.GDAX_SANDBOX) || name.equalsIgnoreCase(Exchanges.GDAX)) {
+        final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
+        if (name.equalsIgnoreCase(Exchanges.KUCOIN) || name.equalsIgnoreCase(Exchanges.GDAX)) {
           exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
         }
         exSpec.setUserName(exchangeConfiguration.getUserName());
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
         return createExchange(exSpec);
-
       } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
@@ -121,11 +119,13 @@ public class ExchangeServiceImpl implements ExchangeService {
       }
     }
 
-    private ExchangeSpecification createExchangeSpecification(String exchangeName) throws InstantiationException, IllegalAccessException {
+    private ExchangeSpecification createExchangeSpecification(String exchangeName, ExchangeConfiguration exchangeConfiguration) throws InstantiationException, IllegalAccessException {
       final ExchangeSpecification exSpec = Exchanges.friendlyNameToClass(exchangeName).newInstance().getDefaultExchangeSpecification();
-      if (exchangeName.equalsIgnoreCase(GDAX_SANDBOX)) {
+      if (exchangeConfiguration.isSandbox()) {
+        LOGGER.info("Using {} sandbox", exchangeName);
         exSpec.setExchangeSpecificParametersItem("Use_Sandbox", true);
       }
+      exSpec.setShouldLoadRemoteMetaData(exchangeConfiguration.isLoadRemoteData());
       RateLimiter rateLimiter = RateLimiter.create(0.25); // TODO make this exchange specific
       exSpec.setExchangeSpecificParametersItem(
         BEFORE_CONNECTION_HANDLER,
@@ -182,23 +182,13 @@ public class ExchangeServiceImpl implements ExchangeService {
                   .transform(s -> s.replace("Exchange", ""))
                   .transform(String::toLowerCase)
                   .transform(s -> s.equals("coinbasepro") ? "gdax" : s)
-                  .filter(s -> !s.equals(Exchanges.KUCOIN)) // TODO temporarily disabled while 2.0 support is added
         )
-        .add(Exchanges.GDAX_SANDBOX)
         .build();
   }
 
   @Override
   public Exchange get(String name) {
     return exchanges.getUnchecked(name);
-  }
-
-  @Override
-  public Ticker fetchTicker(TickerSpec ex) {
-    return CheckedExceptions.callUnchecked(() ->
-      get(ex.exchange())
-      .getMarketDataService()
-      .getTicker(ex.currencyPair()));
   }
 
   @Override

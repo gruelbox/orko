@@ -31,11 +31,6 @@ import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange;
 public class TestExchanges {
 
   @Test
-  public void testGdaxSandbox() {
-    Assert.assertEquals(CoinbaseProStreamingExchange.class, Exchanges.friendlyNameToClass(Exchanges.GDAX_SANDBOX));
-  }
-
-  @Test
   public void testGdax() {
     Assert.assertEquals(CoinbaseProStreamingExchange.class, Exchanges.friendlyNameToClass(Exchanges.GDAX));
   }
