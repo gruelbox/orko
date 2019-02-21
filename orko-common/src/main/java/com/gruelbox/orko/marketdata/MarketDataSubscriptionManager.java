@@ -752,8 +752,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     private Wallet wallet() throws IOException {
       exchangeService.rateController(exchangeName).acquire();
-      if (exchangeName.equals("bitfinex")) {
+      if (exchangeName.equals(Exchanges.BITFINEX)) {
         return accountService.getAccountInfo().getWallet("exchange");
+      } else if (exchangeName.equals(Exchanges.KUCOIN)) {
+        return accountService.getAccountInfo().getWallet("trade");
       } else {
         return accountService.getAccountInfo().getWallet();
       }
