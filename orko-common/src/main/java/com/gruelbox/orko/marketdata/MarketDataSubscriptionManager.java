@@ -54,6 +54,7 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -447,19 +448,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       // We'll be extending this sort of batching to more market data types...
       if (!balanceCurrencies.isEmpty()) {
         manageExchangeExceptions(
+            "Balances",
             () -> fetchBalances(balanceCurrencies).forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b))),
             () -> FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE))
         );
       }
     }
 
-    private void manageExchangeExceptions(CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
+    private void manageExchangeExceptions(String dataDescription, CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
       try {
         runnable.run();
       } catch (InterruptedException e) {
         throw e;
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
-        LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
+        LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
       } catch (Exception e) {
         LocalDateTime now = now();
@@ -590,45 +592,57 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       connectExchange(subscriptions);
 
       HashSet<MarketDataSubscription> connected = new HashSet<>(subscriptions);
-      Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
+      ImmutableSet.Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
       List<Disposable> disposables = new ArrayList<>();
 
-      // User trade and balance subscriptions, for now, we will poll even if we are
-      // already getting them from the socket. This will persist until we can
-      // safely detect and correct ordering/missed messages on the socket streams.
-      subscriptions.stream().filter(s -> s.type().equals(USER_TRADE) || s.type().equals(BALANCE))
-        .forEach(remainder::add);
+      Consumer<MarketDataSubscription> markAsNotSubscribed = s -> {
+        remainder.add(s);
+        connected.remove(s);
+      };
 
-      // Connect non-balance streams
-      subscriptions.stream().filter(s -> !s.type().equals(BALANCE)).forEach(sub -> {
-        try {
-          disposables.add(connectSubscription(sub));
-        } catch (ExchangeSecurityException | NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
-          remainder.add(sub);
-          connected.remove(sub);
+      Set<String> balanceCurrencies = new HashSet<>();
+      for (MarketDataSubscription s : subscriptions) {
+
+        // User trade and balance subscriptions, for now, we will poll even if we are
+        // already getting them from the socket. This will persist until we can
+        // safely detect and correct ordering/missed messages on the socket streams.
+        if (s.type().equals(USER_TRADE) || s.type().equals(BALANCE)) {
+          remainder.add(s);
         }
-      });
+
+        if (s.type().equals(BALANCE)) {
+          // Aggregate the currencies and do these next
+          balanceCurrencies.add(s.spec().base());
+          balanceCurrencies.add(s.spec().counter());
+        } else {
+          try {
+            disposables.add(connectSubscription(s));
+          } catch (NotAvailableFromExchangeException e) {
+            markAsNotSubscribed.accept(s);
+          } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
+            LOGGER.info("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
+            markAsNotSubscribed.accept(s);
+          }
+        }
+      }
 
       try {
+        for (String currency : balanceCurrencies) {
+          disposables.add(
+            streamingExchange.getStreamingAccountService().getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
+              .map(Balance::create)
+              .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
+              .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance stream for " + exchangeName + "/" + currency, e)));
+        }
+      } catch (NotAvailableFromExchangeException e) {
         subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
-          .flatMap(s -> ImmutableList.of(s.spec().base(), s.spec().counter()).stream())
-          .distinct()
-          .forEach(currency ->
-            disposables.add(
-              streamingExchange.getStreamingAccountService().getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-                .map(Balance::create)
-                .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
-                .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
-            )
-          );
-      } catch (ExchangeSecurityException | NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
+          .forEach(markAsNotSubscribed);
+      } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
+        LOGGER.info("Not subscribing to {}/{} on socket due to {}: {}", exchangeName, "Balances", e.getClass().getSimpleName(), e.getMessage());
         subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
-          .forEach(s -> {
-            connected.remove(s);
-            remainder.add(s);
-          });
+          .forEach(markAsNotSubscribed);
       }
 
       subscriptionsPerExchange.put(exchangeName, Collections.unmodifiableSet(connected));
@@ -765,6 +779,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       exchangeService.rateController(exchangeName).acquire();
       TickerSpec spec = subscription.spec();
       manageExchangeExceptions(
+          subscription.key(),
           () -> {
             switch (subscription.type()) {
               case TICKER:
