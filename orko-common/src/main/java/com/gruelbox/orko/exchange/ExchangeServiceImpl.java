@@ -98,12 +98,10 @@ public class ExchangeServiceImpl implements ExchangeService {
       try {
         LOGGER.debug("Connecting to private API: {}", name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
-        if (name.equalsIgnoreCase(Exchanges.KUCOIN) || name.equalsIgnoreCase(Exchanges.GDAX)) {
-          exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
-        }
         exSpec.setUserName(exchangeConfiguration.getUserName());
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
+        exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
