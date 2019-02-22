@@ -59,9 +59,9 @@ Note that this uses very limited and not particularly sophisticated **paper trad
 | Bitfinex | Excellent     | Deposits, withdrawals, [margin trading](https://github.com/gruelbox/orko/issues/83), funding, true OCO trades, post only, reduce only, visibility of trades and positions on chart, account management | Similar quality of experience to Binance, but more obviously short on features compared to Bitfinex's own site. |
 | Coinbase Pro | Excellent | Deposits, withdrawals, post only, good-till, account management | Again, very good user experience, but with a few small UI glitches. |
 | Bittrex | Working | **Streaming**, deposits, withdrawals, stop orders, account management | Perfectly working for low frequency trading but not as smooth an experience. |
-| Kucoin | Working | **Streaming**, deposits, withdrawals, stop orders, account management | Perfectly working for low frequency trading but not as smooth an experience. May shortly stop working, since Kucoin have upgraded to a 2.0 API and are closing the 1.0 API on which this depends. |
 | Kraken | Minimal | **Streaming**, margin trading, deposits, withdrawals, stop orders, account management | As with Kucoin, with a few specific high-profile issues needing resolving. |
 | Bitmex | Minimal | **Streaming**, deposits, withdrawals, account management, most complex order types, position management, leverage setting, balances, historical trades | Bare minimum for placing and cancelling simple limit trades and stops at your currently selected leverage. This has only just started to be implemented. |
+| Kucoin | *Broken* | Everything except ticker, order book and market trades | Kucoin platform 2.0 has broken this. It's currently being fixed (see https://github.com/knowm/XChange/issues/2914) |
 
 * **Streaming** = Websocket streaming updates. Most operations such as trades occur immediately but can take a short while to show in the UI. Without streaming, exchange data is fetched periodically instead. This is quick to implement in Orko but provides a less fluid user experience.  It is usually the first phase in implementing an exchange.
 
