@@ -67,9 +67,9 @@ import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
-public class TestJobExecutionIntegration {
+public class TestJobExecution {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TestJobExecutionIntegration.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TestJobExecution.class);
 
   @Rule
   public DAOTestRule database = DbTesting.rule()

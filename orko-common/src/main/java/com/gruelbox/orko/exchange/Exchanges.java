@@ -44,7 +44,6 @@ public final class Exchanges {
   public static final String KUCOIN = "kucoin";
   public static final String BITTREX = "bittrex";
   public static final String BITFINEX = "bitfinex";
-  public static final String CRYPTOPIA = "cryptopia";
   public static final String BITMEX = "bitmex";
   public static final String KRAKEN = "kraken";
 
@@ -125,7 +124,6 @@ public final class Exchanges {
       case KUCOIN : return "https://www.kucoin.com/#/?r=E649ku";
       case BITTREX : return "https://bittrex.com/";
       case BITFINEX : return "https://www.bitfinex.com/";
-      case CRYPTOPIA : return "https://www.cryptopia.co.nz/";
       case KRAKEN : return "https://www.kraken.com/";
       default : return "#";
     }

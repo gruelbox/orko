@@ -142,7 +142,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         return concat(asStream(metaData.getPrivateRateLimits()), asStream(metaData.getPublicRateLimits()))
             .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis))
             .map(rateLimit -> {
-              LOGGER.info("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
+              LOGGER.info("Rate limit for [{}] is {}", exchangeName, rateLimit);
               return asLimiter(rateLimit);
             })
             .map(rateLimiter -> new RateController(exchangeName, rateLimiter, THROTTLE_DURATION))

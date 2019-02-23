@@ -18,7 +18,6 @@
 
 package com.gruelbox.orko.marketdata;
 
-import static com.gruelbox.orko.db.TestingUtils.skipIfSlowTestsDisabled;
 import static com.gruelbox.orko.exchange.Exchanges.BITMEX;
 import static com.gruelbox.orko.exchange.Exchanges.KUCOIN;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
@@ -129,17 +128,12 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscribeUnsubscribe() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
   }
 
   @Test
   public void testBitmexContracts() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
 
     Set<TickerSpec> coins = FluentIterable.from(ExchangeResource.BITMEX_PAIRS)
         .transform(c -> TickerSpec.builder()
@@ -188,8 +182,6 @@ public class TestMarketDataIntegration {
   @Test
   public void testSubscribePauseAndUnsubscribe() throws InterruptedException {
 
-    skipIfSlowTestsDisabled();
-
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
     Thread.sleep(2500);
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
@@ -197,8 +189,6 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscriptionsDirect() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
 
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
     Set<Disposable> disposables = null;
@@ -235,8 +225,6 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscriptionsViaEventBus() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
 
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber = Maps.toMap(
@@ -311,8 +299,6 @@ public class TestMarketDataIntegration {
   @Test
   public void testEventBusSubscriptionDifferentSubscriberInner() throws InterruptedException {
 
-    skipIfSlowTestsDisabled();
-
     try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
       try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
         AtomicBoolean called = new AtomicBoolean();
@@ -328,8 +314,6 @@ public class TestMarketDataIntegration {
   @Test
   public void testEventBusSubscriptionDifferentSubscriberOuter() throws InterruptedException {
 
-    skipIfSlowTestsDisabled();
-
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
         AtomicBoolean called = new AtomicBoolean();
@@ -344,8 +328,6 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testEventBusSubscriptionSameSubscriber() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
 
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       CountDownLatch called1 = new CountDownLatch(2);
@@ -373,8 +355,6 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testEventBusMultipleSubscribersSameTicker() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
 
     try (ExchangeEventSubscription subscription1 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
       try (ExchangeEventSubscription subscription2 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
