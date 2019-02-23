@@ -117,7 +117,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     }
 
     private ExchangeSpecification createExchangeSpecification(String exchangeName, ExchangeConfiguration exchangeConfiguration) throws InstantiationException, IllegalAccessException {
-      final ExchangeSpecification exSpec = Exchanges.friendlyNameToClass(exchangeName).newInstance().getDefaultExchangeSpecification();
+      final ExchangeSpecification exSpec = ExchangeFactory.INSTANCE
+          .createExchangeWithoutSpecification(Exchanges.friendlyNameToClass(exchangeName))
+          .getDefaultExchangeSpecification();
       if (exchangeConfiguration.isSandbox()) {
         LOGGER.info("Using {} sandbox", exchangeName);
         exSpec.setExchangeSpecificParametersItem("Use_Sandbox", true);
