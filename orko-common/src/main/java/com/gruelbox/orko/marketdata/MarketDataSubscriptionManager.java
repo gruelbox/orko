@@ -203,7 +203,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * will return anything until this is called, but there is no strict order in
    * which they need to be called.
    *
-   * @param byExchange The exchanges and subscriptions for each.
+   * @param subscriptions The subscriptions.
    */
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
 
@@ -624,7 +624,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           } catch (NotAvailableFromExchangeException e) {
             markAsNotSubscribed.accept(s);
           } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
-            LOGGER.info("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
+            LOGGER.debug("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
             markAsNotSubscribed.accept(s);
           }
         }
@@ -643,7 +643,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           .filter(s -> s.type().equals(BALANCE))
           .forEach(markAsNotSubscribed);
       } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
-        LOGGER.info("Not subscribing to {}/{} on socket due to {}: {}", exchangeName, "Balances", e.getClass().getSimpleName(), e.getMessage());
+        LOGGER.debug("Not subscribing to {}/{} on socket due to {}: {}", exchangeName, "Balances", e.getClass().getSimpleName(), e.getMessage());
         subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
           .forEach(markAsNotSubscribed);
@@ -770,13 +770,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     private Wallet wallet() throws IOException {
       exchangeService.rateController(exchangeName).acquire();
+      Wallet wallet;
       if (exchangeName.equals(Exchanges.BITFINEX)) {
-        return accountService.getAccountInfo().getWallet("exchange");
+        wallet = accountService.getAccountInfo().getWallet("exchange");
       } else if (exchangeName.equals(Exchanges.KUCOIN)) {
-        return accountService.getAccountInfo().getWallet("trade");
+        wallet = accountService.getAccountInfo().getWallet("trade");
+        if (wallet == null)
+          wallet = accountService.getAccountInfo().getWallet();
       } else {
-        return accountService.getAccountInfo().getWallet();
+        wallet = accountService.getAccountInfo().getWallet();
       }
+      if (wallet == null) {
+        throw new IllegalStateException("No wallet returned");
+      }
+      return wallet;
     }
 
     private void fetchAndBroadcast(MarketDataSubscription subscription) throws InterruptedException {

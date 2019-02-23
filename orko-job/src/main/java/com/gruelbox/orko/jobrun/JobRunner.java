@@ -111,7 +111,7 @@ class JobRunner {
    * @param job The job.
    * @param ack The insertion callback.
    * @param reject If insertion failed
-   * @throws Exception
+   * @throws Exception If any errors occured.
    */
   public void submitNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
     createJob(job, ack, reject);
