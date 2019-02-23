@@ -32,7 +32,7 @@ import com.google.common.util.concurrent.RateLimiter;
 public class RateController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RateController.class);
-  private static final int DEGREES_PERMITTED = 3;
+  private static final int DEGREES_PERMITTED = 4;
   private static final int DIVISOR = 3;
   private final String exchangeName;
   private final RateLimiter rateLimiter;

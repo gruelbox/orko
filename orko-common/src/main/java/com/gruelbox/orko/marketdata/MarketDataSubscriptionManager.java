@@ -32,6 +32,7 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -351,7 +352,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final class Poller implements Runnable {
 
     private final String exchangeName;
-    private Exchange exchange;
     private StreamingExchange streamingExchange;
     private AccountService accountService;
     private MarketDataService marketDataService;
@@ -402,7 +402,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void initialise() throws InterruptedException {
       while (isRunning()) {
         try {
-          this.exchange = exchangeService.get(exchangeName);
+          Exchange exchange = exchangeService.get(exchangeName);
           this.streamingExchange = exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
           this.accountService = accountServiceFactory.getForExchange(exchangeName);
           this.marketDataService = exchange.getMarketDataService();
@@ -463,6 +463,10 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
         LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
+      } catch (SocketTimeoutException e) {
+        // Socket timeouts are pretty common. Log it quietly and back off
+        LOGGER.error("Throttling access to {} due to socket timeout fetching {}", exchangeName, dataDescription);
+        exchangeService.rateController(exchangeName).throttle();
       } catch (Exception e) {
         LocalDateTime now = now();
         if (lastPollException == null ||
@@ -471,7 +475,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
           lastPollErrorNotificationTime = now;
           LOGGER.error("Error fetching data for " + exchangeName, e);
-          notificationService.error("Throttling access to " + exchange + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + "). Check logs");
+          notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
         } else {
           LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
         }
