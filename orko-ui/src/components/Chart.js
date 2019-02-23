@@ -183,21 +183,9 @@ class Chart extends React.Component {
                 <NewWindowChartContent
                   coin={coin}
                   url={
-                    "https://www.kucoin.com/#/trade.pro/" +
+                    "https://www.kucoin.com/trade/" +
                     coin.base +
                     "-" +
-                    coin.counter
-                  }
-                />
-              )
-            } else if (coin.exchange === "cryptopia") {
-              return (
-                <NewWindowChartContent
-                  coin={coin}
-                  url={
-                    "https://www.cryptopia.co.nz/Exchange/?market=" +
-                    coin.base +
-                    "_" +
                     coin.counter
                   }
                 />
