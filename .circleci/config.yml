@@ -91,7 +91,7 @@ jobs:
             
       - run:
           name: Running tests on MySQL
-          command: mvn -B -U surefire:test -Dmorf.mysql.noadmin=true -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+          command: mvn -B -U surefire:test -Dmorf.mysql.noadmin=true -DskipSlowTests=true -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
 
       - run:
           name: Saving test results (MySQL)
