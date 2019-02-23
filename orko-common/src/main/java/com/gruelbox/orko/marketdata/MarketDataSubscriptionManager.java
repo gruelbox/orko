@@ -352,7 +352,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final class Poller implements Runnable {
 
     private final String exchangeName;
-    private Exchange exchange;
     private StreamingExchange streamingExchange;
     private AccountService accountService;
     private MarketDataService marketDataService;
@@ -403,7 +402,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void initialise() throws InterruptedException {
       while (isRunning()) {
         try {
-          this.exchange = exchangeService.get(exchangeName);
+          Exchange exchange = exchangeService.get(exchangeName);
           this.streamingExchange = exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
           this.accountService = accountServiceFactory.getForExchange(exchangeName);
           this.marketDataService = exchange.getMarketDataService();
