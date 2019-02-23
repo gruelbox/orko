@@ -98,12 +98,10 @@ public class ExchangeServiceImpl implements ExchangeService {
       try {
         LOGGER.debug("Connecting to private API: {}", name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
-        if (name.equalsIgnoreCase(Exchanges.KUCOIN) || name.equalsIgnoreCase(Exchanges.GDAX)) {
-          exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
-        }
         exSpec.setUserName(exchangeConfiguration.getUserName());
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
+        exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
@@ -142,12 +140,12 @@ public class ExchangeServiceImpl implements ExchangeService {
         return concat(asStream(metaData.getPrivateRateLimits()), asStream(metaData.getPublicRateLimits()))
             .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis))
             .map(rateLimit -> {
-              LOGGER.debug("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
+              LOGGER.info("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
               return asLimiter(rateLimit);
             })
             .map(rateLimiter -> new RateController(exchangeName, rateLimiter, THROTTLE_DURATION))
             .orElseGet(() -> {
-              LOGGER.debug("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
+              LOGGER.info("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
               return new RateController(exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
             });
       } catch (Exception e) {
