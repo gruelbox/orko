@@ -8,6 +8,12 @@ jobs:
       - image: circleci/openjdk:8-jdk-browsers@sha256:40ae64c13a503125a452cb5ffb5c01d14742c01d3676d77aa276fc6b956168be
         environment:
           MAVEN_OPTS: -Xmx3200m
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: test
+          MYSQL_USER: open
+          MYSQL_PASSWORD: sesame  
     working_directory: ~/orko
     steps:
       - run: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
@@ -35,9 +41,9 @@ jobs:
             echo " - Username: $CIRCLE_PR_USERNAME"
             echo " - Repository: $CIRCLE_PR_REPONAME"
             if [[ $CIRCLE_PROJECT_USERNAME == "gruelbox" ]]; then
-              mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dcypress.command=runrecord -T 1C
+              mvn -B -U -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dcypress.command=runrecord -T 1C
             else
-              mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+              mvn -B -U -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
             fi
 
       - save_cache:
@@ -66,11 +72,34 @@ jobs:
           when: always
 
       - run:
-          name: Saving test results (Integration)
+          name: Saving test results (end-to-end)
           command: |
-            mkdir -p ~/junit/integration
-            find . -type f -regex ".*/target/mocha-reports/.*xml" -exec cp {} ~/junit/integration \;
+            mkdir -p ~/junit/end-to-end
+            find . -type f -regex ".*/target/mocha-reports/.*xml" -exec cp {} ~/junit/end-to-end \;
           when: always
+          
+      - run:
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 30`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
+            
+      - run:
+          name: Running tests on MySQL
+          command: mvn -B -U surefire:test -Dmorf.mysql.noadmin=true -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+
+      - run:
+          name: Saving test results (MySQL)
+          command: |
+            mkdir -p ~/junit/mysql
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/mysql \;
+          when: always
+          
 
       - store_artifacts:
           path: ~/junit
