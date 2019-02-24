@@ -98,7 +98,7 @@ context("Trading", () => {
   it("Limit orders (exchange)", () => {
     const limitTrade = (button, priceDifferential, amount) => {
       const tradePrice = tickerPrice =>
-        0 + Number(tickerPrice) + priceDifferential
+        (0 + Number(tickerPrice) + priceDifferential).toFixed(2)
       cy.o("section/trading").within(() => {
         cy.o("limitOrder").within(() => {
           cy.o("limitPrice").click()
@@ -138,11 +138,9 @@ context("Trading", () => {
           }).within(() => {
             cy.o("amount")
               .invoke("text")
-              .then(text => Number(text))
               .should("eq", amount)
             cy.o("limitPrice")
               .invoke("text")
-              .then(text => Number(text))
               .should("eq", tradePrice(tickerPrice))
           })
         })
@@ -184,8 +182,8 @@ context("Trading", () => {
       cy.o("enablePaperTrading").click()
     })
 
-    limitTrade("buy", -100, 0.1)
-    limitTrade("sell", 100, 0.2)
+    limitTrade("buy", -100, "0.1")
+    limitTrade("sell", 100, "0.2")
   })
 
   it("Hidden orders", () => {
