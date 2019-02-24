@@ -147,9 +147,10 @@ context("Trading", () => {
         listOrders(BINANCE_BTC).should($orders => {
           expect($orders.openOrders.length, "Open order count").to.eql(1)
           expect($orders.hiddenOrders, "Hidden orders").to.be.empty
-          expect($orders.openOrders[0].limitPrice, "Limit price").to.eql(
-            tradePrice(tickerPrice)
-          )
+          expect(
+            $orders.openOrders[0].limitPrice.toFixed(2),
+            "Limit price"
+          ).to.eql(tradePrice(tickerPrice))
           expect($orders.openOrders[0].originalAmount, "Amount").to.eql(amount)
           expect($orders.openOrders[0].type).to.eql(
             button == "buy" ? "BID" : "ASK"
