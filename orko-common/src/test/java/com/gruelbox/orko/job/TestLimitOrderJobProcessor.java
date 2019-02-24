@@ -34,6 +34,7 @@ import org.knowm.xchange.binance.dto.BinanceException;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
+import org.knowm.xchange.exceptions.FundsExceededException;
 import org.knowm.xchange.service.trade.TradeService;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -210,6 +211,33 @@ public class TestLimitOrderJobProcessor {
   }
 
   @Test
+  public void testBuyFailedFundsExceeded() throws Exception {
+    TickerSpec ex = TickerSpec.builder()
+        .base(BASE)
+        .counter(COUNTER)
+        .exchange(EXCHANGE)
+        .build();
+    LimitOrderJob job = LimitOrderJob.builder()
+        .amount(AMOUNT)
+        .limitPrice(PRICE)
+        .tickTrigger(ex)
+        .direction(Direction.BUY)
+        .build();
+
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+      .thenThrow(new FundsExceededException("Not enough cash"));
+
+    LimitOrderJobProcessor processor = newProcessor(job);
+    Status result = processor.start();
+    processor.stop();
+
+    verifyLimitBuy();
+    verifySentMinorError();
+    verifyFinished(result);
+    verifyDidNothingElse();
+  }
+
+  @Test
   public void testBuyFailedBinance() throws Exception {
     TickerSpec ex = TickerSpec.builder()
         .base(BASE)
@@ -330,6 +358,10 @@ public class TestLimitOrderJobProcessor {
 
   private void verifySentError() {
     verify(notificationService).error(Mockito.anyString(), Mockito.any(RuntimeException.class));
+  }
+
+  private void verifySentMinorError() {
+    verify(notificationService).error(Mockito.anyString());
   }
 
   private void verifySentTransientError() {
