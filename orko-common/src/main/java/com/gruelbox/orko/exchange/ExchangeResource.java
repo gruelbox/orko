@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -283,24 +284,12 @@ public class ExchangeResource implements WebResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) {
 
-    if (!order.isStop() && !order.isLimit())
-      return Response.status(400).entity(new ErrorResponse("Market orders not supported at the moment.")).build();
-
-    if (order.isStop()) {
-      if (order.isLimit()) {
-        if (exchange.equals(Exchanges.BITFINEX)) {
-          return Response.status(400).entity(new ErrorResponse("Stop limit orders not supported for Bitfinex at the moment.")).build();
-        }
-      } else {
-        if (exchange.equals(Exchanges.BINANCE)) {
-          return Response.status(400).entity(new ErrorResponse("Stop market orders not supported for Binance at the moment. Specify a limit price.")).build();
-        }
-      }
-    }
-
-    TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
+    Optional<Response> error = checkOrderPreconditions(exchange, order);
+    if (error.isPresent())
+      return error.get();
 
     try {
+      TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
       Order result = order.isStop()
           ? postStopOrder(order, tradeService)
           : postLimitOrder(order, tradeService);
@@ -314,6 +303,28 @@ public class ExchangeResource implements WebResource {
       LOGGER.error("Failed to submit order", e);
       return Response.status(500).entity(new ErrorResponse("Failed to submit order. " + e.getMessage())).build();
     }
+  }
+
+  private Optional<Response> checkOrderPreconditions(String exchange, OrderPrototype order) {
+    if (!order.isStop() && !order.isLimit())
+      return Optional.of(Response.status(400)
+          .entity(new ErrorResponse("Market orders not supported at the moment.")).build());
+
+    if (order.isStop()) {
+      if (order.isLimit()) {
+        if (exchange.equals(Exchanges.BITFINEX)) {
+          return Optional.of(Response.status(400)
+              .entity(new ErrorResponse("Stop limit orders not supported for Bitfinex at the moment.")).build());
+        }
+      } else {
+        if (exchange.equals(Exchanges.BINANCE)) {
+          return Optional.of(Response.status(400)
+              .entity(new ErrorResponse("Stop market orders not supported for Binance at the moment. Specify a limit price.")).build());
+        }
+      }
+    }
+
+    return Optional.empty();
   }
 
   private LimitOrder postLimitOrder(OrderPrototype order, TradeService tradeService) throws IOException {
