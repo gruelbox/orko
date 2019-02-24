@@ -151,7 +151,10 @@ context("Trading", () => {
             $orders.openOrders[0].limitPrice.toFixed(2),
             "Limit price"
           ).to.eql(tradePrice(tickerPrice))
-          expect($orders.openOrders[0].originalAmount, "Amount").to.eql(amount)
+          expect(
+            $orders.openOrders[0].originalAmount.toFixed(0),
+            "Amount"
+          ).to.eql(amount)
           expect($orders.openOrders[0].type).to.eql(
             button == "buy" ? "BID" : "ASK"
           )
