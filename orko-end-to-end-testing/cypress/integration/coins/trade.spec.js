@@ -152,7 +152,7 @@ context("Trading", () => {
             "Limit price"
           ).to.eql(tradePrice(tickerPrice))
           expect(
-            $orders.openOrders[0].originalAmount.toFixed(0),
+            $orders.openOrders[0].originalAmount.toFixed(1),
             "Amount"
           ).to.eql(amount)
           expect($orders.openOrders[0].type).to.eql(
