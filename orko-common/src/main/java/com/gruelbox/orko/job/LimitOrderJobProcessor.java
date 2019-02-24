@@ -27,6 +27,7 @@ import java.util.Date;
 import org.knowm.xchange.binance.service.BinanceTradeService;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.LimitOrder;
+import org.knowm.xchange.exceptions.FundsExceededException;
 import org.knowm.xchange.service.trade.TradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -179,7 +180,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
     notificationService.alert(message);
   }
 
-  private void reportFailed(final LimitOrderJob job, Throwable e, Status failureStatus) {
+  private void reportFailed(final LimitOrderJob job, Exception e, Status failureStatus) {
     String message = String.format(
         "Error placing order on %s %s/%s market: %s %s at %s (%s)",
         job.tickTrigger().exchange(),
@@ -191,7 +192,12 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor {
         e.getMessage()
       );
     statusUpdateService.status(job.id(), failureStatus);
-    notificationService.error(message, e);
+    if (e instanceof FundsExceededException) {
+      // Don't stack trace for this sort of expected error.
+      notificationService.error(message);
+    } else {
+      notificationService.error(message, e);
+    }
   }
 
   private boolean binance() {
