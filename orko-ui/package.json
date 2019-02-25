@@ -51,7 +51,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "gulp": "^3.0.0",
-    "semantic-ui": "^2.4.2"
+    "gulp": "^4.0.0",
+    "fomantic-ui": "^2.7.2"
   }
 }

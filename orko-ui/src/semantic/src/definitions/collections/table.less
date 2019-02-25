@@ -31,16 +31,22 @@
   box-shadow: @boxShadow;
   border-radius: @borderRadius;
   text-align: @textAlign;
+  vertical-align: @verticalAlign;
   color: @color;
   border-collapse: @borderCollapse;
   border-spacing: @borderSpacing;
 }
 
 .ui.table:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 .ui.table:last-child {
-  margin-bottom: 0em;
+  margin-bottom: 0;
+}
+.ui.table thead,
+.ui.table tbody {
+  text-align: inherit;
+  vertical-align: inherit;
 }
 
 /*******************************
@@ -76,13 +82,13 @@
 }
 
 .ui.table thead tr:first-child > th:first-child {
-  border-radius: @borderRadius 0em 0em 0em;
+  border-radius: @borderRadius 0 0 0;
 }
 .ui.table thead tr:first-child > th:last-child {
-  border-radius: 0em @borderRadius 0em 0em;
+  border-radius: 0 @borderRadius 0 0;
 }
 .ui.table thead tr:first-child > th:only-child {
-  border-radius: @borderRadius @borderRadius 0em 0em;
+  border-radius: @borderRadius @borderRadius 0 0;
 }
 
 /* Footer */
@@ -105,13 +111,13 @@
   border-left: none;
 }
 .ui.table tfoot tr:first-child > th:first-child {
-  border-radius: 0em 0em 0em @borderRadius;
+  border-radius: 0 0 0 @borderRadius;
 }
 .ui.table tfoot tr:first-child > th:last-child {
-  border-radius: 0em 0em @borderRadius 0em;
+  border-radius: 0 0 @borderRadius 0;
 }
 .ui.table tfoot tr:first-child > th:only-child {
-  border-radius: 0em 0em @borderRadius @borderRadius;
+  border-radius: 0 0 @borderRadius @borderRadius;
 }
 
 /* Table Row */
@@ -138,12 +144,12 @@
   vertical-align: @iconVerticalAlign;
 }
 .ui.table > .icon:only-child {
-  margin: 0em;
+  margin: 0;
 }
 
 /* Table Segment */
 .ui.table.segment {
-  padding: 0em;
+  padding: 0;
 }
 .ui.table.segment:after {
   display: none;
@@ -157,6 +163,7 @@
 @media only screen and (max-width : @largestMobileScreen) {
   .ui.table:not(.unstackable) {
     width: 100%;
+    padding: 0;
   }
   .ui.table:not(.unstackable) tbody,
   .ui.table:not(.unstackable) tr,
@@ -164,12 +171,8 @@
   .ui.table:not(.unstackable) tr > td  {
     display: block !important;
     width: auto !important;
-    display: block !important;
   }
 
-  .ui.table:not(.unstackable) {
-    padding: 0em;
-  }
   .ui.table:not(.unstackable) thead {
     display: @responsiveHeaderDisplay;
   }
@@ -183,10 +186,10 @@
   }
 
   .ui.table:not(.unstackable) tr > th,
-  .ui.table:not(.unstackable) tr > td {
+  .ui.ui.ui.ui.table:not(.unstackable) tr > td {
     background: none;
-    border: none !important;
-    padding: @responsiveCellVerticalPadding @responsiveCellHorizontalPadding !important;
+    border: none;
+    padding: @responsiveCellVerticalPadding @responsiveCellHorizontalPadding;
     box-shadow: @responsiveCellBoxShadow;
   }
   .ui.table:not(.unstackable) th:first-child,
@@ -206,10 +209,8 @@
 *******************************/
 
 /* UI Image */
-.ui.table th .image,
-.ui.table th .image img,
-.ui.table td .image,
-.ui.table td .image img {
+.ui.table .collapsing .image,
+.ui.table .collapsing .image img {
   max-width: none;
 }
 
@@ -252,23 +253,23 @@
   background: @definitionHeaderBackground;
   font-weight: @definitionHeaderFontWeight;
   color: @definitionHeaderColor;
-  box-shadow: -@borderWidth -@borderWidth 0px @borderWidth @definitionPageBackground;
+  box-shadow: -@borderWidth -@borderWidth 0 @borderWidth @definitionPageBackground;
 }
 
 .ui.definition.table tfoot:not(.full-width) th:first-child {
   pointer-events: none;
   background: @definitionFooterBackground;
-  font-weight: @definitionFooterColor;
-  color: @definitionFooterFontWeight;
-  box-shadow: @borderWidth @borderWidth 0px @borderWidth @definitionPageBackground;
+  font-weight: @definitionFooterFontWeight;
+  color: @definitionFooterColor;
+  box-shadow: @borderWidth @borderWidth 0 @borderWidth @definitionPageBackground;
 }
 
 /* Remove Border */
 .ui.celled.definition.table thead:not(.full-width) th:first-child {
-  box-shadow: 0px -@borderWidth 0px @borderWidth @definitionPageBackground;
+  box-shadow: 0 -@borderWidth 0 @borderWidth @definitionPageBackground;
 }
 .ui.celled.definition.table tfoot:not(.full-width) th:first-child {
-  box-shadow: 0px @borderWidth 0px @borderWidth @definitionPageBackground;
+  box-shadow: 0 @borderWidth 0 @borderWidth @definitionPageBackground;
 }
 
 /* Highlight Defining Column */
@@ -306,69 +307,55 @@
     Positive
 ---------------*/
 
-.ui.table tr.positive,
-.ui.table td.positive {
+.ui.ui.ui.ui.table tr.positive,
+.ui.ui.table td.positive {
   box-shadow: @positiveBoxShadow;
-}
-.ui.table tr.positive,
-.ui.table td.positive {
-  background: @positiveBackgroundColor !important;
-  color: @positiveColor !important;
+  background: @positiveBackgroundColor;
+  color: @positiveColor;
 }
 
 /*--------------
      Negative
 ---------------*/
 
-.ui.table tr.negative,
-.ui.table td.negative {
+.ui.ui.ui.ui.table tr.negative,
+.ui.ui.table td.negative {
   box-shadow: @negativeBoxShadow;
-}
-.ui.table tr.negative,
-.ui.table td.negative {
-  background: @negativeBackgroundColor !important;
-  color: @negativeColor !important;
+  background: @negativeBackgroundColor;
+  color: @negativeColor;
 }
 
 /*--------------
       Error
 ---------------*/
 
-.ui.table tr.error,
-.ui.table td.error {
+.ui.ui.ui.ui.table tr.error,
+.ui.ui.table td.error {
   box-shadow: @errorBoxShadow;
+  background: @errorBackgroundColor;
+  color: @errorColor;
 }
-.ui.table tr.error,
-.ui.table td.error {
-  background: @errorBackgroundColor !important;
-  color: @errorColor !important;
-}
+
 /*--------------
      Warning
 ---------------*/
 
-.ui.table tr.warning,
-.ui.table td.warning {
+.ui.ui.ui.ui.table tr.warning,
+.ui.ui.table td.warning {
   box-shadow: @warningBoxShadow;
-}
-.ui.table tr.warning,
-.ui.table td.warning {
-  background: @warningBackgroundColor !important;
-  color: @warningColor !important;
+  background: @warningBackgroundColor;
+  color: @warningColor;
 }
 
 /*--------------
      Active
 ---------------*/
 
-.ui.table tr.active,
-.ui.table td.active {
+.ui.ui.ui.ui.table tr.active,
+.ui.ui.table td.active {
   box-shadow: @activeBoxShadow;
-}
-.ui.table tr.active,
-.ui.table td.active {
-  background: @activeBackgroundColor !important;
-  color: @activeColor !important;
+  background: @activeBackgroundColor;
+  color: @activeColor;
 }
 
 
@@ -402,11 +389,10 @@
   .ui[class*="tablet stackable"].table tr > td  {
     display: block !important;
     width: 100% !important;
-    display: block !important;
   }
 
   .ui[class*="tablet stackable"].table {
-    padding: 0em;
+    padding: 0;
   }
   .ui[class*="tablet stackable"].table thead {
     display: @responsiveHeaderDisplay;
@@ -496,20 +482,20 @@
    Selectable
 ---------------*/
 
-.ui.selectable.table tbody tr:hover,
+.ui.ui.selectable.table tbody tr:hover,
 .ui.table tbody tr td.selectable:hover {
-  background: @selectableBackground !important;
-  color: @selectableTextColor !important;
+  background: @selectableBackground;
+  color: @selectableTextColor;
 }
-.ui.selectable.inverted.table tbody tr:hover,
+.ui.ui.selectable.inverted.table tbody tr:hover,
 .ui.inverted.table tbody tr td.selectable:hover {
-  background: @selectableInvertedBackground !important;
-  color: @selectableInvertedTextColor !important;
+  background: @selectableInvertedBackground;
+  color: @selectableInvertedTextColor;
 }
 
 /* Selectable Cell Link */
 .ui.table tbody tr td.selectable {
-  padding: 0em;
+  padding: 0;
 }
 .ui.table tbody tr td.selectable > a:not(.ui) {
   display: block;
@@ -518,35 +504,35 @@
 }
 
 /* Other States */
-.ui.selectable.table tr.error:hover,
+.ui.ui.selectable.table tr.error:hover,
 .ui.table tr td.selectable.error:hover,
 .ui.selectable.table tr:hover td.error {
-  background: @errorBackgroundHover !important;
-  color: @errorColorHover !important;
+  background: @errorBackgroundHover;
+  color: @errorColorHover;
 }
-.ui.selectable.table tr.warning:hover,
+.ui.ui.selectable.table tr.warning:hover,
 .ui.table tr td.selectable.warning:hover,
 .ui.selectable.table tr:hover td.warning {
-  background: @warningBackgroundHover !important;
-  color: @warningColorHover !important;
+  background: @warningBackgroundHover;
+  color: @warningColorHover;
 }
-.ui.selectable.table tr.active:hover,
+.ui.ui.selectable.table tr.active:hover,
 .ui.table tr td.selectable.active:hover,
 .ui.selectable.table tr:hover td.active {
-  background: @activeBackgroundColor !important;
-  color: @activeColor !important;
+  background: @activeBackgroundColor;
+  color: @activeColor;
 }
-.ui.selectable.table tr.positive:hover,
+.ui.ui.selectable.table tr.positive:hover,
 .ui.table tr td.selectable.positive:hover,
 .ui.selectable.table tr:hover td.positive {
-  background: @positiveBackgroundHover !important;
-  color: @positiveColorHover !important;
+  background: @positiveBackgroundHover;
+  color: @positiveColorHover;
 }
-.ui.selectable.table tr.negative:hover,
+.ui.ui.selectable.table tr.negative:hover,
 .ui.table tr td.selectable.negative:hover,
 .ui.selectable.table tr:hover td.negative {
-  background: @negativeBackgroundHover !important;
-  color: @negativeColorHover !important;
+  background: @negativeBackgroundHover;
+  color: @negativeColorHover;
 }
 
 
@@ -557,10 +543,10 @@
 
 /* Middle */
 .ui.attached.table {
-  top: 0px;
-  bottom: 0px;
-  border-radius: 0px;
-  margin: 0em @attachedHorizontalOffset;
+  top: 0;
+  bottom: 0;
+  border-radius: 0;
+  margin: 0 @attachedHorizontalOffset;
   width: @attachedWidth;
   max-width: @attachedWidth;
   box-shadow: @attachedBoxShadow;
@@ -572,27 +558,27 @@
 
 /* Top */
 .ui[class*="top attached"].table {
-  bottom: 0px;
-  margin-bottom: 0em;
+  bottom: 0;
+  margin-bottom: 0;
   top: @attachedTopOffset;
   margin-top: @verticalMargin;
-  border-radius: @borderRadius @borderRadius 0em 0em;
+  border-radius: @borderRadius @borderRadius 0 0;
 }
 .ui.table[class*="top attached"]:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 
 /* Bottom */
 .ui[class*="bottom attached"].table {
-  bottom: 0px;
-  margin-top: 0em;
+  bottom: 0;
+  margin-top: 0;
   top: @attachedBottomOffset;
   margin-bottom: @verticalMargin;
   box-shadow: @attachedBottomBoxShadow;
-  border-radius: 0em 0em @borderRadius @borderRadius;
+  border-radius: 0 0 @borderRadius @borderRadius;
 }
 .ui[class*="bottom attached"].table:last-child {
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
 
 /*--------------
@@ -613,8 +599,8 @@
 
 /* Allow striped active hover */
 .ui.striped.selectable.selectable.selectable.table tbody tr.active:hover {
-  background: @activeBackgroundHover !important;
-  color: @activeColorHover !important;
+  background: @activeBackgroundHover;
+  color: @activeColorHover;
 }
 
 /*--------------
@@ -625,132 +611,62 @@
 .ui.table [class*="single line"] {
   white-space: nowrap;
 }
-.ui.table[class*="single line"],
-.ui.table [class*="single line"] {
-  white-space: nowrap;
-}
 
 /*-------------------
        Colors
 --------------------*/
 
-/* Red */
-.ui.red.table {
-  border-top: @coloredBorderSize solid @red;
-}
-.ui.inverted.red.table {
-  background-color: @red !important;
-  color: @white !important;
-}
+each(@colors, {
+  @color: replace(@key, '@', '');
+  @c: @colors[@@color][color];
+  @t: @colors[@@color][text];
+  @ht: @colors[@@color][hoverText];
+  @l: @colors[@@color][light];
+  @lh: @colors[@@color][lightHover];
+  @r: @colors[@@color][ribbon];
+  @isDark: @colors[@@color][isDark];
+  @isVeryDark: @colors[@@color][isVeryDark];
 
-/* Orange */
-.ui.orange.table {
-  border-top: @coloredBorderSize solid @orange;
-}
-.ui.inverted.orange.table {
-  background-color: @orange !important;
-  color: @white !important;
-}
-
-/* Yellow */
-.ui.yellow.table {
-  border-top: @coloredBorderSize solid @yellow;
-}
-.ui.inverted.yellow.table {
-  background-color: @yellow !important;
-  color: @white !important;
-}
-
-/* Olive */
-.ui.olive.table {
-  border-top: @coloredBorderSize solid @olive;
-}
-.ui.inverted.olive.table {
-  background-color: @olive !important;
-  color: @white !important;
-}
-
-/* Green */
-.ui.green.table {
-  border-top: @coloredBorderSize solid @green;
-}
-.ui.inverted.green.table {
-  background-color: @green !important;
-  color: @white !important;
-}
-
-/* Teal */
-.ui.teal.table {
-  border-top: @coloredBorderSize solid @teal;
-}
-.ui.inverted.teal.table {
-  background-color: @teal !important;
-  color: @white !important;
-}
-
-/* Blue */
-.ui.blue.table {
-  border-top: @coloredBorderSize solid @blue;
-}
-.ui.inverted.blue.table {
-  background-color: @blue !important;
-  color: @white !important;
-}
-
-/* Violet */
-.ui.violet.table {
-  border-top: @coloredBorderSize solid @violet;
-}
-.ui.inverted.violet.table {
-  background-color: @violet !important;
-  color: @white !important;
-}
-
-/* Purple */
-.ui.purple.table {
-  border-top: @coloredBorderSize solid @purple;
-}
-.ui.inverted.purple.table {
-  background-color: @purple !important;
-  color: @white !important;
-}
-
-/* Pink */
-.ui.pink.table {
-  border-top: @coloredBorderSize solid @pink;
-}
-.ui.inverted.pink.table {
-  background-color: @pink !important;
-  color: @white !important;
-}
-
-/* Brown */
-.ui.brown.table {
-  border-top: @coloredBorderSize solid @brown;
-}
-.ui.inverted.brown.table {
-  background-color: @brown !important;
-  color: @white !important;
-}
-
-/* Grey */
-.ui.grey.table {
-  border-top: @coloredBorderSize solid @grey;
-}
-.ui.inverted.grey.table {
-  background-color: @grey !important;
-  color: @white !important;
-}
-
-/* Black */
-.ui.black.table {
-  border-top: @coloredBorderSize solid @black;
-}
-.ui.inverted.black.table {
-  background-color: @black !important;
-  color: @white !important;
-}
-
+  .ui.@{color}.table {
+    border-top: @coloredBorderSize solid @c;
+  }
+  .ui.inverted.@{color}.table {
+    background-color: @c;
+    color: @white;
+  }
+  .ui.ui.ui.ui.table tr.@{color},
+  .ui.ui.table td.@{color} {
+    box-shadow: @stateMarkerWidth 0 0 @r inset;
+    & when (@isDark) {
+      background: @l;
+    }
+    & when not (@isDark) {
+      background: screen(@l,@blendingBaseColor);
+    }
+    & when (@isVeryDark) {
+      color: @white;
+    }
+    & when not (@isVeryDark) {
+      color: @t;
+    }
+  }
+  .ui.ui.selectable.table tr.@{color}:hover,
+  .ui.table tr td.selectable.@{color}:hover,
+  .ui.selectable.table tr:hover td.@{color} {
+    & when (@isDark) {
+      background: @lh;
+    }
+    & when not (@isDark) {
+      background: screen(@lh,@blendingBaseColor);
+    }
+    & when (@isVeryDark) {
+      color: @white;
+    }
+    & when not (@isVeryDark) {
+      color: @ht;
+    }
+  }
+})
 
 /*--------------
   Column Count
@@ -899,7 +815,7 @@
   height: 1em;
   width: @sortableIconWidth;
   opacity: @sortableIconOpacity;
-  margin: 0em 0em 0em @sortableIconDistance;
+  margin: 0 0 0 @sortableIconDistance;
   font-family: @sortableIconFont;
 }
 .ui.sortable.table thead th.ascending:after {
@@ -961,11 +877,11 @@
 }
 .ui.inverted.table th {
   background-color: @invertedHeaderBackground;
-  border-color: @invertedHeaderBorderColor !important;
-  color: @invertedHeaderColor !important;
+  border-color: @invertedHeaderBorderColor;
+  color: @invertedHeaderColor;
 }
 .ui.inverted.table tr td {
-  border-color: @invertedCellBorderColor !important;
+  border-color: @invertedCellBorderColor;
 }
 
 .ui.inverted.table tr.disabled td,
@@ -1018,7 +934,7 @@
   background: @basicTableCellBackground;
 }
 .ui.basic.striped.table tbody tr:nth-child(2n) {
-  background-color: @basicTableStripedBackground !important;
+  background-color: @basicTableStripedBackground;
 }
 
 /* Very Basic */
@@ -1031,14 +947,14 @@
 }
 .ui[class*="very basic"].table:not(.sortable):not(.striped) th:first-child,
 .ui[class*="very basic"].table:not(.sortable):not(.striped) td:first-child {
-  padding-left: 0em;
+  padding-left: 0;
 }
 .ui[class*="very basic"].table:not(.sortable):not(.striped) th:last-child,
 .ui[class*="very basic"].table:not(.sortable):not(.striped) td:last-child {
-  padding-right: 0em;
+  padding-right: 0;
 }
 .ui[class*="very basic"].table:not(.sortable):not(.striped) thead tr:first-child th {
-  padding-top: 0em;
+  padding-top: 0;
 }
 
 /*--------------

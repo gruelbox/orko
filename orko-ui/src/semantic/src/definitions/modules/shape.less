@@ -36,15 +36,12 @@
 }
 
 .ui.shape .side {
+  display: none;
   opacity: 1;
   width: 100%;
 
   margin: @sideMargin !important;
   backface-visibility: @backfaceVisibility;
-}
-
-.ui.shape .side {
-  display: none;
 }
 
 .ui.shape .side * {
@@ -115,8 +112,8 @@
 
 .ui.shape .animating.side {
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   display: block;
   z-index: @animatingZIndex;
 }
@@ -131,8 +128,6 @@
 
 .ui.shape.animating .sides {
   position: absolute;
-}
-.ui.shape.animating .sides {
   transition: @transition;
 }
 .ui.shape.animating .side {
