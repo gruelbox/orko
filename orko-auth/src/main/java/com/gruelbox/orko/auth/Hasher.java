@@ -53,8 +53,8 @@ public class Hasher {
   }
 
   public String hash(String value, String salt) {
-    Preconditions.checkNotNull(value);
-    Preconditions.checkNotNull(salt);
+    Preconditions.checkNotNull(value, "Null value cannot be hashed");
+    Preconditions.checkNotNull(salt, "Salt not supplied");
     KeySpec spec = new PBEKeySpec(value.toCharArray(), Base64.getDecoder().decode(salt), 65536, 256);
     try {
       SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
