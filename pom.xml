@@ -223,7 +223,8 @@
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.badgerwithagun.2</morf.version>
 
-    <dropwizard-guice-box-version>0.0.3</dropwizard-guice-box-version>
+    <dropwizard-https-redirect-version>0.0.4-SNAPSHOT</dropwizard-https-redirect-version>
+    <dropwizard-guice-box-version>0.0.4-SNAPSHOT</dropwizard-guice-box-version>
 
     <!-- Sonar -->
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
@@ -244,7 +245,7 @@
       <dependency>
         <groupId>com.gruelbox</groupId>
         <artifactId>dropwizard-https-redirect</artifactId>
-        <version>0.0.3</version>
+        <version>${dropwizard-https-redirect-version}</version>
       </dependency>
       <dependency>
         <groupId>com.gruelbox</groupId>
