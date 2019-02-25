@@ -1,0 +1,331 @@
+STATUS | wrapper  | 2019/02/21 13:16:36 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 13:16:36 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 13:16:36 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 13:16:36 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 13:16:36 | 
+WARN   | wrapper  | 2019/02/21 13:16:36 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 13:16:36 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 13:16:36 | 
+STATUS | wrapper  | 2019/02/21 13:16:37 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 13:16:37 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 13:16:37 |   Command: "C:\Program Files (x86)\Java\jre1.8.0_111\bin\java" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="uzADcCvAcx604B4S" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=3324 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+INFO   | jvm 1    | 2019/02/21 13:16:37 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager: 
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager: ERROR - Unable to load the Wrapper's native library 'wrapper.dll'.
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         The file is located on the path at the following location but
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         could not be loaded:
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:           c:\code\orko\install home\bin\..\lib\wrapper.dll
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         Please verify that the file is both readable and executable by the
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         current user and that the file has not been corrupted in any way.
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         One common cause of this problem is running a 32-bit version
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         of the Wrapper with a 64-bit version of Java, or vica versa.
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         This is a 32-bit JVM.
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:         Reported cause:
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager:           C:\code\orko\install home\lib\wrapper.dll: Can't load AMD 64-bit .dll on a IA 32-bit platform
+INFO   | jvm 1    | 2019/02/21 13:16:42 | WrapperManager: 
+ERROR  | wrapper  | 2019/02/21 13:17:03 | Shutdown failed: Timed out waiting for the JVM to terminate.
+ERROR  | wrapper  | 2019/02/21 13:17:03 | JVM did not exit on request, termination requested.
+STATUS | wrapper  | 2019/02/21 13:17:03 | JVM exited after being requested to terminate.
+STATUS | wrapper  | 2019/02/21 13:17:04 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 13:17:32 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 13:17:32 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 13:17:32 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 13:17:32 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 13:17:32 | 
+WARN   | wrapper  | 2019/02/21 13:17:32 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 13:17:32 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 13:17:32 | 
+STATUS | wrapper  | 2019/02/21 13:17:33 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 13:17:33 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 13:17:33 |   Command: "C:\Program Files (x86)\Java\jre1.8.0_111\bin\java" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="ufEu8rWvXQR5BnG1" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=8224 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager: 
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager: ERROR - Unable to load the Wrapper's native library 'wrapper.dll'.
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         The file is located on the path at the following location but
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         could not be loaded:
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:           c:\code\orko\install home\bin\..\lib\wrapper.dll
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         Please verify that the file is both readable and executable by the
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         current user and that the file has not been corrupted in any way.
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         One common cause of this problem is running a 32-bit version
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         of the Wrapper with a 64-bit version of Java, or vica versa.
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         This is a 32-bit JVM.
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:         Reported cause:
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager:           C:\code\orko\install home\lib\wrapper.dll: Can't load AMD 64-bit .dll on a IA 32-bit platform
+INFO   | jvm 1    | 2019/02/21 13:17:33 | WrapperManager: 
+ERROR  | wrapper  | 2019/02/21 13:17:54 | Shutdown failed: Timed out waiting for the JVM to terminate.
+ERROR  | wrapper  | 2019/02/21 13:17:54 | JVM did not exit on request, termination requested.
+STATUS | wrapper  | 2019/02/21 13:17:54 | JVM exited after being requested to terminate.
+STATUS | wrapper  | 2019/02/21 13:17:54 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 13:24:48 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 13:24:48 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 13:24:48 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 13:24:48 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 13:24:48 | 
+WARN   | wrapper  | 2019/02/21 13:24:48 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 13:24:48 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 13:24:48 | 
+STATUS | wrapper  | 2019/02/21 13:24:48 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 13:24:48 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 13:24:48 |   Command: "C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="xXOW4zeE7dUHu1hb" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=18500 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperSimpleApp Error: Unable to locate the class orko-app : java.lang.ClassNotFoundException: orko-app
+INFO   | jvm 1    | 2019/02/21 13:24:49 | 
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperSimpleApp Usage:
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: Error in WrapperListener.start callback.  java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at java.text.MessageFormat.makeFormat(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at java.text.MessageFormat.applyPattern(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at java.text.MessageFormat.<init>(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at java.text.MessageFormat.format(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperResources.getString(WrapperResources.java:215)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.showUsage(WrapperSimpleApp.java:621)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.start(WrapperSimpleApp.java:465)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperManager$10.run(WrapperManager.java:4429)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: Caused by: java.lang.NumberFormatException: For input string: "app_class{/app_method}"
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at java.lang.NumberFormatException.forInputString(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:24:49 | WrapperManager Error: 	... 8 more
+STATUS | wrapper  | 2019/02/21 13:24:50 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 13:37:11 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 13:37:11 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 13:37:11 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 13:37:11 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 13:37:11 | 
+WARN   | wrapper  | 2019/02/21 13:37:11 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 13:37:11 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 13:37:11 | 
+STATUS | wrapper  | 2019/02/21 13:37:11 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 13:37:11 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 13:37:11 |   Command: "C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="CFSyYBPgwPxHucuk" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=20820 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+INFO   | jvm 1    | 2019/02/21 13:37:11 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperSimpleApp Error: Unable to locate the class orko-app : java.lang.ClassNotFoundException: orko-app
+INFO   | jvm 1    | 2019/02/21 13:37:12 | 
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperSimpleApp Usage:
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: Error in WrapperListener.start callback.  java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at java.text.MessageFormat.makeFormat(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at java.text.MessageFormat.applyPattern(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at java.text.MessageFormat.<init>(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at java.text.MessageFormat.format(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperResources.getString(WrapperResources.java:215)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.showUsage(WrapperSimpleApp.java:621)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.start(WrapperSimpleApp.java:465)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperManager$10.run(WrapperManager.java:4429)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: Caused by: java.lang.NumberFormatException: For input string: "app_class{/app_method}"
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at java.lang.NumberFormatException.forInputString(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:37:12 | WrapperManager Error: 	... 8 more
+STATUS | wrapper  | 2019/02/21 13:37:13 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 13:42:52 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 13:42:52 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 13:42:52 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 13:42:52 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 13:42:52 | 
+WARN   | wrapper  | 2019/02/21 13:42:52 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 13:42:52 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 13:42:52 | 
+STATUS | wrapper  | 2019/02/21 13:42:52 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 13:42:52 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 13:42:52 |   Command: "C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="EwMZhscOlQ_8TpqL" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=11568 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app.jar server example-config.yml
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperSimpleApp Error: Unable to locate the class orko-app.jar : java.lang.ClassNotFoundException: orko-app.jar
+INFO   | jvm 1    | 2019/02/21 13:42:53 | 
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperSimpleApp Usage:
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: Error in WrapperListener.start callback.  java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at java.text.MessageFormat.makeFormat(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at java.text.MessageFormat.applyPattern(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at java.text.MessageFormat.<init>(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at java.text.MessageFormat.format(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperResources.getString(WrapperResources.java:215)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.showUsage(WrapperSimpleApp.java:621)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.start(WrapperSimpleApp.java:465)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperManager$10.run(WrapperManager.java:4429)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: Caused by: java.lang.NumberFormatException: For input string: "app_class{/app_method}"
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at java.lang.NumberFormatException.forInputString(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:42:53 | WrapperManager Error: 	... 8 more
+STATUS | wrapper  | 2019/02/21 13:42:54 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 13:43:36 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 13:43:36 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 13:43:36 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 13:43:36 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 13:43:36 | 
+WARN   | wrapper  | 2019/02/21 13:43:36 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 13:43:36 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 13:43:36 | 
+STATUS | wrapper  | 2019/02/21 13:43:37 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 13:43:37 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 13:43:37 |   Command: "C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="Egi0sStN0oNcg7Vz" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=1732 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app.jar server example-config.yml
+INFO   | jvm 1    | 2019/02/21 13:43:37 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperSimpleApp Error: Unable to locate the class orko-app.jar : java.lang.ClassNotFoundException: orko-app.jar
+INFO   | jvm 1    | 2019/02/21 13:43:38 | 
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperSimpleApp Usage:
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: Error in WrapperListener.start callback.  java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at java.text.MessageFormat.makeFormat(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at java.text.MessageFormat.applyPattern(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at java.text.MessageFormat.<init>(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at java.text.MessageFormat.format(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperResources.getString(WrapperResources.java:215)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.showUsage(WrapperSimpleApp.java:621)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.start(WrapperSimpleApp.java:465)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperManager$10.run(WrapperManager.java:4429)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: Caused by: java.lang.NumberFormatException: For input string: "app_class{/app_method}"
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at java.lang.NumberFormatException.forInputString(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:38 | WrapperManager Error: 	... 8 more
+STATUS | wrapper  | 2019/02/21 13:43:39 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 13:43:56 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 13:43:56 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 13:43:56 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 13:43:56 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 13:43:56 | 
+WARN   | wrapper  | 2019/02/21 13:43:56 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 13:43:56 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 13:43:56 | 
+STATUS | wrapper  | 2019/02/21 13:43:57 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 13:43:57 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 13:43:57 |   Command: "C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="EvFZr7h4BQIe6JMD" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=22804 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperSimpleApp Error: Unable to locate the class orko-app : java.lang.ClassNotFoundException: orko-app
+INFO   | jvm 1    | 2019/02/21 13:43:57 | 
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperSimpleApp Usage:
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: Error in WrapperListener.start callback.  java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at java.text.MessageFormat.makeFormat(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at java.text.MessageFormat.applyPattern(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at java.text.MessageFormat.<init>(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at java.text.MessageFormat.format(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperResources.getString(WrapperResources.java:215)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.showUsage(WrapperSimpleApp.java:621)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.start(WrapperSimpleApp.java:465)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperManager$10.run(WrapperManager.java:4429)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: Caused by: java.lang.NumberFormatException: For input string: "app_class{/app_method}"
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at java.lang.NumberFormatException.forInputString(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 13:43:57 | WrapperManager Error: 	... 8 more
+STATUS | wrapper  | 2019/02/21 13:43:58 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 20:47:07 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 20:47:07 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 20:47:07 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 20:47:07 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 20:47:07 | 
+WARN   | wrapper  | 2019/02/21 20:47:07 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 20:47:07 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 20:47:07 | 
+ERROR  | wrapper  | 2019/02/21 20:47:08 | Unable to execute Java command.  The system cannot find the file specified. (0x2)
+ERROR  | wrapper  | 2019/02/21 20:47:08 |     "java" -version
+ERROR  | wrapper  | 2019/02/21 20:47:08 | Failed to retrieve the version of Java. Resolving to the lowest supported version (1.4).
+STATUS | wrapper  | 2019/02/21 20:47:08 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 20:47:08 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 20:47:08 |   Command: "java" -Dfile.encoding=Cp1252 -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="atEHdZ7KtG5mAvxX" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=9760 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+FATAL  | wrapper  | 2019/02/21 20:47:08 | Unable to execute Java command.  The system cannot find the file specified. (0x2)
+FATAL  | wrapper  | 2019/02/21 20:47:08 |     "java" -Dfile.encoding=Cp1252 -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="atEHdZ7KtG5mAvxX" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=9760 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+ADVICE | wrapper  | 2019/02/21 20:47:08 | 
+ADVICE | wrapper  | 2019/02/21 20:47:08 | --------------------------------------------------------------------
+ADVICE | wrapper  | 2019/02/21 20:47:08 | Advice:
+ADVICE | wrapper  | 2019/02/21 20:47:08 | Usually when the Wrapper fails to start the JVM process, it is
+ADVICE | wrapper  | 2019/02/21 20:47:08 | because of a problem with the value of the configured Java command.
+ADVICE | wrapper  | 2019/02/21 20:47:08 | Currently:
+ADVICE | wrapper  | 2019/02/21 20:47:08 | wrapper.java.command=java
+ADVICE | wrapper  | 2019/02/21 20:47:08 | Please make sure that the PATH or any other referenced environment
+ADVICE | wrapper  | 2019/02/21 20:47:08 | variables are correctly defined for the current environment.
+ADVICE | wrapper  | 2019/02/21 20:47:08 | --------------------------------------------------------------------
+ADVICE | wrapper  | 2019/02/21 20:47:08 | 
+STATUS | wrapper  | 2019/02/21 20:47:08 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 20:47:26 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 20:47:26 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 20:47:26 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 20:47:26 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 20:47:26 | 
+WARN   | wrapper  | 2019/02/21 20:47:26 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 20:47:26 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 20:47:26 | 
+ERROR  | wrapper  | 2019/02/21 20:47:26 | Unable to execute Java command.  The system cannot find the file specified. (0x2)
+ERROR  | wrapper  | 2019/02/21 20:47:26 |     "java" -version
+ERROR  | wrapper  | 2019/02/21 20:47:26 | Failed to retrieve the version of Java. Resolving to the lowest supported version (1.4).
+STATUS | wrapper  | 2019/02/21 20:47:26 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 20:47:26 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 20:47:26 |   Command: "java" -Dfile.encoding=Cp1252 -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="ansVU7Q7xi0oKBJt" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=15860 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+FATAL  | wrapper  | 2019/02/21 20:47:26 | Unable to execute Java command.  The system cannot find the file specified. (0x2)
+FATAL  | wrapper  | 2019/02/21 20:47:26 |     "java" -Dfile.encoding=Cp1252 -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="ansVU7Q7xi0oKBJt" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=15860 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+ADVICE | wrapper  | 2019/02/21 20:47:26 | 
+ADVICE | wrapper  | 2019/02/21 20:47:26 | --------------------------------------------------------------------
+ADVICE | wrapper  | 2019/02/21 20:47:26 | Advice:
+ADVICE | wrapper  | 2019/02/21 20:47:26 | Usually when the Wrapper fails to start the JVM process, it is
+ADVICE | wrapper  | 2019/02/21 20:47:26 | because of a problem with the value of the configured Java command.
+ADVICE | wrapper  | 2019/02/21 20:47:26 | Currently:
+ADVICE | wrapper  | 2019/02/21 20:47:26 | wrapper.java.command=java
+ADVICE | wrapper  | 2019/02/21 20:47:26 | Please make sure that the PATH or any other referenced environment
+ADVICE | wrapper  | 2019/02/21 20:47:26 | variables are correctly defined for the current environment.
+ADVICE | wrapper  | 2019/02/21 20:47:26 | --------------------------------------------------------------------
+ADVICE | wrapper  | 2019/02/21 20:47:26 | 
+STATUS | wrapper  | 2019/02/21 20:47:27 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 21:32:33 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 21:32:33 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 21:32:33 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 21:32:33 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 21:32:33 | 
+WARN   | wrapper  | 2019/02/21 21:32:33 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 21:32:33 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 21:32:33 | 
+STATUS | wrapper  | 2019/02/21 21:32:33 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 21:32:33 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 21:32:33 |   Command: "C:\ProgramData\Oracle\Java\javapath\java.exe" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="sjeO_wYiAoO0Fv1N" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=8196 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp orko-app server example-config.yml
+INFO   | jvm 1    | 2019/02/21 21:32:33 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperSimpleApp Error: Unable to locate the class orko-app : java.lang.ClassNotFoundException: orko-app
+INFO   | jvm 1    | 2019/02/21 21:32:35 | 
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperSimpleApp Usage:
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: Error in WrapperListener.start callback.  java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at java.text.MessageFormat.makeFormat(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at java.text.MessageFormat.applyPattern(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at java.text.MessageFormat.<init>(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at java.text.MessageFormat.format(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperResources.getString(WrapperResources.java:215)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.showUsage(WrapperSimpleApp.java:621)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.start(WrapperSimpleApp.java:465)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperManager$10.run(WrapperManager.java:4429)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: Caused by: java.lang.NumberFormatException: For input string: "app_class{/app_method}"
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at java.lang.NumberFormatException.forInputString(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:32:35 | WrapperManager Error: 	... 8 more
+STATUS | wrapper  | 2019/02/21 21:32:37 | <-- Wrapper Stopped
+STATUS | wrapper  | 2019/02/21 21:33:52 | --> Wrapper Started as Console
+STATUS | wrapper  | 2019/02/21 21:33:52 | Java Service Wrapper Community Edition 64-bit 3.5.37
+STATUS | wrapper  | 2019/02/21 21:33:52 |   Copyright (C) 1999-2018 Tanuki Software, Ltd. All Rights Reserved.
+STATUS | wrapper  | 2019/02/21 21:33:52 |     http://wrapper.tanukisoftware.com
+STATUS | wrapper  | 2019/02/21 21:33:52 | 
+WARN   | wrapper  | 2019/02/21 21:33:52 | Running in a console with QuickEdit Mode. Be careful when selecting text in the
+WARN   | wrapper  | 2019/02/21 21:33:52 |   console as this may cause to block the Java Application.
+WARN   | wrapper  | 2019/02/21 21:33:52 | 
+STATUS | wrapper  | 2019/02/21 21:33:52 | Launching a JVM...
+INFO   | wrapper  | 2019/02/21 21:33:52 | Java Command Line:
+INFO   | wrapper  | 2019/02/21 21:33:52 |   Command: "C:\ProgramData\Oracle\Java\javapath\java.exe" -Djava.library.path="../lib" -classpath "../lib/wrapper.jar;../lib/classes" -Dwrapper.key="sdiPS_seoAr71oxB" -Dwrapper.port=32000 -Dwrapper.jvm.port.min=31000 -Dwrapper.jvm.port.max=31999 -Dwrapper.pid=12684 -Dwrapper.version="3.5.37" -Dwrapper.native_library="wrapper" -Dwrapper.arch="x86" -Dwrapper.cpu.timeout="10" -Dwrapper.jvmid=1 org.tanukisoftware.wrapper.WrapperSimpleApp com.gruelbox.orko.app.monolith.MonolithApplication server example-config.yml
+INFO   | jvm 1    | 2019/02/21 21:33:52 | WrapperManager: Initializing...
+INFO   | jvm 1    | 2019/02/21 21:33:52 | WrapperSimpleApp Error: Unable to locate the class com.gruelbox.orko.app.monolith.MonolithApplication : java.lang.ClassNotFoundException: com.gruelbox.orko.app.monolith.MonolithApplication
+INFO   | jvm 1    | 2019/02/21 21:33:52 | 
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperSimpleApp Usage:
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: Error in WrapperListener.start callback.  java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: java.lang.IllegalArgumentException: can't parse argument number: app_class{/app_method}
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at java.text.MessageFormat.makeFormat(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at java.text.MessageFormat.applyPattern(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at java.text.MessageFormat.<init>(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at java.text.MessageFormat.format(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperResources.getString(WrapperResources.java:215)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.showUsage(WrapperSimpleApp.java:621)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperSimpleApp.start(WrapperSimpleApp.java:465)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at org.tanukisoftware.wrapper.WrapperManager$10.run(WrapperManager.java:4429)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: Caused by: java.lang.NumberFormatException: For input string: "app_class{/app_method}"
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at java.lang.NumberFormatException.forInputString(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	at java.lang.Integer.parseInt(Unknown Source)
+INFO   | jvm 1    | 2019/02/21 21:33:53 | WrapperManager Error: 	... 8 more
+STATUS | wrapper  | 2019/02/21 21:33:54 | <-- Wrapper Stopped
