@@ -214,17 +214,17 @@
 
     <!--<xchange.groupid>org.knowm.xchange</xchange.groupid> -->
     <xchange.groupid>com.gruelbox</xchange.groupid>
-    <xchange.version>4.3.16-SNAPSHOT</xchange.version>
+    <xchange.version>4.3.16.1</xchange.version>
 
     <!--<xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid> -->
     <xchange.stream.groupid>com.gruelbox</xchange.stream.groupid>
-    <xchange.stream.version>4.3.16.1-SNAPSHOT</xchange.stream.version>
+    <xchange.stream.version>4.3.16.1</xchange.stream.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.badgerwithagun.2</morf.version>
 
-    <dropwizard-https-redirect-version>0.0.4-SNAPSHOT</dropwizard-https-redirect-version>
-    <dropwizard-guice-box-version>0.0.4-SNAPSHOT</dropwizard-guice-box-version>
+    <dropwizard-https-redirect-version>0.0.4</dropwizard-https-redirect-version>
+    <dropwizard-guice-box-version>0.0.5</dropwizard-guice-box-version>
 
     <!-- Sonar -->
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
