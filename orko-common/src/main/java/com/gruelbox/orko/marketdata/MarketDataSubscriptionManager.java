@@ -75,6 +75,7 @@ import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
+import org.knowm.xchange.exceptions.RateLimitExceededException;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -108,6 +109,7 @@ import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.exchange.RateController;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -467,6 +469,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         // Socket timeouts are pretty common. Log it quietly and back off
         LOGGER.error("Throttling access to {} due to socket timeout fetching {}", exchangeName, dataDescription);
         exchangeService.rateController(exchangeName).throttle();
+      } catch (RateLimitExceededException e) {
+        LOGGER.error("Hit rate limiting on {} when fetching {}. Backing off", exchangeName, dataDescription);
+        notificationService.error("Getting rate limiting errors on " + exchangeName + ". Pausing access and will "
+            + "resume at a lower rate.");
+        RateController rateController = exchangeService.rateController(exchangeName);
+        rateController.backoff();
+        rateController.pause();
       } catch (Exception e) {
         LocalDateTime now = now();
         if (lastPollException == null ||
