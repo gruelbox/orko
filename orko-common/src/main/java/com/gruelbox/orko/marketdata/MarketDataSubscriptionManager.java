@@ -201,7 +201,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * Updates the subscriptions for the specified exchanges on the next loop
    * tick. The delay is to avoid a large number of new subscriptions in quick
    * succession causing rate bans on exchanges. Call with an empty set to cancel
-   * all subscriptions. None of the streams (e.g. {@link #getTicker(TickerSpec)}
+   * all subscriptions. None of the streams (e.g. {@link #getTickers()}
    * will return anything until this is called, but there is no strict order in
    * which they need to be called.
    *
