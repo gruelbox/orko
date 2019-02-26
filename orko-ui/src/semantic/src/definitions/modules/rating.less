@@ -28,13 +28,13 @@
   vertical-align: @verticalAlign;
 }
 .ui.rating:last-child {
-  margin-right: 0em;
+  margin-right: 0;
 }
 
 /* Icon */
 .ui.rating .icon {
-  padding: 0em;
-  margin: 0em;
+  padding: 0;
+  margin: 0;
   text-align: center;
   font-weight: @normal;
   font-style: normal;
@@ -75,61 +75,33 @@
 }
 
 
-/*-------------------
-        Star
---------------------*/
+/*--------------
+     Colors
+-------------- */
 
-/* Inactive */
-.ui.star.rating .icon {
-  width: @starIconWidth;
-  height: @starIconHeight;
-  background: @starInactiveBackground;
-  color: @starInactiveColor;
-  text-shadow: @starInactiveTextShadow;
-}
+each(@colors, {
+  @color: replace(@key, '@', '');
+  @c: @colors[@@color][color];
+  @l: @colors[@@color][light];
+  @h: @colors[@@color][hover];
+  @lh: @colors[@@color][lightHover];
 
-/* Active Star */
-.ui.star.rating .active.icon {
-  background: @starActiveBackground !important;
-  color: @starActiveColor !important;
-  text-shadow: @starActiveTextShadow !important;
-}
-
-/* Selected Star */
-.ui.star.rating .icon.selected,
-.ui.star.rating .icon.selected.active {
-  background: @starSelectedBackground !important;
-  color: @starSelectedColor !important;
-  text-shadow: @starSelectedTextShadow !important;
-}
-
-
-/*-------------------
-        Heart
---------------------*/
-
-.ui.heart.rating .icon {
-  width: @heartIconWidth;
-  height: @heartIconHeight;
-  background: @heartInactiveBackground;
-  color: @heartInactiveColor;
-  text-shadow: @heartInactiveTextShadow !important;
-}
-
-/* Active Heart */
-.ui.heart.rating .active.icon {
-  background: @heartActiveBackground !important;
-  color: @heartActiveColor !important;
-  text-shadow: @heartActiveTextShadow !important;
-}
-
-/* Selected Heart */
-.ui.heart.rating .icon.selected,
-.ui.heart.rating .icon.selected.active {
-  background: @heartSelectedBackground !important;
-  color: @heartSelectedColor !important;
-  text-shadow: @heartSelectedTextShadow !important;
-}
+  .ui.@{color}.rating .active.icon {
+    color: @l;
+    text-shadow: 0px -@shadowWidth 0px @c,
+                 -@shadowWidth 0px 0px @c,
+                 0px @shadowWidth 0px @c,
+                 @shadowWidth 0px 0px @c;
+  }
+  .ui.@{color}.rating .icon.selected,
+  .ui.@{color}.rating .icon.selected.active {
+    color: @lh;
+    text-shadow: 0px -@shadowWidth 0px @h,
+                 -@shadowWidth 0px 0px @h,
+                 0px @shadowWidth 0px @h,
+                 @shadowWidth 0px 0px @h;
+  }
+})
 
 
 /*******************************

@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +55,7 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.StopOrder;
+import org.knowm.xchange.exceptions.FundsExceededException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.CancelOrderParams;
@@ -273,34 +275,21 @@ public class ExchangeResource implements WebResource {
    * Submits a new order.
    *
    * @param exchange The exchange to submit to.
-   * @return
-   * @throws IOException
+   * @return HTTP response.
    */
   @POST
   @Path("{exchange}/orders")
   @Timed
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) throws IOException {
+  public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) {
 
-    if (!order.isStop() && !order.isLimit())
-      return Response.status(400).entity(new ErrorResponse("Market orders not supported at the moment.")).build();
-
-    if (order.isStop()) {
-      if (order.isLimit()) {
-        if (exchange.equals(Exchanges.BITFINEX)) {
-          return Response.status(400).entity(new ErrorResponse("Stop limit orders not supported for Bitfinex at the moment.")).build();
-        }
-      } else {
-        if (exchange.equals(Exchanges.BINANCE)) {
-          return Response.status(400).entity(new ErrorResponse("Stop market orders not supported for Binance at the moment. Specify a limit price.")).build();
-        }
-      }
-    }
-
-    TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
+    Optional<Response> error = checkOrderPreconditions(exchange, order);
+    if (error.isPresent())
+      return error.get();
 
     try {
+      TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
       Order result = order.isStop()
           ? postStopOrder(order, tradeService)
           : postLimitOrder(order, tradeService);
@@ -308,10 +297,34 @@ public class ExchangeResource implements WebResource {
       return Response.ok().entity(result).build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).entity(new ErrorResponse("Order type not currently supported by exchange.")).build();
+    } catch (FundsExceededException e) {
+      return Response.status(400).entity(new ErrorResponse(e.getMessage())).build();
     } catch (Exception e) {
       LOGGER.error("Failed to submit order", e);
       return Response.status(500).entity(new ErrorResponse("Failed to submit order. " + e.getMessage())).build();
     }
+  }
+
+  private Optional<Response> checkOrderPreconditions(String exchange, OrderPrototype order) {
+    if (!order.isStop() && !order.isLimit())
+      return Optional.of(Response.status(400)
+          .entity(new ErrorResponse("Market orders not supported at the moment.")).build());
+
+    if (order.isStop()) {
+      if (order.isLimit()) {
+        if (exchange.equals(Exchanges.BITFINEX)) {
+          return Optional.of(Response.status(400)
+              .entity(new ErrorResponse("Stop limit orders not supported for Bitfinex at the moment.")).build());
+        }
+      } else {
+        if (exchange.equals(Exchanges.BINANCE)) {
+          return Optional.of(Response.status(400)
+              .entity(new ErrorResponse("Stop market orders not supported for Binance at the moment. Specify a limit price.")).build());
+        }
+      }
+    }
+
+    return Optional.empty();
   }
 
   private LimitOrder postLimitOrder(OrderPrototype order, TradeService tradeService) throws IOException {
@@ -451,7 +464,6 @@ public class ExchangeResource implements WebResource {
    * @param counter The countercurrency.
    * @param base The base (traded) currency.
    * @param id The order id.
-   * @param orderType The order type, sadly required by KuCoin.
    * @throws IOException If thrown by exchange.
    */
   @DELETE
@@ -629,10 +641,20 @@ public class ExchangeResource implements WebResource {
 
   public static final class ErrorResponse {
 
-    @JsonProperty private final String message;
+    @JsonProperty private String message;
+
+    ErrorResponse() {
+    }
 
     ErrorResponse(String message) {
-      super();
+      this.message = message;
+    }
+
+    String getMessage() {
+      return message;
+    }
+
+    void setMessage(String message) {
       this.message = message;
     }
   }

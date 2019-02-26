@@ -18,6 +18,7 @@
 package com.gruelbox.orko.exchange;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,10 @@ import com.google.common.util.concurrent.RateLimiter;
 public class RateController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RateController.class);
-  private static final int DEGREES_PERMITTED = 3;
+  private static final int DEGREES_PERMITTED = 4;
   private static final int DIVISOR = 3;
+  private static final double BACKOFF_RATIO = 0.8;
+
   private final String exchangeName;
   private final RateLimiter rateLimiter;
   private final long throttleBy;
@@ -41,6 +44,7 @@ public class RateController {
 
   private volatile long throttleExpiryTime;
   private volatile int throttleLevel;
+  private final AtomicBoolean reducedRate = new AtomicBoolean();
 
   /**
    * Constructor.
@@ -67,7 +71,7 @@ public class RateController {
         if (throttleExpired()) {
           throttleExpiryTime = 0L;
           throttleLevel = 0;
-          rateLimiter.setRate(defaultRate);
+          rateLimiter.setRate(defaultRate * (reducedRate.get() ? BACKOFF_RATIO : 1));
           LOGGER.info("Throttle on {} expired. Restored rate to {} calls/sec", exchangeName, rateLimiter.getRate());
         }
       }
@@ -84,11 +88,32 @@ public class RateController {
         if (canThrottleFurther()) {
           throttleExpiryTime = System.currentTimeMillis() + throttleBy;
           throttleLevel++;
-          rateLimiter.setRate(rateLimiter.getRate() / DIVISOR);
+          rateLimiter.setRate((rateLimiter.getRate()) / DIVISOR);
           LOGGER.info("Throttled {} rate to {} calls/sec", exchangeName, rateLimiter.getRate());
         }
       }
     }
+  }
+
+  /**
+   * Slightly reduces the throughput permanently. Use on encountering rate limiting errors
+   * to reduce the likelihood of hitting it again.
+   */
+  public void backoff() {
+    if (reducedRate.compareAndSet(false, true)) {
+      synchronized (this) {
+        rateLimiter.setRate(rateLimiter.getRate() * BACKOFF_RATIO);
+        LOGGER.info("Permanently reduced {} rate by {}", exchangeName, BACKOFF_RATIO);
+      }
+    }
+  }
+
+  /**
+   * Applies maximum throttling, effectively pausing.
+   */
+  public void pause() {
+    for (int i = 0 ; i < DEGREES_PERMITTED ; i++)
+      throttle();
   }
 
   private boolean canThrottleFurther() {

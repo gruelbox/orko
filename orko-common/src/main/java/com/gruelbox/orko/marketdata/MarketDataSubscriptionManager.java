@@ -32,6 +32,7 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -74,6 +75,7 @@ import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
+import org.knowm.xchange.exceptions.RateLimitExceededException;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -107,6 +109,7 @@ import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.exchange.RateController;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -202,7 +205,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * will return anything until this is called, but there is no strict order in
    * which they need to be called.
    *
-   * @param byExchange The exchanges and subscriptions for each.
+   * @param subscriptions The subscriptions.
    */
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
 
@@ -351,7 +354,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final class Poller implements Runnable {
 
     private final String exchangeName;
-    private Exchange exchange;
     private StreamingExchange streamingExchange;
     private AccountService accountService;
     private MarketDataService marketDataService;
@@ -402,7 +404,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void initialise() throws InterruptedException {
       while (isRunning()) {
         try {
-          this.exchange = exchangeService.get(exchangeName);
+          Exchange exchange = exchangeService.get(exchangeName);
           this.streamingExchange = exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
           this.accountService = accountServiceFactory.getForExchange(exchangeName);
           this.marketDataService = exchange.getMarketDataService();
@@ -463,6 +465,17 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
         LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
+      } catch (SocketTimeoutException e) {
+        // Socket timeouts are pretty common. Log it quietly and back off
+        LOGGER.error("Throttling access to {} due to socket timeout fetching {}", exchangeName, dataDescription);
+        exchangeService.rateController(exchangeName).throttle();
+      } catch (RateLimitExceededException e) {
+        LOGGER.error("Hit rate limiting on {} when fetching {}. Backing off", exchangeName, dataDescription);
+        notificationService.error("Getting rate limiting errors on " + exchangeName + ". Pausing access and will "
+            + "resume at a lower rate.");
+        RateController rateController = exchangeService.rateController(exchangeName);
+        rateController.backoff();
+        rateController.pause();
       } catch (Exception e) {
         LocalDateTime now = now();
         if (lastPollException == null ||
@@ -471,7 +484,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
             lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
           lastPollErrorNotificationTime = now;
           LOGGER.error("Error fetching data for " + exchangeName, e);
-          notificationService.error("Throttling access to " + exchange + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + "). Check logs");
+          notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
         } else {
           LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
         }
@@ -620,7 +633,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           } catch (NotAvailableFromExchangeException e) {
             markAsNotSubscribed.accept(s);
           } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
-            LOGGER.info("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
+            LOGGER.debug("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
             markAsNotSubscribed.accept(s);
           }
         }
@@ -639,7 +652,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           .filter(s -> s.type().equals(BALANCE))
           .forEach(markAsNotSubscribed);
       } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
-        LOGGER.info("Not subscribing to {}/{} on socket due to {}: {}", exchangeName, "Balances", e.getClass().getSimpleName(), e.getMessage());
+        LOGGER.debug("Not subscribing to {}/{} on socket due to {}: {}", exchangeName, "Balances", e.getClass().getSimpleName(), e.getMessage());
         subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
           .forEach(markAsNotSubscribed);
@@ -766,13 +779,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
     private Wallet wallet() throws IOException {
       exchangeService.rateController(exchangeName).acquire();
+      Wallet wallet;
       if (exchangeName.equals(Exchanges.BITFINEX)) {
-        return accountService.getAccountInfo().getWallet("exchange");
+        wallet = accountService.getAccountInfo().getWallet("exchange");
       } else if (exchangeName.equals(Exchanges.KUCOIN)) {
-        return accountService.getAccountInfo().getWallet("trade");
+        wallet = accountService.getAccountInfo().getWallet("trade");
+        if (wallet == null)
+          wallet = accountService.getAccountInfo().getWallet();
       } else {
-        return accountService.getAccountInfo().getWallet();
+        wallet = accountService.getAccountInfo().getWallet();
       }
+      if (wallet == null) {
+        throw new IllegalStateException("No wallet returned");
+      }
+      return wallet;
     }
 
     private void fetchAndBroadcast(MarketDataSubscription subscription) throws InterruptedException {
