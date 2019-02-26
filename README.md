@@ -11,8 +11,6 @@
 [![Sonarcloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=com.gruelbox%3Aorko-parent&metric=coverage)](https://sonarcloud.io/dashboard?id=com.gruelbox%3Aorko-parent)
 [![CodeFactor](https://www.codefactor.io/repository/github/gruelbox/orko/badge)](https://www.codefactor.io/repository/github/gruelbox/orko)
 
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gruelbox/orko/tree/stable)
-
 Fed up of logging into multiple separate cryptocurrency exchanges? Frustrated by missing features? Want to use advanced order types such as trailing stops on exchanges that don't support them?
 
 Orko is a **self hosted** web application which provides a unified dashboard to control numerous cryptocurrency exchanges, allowing you to trade and manage your portfolio, even if it is spread across multiple exchanges, all from one screen. It works seamlessly on desktop and mobile, so you can have the same trading experience wherever you go.
@@ -38,6 +36,8 @@ Orko is a new application which has missing features and some well-known bugs. I
 ## Installation
 
 [**Windows**](https://github.com/gruelbox/orko/wiki/Local-installation#on-windows) | [**Ubuntu/Debian**](https://github.com/gruelbox/orko/wiki/Local-installation#on-ubuntudebian) | [**Heroku (quick)**](https://github.com/gruelbox/orko/wiki/One-click-installation-on-Heroku) | [**Heroku (manual)**](https://github.com/gruelbox/orko/wiki/Manual-installation-on-Heroku)
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gruelbox/orko/tree/stable)
 
 ## Demo
 
