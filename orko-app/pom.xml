@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -96,7 +98,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
-      <plugin>
+      <!-- TODO KEEP THIS? <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
@@ -130,6 +132,105 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>-->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>appassembler-maven-plugin</artifactId>
+        <version>2.0.0</version>
+        <executions>
+          <execution>
+            <id>generate-jsw-scripts</id>
+            <phase>package</phase>
+            <goals>
+              <goal>generate-daemons</goal>
+            </goals>
+            <configuration>
+              <repositoryLayout>flat</repositoryLayout>
+              <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+              <daemons>
+                <daemon>
+                  <id>orko</id>
+                  <wrapperMainClass>org.tanukisoftware.wrapper.WrapperSimpleApp</wrapperMainClass>
+                  <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
+                  <commandLineArguments>
+                    <commandLineArgument>server</commandLineArgument>
+                    <commandLineArgument>example-config.xml</commandLineArgument>
+                  </commandLineArguments>
+                  <jvmSettings>
+                    <initialMemorySize>186m</initialMemorySize>
+                    <maxMemorySize>256m</maxMemorySize>
+                    <maxStackSize>256K</maxStackSize>
+                    <systemProperties>
+                      <systemProperty>sun.net.inetaddr.ttl=60</systemProperty>
+                      <systemProperty>io.netty.leakDetectionLevel=advanced</systemProperty>
+                    </systemProperties>
+                    <extraArguments>
+                      <extraArgument>-server</extraArgument>
+                      <extraArgument>-XX:MaxMetaspaceSize=96m</extraArgument>
+                    </extraArguments>
+                  </jvmSettings>
+                  <platforms>
+                    <platform>jsw</platform>
+                  </platforms>
+                </daemon>
+              </daemons>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-dependency-plugin</artifactId>
+         <version>3.1.1</version>
+         <executions>
+           <execution>
+             <id>unpack</id>
+             <phase>package</phase>
+             <goals>
+               <goal>unpack</goal>
+             </goals>
+             <configuration>
+               <artifactItems>
+                 <artifactItem>
+                   <groupId>junit</groupId>
+                   <artifactId>junit</artifactId>
+                   <version>3.8.1</version>
+                   <type>jar</type>
+                   <overWrite>false</overWrite>
+                   <outputDirectory>${project.build.directory}/alternateLocation</outputDirectory>
+                   <destFileName>optional-new-name.jar</destFileName>
+                   <includes>**/*.class,**/*.xml</includes>
+                   <excludes>**/*test.class</excludes>
+                 </artifactItem>
+               </artifactItems>
+               <includes>**/*.java</includes>
+               <excludes>**/*.properties</excludes>
+               <outputDirectory>${project.build.directory}/wars</outputDirectory>
+               <overWriteReleases>false</overWriteReleases>
+               <overWriteSnapshots>true</overWriteSnapshots>
+             </configuration>
+           </execution>
+         </executions>
+       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <finalName>orko</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+          <descriptors>
+            <descriptor>../etc/bin.xml</descriptor>
+          </descriptors>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>de.jutzig</groupId>
@@ -149,7 +250,7 @@
             <fileSet>
               <directory>${project.build.directory}</directory>
               <includes>
-                <include>${project.artifactId}.jar</include>
+                <include>orko.zip</include>
               </includes>
             </fileSet>
           </fileSets>
