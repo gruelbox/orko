@@ -56,13 +56,13 @@ For exchange-specific support details, see the following table.
 
 | Exchange | Support level | Missing trading features |Notes |
 | -------- | ------------- | ---- | ----- |
-| Binance  | Near perfect  | Dust conversion | Mostly as responsive, or more so, than the Binance website at trading. In particular, it is much more responsive during periods of high load, such as during a pump on BTC. |
-| Bitfinex | Excellent     | True OCO trades, post only, reduce only, visibility of trades and positions on chart | Similar quality of experience to Binance, but more obviously short on features compared to Bitfinex's own site. |
-| Coinbase Pro | Excellent | Post only, good-till-cancelled | Again, very good user experience, but with a few small UI glitches. |
-| Bittrex | Working | **Streaming**, stop orders | Perfectly working for low frequency trading but not as smooth an experience. |
-| Kraken | Minimal | **Streaming**, stop orders | As with Kucoin, with a few specific high-profile issues needing resolving. |
-| Bitmex | Minimal | **Streaming**, most complex order types, balances, historical trades | Bare minimum for placing and cancelling simple limit trades and stops at your currently selected leverage. This has only just started to be implemented. |
-| Kucoin | *Broken* | Everything except ticker, order book and market trades | Kucoin platform 2.0 has broken this. It's currently being fixed (see https://github.com/knowm/XChange/issues/2914) |
+| Binance  | ✅ | Dust conversion | Mostly as responsive, or more so, than the Binance website at trading. In particular, it is much more responsive during periods of high load, such as during a pump on BTC. |
+| Bitfinex | ✅ | True OCO trades, post only, reduce only, visibility of trades and positions on chart | Similar quality of experience to Binance, but more obviously short on features compared to Bitfinex's own site. |
+| Coinbase Pro | ✔️ | Post only, good-till-cancelled | Again, very good user experience, but with a few small UI glitches. |
+| Kucoin | ✔️ | **Streaming** | Not as fluid as Binance or Bitfinex, but nonetheless works well. |
+| Bittrex | 🆗 | **Streaming**, stop orders | Perfectly working for low frequency trading but not as smooth an experience. |
+| Bitmex | ⚠️ | **Streaming**, most complex order types, balances, historical trades | Bare minimum for placing and cancelling simple limit trades and stops at your currently selected leverage. This has only just started to be implemented. |
+| Kraken | 🔻 | **Streaming**, stop orders | Only just been added and not working well yet. |
 
 * **Streaming** = Websocket streaming updates. Most operations such as trades occur immediately but can take a short while to show in the UI. Without streaming, exchange data is fetched periodically instead. This is quick to implement in Orko but provides a less fluid user experience.  It is usually the first phase in implementing an exchange.
 
