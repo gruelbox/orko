@@ -27,7 +27,7 @@ public interface StatusUpdateService {
   /**
    * Sends the status update..
    *
-   * @param statusUpdate
+   * @param statusUpdate The status update.
    */
   void send(StatusUpdate statusUpdate);
 
