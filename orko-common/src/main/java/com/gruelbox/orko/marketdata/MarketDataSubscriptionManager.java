@@ -32,6 +32,7 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
+import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -474,7 +475,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
 
-      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException e) {
+      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException | NoRouteToHostException e) {
 
         // Managed connectivity issues.
         LOGGER.warn("Throttling {} - {} when fetching {}", exchangeName, e.getClass().getSimpleName(), dataDescription);
