@@ -735,14 +735,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
     /**
-     * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
+     * TODO See https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
+     * The public and authenticated behaviours currently differ but it's not
+     * been decided which is right. In the meantime we flip Binance to match others
+     * on the method above but not here.
      */
     private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
-      if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
-        return UserTrade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
-      } else {
-        return t;
-      }
+      return t;
     }
 
     private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
