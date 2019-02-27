@@ -477,14 +477,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException e) {
 
         // Managed connectivity issues.
-        LOGGER.error("Throttling {} - {} when fetching {}", exchangeName, e.getClass().getSimpleName(), dataDescription);
+        LOGGER.warn("Throttling {} - {} when fetching {}", exchangeName, e.getClass().getSimpleName(), dataDescription);
         exchangeService.rateController(exchangeName).throttle();
 
       } catch (HttpStatusIOException e) {
 
         if (e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
           // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases).
-          LOGGER.error("Throttling {} - failed at gateway ({} - ) when fetching {}", exchangeName, e.getHttpStatusCode(), e.getMessage(), dataDescription);
+          LOGGER.warn("Throttling {} - failed at gateway ({} - ) when fetching {}", exchangeName, e.getHttpStatusCode(), e.getMessage(), dataDescription);
           exchangeService.rateController(exchangeName).throttle();
         } else {
           handleUnknownPollException(e);
