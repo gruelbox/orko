@@ -73,9 +73,12 @@ import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
+import org.knowm.xchange.exceptions.ExchangeUnavailableException;
+import org.knowm.xchange.exceptions.FrequencyLimitExceededException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.exceptions.RateLimitExceededException;
+import org.knowm.xchange.exceptions.SystemOverloadException;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -123,6 +126,7 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.disposables.Disposable;
+import si.mazi.rescu.HttpStatusIOException;
 
 /**
  * Maintains subscriptions to multiple exchanges' market data, using web sockets where it can
@@ -460,37 +464,60 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void manageExchangeExceptions(String dataDescription, CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
       try {
         runnable.run();
+
       } catch (InterruptedException e) {
         throw e;
+
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
+
+        // Disable the feature since XChange doesn't provide support for it.
         LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
-      } catch (SocketTimeoutException e) {
-        // Socket timeouts are pretty common. Log it quietly and back off
-        LOGGER.error("Throttling access to {} due to socket timeout fetching {}", exchangeName, dataDescription);
+
+      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException e) {
+
+        // Managed connectivity issues.
+        LOGGER.error("Throttling {} - {} when fetching {}", exchangeName, e.getClass().getSimpleName(), dataDescription);
         exchangeService.rateController(exchangeName).throttle();
-      } catch (RateLimitExceededException e) {
+
+      } catch (HttpStatusIOException e) {
+
+        if (e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
+          // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases).
+          LOGGER.error("Throttling {} - failed at gateway ({} - ) when fetching {}", exchangeName, e.getHttpStatusCode(), e.getMessage(), dataDescription);
+          exchangeService.rateController(exchangeName).throttle();
+        } else {
+          handleUnknownPollException(e);
+        }
+
+      } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
+
         LOGGER.error("Hit rate limiting on {} when fetching {}. Backing off", exchangeName, dataDescription);
         notificationService.error("Getting rate limiting errors on " + exchangeName + ". Pausing access and will "
             + "resume at a lower rate.");
         RateController rateController = exchangeService.rateController(exchangeName);
         rateController.backoff();
         rateController.pause();
+
       } catch (Exception e) {
-        LocalDateTime now = now();
-        if (lastPollException == null ||
-            !lastPollException.getClass().equals(e.getClass()) ||
-            !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
-            lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
-          lastPollErrorNotificationTime = now;
-          LOGGER.error("Error fetching data for " + exchangeName, e);
-          notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
-        } else {
-          LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
-        }
-        lastPollException = e;
-        exchangeService.rateController(exchangeName).throttle();
+        handleUnknownPollException(e);
       }
+    }
+
+    private void handleUnknownPollException(Exception e) {
+      LocalDateTime now = now();
+      if (lastPollException == null ||
+          !lastPollException.getClass().equals(e.getClass()) ||
+          !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
+          lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
+        lastPollErrorNotificationTime = now;
+        LOGGER.error("Error fetching data for " + exchangeName, e);
+        notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
+      } else {
+        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
+      }
+      lastPollException = e;
+      exchangeService.rateController(exchangeName).throttle();
     }
 
     /**
