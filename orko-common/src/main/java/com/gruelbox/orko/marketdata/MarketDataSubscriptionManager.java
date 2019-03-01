@@ -63,6 +63,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.bitfinex.common.dto.BitfinexException;
 import org.knowm.xchange.bitmex.BitmexPrompt;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
@@ -73,6 +74,7 @@ import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
+import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.ExchangeUnavailableException;
 import org.knowm.xchange.exceptions.FrequencyLimitExceededException;
@@ -139,8 +141,10 @@ import si.mazi.rescu.HttpStatusIOException;
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
   private static final int MAX_TRADES = 20;
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
+  private static final int MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS = 15;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
 
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
@@ -500,6 +504,8 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         rateController.backoff();
         rateController.pause();
 
+      } catch (BitfinexException e) {
+        handleUnknownPollException(new ExchangeException("Bitfinex exception: " + e.getMessage() + " (error code=" + e.getError() + ")", e));
       } catch (Exception e) {
         handleUnknownPollException(e);
       }
@@ -510,7 +516,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       if (lastPollException == null ||
           !lastPollException.getClass().equals(e.getClass()) ||
           !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
-          lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
+          lastPollErrorNotificationTime.until(now, MINUTES) > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
         lastPollErrorNotificationTime = now;
         LOGGER.error("Error fetching data for " + exchangeName, e);
         notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
