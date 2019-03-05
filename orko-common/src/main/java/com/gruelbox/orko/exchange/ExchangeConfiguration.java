@@ -91,7 +91,7 @@ public class ExchangeConfiguration {
     this.loadRemoteData = loadRemoteData;
   }
 
-  boolean isAuthenticated() {
+  public boolean isAuthenticated() {
     return StringUtils.isNotEmpty(apiKey);
   }
 }

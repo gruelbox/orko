@@ -18,8 +18,13 @@
 
 package com.gruelbox.orko.marketdata;
 
+import org.knowm.xchange.simulated.AccountFactory;
+import org.knowm.xchange.simulated.MatchingEngineFactory;
+
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 
 public class MarketDataModule extends AbstractModule {
@@ -27,5 +32,18 @@ public class MarketDataModule extends AbstractModule {
   protected void configure() {
     bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);
     Multibinder.newSetBinder(binder(), Service.class).addBinding().to(MarketDataSubscriptionManager.class);
+    Multibinder.newSetBinder(binder(), Service.class).addBinding().to(SimulatedOrderBookActivity.class);
+  }
+
+  @Provides
+  @Singleton
+  AccountFactory accountFactory() {
+    return new AccountFactory();
+  }
+
+  @Provides
+  @Singleton
+  MatchingEngineFactory matchingEngineFactory(AccountFactory accountFactory) {
+    return new MatchingEngineFactory(accountFactory);
   }
 }

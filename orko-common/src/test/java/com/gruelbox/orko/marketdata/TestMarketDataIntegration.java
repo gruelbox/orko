@@ -20,7 +20,8 @@ package com.gruelbox.orko.marketdata;
 
 import static com.gruelbox.orko.db.TestingUtils.skipIfSlowTestsDisabled;
 import static com.gruelbox.orko.exchange.Exchanges.BITMEX;
-import static com.gruelbox.orko.exchange.Exchanges.KUCOIN;
+import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
+import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
 import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +42,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.knowm.xchange.service.account.AccountService;
+import org.knowm.xchange.simulated.AccountFactory;
+import org.knowm.xchange.simulated.MatchingEngineFactory;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.FluentIterable;
@@ -66,16 +72,20 @@ import jersey.repackaged.com.google.common.collect.Maps;
  * Stack tests for {@link MarketDataSubscriptionManager}. Actually connects to exchanges.
  */
 public class TestMarketDataIntegration {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TestMarketDataIntegration.class);
+
   private static final TickerSpec binance = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BINANCE).build();
   private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.BITFINEX).build();
   private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.GDAX).build();
   private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BITTREX).build();
   //private static final TickerSpec cryptopia = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.CRYPTOPIA).build();
-  //private static final TickerSpec kucoin = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.KUCOIN).build();
+  private static final TickerSpec kucoin = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.KUCOIN).build();
   private static final TickerSpec kraken = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.KRAKEN).build();
+  private static final TickerSpec simulated = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.SIMULATED).build();
 
   private static final Set<MarketDataSubscription> subscriptions = FluentIterable.concat(
-      FluentIterable.of(binance, bitfinex, gdax, bittrex, kraken)
+      FluentIterable.of(binance, bitfinex, gdax, bittrex, kraken, kucoin, simulated)
         .transformAndConcat(spec -> ImmutableSet.of(
           MarketDataSubscription.create(spec, TICKER),
           MarketDataSubscription.create(spec, ORDERBOOK),
@@ -91,6 +101,9 @@ public class TestMarketDataIntegration {
   private MarketDataSubscriptionManager marketDataSubscriptionManager;
   private ExchangeEventBus exchangeEventBus;
   private final NotificationService notificationService = mock(NotificationService.class);
+  private AccountFactory accountFactory;
+  private MatchingEngineFactory matchingEngineFactory;
+  private OrkoConfiguration orkoConfiguration;
 
 
   @Before
@@ -98,19 +111,27 @@ public class TestMarketDataIntegration {
 
     ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
 
-    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
+    orkoConfiguration = new OrkoConfiguration();
+    orkoConfiguration.setExchanges(ImmutableMap.of(Exchanges.SIMULATED, new ExchangeConfiguration()));
+    orkoConfiguration.getExchanges().get(Exchanges.SIMULATED).setApiKey("Test");
 
-    // TODO temporary, to be resolved when Kucoin 2.0 is actually live
-    orkoConfiguration.setExchanges(ImmutableMap.of(KUCOIN, new ExchangeConfiguration()));
-    orkoConfiguration.getExchanges().get(KUCOIN).setSandbox(true);
+    accountFactory = new AccountFactory();
+    matchingEngineFactory = new MatchingEngineFactory(accountFactory);
 
     orkoConfiguration.setLoopSeconds(2);
-    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
+    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration,
+        accountFactory,
+        matchingEngineFactory);
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
       exchangeServiceImpl,
       orkoConfiguration,
       exchange -> exchangeServiceImpl.get(exchange).getTradeService(),
-      mock(AccountServiceFactory.class),
+      new AccountServiceFactory() {
+        @Override
+        public AccountService getForExchange(String exchange) {
+          return exchangeServiceImpl.get(exchange).getAccountService();
+        }
+      },
       notificationService
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
@@ -125,6 +146,24 @@ public class TestMarketDataIntegration {
   @Test
   public void testBase() throws InterruptedException {
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
+  }
+
+  @Test
+  public void testSimulated() throws InterruptedException, IOException, TimeoutException {
+    SimulatedOrderBookActivity simulator = new SimulatedOrderBookActivity(orkoConfiguration, accountFactory, matchingEngineFactory);
+    simulator.startAsync().awaitRunning(20, SECONDS);
+    try {
+      testSubscriptionsViaEventBus(ImmutableSet.of(
+          MarketDataSubscription.create(simulated, TICKER),
+          MarketDataSubscription.create(simulated, ORDERBOOK),
+          MarketDataSubscription.create(simulated, TRADES),
+          MarketDataSubscription.create(simulated, BALANCE),
+          MarketDataSubscription.create(simulated, OPEN_ORDERS)
+        ), 10);
+      LOGGER.info("Test complete");
+    } finally {
+      simulator.stopAsync().awaitTerminated(20, SECONDS);
+    }
   }
 
   @Test
@@ -235,13 +274,15 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscriptionsViaEventBus() throws InterruptedException {
-
     skipIfSlowTestsDisabled();
+    testSubscriptionsViaEventBus(subscriptions, 2);
+  }
 
+  public void testSubscriptionsViaEventBus(Set<MarketDataSubscription> subscriptions, int count) throws InterruptedException {
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber = Maps.toMap(
         subscriptions,
-        sub -> ImmutableList.of(new CountDownLatch(2), new CountDownLatch(2))
+        sub -> ImmutableList.of(new CountDownLatch(count), new CountDownLatch(count))
       );
       Set<Disposable> disposables = FluentIterable.from(subscriptions).transformAndConcat(sub -> ImmutableSet.<Disposable>of(
         getSubscription(subscription, sub).subscribe(t -> {
@@ -255,9 +296,9 @@ public class TestMarketDataIntegration {
         MarketDataSubscription sub = entry.getKey();
         List<CountDownLatch> latches = entry.getValue();
         try {
-          assertTrue("Missing two responses (A) for " + sub, latches.get(0).await(120, TimeUnit.SECONDS));
+          assertTrue("Missing " + count + " responses (A) for " + sub, latches.get(0).await(120, TimeUnit.SECONDS));
           System.out.println("Found responses (A) for " + sub);
-          assertTrue("Missing two responses (B) for " + sub, latches.get(1).await(1, TimeUnit.SECONDS));
+          assertTrue("Missing " + count + " responses (B) for " + sub, latches.get(1).await(1, TimeUnit.SECONDS));
           System.out.println("Found responses (B) for " + sub);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
@@ -302,6 +343,8 @@ public class TestMarketDataIntegration {
         return (Flowable<T>) subscription.getUserTrades();
       case BALANCE:
         return (Flowable<T>) subscription.getBalances();
+      case ORDER:
+        return (Flowable<T>) subscription.getOrderChanges();
       default:
         throw new IllegalArgumentException("Unknown market data type");
     }

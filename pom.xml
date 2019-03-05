@@ -458,6 +458,11 @@
         <artifactId>xchange-kraken</artifactId>
         <version>${xchange.version}</version>
       </dependency>
+      <dependency>
+        <groupId>${xchange.groupid}</groupId>
+        <artifactId>xchange-simulated</artifactId>
+        <version>${xchange.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>${xchange.stream.groupid}</groupId>

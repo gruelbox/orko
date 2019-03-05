@@ -38,6 +38,10 @@ import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.meta.ExchangeMetaData;
 import org.knowm.xchange.dto.meta.RateLimit;
+import org.knowm.xchange.simulated.AccountFactory;
+import org.knowm.xchange.simulated.MatchingEngineFactory;
+import org.knowm.xchange.simulated.RandomExceptionThrower;
+import org.knowm.xchange.simulated.SimulatedExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +74,8 @@ public class ExchangeServiceImpl implements ExchangeService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
   private final OrkoConfiguration configuration;
+  private final AccountFactory accountFactory;
+  private final MatchingEngineFactory matchingEngineFactory;
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
@@ -102,6 +108,9 @@ public class ExchangeServiceImpl implements ExchangeService {
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
         exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ON_OPERATION_PARAM, new RandomExceptionThrower());
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ACCOUNT_FACTORY_PARAM, accountFactory);
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ENGINE_FACTORY_PARAM, matchingEngineFactory);
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
@@ -169,8 +178,11 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Inject
   @VisibleForTesting
-  public ExchangeServiceImpl(OrkoConfiguration configuration) {
+  public ExchangeServiceImpl(OrkoConfiguration configuration,
+      AccountFactory accountFactory, MatchingEngineFactory matchingEngineFactory) {
     this.configuration = configuration;
+    this.accountFactory = accountFactory;
+    this.matchingEngineFactory = matchingEngineFactory;
   }
 
   @Override
