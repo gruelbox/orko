@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.simulated.AccountFactory;
 import org.knowm.xchange.simulated.MatchingEngineFactory;
@@ -54,7 +55,6 @@ import com.google.common.collect.ImmutableSet;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
-import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.ExchangeServiceImpl;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
@@ -180,10 +180,12 @@ public class TestMarketDataIntegration {
 
     skipIfSlowTestsDisabled();
 
-    Set<TickerSpec> coins = FluentIterable.from(ExchangeResource.BITMEX_PAIRS)
+    Set<CurrencyPair> pairs = exchangeServiceImpl.get(BITMEX).getExchangeMetaData().getCurrencyPairs().keySet();
+    Set<TickerSpec> coins = FluentIterable.from(pairs)
+        .filter(c -> !c.counter.getCurrencyCode().contains("_")) // TODO XChange bug
         .transform(c -> TickerSpec.builder()
-            .base(c.base)
-            .counter(c.counter)
+            .base(c.base.getCurrencyCode())
+            .counter(c.counter.getCurrencyCode())
             .exchange(BITMEX)
             .build())
         .toSet();
@@ -191,7 +193,11 @@ public class TestMarketDataIntegration {
     System.out.println(coins);
 
     ImmutableSet<MarketDataSubscription> bitmexSubscriptions = FluentIterable.from(coins)
-        .transform(t -> MarketDataSubscription.create(t, TICKER)).toSet();
+        .transformAndConcat(t -> ImmutableSet.of(
+          MarketDataSubscription.create(t, TICKER),
+          MarketDataSubscription.create(t, ORDERBOOK),
+          MarketDataSubscription.create(t, TRADES)
+        )).toSet();
 
     ImmutableMap<MarketDataSubscription, CountDownLatch> latchesBySubscriber = Maps.toMap(
         bitmexSubscriptions,

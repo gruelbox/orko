@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -67,7 +66,6 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
@@ -83,20 +81,6 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
 public class ExchangeResource implements WebResource {
-
-  // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-  public static final List<Pair> BITMEX_PAIRS = ImmutableList.of(
-    new Pair("XBT", "USD"),
-    new Pair("XBT", "H19"),
-    new Pair("ADA", "H19"),
-    new Pair("BCH", "H19"),
-    new Pair("EOS", "H19"),
-    new Pair("ETH", "USD"),
-    new Pair("ETH", "H19"),
-    new Pair("LTC", "H19"),
-    new Pair("TRX", "H19"),
-    new Pair("XRP", "H19")
-  );
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeResource.class);
 
@@ -187,22 +171,13 @@ public class ExchangeResource implements WebResource {
   @Timed
   @Path("{exchange}/pairs")
   public Collection<Pair> pairs(@PathParam("exchange") String exchangeName) {
-
-    Collection<Pair> pairs = exchanges.get(exchangeName)
+    return exchanges.get(exchangeName)
         .getExchangeMetaData()
         .getCurrencyPairs()
         .keySet()
         .stream()
         .map(Pair::new)
         .collect(Collectors.toSet());
-
-    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-    if (Exchanges.BITMEX.equals(exchangeName)) {
-      LOGGER.warn("Bitmex reported pairs: {}, converted to {}", pairs, BITMEX_PAIRS);
-      return BITMEX_PAIRS;
-    } else {
-      return pairs;
-    }
   }
 
   public static class Pair {
@@ -225,16 +200,10 @@ public class ExchangeResource implements WebResource {
   @Timed
   @Path("{exchange}/pairs/{base}-{counter}")
   public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) {
-
     Exchange exchange = exchanges.get(exchangeName);
-
-    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-    CurrencyPair currencyPair = new CurrencyPair(
-      base,
-      counter.equals("Z19") || counter.equals("H19") ? "BTC" : counter
-    );
+    CurrencyPair currencyPair = new CurrencyPair(base, counter);
     return new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
-            }
+  }
 
   public static class PairMetaData {
 
