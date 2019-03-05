@@ -12,7 +12,6 @@ import static org.knowm.xchange.simulated.SimulatedExchange.ENGINE_FACTORY_PARAM
 import java.io.IOException;
 import java.math.BigDecimal;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.dto.Order.OrderType;
@@ -32,6 +31,13 @@ import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.Exchanges;
 
+/**
+ * A background process which places trades back and forth to simulate
+ * market activity. Enabled if an API key is provided for
+ * {@link SimulatedExchange}.
+ *
+ * @author Graham Crockford
+ */
 @Singleton
 class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
 
@@ -52,10 +58,7 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
 
   @Override
   protected void run() throws Exception {
-    if (orkoConfiguration.getExchanges() == null)
-      return;
-    ExchangeConfiguration exchangeConfiguration = orkoConfiguration.getExchanges().get(Exchanges.SIMULATED);
-    if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
+    if (!isEnabled())
       return;
     LOGGER.info("Starting market data simulator...");
     RateLimiter rateLimiter = RateLimiter.create(3);
@@ -80,9 +83,18 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
     }
   }
 
+  private boolean isEnabled() {
+    if (orkoConfiguration.getExchanges() == null)
+      return false;
+    ExchangeConfiguration exchangeConfiguration = orkoConfiguration.getExchanges().get(Exchanges.SIMULATED);
+    if (exchangeConfiguration == null || !exchangeConfiguration.isAuthenticated())
+      return false;
+    return true;
+  }
+
   private void mockMarket() throws IOException {
-    marketMakerExchange.getAccountService().deposit(USD, new BigDecimal("99999999999999"));
-    marketMakerExchange.getAccountService().deposit(BTC, new BigDecimal("99999999999999"));
+    marketMakerExchange.getAccountService().deposit(USD, new BigDecimal("99999999999999999"));
+    marketMakerExchange.getAccountService().deposit(BTC, new BigDecimal("99999999999999999"));
     BigDecimal startPrice = new BigDecimal(3500);
     BigDecimal range = new BigDecimal(6000);
     BigDecimal seedIncrement = new BigDecimal("0.1");
@@ -110,4 +122,4 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
         .originalAmount(amount)
         .build());
   }
-}
+

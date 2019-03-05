@@ -108,7 +108,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
         exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
-        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.EXCEPTION_THROWER_PARAM, new RandomExceptionThrower());
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ON_OPERATION_PARAM, new RandomExceptionThrower());
         exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ACCOUNT_FACTORY_PARAM, accountFactory);
         exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ENGINE_FACTORY_PARAM, matchingEngineFactory);
         return createExchange(exSpec);
