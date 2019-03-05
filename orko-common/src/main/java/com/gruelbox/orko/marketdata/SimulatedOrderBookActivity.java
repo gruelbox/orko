@@ -122,4 +122,4 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
         .originalAmount(amount)
         .build());
   }
-
+}
