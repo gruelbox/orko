@@ -87,9 +87,7 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
     if (orkoConfiguration.getExchanges() == null)
       return false;
     ExchangeConfiguration exchangeConfiguration = orkoConfiguration.getExchanges().get(Exchanges.SIMULATED);
-    if (exchangeConfiguration == null || !exchangeConfiguration.isAuthenticated())
-      return false;
-    return true;
+    return exchangeConfiguration != null && exchangeConfiguration.isAuthenticated();
   }
 
   private void mockMarket() throws IOException {
