@@ -149,6 +149,10 @@
       <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-kraken</artifactId>
     </dependency>
+    <dependency>
+      <groupId>${xchange.groupid}</groupId>
+      <artifactId>xchange-simulated</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
