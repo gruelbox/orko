@@ -189,7 +189,6 @@ public class TestJobExecutionIntegration {
 
   /**
    * Ensures that an exception thrown during startup is treated as transient
-   * @throws Exception
    */
   @Test
   public void testFailOnStart() throws Exception {
@@ -205,7 +204,6 @@ public class TestJobExecutionIntegration {
 
   /**
    * Ensures that an exception thrown during stop is handled
-   * @throws Exception
    */
   @Test
   public void testFailOnStopNonResident() throws Exception {
@@ -225,7 +223,6 @@ public class TestJobExecutionIntegration {
 
   /**
    * Ensures that an exception thrown during stop is handled
-   * @throws Exception
    */
   @Test
   public void testFailOnStopResident() throws Exception {
@@ -245,8 +242,6 @@ public class TestJobExecutionIntegration {
   /**
    * Ensures that a job shutdown is handled correctly if it tries to finish
    * asynchronously during the setup phase
-   *
-   * @throws Exception
    */
   @Test
   public void testCompleteDuringSetup() throws Exception {
@@ -265,8 +260,6 @@ public class TestJobExecutionIntegration {
 
   /**
    * Check for race conditions by using persistent state for a counter.
-   *
-   * @throws Exception
    */
   @Test
   public void testCounter() throws Exception {
@@ -292,7 +285,6 @@ public class TestJobExecutionIntegration {
 
   /**
    * Ensures that we correctly handle a mid-run abort
-   * @throws Exception
    */
   @Test
   public void testFailOnTick() throws Exception {

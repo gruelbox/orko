@@ -32,6 +32,7 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
+import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -62,7 +63,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.bitmex.BitmexPrompt;
+import org.knowm.xchange.bitfinex.common.dto.BitfinexException;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
@@ -72,10 +73,14 @@ import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
+import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
+import org.knowm.xchange.exceptions.ExchangeUnavailableException;
+import org.knowm.xchange.exceptions.FrequencyLimitExceededException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.exceptions.RateLimitExceededException;
+import org.knowm.xchange.exceptions.SystemOverloadException;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -123,6 +128,7 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.disposables.Disposable;
+import si.mazi.rescu.HttpStatusIOException;
 
 /**
  * Maintains subscriptions to multiple exchanges' market data, using web sockets where it can
@@ -134,8 +140,10 @@ import io.reactivex.disposables.Disposable;
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
   private static final int MAX_TRADES = 20;
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
+  private static final int MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS = 15;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
 
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
@@ -201,7 +209,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * Updates the subscriptions for the specified exchanges on the next loop
    * tick. The delay is to avoid a large number of new subscriptions in quick
    * succession causing rate bans on exchanges. Call with an empty set to cancel
-   * all subscriptions. None of the streams (e.g. {@link #getTicker(TickerSpec)}
+   * all subscriptions. None of the streams (e.g. {@link #getTickers()}
    * will return anything until this is called, but there is no strict order in
    * which they need to be called.
    *
@@ -460,37 +468,62 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void manageExchangeExceptions(String dataDescription, CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
       try {
         runnable.run();
+
       } catch (InterruptedException e) {
         throw e;
+
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
+
+        // Disable the feature since XChange doesn't provide support for it.
         LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
-      } catch (SocketTimeoutException e) {
-        // Socket timeouts are pretty common. Log it quietly and back off
-        LOGGER.error("Throttling access to {} due to socket timeout fetching {}", exchangeName, dataDescription);
+
+      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException | NoRouteToHostException e) {
+
+        // Managed connectivity issues.
+        LOGGER.warn("Throttling {} - {} when fetching {}", exchangeName, e.getClass().getSimpleName(), dataDescription);
         exchangeService.rateController(exchangeName).throttle();
-      } catch (RateLimitExceededException e) {
+
+      } catch (HttpStatusIOException e) {
+
+        if (e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
+          // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases).
+          LOGGER.warn("Throttling {} - failed at gateway ({} - ) when fetching {}", exchangeName, e.getHttpStatusCode(), e.getMessage(), dataDescription);
+          exchangeService.rateController(exchangeName).throttle();
+        } else {
+          handleUnknownPollException(e);
+        }
+
+      } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
+
         LOGGER.error("Hit rate limiting on {} when fetching {}. Backing off", exchangeName, dataDescription);
         notificationService.error("Getting rate limiting errors on " + exchangeName + ". Pausing access and will "
             + "resume at a lower rate.");
         RateController rateController = exchangeService.rateController(exchangeName);
         rateController.backoff();
         rateController.pause();
+
+      } catch (BitfinexException e) {
+        handleUnknownPollException(new ExchangeException("Bitfinex exception: " + e.getMessage() + " (error code=" + e.getError() + ")", e));
       } catch (Exception e) {
-        LocalDateTime now = now();
-        if (lastPollException == null ||
-            !lastPollException.getClass().equals(e.getClass()) ||
-            !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
-            lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
-          lastPollErrorNotificationTime = now;
-          LOGGER.error("Error fetching data for " + exchangeName, e);
-          notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
-        } else {
-          LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
-        }
-        lastPollException = e;
-        exchangeService.rateController(exchangeName).throttle();
+        handleUnknownPollException(e);
       }
+    }
+
+    private void handleUnknownPollException(Exception e) {
+      LocalDateTime now = now();
+      if (lastPollException == null ||
+          !lastPollException.getClass().equals(e.getClass()) ||
+          !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
+          lastPollErrorNotificationTime.until(now, MINUTES) > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
+        lastPollErrorNotificationTime = now;
+        LOGGER.error("Error fetching data for " + exchangeName, e);
+        notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
+      } else {
+        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
+      }
+      lastPollException = e;
+      exchangeService.rateController(exchangeName).throttle();
     }
 
     /**
@@ -707,14 +740,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
     /**
-     * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
+     * TODO See https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
+     * The public and authenticated behaviours currently differ but it's not
+     * been decided which is right. In the meantime we flip Binance to match others
+     * on the method above but not here.
      */
     private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
-      if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
-        return UserTrade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
-      } else {
-        return t;
-      }
+      return t;
     }
 
     private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
@@ -853,7 +885,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private void pollAndEmitTrades(MarketDataSubscription subscription) throws IOException {
-      marketDataService.getTrades(exchangePair(subscription.spec()), exchangeTradesArgs(subscription.spec()))
+      marketDataService.getTrades(subscription.spec().currencyPair())
         .getTrades()
         .stream()
         .forEach(t ->
@@ -871,42 +903,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         );
     }
 
-    private Object[] exchangeTradesArgs(TickerSpec spec) {
-      return spec.exchange().equals(Exchanges.BITMEX)
-          ? bitmexArgs(spec)
-          : new Object[] {};
-    }
-
-    private Object[] bitmexArgs(TickerSpec spec) {
-      // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-      return new Object[] {
-          spec.counter().equals("USD")
-            ? BitmexPrompt.PERPETUAL
-            : BitmexPrompt.QUARTERLY
-      };
-    }
-
-    private CurrencyPair exchangePair(TickerSpec spec) {
-      return spec.exchange().equals(Exchanges.BITMEX)
-          ? bitmexCurrencyPair(spec)
-          : spec.currencyPair();
-    }
-
-    private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
-      // TODO need solution for https://github.com/knowm/XChange/issues/2886
-      return spec.counter().equals("USD")
-          ? spec.currencyPair()
-          : new CurrencyPair(spec.base(), "BTC");
-    }
-
     private void pollAndEmitOrderbook(TickerSpec spec) throws IOException {
-      OrderBook orderBook = marketDataService.getOrderBook(exchangePair(spec), exchangeOrderbookArgs(spec));
+      OrderBook orderBook = marketDataService.getOrderBook(spec.currencyPair(), exchangeOrderbookArgs(spec));
       orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
     }
 
     private Object[] exchangeOrderbookArgs(TickerSpec spec) {
       if (spec.exchange().equals(Exchanges.BITMEX)) {
-        return bitmexArgs(spec);
+        return new Object[] { };
       } else {
         return new Object[] { ORDERBOOK_DEPTH, ORDERBOOK_DEPTH };
       }

@@ -111,8 +111,8 @@ public class ImmutableOrderBook {
    * OrderBooks are equal but their timestamps are unequal. It returns false if false if any order
    * between the two are different.
    *
-   * @param other
-   * @return
+   * @param other The order book to which to compare.
+   * @return True if the orders are equal.
    */
   public boolean ordersEqual(ImmutableOrderBook other) {
     if (other == null) {

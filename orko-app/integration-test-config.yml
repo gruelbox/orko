@@ -15,6 +15,8 @@ auth:
 database:
   connectionString: h2:mem:test;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000
 exchanges:
+  simulated:
+    apiKey: OnlineUser
   gdax-sandbox:
     apiKey:
     secretKey:

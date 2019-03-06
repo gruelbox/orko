@@ -14,6 +14,7 @@ notifications:
     on_failure: always  # options: [always|never|change] default: always
     on_start: never     # options: [always|never|change] default: always
 jdk: openjdk11
+env: BUILD_ARGS="-B -U -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn" SONAR_TARGETS="clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar"
 matrix:
   fast_finish: true
   include:
@@ -21,35 +22,40 @@ matrix:
       name: "JUnit, Spotbugs, Checkstyle, Sonar"
       script: |
         git fetch --unshallow --quiet
-        mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    - if: repo = gruelbox/orko AND NOT branch = master AND NOT tag IS present AND NOT type = pull_request
-      name: "JUnit, Spotbugs, Checkstyle, Sonar (branch)"
+        mvn -Pci ${SONAR_TARGETS} ${BUILD_ARGS}
+
+    - if: repo = gruelbox/orko AND NOT branch = master AND NOT type = pull_request
+      name: "JUnit, Spotbugs, Checkstyle, Sonar (branch/tag)"
       script: |
         git fetch --unshallow --quiet
         git fetch origin master
-        mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
-    - if: repo = gruelbox/orko AND NOT branch = master AND tag IS present AND NOT type = pull_request
-      name: "JUnit, Spotbugs, Checkstyle, Sonar, release to Github"
-      script: |
-        git fetch --unshallow --quiet
-        mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.branch.name=$TRAVIS_BRANCH
-        cd orko-app
-        mvn -B -U github-release:release --settings ../etc/.maven-settings.xml -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+        mvn -Pci ${SONAR_TARGETS} ${BUILD_ARGS} -Dsonar.branch.name=$TRAVIS_BRANCH
+
     - if: repo = gruelbox/orko AND head_repo = gruelbox/orko AND type = pull_request
       name: "JUnit, Spotbugs, Checkstyle, Sonar (PR)"
       script: |
         git fetch --unshallow --quiet
         git fetch origin master
-        mvn -B -U -Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=gruelbox/orko -Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST -Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_BRANCH -Dsonar.pullrequest.base=$TRAVIS_BRANCH
+        mvn -Pci ${SONAR_TARGETS} ${BUILD_ARGS} -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=gruelbox/orko -Dsonar.pullrequest.key=$TRAVIS_PULL_REQUEST -Dsonar.pullrequest.branch=$TRAVIS_PULL_REQUEST_BRANCH -Dsonar.pullrequest.base=$TRAVIS_BRANCH
+
     - if: (repo = gruelbox/orko AND NOT head_repo = gruelbox/orko AND type = pull_request) OR NOT repo = gruelbox/orko
-      name: "JUnit tests, Spotbugs and Checkstyle"
+      name: "JUnit tests, Spotbugs and Checkstyle (External)"
       script: |
         git fetch --unshallow --quiet
-        mvn -B -U clean test -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+        mvn -Pproduction clean test ${BUILD_ARGS}
+
+    - if: repo = gruelbox/orko AND NOT branch = master AND tag IS present AND NOT type = pull_request
+      name: "Release to Github"
+      script: |
+        mvn -Pproduction clean package ${BUILD_ARGS}
+        cd orko-app
+        mvn github-release:release --settings ../etc/.maven-settings.xml ${BUILD_ARGS}
+
     - name: "MySQL tests"
       services: mysql
       before_install: mysql -e 'CREATE DATABASE test;'
-      script: mvn -B -U clean test -Dmorf.mysql.noadmin=true -Dspotbugs.skip=true -Dcheckstyle.skip -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dtestdb.url=mysql://travis@127.0.0.1/test
+      script: mvn -B -U clean test -Dmorf.mysql.noadmin=true -Dspotbugs.skip=true -Dcheckstyle.skip=true -Dtestdb.url=mysql://travis@127.0.0.1/test ${BUILD_ARGS}
+
 cache:
   npm: true
   directories:

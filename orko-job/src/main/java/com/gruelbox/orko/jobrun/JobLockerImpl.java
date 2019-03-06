@@ -83,7 +83,7 @@ class JobLockerImpl implements JobLocker, Managed {
     int deleted = connectionSource.getWithCurrentConnection(dsl ->
       dsl.deleteFrom(TABLE).where(EXPIRES_FIELD.lessOrEqual(expiry)).execute());
     if (deleted != 0) {
-      LOGGER.warn("Expired {} locks on active jobs", deleted);
+      LOGGER.info("Expired {} locks on active jobs", deleted);
     }
   }
 
