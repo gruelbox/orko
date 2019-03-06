@@ -64,7 +64,6 @@ import java.util.function.UnaryOperator;
 
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.bitfinex.common.dto.BitfinexException;
-import org.knowm.xchange.bitmex.BitmexPrompt;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
@@ -886,7 +885,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private void pollAndEmitTrades(MarketDataSubscription subscription) throws IOException {
-      marketDataService.getTrades(exchangePair(subscription.spec()), exchangeTradesArgs(subscription.spec()))
+      marketDataService.getTrades(subscription.spec().currencyPair())
         .getTrades()
         .stream()
         .forEach(t ->
@@ -904,42 +903,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         );
     }
 
-    private Object[] exchangeTradesArgs(TickerSpec spec) {
-      return spec.exchange().equals(Exchanges.BITMEX)
-          ? bitmexArgs(spec)
-          : new Object[] {};
-    }
-
-    private Object[] bitmexArgs(TickerSpec spec) {
-      // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-      return new Object[] {
-          spec.counter().equals("USD")
-            ? BitmexPrompt.PERPETUAL
-            : BitmexPrompt.QUARTERLY
-      };
-    }
-
-    private CurrencyPair exchangePair(TickerSpec spec) {
-      return spec.exchange().equals(Exchanges.BITMEX)
-          ? bitmexCurrencyPair(spec)
-          : spec.currencyPair();
-    }
-
-    private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
-      // TODO need solution for https://github.com/knowm/XChange/issues/2886
-      return spec.counter().equals("USD")
-          ? spec.currencyPair()
-          : new CurrencyPair(spec.base(), "BTC");
-    }
-
     private void pollAndEmitOrderbook(TickerSpec spec) throws IOException {
-      OrderBook orderBook = marketDataService.getOrderBook(exchangePair(spec), exchangeOrderbookArgs(spec));
+      OrderBook orderBook = marketDataService.getOrderBook(spec.currencyPair(), exchangeOrderbookArgs(spec));
       orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
     }
 
     private Object[] exchangeOrderbookArgs(TickerSpec spec) {
       if (spec.exchange().equals(Exchanges.BITMEX)) {
-        return bitmexArgs(spec);
+        return new Object[] { };
       } else {
         return new Object[] { ORDERBOOK_DEPTH, ORDERBOOK_DEPTH };
       }
