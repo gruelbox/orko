@@ -27,9 +27,12 @@ import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.db.DbResource;
+import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResourceModule;
+import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.marketdata.SimulatorModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.tools.dropwizard.guice.Configured;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
@@ -57,6 +60,15 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
       .addBinding().to(MonolithEnvironment.class);
     Multibinder.newSetBinder(binder(), WebResource.class)
       .addBinding().to(DbResource.class);
+    if (isSimulatorEnabled())
+      install(new SimulatorModule());
+  }
+
+  private boolean isSimulatorEnabled() {
+    if (configuration.getExchanges() == null)
+      return false;
+    ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(Exchanges.SIMULATED);
+    return exchangeConfiguration != null && exchangeConfiguration.isAuthenticated();
   }
 
   @Provides
