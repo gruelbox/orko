@@ -32,7 +32,7 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
-import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -479,7 +479,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         LOGGER.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
 
-      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException | NoRouteToHostException | NonceException e) {
+      } catch (SocketTimeoutException | SocketException | ExchangeUnavailableException | SystemOverloadException | NonceException e) {
 
         // Managed connectivity issues.
         LOGGER.warn("Throttling {} - {} ({}) when fetching {}", exchangeName, e.getClass().getSimpleName(), exceptionMessage(e), dataDescription);
@@ -754,13 +754,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
 
     /**
-     * TODO See https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
-     * The public and authenticated behaviours currently differ but it's not
-     * been decided which is right. In the meantime we flip Binance to match others
-     * on the method above but not here.
+     * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
      */
     private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
-      return t;
+      if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
+        return UserTrade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
+      } else {
+        return t;
+      }
     }
 
     private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {

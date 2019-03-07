@@ -67,7 +67,7 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
       while (isRunning() && !Thread.interrupted()) {
 
         // Wait a random amount of time, up to 2 seconds
-        Thread.sleep(500 + random.nextInt(1499));
+        Thread.sleep(500L + random.nextInt(1499));
 
         // Randomly add a bit to the book and then execute a market order on the opposite side
         OrderType orderType = random.nextBoolean() ? ASK : BID;
@@ -130,7 +130,7 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
         .build());
   }
 
-  private void marketMakerOrder(OrderType orderType, BigDecimal price, BigDecimal amount) throws IOException {
+  private void marketMakerOrder(OrderType orderType, BigDecimal price, BigDecimal amount) {
     marketMakerExchange.getTradeService().placeLimitOrderUnrestricted(new LimitOrder.Builder(orderType, BTC_USD)
         .limitPrice(price)
         .originalAmount(amount)
