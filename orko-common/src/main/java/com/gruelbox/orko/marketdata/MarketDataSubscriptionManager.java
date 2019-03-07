@@ -77,6 +77,7 @@ import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.ExchangeUnavailableException;
 import org.knowm.xchange.exceptions.FrequencyLimitExceededException;
+import org.knowm.xchange.exceptions.NonceException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.exceptions.RateLimitExceededException;
@@ -475,20 +476,20 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
 
         // Disable the feature since XChange doesn't provide support for it.
-        LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
+        LOGGER.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
 
-      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException | NoRouteToHostException e) {
+      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException | NoRouteToHostException | NonceException e) {
 
         // Managed connectivity issues.
-        LOGGER.warn("Throttling {} - {} when fetching {}", exchangeName, e.getClass().getSimpleName(), dataDescription);
+        LOGGER.warn("Throttling {} - {} ({}) when fetching {}", exchangeName, e.getClass().getSimpleName(), exceptionMessage(e), dataDescription);
         exchangeService.rateController(exchangeName).throttle();
 
       } catch (HttpStatusIOException e) {
 
-        if (e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
-          // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases).
-          LOGGER.warn("Throttling {} - failed at gateway ({} - ) when fetching {}", exchangeName, e.getHttpStatusCode(), e.getMessage(), dataDescription);
+        if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
+          // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
+          LOGGER.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
           exchangeService.rateController(exchangeName).throttle();
         } else {
           handleUnknownPollException(e);
@@ -504,23 +505,36 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         rateController.pause();
 
       } catch (BitfinexException e) {
-        handleUnknownPollException(new ExchangeException("Bitfinex exception: " + e.getMessage() + " (error code=" + e.getError() + ")", e));
+        handleUnknownPollException(new ExchangeException("Bitfinex exception: " + exceptionMessage(e) + " (error code=" + e.getError() + ")", e));
       } catch (Exception e) {
         handleUnknownPollException(e);
       }
     }
 
+    private String exceptionMessage(Throwable e) {
+      if (e.getMessage() == null) {
+        if (e.getCause() == null) {
+          return "No description";
+        } else {
+          return exceptionMessage(e.getCause());
+        }
+      } else {
+        return e.getMessage();
+      }
+    }
+
     private void handleUnknownPollException(Exception e) {
       LocalDateTime now = now();
+      String exceptionMessage = exceptionMessage(e);
       if (lastPollException == null ||
           !lastPollException.getClass().equals(e.getClass()) ||
-          !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
+          !firstNonNull(exceptionMessage(lastPollException), "").equals(exceptionMessage) ||
           lastPollErrorNotificationTime.until(now, MINUTES) > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
         lastPollErrorNotificationTime = now;
         LOGGER.error("Error fetching data for " + exchangeName, e);
-        notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
+        notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + exceptionMessage + ")");
       } else {
-        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
+        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
       }
       lastPollException = e;
       exchangeService.rateController(exchangeName).throttle();
