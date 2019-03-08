@@ -487,13 +487,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       } catch (HttpStatusIOException e) {
 
-        if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
-          // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
-          LOGGER.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
-          exchangeService.rateController(exchangeName).throttle();
-        } else {
-          handleUnknownPollException(e);
-        }
+        handleHttpStatusException(dataDescription, e);
 
       } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
 
@@ -504,9 +498,27 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         rateController.backoff();
         rateController.pause();
 
+      } catch (ExchangeException e) {
+        if (e.getCause() instanceof HttpStatusIOException) {
+          // TODO Bitmex is inappropriately wrapping these and should be fixed
+          // for consistency. In the meantime...
+          handleHttpStatusException(dataDescription, (HttpStatusIOException) e.getCause());
+        } else {
+          handleUnknownPollException(e);
+        }
       } catch (BitfinexException e) {
         handleUnknownPollException(new ExchangeException("Bitfinex exception: " + exceptionMessage(e) + " (error code=" + e.getError() + ")", e));
       } catch (Exception e) {
+        handleUnknownPollException(e);
+      }
+    }
+
+    private void handleHttpStatusException(String dataDescription, HttpStatusIOException e) {
+      if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
+        // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
+        LOGGER.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
+        exchangeService.rateController(exchangeName).throttle();
+      } else {
         handleUnknownPollException(e);
       }
     }
