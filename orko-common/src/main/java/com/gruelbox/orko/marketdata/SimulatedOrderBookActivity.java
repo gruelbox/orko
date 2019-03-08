@@ -39,6 +39,7 @@ import com.google.inject.Singleton;
 @Singleton
 class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
 
+  private static final BigDecimal MIN_PRICE = new BigDecimal("0.01");
   private static final Logger LOGGER = LoggerFactory.getLogger(SimulatedOrderBookActivity.class);
   private static final BigDecimal THOUSAND = new BigDecimal(1000);
   private static final BigDecimal HUNDRED = new BigDecimal(100);
@@ -85,11 +86,12 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
   }
 
   private BigDecimal randomPrice(OrderType orderType) throws IOException {
-    // 0 - 1000 USD from the current price
+    // 0 - 50 USD from the current price
     Ticker ticker = marketMakerExchange.getMarketDataService().getTicker(BTC_USD);
-    BigDecimal diff = new BigDecimal(random.nextInt(100000)).divide(HUNDRED, 2, HALF_UP);
+    BigDecimal diff = new BigDecimal(random.nextInt(5000)).divide(HUNDRED, 2, HALF_UP);
     if (orderType == BID) {
-      return ticker.getBid().subtract(diff);
+      BigDecimal result = ticker.getBid().subtract(diff);
+      return result.compareTo(MIN_PRICE) <= 0 ? MIN_PRICE : result;
     } else {
       return ticker.getAsk().add(diff);
     }
@@ -98,11 +100,11 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
   private void mockMarket() throws IOException {
     marketMakerExchange.getAccountService().deposit(USD, new BigDecimal("99999999999999999"));
     marketMakerExchange.getAccountService().deposit(BTC, new BigDecimal("99999999999999999"));
-    BigDecimal startPrice = new BigDecimal(3500);
+    BigDecimal startPrice = new BigDecimal(5000);
     BigDecimal startAmount = new BigDecimal("2");
-    BigDecimal range = new BigDecimal(6000);
+    BigDecimal range = new BigDecimal(4000);
     BigDecimal seedIncrement = new BigDecimal("0.1");
-    BigDecimal multiplicator = new BigDecimal("1.5");
+    BigDecimal multiplicator = new BigDecimal("1.3");
 
     BigDecimal diff = seedIncrement;
     BigDecimal amount = startAmount;
