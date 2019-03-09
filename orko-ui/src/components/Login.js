@@ -69,8 +69,14 @@ export default class Login extends Component {
         <Modal.Content>
           <Form error={this.props.error !== null} id="loginForm">
             <Message error header="Error" content={this.props.error} />
-            <Form.Field>
-              <label>Username</label>
+            <Form.Field required>
+              <label>
+                Username{" "}
+                <Icon
+                  name="question circle"
+                  title="Configured on the server in the config file (auth/jwt/userName) or the SIMPLE_AUTH_USERNAME environment variable."
+                />
+              </label>
               <div className="ui input">
                 <input
                   data-orko="username"
@@ -82,8 +88,14 @@ export default class Login extends Component {
                 />
               </div>
             </Form.Field>
-            <Form.Field>
-              <label>Password</label>
+            <Form.Field required>
+              <label>
+                Password{" "}
+                <Icon
+                  name="question circle"
+                  title="Configured on the server in the config file (auth/jwt/password) or the SIMPLE_AUTH_PASSWORD environment variable."
+                />
+              </label>
               <div className="ui input">
                 <input
                   data-orko="password"
@@ -96,12 +108,18 @@ export default class Login extends Component {
               </div>
             </Form.Field>
             <Form.Field>
-              <label>Second factor</label>
+              <label>
+                Second factor{" "}
+                <Icon
+                  name="question circle"
+                  title="Optional. Enter a one-time-password from an authenticator application such as Google Authenticator. Only required if a secret has been configured on the server in the config file (auth/jwt/secondFactorSecret) or the SIMPLE_AUTH_SECOND_FACTOR environment variable. "
+                />
+              </label>
               <div className="ui input">
                 <input
                   data-orko="secondFactor"
                   type="text"
-                  placeholder="Enter second factor"
+                  placeholder="Enter one-time password"
                   value={this.state.secondFactor}
                   onChange={this.onChangeSecondFactor}
                 />

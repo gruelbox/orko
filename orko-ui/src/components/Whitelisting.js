@@ -36,7 +36,7 @@ export default class Whitelisting extends Component {
       <FixedModal size="tiny" data-orko="whitelistingModal">
         <Modal.Header>
           <Icon name="lock" />
-          Challenge
+          Unknown or expired origin IP address
         </Modal.Header>
         <Modal.Content>
           <Form
@@ -46,12 +46,18 @@ export default class Whitelisting extends Component {
           >
             <Message error header="Error" content={this.props.error} />
             <Form.Field>
-              <label>Response</label>
+              <label>
+                Enter a 6-digit one-time password{" "}
+                <Icon
+                  name="question circle"
+                  title="To access from this IP address, enter a one-time-password from an authenticator application such as Google Authenticator. This must be configured with the same shared secret as is stored on the server in the config file (auth/ipWhitelisting/secretKey) or the AUTH_TOKEN environment variable."
+                />
+              </label>
               <div className="ui input">
                 <input
                   data-orko="token"
                   type="text"
-                  placeholder="Enter response..."
+                  placeholder="Enter one-time password"
                   value={this.state.response || ""}
                   onChange={this.onChangeResponse}
                 />
