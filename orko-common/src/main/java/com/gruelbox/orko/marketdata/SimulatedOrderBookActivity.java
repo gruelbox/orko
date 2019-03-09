@@ -82,7 +82,7 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
 
   private BigDecimal randomAmount(int max) {
     // 0.001 - max BTC
-    return new BigDecimal(1 + random.nextInt(max * 1000 - 1)).divide(THOUSAND, 2, HALF_UP);
+    return new BigDecimal(1 + random.nextInt(max * 1000 - 1)).divide(THOUSAND, 4, HALF_UP);
   }
 
   private BigDecimal randomPrice(OrderType orderType) throws IOException {
