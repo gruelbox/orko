@@ -18,6 +18,7 @@
 import React, { Component } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
 import FixedModal from "./primitives/FixedModal"
+import { isValidOtp } from "../util/numberUtils"
 
 export default class Whitelisting extends Component {
   constructor(props) {
@@ -45,9 +46,13 @@ export default class Whitelisting extends Component {
             id="whitelistingForm"
           >
             <Message error header="Error" content={this.props.error} />
-            <Form.Field>
+            <Form.Field
+              error={
+                this.state.response !== "" && !isValidOtp(this.state.response)
+              }
+            >
               <label>
-                Enter a 6-digit one-time password{" "}
+                Enter one-time password{" "}
                 <Icon
                   name="question circle"
                   title="To access from this IP address, enter a one-time-password from an authenticator application such as Google Authenticator. This must be configured with the same shared secret as is stored on the server in the config file (auth/ipWhitelisting/secretKey) or the AUTH_TOKEN environment variable."
@@ -57,8 +62,8 @@ export default class Whitelisting extends Component {
                 <input
                   data-orko="token"
                   type="text"
-                  placeholder="Enter one-time password"
-                  value={this.state.response || ""}
+                  placeholder="6 digits, e.g. 123456"
+                  value={this.state.response}
                   onChange={this.onChangeResponse}
                 />
               </div>
@@ -70,6 +75,7 @@ export default class Whitelisting extends Component {
             form="whitelistingForm"
             data-orko="whitelistingSubmit"
             type="submit"
+            disabled={!isValidOtp(this.state.response)}
           >
             Authorise
           </Button>
