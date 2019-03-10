@@ -108,9 +108,6 @@ public class ExchangeServiceImpl implements ExchangeService {
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
         exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
-        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ON_OPERATION_PARAM, new RandomExceptionThrower());
-        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ACCOUNT_FACTORY_PARAM, accountFactory);
-        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ENGINE_FACTORY_PARAM, matchingEngineFactory);
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
@@ -139,6 +136,11 @@ public class ExchangeServiceImpl implements ExchangeService {
         BEFORE_CONNECTION_HANDLER,
         (Runnable) rateLimiter::acquire
       );
+      if (Exchanges.SIMULATED.equals(exchangeName)) {
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ON_OPERATION_PARAM, new RandomExceptionThrower());
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ACCOUNT_FACTORY_PARAM, accountFactory);
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ENGINE_FACTORY_PARAM, matchingEngineFactory);
+      }
       return exSpec;
     }
   });

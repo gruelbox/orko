@@ -125,7 +125,7 @@ final class MonitorExchangeSocketHealth implements Managed {
       notificationService.error(name + " trade stream has not sent a trade for " + MINUTES_BEFORE_WARNING + "m");
       reset(stopwatch);
     } else {
-      LOGGER.debug(name + " socket healthy");
+      LOGGER.debug("{} socket healthy", name);
     }
   }
 

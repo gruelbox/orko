@@ -20,6 +20,7 @@ import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
 import FixedModal from "./primitives/FixedModal"
 import authService from "../services/auth"
 import { setXsrfToken } from "../services/fetchUtil"
+import { isValidOtp } from "../util/numberUtils"
 
 export default class Login extends Component {
   constructor(props) {
@@ -69,8 +70,14 @@ export default class Login extends Component {
         <Modal.Content>
           <Form error={this.props.error !== null} id="loginForm">
             <Message error header="Error" content={this.props.error} />
-            <Form.Field>
-              <label>Username</label>
+            <Form.Field required>
+              <label>
+                Username{" "}
+                <Icon
+                  name="question circle"
+                  title="Configured on the server in the config file (auth/jwt/userName) or the SIMPLE_AUTH_USERNAME environment variable."
+                />
+              </label>
               <div className="ui input">
                 <input
                   data-orko="username"
@@ -82,8 +89,14 @@ export default class Login extends Component {
                 />
               </div>
             </Form.Field>
-            <Form.Field>
-              <label>Password</label>
+            <Form.Field required>
+              <label>
+                Password{" "}
+                <Icon
+                  name="question circle"
+                  title="Configured on the server in the config file (auth/jwt/password) or the SIMPLE_AUTH_PASSWORD environment variable."
+                />
+              </label>
               <div className="ui input">
                 <input
                   data-orko="password"
@@ -95,13 +108,24 @@ export default class Login extends Component {
                 />
               </div>
             </Form.Field>
-            <Form.Field>
-              <label>Second factor</label>
+            <Form.Field
+              error={
+                this.state.secondFactor !== "" &&
+                !isValidOtp(this.state.secondFactor)
+              }
+            >
+              <label>
+                Second factor{" "}
+                <Icon
+                  name="question circle"
+                  title="Optional. Enter a six-digit one-time-password from an authenticator application such as Google Authenticator, removing any spaces. Only required if a secret has been configured on the server in the config file (auth/jwt/secondFactorSecret) or the SIMPLE_AUTH_SECOND_FACTOR environment variable."
+                />
+              </label>
               <div className="ui input">
                 <input
                   data-orko="secondFactor"
                   type="text"
-                  placeholder="Enter second factor"
+                  placeholder="6 digits, e.g. 123456"
                   value={this.state.secondFactor}
                   onChange={this.onChangeSecondFactor}
                 />
@@ -115,6 +139,12 @@ export default class Login extends Component {
             type="submit"
             form="loginForm"
             onClick={this.login}
+            disabled={
+              this.state.username === "" ||
+              this.state.password === "" ||
+              (this.state.secondFactor !== "" &&
+                !isValidOtp(this.state.secondFactor))
+            }
           >
             Login
           </Button>

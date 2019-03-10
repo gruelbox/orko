@@ -32,7 +32,7 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
-import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -72,7 +72,6 @@ import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
-import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.ExchangeUnavailableException;
@@ -479,7 +478,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         LOGGER.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
 
-      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException | NoRouteToHostException | NonceException e) {
+      } catch (SocketTimeoutException | SocketException | ExchangeUnavailableException | SystemOverloadException | NonceException e) {
 
         // Managed connectivity issues.
         LOGGER.warn("Throttling {} - {} ({}) when fetching {}", exchangeName, e.getClass().getSimpleName(), exceptionMessage(e), dataDescription);
@@ -487,13 +486,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
       } catch (HttpStatusIOException e) {
 
-        if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
-          // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
-          LOGGER.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
-          exchangeService.rateController(exchangeName).throttle();
-        } else {
-          handleUnknownPollException(e);
-        }
+        handleHttpStatusException(dataDescription, e);
 
       } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
 
@@ -504,9 +497,27 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         rateController.backoff();
         rateController.pause();
 
+      } catch (ExchangeException e) {
+        if (e.getCause() instanceof HttpStatusIOException) {
+          // TODO Bitmex is inappropriately wrapping these and should be fixed
+          // for consistency. In the meantime...
+          handleHttpStatusException(dataDescription, (HttpStatusIOException) e.getCause());
+        } else {
+          handleUnknownPollException(e);
+        }
       } catch (BitfinexException e) {
         handleUnknownPollException(new ExchangeException("Bitfinex exception: " + exceptionMessage(e) + " (error code=" + e.getError() + ")", e));
       } catch (Exception e) {
+        handleUnknownPollException(e);
+      }
+    }
+
+    private void handleHttpStatusException(String dataDescription, HttpStatusIOException e) {
+      if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
+        // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
+        LOGGER.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
+        exchangeService.rateController(exchangeName).throttle();
+      } else {
         handleUnknownPollException(e);
       }
     }
@@ -728,7 +739,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case USER_TRADE:
           return streamingExchange.getStreamingTradeService().getUserTrades(sub.spec().currencyPair())
-              .map(t -> convertBinanceUserOrderType(sub, t))
               .map(t -> UserTradeEvent.create(sub.spec(), t))
               .subscribe(userTradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case ORDER:
@@ -750,17 +760,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } else {
         return t;
       }
-    }
-
-
-    /**
-     * TODO See https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
-     * The public and authenticated behaviours currently differ but it's not
-     * been decided which is right. In the meantime we flip Binance to match others
-     * on the method above but not here.
-     */
-    private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
-      return t;
     }
 
     private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
