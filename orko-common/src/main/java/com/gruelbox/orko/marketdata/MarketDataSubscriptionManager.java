@@ -72,7 +72,6 @@ import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
-import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.ExchangeUnavailableException;
@@ -740,7 +739,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case USER_TRADE:
           return streamingExchange.getStreamingTradeService().getUserTrades(sub.spec().currencyPair())
-              .map(t -> convertBinanceUserOrderType(sub, t))
               .map(t -> UserTradeEvent.create(sub.spec(), t))
               .subscribe(userTradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case ORDER:
@@ -759,18 +757,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private Trade convertBinanceOrderType(MarketDataSubscription sub, Trade t) {
       if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
         return Trade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
-      } else {
-        return t;
-      }
-    }
-
-
-    /**
-     * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
-     */
-    private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
-      if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
-        return UserTrade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
       } else {
         return t;
       }
