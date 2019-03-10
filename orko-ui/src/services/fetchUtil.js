@@ -42,6 +42,10 @@ export function clearXsrfToken() {
   localStorage.removeItem(X_XSRF_TOKEN)
 }
 
+export function getWeb(url) {
+  return fetch(new Request(url, action("GET")))
+}
+
 export function get(url) {
   return fetch(new Request("/api/" + url, action("GET")))
 }

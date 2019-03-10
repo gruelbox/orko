@@ -15,15 +15,24 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { get, getWeb } from "./fetchUtil"
+import React from "react"
+import { connect } from "react-redux"
 
-class ScriptService {
-  async fetchMetadata() {
-    return await get("support/meta")
-  }
-  async fetchReleases() {
-    return await getWeb("https://api.github.com/repos/gruelbox/orko/releases")
-  }
-}
+import NewRelease from "../components/NewRelease"
+import * as supportActions from "../store/support/actions"
+import * as supportSelectors from "../selectors/support"
 
-export default new ScriptService()
+export default connect(state => ({
+  enabled:
+    state.auth.loggedIn &&
+    state.auth.whitelisted &&
+    !state.support.hideReleases,
+  releases: supportSelectors.getNewVersions(state)
+}))(({ enabled, releases, dispatch }) => (
+  <NewRelease
+    enabled={enabled}
+    releases={releases}
+    onClose={() => dispatch(supportActions.hideReleases())}
+    onIgnore={() => dispatch(supportActions.ignoreVersion())}
+  />
+))

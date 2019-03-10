@@ -30,3 +30,19 @@ export function fetchMetadata() {
       )
   )
 }
+
+export function fetchReleases() {
+  return authActions.wrappedRequest(
+    () => supportService.fetchReleases(),
+    json => ({ type: types.SET_RELEASES, payload: json }),
+    error => () => console.log("Could not fetch releases", error)
+  )
+}
+
+export function ignoreVersion() {
+  return { type: types.SET_IGNORED_VERSION }
+}
+
+export function hideReleases() {
+  return { type: types.HIDE_RELEASES }
+}
