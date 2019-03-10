@@ -18,7 +18,7 @@
 export const isValidNumber = val => !isNaN(val) && val !== "" && val !== null
 
 export const isValidOtp = val =>
-  !isNaN(val) && Number(val) >= 100000 && Number(val) <= 999999
+  !isNaN(val) && val.length === 6
 
 export const formatNumber = (x, scale, undefinedValue) => {
   if (!isValidNumber(x)) return undefinedValue
