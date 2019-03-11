@@ -15,6 +15,6 @@
     "cypress": "^3.1.5"
   },
   "dependencies": {
-    "otplib": "^10.0.1"
+    "otplib": "^11.0.0"
   }
 }
