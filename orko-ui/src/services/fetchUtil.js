@@ -17,6 +17,11 @@
  */
 import Cookies from "cookies-js"
 
+// Uses polyfilled fetch since this is XHR backed and thus will work with
+// Cypress stubbing. Browser native fetch is not supported currently:
+// https://github.com/cypress-io/cypress/issues/687
+import { fetch as fetchPolyfill } from "whatwg-fetch"
+
 const defaultSettings = { method: "GET", mode: "cors", redirect: "follow" }
 
 const ACCESS_TOKEN = "accessToken"
@@ -42,20 +47,24 @@ export function clearXsrfToken() {
   localStorage.removeItem(X_XSRF_TOKEN)
 }
 
+export function getWeb(url) {
+  return fetchPolyfill(url)
+}
+
 export function get(url) {
-  return fetch(new Request("/api/" + url, action("GET")))
+  return fetchPolyfill("/api/" + url, action("GET"))
 }
 
 export function put(url, content) {
-  return fetch(new Request("/api/" + url, action("PUT", content)))
+  return fetchPolyfill("/api/" + url, action("PUT", content))
 }
 
 export function post(url, content) {
-  return fetch(new Request("/api/" + url, action("POST", content)))
+  return fetchPolyfill("/api/" + url, action("POST", content))
 }
 
 export function del(url, content) {
-  return fetch(new Request("/api/" + url, action("DELETE", content)))
+  return fetchPolyfill("/api/" + url, action("DELETE", content))
 }
 
 function action(method, content) {
@@ -64,12 +73,12 @@ function action(method, content) {
     body: content,
     method: method,
     headers: xsrfToken
-      ? new Headers({
+      ? {
           [X_XSRF_TOKEN]: xsrfToken,
           "Content-type": "application/json"
-        })
-      : new Headers({
+        }
+      : {
           "Content-type": "application/json"
-        })
+        }
   }
 }

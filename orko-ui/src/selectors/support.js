@@ -15,15 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { get, getWeb } from "./fetchUtil"
+import { createSelector } from "reselect"
+import Immutable from "seamless-immutable"
+import * as compareVersions from "compare-versions"
 
-class ScriptService {
-  async fetchMetadata() {
-    return await get("support/meta")
-  }
-  async fetchReleases() {
-    return await getWeb("https://api.github.com/repos/gruelbox/orko/releases")
-  }
-}
+const getReleases = state => state.support.releases
+const getIgnoredVersion = state => state.support.ignoredVersion
+const getVersion = state => state.support.meta.version
 
-export default new ScriptService()
+export const getNewVersions = createSelector(
+  [getReleases, getIgnoredVersion, getVersion],
+  (releases, ignoredVersion, version) =>
+    Immutable(
+      releases
+        .filter(r => compareVersions(r.name, version) === 1)
+        .filter(r => compareVersions(r.name, ignoredVersion) === 1)
+    )
+)
