@@ -28,7 +28,7 @@ const Header = styled.h3`
 `
 
 const Release = ({ name, body }) => (
-  <Segment>
+  <Segment data-orko={"release/" + name}>
     <Header>{name}</Header>
     <ReactMarkdown source={body} />
   </Segment>
@@ -36,7 +36,7 @@ const Release = ({ name, body }) => (
 
 export default ({ enabled, releases, onClose, onIgnore }) =>
   enabled && releases && releases.length > 0 ? (
-    <FixedModal closeIcon onClose={onClose}>
+    <FixedModal data-orko="newReleases" closeIcon onClose={onClose}>
       <Modal.Header id="news">
         <Icon name="bell" />
         New version(s) released
@@ -47,8 +47,10 @@ export default ({ enabled, releases, onClose, onIgnore }) =>
         ))}
       </Modal.Content>
       <Modal.Actions>
-        <Button onClick={onClose}>Remind me later</Button>
-        <Button secondary onClick={onIgnore}>
+        <Button data-orko="later" onClick={onClose}>
+          Remind me later
+        </Button>
+        <Button data-orko="ignore" secondary onClick={onIgnore}>
           Ignore this version
         </Button>
       </Modal.Actions>
