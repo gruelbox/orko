@@ -164,8 +164,7 @@ public class CheckedExceptions {
    *
    * <p>Note that the lambda is cast at construction time to {@link Serializable}
    * so may be serialised, assuming that you have provided serialisability on
-   * any enclosed objects.  TODO REALLY NEED TO DOUBLE CHECK THIS. NOT
-   * CONVINCED IN THE SLIGHTEST.  NEEDS TESTS</p>.
+   * any enclosed objects.</p>.
    *
    * @param <T> The return type.
    * @param callable The lambda to wrap.

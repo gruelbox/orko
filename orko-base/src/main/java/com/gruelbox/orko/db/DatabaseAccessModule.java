@@ -24,7 +24,10 @@ import static org.alfasoftware.morf.upgrade.db.DatabaseUpgradeTableContribution.
 
 import java.util.Set;
 
+import javax.sql.DataSource;
+
 import org.alfasoftware.morf.jdbc.ConnectionResources;
+import org.alfasoftware.morf.jdbc.SqlDialect;
 import org.alfasoftware.morf.metadata.Schema;
 import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.alfasoftware.morf.metadata.View;
@@ -60,5 +63,15 @@ public class DatabaseAccessModule extends AbstractModule {
       SchemaUtils.schema(FluentIterable.from(contributions).transformAndConcat(TableContribution::tables)),
       SchemaUtils.schema(views)
     );
+  }
+
+  @Provides
+  SqlDialect sqlDialect(ConnectionResources connectionResources) {
+    return connectionResources.sqlDialect();
+  }
+
+  @Provides
+  DataSource dataSource(ConnectionResources connectionResources) {
+    return connectionResources.getDataSource();
   }
 }
