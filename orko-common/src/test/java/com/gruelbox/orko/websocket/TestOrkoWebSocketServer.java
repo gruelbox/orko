@@ -1,6 +1,7 @@
 package com.gruelbox.orko.websocket;
 
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
+import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +28,7 @@ import javax.websocket.Session;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -41,6 +44,7 @@ import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.orko.marketdata.BalanceEvent;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
+import com.gruelbox.orko.marketdata.OrderBookEvent;
 import com.gruelbox.orko.marketdata.TickerEvent;
 import com.gruelbox.orko.spi.TickerSpec;
 
@@ -135,6 +139,25 @@ public class TestOrkoWebSocketServer {
     ));
   }
 
+  @Test
+  public void testOrderBooks() throws IOException, InterruptedException {
+    TickerSpec tickerSpec = TickerSpec.fromKey("binance/USD/BTC");
+    OrderBookEvent event1 = OrderBookEvent.create(tickerSpec, new OrderBook(new Date(), ImmutableList.of(), ImmutableList.of()));
+    OrderBookEvent event2 = OrderBookEvent.create(tickerSpec, new OrderBook(new Date(), ImmutableList.of(), ImmutableList.of()));
+    Flowable<OrderBookEvent> events = Flowable.just(event1, event2, event1)
+        .concatMap(e -> Flowable.just(e).delay(2200, TimeUnit.MILLISECONDS))
+        .doOnNext(e -> System.out.println("Emitting " + e));
+    when(subscription.getOrderBooks()).thenReturn(events);
+    when(exchangeEventRegistry.subscribe(ImmutableSet.of(MarketDataSubscription.create(tickerSpec, ORDERBOOK))))
+        .thenReturn(subscription);
+
+    List<String> messagesSent = messaging("CHANGE_ORDER_BOOK", true);
+    assertThat(messagesSent, contains(
+        startsWith("{\"nature\":\"ORDERBOOK\",\"data\":{"),
+        startsWith("{\"nature\":\"ORDERBOOK\",\"data\":{")
+    ));
+  }
+
   private List<String> messaging(String command, boolean longRunning) throws IOException, InterruptedException {
     List<String> messagesSent = new CopyOnWriteArrayList<>();
     CountDownLatch callCounter = new CountDownLatch(2);
@@ -161,7 +184,7 @@ public class TestOrkoWebSocketServer {
     try {
       server.myOnMsg(session, "{ \"command\": \"" + command + "\", \"tickers\": " + tickerString + " }");
       server.myOnMsg(session, "{ \"command\": \"UPDATE_SUBSCRIPTIONS\" }");
-      assertTrue(callCounter.await(10, TimeUnit.SECONDS));
+      assertTrue(callCounter.await(20, TimeUnit.SECONDS));
     } finally {
       if (longRunning)
         keepalive.interrupt();
