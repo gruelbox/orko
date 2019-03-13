@@ -26,6 +26,8 @@ import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -67,7 +69,6 @@ import com.gruelbox.orko.util.SafelyClose;
 import com.gruelbox.orko.util.SafelyDispose;
 import com.gruelbox.orko.websocket.OrkoWebSocketOutgoingMessage.Nature;
 
-import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 
 @Metered
@@ -79,9 +80,9 @@ public final class OrkoWebSocketServer {
   private static final int READY_TIMEOUT = 5000;
   private static final Logger LOGGER = LoggerFactory.getLogger(OrkoWebSocketServer.class);
 
-  @Inject private ExchangeEventRegistry exchangeEventRegistry;
-  @Inject private ObjectMapper objectMapper;
-  @Inject private EventBus eventBus;
+  private ExchangeEventRegistry exchangeEventRegistry;
+  private ObjectMapper objectMapper;
+  private EventBus eventBus;
 
   private final AtomicLong lastReadyTime = new AtomicLong();
   private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
@@ -90,14 +91,21 @@ public final class OrkoWebSocketServer {
   private Disposable disposable;
   private ExchangeEventSubscription subscription;
 
-
   @OnOpen
   public synchronized void myOnOpen(final javax.websocket.Session session) {
     LOGGER.info("Opening socket");
     markReady();
-    injectMembers(session);
+    Injector injector = (Injector) session.getUserProperties().get(Injector.class.getName());
+    injector.injectMembers(this);
     this.session = session;
     eventBus.register(this);
+  }
+
+  @Inject
+  void inject(ExchangeEventRegistry exchangeEventRegistry, ObjectMapper objectMapper, EventBus eventBus) {
+    this.exchangeEventRegistry = exchangeEventRegistry;
+    this.objectMapper = objectMapper;
+    this.eventBus = eventBus;
   }
 
   @OnMessage
@@ -182,11 +190,6 @@ public final class OrkoWebSocketServer {
     LOGGER.error("Socket error", error);
   }
 
-  private void injectMembers(final javax.websocket.Session session) {
-    Injector injector = (Injector) session.getUserProperties().get(Injector.class.getName());
-    injector.injectMembers(this);
-  }
-
   private OrkoWebSocketIncomingMessage decodeRequest(String message) {
     OrkoWebSocketIncomingMessage request;
     try {
@@ -198,19 +201,23 @@ public final class OrkoWebSocketServer {
   }
 
   private synchronized void updateSubscriptions() {
+    Set<MarketDataSubscription> target = marketDataSubscriptions.get();
+    LOGGER.debug("Updating subscriptions to {}", target);
     SafelyDispose.of(disposable);
     if (subscription == null) {
-      subscription = exchangeEventRegistry.subscribe(marketDataSubscriptions.get());
+      subscription = exchangeEventRegistry.subscribe(target);
     } else {
-      subscription = subscription.replace(marketDataSubscriptions.get());
+      subscription = subscription.replace(target);
     }
     disposable = new Disposable() {
 
       // Apply a 1-second throttle on a PER TICKER basis
-      private final Disposable tickers = Flowable.fromIterable(subscription.getTickersSplit())
-          .map(f -> f.filter(o -> isReady()).throttleLast(1, TimeUnit.SECONDS))
-          .flatMap(f -> f)
-          .subscribe(e -> send(e, Nature.TICKER));
+      private final List<Disposable> tickers = FluentIterable.from(subscription.getTickersSplit())
+          .transform(f -> f
+              .filter(e -> isReady())
+              .throttleLast(1, TimeUnit.SECONDS)
+              .subscribe(e -> send(e, Nature.TICKER)))
+          .toList();
 
       // Order book should be throttled globally
       private final Disposable orderBook = subscription.getOrderBooks()
@@ -243,7 +250,7 @@ public final class OrkoWebSocketServer {
       public boolean isDisposed() {
         return openOrders.isDisposed() &&
             orderBook.isDisposed() &&
-            tickers.isDisposed() &&
+            tickers.stream().allMatch(Disposable::isDisposed) &&
             trades.isDisposed() &&
             orders.isDisposed() &&
             userTrades.isDisposed() &&
@@ -252,7 +259,8 @@ public final class OrkoWebSocketServer {
 
       @Override
       public void dispose() {
-        SafelyDispose.of(openOrders, orderBook, tickers, trades, orders, userTrades, balance);
+        SafelyDispose.of(openOrders, orderBook, trades, orders, userTrades, balance);
+        SafelyDispose.of(tickers);
       }
     };
   }
