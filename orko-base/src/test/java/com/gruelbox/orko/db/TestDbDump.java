@@ -58,7 +58,7 @@ public class TestDbDump {
 
     MockitoAnnotations.initMocks(this);
 
-    Injector injector = Guice.createInjector(new DatabaseAccessModule(), (Module) binder -> {
+    Injector injector = Guice.createInjector(new DbModule(), (Module) binder -> {
       binder.bind(DbConfiguration.class).toInstance(dbConfig);
       Multibinder.newSetBinder(binder, TableContribution.class)
           .addBinding().toInstance(new TableContribution() {
