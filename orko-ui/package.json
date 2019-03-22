@@ -19,7 +19,7 @@
     "react-page-visibility": "^3.2.1",
     "react-redux": "^6.0.1",
     "react-rnd": "^9.1.2",
-    "react-router-dom": "^4.4.0",
+    "react-router-dom": "^5.0.0",
     "react-scripts": "2.1.8",
     "react-table": "^6.9.2",
     "recompose": "^0.30.0",
