@@ -22,6 +22,8 @@ import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 
+import java.io.IOException;
+
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +32,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.PriceOrderFlip.State;
-import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
@@ -62,7 +62,6 @@ class PriceOrderFlipProcessor implements PriceOrderFlip.Processor {
     LogColumn.builder().name("Order id").width(100).rightAligned(false)
   );
 
-  private final JobSubmitter jobSubmitter;
   private final StatusUpdateService statusUpdateService;
   private final NotificationService notificationService;
   private final ExchangeEventRegistry exchangeEventRegistry;
@@ -74,26 +73,20 @@ class PriceOrderFlipProcessor implements PriceOrderFlip.Processor {
   private volatile ExchangeEventSubscription subscription;
   private volatile Disposable disposable;
 
-  private final Transactionally transactionally;
-
 
   @AssistedInject
   PriceOrderFlipProcessor(@Assisted PriceOrderFlip job,
-                           @Assisted JobControl jobControl,
-                           JobSubmitter jobSubmitter,
-                           StatusUpdateService statusUpdateService,
-                           NotificationService notificationService,
-                           ExchangeEventRegistry exchangeEventRegistry,
-                           ExchangeService exchangeService,
-                           Transactionally transactionally) {
+                          @Assisted JobControl jobControl,
+                          StatusUpdateService statusUpdateService,
+                          NotificationService notificationService,
+                          ExchangeEventRegistry exchangeEventRegistry,
+                          ExchangeService exchangeService) {
     this.job = job;
     this.jobControl = jobControl;
-    this.jobSubmitter = jobSubmitter;
     this.statusUpdateService = statusUpdateService;
     this.notificationService = notificationService;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.exchangeService = exchangeService;
-    this.transactionally = transactionally;
   }
 
   @Override
@@ -151,32 +144,59 @@ class PriceOrderFlipProcessor implements PriceOrderFlip.Processor {
         job.activeOrderId()
       );
 
-    if ((job.state() != State.INACTIVE) && jobNoLongerExists()) {
+    // If the user cancels the active order, cancel the managing job
+    if ((job.state() != State.INACTIVE) && orderNoLongerExists()) {
       done = true;
       jobControl.finish(SUCCESS);
       return;
     }
 
-    transactionally.run(() -> {
-      if ((job.state() == State.INACTIVE || job.state() == State.HIGH_ACTIVE) && ticker.getBid().compareTo(job.flipPrice()) <= 0) {
-        if (job.state() == State.HIGH_ACTIVE) {
-          // TODO cancel high order
-        }
-        // TODO submit low oder
+    if ((job.state() != State.LOW_ACTIVE) && lowShouldBeActive(ticker)) {
+      if (job.activeOrderId() != null) {
+        cancelOrder();
       }
-      if ((job.state() == State.INACTIVE || job.state() == State.LOW_ACTIVE) && ticker.getBid().compareTo(job.flipPrice()) >= 0) {
-        transactionally.run(() -> {
-          if (job.state() == State.LOW_ACTIVE) {
-            // TODO cancel low order
-          }
-          // TODO submit high order
-        });
+      submitLow();
+    }
+
+    if ((job.state() == State.HIGH_ACTIVE) && highShouldBeActive(ticker)) {
+      if (job.activeOrderId() != null) {
+        cancelOrder();
       }
-    });
+      submitHigh();
+    }
   }
 
-  private boolean jobNoLongerExists() {
-    // TODO Auto-generated method stub
+  private void submitHigh() {
+  }
+
+  private void submitLow() {
+  }
+
+  private void cancelOrder() {
+    try {
+      exchangeService.get(job.tickTrigger().exchange())
+          .getTradeService()
+          .cancelOrder(job.activeOrderId());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to cancel order", e);
+    }
+    jobControl.replace(
+        job.toBuilder()
+            .activeOrderId(null)
+            .state(State.INACTIVE)
+            .build());
+  }
+
+  private boolean highShouldBeActive(final Ticker ticker) {
+    return ticker.getBid().compareTo(job.flipPrice()) > 0;
+  }
+
+  private boolean lowShouldBeActive(final Ticker ticker) {
+    return ticker.getBid().compareTo(job.flipPrice()) <= 0;
+  }
+
+  private boolean orderNoLongerExists() {
+    exchangeService.get(job.tickTrigger().exchange()).getTradeService().
     return false;
   }
 
