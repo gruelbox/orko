@@ -13,7 +13,7 @@
     "polished": "^3.0.4",
     "react": "^16.8.5",
     "react-addons-css-transition-group": "^15.6.2",
-    "react-dom": "^16.8.4",
+    "react-dom": "^16.8.5",
     "react-grid-layout": "^0.16.6",
     "react-markdown": "^4.0.6",
     "react-page-visibility": "^3.2.1",
