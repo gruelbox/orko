@@ -22,6 +22,8 @@ import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,9 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.exchange.ExchangeService;
+import com.gruelbox.orko.job.OneCancelsOther.ThresholdAndJob;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
@@ -151,6 +155,9 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
         job.high() == null ? "-" : job.high().threshold()
       );
 
+    if (!validateJobs())
+      return;
+
     if (job.low() != null && ticker.getBid().compareTo(job.low().threshold()) <= 0) {
 
       transactionally.run(() -> {
@@ -200,6 +207,48 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
       });
 
     }
+  }
+
+  private boolean validateJobs() {
+    LOGGER.debug("Validating {}", job);
+    AtomicBoolean success = new AtomicBoolean(true);
+    if (job.low() != null) {
+      jobSubmitter.validate(job.low().job(), new JobControl() {
+
+        @Override
+        public void replace(Job job) {
+          jobControl.replace(OneCancelsOtherProcessor.this.job.toBuilder()
+              .low(ThresholdAndJob.create(OneCancelsOtherProcessor.this.job.low().threshold(), job))
+              .build());
+        }
+
+        @Override
+        public void finish(Status status) {
+          notificationService.error("Cancelling one-cancels-other due to validation failure on low job");
+          jobControl.finish(status);
+          success.set(false);
+        }
+      });
+    }
+    if (job.high() != null) {
+      jobSubmitter.validate(job.high().job(), new JobControl() {
+
+        @Override
+        public void replace(Job job) {
+          jobControl.replace(OneCancelsOtherProcessor.this.job.toBuilder()
+              .high(ThresholdAndJob.create(OneCancelsOtherProcessor.this.job.high().threshold(), job))
+              .build());
+        }
+
+        @Override
+        public void finish(Status status) {
+          notificationService.error("Cancelling one-cancels-other due to validation failure on high job");
+          jobControl.finish(status);
+          success.set(false);
+        }
+      });
+    }
+    return success.get();
   }
 
   public static final class Module extends AbstractModule {

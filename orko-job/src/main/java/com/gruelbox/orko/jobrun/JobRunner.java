@@ -260,8 +260,9 @@ class JobRunner {
       Preconditions.checkNotNull(newVersion, "Job replaced with null");
 
       LOGGER.debug("{} replacing...", newVersion);
-      if (!JobStatus.RUNNING.equals(status)) {
-        LOGGER.warn("Replacement of job which is already shutting down. Status={}, job={}", status, newVersion);
+      if (!JobStatus.RUNNING.equals(status) && !JobStatus.STARTING.equals(status)) {
+        LOGGER.warn("Illegal state", new IllegalStateException("Replacement of job which is already shutting down. Status=" + status +
+            ", job=" + newVersion));
         return;
       }
 
