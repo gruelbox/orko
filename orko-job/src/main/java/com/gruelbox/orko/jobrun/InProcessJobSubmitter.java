@@ -53,12 +53,11 @@ public class InProcessJobSubmitter implements JobSubmitter {
     return job;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void validate(Job job, JobControl jobControl) {
     JobProcessor<Job> processor = JobProcessor.createProcessor(job, jobControl, injector);
     if (processor instanceof Validatable) {
-      ((Validatable<Job>) processor).validate();
+      ((Validatable) processor).validate();
     }
   }
 

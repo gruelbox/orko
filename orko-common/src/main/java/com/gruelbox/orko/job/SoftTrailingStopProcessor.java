@@ -72,7 +72,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
   private final StatusUpdateService statusUpdateService;
   private final NotificationService notificationService;
-  private final ExchangeService exchangeService;
+  private final CurrencyPairMetaData currencyPairMetaData;
   private final JobSubmitter jobSubmitter;
   private final JobControl jobControl;
   private final ExchangeEventRegistry exchangeEventRegistry;
@@ -98,10 +98,10 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     this.jobControl = jobControl;
     this.statusUpdateService = statusUpdateService;
     this.notificationService = notificationService;
-    this.exchangeService = exchangeService;
     this.jobSubmitter = jobSubmitter;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.transactionally = transactionally;
+    this.currencyPairMetaData = exchangeService.fetchCurrencyPairMetaData(job.tickTrigger());
   }
 
   @Override
@@ -154,8 +154,6 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
       notificationService.error(String.format("Market %s/%s/%s has no buyers!", ex.exchange(), ex.base(), ex.counter()));
       return;
     }
-
-    final CurrencyPairMetaData currencyPairMetaData = exchangeService.fetchCurrencyPairMetaData(ex);
 
     logStatus(job, ticker, currencyPairMetaData);
 

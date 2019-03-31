@@ -69,7 +69,7 @@ import com.gruelbox.orko.notification.NotificationService;
  *
  * @author Graham Crockford
  */
-class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable<LimitOrderJob> {
+class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LimitOrderJobProcessor.class);
 
@@ -174,7 +174,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable<Lim
   private BigDecimal stripZeros(BigDecimal amount) {
     BigDecimal result = amount.stripTrailingZeros();
     if (result.scale() < 0)
-      result.setScale(0);
+      result = result.setScale(0);
     return result;
   }
 

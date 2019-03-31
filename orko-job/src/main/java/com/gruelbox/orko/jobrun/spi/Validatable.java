@@ -8,7 +8,7 @@ package com.gruelbox.orko.jobrun.spi;
  *
  * @author Graham Crockford
  */
-public interface Validatable<T extends Job> {
+public interface Validatable {
 
   /**
    * Modify a job to fit current state.

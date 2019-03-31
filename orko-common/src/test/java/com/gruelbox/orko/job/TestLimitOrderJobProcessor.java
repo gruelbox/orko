@@ -76,7 +76,6 @@ public class TestLimitOrderJobProcessor {
 
   private static final BigDecimal AMOUNT = new BigDecimal(1000);
   private static final BigDecimal PRICE = new BigDecimal(95);
-  private static final BigDecimal FEE_MULTIPLIER = new BigDecimal("0.001");
   private static final BigDecimal MIN_AMOUNT = new BigDecimal("0.01");
   private static final int PRICE_SCALE = 3;
 
