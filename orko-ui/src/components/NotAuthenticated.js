@@ -29,10 +29,7 @@ export default ({ exchange, onEnablePaperTrading }) => (
       <Href paragraph href={WIKI_URL}>
         Wiki
       </Href>
-      .
-    </Para>
-    <Para color="deemphasis">
-      Not got a {exchange.name} account?{" "}
+      . Not got a {exchange.name} account?{" "}
       <Href paragraph href={exchange.refLink}>
         Sign up to {exchange.name}
       </Href>
