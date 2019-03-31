@@ -109,9 +109,7 @@ public class TestLimitOrderJobProcessor {
     when(tradeServiceFactory.getForExchange(Exchanges.BINANCE)).thenReturn(tradeService);
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenAnswer(args -> newTradeId());
     when(exchangeService.rateController(EXCHANGE)).thenReturn(rateController);
-    when(exchangeService.feeMultiplier(EXCHANGE, true)).thenReturn(FEE_MULTIPLIER);
     when(exchangeService.rateController(BINANCE)).thenReturn(rateController);
-    when(exchangeService.feeMultiplier(BINANCE, true)).thenReturn(FEE_MULTIPLIER);
     when(exchangeService.get(EXCHANGE)).thenReturn(exchange);
     when(exchangeService.get(BINANCE)).thenReturn(exchange);
     when(exchange.getExchangeMetaData()).thenReturn(exchangeMetaData);
