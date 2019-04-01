@@ -18,6 +18,8 @@
 
 package com.gruelbox.orko.strategy;
 
+import static com.gruelbox.orko.util.MoreBigDecimals.stripZeros;
+
 import java.util.Date;
 
 import com.google.common.eventbus.Subscribe;
@@ -67,8 +69,8 @@ class UserTradeNotifier implements Managed {
       e.spec().base(),
       e.spec().counter(),
       e.trade().getType().toString().toLowerCase(),
-      e.trade().getOriginalAmount(),
-      e.trade().getPrice()
+      stripZeros(e.trade().getOriginalAmount()).toPlainString(),
+      stripZeros(e.trade().getPrice()).toPlainString()
     );
     notificationService.alert(message);
   }

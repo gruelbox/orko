@@ -239,7 +239,7 @@ public class TestLimitOrderJobProcessor {
     balanceAvailable(ex, BASE, AMOUNT.subtract(new BigDecimal("0.001")));
     processor.validate();
 
-    verify(notificationService).error(Mockito.anyString());
+    verify(notificationService).alert(Mockito.anyString());
     verify(jobControl).replace(LimitOrderJob.builder()
         .amount(AMOUNT)
         .limitPrice(PRICE)
@@ -298,7 +298,7 @@ public class TestLimitOrderJobProcessor {
     balanceAvailable(ex, COUNTER, AMOUNT.multiply(PRICE).subtract(new BigDecimal("0.001")));
     processor.validate();
 
-    verify(notificationService).error(Mockito.anyString());
+    verify(notificationService).alert(Mockito.anyString());
     verify(jobControl).replace(LimitOrderJob.builder()
         .amount(AMOUNT)
         .limitPrice(PRICE)
