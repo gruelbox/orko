@@ -20,6 +20,12 @@ package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -73,7 +79,7 @@ public class TestOneCancelsOtherProcessor {
       .base(BASE)
       .build();
 
-  @Mock private JobSubmitter enqueuer;
+  @Mock private JobSubmitter jobSubmitter;
   @Mock private StatusUpdateService statusUpdateService;
   @Mock private NotificationService notificationService;
 
@@ -86,6 +92,9 @@ public class TestOneCancelsOtherProcessor {
 
   @Mock private Job job1;
   @Mock private Job job2;
+  @Mock private Job job2New;
+  @Mock private Job job3;
+  @Mock private Job job3New;
 
   @Captor private ArgumentCaptor<io.reactivex.functions.Consumer<? super TickerEvent>> tickerConsumerCaptor;
   private Flowable<TickerEvent> tickerData;
@@ -99,6 +108,49 @@ public class TestOneCancelsOtherProcessor {
     when(subscription.getTickers()).thenAnswer((args) -> tickerData);
   }
 
+  @Test
+  public void testValidate() {
+    OneCancelsOther job = OneCancelsOther.builder()
+        .id(JOB_ID)
+        .tickTrigger(TICKER_SPEC)
+        .high(ThresholdAndJob.create(HIGH_PRICE, job2))
+        .low(ThresholdAndJob.create(LOW_PRICE, job3))
+        .build();
+
+    tickerData = Flowable.just(
+        TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+          .bid(LOW_PRICE.add(BigDecimal.ONE))
+          .build()));
+
+    doAnswer(inv -> {
+      if (inv.getArgument(0).equals(job2)) {
+        inv.getArgument(1, JobControl.class).replace(job2New);
+      } else if (inv.getArgument(0).equals(job3)) {
+        inv.getArgument(1, JobControl.class).replace(job3New);
+      }
+      return null;
+    }).when(jobSubmitter).validate(Mockito.any(Job.class), Mockito.any(JobControl.class));
+
+    OneCancelsOtherProcessor processor = createProcessor(job);
+
+    doAnswer(inv -> {
+      processor.setReplacedJob(inv.getArgument(0, OneCancelsOther.class));
+      return null;
+    }).when(jobControl).replace(Mockito.any(Job.class));
+
+    assertRunning(processor.start());
+
+    ArgumentCaptor<Job> captor = ArgumentCaptor.forClass(Job.class);
+    verify(jobControl, times(2)).replace(captor.capture());
+    assertThat(captor.getAllValues(), hasSize(2));
+    assertThat(captor.getAllValues().get(0), equalTo(job.toBuilder()
+        .low(ThresholdAndJob.create(LOW_PRICE, job3New))
+        .build()));
+    assertThat(captor.getAllValues().get(1), equalTo(job.toBuilder()
+        .low(ThresholdAndJob.create(LOW_PRICE, job3New))
+        .high(ThresholdAndJob.create(HIGH_PRICE, job2New))
+        .build()));
+  }
 
   @Test
   public void testAtLowNoJob() throws Exception {
@@ -118,6 +170,7 @@ public class TestOneCancelsOtherProcessor {
     assertRunning(processor.start());
     verifySubscribed(job);
     verifyGotTickers();
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -144,8 +197,9 @@ public class TestOneCancelsOtherProcessor {
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.ALERT, notificationCaptor.getValue().level());
-    verify(enqueuer).submitNewUnchecked(job1);
+    verify(jobSubmitter).submitNewUnchecked(job1);
     verify(jobControl).finish(Status.SUCCESS);
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -173,8 +227,9 @@ public class TestOneCancelsOtherProcessor {
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.INFO, notificationCaptor.getValue().level());
-    verify(enqueuer).submitNewUnchecked(job1);
+    verify(jobSubmitter).submitNewUnchecked(job1);
     verify(jobControl).finish(Status.SUCCESS);
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -197,6 +252,7 @@ public class TestOneCancelsOtherProcessor {
     assertRunning(processor.start());
     verifySubscribed(job);
     verifyGotTickers();
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -219,6 +275,7 @@ public class TestOneCancelsOtherProcessor {
     assertRunning(processor.start());
     verifySubscribed(job);
     verifyGotTickers();
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -245,8 +302,9 @@ public class TestOneCancelsOtherProcessor {
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.ALERT, notificationCaptor.getValue().level());
-    verify(enqueuer).submitNewUnchecked(job2);
+    verify(jobSubmitter).submitNewUnchecked(job2);
     verify(jobControl).finish(Status.SUCCESS);
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -274,8 +332,9 @@ public class TestOneCancelsOtherProcessor {
     ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
     verify(notificationService).send(notificationCaptor.capture());
     Assert.assertEquals(NotificationLevel.INFO, notificationCaptor.getValue().level());
-    verify(enqueuer).submitNewUnchecked(job2);
+    verify(jobSubmitter).submitNewUnchecked(job2);
     verify(jobControl).finish(Status.SUCCESS);
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -297,6 +356,7 @@ public class TestOneCancelsOtherProcessor {
     assertRunning(processor.start());
     verifySubscribed(job);
     verifyGotTickers();
+    verifyValidatedABunchOfTimes();
     verifyDidNothingElse();
   }
 
@@ -314,13 +374,13 @@ public class TestOneCancelsOtherProcessor {
   }
 
   private OneCancelsOtherProcessor createProcessor(OneCancelsOther job) {
-    return new OneCancelsOtherProcessor(job, jobControl, enqueuer, statusUpdateService,
+    return new OneCancelsOtherProcessor(job, jobControl, jobSubmitter, statusUpdateService,
         notificationService, exchangeEventRegistry, exchangeService, mockTransactionally());
   }
 
   private void verifyDidNothingElse() {
     verify(exchangeService).exchangeSupportsPair(EXCHANGE, new CurrencyPair(BASE, COUNTER));
-    verifyNoMoreInteractions(exchangeEventRegistry, notificationService, enqueuer, jobControl, exchangeService, subscription);
+    verifyNoMoreInteractions(exchangeEventRegistry, notificationService, jobSubmitter, jobControl, exchangeService, subscription);
   }
 
   private void verifyGotTickers() {
@@ -329,6 +389,10 @@ public class TestOneCancelsOtherProcessor {
 
   private void verifySubscribed(OneCancelsOther job) {
     verify(exchangeEventRegistry).subscribe(MarketDataSubscription.create(job.tickTrigger(), TICKER));
+  }
+
+  private void verifyValidatedABunchOfTimes() {
+    verify(jobSubmitter, atLeastOnce()).validate(Mockito.any(Job.class), Mockito.any(JobControl.class));
   }
 
   private void assertRunning(Status status) {

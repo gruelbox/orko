@@ -24,7 +24,11 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.util.UUID;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.gruelbox.orko.jobrun.spi.Job;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.JobProcessor;
+import com.gruelbox.orko.jobrun.spi.Validatable;
 
 /**
  * Implementation of {@link JobSubmitter} which runs the job within the same process.
@@ -32,10 +36,12 @@ import com.gruelbox.orko.jobrun.spi.Job;
 public class InProcessJobSubmitter implements JobSubmitter {
 
   private final JobRunner jobRunner;
+  private final Injector injector;
 
   @Inject
-  InProcessJobSubmitter(JobRunner jobRunner) {
+  InProcessJobSubmitter(JobRunner jobRunner, Injector injector) {
     this.jobRunner = jobRunner;
+    this.injector = injector;
   }
 
   @Override
@@ -45,6 +51,14 @@ public class InProcessJobSubmitter implements JobSubmitter {
     }
     jobRunner.submitNew(job, () -> {}, () -> {});
     return job;
+  }
+
+  @Override
+  public void validate(Job job, JobControl jobControl) {
+    JobProcessor<Job> processor = JobProcessor.createProcessor(job, jobControl, injector);
+    if (processor instanceof Validatable) {
+      ((Validatable) processor).validate();
+    }
   }
 
   public static final class JobNotUniqueException extends Exception {

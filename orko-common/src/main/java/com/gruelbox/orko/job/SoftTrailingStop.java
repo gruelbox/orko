@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.auto.value.AutoValue;
+import com.gruelbox.orko.job.LimitOrderJob.BalanceState;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobBuilder;
@@ -42,7 +43,8 @@ public abstract class SoftTrailingStop implements Job {
 
   public static final Builder builder() {
     return new AutoValue_SoftTrailingStop.Builder()
-        .limitPrice(BigDecimal.ZERO);
+        .limitPrice(BigDecimal.ZERO)
+        .balanceState(BalanceState.SUFFICIENT_BALANCE);
   }
 
   @AutoValue.Builder
@@ -60,6 +62,8 @@ public abstract class SoftTrailingStop implements Job {
     public abstract Builder lastSyncPrice(BigDecimal value);
     public abstract Builder stopPrice(BigDecimal value);
     public abstract Builder limitPrice(BigDecimal value);
+
+    abstract Builder balanceState(BalanceState balanceState);
 
     abstract BigDecimal startPrice();
     abstract Optional<BigDecimal> lastSyncPrice();
@@ -90,6 +94,8 @@ public abstract class SoftTrailingStop implements Job {
   @JsonProperty public abstract BigDecimal lastSyncPrice();
   @JsonProperty public abstract BigDecimal stopPrice();
   @JsonProperty public abstract BigDecimal limitPrice();
+
+  @JsonProperty abstract BalanceState balanceState();
 
   @Override
   public String toString() {

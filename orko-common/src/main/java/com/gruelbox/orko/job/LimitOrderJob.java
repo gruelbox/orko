@@ -48,7 +48,7 @@ import com.gruelbox.orko.spi.TickerSpec;
 public abstract class LimitOrderJob implements Job {
 
   public static final Builder builder() {
-    return new AutoValue_LimitOrderJob.Builder();
+    return new AutoValue_LimitOrderJob.Builder().balanceState(BalanceState.SUFFICIENT_BALANCE);
   }
 
   @AutoValue.Builder
@@ -64,6 +64,8 @@ public abstract class LimitOrderJob implements Job {
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder limitPrice(BigDecimal value);
     public abstract Builder direction(Direction direction);
+
+    abstract Builder balanceState(BalanceState balanceState);
 
     @Override
     public abstract LimitOrderJob build();
@@ -85,6 +87,8 @@ public abstract class LimitOrderJob implements Job {
   @JsonProperty public abstract BigDecimal amount();
   @JsonProperty public abstract BigDecimal limitPrice();
 
+  @JsonProperty abstract BalanceState balanceState();
+
   @Override
   public String toString() {
     return String.format("%s order: %s %s at %s on %s", direction(), amount(), tickTrigger().base(), limitPrice(), tickTrigger());
@@ -98,6 +102,10 @@ public abstract class LimitOrderJob implements Job {
 
   public enum Direction {
     BUY, SELL
+  }
+
+  public enum BalanceState {
+    SUFFICIENT_BALANCE, INSUFFICIENT_BALANCE
   }
 
   public interface Processor extends JobProcessor<LimitOrderJob> {
