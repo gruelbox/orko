@@ -20,6 +20,8 @@ database:
   connectionString: ${JAWSDB_URL}?rewriteBatchedStatements=true&useJDBCCompliantTimezoneShift=true
   lockSeconds: ${LOCK_SECONDS:-45}
 exchanges:
+  simulated:
+    apiKey: ${SIMULATED_API_KEY:-}
   gdax:
     apiKey: ${GDAX_API_KEY:-}
     secretKey: ${GDAX_SECRET:-}

@@ -33,7 +33,7 @@ public interface NotificationService {
   /**
    * Sends the notification.
    *
-   * @param notification
+   * @param notification The notification.
    */
   void send(Notification notification);
 

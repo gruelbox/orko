@@ -32,21 +32,21 @@
 }
 
 .ui.segment:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 .ui.segment:last-child {
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
 
 
 /* Vertical */
 .ui.vertical.segment {
-  margin: 0em;
-  padding-left: 0em;
-  padding-right: 0em;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
 
   background: none transparent;
-  border-radius: 0px;
+  border-radius: 0;
   box-shadow: none;
   border: none;
   border-bottom: @borderWidth solid @borderColor;
@@ -67,20 +67,20 @@
 
 /* Label */
 .ui[class*="bottom attached"].segment > [class*="top attached"].label {
-  border-top-left-radius: 0em;
-  border-top-right-radius: 0em;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 .ui[class*="top attached"].segment > [class*="bottom attached"].label {
-  border-bottom-left-radius: 0em;
-  border-bottom-right-radius: 0em;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .ui.attached.segment:not(.top):not(.bottom) > [class*="top attached"].label {
-  border-top-left-radius: 0em;
-  border-top-right-radius: 0em;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 .ui.attached.segment:not(.top):not(.bottom) > [class*="bottom attached"].label {
-  border-bottom-left-radius: 0em;
-  border-bottom-right-radius: 0em;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* Grid */
@@ -105,6 +105,10 @@
   padding: @padding;
 }
 
+/* Tab */
+.ui.segment.tab:last-child {
+  margin-bottom: @verticalMargin;
+}
 
 /*******************************
              Types
@@ -160,7 +164,7 @@
   margin: @placeholderContentInlineButtonMargin;
 }
 .ui.placeholder.segment > .inline > .button:last-child {
-  margin-right: 0px;
+  margin-right: 0;
 }
 
 
@@ -170,15 +174,15 @@
 
 .ui.piled.segments,
 .ui.piled.segment {
-  margin: @piledMargin 0em;
+  margin: @piledMargin 0;
   box-shadow: @piledBoxShadow;
   z-index: @piledZIndex;
 }
 .ui.piled.segment:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 .ui.piled.segment:last-child {
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
 .ui.piled.segments:after,
 .ui.piled.segments:before,
@@ -189,7 +193,7 @@
   content: '';
   display: block;
   height: 100%;
-  left: 0px;
+  left: 0;
   position: absolute;
   width: 100%;
   border: @piledBorder;
@@ -211,17 +215,17 @@
 /* Piled Attached */
 .ui[class*="top attached"].piled.segment {
   margin-top: @piledMargin;
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
 .ui.piled.segment[class*="top attached"]:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 .ui.piled.segment[class*="bottom attached"] {
-  margin-top: 0em;
+  margin-top: 0;
   margin-bottom: @piledMargin;
 }
 .ui.piled.segment[class*="bottom attached"]:last-child {
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
 
 /*-------------------
@@ -238,7 +242,7 @@
   content: '';
   position: absolute;
   bottom: -(@stackedHeight / 2);
-  left: 0%;
+  left: 0;
 
   border-top: 1px solid @borderColor;
   background: @stackedPageBackground;
@@ -256,7 +260,7 @@
 .ui.tall.stacked.segments:before,
 .ui.tall.stacked.segment:before {
   display: block;
-  bottom: 0px;
+  bottom: 0;
 }
 
 /* Inverted */
@@ -283,8 +287,8 @@
 /* Padded vertical */
 .ui.padded.segment.vertical.segment,
 .ui[class*="very padded"].vertical.segment {
-  padding-left: 0px;
-  padding-right: 0px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /*-------------------
@@ -321,8 +325,8 @@
        Raised
 --------------------*/
 
-.ui.raised.segments,
-.ui.raised.segment {
+.ui.raised.raised.segments,
+.ui.raised.raised.segment {
   box-shadow: @raisedBoxShadow;
 }
 
@@ -341,18 +345,18 @@
   border-radius: @groupedBorderRadius;
 }
 .ui.segments:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 .ui.segments:last-child {
-  margin-bottom: 0em;
+  margin-bottom: 0;
 }
 
 
 /* Nested Segment */
 .ui.segments > .segment {
-  top: 0px;
-  bottom: 0px;
-  border-radius: 0px;
+  top: 0;
+  bottom: 0;
+  border-radius: 0;
   margin: @groupedSegmentMargin;
   width: @groupedSegmentWidth;
   box-shadow: @groupedSegmentBoxShadow;
@@ -362,23 +366,21 @@
 
 .ui.segments:not(.horizontal) > .segment:first-child {
   top: @attachedTopOffset;
-  bottom: 0px;
+  bottom: 0;
   border-top: none;
-  margin-top: 0em;
-  bottom: 0px;
-  margin-bottom: 0em;
-  top: @attachedTopOffset;
-  border-radius: @borderRadius @borderRadius 0em 0em;
+  margin-top: 0;
+  margin-bottom: 0;
+  border-radius: @borderRadius @borderRadius 0 0;
 }
 
 /* Bottom */
 .ui.segments:not(.horizontal) > .segment:last-child {
   top: @attachedBottomOffset;
-  bottom: 0px;
-  margin-top: 0em;
-  margin-bottom: 0em;
+  bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
   box-shadow: @attachedBottomBoxShadow;
-  border-radius: 0em 0em @borderRadius @borderRadius;
+  border-radius: 0 0 @borderRadius @borderRadius;
 }
 
 /* Only */
@@ -396,7 +398,7 @@
   border-top: none;
 }
 .ui.segments > .segment + .segments:not(.horizontal) {
-  margin-top: 0em;
+  margin-top: 0;
 }
 
 /* Horizontal Group */
@@ -404,20 +406,21 @@
   display: flex;
   flex-direction: row;
   background-color: transparent;
-  border-radius: 0px;
-  padding: 0em;
-  background-color: @background;
+  padding: 0;
   box-shadow: @boxShadow;
   margin: @margin;
   border-radius: @borderRadius;
   border: @border;
 }
+.ui.stackable.horizontal.segments {
+  flex-wrap: wrap;
+}
 
 /* Nested Horizontal Group */
 .ui.segments > .horizontal.segments {
-  margin: 0em;
+  margin: 0;
   background-color: transparent;
-  border-radius: 0px;
+  border-radius: 0;
   border: none;
   box-shadow: none;
   border-top: @groupedSegmentDivider;
@@ -426,11 +429,11 @@
 /* Horizontal Segment */
 .ui.horizontal.segments > .segment {
   flex: 1 1 auto;
-  -ms-flex: 1 1 0px; /* Solves #2550 MS Flex */
-  margin: 0em;
-  min-width: 0px;
+  -ms-flex: 1 1 0; /* Solves #2550 MS Flex */
+  margin: 0;
+  min-width: 0;
   background-color: transparent;
-  border-radius: 0px;
+  border-radius: 0;
   border: none;
   box-shadow: none;
   border-left: @borderWidth solid @borderColor;
@@ -440,7 +443,7 @@
 .ui.segments > .horizontal.segments:first-child {
   border-top: none;
 }
-.ui.horizontal.segments > .segment:first-child {
+.ui.horizontal.segments:not(.stackable) > .segment:first-child {
   border-left: none;
 }
 
@@ -467,14 +470,13 @@
   cursor: default;
   pointer-events: none;
   text-shadow: none !important;
-  color: transparent !important;
   transition: all 0s linear;
 }
 .ui.loading.segment:before {
   position: absolute;
   content: '';
-  top: 0%;
-  left: 0%;
+  top: 0;
+  left: 0;
   background: @loaderDimmerColor;
   width: 100%;
   height: 100%;
@@ -491,28 +493,15 @@
   width: @loaderSize;
   height: @loaderSize;
 
-  animation: segment-spin @loaderSpeed linear;
-  animation-iteration-count: infinite;
-
+  animation: loader @loaderSpeed infinite linear;
+  border: @loaderLineWidth solid @loaderLineColor;
   border-radius: @circularRadius;
 
-  border-color: @loaderLineColor @loaderFillColor @loaderFillColor @loaderFillColor;
-  border-style: solid;
-  border-width: @loaderLineWidth;
-
-  box-shadow: 0px 0px 0px 1px transparent;
+  box-shadow: 0 0 0 1px transparent;
   visibility: visible;
   z-index: @loaderLineZIndex;
 }
 
-@keyframes segment-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 
 /*******************************
@@ -524,7 +513,9 @@
        Basic
 --------------------*/
 
-.ui.basic.segment {
+.ui.basic.segment,
+.ui.segments .ui.basic.segment,
+.ui.basic.segments {
   background: @basicBackground;
   box-shadow: @basicBoxShadow;
   border: @basicBorder;
@@ -547,122 +538,19 @@
        Colors
 --------------------*/
 
-/* Red */
-.ui.red.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @red !important;
-}
-.ui.inverted.red.segment {
-  background-color: @red !important;
-  color: @white !important;
-}
-
-/* Orange */
-.ui.orange.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @orange !important;
-}
-.ui.inverted.orange.segment {
-  background-color: @orange !important;
-  color: @white !important;
-}
-
-/* Yellow */
-.ui.yellow.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @yellow !important;
-}
-.ui.inverted.yellow.segment {
-  background-color: @yellow !important;
-  color: @white !important;
-}
-
-/* Olive */
-.ui.olive.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @olive !important;
-}
-.ui.inverted.olive.segment {
-  background-color: @olive !important;
-  color: @white !important;
-}
-
-/* Green */
-.ui.green.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @green !important;
-}
-.ui.inverted.green.segment {
-  background-color: @green !important;
-  color: @white !important;
-}
-
-/* Teal */
-.ui.teal.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @teal !important;
-}
-.ui.inverted.teal.segment {
-  background-color: @teal !important;
-  color: @white !important;
-}
-
-/* Blue */
-.ui.blue.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @blue !important;
-}
-.ui.inverted.blue.segment {
-  background-color: @blue !important;
-  color: @white !important;
-}
-
-/* Violet */
-.ui.violet.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @violet !important;
-}
-.ui.inverted.violet.segment {
-  background-color: @violet !important;
-  color: @white !important;
-}
-
-/* Purple */
-.ui.purple.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @purple !important;
-}
-.ui.inverted.purple.segment {
-  background-color: @purple !important;
-  color: @white !important;
-}
-
-/* Pink */
-.ui.pink.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @pink !important;
-}
-.ui.inverted.pink.segment {
-  background-color: @pink !important;
-  color: @white !important;
-}
-
-/* Brown */
-.ui.brown.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @brown !important;
-}
-.ui.inverted.brown.segment {
-  background-color: @brown !important;
-  color: @white !important;
-}
-
-/* Grey */
-.ui.grey.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @grey !important;
-}
-.ui.inverted.grey.segment {
-  background-color: @grey !important;
-  color: @white !important;
-}
-
-/* Black */
-.ui.black.segment:not(.inverted) {
-  border-top: @coloredBorderSize solid @black !important;
-}
-.ui.inverted.black.segment {
-  background-color: @black !important;
-  color: @white !important;
-}
+each(@colors,{
+  @color: replace(@key,'@','');
+  @c: @colors[@@color][color];
+  & when not (@color=primary) and not (@color=secondary) {
+    .ui.@{color}.segment.segment.segment.segment.segment:not(.inverted) {
+      border-top: @coloredBorderSize solid @c;
+    }
+    .ui.inverted.@{color}.segment.segment.segment.segment.segment {
+      background-color: @c;
+      color: @white;
+    }
+  }
+})
 
 /*-------------------
        Aligned
@@ -720,6 +608,14 @@
   border-color: @solidWhiteBorderColor;
 }
 
+/* Loading */
+.ui.inverted.loading.segment {
+  color: @invertedLoaderLineColor;
+}
+.ui.inverted.loading.segment:before {
+  background: @loaderInvertedDimmerColor;
+}
+
 /*-------------------
      Emphasis
 --------------------*/
@@ -751,10 +647,10 @@
 
 /* Middle */
 .ui.attached.segment {
-  top: 0px;
-  bottom: 0px;
-  border-radius: 0px;
-  margin: 0em @attachedHorizontalOffset;
+  top: 0;
+  bottom: 0;
+  border-radius: 0;
+  margin: 0 @attachedHorizontalOffset;
   width: @attachedWidth;
   max-width: @attachedWidth;
   box-shadow: @attachedBoxShadow;
@@ -766,27 +662,27 @@
 
 /* Top */
 .ui[class*="top attached"].segment {
-  bottom: 0px;
-  margin-bottom: 0em;
+  bottom: 0;
+  margin-bottom: 0;
   top: @attachedTopOffset;
   margin-top: @verticalMargin;
-  border-radius: @borderRadius @borderRadius 0em 0em;
+  border-radius: @borderRadius @borderRadius 0 0;
 }
 .ui.segment[class*="top attached"]:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 
 /* Bottom */
 .ui.segment[class*="bottom attached"] {
-  bottom: 0px;
-  margin-top: 0em;
+  bottom: 0;
+  margin-top: 0;
   top: @attachedBottomOffset;
   margin-bottom: @verticalMargin;
   box-shadow: @attachedBottomBoxShadow;
-  border-radius: 0em 0em @borderRadius @borderRadius;
+  border-radius: 0 0 @borderRadius @borderRadius;
 }
 .ui.segment[class*="bottom attached"]:last-child {
-  margin-bottom: 0em;
+  margin-bottom: @verticalMargin;
 }
 
 /*-------------------

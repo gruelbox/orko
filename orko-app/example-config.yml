@@ -17,6 +17,8 @@ database:
 #   botToken: YOU
 #   chatId: REALLYWANTTHIS
 exchanges:
+  simulated:
+    apiKey: DEMO
   gdax:
     apiKey: 
     secretKey: 

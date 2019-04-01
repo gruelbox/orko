@@ -35,9 +35,9 @@ jobs:
             echo " - Username: $CIRCLE_PR_USERNAME"
             echo " - Repository: $CIRCLE_PR_REPONAME"
             if [[ $CIRCLE_PROJECT_USERNAME == "gruelbox" ]]; then
-              mvn -B -Pintegration-test clean install -Dcypress.command=runrecord -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+              mvn -B -U -Pintegration-test clean install -Dcypress.command=runrecord -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
             else
-              mvn -B -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
+              mvn -B -U -Pintegration-test clean install -DskipSlowTests=true -Dskip.surefire.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -T 1C
             fi
 
       - save_cache:

@@ -15,4 +15,4 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const WIKI_URL = "https://github.com/badgerwithagun/orko/wiki"
+export const WIKI_URL = "https://github.com/gruelbox/orko/wiki"

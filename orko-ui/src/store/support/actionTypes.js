@@ -16,3 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 export const SET_META = "support.SET_META"
+export const SET_RELEASES = "support.SET_RELEASES"
+export const SET_IGNORED_VERSION = "support.SET_IGNORED_VERSION"
+export const HIDE_RELEASES = "support.HIDE_RELEASES"

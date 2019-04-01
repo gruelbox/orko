@@ -44,21 +44,24 @@ public class DatabaseSetup {
   private final ConnectionResources connectionResources;
   private final Set<TableContribution> tableContributions;
   private final DbConfiguration dbConfiguration;
+  private final DbDump dbDump;
 
   @Inject
   DatabaseSetup(Schema targetSchema,
                 ConnectionResources connectionResources,
                 Set<TableContribution> tableContributions,
-                DbConfiguration dbConfiguration) {
+                DbConfiguration dbConfiguration,
+                DbDump dbDump) {
     this.targetSchema = targetSchema;
     this.connectionResources = connectionResources;
     this.tableContributions = tableContributions;
     this.dbConfiguration = dbConfiguration;
+    this.dbDump = dbDump;
   }
 
   public void setup() {
     if (StringUtils.isNotEmpty(dbConfiguration.getStartPositionFile())) {
-      DbDump.restore(dbConfiguration.getStartPositionFile(), connectionResources);
+      dbDump.restore(dbConfiguration.getStartPositionFile());
     }
     try (SchemaResource currentSchema = connectionResources.openSchemaResource()) {
       Set<Class<? extends UpgradeStep>> upgradeSteps = tableContributions.stream().flatMap(c -> c.schemaUpgradeClassses().stream()).collect(toSet());

@@ -34,6 +34,7 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -41,6 +42,7 @@ import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
@@ -72,11 +74,15 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
   private final StatusUpdateService statusUpdateService;
   private final NotificationService notificationService;
-  private final ExchangeService exchangeService;
+  private final CurrencyPairMetaData currencyPairMetaData;
   private final JobSubmitter jobSubmitter;
   private final JobControl jobControl;
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final Transactionally transactionally;
+
+  // Validate at most once every 20 seconds (in practice, whenever we get a tick
+  // and a permit is available)
+  private final RateLimiter validationTick = RateLimiter.create(0.05);
 
   private volatile boolean done;
   private volatile SoftTrailingStop job;
@@ -98,10 +104,10 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     this.jobControl = jobControl;
     this.statusUpdateService = statusUpdateService;
     this.notificationService = notificationService;
-    this.exchangeService = exchangeService;
     this.jobSubmitter = jobSubmitter;
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.transactionally = transactionally;
+    this.currencyPairMetaData = exchangeService.fetchCurrencyPairMetaData(job.tickTrigger());
   }
 
   @Override
@@ -155,11 +161,23 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
       return;
     }
 
-    final CurrencyPairMetaData currencyPairMetaData = exchangeService.fetchCurrencyPairMetaData(ex);
-
     logStatus(job, ticker, currencyPairMetaData);
 
     BigDecimal stopPrice = stopPrice(job, currencyPairMetaData);
+
+    LimitOrderJob limitOrderJob = LimitOrderJob.builder()
+        .tickTrigger(ex)
+        .direction(job.direction())
+        .amount(job.amount())
+        .limitPrice(job.limitPrice())
+        .balanceState(job.balanceState())
+        .build();
+
+    // Validate the proposed limit order, applying any state changes
+    // to this job so that errors don't repeat.
+    if (validationTick.tryAcquire()) {
+      validate(limitOrderJob);
+    }
 
     // If we've hit the stop price, we're done
     if ((job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice) <= 0) ||
@@ -174,12 +192,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
         stopPrice
       ));
 
-      jobSubmitter.submitNewUnchecked(LimitOrderJob.builder()
-          .tickTrigger(ex)
-          .direction(job.direction())
-          .amount(job.amount())
-          .limitPrice(job.limitPrice())
-          .build());
+      jobSubmitter.submitNewUnchecked(limitOrderJob);
 
       jobControl.finish(SUCCESS);
       done = true;
@@ -204,6 +217,24 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
           .build()
       );
     }
+  }
+
+  private void validate(LimitOrderJob limitOrderJob) {
+    jobSubmitter.validate(limitOrderJob, new JobControl() {
+
+      @Override
+      public void replace(Job replacement) {
+        jobControl.replace(SoftTrailingStopProcessor.this.job.toBuilder()
+            .balanceState(((LimitOrderJob) replacement).balanceState())
+            .build());
+      }
+
+      @Override
+      public void finish(Status status) {
+        throw new UnsupportedOperationException();
+      }
+
+    });
   }
 
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {

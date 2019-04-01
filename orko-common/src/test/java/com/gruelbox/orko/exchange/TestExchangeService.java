@@ -29,6 +29,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.knowm.xchange.kucoin.KucoinExchange;
+import org.knowm.xchange.simulated.AccountFactory;
+import org.knowm.xchange.simulated.MatchingEngineFactory;
+import org.mockito.Mockito;
 
 import com.google.common.collect.ImmutableMap;
 import com.gruelbox.orko.OrkoConfiguration;
@@ -110,7 +113,8 @@ public class TestExchangeService {
   }
 
   private ExchangeServiceImpl of(OrkoConfiguration config) {
-    ExchangeServiceImpl exchangeService = new ExchangeServiceImpl(config);
+    ExchangeServiceImpl exchangeService = new ExchangeServiceImpl(config,
+        Mockito.mock(AccountFactory.class), Mockito.mock(MatchingEngineFactory.class));
     return exchangeService;
   }
 }

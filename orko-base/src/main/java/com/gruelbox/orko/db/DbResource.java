@@ -33,7 +33,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +52,11 @@ public class DbResource implements WebResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbResource.class);
 
-  private final ConnectionResources connectionResources;
+  private final DbDump dbDump;
 
   @Inject
-  DbResource(ConnectionResources connectionResources) {
-    this.connectionResources = connectionResources;
+  DbResource(DbDump dbDump) {
+    this.dbDump = dbDump;
   }
 
   @GET
@@ -67,7 +66,7 @@ public class DbResource implements WebResource {
     return Response.ok(new StreamingOutput() {
       @Override
       public void write(OutputStream output) throws IOException {
-        File tempFile = DbDump.dump(connectionResources);
+        File tempFile = dbDump.dump();
         try {
           try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(tempFile))) {
             IOUtils.copy(input, output);

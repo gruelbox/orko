@@ -1,0 +1,69 @@
+/*!
+ * # Fomantic UI - Text
+ * http://github.com/fomantic/Fomantic-UI/
+ *
+ *
+ * Released under the MIT license
+ * https://github.com/fomantic/Fomantic-UI/blob/master/LICENSE.md
+ *
+ */
+
+
+/*******************************
+            Theme
+*******************************/
+
+@type    : 'element';
+@element : 'text';
+
+@import (multiple) '../../theme.config';
+
+
+/*******************************
+             Text
+*******************************/
+
+each(@colors, {
+  @color: replace(@key, '@', '');
+  @c: @colors[@@color][color];
+  @l: @colors[@@color][light];
+
+  span.ui.@{color}.text {
+    color: @c;
+  }
+  span.ui.inverted.@{color}.text {
+    color: @l;
+  }
+})
+
+span.ui.disabled.text {
+  opacity: @disabledOpacity;
+}
+
+/* Sizes */
+span.ui.mini.text {
+  font-size: @mini;
+}
+span.ui.tiny.text {
+  font-size: @tiny;
+}
+span.ui.small.text {
+  font-size: @small;
+}
+span.ui.medium.text {
+  font-size: @medium;
+}
+span.ui.large.text {
+  font-size: @large;
+}
+span.ui.big.text {
+  font-size: @big;
+}
+span.ui.huge.text {
+  font-size: @huge;
+}
+span.ui.massive.text {
+  font-size: @massive;
+}
+
+.loadUIOverrides();

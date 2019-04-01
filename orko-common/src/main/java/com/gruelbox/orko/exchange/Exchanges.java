@@ -47,6 +47,7 @@ public final class Exchanges {
   public static final String CRYPTOPIA = "cryptopia";
   public static final String BITMEX = "bitmex";
   public static final String KRAKEN = "kraken";
+  public static final String SIMULATED = "simulated";
 
   static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
       () -> new Reflections("org.knowm.xchange")
@@ -99,8 +100,9 @@ public final class Exchanges {
     switch(exchange) {
       case GDAX:
         return "Coinbase Pro";
+      case SIMULATED:
+        return "Simulator";
       case BITMEX:
-      case BITTREX:
       case KRAKEN:
         return StringUtils.capitalize(exchange) + " (beta)";
       default:
