@@ -34,6 +34,7 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
@@ -78,6 +79,10 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
   private final JobControl jobControl;
   private final ExchangeEventRegistry exchangeEventRegistry;
   private final Transactionally transactionally;
+
+  // Validate at most once every 20 seconds (in practice, whenever we get a tick
+  // and a permit is available)
+  private final RateLimiter validationTick = RateLimiter.create(0.05);
 
   private volatile boolean done;
   private volatile SoftTrailingStop job;
@@ -170,21 +175,9 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
     // Validate the proposed limit order, applying any state changes
     // to this job so that errors don't repeat.
-    jobSubmitter.validate(limitOrderJob, new JobControl() {
-
-      @Override
-      public void replace(Job replacement) {
-        jobControl.replace(SoftTrailingStopProcessor.this.job.toBuilder()
-            .balanceState(((LimitOrderJob) replacement).balanceState())
-            .build());
-      }
-
-      @Override
-      public void finish(Status status) {
-        throw new UnsupportedOperationException();
-      }
-
-    });
+    if (validationTick.tryAcquire()) {
+      validate(limitOrderJob);
+    }
 
     // If we've hit the stop price, we're done
     if ((job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice) <= 0) ||
@@ -224,6 +217,24 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
           .build()
       );
     }
+  }
+
+  private void validate(LimitOrderJob limitOrderJob) {
+    jobSubmitter.validate(limitOrderJob, new JobControl() {
+
+      @Override
+      public void replace(Job replacement) {
+        jobControl.replace(SoftTrailingStopProcessor.this.job.toBuilder()
+            .balanceState(((LimitOrderJob) replacement).balanceState())
+            .build());
+      }
+
+      @Override
+      public void finish(Status status) {
+        throw new UnsupportedOperationException();
+      }
+
+    });
   }
 
   private void logStatus(final SoftTrailingStop trailingStop, final Ticker ticker, CurrencyPairMetaData currencyPairMetaData) {

@@ -28,6 +28,7 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -74,6 +75,10 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
   private final JobControl jobControl;
   private final ExchangeService exchangeService;
   private final Transactionally transactionally;
+
+  // Validate at most once every 20 seconds (in practice, whenever we get a tick
+  // and a permit is available)
+  private final RateLimiter validationTick = RateLimiter.create(0.05);
 
   private volatile OneCancelsOther job;
   private volatile boolean done;
@@ -155,7 +160,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
         job.high() == null ? "-" : job.high().threshold()
       );
 
-    if (!validateJobs())
+    if (validationTick.tryAcquire() && !validateJobs())
       return;
 
     if (job.low() != null && ticker.getBid().compareTo(job.low().threshold()) <= 0) {
