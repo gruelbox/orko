@@ -21,6 +21,7 @@ package com.gruelbox.orko.job;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static com.gruelbox.orko.util.MoreBigDecimals.stripZeros;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -174,8 +175,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
               job.tickTrigger().exchange(),
               job.tickTrigger().base(),
               job.tickTrigger().counter(),
-              ticker.getBid(),
-              job.low().threshold()
+              stripZeros(ticker.getBid()).toPlainString(),
+              stripZeros(job.low().threshold()).toPlainString()
             ),
             job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
           )
@@ -198,8 +199,8 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
               job.tickTrigger().exchange(),
               job.tickTrigger().base(),
               job.tickTrigger().counter(),
-              ticker.getBid(),
-              job.high().threshold()
+              stripZeros(ticker.getBid()).toPlainString(),
+              stripZeros(job.high().threshold()).toPlainString()
             ),
             job.verbose() ? NotificationLevel.ALERT : NotificationLevel.INFO
           )
