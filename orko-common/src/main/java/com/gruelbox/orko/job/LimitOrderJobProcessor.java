@@ -25,6 +25,7 @@ import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
 import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
+import static com.gruelbox.orko.util.MoreBigDecimals.stripZeros;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.DOWN;
 import static org.apache.commons.lang3.StringUtils.capitalize;
@@ -165,17 +166,10 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
               job.tickTrigger().counter(),
               available.toPlainString());
         }
-        notificationService.error(message);
+        notificationService.alert(message);
         jobControl.replace(job.toBuilder().balanceState(INSUFFICIENT_BALANCE).build());
       }
     }
-  }
-
-  private BigDecimal stripZeros(BigDecimal amount) {
-    BigDecimal result = amount.stripTrailingZeros();
-    if (result.scale() < 0)
-      result = result.setScale(0);
-    return result;
   }
 
   private BigDecimal validOrderAmount() {
