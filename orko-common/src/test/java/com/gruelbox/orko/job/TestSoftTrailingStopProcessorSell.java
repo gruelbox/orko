@@ -20,6 +20,7 @@ package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -48,6 +49,7 @@ import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.job.SoftTrailingStop.Builder;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
@@ -79,7 +81,7 @@ public class TestSoftTrailingStopProcessorSell {
   private static final String COUNTER = "USDT";
   private static final String EXCHANGE = "fooex";
 
-  @Mock private JobSubmitter enqueuer;
+  @Mock private JobSubmitter jobSubmitter;
   @Mock private StatusUpdateService statusUpdateService;
   @Mock private NotificationService notificationService;
   @Mock private ExchangeService exchangeService;
@@ -150,6 +152,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -164,6 +167,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -183,6 +187,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -201,6 +206,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -217,6 +223,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -231,6 +238,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -251,6 +259,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -269,6 +278,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitSellAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -288,6 +298,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -305,6 +316,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitSellAt(ticker, new BigDecimal("50"));
     verifyFinished();
     verifySentMessage();
@@ -323,6 +335,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -337,6 +350,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -355,6 +369,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyResyncedPriceTo(job, ENTRY_PRICE.add(PENNY));
     verifyDidNothingElse();
   }
@@ -369,6 +384,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -383,6 +399,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -401,6 +418,7 @@ public class TestSoftTrailingStopProcessorSell {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyResyncedPriceTo(job, HIGHER_ENTRY_PRICE.add(PENNY));
     verifyDidNothingElse();
   }
@@ -423,7 +441,7 @@ public class TestSoftTrailingStopProcessorSell {
 
   private SoftTrailingStopProcessor processor(SoftTrailingStop job) {
     return new SoftTrailingStopProcessor(job, jobControl, statusUpdateService, notificationService,
-        exchangeService, enqueuer, exchangeEventRegistry, mockTransactionally());
+        exchangeService, jobSubmitter, exchangeEventRegistry, mockTransactionally());
   }
 
   private void assertRunning(Status status) {
@@ -443,7 +461,7 @@ public class TestSoftTrailingStopProcessorSell {
   }
 
   private void verifyDidNothingElse() {
-    verifyNoMoreInteractions(notificationService, enqueuer);
+    verifyNoMoreInteractions(notificationService, jobSubmitter);
   }
 
   private void verifySentMessage() {
@@ -458,7 +476,7 @@ public class TestSoftTrailingStopProcessorSell {
   }
 
   private void verifyLimitSellAt(final Ticker ticker, BigDecimal price) throws Exception {
-    verify(enqueuer).submitNewUnchecked(
+    verify(jobSubmitter).submitNewUnchecked(
       LimitOrderJob.builder()
         .tickTrigger(TickerSpec.builder()
             .exchange(EXCHANGE)
@@ -475,6 +493,10 @@ public class TestSoftTrailingStopProcessorSell {
 
   private void verifyFinished() {
     verify(jobControl).finish(Status.SUCCESS);
+  }
+
+  private void verifyValidatedABunchOfTimes() {
+    verify(jobSubmitter, atLeastOnce()).validate(Mockito.any(Job.class), Mockito.any(JobControl.class));
   }
 
   private Ticker everythingAt(BigDecimal price) {
