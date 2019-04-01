@@ -103,7 +103,6 @@ public final class Exchanges {
       case SIMULATED:
         return "Simulator";
       case BITMEX:
-      case BITTREX:
       case KRAKEN:
         return StringUtils.capitalize(exchange) + " (beta)";
       default:
