@@ -64,7 +64,8 @@ public abstract class LimitOrderJob implements Job {
     public abstract Builder amount(BigDecimal amount);
     public abstract Builder limitPrice(BigDecimal value);
     public abstract Builder direction(Direction direction);
-    public abstract Builder balanceState(BalanceState balanceState);
+
+    abstract Builder balanceState(BalanceState balanceState);
 
     @Override
     public abstract LimitOrderJob build();
@@ -85,7 +86,8 @@ public abstract class LimitOrderJob implements Job {
   @JsonProperty public abstract Direction direction();
   @JsonProperty public abstract BigDecimal amount();
   @JsonProperty public abstract BigDecimal limitPrice();
-  @JsonProperty public abstract BalanceState balanceState();
+
+  @JsonProperty abstract BalanceState balanceState();
 
   @Override
   public String toString() {

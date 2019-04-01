@@ -41,6 +41,7 @@ import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
@@ -159,6 +160,32 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
 
     BigDecimal stopPrice = stopPrice(job, currencyPairMetaData);
 
+    LimitOrderJob limitOrderJob = LimitOrderJob.builder()
+        .tickTrigger(ex)
+        .direction(job.direction())
+        .amount(job.amount())
+        .limitPrice(job.limitPrice())
+        .balanceState(job.balanceState())
+        .build();
+
+    // Validate the proposed limit order, applying any state changes
+    // to this job so that errors don't repeat.
+    jobSubmitter.validate(limitOrderJob, new JobControl() {
+
+      @Override
+      public void replace(Job replacement) {
+        jobControl.replace(SoftTrailingStopProcessor.this.job.toBuilder()
+            .balanceState(((LimitOrderJob) replacement).balanceState())
+            .build());
+      }
+
+      @Override
+      public void finish(Status status) {
+        throw new UnsupportedOperationException();
+      }
+
+    });
+
     // If we've hit the stop price, we're done
     if ((job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice) <= 0) ||
         (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(stopPrice) >= 0)) {
@@ -172,12 +199,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
         stopPrice
       ));
 
-      jobSubmitter.submitNewUnchecked(LimitOrderJob.builder()
-          .tickTrigger(ex)
-          .direction(job.direction())
-          .amount(job.amount())
-          .limitPrice(job.limitPrice())
-          .build());
+      jobSubmitter.submitNewUnchecked(limitOrderJob);
 
       jobControl.finish(SUCCESS);
       done = true;
