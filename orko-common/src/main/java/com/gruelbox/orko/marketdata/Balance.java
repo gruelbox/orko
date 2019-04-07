@@ -23,12 +23,16 @@ import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.MoreObjects;
 
 @AutoValue
 public abstract class Balance {
 
   public static Balance create(org.knowm.xchange.dto.account.Balance source) {
-    return new AutoValue_Balance(source.getCurrency().getCurrencyCode(), source.getTotal(), source.getAvailable());
+    return new AutoValue_Balance(
+        source.getCurrency().getCurrencyCode(),
+        MoreObjects.firstNonNull(source.getTotal(), BigDecimal.ZERO),
+        MoreObjects.firstNonNull(source.getAvailable(), BigDecimal.ZERO));
   }
 
   @JsonIgnore public abstract String currency();
