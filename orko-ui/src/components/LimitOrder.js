@@ -19,6 +19,7 @@ import React from "react"
 import Immutable from "seamless-immutable"
 
 import RawForm from "./primitives/RawForm"
+import InlineButton from "./primitives/InlineButton"
 import FormButtonBar from "./primitives/FormButtonBar"
 import { Form, Label } from "semantic-ui-react"
 
@@ -64,6 +65,24 @@ const LimitOrder = props => {
         >
           <input data-orko="amount" />
           <Label>{props.coin.base}</Label>
+          {props.limitPriceValid && (
+            <InlineButton.Container>
+              <InlineButton.Button
+                onClick={() => props.onSetMaxAmount("SELL")}
+                color="sell"
+                title="Set the amount to the maximum possible to sell at the specified limit price."
+              >
+                S
+              </InlineButton.Button>
+              <InlineButton.Button
+                onClick={() => props.onSetMaxAmount("BUY")}
+                color="buy"
+                title="Set the amount to the maximum possible to buy at the specified limit price."
+              >
+                B
+              </InlineButton.Button>
+            </InlineButton.Container>
+          )}
         </Form.Input>
       </Form.Group>
       <Form.Group style={{ flex: "1" }}>
