@@ -35,6 +35,13 @@ public abstract class Balance {
         MoreObjects.firstNonNull(source.getAvailable(), BigDecimal.ZERO));
   }
 
+  public static Balance zero(String currencyCode) {
+    return new AutoValue_Balance(
+        currencyCode,
+        BigDecimal.ZERO,
+        BigDecimal.ZERO);
+  }
+
   @JsonIgnore public abstract String currency();
   @JsonProperty public abstract BigDecimal total();
   @JsonProperty public abstract BigDecimal available();

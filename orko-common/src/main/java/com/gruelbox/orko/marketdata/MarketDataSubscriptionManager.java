@@ -816,10 +816,15 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException, InterruptedException {
-      return FluentIterable.from(wallet().getBalances().entrySet())
-        .transform(Map.Entry::getValue)
+      Map<String, Balance> result = new HashMap<>();
+      currencyCodes.stream().map(Balance::zero)
+        .forEach(balance -> result.put(balance.currency(), balance));
+      wallet().getBalances().entrySet().stream()
+        .map(Map.Entry::getValue)
         .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
-        .transform(Balance::create);
+        .map(Balance::create)
+        .forEach(balance -> result.put(balance.currency(), balance));
+      return result.values();
     }
 
     private Wallet wallet() throws IOException {
