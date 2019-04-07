@@ -64,6 +64,7 @@ import com.gruelbox.orko.marketdata.BalanceEvent;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
+import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 
@@ -882,7 +883,7 @@ public class TestLimitOrderJobProcessor {
 
   private LimitOrderJobProcessor newProcessor(LimitOrderJob job) {
     return new LimitOrderJobProcessor(job, jobControl, statusUpdateService, notificationService,
-        tradeServiceFactory, exchangeEventRegistry, exchangeService);
+        tradeServiceFactory, exchangeEventRegistry, exchangeService, new MaxTradeAmountCalculator.Factory(exchangeEventRegistry, exchangeService));
   }
 
   private void balanceAvailable(TickerSpec ex, String currency, BigDecimal amount) {

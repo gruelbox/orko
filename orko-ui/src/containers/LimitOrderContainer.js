@@ -25,6 +25,8 @@ import * as focusActions from "../store/focus/actions"
 import * as exchangesActions from "../store/exchanges/actions"
 import { isValidNumber } from "../util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
+import exchangeService from "../services/exchanges"
+import * as errorActions from "../store/error/actions"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -63,6 +65,42 @@ class LimitOrderContainer extends React.Component {
     limitPrice: this.state.order.limitPrice
   })
 
+  calculateOrder = async direction => {
+    try {
+      const response = await exchangeService.calculateOrder(
+        this.props.coin.exchange,
+        this.createOrder(direction)
+      )
+
+      if (!response.ok) {
+        var errorMessage = null
+        try {
+          errorMessage = (await response.json()).message
+        } catch (err) {
+          // No-op
+        }
+        if (!errorMessage) {
+          errorMessage = response.statusText
+            ? response.statusText
+            : "Server error (" + response.status + ")"
+        }
+
+        throw new Error(errorMessage)
+      } else {
+        const result = await response.json()
+        console.log(result)
+        this.setState(prev => ({
+          order: {
+            ...prev.order,
+            amount: result.amount
+          }
+        }))
+      }
+    } catch (error) {
+      this.props.dispatch(errorActions.setForeground(errorMessage))
+    }
+  }
+
   onSubmit = async direction => {
     const order = this.createOrder(direction)
     this.props.dispatch(
@@ -87,6 +125,7 @@ class LimitOrderContainer extends React.Component {
         onFocus={this.onFocus}
         onBuy={() => this.onSubmit("BUY")}
         onSell={() => this.onSubmit("SELL")}
+        onSetMaxAmount={this.calculateOrder}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
         coin={this.props.coin}

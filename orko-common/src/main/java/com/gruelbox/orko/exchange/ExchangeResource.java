@@ -71,6 +71,8 @@ import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
+import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
+import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator.Factory;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
@@ -89,18 +91,22 @@ public class ExchangeResource implements WebResource {
   private final AccountServiceFactory accountServiceFactory;
   private final OrkoConfiguration configuration;
   private final MarketDataSubscriptionManager subscriptionManager;
+  private final Factory calculatorFactory;
+
 
   @Inject
   ExchangeResource(ExchangeService exchanges,
                    TradeServiceFactory tradeServiceFactory,
                    AccountServiceFactory accountServiceFactory,
                    MarketDataSubscriptionManager subscriptionManager,
-                   OrkoConfiguration configuration) {
+                   OrkoConfiguration configuration,
+                   MaxTradeAmountCalculator.Factory calculatorFactory) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
     this.subscriptionManager = subscriptionManager;
     this.configuration = configuration;
+    this.calculatorFactory = calculatorFactory;
   }
 
 
@@ -237,6 +243,27 @@ public class ExchangeResource implements WebResource {
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }
+  }
+
+
+  @POST
+  @Path("{exchange}/orders/calc")
+  @Timed
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response calculateOrder(@PathParam("exchange") String exchange, OrderPrototype order) {
+    if (!order.isLimit()) {
+      return Response.status(400).entity(new ErrorResponse("Limit price required")).build();
+    }
+    TickerSpec tickerSpec = TickerSpec.builder()
+        .exchange(exchange)
+        .base(order.getBase())
+        .counter(order.getCounter())
+        .build();
+    BigDecimal orderAmount = calculatorFactory.create(tickerSpec)
+        .validOrderAmount(order.getLimitPrice(), order.getType());
+    order.setAmount(orderAmount);
+    return Response.ok().entity(order).build();
   }
 
 
