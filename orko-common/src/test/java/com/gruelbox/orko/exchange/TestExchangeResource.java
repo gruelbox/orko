@@ -28,6 +28,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 import javax.ws.rs.core.Response;
 
@@ -45,6 +46,8 @@ import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResource.ErrorResponse;
 import com.gruelbox.orko.exchange.ExchangeResource.OrderPrototype;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
+import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
+import com.gruelbox.orko.spi.TickerSpec;
 
 import io.dropwizard.testing.junit.ResourceTestRule;
 
@@ -56,6 +59,7 @@ public class TestExchangeResource {
   private static TradeServiceFactory tradeServiceFactory = mock(TradeServiceFactory.class);
   private static AccountServiceFactory accountServiceFactory = mock(AccountServiceFactory.class);
   private static MarketDataSubscriptionManager subscriptionManager = mock(MarketDataSubscriptionManager.class);
+  private static MaxTradeAmountCalculator.Factory calculatorFactory = mock(MaxTradeAmountCalculator.Factory.class);
   private static OrkoConfiguration configuration = new OrkoConfiguration();
 
   private static TradeService tradeService = mock(TradeService.class);
@@ -63,7 +67,7 @@ public class TestExchangeResource {
   @ClassRule public static final ResourceTestRule resources = ResourceTestRule.builder()
       .addResource(new ExchangeResource(
           exchangeService, tradeServiceFactory, accountServiceFactory,
-          subscriptionManager, configuration)
+          subscriptionManager, configuration, calculatorFactory)
       ).build();
 
   @Before
@@ -74,6 +78,51 @@ public class TestExchangeResource {
   @After
   public void tearDown() {
     reset(exchangeService, tradeServiceFactory, accountServiceFactory, subscriptionManager);
+  }
+
+  @Test
+  public void testCalculate() throws IOException {
+
+    // Given
+    OrderPrototype order = new ExchangeResource.OrderPrototype();
+    order.setAmount(new BigDecimal(300));
+    order.setLimitPrice(new BigDecimal(1000));
+    order.setBase("XXX");
+    order.setCounter("YYY");
+    order.setType(ASK);
+
+    MaxTradeAmountCalculator calculator = mock(MaxTradeAmountCalculator.class);
+    when(calculator.validOrderAmount(new BigDecimal(1000), ASK)).thenReturn(new BigDecimal(200));
+    when(calculatorFactory.create(TickerSpec.fromKey(EXCHANGE + "/YYY/XXX"))).thenReturn(calculator);
+
+    // When
+    Response response = resources.target("/exchanges/" + EXCHANGE + "/orders/calc").request()
+        .post(entity(order, APPLICATION_JSON));
+
+    // Then
+    OrderPrototype result = response.readEntity(OrderPrototype.class);
+    assertThat(result.getAmount(), equalTo(new BigDecimal(200)));
+
+  }
+
+  @Test
+  public void testCalculateNoLimitPrice() throws IOException {
+
+    // Given
+    OrderPrototype order = new ExchangeResource.OrderPrototype();
+    order.setAmount(new BigDecimal(300));
+    order.setBase("XXX");
+    order.setCounter("YYY");
+    order.setType(ASK);
+
+    // When
+    Response response = resources.target("/exchanges/" + EXCHANGE + "/orders/calc").request()
+        .post(entity(order, APPLICATION_JSON));
+
+    // Then
+    assertThat(response.getStatus(), equalTo(400));
+    assertThat(response.readEntity(ErrorResponse.class).getMessage(),
+        equalTo("Limit price required"));
   }
 
   @Test
