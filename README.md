@@ -1,4 +1,4 @@
-# Orko [![Twitter](http://i.imgur.com/wWzX9uB.png)](https://twitter.com/orkotrading)
+# Orko [![Twitter](http://i.imgur.com/wWzX9uB.png)](https://twitter.com/gruelbox)
 
 [![Collaborate on Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gruelbox/community)
 [![Current version](https://img.shields.io/github/release/gruelbox/orko.svg)](https://github.com/gruelbox/orko/releases/latest)
