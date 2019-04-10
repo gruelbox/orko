@@ -55,6 +55,6 @@
   ],
   "devDependencies": {
     "gulp": "^4.0.0",
-    "fomantic-ui": "^2.7.2"
+    "fomantic-ui": "^2.7.4"
   }
 }
