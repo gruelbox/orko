@@ -83,6 +83,19 @@
 
   <profiles>
     <profile>
+      <id>dbonly</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>com.gruelbox.orko.db.DatabaseTest</groups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>webdev</id>
       <build>
         <plugins>
@@ -531,6 +544,9 @@
           <configuration>
             <skipTests>${skip.surefire.tests}</skipTests>
             <argLine>${surefireArgLine}</argLine>
+            <excludes>
+              <exclude>**/*Integration.java</exclude>
+            </excludes>
           </configuration>
         </plugin>
         <plugin>

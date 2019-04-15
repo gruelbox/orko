@@ -43,6 +43,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -55,6 +56,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
 import com.google.inject.util.Providers;
+import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.TestingJobEvent.EventType;
@@ -67,6 +69,7 @@ import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
+@Category(DatabaseTest.class)
 public class TestJobExecution {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestJobExecution.class);

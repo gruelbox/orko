@@ -35,18 +35,21 @@ import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.google.inject.util.Providers;
+import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.jobrun.JobAccess.JobAlreadyExistsException;
 import com.gruelbox.orko.jobrun.JobAccess.JobDoesNotExistException;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
+@Category(DatabaseTest.class)
 public class TestJobAccess {
 
   @Mock private JobLocker jobLocker;
