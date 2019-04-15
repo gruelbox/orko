@@ -306,7 +306,7 @@ public class TestJobExecution {
       Assert.assertTrue(listener1.awaitStart());
 
       // Should still be running after a pause
-      Assert.assertFalse(listener1.awaitFinish());
+      Assert.assertFalse(listener1.awaitFinishShort());
 
       // Kill the guardians so the lock stops getting refreshed
       guardianLoop1.kill();
@@ -336,7 +336,7 @@ public class TestJobExecution {
       Assert.assertTrue(listener1.awaitStart());
 
       // Should still be running after a pause
-      Assert.assertFalse(listener1.awaitFinish());
+      Assert.assertFalse(listener1.awaitFinishShort());
 
       // Shut down
       stopGuardians();
@@ -358,7 +358,7 @@ public class TestJobExecution {
       start();
 
       Assert.assertTrue(listener1.awaitStart());
-      Assert.assertFalse(listener1.awaitFinish());
+      Assert.assertFalse(listener1.awaitFinishShort());
 
       // Shut down
       stopGuardians();
@@ -411,7 +411,7 @@ public class TestJobExecution {
 
       start();
 
-      Assert.assertFalse(listener1.awaitStart());
+      Assert.assertFalse(listener1.awaitStartShort());
 
       backgroundLock.cancel(true);
     }
@@ -482,8 +482,16 @@ public class TestJobExecution {
       return completed.await(WAIT_SECONDS, TimeUnit.SECONDS);
     }
 
+    boolean awaitFinishShort() throws InterruptedException {
+      return completed.await(10, TimeUnit.SECONDS);
+    }
+
     boolean awaitStart() throws InterruptedException {
       return started.await(WAIT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    boolean awaitStartShort() throws InterruptedException {
+      return started.await(10, TimeUnit.SECONDS);
     }
 
     @Override
