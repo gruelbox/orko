@@ -21,10 +21,6 @@
     </dependency>
   </dependencies>
 
-  <properties>
-    <cypress.command>run</cypress.command>
-  </properties>
-
   <build>
     <pluginManagement>
       <plugins>
@@ -123,7 +119,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run cypress:${cypress.command}</arguments>
+              <arguments>run cypress:run</arguments>
             </configuration>
           </execution>
         </executions>
