@@ -32,7 +32,7 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
-import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -72,11 +72,11 @@ import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
-import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.exceptions.ExchangeSecurityException;
 import org.knowm.xchange.exceptions.ExchangeUnavailableException;
 import org.knowm.xchange.exceptions.FrequencyLimitExceededException;
+import org.knowm.xchange.exceptions.NonceException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.exceptions.RateLimitExceededException;
@@ -475,24 +475,18 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
 
         // Disable the feature since XChange doesn't provide support for it.
-        LOGGER.warn("{} not available: {} - {}", dataDescription, e.getClass().getSimpleName(), e.getMessage());
+        LOGGER.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
 
-      } catch (SocketTimeoutException | ExchangeUnavailableException | SystemOverloadException | NoRouteToHostException e) {
+      } catch (SocketTimeoutException | SocketException | ExchangeUnavailableException | SystemOverloadException | NonceException e) {
 
         // Managed connectivity issues.
-        LOGGER.warn("Throttling {} - {} when fetching {}", exchangeName, e.getClass().getSimpleName(), dataDescription);
+        LOGGER.warn("Throttling {} - {} ({}) when fetching {}", exchangeName, e.getClass().getSimpleName(), exceptionMessage(e), dataDescription);
         exchangeService.rateController(exchangeName).throttle();
 
       } catch (HttpStatusIOException e) {
 
-        if (e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
-          // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases).
-          LOGGER.warn("Throttling {} - failed at gateway ({} - ) when fetching {}", exchangeName, e.getHttpStatusCode(), e.getMessage(), dataDescription);
-          exchangeService.rateController(exchangeName).throttle();
-        } else {
-          handleUnknownPollException(e);
-        }
+        handleHttpStatusException(dataDescription, e);
 
       } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
 
@@ -503,24 +497,55 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         rateController.backoff();
         rateController.pause();
 
+      } catch (ExchangeException e) {
+        if (e.getCause() instanceof HttpStatusIOException) {
+          // TODO Bitmex is inappropriately wrapping these and should be fixed
+          // for consistency. In the meantime...
+          handleHttpStatusException(dataDescription, (HttpStatusIOException) e.getCause());
+        } else {
+          handleUnknownPollException(e);
+        }
       } catch (BitfinexException e) {
-        handleUnknownPollException(new ExchangeException("Bitfinex exception: " + e.getMessage() + " (error code=" + e.getError() + ")", e));
+        handleUnknownPollException(new ExchangeException("Bitfinex exception: " + exceptionMessage(e) + " (error code=" + e.getError() + ")", e));
       } catch (Exception e) {
         handleUnknownPollException(e);
       }
     }
 
+    private void handleHttpStatusException(String dataDescription, HttpStatusIOException e) {
+      if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
+        // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
+        LOGGER.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
+        exchangeService.rateController(exchangeName).throttle();
+      } else {
+        handleUnknownPollException(e);
+      }
+    }
+
+    private String exceptionMessage(Throwable e) {
+      if (e.getMessage() == null) {
+        if (e.getCause() == null) {
+          return "No description";
+        } else {
+          return exceptionMessage(e.getCause());
+        }
+      } else {
+        return e.getMessage();
+      }
+    }
+
     private void handleUnknownPollException(Exception e) {
       LocalDateTime now = now();
+      String exceptionMessage = exceptionMessage(e);
       if (lastPollException == null ||
           !lastPollException.getClass().equals(e.getClass()) ||
-          !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
+          !firstNonNull(exceptionMessage(lastPollException), "").equals(exceptionMessage) ||
           lastPollErrorNotificationTime.until(now, MINUTES) > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
         lastPollErrorNotificationTime = now;
         LOGGER.error("Error fetching data for " + exchangeName, e);
-        notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + ")");
+        notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + exceptionMessage + ")");
       } else {
-        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
+        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
       }
       lastPollException = e;
       exchangeService.rateController(exchangeName).throttle();
@@ -714,7 +739,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case USER_TRADE:
           return streamingExchange.getStreamingTradeService().getUserTrades(sub.spec().currencyPair())
-              .map(t -> convertBinanceUserOrderType(sub, t))
               .map(t -> UserTradeEvent.create(sub.spec(), t))
               .subscribe(userTradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case ORDER:
@@ -736,17 +760,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } else {
         return t;
       }
-    }
-
-
-    /**
-     * TODO See https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
-     * The public and authenticated behaviours currently differ but it's not
-     * been decided which is right. In the meantime we flip Binance to match others
-     * on the method above but not here.
-     */
-    private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
-      return t;
     }
 
     private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
@@ -803,10 +816,15 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException, InterruptedException {
-      return FluentIterable.from(wallet().getBalances().entrySet())
-        .transform(Map.Entry::getValue)
+      Map<String, Balance> result = new HashMap<>();
+      currencyCodes.stream().map(Balance::zero)
+        .forEach(balance -> result.put(balance.currency(), balance));
+      wallet().getBalances().entrySet().stream()
+        .map(Map.Entry::getValue)
         .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
-        .transform(Balance::create);
+        .map(Balance::create)
+        .forEach(balance -> result.put(balance.currency(), balance));
+      return result.values();
     }
 
     private Wallet wallet() throws IOException {

@@ -83,14 +83,22 @@ public abstract class OneCancelsOther implements Job {
   @Override
   public String toString() {
     if (high() == null) {
-      return String.format("when price drops below %s on %s, execute: %s", low().threshold(), tickTrigger(), low().job());
+      return toStringLowOnly();
     } else {
       if (low() == null) {
-        return String.format("when price rises above %s on %s, execute: %s", high().threshold(), tickTrigger(), high().job());
+        return toStringHighOnly();
       } else {
-        return String.format("one-cancels-other (high: %s, low: %s) on %s", high().threshold(), low().threshold(), tickTrigger());
+        return toStringHighOnly() + "; " +toStringLowOnly();
       }
     }
+  }
+
+  private String toStringHighOnly() {
+    return String.format("when price rises above %s on %s, execute: %s", high().threshold(), tickTrigger(), high().job());
+  }
+
+  private String toStringLowOnly() {
+    return String.format("when price drops below %s on %s, execute: %s", low().threshold(), tickTrigger(), low().job());
   }
 
   @JsonIgnore

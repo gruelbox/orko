@@ -34,15 +34,20 @@ import org.alfasoftware.morf.xml.XmlDataSetProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class DbDump {
+import com.google.inject.Inject;
+
+class DbDump {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbDump.class);
 
-  private DbDump() {
-    // Not instantiatable
+  private final ConnectionResources connectionResources;
+
+  @Inject
+  DbDump(ConnectionResources connectionResources) {
+    this.connectionResources = connectionResources;
   }
 
-  static File dump(ConnectionResources connectionResources) throws IOException {
+  File dump() throws IOException {
     LOGGER.info("Dumping database...");
     File tempFile = File.createTempFile("orko-db-dump-", ".zip");
     new DataSetConnector(
@@ -53,7 +58,7 @@ final class DbDump {
     return tempFile;
   }
 
-  static void restore(String startPositionFile, ConnectionResources connectionResources) {
+  void restore(String startPositionFile) {
     LOGGER.info("Restoring database snapshot: {}", startPositionFile);
     try {
       new DataSetConnector(

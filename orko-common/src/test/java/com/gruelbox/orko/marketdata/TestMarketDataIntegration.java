@@ -150,8 +150,8 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSimulated() throws InterruptedException, IOException, TimeoutException {
-    SimulatedOrderBookActivity simulator = new SimulatedOrderBookActivity(orkoConfiguration, accountFactory, matchingEngineFactory);
-    simulator.startAsync().awaitRunning(20, SECONDS);
+    SimulatedOrderBookActivity simulator = new SimulatedOrderBookActivity(accountFactory, matchingEngineFactory);
+    simulator.startAsync().awaitRunning(30, SECONDS);
     try {
       testSubscriptionsViaEventBus(ImmutableSet.of(
           MarketDataSubscription.create(simulated, TICKER),
@@ -159,10 +159,10 @@ public class TestMarketDataIntegration {
           MarketDataSubscription.create(simulated, TRADES),
           MarketDataSubscription.create(simulated, BALANCE),
           MarketDataSubscription.create(simulated, OPEN_ORDERS)
-        ), 10);
+        ), 4);
       LOGGER.info("Test complete");
     } finally {
-      simulator.stopAsync().awaitTerminated(20, SECONDS);
+      simulator.stopAsync().awaitTerminated(30, SECONDS);
     }
   }
 

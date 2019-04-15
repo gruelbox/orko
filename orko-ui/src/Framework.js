@@ -36,6 +36,7 @@ import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
+import NewReleaseContainer from "./containers/NewReleaseContainer"
 import Chart from "./components/Chart"
 import Section from "./components/primitives/Section"
 import ViewSettings from "./components/ViewSettings"
@@ -222,6 +223,9 @@ export default class Framework extends React.Component {
             panels={panels}
             width={width}
           />
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <NewReleaseContainer />
         </ErrorBoundary>
         <ErrorBoundary>
           <Route exact path="/addCoin" component={AddCoinContainer} />

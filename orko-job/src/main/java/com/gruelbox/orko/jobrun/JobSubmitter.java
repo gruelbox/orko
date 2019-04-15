@@ -20,6 +20,7 @@ package com.gruelbox.orko.jobrun;
 
 
 import com.gruelbox.orko.jobrun.spi.Job;
+import com.gruelbox.orko.jobrun.spi.JobControl;
 
 /**
  * Submits new jobs.
@@ -41,6 +42,15 @@ public interface JobSubmitter {
    * @throws Exception Exception.
    */
   Job submitNew(Job job) throws Exception;
+
+  /**
+   * Validates (potentially updating) a job.
+   *
+   * @param job The job
+   * @param jobControl A special implementation of {@link JobControl} to allow the
+   *    job to modify itself or declare itself void.
+   */
+  void validate(Job job, JobControl jobControl);
 
   /**
    * As {@link #submitNew(Job)} but restates any checked exceptions as

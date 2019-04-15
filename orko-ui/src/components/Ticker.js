@@ -69,13 +69,28 @@ class Ticker extends React.Component {
               >
                 {ticker ? ticker.ask : undefined}
               </Price>
-              <Price coin={coin} name="Open" onClick={onClickNumber}>
+              <Price
+                coin={coin}
+                name="Open"
+                onClick={onClickNumber}
+                hideMissing
+              >
                 {ticker ? ticker.open : undefined}
               </Price>
-              <Price coin={coin} name="24h Low" onClick={onClickNumber}>
+              <Price
+                coin={coin}
+                name="24h Low"
+                onClick={onClickNumber}
+                hideMissing
+              >
                 {ticker ? ticker.low : undefined}
               </Price>
-              <Price coin={coin} name="24h High" onClick={onClickNumber}>
+              <Price
+                coin={coin}
+                name="24h High"
+                onClick={onClickNumber}
+                hideMissing
+              >
                 {ticker ? ticker.high : undefined}
               </Price>
             </>
