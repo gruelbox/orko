@@ -49,7 +49,7 @@ public final class Exchanges {
   public static final String KRAKEN = "kraken";
   public static final String SIMULATED = "simulated";
 
-  static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
+  public static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
       () -> new Reflections("org.knowm.xchange")
       .getSubTypesOf(Exchange.class)
       .stream()
@@ -61,6 +61,18 @@ public final class Exchanges {
       .getSubTypesOf(StreamingExchange.class)
       .stream()
       .collect(Collectors.toList()));
+
+
+  /**
+   * Converts an exchange class into its friendly name.
+   *
+   * @param clazz The exchange class
+   * @return The friendly class name.
+   */
+  public static String classToFriendlyName(Class<? extends Exchange> clazz) {
+    String name = clazz.getSimpleName().replace("Exchange", "").toLowerCase();
+    return name.equals("coinbasepro") ? "gdax" : name;
+  }
 
   /**
    * Converts the friendly name for an exchange into the exchange class.

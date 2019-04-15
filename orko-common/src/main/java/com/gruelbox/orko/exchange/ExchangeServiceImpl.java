@@ -193,10 +193,7 @@ public class ExchangeServiceImpl implements ExchangeService {
   public Collection<String> getExchanges() {
     return ImmutableSet.<String>builder()
         .addAll(FluentIterable.from(Exchanges.EXCHANGE_TYPES.get())
-                  .transform(Class::getSimpleName)
-                  .transform(s -> s.replace("Exchange", ""))
-                  .transform(String::toLowerCase)
-                  .transform(s -> s.equals("coinbasepro") ? "gdax" : s)
+                  .transform(Exchanges::classToFriendlyName)
         )
         .build();
   }
