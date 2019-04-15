@@ -75,6 +75,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
  *
  * @author Graham Crockford
  */
+@SuppressWarnings({ "deprecation", "removal" })
 class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final String PERMANENTLY_FAILED = "' permanently failed: ";
