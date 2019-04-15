@@ -14,7 +14,7 @@ notifications:
     on_failure: always # options: [always|never|change] default: always
     on_start: never # options: [always|never|change] default: always
 jdk: openjdk8
-env: BUILD_ARGS="-B -U -DskipSlowTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn" SONAR_TARGETS="clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar"
+env: BUILD_ARGS="-B -U -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn" SONAR_TARGETS="clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar"
 matrix:
   fast_finish: true
   include:
