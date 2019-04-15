@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -54,6 +55,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.RateLimiter;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.spi.TickerSpec;
 
@@ -96,7 +98,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
-        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
+        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]", e);
       }
     }
 
@@ -110,7 +112,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
-        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
+        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]", e);
       }
     }
 
@@ -201,7 +203,12 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Override
   public Exchange get(String name) {
-    return exchanges.getUnchecked(name);
+    try {
+      return exchanges.getUnchecked(name);
+    } catch (UncheckedExecutionException e) {
+      Throwables.throwIfUnchecked(e.getCause());
+      throw e;
+    }
   }
 
   @Override
