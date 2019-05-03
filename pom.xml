@@ -540,7 +540,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.1</version>
+          <version>2.22.2</version>
           <configuration>
             <skipTests>${skip.surefire.tests}</skipTests>
             <argLine>${surefireArgLine}</argLine>
