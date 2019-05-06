@@ -31,7 +31,7 @@
     "seamless-immutable": "^7.1.4",
     "semantic-ui-react": "^0.86.0",
     "styled-components": "^4.2.0",
-    "styled-system": "^4.1.0",
+    "styled-system": "^4.2.1",
     "uuid": "^3.3.2",
     "whatwg-fetch": "^3.0.0"
   },
