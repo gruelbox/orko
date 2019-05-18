@@ -155,44 +155,6 @@
           </fileSets>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>1.2.0</version>
-        <configuration>
-          <to>
-            <image>orko:latest</image>
-          </to>
-          <container>
-            <jvmFlags>
-              <jvmFlag>-Xmx186m</jvmFlag>
-              <jvmFlag>-Xss512k</jvmFlag>
-              <jvmFlag>-XX:MaxMetaspaceSize=96m</jvmFlag>
-              <jvmFlag>-XX:+UseG1GC</jvmFlag>
-              <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
-              <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
-              <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
-              <jvmFlag>-Ddw.server.connector.port=8080</jvmFlag>
-            </jvmFlags>
-            <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
-            <args>
-              <arg>server</arg>
-              <arg>docker-config.yml</arg>
-            </args>
-            <ports>
-              <port>8080</port>
-            </ports>
-          </container>
-        </configuration>
-        <!--<executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>dockerBuild</goal><!-- just build for actual releases -->
-            </goals>
-          </execution>
-        </executions>-->
-      </plugin>
     </plugins>
   </build>
 </project>
