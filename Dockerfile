@@ -7,4 +7,4 @@ FROM java:8
 COPY --from=build /usr/src/orko-app/target/orko-app.jar /opt/orko-app.jar
 COPY --from=build /usr/src/orko-app/src/main/jib/docker-config.yml /opt/docker-config.yml
 EXPOSE 8080
-CMD ["java", "-jar", "-server", "-Xmx1024m", "-Xms1024m", "-Xss1m", "-XX:MaxMetaspaceSize=128m", "-Dsun.net.inetaddr.ttl=60", "-Dio.netty.leakDetectionLevel=advanced", "-Dmorf.mysql.noadmin=true", "-Ddw.server.connector.port=8080", "-jar", "/opt/orko-app.jar", "server", "/opt/docker-config.yml"]
+CMD ["java", "-jar", "-server", "-Xmx486m", "-Xms486m", "-Xss1m", "-XX:MaxMetaspaceSize=104m", "-XX:+UseG1GC", "-Dsun.net.inetaddr.ttl=60", "-Dio.netty.leakDetectionLevel=advanced", "-Dmorf.mysql.noadmin=true", "-Ddw.server.connector.port=8080", "-jar", "/opt/orko-app.jar", "server", "/opt/docker-config.yml"]
