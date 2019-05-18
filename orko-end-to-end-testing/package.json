@@ -6,7 +6,6 @@
   "scripts": {
     "cypress:open": "cypress open",
     "cypress:run": "cypress run --browser chrome",
-    "cypress:runrecord": "cypress run --browser chrome --record",
     "cypress:verify": "cypress verify"
   },
   "author": "",

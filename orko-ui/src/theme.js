@@ -44,6 +44,7 @@ const theme = {
     ],
     canvas: "#131722",
     inputBg: "#131722",
+    inputBgHover: lighten(0.1, "#131722"),
     disabled: darken(0.3, "#aaa"),
     disabledBg: lighten(0.03, "#2F3241"),
     fore: "#aaa",

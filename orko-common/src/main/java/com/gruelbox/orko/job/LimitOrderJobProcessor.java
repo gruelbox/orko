@@ -24,10 +24,8 @@ import static com.gruelbox.orko.job.LimitOrderJob.BalanceState.SUFFICIENT_BALANC
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
-import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
 import static com.gruelbox.orko.util.MoreBigDecimals.stripZeros;
 import static java.math.BigDecimal.ZERO;
-import static java.math.RoundingMode.DOWN;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 import java.math.BigDecimal;
@@ -35,16 +33,14 @@ import java.util.Date;
 import java.util.function.Consumer;
 
 import org.knowm.xchange.binance.service.BinanceTradeService;
-import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
-import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
+import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.exceptions.FundsExceededException;
 import org.knowm.xchange.service.trade.TradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -61,8 +57,7 @@ import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.jobrun.spi.Validatable;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
+import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
 import com.gruelbox.orko.notification.NotificationService;
 
 /**
@@ -78,12 +73,10 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
   private final JobControl jobControl;
   private final NotificationService notificationService;
   private final TradeServiceFactory tradeServiceFactory;
-  private final ExchangeEventRegistry exchangeEventRegistry;
   private final RateController rateController;
+  private final MaxTradeAmountCalculator calculator;
 
   private final BigDecimal minimumAmount;
-  private final int priceScale;
-  private final BigDecimal amountStepSize;
 
   private volatile LimitOrderJob job;
 
@@ -98,23 +91,20 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
                                 final NotificationService notificationService,
                                 final TradeServiceFactory tradeServiceFactory,
                                 final ExchangeEventRegistry exchangeEventRegistry,
-                                final ExchangeService exchangeService) {
+                                final ExchangeService exchangeService,
+                                final MaxTradeAmountCalculator.Factory calculatorFactory) {
     this.job = job;
     this.jobControl = jobControl;
     this.statusUpdateService = statusUpdateService;
     this.notificationService = notificationService;
     this.tradeServiceFactory = tradeServiceFactory;
-    this.exchangeEventRegistry = exchangeEventRegistry;
+    this.calculator = calculatorFactory.create(job.tickTrigger());
     this.rateController = exchangeService.rateController(job.tickTrigger().exchange());
-
-    CurrencyPairMetaData currencyPairMetaData = exchangeService.get(job.tickTrigger().exchange())
+    this.minimumAmount = exchangeService.get(job.tickTrigger().exchange())
         .getExchangeMetaData()
         .getCurrencyPairs()
-        .get(new CurrencyPair(job.tickTrigger().base(), job.tickTrigger().counter()));
-
-    this.minimumAmount = currencyPairMetaData.getMinimumAmount();
-    this.priceScale = MoreObjects.firstNonNull(currencyPairMetaData.getPriceScale(), 0);
-    this.amountStepSize = currencyPairMetaData.getAmountStepSize();
+        .get(job.tickTrigger().currencyPair())
+        .getMinimumAmount();
   }
 
   /**
@@ -126,7 +116,7 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
   public void validate() {
     LOGGER.debug("Validating {}", job);
     setupOrder(message -> {});
-    BigDecimal available = stripZeros(validOrderAmount());
+    BigDecimal available = stripZeros(calculator.validOrderAmount(job.limitPrice(), job.direction().equals(Direction.SELL) ? OrderType.ASK : OrderType.BID));
     BigDecimal amount = stripZeros(job.amount());
     if (amount.compareTo(available) <= 0) {
       if (job.balanceState().equals(INSUFFICIENT_BALANCE)) {
@@ -172,28 +162,11 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
     }
   }
 
-  private BigDecimal validOrderAmount() {
-    try (ExchangeEventSubscription subscription = exchangeEventRegistry.subscribe(MarketDataSubscription.create(job.tickTrigger(), BALANCE))) {
-      if (job.direction().equals(Direction.SELL)) {
-        return blockingBalance(subscription, job.tickTrigger().base())
-            .setScale(priceScale, DOWN);
-      } else {
-        BigDecimal available = blockingBalance(subscription, job.tickTrigger().counter());
-        return available.divide(order.getLimitPrice(), priceScale, DOWN);
-      }
-    }
-  }
-
-  private BigDecimal blockingBalance(ExchangeEventSubscription subscription, String currency) {
-    return subscription.getBalances()
-        .filter(b -> b.currency().equals(currency))
-        .blockingFirst()
-        .balance()
-        .available();
-  }
-
   private void setupOrder(Consumer<String> onAlert) {
-    BigDecimal amount = adjustAmountForLotSize(job.amount(), onAlert);
+    BigDecimal amount = calculator.adjustAmountForLotSize(job.amount());
+    if (amount.compareTo(job.amount()) != 0) {
+      onAlert.accept("Reduced order size of " + amount + " to " + amount + " to conform to exchange amount step size");
+    }
     this.order = new LimitOrder(
         job.direction() == Direction.SELL ? Order.OrderType.ASK : Order.OrderType.BID,
         amount, job.tickTrigger().currencyPair(),
@@ -205,18 +178,6 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
         return job.id();
       }
     });
-  }
-
-  private BigDecimal adjustAmountForLotSize(BigDecimal amount, Consumer<String> onAlert) {
-    if (amountStepSize != null) {
-      BigDecimal remainder = amount.remainder(amountStepSize);
-      if (remainder.compareTo(ZERO) != 0) {
-        BigDecimal newAmount = amount.subtract(remainder);
-        onAlert.accept("Reduced order size of " + amount + " to " + newAmount + " to conform to exchange amount step size");
-        return newAmount;
-      }
-    }
-    return amount;
   }
 
   /**
@@ -290,11 +251,11 @@ class LimitOrderJobProcessor implements LimitOrderJob.Processor, Validatable {
   }
 
   private void updateOrderToMatchBalance() {
-    BigDecimal validSaleAmount = adjustAmountForLotSize(validOrderAmount(), message -> {});
+    BigDecimal validSaleAmount = calculator.validOrderAmount(job.limitPrice(), job.direction().equals(Direction.SELL) ? OrderType.ASK : OrderType.BID);
     if (validSaleAmount.compareTo(ZERO) < 0) {
       validSaleAmount = ZERO;
     }
-    String message = String.format("Reducing amount on %s order on %s %s/%s market from %s to %s to fit available balance.",
+    String message = String.format("Reducing amount on %s order on %s %s/%s market from %s to %s to fit available balance and step size.",
         job.direction().toString().toLowerCase(),
         name(job.tickTrigger().exchange()),
         job.tickTrigger().base(),

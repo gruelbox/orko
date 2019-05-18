@@ -33,6 +33,13 @@ class ExchangesService {
     )
   }
 
+  async calculateOrder(exchange, order) {
+    return await post(
+      "exchanges/" + exchange + "/orders/calc",
+      JSON.stringify(order)
+    )
+  }
+
   async fetchReferencePrices() {
     return await get("subscriptions/referencePrices")
   }

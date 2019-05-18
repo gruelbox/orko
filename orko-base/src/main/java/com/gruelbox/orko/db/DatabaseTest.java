@@ -15,19 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.db;
 
+/**
+ * JUnit marker interface for database-backed tests. These will
+ * be run on all platforms.
+ *
+ * @author Graham Crockford
+ */
+public interface DatabaseTest {
 
-import static org.junit.Assume.assumeFalse;
-
-public final class TestingUtils {
-
-  private static final String SKIP_SLOW_TESTS = "skipSlowTests";
-
-  private TestingUtils() {}
-
-  public static void skipIfSlowTestsDisabled() {
-    assumeFalse("true".equals(System.getProperty(SKIP_SLOW_TESTS)));
-  }
 }

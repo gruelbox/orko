@@ -29,13 +29,16 @@ import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
+@Category(DatabaseTest.class)
 public class TestJobLocker {
 
   @Rule

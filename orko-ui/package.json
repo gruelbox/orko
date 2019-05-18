@@ -5,17 +5,17 @@
   "dependencies": {
     "@mars/heroku-js-runtime-env": "^3.0.2",
     "compare-versions": "^3.4.0",
-    "connected-react-router": "^6.3.2",
+    "connected-react-router": "^6.4.0",
     "cookies-js": "^1.2.3",
     "fetch": "^1.1.0",
     "http-proxy-middleware": "^0.19.1",
     "immutable": "^3.8.2",
-    "polished": "^3.2.0",
+    "polished": "^3.3.0",
     "react": "^16.8.6",
     "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.8.6",
     "react-grid-layout": "^0.16.6",
-    "react-markdown": "^4.0.6",
+    "react-markdown": "^4.0.8",
     "react-page-visibility": "^3.2.1",
     "react-redux": "^6.0.1",
     "react-rnd": "^9.1.2",
@@ -29,9 +29,9 @@
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
     "seamless-immutable": "^7.1.4",
-    "semantic-ui-react": "^0.86.0",
+    "semantic-ui-react": "^0.87.1",
     "styled-components": "^4.2.0",
-    "styled-system": "^4.1.0",
+    "styled-system": "^4.2.2",
     "uuid": "^3.3.2",
     "whatwg-fetch": "^3.0.0"
   },
@@ -54,7 +54,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "gulp": "^4.0.0",
-    "fomantic-ui": "^2.7.2"
+    "gulp": "^4.0.2",
+    "fomantic-ui": "^2.7.4"
   }
 }
