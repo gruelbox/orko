@@ -172,6 +172,13 @@
               <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
               <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
               <jvmFlag>-Ddw.server.connector.port=8080</jvmFlag>
+              <jvmFlag>-Dcom.sun.management.jmxremote.rmi.port=9090</jvmFlag>
+              <jvmFlag>-Dcom.sun.management.jmxremote=true</jvmFlag>
+              <jvmFlag>-Dcom.sun.management.jmxremote.port=9090</jvmFlag>
+              <jvmFlag>-Dcom.sun.management.jmxremote.ssl=false</jvmFlag>
+              <jvmFlag>-Dcom.sun.management.jmxremote.authenticate=false</jvmFlag>
+              <jvmFlag>-Dcom.sun.management.jmxremote.local.only=false</jvmFlag>
+              <jvmFlag>-Djava.rmi.server.hostname=localhost</jvmFlag>
             </jvmFlags>
             <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
             <args>
