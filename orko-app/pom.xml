@@ -79,6 +79,57 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>docker</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <version>1.2.0</version>
+            <configuration>
+              <to>
+                <image>orko:latest</image>
+              </to>
+              <container>
+                <jvmFlags>
+                  <jvmFlag>-XshowSettings:vm</jvmFlag>
+                  <jvmFlag>-XX:+UnlockExperimentalVMOptions</jvmFlag>
+                  <jvmFlag>-XX:+UseCGroupMemoryLimitForHeap</jvmFlag>
+                  <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
+                  <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
+                  <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
+                  <jvmFlag>-Ddw.server.connector.port=8080</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.rmi.port=9090</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote=true</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.port=9090</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.ssl=false</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.authenticate=false</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.local.only=false</jvmFlag>
+                  <jvmFlag>-Djava.rmi.server.hostname=localhost</jvmFlag>
+                </jvmFlags>
+                <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
+                <args>
+                  <arg>server</arg>
+                  <arg>docker-config.yml</arg>
+                </args>
+                <ports>
+                  <port>8080</port>
+                </ports>
+              </container>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>buildTar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <build>
@@ -154,50 +205,6 @@
             </fileSet>
           </fileSets>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.google.cloud.tools</groupId>
-        <artifactId>jib-maven-plugin</artifactId>
-        <version>1.2.0</version>
-        <configuration>
-          <to>
-            <image>orko:latest</image>
-          </to>
-          <container>
-            <jvmFlags>
-              <jvmFlag>-XshowSettings:vm</jvmFlag>
-              <jvmFlag>-XX:+UnlockExperimentalVMOptions</jvmFlag>
-              <jvmFlag>-XX:+UseCGroupMemoryLimitForHeap</jvmFlag>
-              <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
-              <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
-              <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
-              <jvmFlag>-Ddw.server.connector.port=8080</jvmFlag>
-              <jvmFlag>-Dcom.sun.management.jmxremote.rmi.port=9090</jvmFlag>
-              <jvmFlag>-Dcom.sun.management.jmxremote=true</jvmFlag>
-              <jvmFlag>-Dcom.sun.management.jmxremote.port=9090</jvmFlag>
-              <jvmFlag>-Dcom.sun.management.jmxremote.ssl=false</jvmFlag>
-              <jvmFlag>-Dcom.sun.management.jmxremote.authenticate=false</jvmFlag>
-              <jvmFlag>-Dcom.sun.management.jmxremote.local.only=false</jvmFlag>
-              <jvmFlag>-Djava.rmi.server.hostname=localhost</jvmFlag>
-            </jvmFlags>
-            <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
-            <args>
-              <arg>server</arg>
-              <arg>docker-config.yml</arg>
-            </args>
-            <ports>
-              <port>8080</port>
-            </ports>
-          </container>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>buildTar</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
