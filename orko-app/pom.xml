@@ -165,11 +165,9 @@
           </to>
           <container>
             <jvmFlags>
-              <jvmFlag>-Xmx486m</jvmFlag>
-              <jvmFlag>-Xms486m</jvmFlag>
-              <jvmFlag>-Xss1m</jvmFlag>
-              <jvmFlag>-XX:MaxMetaspaceSize=104m</jvmFlag>
-              <jvmFlag>-XX:+UseG1GC</jvmFlag>
+              <jvmFlag>-XshowSettings:vm</jvmFlag>
+              <jvmFlag>-XX:+UnlockExperimentalVMOptions</jvmFlag>
+              <jvmFlag>-XX:+UseCGroupMemoryLimitForHeap</jvmFlag>
               <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
               <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
               <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
