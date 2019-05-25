@@ -1,4 +1,4 @@
-package com.gruelbox.orko;
+package com.gruelbox.orko.docker;
 
 import org.apache.commons.text.StrSubstitutor;
 
@@ -7,7 +7,7 @@ import io.dropwizard.configuration.UndefinedEnvironmentVariableException;
 /**
  * A custom {@link StrSubstitutor} using Docker secrets as a value source.
  */
-class DockerSecretSubstitutor extends StrSubstitutor {
+public class DockerSecretSubstitutor extends StrSubstitutor {
 
   public DockerSecretSubstitutor(boolean strict) {
     this(strict, false);

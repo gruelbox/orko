@@ -1,4 +1,4 @@
-package com.gruelbox.orko;
+package com.gruelbox.orko.docker;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +32,7 @@ class DockerSecretLookup extends StrLookup<Object> {
    */
   DockerSecretLookup(boolean strict) {
     this.enabled = new File("/run/secrets").exists();
+    System.out.println("Docker secrets enabled=" + enabled);
     this.strict = strict;
   }
 
@@ -43,18 +44,25 @@ class DockerSecretLookup extends StrLookup<Object> {
    */
   @Override
   public String lookup(String key) {
-    if (!enabled && !strict)
+    if (!enabled && !strict) {
       return null;
+    }
     Preconditions.checkArgument(!key.contains("/"), "Path separator in variable name");
-    try {
-      return Files.asCharSource(new File("/run/secrets/" + key), StandardCharsets.UTF_8).read();
-    } catch (IOException e) {
-      if (strict) {
-        throw new IllegalArgumentException("Docker secret for '" + key
-            + "' is not defined; could not substitute the expression '${" + key + "}'.", e);
-      } else {
-        return null;
+    File file = new File("/run/secrets/" + key);
+    String value = null;
+    if (file.exists()) {
+      try {
+        value = Files.asCharSource(new File("/run/secrets/" + key), StandardCharsets.UTF_8).read();
+        System.out.println(key + " found in secrets");
+      } catch (IOException e) {
+        System.err.println("IOException when scanning for " + key);
+        e.printStackTrace();
       }
     }
+    if (value == null && strict) {
+      throw new IllegalArgumentException("Docker secret for '" + key
+          + "' is not defined; could not substitute the expression '${" + key + "}'.");
+    }
+    return value;
   }
 }
