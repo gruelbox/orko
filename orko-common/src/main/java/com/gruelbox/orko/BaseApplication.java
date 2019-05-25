@@ -41,8 +41,11 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
   public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
-        bootstrap.getConfigurationSourceProvider(),
-        new EnvironmentVariableSubstitutor(false)
+        new SubstitutingSourceProvider(
+          bootstrap.getConfigurationSourceProvider(),
+          new EnvironmentVariableSubstitutor(false)
+        ),
+        new DockerSecretSubstitutor(false)
       )
     );
 
