@@ -22,7 +22,6 @@ import javax.inject.Inject;
 
 import com.google.inject.Module;
 import com.gruelbox.orko.db.DatabaseSetup;
-import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
 import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
 import com.gruelbox.tools.dropwizard.guice.hibernate.HibernateBundleFactory;
@@ -43,11 +42,8 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
 
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
-        new SubstitutingSourceProvider(
-          bootstrap.getConfigurationSourceProvider(),
-          new EnvironmentVariableSubstitutor(false)
-        ),
-        new DockerSecretSubstitutor(false)
+        bootstrap.getConfigurationSourceProvider(),
+        new EnvironmentVariableSubstitutor(false)
       )
     );
 
