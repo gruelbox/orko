@@ -35,10 +35,13 @@ class HashCommand extends Command {
   public void run(Bootstrap<?> bootstrap, Namespace namespace) throws Exception {
     Hasher hasher = new Hasher();
     String salt = namespace.getString("salt");
-    if (salt == null)
+    if (salt == null) {
       salt = hasher.salt();
-    System.out.println("Salt used: " + salt);
-    System.out.println("Hashed result: " + hasher.hash(namespace.getString("value"), salt));
+      System.out.println("Salt used: " + salt);
+      System.out.println("Hashed result: " + hasher.hash(namespace.getString("value"), salt));
+    } else {
+      System.out.print(hasher.hash(namespace.getString("value"), salt));
+    }
   }
 
   @Override

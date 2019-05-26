@@ -106,7 +106,6 @@
               </to>
               <container>
                 <jvmFlags>
-                  <jvmFlag>-XshowSettings:vm</jvmFlag>
                   <jvmFlag>-XX:+UnlockExperimentalVMOptions</jvmFlag>
                   <jvmFlag>-XX:+UseCGroupMemoryLimitForHeap</jvmFlag>
                   <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
@@ -161,6 +160,7 @@
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
+            <id>shade</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>

@@ -38,7 +38,7 @@ class SaltCommand extends Command {
 
   @Override
   public void run(Bootstrap<?> bootstrap, Namespace namespace) throws Exception {
-    System.out.println("Salt: " + new Hasher().salt());
+    System.out.print(new Hasher().salt());
   }
 
   @Override
