@@ -84,6 +84,19 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>shade</id>
+                <phase>none</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
             <version>1.2.0</version>
@@ -109,10 +122,6 @@
                   <jvmFlag>-Djava.rmi.server.hostname=localhost</jvmFlag>
                 </jvmFlags>
                 <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
-                <args>
-                  <arg>server</arg>
-                  <arg>docker-config.yml</arg>
-                </args>
                 <ports>
                   <port>8080</port>
                 </ports>
