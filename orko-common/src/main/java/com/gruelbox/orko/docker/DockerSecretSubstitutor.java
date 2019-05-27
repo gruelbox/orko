@@ -10,7 +10,7 @@ import io.dropwizard.configuration.UndefinedEnvironmentVariableException;
 public class DockerSecretSubstitutor extends StrSubstitutor {
 
   public DockerSecretSubstitutor(boolean strict) {
-    this(strict, false);
+    this(strict, false, false);
   }
 
   /**
@@ -20,11 +20,16 @@ public class DockerSecretSubstitutor extends StrSubstitutor {
    *                                {@code false} otherwise.
    * @param substitutionInVariables a flag whether substitution is done in
    *                                variable names.
+   * @param escapeYaml              indicates whether special YAML characters should be escaped.
    * @see io.dropwizard.configuration.EnvironmentVariableLookup#EnvironmentVariableLookup(boolean)
    * @see org.apache.commons.text.StrSubstitutor#setEnableSubstitutionInVariables(boolean)
    */
-  public DockerSecretSubstitutor(boolean strict, boolean substitutionInVariables) {
-    super(new DockerSecretLookup(strict));
+  public DockerSecretSubstitutor(boolean strict, boolean substitutionInVariables, boolean escapeYaml) {
+    super(
+      escapeYaml
+        ? new YamlEscapingStrLookupAdapter<>(new DockerSecretLookup(strict))
+        : new DockerSecretLookup(strict)
+    );
     this.setEnableSubstitutionInVariables(substitutionInVariables);
   }
 }

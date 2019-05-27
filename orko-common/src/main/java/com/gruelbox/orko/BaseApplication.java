@@ -47,7 +47,7 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
           bootstrap.getConfigurationSourceProvider(),
           new EnvironmentVariableSubstitutor(false)
         ),
-        new DockerSecretSubstitutor(false)
+        new DockerSecretSubstitutor(false, false, true)
       )
     );
 
