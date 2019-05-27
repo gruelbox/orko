@@ -197,7 +197,7 @@ const cancelColumn = (onCancelExchange, onCancelServer) => ({
           if (original.runningAt === "SERVER") {
             onCancelServer(original.jobId)
           } else {
-            onCancelExchange(original.id, original.type)
+            onCancelExchange(original.id)
           }
         }}
         title="Cancel order"

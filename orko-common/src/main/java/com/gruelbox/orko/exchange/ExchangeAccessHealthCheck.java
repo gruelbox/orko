@@ -45,7 +45,7 @@ class ExchangeAccessHealthCheck extends HealthCheck {
   protected Result check() throws Exception {
     ResultBuilder result = Result.builder().healthy();
 
-    exchangeResource.list().stream().filter(ex -> !Exchanges.GDAX_SANDBOX.equals(ex.getCode())).forEach(exchange -> {
+    exchangeResource.list().stream().forEach(exchange -> {
       try {
         Pair pair = Iterables.getFirst(exchangeResource.pairs(exchange.getCode()), null);
         if (pair == null) {

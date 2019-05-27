@@ -19,20 +19,27 @@
 package com.gruelbox.orko.exchange;
 
 import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
+import static com.gruelbox.orko.exchange.Exchanges.BITFINEX;
+import static com.gruelbox.orko.exchange.Exchanges.GDAX;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static java.lang.System.currentTimeMillis;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Ticker;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.marketdata.MarketDataSubscription;
+import com.gruelbox.orko.marketdata.TradeEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
@@ -45,11 +52,15 @@ import io.reactivex.disposables.Disposable;
 @Singleton
 final class MonitorExchangeSocketHealth implements Managed {
 
+  private static final int MINUTES_BEFORE_WARNING = 10;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(MonitorExchangeSocketHealth.class);
 
   private final ExchangeEventRegistry exchangeEventRegistry;
-  private final AtomicLong lastTradeTime = new AtomicLong();
+  private final Map<String, Stopwatch> stopwatches;
   private final NotificationService notificationService;
+  private final Observable<?> interval;
+  private final Consumer<? super Throwable> onError;
 
   private ExchangeEventSubscription subscription;
   private Disposable trades;
@@ -57,31 +68,70 @@ final class MonitorExchangeSocketHealth implements Managed {
 
   @Inject
   MonitorExchangeSocketHealth(ExchangeEventRegistry exchangeEventRegistry, NotificationService notificationService) {
+    this(exchangeEventRegistry,
+        notificationService,
+        Observable.interval(10, TimeUnit.MINUTES),
+        Ticker.systemTicker(),
+        t -> LOGGER.error(t.getMessage(), t));
+  }
+
+  @VisibleForTesting
+  MonitorExchangeSocketHealth(ExchangeEventRegistry exchangeEventRegistry,
+      NotificationService notificationService, Observable<?> interval,
+      Ticker ticker, Consumer<? super Throwable> onError) {
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.notificationService = notificationService;
+    this.interval = interval;
+    this.onError = onError;
+    this.stopwatches = ImmutableMap.of(
+        BINANCE, Stopwatch.createUnstarted(ticker),
+        BITFINEX, Stopwatch.createUnstarted(ticker),
+        GDAX, Stopwatch.createUnstarted(ticker));
   }
 
   @Override
   public void start() throws Exception {
-    lastTradeTime.set(currentTimeMillis());
+    stopwatches.values().forEach(Stopwatch::start);
     subscription = exchangeEventRegistry.subscribe(
-      MarketDataSubscription.create(TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), TRADES)
+        MarketDataSubscription.create(
+            TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), TRADES),
+        MarketDataSubscription.create(
+            TickerSpec.builder().exchange(BITFINEX).base("BTC").counter("USD").build(), TRADES),
+        MarketDataSubscription.create(
+            TickerSpec.builder().exchange(GDAX).base("BTC").counter("USD").build(), TRADES)
     );
-    trades = subscription.getTrades().forEach(t -> onTrade());
-    poll = Observable.interval(10, TimeUnit.MINUTES)
-        .subscribe(i -> runOneIteration());
+    trades = subscription.getTrades().subscribe(this::onTrade, onError::accept);
+    poll = interval.subscribe(i -> runOneIteration(), onError::accept);
   }
 
-  private void onTrade() {
-    lastTradeTime.set(currentTimeMillis());
+  private void onTrade(TradeEvent event) {
+    Stopwatch stopwatch = stopwatches.get(event.spec().exchange());
+    if (stopwatch != null) {
+      reset(stopwatch);
+    }
   }
 
   private void runOneIteration() {
-    long elapsed = currentTimeMillis() - lastTradeTime.get();
-    if (elapsed > TimeUnit.MINUTES.toMillis(10)) {
-      notificationService.error("Binance trade stream has not sent a BTC/USDT trade for " + TimeUnit.MILLISECONDS.toMinutes(elapsed) + "m");
+    runOneIteration(BINANCE);
+    runOneIteration(BITFINEX);
+    runOneIteration(GDAX);
+  }
+
+  private void runOneIteration(String exchange) {
+    Stopwatch stopwatch = stopwatches.get(exchange);
+    long elapsed = stopwatch.elapsed(TimeUnit.MINUTES);
+    String name = Exchanges.name(exchange);
+    if (elapsed >= MINUTES_BEFORE_WARNING) {
+      notificationService.error(name + " trade stream has not sent a trade for " + MINUTES_BEFORE_WARNING + "m");
+      reset(stopwatch);
     } else {
-      LOGGER.info("Binance socket healthy");
+      LOGGER.debug("{} socket healthy", name);
+    }
+  }
+
+  private void reset(Stopwatch stopwatch) {
+    synchronized(stopwatch) {
+      stopwatch.reset().start();
     }
   }
 

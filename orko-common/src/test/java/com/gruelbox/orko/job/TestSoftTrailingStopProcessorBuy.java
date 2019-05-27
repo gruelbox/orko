@@ -20,6 +20,10 @@ package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
 import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -45,9 +49,11 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.gruelbox.orko.exchange.ExchangeService;
+import com.gruelbox.orko.job.LimitOrderJob.BalanceState;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.job.SoftTrailingStop.Builder;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
@@ -79,7 +85,7 @@ public class TestSoftTrailingStopProcessorBuy {
   private static final String COUNTER = "USDT";
   private static final String EXCHANGE = "fooex";
 
-  @Mock private JobSubmitter enqueuer;
+  @Mock private JobSubmitter jobSubmitter;
   @Mock private StatusUpdateService statusUpdateService;
   @Mock private NotificationService notificationService;
   @Mock private ExchangeService exchangeService;
@@ -151,6 +157,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -165,6 +172,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -184,6 +192,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -202,6 +211,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -218,6 +228,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -233,6 +244,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -253,6 +265,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -271,6 +284,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitBuyAtLimitPrice(ticker);
     verifyFinished();
     verifySentMessage();
@@ -290,6 +304,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -307,6 +322,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyLimitBuyAt(ticker, new BigDecimal("160"));
     verifyFinished();
     verifySentMessage();
@@ -325,6 +341,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -339,6 +356,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -357,6 +375,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyResyncedPriceTo(job, ENTRY_PRICE.subtract(PENNY));
     verifyDidNothingElse();
   }
@@ -371,6 +390,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -385,6 +405,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyWillRepeatWithoutChange();
     verifyDidNothingElse();
   }
@@ -403,8 +424,93 @@ public class TestSoftTrailingStopProcessorBuy {
 
     start(job, processor);
 
+    verifyValidatedABunchOfTimes();
     verifyResyncedPriceTo(job, LOWER_ENTRY_PRICE.subtract(PENNY));
     verifyDidNothingElse();
+  }
+
+  @Test
+  public void testValidateSwitchToInsufficient() {
+    SoftTrailingStop job = baseJob().build();
+    SoftTrailingStopProcessor processor = processor(job);
+
+    doAnswer(inv -> {
+      LimitOrderJob limitOrderJob = inv.getArgument(0, LimitOrderJob.class);
+      inv.getArgument(1, JobControl.class)
+          .replace(limitOrderJob.toBuilder()
+              .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+              .build());
+      return null;
+    }).when(jobSubmitter).validate(Mockito.any(Job.class), Mockito.any(JobControl.class));
+
+    doAnswer(inv -> {
+      processor.setReplacedJob(inv.getArgument(0, SoftTrailingStop.class));
+      return null;
+    }).when(jobControl).replace(Mockito.any(Job.class));
+
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(STOP_PRICE.subtract(PENNY).subtract(PENNY))
+        .last(STOP_PRICE)
+        .ask(STOP_PRICE.subtract(PENNY))
+        .timestamp(new Date()).build()));
+
+    start(job, processor);
+
+    ArgumentCaptor<LimitOrderJob> limitOrderJobCaptor = ArgumentCaptor.forClass(LimitOrderJob.class);
+    verify(jobSubmitter).validate(limitOrderJobCaptor.capture(), Mockito.any(JobControl.class));
+    assertThat(limitOrderJobCaptor.getValue().amount(), equalTo(AMOUNT));
+    assertThat(limitOrderJobCaptor.getValue().direction(), equalTo(Direction.BUY));
+    assertThat(limitOrderJobCaptor.getValue().limitPrice(), equalTo(LIMIT_PRICE));
+    assertThat(limitOrderJobCaptor.getValue().balanceState(), equalTo(BalanceState.SUFFICIENT_BALANCE));
+
+    ArgumentCaptor<Job> replacedJobCaptor = ArgumentCaptor.forClass(Job.class);
+    verify(jobControl).replace(replacedJobCaptor.capture());
+    assertThat(replacedJobCaptor.getValue(), equalTo(job.toBuilder()
+        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+        .build()));
+  }
+
+  @Test
+  public void testValidateSwitchToSufficient() {
+    SoftTrailingStop job = baseJob()
+        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+        .build();
+    SoftTrailingStopProcessor processor = processor(job);
+
+    doAnswer(inv -> {
+      LimitOrderJob limitOrderJob = inv.getArgument(0, LimitOrderJob.class);
+      inv.getArgument(1, JobControl.class)
+          .replace(limitOrderJob.toBuilder()
+              .balanceState(BalanceState.SUFFICIENT_BALANCE)
+              .build());
+      return null;
+    }).when(jobSubmitter).validate(Mockito.any(Job.class), Mockito.any(JobControl.class));
+
+    doAnswer(inv -> {
+      processor.setReplacedJob(inv.getArgument(0, SoftTrailingStop.class));
+      return null;
+    }).when(jobControl).replace(Mockito.any(Job.class));
+
+    tickerData = Flowable.just(TickerEvent.create(job.tickTrigger(), new Ticker.Builder()
+        .bid(STOP_PRICE.subtract(PENNY).subtract(PENNY))
+        .last(STOP_PRICE)
+        .ask(STOP_PRICE.subtract(PENNY))
+        .timestamp(new Date()).build()));
+
+    start(job, processor);
+
+    ArgumentCaptor<LimitOrderJob> limitOrderJobCaptor = ArgumentCaptor.forClass(LimitOrderJob.class);
+    verify(jobSubmitter).validate(limitOrderJobCaptor.capture(), Mockito.any(JobControl.class));
+    assertThat(limitOrderJobCaptor.getValue().amount(), equalTo(AMOUNT));
+    assertThat(limitOrderJobCaptor.getValue().direction(), equalTo(Direction.BUY));
+    assertThat(limitOrderJobCaptor.getValue().limitPrice(), equalTo(LIMIT_PRICE));
+    assertThat(limitOrderJobCaptor.getValue().balanceState(), equalTo(BalanceState.INSUFFICIENT_BALANCE));
+
+    ArgumentCaptor<Job> captor = ArgumentCaptor.forClass(Job.class);
+    verify(jobControl).replace(captor.capture());
+    assertThat(captor.getValue(), equalTo(job.toBuilder()
+        .balanceState(BalanceState.SUFFICIENT_BALANCE)
+        .build()));
   }
 
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
@@ -429,7 +535,7 @@ public class TestSoftTrailingStopProcessorBuy {
 
   private SoftTrailingStopProcessor processor(SoftTrailingStop job) {
     return new SoftTrailingStopProcessor(job, jobControl, statusUpdateService, notificationService,
-        exchangeService, enqueuer, exchangeEventRegistry, mockTransactionally());
+        exchangeService, jobSubmitter, exchangeEventRegistry, mockTransactionally());
   }
 
   private void verifyResyncedPriceTo(SoftTrailingStop job, BigDecimal syncPrice) throws IOException {
@@ -445,7 +551,7 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   private void verifyDidNothingElse() {
-    verifyNoMoreInteractions(notificationService, enqueuer);
+    verifyNoMoreInteractions(notificationService, jobSubmitter);
   }
 
   private void verifySentMessage() {
@@ -461,7 +567,7 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   private void verifyLimitBuyAt(final Ticker ticker, BigDecimal price) throws Exception {
-    verify(enqueuer).submitNewUnchecked(
+    verify(jobSubmitter).submitNewUnchecked(
       LimitOrderJob.builder()
         .tickTrigger(TickerSpec.builder()
             .exchange(EXCHANGE)
@@ -474,6 +580,10 @@ public class TestSoftTrailingStopProcessorBuy {
         .limitPrice(price)
         .build()
     );
+  }
+
+  private void verifyValidatedABunchOfTimes() {
+    verify(jobSubmitter, atLeastOnce()).validate(Mockito.any(Job.class), Mockito.any(JobControl.class));
   }
 
   private void verifyFinished() {

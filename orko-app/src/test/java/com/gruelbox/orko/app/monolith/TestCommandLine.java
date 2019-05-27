@@ -54,18 +54,18 @@ public class TestCommandLine {
 
   @Test
   public void testHashWithSaltLongArg() throws Exception {
-    String salt = captureStdOut(() -> MonolithApplication.main("salt")).substring(6);
-    String result = captureStdOut(() -> MonolithApplication.main("hash", "--salt", salt, "rhubarb"));
+    String salt = "bIR3DvCFPKLfY410OR2u5g==";
+    String result = captureStdOut(() -> MonolithApplication.main("hash", "--salt", salt, "porky pig the beast"));
     assertTrue(result.contains("Salt used: " + salt));
-    assertTrue(result.contains("Hashed result: HASH("));
+    assertTrue(result.contains("Hashed result: HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)"));
   }
 
   @Test
   public void testHashWithSaltShortArg() throws Exception {
-    String salt = captureStdOut(() -> MonolithApplication.main("salt")).substring(6);
-    String result = captureStdOut(() -> MonolithApplication.main("hash", "-s", salt, "rhubarb"));
+    String salt = "bIR3DvCFPKLfY410OR2u5g==";
+    String result = captureStdOut(() -> MonolithApplication.main("hash", "-s", salt, "porky pig the beast"));
     assertTrue(result.contains("Salt used: " + salt));
-    assertTrue(result.contains("Hashed result: HASH("));
+    assertTrue(result.contains("Hashed result: HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)"));
   }
 
   @Test

@@ -111,7 +111,7 @@ class JobRunner {
    * @param job The job.
    * @param ack The insertion callback.
    * @param reject If insertion failed
-   * @throws Exception
+   * @throws Exception If any errors occured.
    */
   public void submitNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
     createJob(job, ack, reject);
@@ -260,8 +260,9 @@ class JobRunner {
       Preconditions.checkNotNull(newVersion, "Job replaced with null");
 
       LOGGER.debug("{} replacing...", newVersion);
-      if (!JobStatus.RUNNING.equals(status)) {
-        LOGGER.warn("Replacement of job which is already shutting down. Status={}, job={}", status, newVersion);
+      if (!JobStatus.RUNNING.equals(status) && !JobStatus.STARTING.equals(status)) {
+        LOGGER.warn("Illegal state", new IllegalStateException("Replacement of job which is already shutting down. Status=" + status +
+            ", job=" + newVersion));
         return;
       }
 

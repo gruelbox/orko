@@ -31,6 +31,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.FluentIterable;
@@ -38,10 +39,12 @@ import com.google.common.collect.Iterables;
 import com.google.inject.util.Providers;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
+import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
+@Category(DatabaseTest.class)
 public class TestScriptAccess {
 
   private final Hasher hasher = new Hasher();

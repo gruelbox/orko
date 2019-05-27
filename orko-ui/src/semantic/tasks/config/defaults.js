@@ -64,6 +64,7 @@ module.exports = {
     'reveal',
     'segment',
     'step',
+    'text',
 
     // collections
     'breadcrumb',
@@ -83,6 +84,7 @@ module.exports = {
 
     // modules
     'accordion',
+    'calendar',
     'checkbox',
     'dimmer',
     'dropdown',
@@ -91,12 +93,14 @@ module.exports = {
     'nag',
     'popup',
     'progress',
+    'slider',
     'rating',
     'search',
     'shape',
     'sidebar',
     'sticky',
     'tab',
+    'toast',
     'transition',
 
     // behaviors

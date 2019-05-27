@@ -41,15 +41,15 @@ public final class Exchanges {
 
   public static final String BINANCE = "binance";
   public static final String GDAX = "gdax";
-  public static final String GDAX_SANDBOX = "gdax-sandbox";
   public static final String KUCOIN = "kucoin";
   public static final String BITTREX = "bittrex";
   public static final String BITFINEX = "bitfinex";
   public static final String CRYPTOPIA = "cryptopia";
   public static final String BITMEX = "bitmex";
   public static final String KRAKEN = "kraken";
+  public static final String SIMULATED = "simulated";
 
-  static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
+  public static final Supplier<List<Class<? extends Exchange>>> EXCHANGE_TYPES = Suppliers.memoize(
       () -> new Reflections("org.knowm.xchange")
       .getSubTypesOf(Exchange.class)
       .stream()
@@ -62,6 +62,18 @@ public final class Exchanges {
       .stream()
       .collect(Collectors.toList()));
 
+
+  /**
+   * Converts an exchange class into its friendly name.
+   *
+   * @param clazz The exchange class
+   * @return The friendly class name.
+   */
+  public static String classToFriendlyName(Class<? extends Exchange> clazz) {
+    String name = clazz.getSimpleName().replace("Exchange", "").toLowerCase();
+    return name.equals("coinbasepro") ? "gdax" : name;
+  }
+
   /**
    * Converts the friendly name for an exchange into the exchange class.
    *
@@ -70,7 +82,7 @@ public final class Exchanges {
    */
   public static Class<? extends Exchange> friendlyNameToClass(String friendlyName) {
 
-    if (friendlyName.equals(GDAX) || friendlyName.equals(GDAX_SANDBOX))
+    if (friendlyName.equals(GDAX))
       return CoinbaseProStreamingExchange.class;
 
     Optional<Class<? extends StreamingExchange>> streamingResult = STREAMING_EXCHANGE_TYPES.get()
@@ -100,10 +112,9 @@ public final class Exchanges {
     switch(exchange) {
       case GDAX:
         return "Coinbase Pro";
-      case GDAX_SANDBOX:
-        return "Coinbase Pro (Sandbox)";
+      case SIMULATED:
+        return "Simulator";
       case BITMEX:
-      case BITTREX:
       case KRAKEN:
         return StringUtils.capitalize(exchange) + " (beta)";
       default:
@@ -125,7 +136,6 @@ public final class Exchanges {
       case BINANCE : return "https://www.binance.com/?ref=11396297";
       case BITMEX : return "https://www.bitmex.com/register/vQIGWT";
       case GDAX : return "https://pro.coinbase.com";
-      case GDAX_SANDBOX  : return "https://public.sandbox.pro.coinbase.com/";
       case KUCOIN : return "https://www.kucoin.com/#/?r=E649ku";
       case BITTREX : return "https://bittrex.com/";
       case BITFINEX : return "https://www.bitfinex.com/";

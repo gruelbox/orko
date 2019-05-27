@@ -2,9 +2,9 @@
     User Variable Overrides
 *******************************/
 
-@background: #2F3241;
+@background: rgba(255,255,255, 0.04);
 @borderWidth: 1px;
-@border: @borderWidth solid @borderColor;
+@border: @borderWidth solid rgba(255,255,255, 0.15);
 
 @boxShadow: @subtleShadow;
 @verticalPadding: 1em;

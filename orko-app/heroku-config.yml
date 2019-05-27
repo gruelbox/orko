@@ -20,32 +20,40 @@ database:
   connectionString: ${JAWSDB_URL}?rewriteBatchedStatements=true&useJDBCCompliantTimezoneShift=true
   lockSeconds: ${LOCK_SECONDS:-45}
 exchanges:
-  gdax-sandbox:
-    apiKey: ${GDAX_SANDBOX_API_KEY:-}
-    secretKey: ${GDAX_SANDBOX_SECRET:-}
-    passphrase: ${GDAX_SANDBOX_PASSPHRASE:-}
+  simulated:
+    apiKey: ${SIMULATED_API_KEY:-}
   gdax:
     apiKey: ${GDAX_API_KEY:-}
     secretKey: ${GDAX_SECRET:-}
     passphrase: ${GDAX_PASSPHRASE:-}
+    sandbox: ${GDAX_SANDBOX:-false}
+    loadRemoteData: ${GDAX_REMOTE_META:-true}
   binance:
     apiKey: ${BINANCE_API_KEY:-}
     secretKey: ${BINANCE_SECRET:-}
+    loadRemoteData: ${BINANCE_REMOTE_META:-true}
   kucoin:
     apiKey: ${KUCOIN_API_KEY:-}
     secretKey: ${KUCOIN_SECRET:-}
+    passphrase: ${KUCOIN_PASSPHRASE:-}
+    sandbox: ${KUCOIN_SANDBOX:-false}
+    loadRemoteData: ${KUCOIN_REMOTE_META:-true}
   bitfinex:
     apiKey: ${BITFINEX_API_KEY:-}
     secretKey: ${BITFINEX_SECRET:-}
+    loadRemoteData: ${BITFINEX_REMOTE_META:-true}
   bitmex:
     apiKey: ${BITMEX_API_KEY:-}
     secretKey: ${BITMEX_SECRET:-}
+    loadRemoteData: ${BITMEX_REMOTE_META:-true}
+  kraken:
+    apiKey: ${KRAKEN_API_KEY:-}
+    secretKey: ${KRAKEN_SECRET:-}
+    loadRemoteData: ${KRAKEN_REMOTE_META:-true}
   bittrex:
     apiKey: ${BITTREX_API_KEY:-}
     secretKey: ${BITTREX_SECRET:-}
-  cryptopia:
-    apiKey: ${CRYPTOPIA_API_KEY:-}
-    secretKey: ${CRYPTOPIA_SECRET:-}
+    loadRemoteData: ${BITTREX_REMOTE_META:-true}
 server:
   type: simple
   rootPath: /api/

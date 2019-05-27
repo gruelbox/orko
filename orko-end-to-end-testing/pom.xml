@@ -7,7 +7,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.11.4-SNAPSHOT</version>
+    <version>0.13.3-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -20,10 +20,6 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-
-  <properties>
-    <cypress.command>run</cypress.command>
-  </properties>
 
   <build>
     <pluginManagement>
@@ -123,7 +119,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run cypress:${cypress.command}</arguments>
+              <arguments>run cypress:run</arguments>
             </configuration>
           </execution>
         </executions>

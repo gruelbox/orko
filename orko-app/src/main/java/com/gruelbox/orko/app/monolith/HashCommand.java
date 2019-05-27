@@ -38,7 +38,7 @@ class HashCommand extends Command {
     if (salt == null)
       salt = hasher.salt();
     System.out.println("Salt used: " + salt);
-    System.out.println("Hashed result: " + hasher.hashWithString(namespace.getString("value"), salt));
+    System.out.println("Hashed result: " + hasher.hash(namespace.getString("value"), salt));
   }
 
   @Override

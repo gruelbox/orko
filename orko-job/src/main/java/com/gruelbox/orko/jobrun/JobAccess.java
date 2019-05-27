@@ -39,9 +39,7 @@ interface JobAccess {
   /**
    * Updates the job.
    *
-   * @param <T> The job type.
    * @param job The job.
-   * @param clazz Sets the job type.
    */
   void update(Job job);
 

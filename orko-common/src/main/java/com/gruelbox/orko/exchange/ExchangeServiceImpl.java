@@ -18,7 +18,6 @@
 
 package com.gruelbox.orko.exchange;
 
-import static com.gruelbox.orko.exchange.Exchanges.GDAX_SANDBOX;
 import static info.bitrich.xchangestream.service.ConnectableService.BEFORE_CONNECTION_HANDLER;
 import static java.util.stream.Stream.concat;
 
@@ -36,10 +35,13 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.currency.CurrencyPair;
-import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.meta.ExchangeMetaData;
 import org.knowm.xchange.dto.meta.RateLimit;
+import org.knowm.xchange.simulated.AccountFactory;
+import org.knowm.xchange.simulated.MatchingEngineFactory;
+import org.knowm.xchange.simulated.RandomExceptionThrower;
+import org.knowm.xchange.simulated.SimulatedExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +56,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.RateLimiter;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.util.CheckedExceptions;
 
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 
@@ -65,6 +66,7 @@ import info.bitrich.xchangestream.core.StreamingExchangeFactory;
 @VisibleForTesting
 public class ExchangeServiceImpl implements ExchangeService {
 
+  private static final ExchangeConfiguration VANILLA_CONFIG = new ExchangeConfiguration();
   private static final RateLimit DEFAULT_RATE = new RateLimit(1, 3, TimeUnit.SECONDS);
   private static final RateLimit[] NO_LIMITS = new RateLimit[0];
   private static final Duration THROTTLE_DURATION = Duration.ofMinutes(2);
@@ -72,22 +74,26 @@ public class ExchangeServiceImpl implements ExchangeService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
   private final OrkoConfiguration configuration;
+  private final AccountFactory accountFactory;
+  private final MatchingEngineFactory matchingEngineFactory;
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
     public Exchange load(String name) throws Exception {
       final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges() == null
-        ? null
-        : configuration.getExchanges().get(name);
-      if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey()))
-        return publicApi(name);
-      return privateApi(name, exchangeConfiguration);
+        ? VANILLA_CONFIG
+        : MoreObjects.firstNonNull(configuration.getExchanges().get(name), VANILLA_CONFIG);
+      if (exchangeConfiguration.isAuthenticated()) {
+        return privateApi(name, exchangeConfiguration);
+      } else {
+        return publicApi(name, exchangeConfiguration);
+      }
     }
 
-    private Exchange publicApi(String name) {
+    private Exchange publicApi(String name, ExchangeConfiguration exchangeConfiguration) {
       try {
         LOGGER.debug("No API connection details.  Connecting to public API: {}", name);
-        final ExchangeSpecification exSpec = createExchangeSpecification(name);
+        final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
         return createExchange(exSpec);
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
@@ -96,17 +102,13 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     private Exchange privateApi(String name, final ExchangeConfiguration exchangeConfiguration) {
       try {
-
         LOGGER.debug("Connecting to private API: {}", name);
-        final ExchangeSpecification exSpec = createExchangeSpecification(name);
-        if (name.equalsIgnoreCase(Exchanges.GDAX_SANDBOX) || name.equalsIgnoreCase(Exchanges.GDAX)) {
-          exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
-        }
+        final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
         exSpec.setUserName(exchangeConfiguration.getUserName());
         exSpec.setApiKey(exchangeConfiguration.getApiKey());
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
+        exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
         return createExchange(exSpec);
-
       } catch (InstantiationException | IllegalAccessException e) {
         throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
       }
@@ -120,16 +122,25 @@ public class ExchangeServiceImpl implements ExchangeService {
       }
     }
 
-    private ExchangeSpecification createExchangeSpecification(String exchangeName) throws InstantiationException, IllegalAccessException {
-      final ExchangeSpecification exSpec = Exchanges.friendlyNameToClass(exchangeName).newInstance().getDefaultExchangeSpecification();
-      if (exchangeName.equalsIgnoreCase(GDAX_SANDBOX)) {
+    private ExchangeSpecification createExchangeSpecification(String exchangeName, ExchangeConfiguration exchangeConfiguration) throws InstantiationException, IllegalAccessException {
+      final ExchangeSpecification exSpec = ExchangeFactory.INSTANCE
+          .createExchangeWithoutSpecification(Exchanges.friendlyNameToClass(exchangeName))
+          .getDefaultExchangeSpecification();
+      if (exchangeConfiguration.isSandbox()) {
+        LOGGER.info("Using {} sandbox", exchangeName);
         exSpec.setExchangeSpecificParametersItem("Use_Sandbox", true);
       }
+      exSpec.setShouldLoadRemoteMetaData(exchangeConfiguration.isLoadRemoteData());
       RateLimiter rateLimiter = RateLimiter.create(0.25); // TODO make this exchange specific
       exSpec.setExchangeSpecificParametersItem(
         BEFORE_CONNECTION_HANDLER,
         (Runnable) rateLimiter::acquire
       );
+      if (Exchanges.SIMULATED.equals(exchangeName)) {
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ON_OPERATION_PARAM, new RandomExceptionThrower());
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ACCOUNT_FACTORY_PARAM, accountFactory);
+        exSpec.setExchangeSpecificParametersItem(SimulatedExchange.ENGINE_FACTORY_PARAM, matchingEngineFactory);
+      }
       return exSpec;
     }
   });
@@ -142,12 +153,12 @@ public class ExchangeServiceImpl implements ExchangeService {
         return concat(asStream(metaData.getPrivateRateLimits()), asStream(metaData.getPublicRateLimits()))
             .max(Ordering.natural().onResultOf(RateLimit::getPollDelayMillis))
             .map(rateLimit -> {
-              LOGGER.debug("Rate limit for [{}] is {}", exchangeName, DEFAULT_RATE);
+              LOGGER.info("Rate limit for [{}] is {}", exchangeName, rateLimit);
               return asLimiter(rateLimit);
             })
             .map(rateLimiter -> new RateController(exchangeName, rateLimiter, THROTTLE_DURATION))
             .orElseGet(() -> {
-              LOGGER.debug("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
+              LOGGER.info("Rate limit for [{}] is unknown, defaulting to: {}", exchangeName, DEFAULT_RATE);
               return new RateController(exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
             });
       } catch (Exception e) {
@@ -169,34 +180,25 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Inject
   @VisibleForTesting
-  public ExchangeServiceImpl(OrkoConfiguration configuration) {
+  public ExchangeServiceImpl(OrkoConfiguration configuration,
+      AccountFactory accountFactory, MatchingEngineFactory matchingEngineFactory) {
     this.configuration = configuration;
+    this.accountFactory = accountFactory;
+    this.matchingEngineFactory = matchingEngineFactory;
   }
 
   @Override
   public Collection<String> getExchanges() {
     return ImmutableSet.<String>builder()
         .addAll(FluentIterable.from(Exchanges.EXCHANGE_TYPES.get())
-                  .transform(Class::getSimpleName)
-                  .transform(s -> s.replace("Exchange", ""))
-                  .transform(String::toLowerCase)
-                  .transform(s -> s.equals("coinbasepro") ? "gdax" : s)
+                  .transform(Exchanges::classToFriendlyName)
         )
-        .add(Exchanges.GDAX_SANDBOX)
         .build();
   }
 
   @Override
   public Exchange get(String name) {
     return exchanges.getUnchecked(name);
-  }
-
-  @Override
-  public Ticker fetchTicker(TickerSpec ex) {
-    return CheckedExceptions.callUnchecked(() ->
-      get(ex.exchange())
-      .getMarketDataService()
-      .getTicker(ex.currencyPair()));
   }
 
   @Override

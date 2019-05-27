@@ -18,11 +18,6 @@
 
 package com.gruelbox.orko.marketdata;
 
-import static com.gruelbox.orko.db.TestingUtils.skipIfSlowTestsDisabled;
-import static com.gruelbox.orko.exchange.Exchanges.BITMEX;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static java.util.Collections.emptySet;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertFalse;
@@ -39,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.knowm.xchange.service.account.AccountService;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.FluentIterable;
@@ -46,12 +42,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
-import com.gruelbox.orko.exchange.ExchangeResource;
-import com.gruelbox.orko.exchange.ExchangeServiceImpl;
-import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyDispose;
 
 import ch.qos.logback.classic.Level;
@@ -60,35 +53,13 @@ import io.reactivex.disposables.Disposable;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 import jersey.repackaged.com.google.common.collect.Maps;
 
-/**
- * Stack tests for {@link MarketDataSubscriptionManager}. Actually connects to exchanges.
- */
-public class TestMarketDataIntegration {
-  private static final TickerSpec binance = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BINANCE).build();
-  private static final TickerSpec bitfinex = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.BITFINEX).build();
-  private static final TickerSpec gdax = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.GDAX).build();
-  private static final TickerSpec bittrex = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.BITTREX).build();
-  //private static final TickerSpec cryptopia = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.CRYPTOPIA).build();
-  private static final TickerSpec kucoin = TickerSpec.builder().base("BTC").counter("USDT").exchange(Exchanges.KUCOIN).build();
-  private static final TickerSpec kraken = TickerSpec.builder().base("BTC").counter("USD").exchange(Exchanges.KRAKEN).build();
+public abstract class AbstractMarketDataFullStackTest {
 
-  private static final Set<MarketDataSubscription> subscriptions = FluentIterable.concat(
-      FluentIterable.of(binance, bitfinex, gdax, bittrex, kucoin, kraken)
-        .transformAndConcat(spec -> ImmutableSet.of(
-          MarketDataSubscription.create(spec, TICKER),
-          MarketDataSubscription.create(spec, ORDERBOOK),
-          MarketDataSubscription.create(spec, TRADES)
-        )),
-      ImmutableSet.of(
-        MarketDataSubscription.create(TickerSpec.builder().base("ETH").counter("USDT").exchange(Exchanges.BINANCE).build(), TRADES)
-      )
-    )
-    .toSet();
-
-  private ExchangeServiceImpl exchangeServiceImpl;
-  private MarketDataSubscriptionManager marketDataSubscriptionManager;
-  private ExchangeEventBus exchangeEventBus;
-  private final NotificationService notificationService = mock(NotificationService.class);
+  protected ExchangeService exchangeService;
+  protected MarketDataSubscriptionManager marketDataSubscriptionManager;
+  protected ExchangeEventBus exchangeEventBus;
+  protected final NotificationService notificationService = mock(NotificationService.class);
+  protected OrkoConfiguration orkoConfiguration;
 
 
   @Before
@@ -96,19 +67,35 @@ public class TestMarketDataIntegration {
 
     ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
 
-    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
-    orkoConfiguration.setLoopSeconds(2);
-    exchangeServiceImpl = new ExchangeServiceImpl(orkoConfiguration);
+    orkoConfiguration = buildConfig();
+    exchangeService = buildExchangeService();
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
-      exchangeServiceImpl,
+      exchangeService,
       orkoConfiguration,
-      exchange -> exchangeServiceImpl.get(exchange).getTradeService(),
-      mock(AccountServiceFactory.class),
+      exchange -> exchangeService.get(exchange).getTradeService(),
+      new AccountServiceFactory() {
+        @Override
+        public AccountService getForExchange(String exchange) {
+          return exchangeService.get(exchange).getAccountService();
+        }
+      },
       notificationService
     );
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
     marketDataSubscriptionManager.startAsync().awaitRunning(20, SECONDS);
   }
+
+  protected OrkoConfiguration buildConfig() {
+    OrkoConfiguration result = new OrkoConfiguration();
+    result.setLoopSeconds(2);
+    return result;
+  }
+
+  protected abstract ExchangeService buildExchangeService();
+
+  protected abstract Set<MarketDataSubscription> subscriptions();
+
+  protected abstract MarketDataSubscription ticker();
 
   @After
   public void tearDown() throws TimeoutException {
@@ -122,77 +109,20 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscribeUnsubscribe() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
-    marketDataSubscriptionManager.updateSubscriptions(subscriptions);
+    marketDataSubscriptionManager.updateSubscriptions(subscriptions());
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
   }
 
   @Test
-  public void testBitmexContracts() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
-    Set<TickerSpec> coins = FluentIterable.from(ExchangeResource.BITMEX_PAIRS)
-        .transform(c -> TickerSpec.builder()
-            .base(c.base)
-            .counter(c.counter)
-            .exchange(BITMEX)
-            .build())
-        .toSet();
-
-    System.out.println(coins);
-
-    ImmutableSet<MarketDataSubscription> bitmexSubscriptions = FluentIterable.from(coins)
-        .transform(t -> MarketDataSubscription.create(t, TICKER)).toSet();
-
-    ImmutableMap<MarketDataSubscription, CountDownLatch> latchesBySubscriber = Maps.toMap(
-        bitmexSubscriptions,
-        sub -> new CountDownLatch(2)
-      );
-
-    Set<Disposable> disposables = null;
-
-    marketDataSubscriptionManager.updateSubscriptions(bitmexSubscriptions);
-    try {
-
-      disposables = FluentIterable.from(bitmexSubscriptions).transform(sub ->
-        getSubscription(marketDataSubscriptionManager, sub).subscribe(t -> latchesBySubscriber.get(sub).countDown())
-      ).toSet();
-
-      latchesBySubscriber.entrySet().stream().parallel().forEach(entry -> {
-        MarketDataSubscription sub = entry.getKey();
-        CountDownLatch latch = entry.getValue();
-        try {
-          assertTrue("No response for " + sub, latch.await(120, TimeUnit.SECONDS));
-          System.out.println("Found responses for " + sub);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-      });
-
-    } finally {
-      SafelyDispose.of(disposables);
-      marketDataSubscriptionManager.updateSubscriptions(emptySet());
-    }
-  }
-
-  @Test
   public void testSubscribePauseAndUnsubscribe() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
-    marketDataSubscriptionManager.updateSubscriptions(subscriptions);
+    marketDataSubscriptionManager.updateSubscriptions(subscriptions());
     Thread.sleep(2500);
     marketDataSubscriptionManager.updateSubscriptions(emptySet());
   }
 
   @Test
   public void testSubscriptionsDirect() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
+    Set<MarketDataSubscription> subscriptions = subscriptions();
     marketDataSubscriptionManager.updateSubscriptions(subscriptions);
     Set<Disposable> disposables = null;
     try {
@@ -228,13 +158,14 @@ public class TestMarketDataIntegration {
 
   @Test
   public void testSubscriptionsViaEventBus() throws InterruptedException {
+    testSubscriptionsViaEventBus(subscriptions(), 2);
+  }
 
-    skipIfSlowTestsDisabled();
-
+  private void testSubscriptionsViaEventBus(Set<MarketDataSubscription> subscriptions, int count) throws InterruptedException {
     try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber = Maps.toMap(
         subscriptions,
-        sub -> ImmutableList.of(new CountDownLatch(2), new CountDownLatch(2))
+        sub -> ImmutableList.of(new CountDownLatch(count), new CountDownLatch(count))
       );
       Set<Disposable> disposables = FluentIterable.from(subscriptions).transformAndConcat(sub -> ImmutableSet.<Disposable>of(
         getSubscription(subscription, sub).subscribe(t -> {
@@ -248,15 +179,88 @@ public class TestMarketDataIntegration {
         MarketDataSubscription sub = entry.getKey();
         List<CountDownLatch> latches = entry.getValue();
         try {
-          assertTrue("Missing two responses (A) for " + sub, latches.get(0).await(120, TimeUnit.SECONDS));
+          assertTrue("Missing " + count + " responses (A) for " + sub, latches.get(0).await(120, TimeUnit.SECONDS));
           System.out.println("Found responses (A) for " + sub);
-          assertTrue("Missing two responses (B) for " + sub, latches.get(1).await(1, TimeUnit.SECONDS));
+          assertTrue("Missing " + count + " responses (B) for " + sub, latches.get(1).await(1, TimeUnit.SECONDS));
           System.out.println("Found responses (B) for " + sub);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
       });
       SafelyDispose.of(disposables);
+    }
+  }
+
+  @Test
+  public void testEventBusSubscriptionDifferentSubscriberInner() throws InterruptedException {
+    try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
+      try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions())) {
+        AtomicBoolean called = new AtomicBoolean();
+        Disposable disposable = otherSubscription.getTickers().subscribe(t -> called.set(true));
+        Thread.sleep(10000);
+        assertFalse(called.get());
+        SafelyDispose.of(disposable);
+      }
+    }
+  }
+
+  @Test
+  public void testEventBusSubscriptionDifferentSubscriberOuter() throws InterruptedException {
+    try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions())) {
+      try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
+        AtomicBoolean called = new AtomicBoolean();
+        Disposable disposable = otherSubscription.getTickers().subscribe(t -> called.set(true));
+        Thread.sleep(10000);
+        assertFalse(called.get());
+        SafelyDispose.of(disposable);
+      }
+    }
+  }
+
+  @Test
+  public void testEventBusSubscriptionSameSubscriber() throws InterruptedException {
+    try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions())) {
+      CountDownLatch called1 = new CountDownLatch(2);
+      CountDownLatch called2 = new CountDownLatch(2);
+      CountDownLatch called3 = new CountDownLatch(2);
+      Disposable disposable1 = subscription.getTickers().throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
+        System.out.println(Thread.currentThread().getId() + " (A) received ticker: " + t);
+        called1.countDown();
+      });
+      Disposable disposable2 = subscription.getTickers().throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
+        System.out.println(Thread.currentThread().getId() + " (B) received ticker: " + t);
+        Thread.sleep(2000);
+        called2.countDown();
+      });
+      Disposable disposable3 = subscription.getOrderBooks().throttleLast(1, TimeUnit.SECONDS).subscribe(t -> {
+        System.out.println(Thread.currentThread().getId() + " (C) received order book: " + t.getClass().getSimpleName());
+        called3.countDown();
+      });
+      assertTrue(called1.await(20, SECONDS));
+      assertTrue(called2.await(20, SECONDS));
+      assertTrue(called3.await(20, SECONDS));
+      SafelyDispose.of(disposable1, disposable2, disposable3);
+    }
+  }
+
+  @Test
+  public void testEventBusMultipleSubscribersSameThing() throws InterruptedException {
+    try (ExchangeEventSubscription subscription1 = exchangeEventBus.subscribe(ticker())) {
+      try (ExchangeEventSubscription subscription2 = exchangeEventBus.subscribe(ticker())) {
+        CountDownLatch called1 = new CountDownLatch(2);
+        CountDownLatch called2 = new CountDownLatch(2);
+        Disposable disposable1 = subscription1.getTickers().subscribe(t -> {
+          System.out.println(Thread.currentThread().getId() + " (A) received: " + t);
+          called1.countDown();
+        });
+        Disposable disposable2 = subscription2.getTickers().subscribe(t -> {
+          System.out.println(Thread.currentThread().getId() + " (B) received: " + t);
+          called2.countDown();
+        });
+        assertTrue(called1.await(20, SECONDS));
+        assertTrue(called2.await(20, SECONDS));
+        SafelyDispose.of(disposable1, disposable2);
+      }
     }
   }
 
@@ -295,96 +299,10 @@ public class TestMarketDataIntegration {
         return (Flowable<T>) subscription.getUserTrades();
       case BALANCE:
         return (Flowable<T>) subscription.getBalances();
+      case ORDER:
+        return (Flowable<T>) subscription.getOrderChanges();
       default:
         throw new IllegalArgumentException("Unknown market data type");
-    }
-  }
-
-
-  @Test
-  public void testEventBusSubscriptionDifferentSubscriberInner() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
-    try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
-      try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
-        AtomicBoolean called = new AtomicBoolean();
-        Disposable disposable = otherSubscription.getTickers().subscribe(t -> called.set(true));
-        Thread.sleep(10000);
-        assertFalse(called.get());
-        SafelyDispose.of(disposable);
-      }
-    }
-  }
-
-
-  @Test
-  public void testEventBusSubscriptionDifferentSubscriberOuter() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
-    try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
-      try (ExchangeEventSubscription otherSubscription = exchangeEventBus.subscribe()) {
-        AtomicBoolean called = new AtomicBoolean();
-        Disposable disposable = otherSubscription.getTickers().subscribe(t -> called.set(true));
-        Thread.sleep(10000);
-        assertFalse(called.get());
-        SafelyDispose.of(disposable);
-      }
-    }
-  }
-
-
-  @Test
-  public void testEventBusSubscriptionSameSubscriber() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
-    try (ExchangeEventSubscription subscription = exchangeEventBus.subscribe(subscriptions)) {
-      CountDownLatch called1 = new CountDownLatch(2);
-      CountDownLatch called2 = new CountDownLatch(2);
-      CountDownLatch called3 = new CountDownLatch(2);
-      Disposable disposable1 = subscription.getTickers().throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
-        System.out.println(Thread.currentThread().getId() + " (A) received ticker: " + t);
-        called1.countDown();
-      });
-      Disposable disposable2 = subscription.getTickers().throttleLast(200, TimeUnit.MILLISECONDS).subscribe(t -> {
-        System.out.println(Thread.currentThread().getId() + " (B) received ticker: " + t);
-        Thread.sleep(2000);
-        called2.countDown();
-      });
-      Disposable disposable3 = subscription.getOrderBooks().throttleLast(1, TimeUnit.SECONDS).subscribe(t -> {
-        System.out.println(Thread.currentThread().getId() + " (C) received order book: " + t.getClass().getSimpleName());
-        called3.countDown();
-      });
-      assertTrue(called1.await(20, SECONDS));
-      assertTrue(called2.await(20, SECONDS));
-      assertTrue(called3.await(20, SECONDS));
-      SafelyDispose.of(disposable1, disposable2, disposable3);
-    }
-  }
-
-  @Test
-  public void testEventBusMultipleSubscribersSameTicker() throws InterruptedException {
-
-    skipIfSlowTestsDisabled();
-
-    try (ExchangeEventSubscription subscription1 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
-      try (ExchangeEventSubscription subscription2 = exchangeEventBus.subscribe(MarketDataSubscription.create(binance, TICKER))) {
-        CountDownLatch called1 = new CountDownLatch(2);
-        CountDownLatch called2 = new CountDownLatch(2);
-        Disposable disposable1 = subscription1.getTickers().subscribe(t -> {
-          System.out.println(Thread.currentThread().getId() + " (A) received: " + t);
-          called1.countDown();
-        });
-        Disposable disposable2 = subscription2.getTickers().subscribe(t -> {
-          System.out.println(Thread.currentThread().getId() + " (B) received: " + t);
-          called2.countDown();
-        });
-        assertTrue(called1.await(20, SECONDS));
-        assertTrue(called2.await(20, SECONDS));
-        SafelyDispose.of(disposable1, disposable2);
-      }
     }
   }
 }

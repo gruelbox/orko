@@ -17,14 +17,40 @@
  */
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
+import * as compareVersions from "compare-versions"
+import { getFromLS, saveToLS } from "../../util/localStorage"
+
+const loadedIgnoredVersion = getFromLS("ignoredVersion")
 
 export default function reduce(
-  state = { meta: { version: "Unknown" } },
+  state = {
+    meta: { version: "0.0.0" },
+    releases: [],
+    ignoredVersion: !loadedIgnoredVersion ? "0.0.0" : loadedIgnoredVersion,
+    hideReleases: false
+  },
   action = {}
 ) {
   switch (action.type) {
     case types.SET_META:
       return Immutable.merge(state, { meta: action.payload })
+    case types.HIDE_RELEASES:
+      return Immutable.merge(state, {
+        hideReleases: true
+      })
+    case types.SET_IGNORED_VERSION:
+      const ignoredVersion = state.releases
+        .map(r => r.name)
+        .reduce((a, b) => (compareVersions(a, b) === 1 ? a : b))
+      saveToLS("ignoredVersion", ignoredVersion)
+      return Immutable.merge(state, { ignoredVersion })
+    case types.SET_RELEASES:
+      return Immutable.merge(state, {
+        releases: action.payload.map(r => ({
+          name: r.tag_name,
+          body: r.body
+        }))
+      })
     default:
       return state
   }

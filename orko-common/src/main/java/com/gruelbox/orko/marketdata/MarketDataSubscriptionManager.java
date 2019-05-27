@@ -32,6 +32,8 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -54,13 +56,14 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.bitmex.BitmexPrompt;
+import org.knowm.xchange.bitfinex.common.dto.BitfinexException;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
@@ -69,9 +72,15 @@ import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
-import org.knowm.xchange.dto.trade.UserTrade;
+import org.knowm.xchange.exceptions.ExchangeException;
+import org.knowm.xchange.exceptions.ExchangeSecurityException;
+import org.knowm.xchange.exceptions.ExchangeUnavailableException;
+import org.knowm.xchange.exceptions.FrequencyLimitExceededException;
+import org.knowm.xchange.exceptions.NonceException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
+import org.knowm.xchange.exceptions.RateLimitExceededException;
+import org.knowm.xchange.exceptions.SystemOverloadException;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -105,6 +114,7 @@ import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.exchange.RateController;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -114,11 +124,11 @@ import com.gruelbox.orko.util.SafelyDispose;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
-import info.bitrich.xchangestream.service.exception.NotConnectedException;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.disposables.Disposable;
+import si.mazi.rescu.HttpStatusIOException;
 
 /**
  * Maintains subscriptions to multiple exchanges' market data, using web sockets where it can
@@ -130,8 +140,10 @@ import io.reactivex.disposables.Disposable;
 public class MarketDataSubscriptionManager extends AbstractExecutionThreadService {
 
   private static final int MAX_TRADES = 20;
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
   private static final int ORDERBOOK_DEPTH = 20;
+  private static final int MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS = 15;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataSubscriptionManager.class);
 
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
@@ -197,11 +209,11 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
    * Updates the subscriptions for the specified exchanges on the next loop
    * tick. The delay is to avoid a large number of new subscriptions in quick
    * succession causing rate bans on exchanges. Call with an empty set to cancel
-   * all subscriptions. None of the streams (e.g. {@link #getTicker(TickerSpec)}
+   * all subscriptions. None of the streams (e.g. {@link #getTickers()}
    * will return anything until this is called, but there is no strict order in
    * which they need to be called.
    *
-   * @param byExchange The exchanges and subscriptions for each.
+   * @param subscriptions The subscriptions.
    */
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
 
@@ -350,7 +362,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final class Poller implements Runnable {
 
     private final String exchangeName;
-    private Exchange exchange;
     private StreamingExchange streamingExchange;
     private AccountService accountService;
     private MarketDataService marketDataService;
@@ -401,7 +412,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private void initialise() throws InterruptedException {
       while (isRunning()) {
         try {
-          this.exchange = exchangeService.get(exchangeName);
+          Exchange exchange = exchangeService.get(exchangeName);
           this.streamingExchange = exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
           this.accountService = accountServiceFactory.getForExchange(exchangeName);
           this.marketDataService = exchange.getMarketDataService();
@@ -447,35 +458,97 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       // We'll be extending this sort of batching to more market data types...
       if (!balanceCurrencies.isEmpty()) {
         manageExchangeExceptions(
+            "Balances",
             () -> fetchBalances(balanceCurrencies).forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b))),
             () -> FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE))
         );
       }
     }
 
-    private void manageExchangeExceptions(CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
+    private void manageExchangeExceptions(String dataDescription, CheckedExceptions.ThrowingRunnable runnable, Supplier<Iterable<MarketDataSubscription>> toUnsubscribe) throws InterruptedException {
       try {
         runnable.run();
+
       } catch (InterruptedException e) {
         throw e;
+
       } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
-        LOGGER.warn("{} not available on {}" , BALANCE, exchangeName);
+
+        // Disable the feature since XChange doesn't provide support for it.
+        LOGGER.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
-      } catch (Exception e) {
-        LocalDateTime now = now();
-        if (lastPollException == null ||
-            !lastPollException.getClass().equals(e.getClass()) ||
-            !firstNonNull(lastPollException.getMessage(), "").equals(firstNonNull(e.getMessage(), "")) ||
-            lastPollErrorNotificationTime.until(now, MINUTES) > 15) {
-          lastPollErrorNotificationTime = now;
-          LOGGER.error("Error fetching data for " + exchangeName, e);
-          notificationService.error("Throttling access to " + exchange + " due to server error (" + e.getClass().getSimpleName() + " - " + e.getMessage() + "). Check logs");
-        } else {
-          LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, e.getMessage());
-        }
-        lastPollException = e;
+
+      } catch (SocketTimeoutException | SocketException | ExchangeUnavailableException | SystemOverloadException | NonceException e) {
+
+        // Managed connectivity issues.
+        LOGGER.warn("Throttling {} - {} ({}) when fetching {}", exchangeName, e.getClass().getSimpleName(), exceptionMessage(e), dataDescription);
         exchangeService.rateController(exchangeName).throttle();
+
+      } catch (HttpStatusIOException e) {
+
+        handleHttpStatusException(dataDescription, e);
+
+      } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
+
+        LOGGER.error("Hit rate limiting on {} when fetching {}. Backing off", exchangeName, dataDescription);
+        notificationService.error("Getting rate limiting errors on " + exchangeName + ". Pausing access and will "
+            + "resume at a lower rate.");
+        RateController rateController = exchangeService.rateController(exchangeName);
+        rateController.backoff();
+        rateController.pause();
+
+      } catch (ExchangeException e) {
+        if (e.getCause() instanceof HttpStatusIOException) {
+          // TODO Bitmex is inappropriately wrapping these and should be fixed
+          // for consistency. In the meantime...
+          handleHttpStatusException(dataDescription, (HttpStatusIOException) e.getCause());
+        } else {
+          handleUnknownPollException(e);
+        }
+      } catch (BitfinexException e) {
+        handleUnknownPollException(new ExchangeException("Bitfinex exception: " + exceptionMessage(e) + " (error code=" + e.getError() + ")", e));
+      } catch (Exception e) {
+        handleUnknownPollException(e);
       }
+    }
+
+    private void handleHttpStatusException(String dataDescription, HttpStatusIOException e) {
+      if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
+        // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
+        LOGGER.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
+        exchangeService.rateController(exchangeName).throttle();
+      } else {
+        handleUnknownPollException(e);
+      }
+    }
+
+    private String exceptionMessage(Throwable e) {
+      if (e.getMessage() == null) {
+        if (e.getCause() == null) {
+          return "No description";
+        } else {
+          return exceptionMessage(e.getCause());
+        }
+      } else {
+        return e.getMessage();
+      }
+    }
+
+    private void handleUnknownPollException(Exception e) {
+      LocalDateTime now = now();
+      String exceptionMessage = exceptionMessage(e);
+      if (lastPollException == null ||
+          !lastPollException.getClass().equals(e.getClass()) ||
+          !firstNonNull(exceptionMessage(lastPollException), "").equals(exceptionMessage) ||
+          lastPollErrorNotificationTime.until(now, MINUTES) > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
+        lastPollErrorNotificationTime = now;
+        LOGGER.error("Error fetching data for " + exchangeName, e);
+        notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + exceptionMessage + ")");
+      } else {
+        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
+      }
+      lastPollException = e;
+      exchangeService.rateController(exchangeName).throttle();
     }
 
     /**
@@ -590,45 +663,57 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       connectExchange(subscriptions);
 
       HashSet<MarketDataSubscription> connected = new HashSet<>(subscriptions);
-      Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
+      ImmutableSet.Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
       List<Disposable> disposables = new ArrayList<>();
 
-      // User trade and balance subscriptions, for now, we will poll even if we are
-      // already getting them from the socket. This will persist until we can
-      // safely detect and correct ordering/missed messages on the socket streams.
-      subscriptions.stream().filter(s -> s.type().equals(USER_TRADE) || s.type().equals(BALANCE))
-        .forEach(remainder::add);
+      Consumer<MarketDataSubscription> markAsNotSubscribed = s -> {
+        remainder.add(s);
+        connected.remove(s);
+      };
 
-      // Connect non-balance streams
-      subscriptions.stream().filter(s -> !s.type().equals(BALANCE)).forEach(sub -> {
-        try {
-          disposables.add(connectSubscription(sub));
-        } catch (NotConnectedException | NotYetImplementedForExchangeException | NotAvailableFromExchangeException e) {
-          remainder.add(sub);
-          connected.remove(sub);
+      Set<String> balanceCurrencies = new HashSet<>();
+      for (MarketDataSubscription s : subscriptions) {
+
+        // User trade and balance subscriptions, for now, we will poll even if we are
+        // already getting them from the socket. This will persist until we can
+        // safely detect and correct ordering/missed messages on the socket streams.
+        if (s.type().equals(USER_TRADE) || s.type().equals(BALANCE)) {
+          remainder.add(s);
         }
-      });
+
+        if (s.type().equals(BALANCE)) {
+          // Aggregate the currencies and do these next
+          balanceCurrencies.add(s.spec().base());
+          balanceCurrencies.add(s.spec().counter());
+        } else {
+          try {
+            disposables.add(connectSubscription(s));
+          } catch (NotAvailableFromExchangeException e) {
+            markAsNotSubscribed.accept(s);
+          } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
+            LOGGER.debug("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
+            markAsNotSubscribed.accept(s);
+          }
+        }
+      }
 
       try {
+        for (String currency : balanceCurrencies) {
+          disposables.add(
+            streamingExchange.getStreamingAccountService().getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
+              .map(Balance::create)
+              .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
+              .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance stream for " + exchangeName + "/" + currency, e)));
+        }
+      } catch (NotAvailableFromExchangeException e) {
         subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
-          .flatMap(s -> ImmutableList.of(s.spec().base(), s.spec().counter()).stream())
-          .distinct()
-          .forEach(currency ->
-            disposables.add(
-              streamingExchange.getStreamingAccountService().getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-                .map(Balance::create)
-                .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
-                .subscribe(balanceOut::emit, e -> LOGGER.error("Error in balance for " + exchangeName + "/" + currency, e))
-            )
-          );
-      } catch (NotYetImplementedForExchangeException | NotAvailableFromExchangeException | NotConnectedException e) {
+          .forEach(markAsNotSubscribed);
+      } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
+        LOGGER.debug("Not subscribing to {}/{} on socket due to {}: {}", exchangeName, "Balances", e.getClass().getSimpleName(), e.getMessage());
         subscriptions.stream()
           .filter(s -> s.type().equals(BALANCE))
-          .forEach(s -> {
-            connected.remove(s);
-            remainder.add(s);
-          });
+          .forEach(markAsNotSubscribed);
       }
 
       subscriptionsPerExchange.put(exchangeName, Collections.unmodifiableSet(connected));
@@ -654,7 +739,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
               .subscribe(tradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case USER_TRADE:
           return streamingExchange.getStreamingTradeService().getUserTrades(sub.spec().currencyPair())
-              .map(t -> convertBinanceUserOrderType(sub, t))
               .map(t -> UserTradeEvent.create(sub.spec(), t))
               .subscribe(userTradesOut::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case ORDER:
@@ -673,18 +757,6 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     private Trade convertBinanceOrderType(MarketDataSubscription sub, Trade t) {
       if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
         return Trade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
-      } else {
-        return t;
-      }
-    }
-
-
-    /**
-     * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
-     */
-    private UserTrade convertBinanceUserOrderType(MarketDataSubscription sub, UserTrade t) {
-      if (sub.spec().exchange().equals(Exchanges.BINANCE)) {
-        return UserTrade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
       } else {
         return t;
       }
@@ -744,25 +816,40 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException, InterruptedException {
-      return FluentIterable.from(wallet().getBalances().entrySet())
-        .transform(Map.Entry::getValue)
+      Map<String, Balance> result = new HashMap<>();
+      currencyCodes.stream().map(Balance::zero)
+        .forEach(balance -> result.put(balance.currency(), balance));
+      wallet().getBalances().entrySet().stream()
+        .map(Map.Entry::getValue)
         .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
-        .transform(Balance::create);
+        .map(Balance::create)
+        .forEach(balance -> result.put(balance.currency(), balance));
+      return result.values();
     }
 
     private Wallet wallet() throws IOException {
       exchangeService.rateController(exchangeName).acquire();
-      if (exchangeName.equals("bitfinex")) {
-        return accountService.getAccountInfo().getWallet("exchange");
+      Wallet wallet;
+      if (exchangeName.equals(Exchanges.BITFINEX)) {
+        wallet = accountService.getAccountInfo().getWallet("exchange");
+      } else if (exchangeName.equals(Exchanges.KUCOIN)) {
+        wallet = accountService.getAccountInfo().getWallet("trade");
+        if (wallet == null)
+          wallet = accountService.getAccountInfo().getWallet();
       } else {
-        return accountService.getAccountInfo().getWallet();
+        wallet = accountService.getAccountInfo().getWallet();
       }
+      if (wallet == null) {
+        throw new IllegalStateException("No wallet returned");
+      }
+      return wallet;
     }
 
     private void fetchAndBroadcast(MarketDataSubscription subscription) throws InterruptedException {
       exchangeService.rateController(exchangeName).acquire();
       TickerSpec spec = subscription.spec();
       manageExchangeExceptions(
+          subscription.key(),
           () -> {
             switch (subscription.type()) {
               case TICKER:
@@ -806,7 +893,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       OpenOrders fetched = tradeService.getOpenOrders(openOrdersParams);
 
       // TODO GDAX PR required
-      if (subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+      if (subscription.spec().exchange().equals(Exchanges.GDAX)) {
         ImmutableList<LimitOrder> filteredOpen = FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
         ImmutableList<? extends Order> filteredHidden = FluentIterable.from(fetched.getHiddenOrders()).toList();
         fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
@@ -816,7 +903,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
     }
 
     private void pollAndEmitTrades(MarketDataSubscription subscription) throws IOException {
-      marketDataService.getTrades(exchangePair(subscription.spec()), exchangeTradesArgs(subscription.spec()))
+      marketDataService.getTrades(subscription.spec().currencyPair())
         .getTrades()
         .stream()
         .forEach(t ->
@@ -834,42 +921,14 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         );
     }
 
-    private Object[] exchangeTradesArgs(TickerSpec spec) {
-      return spec.exchange().equals(Exchanges.BITMEX)
-          ? bitmexArgs(spec)
-          : new Object[] {};
-    }
-
-    private Object[] bitmexArgs(TickerSpec spec) {
-      // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-      return new Object[] {
-          spec.counter().equals("USD")
-            ? BitmexPrompt.PERPETUAL
-            : BitmexPrompt.QUARTERLY
-      };
-    }
-
-    private CurrencyPair exchangePair(TickerSpec spec) {
-      return spec.exchange().equals(Exchanges.BITMEX)
-          ? bitmexCurrencyPair(spec)
-          : spec.currencyPair();
-    }
-
-    private CurrencyPair bitmexCurrencyPair(TickerSpec spec) {
-      // TODO need solution for https://github.com/knowm/XChange/issues/2886
-      return spec.counter().equals("USD")
-          ? spec.currencyPair()
-          : new CurrencyPair(spec.base(), "BTC");
-    }
-
     private void pollAndEmitOrderbook(TickerSpec spec) throws IOException {
-      OrderBook orderBook = marketDataService.getOrderBook(exchangePair(spec), exchangeOrderbookArgs(spec));
+      OrderBook orderBook = marketDataService.getOrderBook(spec.currencyPair(), exchangeOrderbookArgs(spec));
       orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
     }
 
     private Object[] exchangeOrderbookArgs(TickerSpec spec) {
       if (spec.exchange().equals(Exchanges.BITMEX)) {
-        return bitmexArgs(spec);
+        return new Object[] { };
       } else {
         return new Object[] { ORDERBOOK_DEPTH, ORDERBOOK_DEPTH };
       }
@@ -883,7 +942,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       TradeHistoryParams params;
 
       // TODO fix with pull requests
-      if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX) || subscription.spec().exchange().equals(Exchanges.GDAX_SANDBOX)) {
+      if (subscription.spec().exchange().equals(Exchanges.BITMEX) || subscription.spec().exchange().equals(Exchanges.GDAX)) {
         params = new TradeHistoryParamCurrencyPair() {
 
           private CurrencyPair pair;

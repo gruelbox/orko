@@ -38,6 +38,12 @@ const NewWindowChartContent = ({ coin, url, onHide }) => (
   </>
 )
 
+const SimulatedExchangeContent = () => (
+  <>
+    <Para>Charts not supported for the simulated exchange.</Para>
+  </>
+)
+
 const ChartOuter = styled.div`
   overflow: hidden;
   height: 100%;
@@ -73,25 +79,29 @@ class TradingViewChartContent extends Component {
   }
 
   initWidget = () => {
-    new window.TradingView.widget({
-      autosize: true,
-      symbol: this.symbol(),
-      interval: this.props.interval,
-      timezone: "UTC",
-      theme: "Dark",
-      style: "1",
-      locale: "en",
-      toolbar_bg: "#f1f3f6",
-      enable_publishing: false,
-      withdateranges: false,
-      save_image: true,
-      show_popup_button: true,
-      popup_width: "1000",
-      popup_height: "650",
-      container_id: CONTAINER_ID,
-      hide_side_toolbar: false,
-      studies: []
-    })
+    try {
+      new window.TradingView.widget({
+        autosize: true,
+        symbol: this.symbol(),
+        interval: this.props.interval,
+        timezone: "UTC",
+        theme: "Dark",
+        style: "1",
+        locale: "en",
+        toolbar_bg: "#f1f3f6",
+        enable_publishing: false,
+        withdateranges: false,
+        save_image: true,
+        show_popup_button: true,
+        popup_width: "1000",
+        popup_height: "650",
+        container_id: CONTAINER_ID,
+        hide_side_toolbar: false,
+        studies: []
+      })
+    } catch (error) {
+      console.error("Failed to initialise TradingView widget", error)
+    }
   }
 
   symbol = () => {
@@ -183,25 +193,15 @@ class Chart extends React.Component {
                 <NewWindowChartContent
                   coin={coin}
                   url={
-                    "https://www.kucoin.com/#/trade.pro/" +
+                    "https://www.kucoin.com/trade/" +
                     coin.base +
                     "-" +
                     coin.counter
                   }
                 />
               )
-            } else if (coin.exchange === "cryptopia") {
-              return (
-                <NewWindowChartContent
-                  coin={coin}
-                  url={
-                    "https://www.cryptopia.co.nz/Exchange/?market=" +
-                    coin.base +
-                    "_" +
-                    coin.counter
-                  }
-                />
-              )
+            } else if (coin.exchange === "simulated") {
+              return <SimulatedExchangeContent />
             } else {
               return (
                 <TradingViewChartContent

@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,12 +40,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.binance.service.BinanceCancelOrderParams;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
@@ -54,8 +54,8 @@ import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.StopOrder;
+import org.knowm.xchange.exceptions.FundsExceededException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
-import org.knowm.xchange.kucoin.service.KucoinCancelOrderParams;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.CancelOrderParams;
 import org.knowm.xchange.service.trade.params.DefaultCancelOrderParamId;
@@ -66,12 +66,13 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
+import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
+import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator.Factory;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
@@ -83,20 +84,6 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 @Singleton
 public class ExchangeResource implements WebResource {
 
-  // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-  public static final List<Pair> BITMEX_PAIRS = ImmutableList.of(
-    new Pair("XBT", "USD"),
-    new Pair("XBT", "H19"),
-    new Pair("ADA", "H19"),
-    new Pair("BCH", "H19"),
-    new Pair("EOS", "H19"),
-    new Pair("ETH", "USD"),
-    new Pair("ETH", "H19"),
-    new Pair("LTC", "H19"),
-    new Pair("TRX", "H19"),
-    new Pair("XRP", "H19")
-  );
-
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeResource.class);
 
   private final ExchangeService exchanges;
@@ -104,18 +91,22 @@ public class ExchangeResource implements WebResource {
   private final AccountServiceFactory accountServiceFactory;
   private final OrkoConfiguration configuration;
   private final MarketDataSubscriptionManager subscriptionManager;
+  private final Factory calculatorFactory;
+
 
   @Inject
   ExchangeResource(ExchangeService exchanges,
                    TradeServiceFactory tradeServiceFactory,
                    AccountServiceFactory accountServiceFactory,
                    MarketDataSubscriptionManager subscriptionManager,
-                   OrkoConfiguration configuration) {
+                   OrkoConfiguration configuration,
+                   MaxTradeAmountCalculator.Factory calculatorFactory) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
     this.subscriptionManager = subscriptionManager;
     this.configuration = configuration;
+    this.calculatorFactory = calculatorFactory;
   }
 
 
@@ -186,22 +177,13 @@ public class ExchangeResource implements WebResource {
   @Timed
   @Path("{exchange}/pairs")
   public Collection<Pair> pairs(@PathParam("exchange") String exchangeName) {
-
-    Collection<Pair> pairs = exchanges.get(exchangeName)
+    return exchanges.get(exchangeName)
         .getExchangeMetaData()
         .getCurrencyPairs()
         .keySet()
         .stream()
         .map(Pair::new)
         .collect(Collectors.toSet());
-
-    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-    if (Exchanges.BITMEX.equals(exchangeName)) {
-      LOGGER.warn("Bitmex reported pairs: {}, converted to {}", pairs, BITMEX_PAIRS);
-      return BITMEX_PAIRS;
-    } else {
-      return pairs;
-    }
   }
 
   public static class Pair {
@@ -224,16 +206,10 @@ public class ExchangeResource implements WebResource {
   @Timed
   @Path("{exchange}/pairs/{base}-{counter}")
   public PairMetaData metadata(@PathParam("exchange") String exchangeName, @PathParam("counter") String counter, @PathParam("base") String base) {
-
     Exchange exchange = exchanges.get(exchangeName);
-
-    // TODO Pending answer on https://github.com/knowm/XChange/issues/2886
-    CurrencyPair currencyPair = new CurrencyPair(
-      base,
-      counter.equals("Z19") || counter.equals("H19") ? "BTC" : counter
-    );
+    CurrencyPair currencyPair = new CurrencyPair(base, counter);
     return new PairMetaData(exchange.getExchangeMetaData().getCurrencyPairs().get(currencyPair));
-            }
+  }
 
   public static class PairMetaData {
 
@@ -270,38 +246,46 @@ public class ExchangeResource implements WebResource {
   }
 
 
+  @POST
+  @Path("{exchange}/orders/calc")
+  @Timed
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response calculateOrder(@PathParam("exchange") String exchange, OrderPrototype order) {
+    if (!order.isLimit()) {
+      return Response.status(400).entity(new ErrorResponse("Limit price required")).build();
+    }
+    TickerSpec tickerSpec = TickerSpec.builder()
+        .exchange(exchange)
+        .base(order.getBase())
+        .counter(order.getCounter())
+        .build();
+    BigDecimal orderAmount = calculatorFactory.create(tickerSpec)
+        .validOrderAmount(order.getLimitPrice(), order.getType());
+    order.setAmount(orderAmount);
+    return Response.ok().entity(order).build();
+  }
+
+
   /**
    * Submits a new order.
    *
    * @param exchange The exchange to submit to.
-   * @return
-   * @throws IOException
+   * @return HTTP response.
    */
   @POST
   @Path("{exchange}/orders")
   @Timed
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) throws IOException {
+  public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) {
 
-    if (!order.isStop() && !order.isLimit())
-      return Response.status(400).entity(new ErrorResponse("Market orders not supported at the moment.")).build();
-
-    if (order.isStop()) {
-      if (order.isLimit()) {
-        if (exchange.equals(Exchanges.BITFINEX)) {
-          return Response.status(400).entity(new ErrorResponse("Stop limit orders not supported for Bitfinex at the moment.")).build();
-        }
-      } else {
-        if (exchange.equals(Exchanges.BINANCE)) {
-          return Response.status(400).entity(new ErrorResponse("Stop market orders not supported for Binance at the moment. Specify a limit price.")).build();
-        }
-      }
-    }
-
-    TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
+    Optional<Response> error = checkOrderPreconditions(exchange, order);
+    if (error.isPresent())
+      return error.get();
 
     try {
+      TradeService tradeService = tradeServiceFactory.getForExchange(exchange);
       Order result = order.isStop()
           ? postStopOrder(order, tradeService)
           : postLimitOrder(order, tradeService);
@@ -309,10 +293,34 @@ public class ExchangeResource implements WebResource {
       return Response.ok().entity(result).build();
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).entity(new ErrorResponse("Order type not currently supported by exchange.")).build();
+    } catch (FundsExceededException e) {
+      return Response.status(400).entity(new ErrorResponse(e.getMessage())).build();
     } catch (Exception e) {
       LOGGER.error("Failed to submit order", e);
       return Response.status(500).entity(new ErrorResponse("Failed to submit order. " + e.getMessage())).build();
     }
+  }
+
+  private Optional<Response> checkOrderPreconditions(String exchange, OrderPrototype order) {
+    if (!order.isStop() && !order.isLimit())
+      return Optional.of(Response.status(400)
+          .entity(new ErrorResponse("Market orders not supported at the moment.")).build());
+
+    if (order.isStop()) {
+      if (order.isLimit()) {
+        if (exchange.equals(Exchanges.BITFINEX)) {
+          return Optional.of(Response.status(400)
+              .entity(new ErrorResponse("Stop limit orders not supported for Bitfinex at the moment.")).build());
+        }
+      } else {
+        if (exchange.equals(Exchanges.BINANCE)) {
+          return Optional.of(Response.status(400)
+              .entity(new ErrorResponse("Stop market orders not supported for Binance at the moment. Specify a limit price.")).build());
+        }
+      }
+    }
+
+    return Optional.empty();
   }
 
   private LimitOrder postLimitOrder(OrderPrototype order, TradeService tradeService) throws IOException {
@@ -452,7 +460,6 @@ public class ExchangeResource implements WebResource {
    * @param counter The countercurrency.
    * @param base The base (traded) currency.
    * @param id The order id.
-   * @param orderType The order type, sadly required by KuCoin.
    * @throws IOException If thrown by exchange.
    */
   @DELETE
@@ -461,15 +468,14 @@ public class ExchangeResource implements WebResource {
   public Response cancelOrder(@PathParam("exchange") String exchange,
                               @PathParam("counter") String counter,
                               @PathParam("base") String base,
-                              @PathParam("id") String id,
-                              @QueryParam("orderType") org.knowm.xchange.dto.Order.OrderType orderType) throws IOException {
+                              @PathParam("id") String id) throws IOException {
     try {
-      // KucoinCancelOrderParams is the superset - pair, id and order type. Should work with pretty much any exchange,
+      // BinanceCancelOrderParams is the superset - pair and id. Should work with pretty much any exchange,
       // except Bitmex
       // TODO PR to fix bitmex
       CancelOrderParams cancelOrderParams = exchange.equals(Exchanges.BITMEX)
           ? new DefaultCancelOrderParamId(id)
-          : new KucoinCancelOrderParams(new CurrencyPair(base, counter), id, orderType);
+          : new BinanceCancelOrderParams(new CurrencyPair(base, counter), id);
       Date now = new Date();
       if (!tradeServiceFactory.getForExchange(exchange).cancelOrder(cancelOrderParams)) {
         throw new IllegalStateException("Order could not be cancelled");
@@ -631,10 +637,20 @@ public class ExchangeResource implements WebResource {
 
   public static final class ErrorResponse {
 
-    @JsonProperty private final String message;
+    @JsonProperty private String message;
+
+    ErrorResponse() {
+    }
 
     ErrorResponse(String message) {
-      super();
+      this.message = message;
+    }
+
+    String getMessage() {
+      return message;
+    }
+
+    void setMessage(String message) {
       this.message = message;
     }
   }

@@ -129,6 +129,12 @@ class Price extends React.PureComponent {
   }
 
   render() {
+    if (
+      this.props.hideMissing &&
+      (this.props.children === undefined || this.props.children === null)
+    ) {
+      return null
+    }
     const noValue = this.props.noValue ? this.props.noValue : <Loading fitted />
     if (this.props.bare) {
       return (

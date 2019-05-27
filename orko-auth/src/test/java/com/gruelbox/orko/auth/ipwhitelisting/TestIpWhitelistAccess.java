@@ -27,14 +27,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.AuthConfiguration;
+import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.db.Transactionally;
 
 import io.dropwizard.testing.junit.DAOTestRule;;
 
+@Category(DatabaseTest.class)
 public class TestIpWhitelistAccess {
 
   @Rule

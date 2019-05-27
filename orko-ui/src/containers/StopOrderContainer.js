@@ -31,7 +31,7 @@ import * as jobTypes from "../services/jobTypes"
 import uuidv4 from "uuid/v4"
 
 function coinServerSideSupported(coin) {
-  return !["kucoin", "bittrex", "cryptopia"].includes(coin.exchange)
+  return !["bittrex"].includes(coin.exchange)
 }
 
 function coinAllowsLimitStops(coin, useExchange) {

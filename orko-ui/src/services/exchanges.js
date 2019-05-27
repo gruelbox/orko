@@ -33,6 +33,13 @@ class ExchangesService {
     )
   }
 
+  async calculateOrder(exchange, order) {
+    return await post(
+      "exchanges/" + exchange + "/orders/calc",
+      JSON.stringify(order)
+    )
+  }
+
   async fetchReferencePrices() {
     return await get("subscriptions/referencePrices")
   }
@@ -102,7 +109,7 @@ class ExchangesService {
     )
   }
 
-  async cancelOrder(coin, id, orderType) {
+  async cancelOrder(coin, id) {
     return await del(
       "exchanges/" +
         coin.exchange +
@@ -111,9 +118,7 @@ class ExchangesService {
         "-" +
         coin.counter +
         "/orders/" +
-        id +
-        "?orderType=" +
-        orderType
+        id
     )
   }
 }

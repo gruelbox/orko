@@ -18,6 +18,8 @@
 
 package com.gruelbox.orko.exchange;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ExchangeConfiguration {
@@ -26,6 +28,8 @@ public class ExchangeConfiguration {
   private String secretKey;
   private String apiKey;
   private String passphrase;
+  private boolean sandbox;
+  private boolean loadRemoteData = true;
 
   @JsonProperty
   public String getUserName() {
@@ -48,6 +52,16 @@ public class ExchangeConfiguration {
   }
 
   @JsonProperty
+  public boolean isSandbox() {
+    return sandbox;
+  }
+
+  @JsonProperty
+  public boolean isLoadRemoteData() {
+    return loadRemoteData;
+  }
+
+  @JsonProperty
   public void setUserName(String userName) {
     this.userName = userName;
   }
@@ -65,5 +79,19 @@ public class ExchangeConfiguration {
   @JsonProperty
   public void setPassphrase(String passphrase) {
     this.passphrase = passphrase;
+  }
+
+  @JsonProperty
+  public void setSandbox(boolean sandbox) {
+    this.sandbox = sandbox;
+  }
+
+  @JsonProperty
+  public void setLoadRemoteData(boolean loadRemoteData) {
+    this.loadRemoteData = loadRemoteData;
+  }
+
+  public boolean isAuthenticated() {
+    return StringUtils.isNotEmpty(apiKey);
   }
 }

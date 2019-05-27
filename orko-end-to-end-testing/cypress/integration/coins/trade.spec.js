@@ -98,7 +98,7 @@ context("Trading", () => {
   it("Limit orders (exchange)", () => {
     const limitTrade = (button, priceDifferential, amount) => {
       const tradePrice = tickerPrice =>
-        0 + Number(tickerPrice) + priceDifferential
+        (0 + Number(tickerPrice) + priceDifferential).toFixed(2)
       cy.o("section/trading").within(() => {
         cy.o("limitOrder").within(() => {
           cy.o("limitPrice").click()
@@ -138,21 +138,23 @@ context("Trading", () => {
           }).within(() => {
             cy.o("amount")
               .invoke("text")
-              .then(text => Number(text))
               .should("eq", amount)
             cy.o("limitPrice")
               .invoke("text")
-              .then(text => Number(text))
               .should("eq", tradePrice(tickerPrice))
           })
         })
         listOrders(BINANCE_BTC).should($orders => {
           expect($orders.openOrders.length, "Open order count").to.eql(1)
           expect($orders.hiddenOrders, "Hidden orders").to.be.empty
-          expect($orders.openOrders[0].limitPrice, "Limit price").to.eql(
-            tradePrice(tickerPrice)
-          )
-          expect($orders.openOrders[0].originalAmount, "Amount").to.eql(amount)
+          expect(
+            $orders.openOrders[0].limitPrice.toFixed(2),
+            "Limit price"
+          ).to.eql(tradePrice(tickerPrice))
+          expect(
+            $orders.openOrders[0].originalAmount.toFixed(1),
+            "Amount"
+          ).to.eql(amount)
           expect($orders.openOrders[0].type).to.eql(
             button == "buy" ? "BID" : "ASK"
           )
@@ -184,8 +186,8 @@ context("Trading", () => {
       cy.o("enablePaperTrading").click()
     })
 
-    limitTrade("buy", -100, 0.1)
-    limitTrade("sell", 100, 0.2)
+    limitTrade("buy", -100, "0.1")
+    limitTrade("sell", 100, "0.2")
   })
 
   it("Hidden orders", () => {
