@@ -71,7 +71,7 @@ public class TestClientSecurityHeadersFilter {
       + "script-src 'self' https://*.tradingview.com; "
       + "img-src 'self' data:; "
       + "frame-src 'self' https://*.tradingview.com; "
-      + "connect-src 'self' ws://gruelbox.com; "
+      + "connect-src 'self' https://api.github.com ws://gruelbox.com; "
       + "manifest-src 'self'; "
       + "frame-ancestors 'self';");
   }
@@ -90,7 +90,7 @@ public class TestClientSecurityHeadersFilter {
       + "script-src 'self' https://*.tradingview.com; "
       + "img-src 'self' data:; "
       + "frame-src 'self' https://*.tradingview.com; "
-      + "connect-src 'self' wss://gruelbox.com; "
+      + "connect-src 'self' https://api.github.com wss://gruelbox.com; "
       + "manifest-src 'self'; "
       + "frame-ancestors 'self';");
   }
@@ -109,7 +109,7 @@ public class TestClientSecurityHeadersFilter {
       + "script-src 'self' https://*.tradingview.com; "
       + "img-src 'self' data:; "
       + "frame-src 'self' https://*.tradingview.com; "
-      + "connect-src 'self' ws://github.com; "
+      + "connect-src 'self' https://api.github.com ws://github.com; "
       + "manifest-src 'self'; "
       + "frame-ancestors 'self';");
   }
@@ -129,7 +129,7 @@ public class TestClientSecurityHeadersFilter {
       + "script-src 'self' https://*.tradingview.com; "
       + "img-src 'self' data:; "
       + "frame-src 'self' https://*.tradingview.com; "
-      + "connect-src 'self' wss://github.com; "
+      + "connect-src 'self' https://api.github.com wss://github.com; "
       + "manifest-src 'self'; "
       + "frame-ancestors 'self';");
   }
@@ -148,7 +148,7 @@ public class TestClientSecurityHeadersFilter {
       + "script-src 'self' https://*.tradingview.com; "
       + "img-src 'self' data:; "
       + "frame-src 'self' https://*.tradingview.com; "
-      + "connect-src 'self' ws://github.com; "
+      + "connect-src 'self' https://api.github.com ws://github.com; "
       + "manifest-src 'self'; "
       + "frame-ancestors 'self';");
   }
@@ -168,7 +168,7 @@ public class TestClientSecurityHeadersFilter {
       + "script-src 'self' https://*.tradingview.com; "
       + "img-src 'self' data:; "
       + "frame-src 'self' https://*.tradingview.com; "
-      + "connect-src 'self' wss://github.com; "
+      + "connect-src 'self' https://api.github.com wss://github.com; "
       + "manifest-src 'self'; "
       + "frame-ancestors 'self';");
   }
