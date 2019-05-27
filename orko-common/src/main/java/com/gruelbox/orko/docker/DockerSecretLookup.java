@@ -54,8 +54,7 @@ class DockerSecretLookup extends StrLookup<Object> {
         value = Files.asCharSource(new File("/run/secrets/" + key), StandardCharsets.UTF_8).read();
         System.out.println(key + " found in secrets");
       } catch (IOException e) {
-        System.err.println("IOException when scanning for " + key);
-        e.printStackTrace();
+        throw new RuntimeException("IOException when scanning for " + key, e);
       }
     }
     if (value == null && strict) {

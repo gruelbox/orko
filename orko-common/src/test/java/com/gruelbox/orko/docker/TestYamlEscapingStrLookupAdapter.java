@@ -37,7 +37,7 @@ public class TestYamlEscapingStrLookupAdapter {
     MockitoAnnotations.initMocks(this);
     YamlEscapingStrLookupAdapter<Object> onTest = new YamlEscapingStrLookupAdapter<>(delegate);
     String input = "${variable}";
-    Mockito.when(delegate.lookup(input)).thenReturn("\"value\"");
-    assertThat(onTest.lookup(input), Matchers.equalTo("\\\"value\\\""));
+    Mockito.when(delegate.lookup(input)).thenReturn("'value'");
+    assertThat(onTest.lookup(input), Matchers.equalTo("''value''"));
   }
 }

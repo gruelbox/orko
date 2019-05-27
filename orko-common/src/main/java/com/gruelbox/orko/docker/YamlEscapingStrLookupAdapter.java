@@ -5,7 +5,7 @@ import org.apache.commons.text.StrLookup;
 /**
  * Adapter for {@link StrLookup}s which escapes the result for use
  * in YAML. Note that it's assumed the result will be replacing
- * a value which is already expressed inside double quotes.
+ * a value which is already expressed inside SINGLE quotes.
  */
 public class YamlEscapingStrLookupAdapter<T> extends StrLookup<T> {
 
@@ -20,6 +20,6 @@ public class YamlEscapingStrLookupAdapter<T> extends StrLookup<T> {
     String result = delegate.lookup(key);
     if (result == null)
       return null;
-    return result.replace("\"", "\\\"");
+    return result.replace("'", "''");
   }
 }
