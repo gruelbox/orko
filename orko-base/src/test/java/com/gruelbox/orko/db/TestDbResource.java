@@ -33,6 +33,7 @@ import java.io.IOException;
 
 import javax.ws.rs.core.Response;
 
+import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -49,7 +50,7 @@ public class TestDbResource {
 
   @ClassRule
   public static final ResourceTestRule resources = ResourceTestRule.builder()
-          .addResource(new DbResource(DB_DUMP))
+          .addResource(new DbResource(DB_DUMP, mock(ConnectionResources.class)))
           .build();
 
   @Before

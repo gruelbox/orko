@@ -36,7 +36,6 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.alfasoftware.morf.jdbc.h2.H2;
-
 import org.apache.commons.io.IOUtils;
 import org.h2.tools.Server;
 import org.slf4j.Logger;
@@ -58,10 +57,12 @@ public class DbResource implements WebResource {
   private static final Logger LOGGER = LoggerFactory.getLogger(DbResource.class);
 
   private final DbDump dbDump;
+  private final ConnectionResources connectionResources;
 
   @Inject
-  DbResource(DbDump dbDump) {
+  DbResource(DbDump dbDump, ConnectionResources connectionResources) {
     this.dbDump = dbDump;
+    this.connectionResources = connectionResources;
   }
 
   @GET
