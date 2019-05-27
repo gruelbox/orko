@@ -32,7 +32,6 @@ class DockerSecretLookup extends StrLookup<Object> {
    */
   DockerSecretLookup(boolean strict) {
     this.enabled = new File("/run/secrets").exists();
-    System.out.println("Docker secrets enabled=" + enabled);
     this.strict = strict;
   }
 
