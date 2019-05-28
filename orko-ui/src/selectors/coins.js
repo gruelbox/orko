@@ -74,8 +74,8 @@ function serverJobDecorate(job) {
         ? "BID"
         : "ASK"
       : job.low.job.direction === "BUY"
-        ? "BID"
-        : "ASK",
+      ? "BID"
+      : "ASK",
     stopPrice: job.high
       ? Number(job.high.thresholdAsString)
       : Number(job.low.thresholdAsString),
@@ -113,8 +113,7 @@ export const getOrdersForAllCoin = createSelector(
   (orders, stopJobs) => {
     var result = !orders ? [] : orders.filter(o => !o.deleted)
 
-    const server = stopJobs
-      .map(job => serverJobDecorate(job))
+    const server = stopJobs.map(job => serverJobDecorate(job))
 
     result = result.concat(server)
 
