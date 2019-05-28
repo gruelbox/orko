@@ -23,7 +23,7 @@ import WithCoin from "./WithCoin"
 import WhileLoading from "../components/WhileLoading"
 import * as exchangeActions from "../store/exchanges/actions"
 import * as jobActions from "../store/job/actions"
-import { getOrdersForSelectedCoin } from "../selectors/coins"
+import { getOrdersForAllCoin, getOrdersForSelectedCoin } from '../selectors/coins'
 
 class OpenOrdersContainer extends React.Component {
   onCancelExchange = (id, coin) => {
@@ -42,7 +42,7 @@ class OpenOrdersContainer extends React.Component {
             <WhileLoading data={this.props.orders} padded>
               {() => (
                 <OpenOrders
-                  orders={this.props.orders}
+                  orders={this.props.showAll? this.props.allOrders: this.props.orders}
                   onCancelExchange={id => this.onCancelExchange(id, coin)}
                   onCancelServer={this.onCancelServer}
                   onWatch={this.onWatch}
@@ -59,7 +59,8 @@ class OpenOrdersContainer extends React.Component {
 
 function mapStateToProps(state, props) {
   return {
-    orders: getOrdersForSelectedCoin(state)
+    orders: getOrdersForSelectedCoin(state),
+    allOrders: getOrdersForAllCoin(state)
   }
 }
 
