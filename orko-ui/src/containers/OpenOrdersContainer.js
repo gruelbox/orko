@@ -45,11 +45,7 @@ class OpenOrdersContainer extends React.Component {
             <WhileLoading data={this.props.orders} padded>
               {() => (
                 <OpenOrders
-                  orders={
-                    this.props.showAll
-                      ? this.props.allOrders
-                      : this.props.orders
-                  }
+                  orders={this.props.orders}
                   onCancelExchange={id => this.onCancelExchange(id, coin)}
                   onCancelServer={this.onCancelServer}
                   onWatch={this.onWatch}
@@ -66,8 +62,9 @@ class OpenOrdersContainer extends React.Component {
 
 function mapStateToProps(state, props) {
   return {
-    orders: getOrdersForSelectedCoin(state),
-    allOrders: getOrdersForAllCoin(state)
+    orders: this.props.showAll
+      ? getOrdersForAllCoin(state)
+      : getOrdersForSelectedCoin(state)
   }
 }
 
