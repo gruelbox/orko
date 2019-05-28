@@ -22,7 +22,6 @@ import OpenOrdersContainer from './OpenOrdersContainer'
 import UserTradeHistoryContainer from './UserTradeHistoryContainer'
 import GetPageVisibility from '../components/GetPageVisibility'
 import RenderIf from '../components/RenderIf'
-import { Checkbox } from 'semantic-ui-react'
 import { getValueFromLS, saveValueToLS } from '../util/localStorage'
 
 const ORDER_STORAGE_KEY = 'OrdersContainer.order_show_all'
