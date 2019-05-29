@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.text.StrLookup;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 
@@ -19,6 +20,7 @@ class DockerSecretLookup extends StrLookup<Object> {
 
   private final boolean strict;
   private final boolean enabled;
+  private final String path;
 
   /**
    * Create a new instance.
@@ -31,7 +33,13 @@ class DockerSecretLookup extends StrLookup<Object> {
    *                                               behavior is enabled.
    */
   DockerSecretLookup(boolean strict) {
-    this.enabled = new File("/run/secrets").exists();
+    this("/run/secrets", strict);
+  }
+
+  @VisibleForTesting
+  DockerSecretLookup(String path, boolean strict) {
+    this.path = path;
+    this.enabled = new File(path).exists();
     this.strict = strict;
   }
 
@@ -46,12 +54,12 @@ class DockerSecretLookup extends StrLookup<Object> {
     if (!enabled && !strict) {
       return null;
     }
-    Preconditions.checkArgument(!key.contains("/"), "Path separator in variable name");
-    File file = new File("/run/secrets/" + key);
+    Preconditions.checkArgument(!key.contains(File.pathSeparator) && !key.contains("/"), "Path separator in variable name");
+    File file = new File(path + File.pathSeparator + key);
     String value = null;
     if (file.exists()) {
       try {
-        value = Files.asCharSource(new File("/run/secrets/" + key), StandardCharsets.UTF_8).read();
+        value = Files.asCharSource(file, StandardCharsets.UTF_8).read();
       } catch (IOException e) {
         throw new RuntimeException("IOException when scanning for " + key, e);
       }
@@ -59,6 +67,9 @@ class DockerSecretLookup extends StrLookup<Object> {
     if (value == null && strict) {
       throw new IllegalArgumentException("Docker secret for '" + key
           + "' is not defined; could not substitute the expression '${" + key + "}'.");
+    }
+    if (value == null && key.startsWith("secret-")) {
+      return "";
     }
     return value;
   }
