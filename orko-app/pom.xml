@@ -121,6 +121,10 @@
                   <jvmFlag>-Djava.rmi.server.hostname=localhost</jvmFlag>
                 </jvmFlags>
                 <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
+                <args>
+                  <arg>server</arg>
+                  <arg>docker-config.yml</arg>
+                </args>
                 <ports>
                   <port>8080</port>
                 </ports>
