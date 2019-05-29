@@ -62,7 +62,7 @@ class OpenOrdersContainer extends React.Component {
 
 function mapStateToProps(state, props) {
   return {
-    orders: this.props.showAll
+    orders: props.showAll
       ? getOrdersForAllCoin(state)
       : getOrdersForSelectedCoin(state)
   }

@@ -54,6 +54,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "fomantic-ui": "^2.7.5",
     "gulp": "^4.0.2",
     "prettier": "1.17.1"
   }
