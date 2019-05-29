@@ -94,17 +94,6 @@ public class TestDockerSecretLookup {
     }
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testErrorCase2() {
-    File tempDir = Files.createTempDir();
-    try {
-      DockerSecretLookup notStrict = new DockerSecretLookup(tempDir.getAbsolutePath(), false);
-      assertEquals(null, notStrict.lookup("evi\\..\\path"));
-    } finally {
-      tempDir.delete();
-    }
-  }
-
   @Test
   public void testIntegration() throws IOException {
     String config = "secret: '${SIMPLE_AUTH_SECRET:-XXX}${secret-jwt-signing-key}'";
