@@ -54,8 +54,8 @@ class DockerSecretLookup extends StrLookup<Object> {
     if (!enabled && !strict) {
       return null;
     }
-    Preconditions.checkArgument(!key.contains(File.pathSeparator) && !key.contains("/"), "Path separator in variable name");
-    File file = new File(path + File.pathSeparator + key);
+    Preconditions.checkArgument(!key.contains(File.separator) && !key.contains("/"), "Path separator in variable name");
+    File file = new File(path + File.separator + key);
     String value = null;
     if (file.exists()) {
       try {
