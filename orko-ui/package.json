@@ -30,7 +30,7 @@
     "reselect": "^4.0.0",
     "seamless-immutable": "^7.1.4",
     "semantic-ui-react": "^0.87.1",
-    "styled-components": "^4.2.0",
+    "styled-components": "^4.3.0",
     "styled-system": "^4.2.4",
     "uuid": "^3.3.2",
     "whatwg-fetch": "^3.0.0"
