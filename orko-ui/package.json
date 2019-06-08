@@ -16,7 +16,7 @@
     "react-dom": "^16.8.6",
     "react-grid-layout": "^0.16.6",
     "react-markdown": "^4.0.8",
-    "react-page-visibility": "^3.2.1",
+    "react-page-visibility": "^4.0.0",
     "react-redux": "^6.0.1",
     "react-rnd": "^9.1.2",
     "react-router-dom": "^5.0.1",
