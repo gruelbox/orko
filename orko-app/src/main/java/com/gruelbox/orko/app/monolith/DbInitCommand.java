@@ -17,28 +17,38 @@
  */
 package com.gruelbox.orko.app.monolith;
 
-import com.gruelbox.orko.auth.Hasher;
+import org.alfasoftware.morf.jdbc.ConnectionResources;
+
+import com.gruelbox.orko.OrkoConfiguration;
+import com.gruelbox.orko.db.DbDump;
 
 import io.dropwizard.cli.Cli;
-import io.dropwizard.cli.Command;
+import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 
-class SaltCommand extends Command {
+/**
+ * Command line command to restore a database dump
+ */
+class DbInitCommand extends ConfiguredCommand<OrkoConfiguration> {
 
-  SaltCommand() {
-    super("salt", "Generates a new pseudorandom salt for use with password hashing");
+  DbInitCommand() {
+    super("dbinit", "Imports a database snapshot taken using the /api/db.zip endpoint to the configured DB");
+  }
+
+  @Override
+  protected void run(Bootstrap<OrkoConfiguration> bootstrap, Namespace namespace, OrkoConfiguration configuration) throws Exception {
+    ConnectionResources connectionResources = configuration.getDatabase().toConnectionResources();
+    new DbDump(connectionResources).restore(namespace.getString("dbfile"));
   }
 
   @Override
   public void configure(Subparser subparser) {
-    // No-op
-  }
-
-  @Override
-  public void run(Bootstrap<?> bootstrap, Namespace namespace) throws Exception {
-    System.out.print(new Hasher().salt());
+    super.configure(subparser);
+    subparser.addArgument("dbfile")
+      .required(true)
+      .help("The database dump filename to load");
   }
 
   @Override

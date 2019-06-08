@@ -50,7 +50,7 @@
 
   <profiles>
     <profile>
-      <id>production</id>
+      <id>ui</id>
       <dependencies>
         <dependency>
           <groupId>com.gruelbox</groupId>
@@ -60,24 +60,97 @@
       </dependencies>
     </profile>
     <profile>
-      <id>integration-test</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.gruelbox</groupId>
-          <artifactId>orko-ui</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-      </dependencies>
+      <id>bundle</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>shade</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <createDependencyReducedPom>true</createDependencyReducedPom>
+                  <filters>
+                    <filter>
+                      <artifact>*:*</artifact>
+                      <excludes>
+                        <exclude>META-INF/*.SF</exclude>
+                        <exclude>META-INF/*.DSA</exclude>
+                        <exclude>META-INF/*.RSA</exclude>
+                      </excludes>
+                    </filter>
+                  </filters>
+                  <transformers>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                      <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
+                    </transformer>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                      <addHeader>false</addHeader>
+                    </transformer>
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
-      <id>release</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.gruelbox</groupId>
-          <artifactId>orko-ui</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-      </dependencies>
+      <id>docker</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <version>1.2.0</version>
+            <configuration>
+              <to>
+                <image>orko:latest</image>
+              </to>
+              <container>
+                <jvmFlags>
+                  <jvmFlag>-XX:+UnlockExperimentalVMOptions</jvmFlag>
+                  <jvmFlag>-XX:+UseCGroupMemoryLimitForHeap</jvmFlag>
+                  <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
+                  <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
+                  <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
+                  <jvmFlag>-Ddw.server.connector.port=8080</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.rmi.port=9090</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote=true</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.port=9090</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.ssl=false</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.authenticate=false</jvmFlag>
+                  <jvmFlag>-Dcom.sun.management.jmxremote.local.only=false</jvmFlag>
+                  <jvmFlag>-Djava.rmi.server.hostname=localhost</jvmFlag>
+                </jvmFlags>
+                <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
+                <args>
+                  <arg>server</arg>
+                  <arg>docker-config.yml</arg>
+                </args>
+                <ports>
+                  <port>8080</port>
+                </ports>
+              </container>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>buildTar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
@@ -95,41 +168,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <createDependencyReducedPom>true</createDependencyReducedPom>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
-                </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
-                  <addHeader>false</addHeader>
-                </transformer>
-              </transformers>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>de.jutzig</groupId>

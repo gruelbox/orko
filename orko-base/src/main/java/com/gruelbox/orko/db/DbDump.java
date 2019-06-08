@@ -36,18 +36,18 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-class DbDump {
+public class DbDump {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbDump.class);
 
   private final ConnectionResources connectionResources;
 
   @Inject
-  DbDump(ConnectionResources connectionResources) {
+  public DbDump(ConnectionResources connectionResources) {
     this.connectionResources = connectionResources;
   }
 
-  File dump() throws IOException {
+  public File dump() throws IOException {
     LOGGER.info("Dumping database...");
     File tempFile = File.createTempFile("orko-db-dump-", ".zip");
     new DataSetConnector(
@@ -58,7 +58,7 @@ class DbDump {
     return tempFile;
   }
 
-  void restore(String startPositionFile) {
+  public void restore(String startPositionFile) {
     LOGGER.info("Restoring database snapshot: {}", startPositionFile);
     try {
       new DataSetConnector(

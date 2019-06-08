@@ -42,7 +42,7 @@
     },
     "MAVEN_CUSTOM_OPTS": {
       "description": "Used by the Heroku buildpack. Do not change.",
-      "value": "-Pproduction -DskipTests=true -T 1C"
+      "value": "-Pui,bundle -DskipTests=true -T 1C"
     },
     "TELEGRAM_BOT_TOKEN": {
       "description": "The Telegram bot API token. Can be omitted, in which case Telegram notifications won't be used.",
@@ -63,7 +63,10 @@
       "quantity": 1
     }
   },
-  "addons": ["jawsdb", "papertrail"],
+  "addons": [
+    "jawsdb",
+    "papertrail"
+  ],
   "buildpacks": [
     {
       "url": "heroku/java"

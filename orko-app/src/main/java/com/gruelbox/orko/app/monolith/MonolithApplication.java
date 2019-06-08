@@ -46,5 +46,6 @@ public class MonolithApplication extends WebHostApplication {
     bootstrap.addCommand(new OtpCommand());
     bootstrap.addCommand(new HashCommand());
     bootstrap.addCommand(new SaltCommand());
+    bootstrap.addCommand(new DbInitCommand());
   }
 }

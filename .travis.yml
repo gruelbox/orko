@@ -42,12 +42,12 @@ matrix:
       name: "JUnit tests, Spotbugs and Checkstyle (External)"
       script: |
         git fetch --unshallow --quiet
-        mvn -Pproduction clean test ${BUILD_ARGS}
+        mvn clean test ${BUILD_ARGS}
 
     - if: repo = gruelbox/orko AND NOT branch = master AND tag IS present AND NOT type = pull_request
       name: "Release to Github"
       script: |
-        mvn -Pproduction clean package ${BUILD_ARGS}
+        mvn -Pui,bundle clean package ${BUILD_ARGS}
         cd orko-app
         mvn github-release:release --settings ../etc/.maven-settings.xml ${BUILD_ARGS}
 
