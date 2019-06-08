@@ -94,19 +94,7 @@
       </build>
     </profile>
     <profile>
-      <id>webdev</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>de.qaware.maven</groupId>
-            <artifactId>go-offline-maven-plugin</artifactId>
-            <version>1.2.0</version>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>production</id>
+      <id>ui</id>
       <modules>
         <module>orko-ui</module>
       </modules>
@@ -146,9 +134,8 @@
       </build>
     </profile>
     <profile>
-      <id>integration-test</id>
+      <id>e2etest</id>
       <modules>
-        <module>orko-ui</module>
         <module>orko-end-to-end-testing</module>
       </modules>
     </profile>

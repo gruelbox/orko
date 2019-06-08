@@ -1,2 +1,2 @@
 #!/bin/bash
-mvn license:format -Pintegration-test
+mvn license:format -Pui,e2etest
