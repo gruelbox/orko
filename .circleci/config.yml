@@ -30,6 +30,7 @@ jobs:
             echo "Pull request: $CIRCLE_PULL_REQUEST"
             echo " - Username: $CIRCLE_PR_USERNAME"
             echo " - Repository: $CIRCLE_PR_REPONAME"
+            mvn -v
 
       - run:
           name: Install packages
