@@ -1,27 +1,119 @@
 version: 2
+
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/d1538bdca20be1aa31d8
-jobs:
-  build:
-    docker:
-      - image: circleci/openjdk:8-jdk-browsers
-        environment:
-          MAVEN_OPTS: -Xmx3200m
-          BUILD_ARGS: -B -U -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_ROOT_PASSWORD: rootpw
-          MYSQL_DATABASE: test
-          MYSQL_USER: open
-          MYSQL_PASSWORD: sesame
-    working_directory: ~/orko
+workflows:
+  version: 2
+  all:
+    jobs:
+      - info
+      - build:
+        requires:
+            - info
+        filters:  # required since `deploy` has tag filters AND requires `build`
+          tags:
+            only: /.*/
+      - junit:
+          requires:
+            - build
+          filters:  # required since `deploy` has tag filters AND requires `build`
+          tags:
+            only: /.*/
+      - mysql:
+          requires:
+            - build
+          filters:  # required since `deploy` has tag filters AND requires `build`
+          tags:
+            only: /.*/
+      - integration:
+          requires:
+            - build
+          filters:  # required since `deploy` has tag filters AND requires `build`
+          tags:
+            only: /.*/
+      - deploy:
+          requires:
+            - junit
+            - mysql
+            - integration
+          filters:
+            tags:
+              only: /^.*\..*/
+            branches:
+              ignore: /.*/
+
+jobs:
+
+  info:
+    docker:
+      - image: circleci/openjdk:8-jdk
     steps:
       - run:
-          name: Install packages
-          command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
+        name: Environment info
+        command: |
+          echo "Branch: $CIRCLE_BRANCH"
+          echo "Tag: $CIRCLE_TAG"
+          echo "Project: $CIRCLE_REPOSITORY_URL"
+          echo " - Username: $CIRCLE_PROJECT_USERNAME"
+          echo " - Repository: $CIRCLE_PROJECT_REPONAME"
+          echo "Pull request: $CIRCLE_PULL_REQUEST"
+          echo " - Username: $CIRCLE_PR_USERNAME"
+          echo " - Repository: $CIRCLE_PR_REPONAME"
+          export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
+          mvn -v
 
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          MAVEN_OPTS: -Xmx3200m
+          BUILD_ARGS: -B -U -Dskip.failsafe.tests=true -DskipTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    working_directory: ~/orko
+    steps:
+      - restore_cache:
+          keys:
+            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v2-{{ .Branch }}-
+            - maven-repo-v2-
+      - restore_cache:
+          keys:
+            - node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
+            - node-v4-{{ .Branch }}-
+            - node-v4-
+      - run:
+          name: Build
+          command: mvn ${BUILD_ARGS} -T 1C -Pui,bundle clean install
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+      - save_cache:
+          paths:
+            - ~/usr/local/lib/node_modules
+          key: node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - *
+      - run:
+          name: Saving checkstyle reports
+          command: |
+            mkdir -p ~/checkstyle/
+            find . -type f -regex ".*/target/checkstyle-result.xml" -exec cp {} ~/checkstyle \;
+          when: always
+      - store_artifacts:
+          path: ~/checkstyle
+  
+  junit:
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          MAVEN_OPTS: -Xmx3200m
+          BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    working_directory: ~/orko
+    steps:
       - run:
           name: Upgrade Maven
           command: |
@@ -29,42 +121,20 @@ jobs:
             wget http://apache.mirror.anlx.net/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
             tar xzvf apache-maven-3.6.1-bin.tar.gz
             cd ~/orko
-
-      - run:
-          name: Environment info
-          command: |
-            echo "Branch: $CIRCLE_BRANCH"
-            echo "Tag: $CIRCLE_TAG"
-            echo "Project: $CIRCLE_REPOSITORY_URL"
-            echo " - Username: $CIRCLE_PROJECT_USERNAME"
-            echo " - Repository: $CIRCLE_PROJECT_REPONAME"
-            echo "Pull request: $CIRCLE_PULL_REQUEST"
-            echo " - Username: $CIRCLE_PR_USERNAME"
-            echo " - Repository: $CIRCLE_PR_REPONAME"
-            export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-            mvn -v
-
-      - checkout
-
+      - attach_workspace:
+          at: .
       - restore_cache:
           keys:
             - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v2-{{ .Branch }}-
             - maven-repo-v2-
-
-      - restore_cache:
-          keys:
-            - node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
-            - node-v4-{{ .Branch }}-
-            - node-v4-
-
       - run:
-          name: Build (plus Sonar if possible)
+          name: Tests (plus Sonar if possible)
           command: |
             if [[ -n "$SONARQUBE_TOKEN" ]]; then
               echo "Build and Sonar"
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-              export SONAR_TARGETS="-Pui,e2etest,bundle,ci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar"
+              export SONAR_TARGETS="org.jacoco:jacoco-maven-plugin:prepare-agent surefire:test sonar:sonar"
               export SONAR_ARGS="-Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
                   -Dsonar.login=${SONARQUBE_TOKEN}"
@@ -82,44 +152,77 @@ jobs:
                 fi
               fi
             else
-              echo "Build only"
-              mvn ${BUILD_ARGS} -T 1C -Pui,e2etest,bundle clean install 
+              echo "Test only"
+              mvn ${BUILD_ARGS} -T 1C surefire:test
             fi
-
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: maven-repo-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
-
-      - save_cache:
-          paths:
-            - ~/usr/local/lib/node_modules
-          key: node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
-
-      - run:
-          name: Saving checkstyle reports
-          command: |
-            mkdir -p ~/checkstyle/
-            find . -type f -regex ".*/target/checkstyle-result.xml" -exec cp {} ~/checkstyle \;
-          when: always
-
-      - store_artifacts:
-          path: ~/checkstyle
-
       - run:
           name: Saving test results (H2)
           command: |
             mkdir -p ~/junit/h2
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/h2 \;
           when: always
-
+      - store_artifacts:
+          path: ~/junit
+      - store_test_results:
+          path: ~/junit
+  
+  integration:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+        environment:
+          MAVEN_OPTS: -Xmx3200m
+          BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    working_directory: ~/orko
+    steps:
+      - run:
+          name: Install packages
+          command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v2-{{ .Branch }}-
+            - maven-repo-v2-
+      - run:
+          name: Build
+          command: mvn ${BUILD_ARGS} -Pe2etest failsafe:pre-integration-test failsafe:integration-test failsafe:post-integration-test
       - run:
           name: Saving test results (Integration)
           command: |
             mkdir -p ~/junit/integration
             find . -type f -regex ".*/target/mocha-reports/.*xml" -exec cp {} ~/junit/integration \;
           when: always
+      - store_artifacts:
+          path: ~/junit
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: orko-end-to-end-testing/cypress/screenshots
+      - store_artifacts:
+          path: orko-end-to-end-testing/app.log
 
+  mysql:
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          MAVEN_OPTS: -Xmx3200m
+          BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: test
+          MYSQL_USER: open
+          MYSQL_PASSWORD: sesame
+    working_directory: ~/orko
+    steps:
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v2-{{ .Branch }}-
+            - maven-repo-v2-
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -130,23 +233,38 @@ jobs:
               sleep 1
             done
             echo Failed waiting for MySQL && exit 1
-
       - run:
           name: MySQL tests
           command: |
-            mvn ${BUILD_ARGS} -Pdbonly clean test \
+            mvn ${BUILD_ARGS} -Pdbonly surefire:test \
               -Dmorf.mysql.noadmin=true \
-              -Dtestdb.url=mysql://open:sesame@127.0.0.1/test \
-              -Dspotbugs.skip=true \
-              -Dcheckstyle.skip=true
-
+              -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
       - run:
           name: Saving test results (MySQL)
           command: |
             mkdir -p ~/junit/mysql
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/mysql \;
           when: always
+      - store_artifacts:
+          path: ~/junit
+      - store_test_results:
+          path: ~/junit
 
+  deploy:
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          MAVEN_OPTS: -Xmx3200m
+          BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    working_directory: ~/orko
+    steps:
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v2-{{ .Branch }}-
+            - maven-repo-v2-
       - run:
           name: Release to Github (if tag and key available)
           command: |
@@ -162,15 +280,6 @@ jobs:
             else
               echo "Github API key not set"
             fi
-
-      - store_artifacts:
-          path: ~/junit
-      - store_test_results:
-          path: ~/junit
-      - store_artifacts:
-          path: orko-end-to-end-testing/cypress/screenshots
-      - store_artifacts:
-          path: orko-end-to-end-testing/app.log
 workflows:
   version: 2
   all:
