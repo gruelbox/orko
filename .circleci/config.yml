@@ -26,10 +26,10 @@ jobs:
       - run:
           name: Upgrade Maven
           command: |
-            cd /opt
+            cd
             wget http://apache.mirror.anlx.net/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
             tar xzvf apache-maven-3.6.1-bin.tar.gz
-            cd /home/circleci/orko
+            cd ~/orko
 
       - run:
           name: Environment info
@@ -42,7 +42,7 @@ jobs:
             echo "Pull request: $CIRCLE_PULL_REQUEST"
             echo " - Username: $CIRCLE_PR_USERNAME"
             echo " - Repository: $CIRCLE_PR_REPONAME"
-            export PATH=/opt/apache-maven-3.6.1/bin:$PATH
+            export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
             mvn -v
 
       - checkout
@@ -67,7 +67,7 @@ jobs:
               mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean install -T 1C -e
             else
               echo "Build and Sonar"
-              export PATH=/opt/apache-maven-3.6.1/bin:$PATH
+              export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
               mvn ${BUILD_ARGS} -Pui,e2etest,bundle,ci ${SONAR_TARGETS} -T 1C -e
             fi
 
