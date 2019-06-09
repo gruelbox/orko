@@ -94,9 +94,9 @@ jobs:
             - ~/usr/local/lib/node_modules
           key: node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
       - persist_to_workspace:
-          root: .
+          root: ~
           paths:
-            - *
+            - orko
       - run:
           name: Saving checkstyle reports
           command: |
@@ -114,6 +114,8 @@ jobs:
           BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     working_directory: ~/orko
     steps:
+      - attach_workspace:
+          at: ~/orko
       - run:
           name: Upgrade Maven
           command: |
@@ -121,8 +123,6 @@ jobs:
             wget http://apache.mirror.anlx.net/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
             tar xzvf apache-maven-3.6.1-bin.tar.gz
             cd ~/orko
-      - attach_workspace:
-          at: .
       - restore_cache:
           keys:
             - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -178,7 +178,7 @@ jobs:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
       - attach_workspace:
-          at: .
+          at: ~/orko
       - restore_cache:
           keys:
             - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -217,7 +217,7 @@ jobs:
     working_directory: ~/orko
     steps:
       - attach_workspace:
-          at: .
+          at: ~/orko
       - restore_cache:
           keys:
             - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -259,7 +259,7 @@ jobs:
     working_directory: ~/orko
     steps:
       - attach_workspace:
-          at: .
+          at: ~/orko
       - restore_cache:
           keys:
             - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
