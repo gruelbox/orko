@@ -61,7 +61,7 @@ jobs:
       - run:
           name: Build (plus Sonar if possible)
           command: |
-            if [-n "$SONARQUBE_TOKEN"]; then
+            if [[ -n "$SONARQUBE_TOKEN" ]]; then
               echo "Build and Sonar"
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
               mvn ${BUILD_ARGS} -T 1C -Pui,e2etest,bundle,ci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar \
@@ -141,8 +141,8 @@ jobs:
       - run:
           name: Release to Github (if tag and key available)
           command: |
-            if [ -n "$GITHUB_API_KEY" ]; then
-              if [ -n "$CIRCLE_TAG" ]; then
+            if [[ -n "$GITHUB_API_KEY" ]]; then
+              if [[ -n "$CIRCLE_TAG" ]]; then
                 cd orko-app
                 mvn -B github-release:release \
                   --settings ../etc/.maven-settings.xml \
