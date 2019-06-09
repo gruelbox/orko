@@ -66,11 +66,11 @@ jobs:
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
               mvn ${BUILD_ARGS} -T 1C -Pui,e2etest,bundle,ci clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar \
                 -Dsonar.host.url=https://sonarcloud.io \
-                -Dsonar.organization=${$CIRCLE_PROJECT_USERNAME} \
+                -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
                 -Dsonar.login=${SONARQUBE_TOKEN} \
                 -Dsonar.branch.name=${CIRCLE_BRANCH} \
                 -Dsonar.pullrequest.provider=github \
-                -Dsonar.pullrequest.github.repository=${$CIRCLE_PR_REPONAME} \
+                -Dsonar.pullrequest.github.repository=${CIRCLE_PR_REPONAME} \
                 -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST}
             else
               echo "Build only"
