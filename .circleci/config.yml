@@ -11,26 +11,26 @@ workflows:
       - info
       - build:
         requires:
-            - info
-        filters:  # required since `deploy` has tag filters AND requires `build`
+          - info
+        filters: # required since `deploy` has tag filters AND requires `build`
           tags:
             only: /.*/
       - junit:
           requires:
             - build
-          filters:  # required since `deploy` has tag filters AND requires `build`
+          filters: # required since `deploy` has tag filters AND requires `build`
           tags:
             only: /.*/
       - mysql:
           requires:
             - build
-          filters:  # required since `deploy` has tag filters AND requires `build`
+          filters: # required since `deploy` has tag filters AND requires `build`
           tags:
             only: /.*/
       - integration:
           requires:
             - build
-          filters:  # required since `deploy` has tag filters AND requires `build`
+          filters: # required since `deploy` has tag filters AND requires `build`
           tags:
             only: /.*/
       - deploy:
@@ -45,7 +45,6 @@ workflows:
               ignore: /.*/
 
 jobs:
-
   info:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -105,7 +104,7 @@ jobs:
           when: always
       - store_artifacts:
           path: ~/checkstyle
-  
+
   junit:
     docker:
       - image: circleci/openjdk:8-jdk
@@ -165,7 +164,7 @@ jobs:
           path: ~/junit
       - store_test_results:
           path: ~/junit
-  
+
   integration:
     docker:
       - image: circleci/openjdk:8-jdk-browsers
@@ -280,8 +279,3 @@ jobs:
             else
               echo "Github API key not set"
             fi
-workflows:
-  version: 2
-  all:
-    jobs:
-      - build
