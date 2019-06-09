@@ -9,7 +9,7 @@ jobs:
         environment:
           MAVEN_OPTS: -Xmx3200m
           BUILD_ARGS: -B -U -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-          SONAR_TARGETS: clean -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.branch.name=${CIRCLE_BRANCH} -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=${$CIRCLE_PR_REPONAME} -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST} org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
+          SONAR_TARGETS: clean package sonar:sonar -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.branch.name=${CIRCLE_BRANCH} -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=${$CIRCLE_PR_REPONAME} -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST} org.jacoco:jacoco-maven-plugin:prepare-agent
 
       - image: circleci/mysql:5.7
         environment:
@@ -54,7 +54,7 @@ jobs:
           command: |
             if [[ $CIRCLE_PROJECT_USERNAME != "gruelbox" || $CIRCLE_PROJECT_REPONAME != "orko" || ((-n $CIRCLE_PR_NUMBER) && ($CIRCLE_PR_USERNAME != "gruelbox" || $CIRCLE_PR_REPONAME != "orko")) ]]; then
               echo "Build only"
-              mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean install -T 1C -e
+              mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean package -T 1C -e
             else
               echo "Build and Sonar"
               mvn ${BUILD_ARGS} -Pui,e2etest,bundle,ci ${SONAR_TARGETS} -T 1C -e
