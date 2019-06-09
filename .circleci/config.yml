@@ -8,31 +8,28 @@ workflows:
   version: 2
   all:
     jobs:
-      - info
       - build:
-        requires:
-          - info
-        filters: # required since `deploy` has tag filters AND requires `build`
-          tags:
-            only: /.*/
+          filters: # required since `deploy` has tag filters AND requires `build`
+            tags:
+              only: /.*/
       - junit:
           requires:
             - build
           filters: # required since `deploy` has tag filters AND requires `build`
-          tags:
-            only: /.*/
+            tags:
+              only: /.*/
       - mysql:
           requires:
             - build
           filters: # required since `deploy` has tag filters AND requires `build`
-          tags:
-            only: /.*/
+            tags:
+              only: /.*/
       - integration:
           requires:
             - build
           filters: # required since `deploy` has tag filters AND requires `build`
-          tags:
-            only: /.*/
+            tags:
+              only: /.*/
       - deploy:
           requires:
             - junit
@@ -45,24 +42,6 @@ workflows:
               ignore: /.*/
 
 jobs:
-  info:
-    docker:
-      - image: circleci/openjdk:8-jdk
-    steps:
-      - run:
-        name: Environment info
-        command: |
-          echo "Branch: $CIRCLE_BRANCH"
-          echo "Tag: $CIRCLE_TAG"
-          echo "Project: $CIRCLE_REPOSITORY_URL"
-          echo " - Username: $CIRCLE_PROJECT_USERNAME"
-          echo " - Repository: $CIRCLE_PROJECT_REPONAME"
-          echo "Pull request: $CIRCLE_PULL_REQUEST"
-          echo " - Username: $CIRCLE_PR_USERNAME"
-          echo " - Repository: $CIRCLE_PR_REPONAME"
-          export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-          mvn -v
-
   build:
     docker:
       - image: circleci/openjdk:8-jdk
