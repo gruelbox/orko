@@ -9,7 +9,7 @@ jobs:
         environment:
           MAVEN_OPTS: -Xmx3200m
           BUILD_ARGS: -B -U -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-          SONAR_TARGETS: clean package sonar:sonar -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.branch.name=${CIRCLE_BRANCH} -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=${$CIRCLE_PR_REPONAME} -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST} org.jacoco:jacoco-maven-plugin:prepare-agent
+          SONAR_TARGETS: clean install sonar:sonar -Dsonar.login=${SONARQUBE_TOKEN} -Dsonar.branch.name=${CIRCLE_BRANCH} -Dsonar.pullrequest.provider=github -Dsonar.pullrequest.github.repository=${$CIRCLE_PR_REPONAME} -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST} org.jacoco:jacoco-maven-plugin:prepare-agent
 
       - image: circleci/mysql:5.7
         environment:
@@ -19,6 +19,16 @@ jobs:
           MYSQL_PASSWORD: sesame
     working_directory: ~/orko
     steps:
+      - run:
+          name: Install packages
+          command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
+
+      - run:
+          name: Upgrade Maven
+          command: |
+            wget http://apache.mirror.anlx.net/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+            tar xzvf apache-maven-3.6.1-bin.tar.gz
+
       - run:
           name: Environment info
           command: |
@@ -30,11 +40,8 @@ jobs:
             echo "Pull request: $CIRCLE_PULL_REQUEST"
             echo " - Username: $CIRCLE_PR_USERNAME"
             echo " - Repository: $CIRCLE_PR_REPONAME"
+            export PATH=~/apache-maven-3.6.1/bin:$PATH
             mvn -v
-
-      - run:
-          name: Install packages
-          command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
 
       - checkout
 
@@ -55,9 +62,10 @@ jobs:
           command: |
             if [[ $CIRCLE_PROJECT_USERNAME != "gruelbox" || $CIRCLE_PROJECT_REPONAME != "orko" || ((-n $CIRCLE_PR_NUMBER) && ($CIRCLE_PR_USERNAME != "gruelbox" || $CIRCLE_PR_REPONAME != "orko")) ]]; then
               echo "Build only"
-              mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean package -T 1C -e
+              mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean install -T 1C -e
             else
               echo "Build and Sonar"
+              export PATH=~/apache-maven-3.6.1/bin:$PATH
               mvn ${BUILD_ARGS} -Pui,e2etest,bundle,ci ${SONAR_TARGETS} -T 1C -e
             fi
 
