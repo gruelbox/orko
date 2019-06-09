@@ -54,10 +54,10 @@ jobs:
           command: |
             if [[ $CIRCLE_PROJECT_USERNAME != "gruelbox" || $CIRCLE_PROJECT_REPONAME != "orko" || ((-n $CIRCLE_PR_NUMBER) && ($CIRCLE_PR_USERNAME != "gruelbox" || $CIRCLE_PR_REPONAME != "orko")) ]]; then
               echo "Build only"
-              mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean package
+              mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean package -T 1C
             else
-              echo "Build and Sonar"
-              mvn ${BUILD_ARGS} -Pui,e2etest,bundle,ci clean package
+              echo "Build and Sonar (currently disabled)"
+              mvn ${BUILD_ARGS} -Pui,e2etest,bundle clean package -T 1C
             fi
 
       - save_cache:
