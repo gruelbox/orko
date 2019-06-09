@@ -98,14 +98,13 @@ jobs:
           BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     working_directory: ~/orko
     steps:
-      - checkout
+      - attach_workspace:
+          at: /home/circleci
       - restore_cache:
           keys:
             - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v3-{{ .Branch }}-
             - maven-repo-v3-
-      - attach_workspace:
-          at: /home/circleci
       - run:
           name: Upgrade Maven
           command: |
@@ -162,7 +161,8 @@ jobs:
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
-      - checkout
+      - attach_workspace:
+          at: /home/circleci
       - restore_cache:
           keys:
             - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -173,8 +173,6 @@ jobs:
             - node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
             - node-e2e-v1-{{ .Branch }}-
             - node-e2e-v1-
-      - attach_workspace:
-          at: /home/circleci
       - run:
           name: Run integration tests
           command: |
@@ -214,14 +212,13 @@ jobs:
           MYSQL_PASSWORD: sesame
     working_directory: ~/orko
     steps:
-      - checkout
+      - attach_workspace:
+          at: /home/circleci
       - restore_cache:
           keys:
             - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v3-{{ .Branch }}-
             - maven-repo-v3-
-      - attach_workspace:
-          at: /home/circleci
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -257,14 +254,13 @@ jobs:
           BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     working_directory: ~/orko
     steps:
-      - checkout
+      - attach_workspace:
+          at: /home/circleci
       - restore_cache:
           keys:
             - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
             - maven-repo-v3-{{ .Branch }}-
             - maven-repo-v3-
-      - attach_workspace:
-          at: /home/circleci
       - run:
           name: Release to Github (if tag and key available)
           command: |
