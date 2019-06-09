@@ -101,9 +101,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v2-{{ .Branch }}-
-            - maven-repo-v2-
+            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v3-{{ .Branch }}-
+            - maven-repo-v3-
       - attach_workspace:
           at: /home/circleci
       - run:
@@ -165,9 +165,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v2-{{ .Branch }}-
-            - maven-repo-v2-
+            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v3-{{ .Branch }}-
+            - maven-repo-v3-
       - restore_cache:
           keys:
             - node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
@@ -214,9 +214,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v2-{{ .Branch }}-
-            - maven-repo-v2-
+            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v3-{{ .Branch }}-
+            - maven-repo-v3-
       - attach_workspace:
           at: /home/circleci
       - run:
@@ -257,9 +257,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v2-{{ .Branch }}-
-            - maven-repo-v2-
+            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v3-{{ .Branch }}-
+            - maven-repo-v3-
       - attach_workspace:
           at: /home/circleci
       - run:
