@@ -138,7 +138,7 @@ jobs:
       - run:
           name: Build
           command: |
-            mvn ${BUILD_ARGS} -Pe2etest clean test \
+            mvn ${BUILD_ARGS} -Pui,e2etest clean post-integration-test \
               -Dspotbugs.skip=true \
               -Dcheckstyle.skip=true \
               -Dskip.surefire.tests=true
