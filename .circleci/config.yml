@@ -13,8 +13,6 @@ workflows:
             tags:
               only: /.*/
       - junit:
-          requires:
-            - build
           filters: # required since `deploy` has tag filters AND requires `build`
             tags:
               only: /.*/
@@ -32,6 +30,7 @@ workflows:
               only: /.*/
       - deploy:
           requires:
+            - build
             - junit
             - mysql
             - integration
@@ -98,13 +97,12 @@ jobs:
           BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     working_directory: ~/orko
     steps:
-      - attach_workspace:
-          at: /home/circleci
+      - checkout
       - restore_cache:
           keys:
-            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v3-{{ .Branch }}-
-            - maven-repo-v3-
+            - maven-testing-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-testing-v1-{{ .Branch }}-
+            - maven-testing-v1-
       - run:
           name: Upgrade Maven
           command: |
@@ -118,7 +116,7 @@ jobs:
             if [[ -n "$SONARQUBE_TOKEN" ]]; then
               echo "Build and Sonar"
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-              export SONAR_TARGETS="org.jacoco:jacoco-maven-plugin:prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report sonar:sonar"
+              export SONAR_TARGETS="org.jacoco:jacoco-maven-plugin:prepare-agent test sonar:sonar"
               export SONAR_ARGS="-Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
                   -Dsonar.login=${SONARQUBE_TOKEN}"
@@ -139,6 +137,10 @@ jobs:
               echo "Test only"
               mvn ${BUILD_ARGS} -T 1C surefire:test
             fi
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-testing-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
       - run:
           name: Saving test results (H2)
           command: |
