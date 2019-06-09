@@ -181,7 +181,8 @@ jobs:
       - save_cache:
           paths:
             - ~/usr/local/lib/node_modules
-          key: node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}      - run:
+          key: node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
+      - run:
           name: Saving test results (Integration)
           command: |
             mkdir -p ~/junit/integration
