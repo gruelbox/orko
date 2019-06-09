@@ -50,6 +50,7 @@ jobs:
           BUILD_ARGS: -B -U -Dskip.failsafe.tests=true -DskipTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     working_directory: ~/orko
     steps:
+      - checkout
       - restore_cache:
           keys:
             - maven-repo-v2-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -72,7 +73,7 @@ jobs:
             - ~/usr/local/lib/node_modules
           key: node-v4-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
       - persist_to_workspace:
-          root: ~
+          root: /home/circleci
           paths:
             - orko
       - run:
