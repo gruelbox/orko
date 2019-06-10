@@ -118,7 +118,7 @@ jobs:
             if [[ -n "$SONARQUBE_TOKEN" ]]; then
               echo "Build and Sonar"
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-              export SONAR_TARGETS="-Pci org.jacoco:jacoco-maven-plugin:prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report sonar:sonar"
+              export SONAR_TARGETS="-Pci org.jacoco:jacoco-maven-plugin:prepare-agent@default-prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report@default-report sonar:sonar"
               export SONAR_ARGS="-Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
                   -Dsonar.login=${SONARQUBE_TOKEN}"
