@@ -1,7 +1,7 @@
 version: 2
 
 alltags: &alltags
-  filters: # required since `deploy` has tag filters AND requires `build`
+  filters:
     tags:
       only: /.*/
 restoremavencache: &restoremavencache
@@ -9,20 +9,15 @@ restoremavencache: &restoremavencache
     - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
     - maven-repo-v3-{{ .Branch }}-
     - maven-repo-v3-
-mainimage: &mainimage
-  - image: circleci/openjdk:8-jdk-browsers
-    environment:
-      MAVEN_OPTS: -Xmx3200m
-      BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+mainenvironment: &mainenvironment
+  environment:
+    MAVEN_OPTS: -Xmx3200m
+    BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 setup: &setup
   docker:
-    <<: *mainimage
+    - image: circleci/openjdk:8-jdk-browsers
+      environment: *mainenvironment
   working_directory: ~/orko
-resetposition: &resetposition
-  - attach_workspace:
-      at: /home/circleci
-  - restore_cache:
-      <<: *restoremavencache
 
 notify:
   webhooks:
@@ -32,8 +27,7 @@ workflows:
   version: 2
   all:
     jobs:
-      - "Compile and build":
-          <<: *alltags
+      - "Compile and build": *alltags
       - "Unit tests (all)":
           requires:
             - "Compile and build"
@@ -68,8 +62,7 @@ jobs:
     <<: *setup
     steps:
       - checkout
-      - restore_cache:
-          <<: *restoremavencache
+      - restore_cache: *restoremavencache
       - restore_cache:
           keys:
             - node-v5-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
@@ -107,7 +100,9 @@ jobs:
   "Unit tests (all)":
     <<: *setup
     steps:
-      <<: *resetposition
+      - attach_workspace:
+          at: /home/circleci
+      - restore_cache: *restoremavencache
       - run:
           name: Upgrade Maven
           command: |
@@ -164,7 +159,9 @@ jobs:
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
-      <<: *resetposition
+      - attach_workspace:
+          at: /home/circleci
+      - restore_cache: *restoremavencache
       - restore_cache:
           keys:
             - node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
@@ -197,7 +194,8 @@ jobs:
 
   "Unit tests (MySQL)":
     docker:
-      <<: *mainimage
+      - image: circleci/openjdk:8-jdk-browsers
+          <<: *mainenvironment
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: rootpw
@@ -206,7 +204,9 @@ jobs:
           MYSQL_PASSWORD: sesame
     working_directory: ~/orko
     steps:
-      <<: *resetposition
+      - attach_workspace:
+          at: /home/circleci
+      - restore_cache: *restoremavencache
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -237,7 +237,9 @@ jobs:
   "Docker Hub":
     <<: *setup
     steps:
-      <<: *resetposition
+      - attach_workspace:
+          at: /home/circleci
+      - restore_cache: *restoremavencache
       - run:
           name: Release to Docker Hub
           command: |
@@ -260,7 +262,9 @@ jobs:
   "Deploy release":
     <<: *setup
     steps:
-      <<: *resetposition
+      - attach_workspace:
+          at: /home/circleci
+      - restore_cache: *restoremavencache
       - run:
           name: Release to Github (if tag and key available)
           command: |
