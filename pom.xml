@@ -532,6 +532,7 @@
             <excludes>
               <exclude>**/*Integration.java</exclude>
             </excludes>
+            <useSystemClassLoader>false</useSystemClassLoader>
           </configuration>
         </plugin>
         <plugin>
