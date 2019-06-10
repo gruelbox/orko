@@ -44,7 +44,11 @@ workflows:
             - "Unit tests (all)"
             - "Unit tests (MySQL)"
             - "End-to-end tests"
-          <<: *alltags
+          filters:
+            tags:
+              only: /^.*\..*/
+            branches:
+              only: master
       - "Deploy release":
           requires:
             - "Unit tests (all)"
@@ -250,13 +254,13 @@ jobs:
                 mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="$CIRCLE_TAG"
               else
                 if [[ (-n "$CIRCLE_BRANCH") && ("$CIRCLE_BRANCH" != "master") ]]; then
-                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="dev-$CIRCLE_BRANCH"
+                  echo "Skipping branch"
                 else
                   mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="latest"
                 fi
               fi
             else
-              echo "Docker Hub account details not supplied"
+              echo "Docker Hub account details not supplied. Probably an external pull request."
             fi
 
   "Deploy release":
