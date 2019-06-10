@@ -162,9 +162,9 @@
             <version>1.3.0</version>
             <configuration>
               <to>
-                <image>docker.io/gruelbox/orko:latest</image>
+                <image>docker.io/gruelbox/orko:${docker.tag1}</image>
                 <tags>
-                  <tag>${env.GIT_HASH}</tag>
+                  <tag>${docker.tag2}</tag>
                 </tags>
                 <auth>
                   <username>${env.DOCKERHUB_USER}</username>

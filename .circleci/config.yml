@@ -1,5 +1,29 @@
 version: 2
 
+alltags: &alltags
+  filters: # required since `deploy` has tag filters AND requires `build`
+    tags:
+      only: /.*/
+restoremavencache: &restoremavencache
+  keys:
+    - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+    - maven-repo-v3-{{ .Branch }}-
+    - maven-repo-v3-
+mainimage: &mainimage
+  - image: circleci/openjdk:8-jdk-browsers
+    environment:
+      MAVEN_OPTS: -Xmx3200m
+      BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+setup: &setup
+  docker:
+    <<: *mainimage
+  working_directory: ~/orko
+resetposition: &resetposition
+  - attach_workspace:
+      at: /home/circleci
+  - restore_cache:
+      <<: *restoremavencache
+
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/d1538bdca20be1aa31d8
@@ -9,35 +33,25 @@ workflows:
   all:
     jobs:
       - "Compile and build":
-          filters: # required since `deploy` has tag filters AND requires `build`
-            tags:
-              only: /.*/
+          <<: *alltags
       - "Unit tests (all)":
           requires:
             - "Compile and build"
-          filters: # required since `deploy` has tag filters AND requires `build`
-            tags:
-              only: /.*/
+          <<: *alltags
       - "Unit tests (MySQL)":
           requires:
             - "Compile and build"
-          filters: # required since `deploy` has tag filters AND requires `build`
-            tags:
-              only: /.*/
+          <<: *alltags
       - "End-to-end tests":
           requires:
             - "Compile and build"
-          filters: # required since `deploy` has tag filters AND requires `build`
-            tags:
-              only: /.*/
+          <<: *alltags
       - "Docker Hub":
           requires:
             - "Unit tests (all)"
             - "Unit tests (MySQL)"
             - "End-to-end tests"
-          filters:
-            branches:
-              only: dockerhub # while this is tested
+          <<: *alltags
       - "Deploy release":
           requires:
             - "Unit tests (all)"
@@ -51,19 +65,11 @@ workflows:
 
 jobs:
   "Compile and build":
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          MAVEN_OPTS: -Xmx3200m
-          BUILD_ARGS: -B -U -Dskip.failsafe.tests=true -DskipTests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    working_directory: ~/orko
+    <<: *setup
     steps:
       - checkout
       - restore_cache:
-          keys:
-            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v3-{{ .Branch }}-
-            - maven-repo-v3-
+          <<: *restoremavencache
       - restore_cache:
           keys:
             - node-v5-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
@@ -71,7 +77,7 @@ jobs:
             - node-v5-
       - run:
           name: Build
-          command: mvn ${BUILD_ARGS} -T 1C -Pui,bundle clean install
+          command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle clean install
       - save_cache:
           paths:
             - ~/.m2
@@ -99,20 +105,9 @@ jobs:
           path: ~/checkstyle
 
   "Unit tests (all)":
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          MAVEN_OPTS: -Xmx3200m
-          BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    working_directory: ~/orko
+    <<: *setup
     steps:
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache:
-          keys:
-            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v3-{{ .Branch }}-
-            - maven-repo-v3-
+      <<: *resetposition
       - run:
           name: Upgrade Maven
           command: |
@@ -129,7 +124,8 @@ jobs:
               export SONAR_TARGETS="-Pci org.jacoco:jacoco-maven-plugin:prepare-agent@default-prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report@default-report sonar:sonar"
               export SONAR_ARGS="-Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
-                  -Dsonar.login=${SONARQUBE_TOKEN}"
+                  -Dsonar.login=${SONARQUBE_TOKEN}
+                  -Dskip.failsafe.tests=true"
               if [[ -n "$CIRCLE_BRANCH" ]]; then
                 mvn ${BUILD_ARGS} -T 1C ${SONAR_TARGETS} ${SONAR_ARGS} \
                   -Dsonar.branch.name=${CIRCLE_BRANCH}
@@ -145,7 +141,7 @@ jobs:
               fi
             else
               echo "Test only"
-              mvn ${BUILD_ARGS} -T 1C surefire:test
+              mvn ${BUILD_ARGS} -T 1C surefire:test -Dskip.failsafe.tests=true
             fi
       - save_cache:
           paths:
@@ -163,23 +159,12 @@ jobs:
           path: ~/junit
 
   "End-to-end tests":
-    docker:
-      - image: circleci/openjdk:8-jdk-browsers
-        environment:
-          MAVEN_OPTS: -Xmx3200m
-          BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    working_directory: ~/orko
+    <<: *setup
     steps:
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache:
-          keys:
-            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v3-{{ .Branch }}-
-            - maven-repo-v3-
+      <<: *resetposition
       - restore_cache:
           keys:
             - node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
@@ -212,10 +197,7 @@ jobs:
 
   "Unit tests (MySQL)":
     docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          MAVEN_OPTS: -Xmx3200m
-          BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      <<: *mainimage
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: rootpw
@@ -224,13 +206,7 @@ jobs:
           MYSQL_PASSWORD: sesame
     working_directory: ~/orko
     steps:
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache:
-          keys:
-            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v3-{{ .Branch }}-
-            - maven-repo-v3-
+      <<: *resetposition
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -259,45 +235,32 @@ jobs:
           path: ~/junit
 
   "Docker Hub":
-    docker: 
-      - image: circleci/openjdk:8-jdk
-        environment:
-          BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    working_directory: ~/orko
+    <<: *setup
     steps:
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache:
-          keys:
-            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v3-{{ .Branch }}-
-            - maven-repo-v3-
+      <<: *resetposition
       - run:
           name: Release to Docker Hub
           command: |
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
               cd orko-app
               export GIT_HASH=`git log -1 --pretty=%H`
-              mvn ${BUILD_ARGS} -Pdockerhub jib:build
+              if [[ -n "$CIRCLE_TAG" ]]; then
+                mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="$CIRCLE_TAG"
+              else
+                if [[ (-n "$CIRCLE_BRANCH") && ("$CIRCLE_BRANCH" != "master") ]]; then
+                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="dev-$CIRCLE_BRANCH"
+                else
+                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="latest"
+                fi
+              fi
             else
               echo "Docker Hub account details not supplied"
             fi
 
   "Deploy release":
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          MAVEN_OPTS: -Xmx3200m
-          BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    working_directory: ~/orko
+    <<: *setup
     steps:
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache:
-          keys:
-            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v3-{{ .Branch }}-
-            - maven-repo-v3-
+      <<: *resetposition
       - run:
           name: Release to Github (if tag and key available)
           command: |
