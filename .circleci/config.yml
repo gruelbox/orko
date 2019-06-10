@@ -8,32 +8,33 @@ workflows:
   version: 2
   all:
     jobs:
-      - build:
+      - "Compile and build":
           filters: # required since `deploy` has tag filters AND requires `build`
             tags:
               only: /.*/
-      - junit:
-          filters: # required since `deploy` has tag filters AND requires `build`
-            tags:
-              only: /.*/
-      - mysql:
+      - "Unit tests (all)":
           requires:
-            - build
+            - "Compile and build"
           filters: # required since `deploy` has tag filters AND requires `build`
             tags:
               only: /.*/
-      - integration:
+      - "Unit tests (MySQL)":
           requires:
-            - build
+            - "Compile and build"
           filters: # required since `deploy` has tag filters AND requires `build`
             tags:
               only: /.*/
-      - deploy:
+      - "End-to-end tests":
           requires:
-            - build
-            - junit
-            - mysql
-            - integration
+            - "Compile and build"
+          filters: # required since `deploy` has tag filters AND requires `build`
+            tags:
+              only: /.*/
+      - "Deploy release":
+          requires:
+            - "Unit tests (all)"
+            - "Unit tests (MySQL)"
+            - "End-to-end tests"
           filters:
             tags:
               only: /^.*\..*/
@@ -41,7 +42,7 @@ workflows:
               ignore: /.*/
 
 jobs:
-  build:
+  "Compile and build":
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
@@ -89,7 +90,7 @@ jobs:
       - store_artifacts:
           path: ~/checkstyle
 
-  junit:
+  "Unit tests (all)":
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
@@ -97,7 +98,8 @@ jobs:
           BUILD_ARGS: -B -Dskip.failsafe.tests=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     working_directory: ~/orko
     steps:
-      - checkout
+      - attach_workspace:
+          at: /home/circleci
       - restore_cache:
           keys:
             - maven-testing-v1-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -116,7 +118,7 @@ jobs:
             if [[ -n "$SONARQUBE_TOKEN" ]]; then
               echo "Build and Sonar"
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-              export SONAR_TARGETS="clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar"
+              export SONAR_TARGETS="-Pci clean org.jacoco:jacoco-maven-plugin:prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report sonar:sonar"
               export SONAR_ARGS="-Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
                   -Dsonar.login=${SONARQUBE_TOKEN}"
@@ -152,7 +154,7 @@ jobs:
       - store_test_results:
           path: ~/junit
 
-  integration:
+  "End-to-end tests":
     docker:
       - image: circleci/openjdk:8-jdk-browsers
         environment:
@@ -200,7 +202,7 @@ jobs:
       - store_artifacts:
           path: orko-end-to-end-testing/app.log
 
-  mysql:
+  "Unit tests (MySQL)":
     docker:
       - image: circleci/openjdk:8-jdk
         environment:
@@ -248,7 +250,7 @@ jobs:
       - store_test_results:
           path: ~/junit
 
-  deploy:
+  "Deploy release":
     docker:
       - image: circleci/openjdk:8-jdk
         environment:

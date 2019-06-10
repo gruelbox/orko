@@ -162,13 +162,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
       <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <!-- CircleCI fix - see https://discuss.circleci.com/t/circleci-build-failure-on-openjdk-image/26104/2 -->
-          <useSystemClassLoader>false</useSystemClassLoader>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
       </plugin>
