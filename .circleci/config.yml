@@ -194,7 +194,7 @@ jobs:
   "Unit tests (MySQL)":
     docker:
       - image: circleci/openjdk:8-jdk-browsers
-          environment: *mainenvironment
+        environment: *mainenvironment
       - image: circleci/mysql:5.7
         environment:
           MYSQL_ROOT_PASSWORD: rootpw
