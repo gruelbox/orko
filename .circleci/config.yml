@@ -30,6 +30,14 @@ workflows:
           filters: # required since `deploy` has tag filters AND requires `build`
             tags:
               only: /.*/
+      - "Docker Hub":
+          requires:
+            - "Unit tests (all)"
+            - "Unit tests (MySQL)"
+            - "End-to-end tests"
+          filters:
+            branches:
+              only: dockerhub # while this is tested
       - "Deploy release":
           requires:
             - "Unit tests (all)"
@@ -250,6 +258,31 @@ jobs:
       - store_test_results:
           path: ~/junit
 
+  "Docker Hub":
+    docker: 
+      - image: circleci/openjdk:8-jdk
+        environment:
+          BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    working_directory: ~/orko
+    steps:
+      - attach_workspace:
+          at: /home/circleci
+      - restore_cache:
+          keys:
+            - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v3-{{ .Branch }}-
+            - maven-repo-v3-
+      - run:
+          name: Release to Docker Hub
+          command: |
+            if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
+              cd orko-app
+              export GIT_HASH=`git log -1 --pretty=%H`
+              mvn ${BUILD_ARGS} -Pdockerhub jib:build
+            else
+              echo "Docker Hub account details not supplied"
+            fi
+
   "Deploy release":
     docker:
       - image: circleci/openjdk:8-jdk
@@ -271,9 +304,8 @@ jobs:
             if [[ -n "$GITHUB_API_KEY" ]]; then
               if [[ -n "$CIRCLE_TAG" ]]; then
                 cd orko-app
-                mvn -B github-release:release \
-                  --settings ../etc/.maven-settings.xml \
-                  -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+                mvn ${BUILD_ARGS} github-release:release \
+                  --settings ../etc/.maven-settings.xml
               else
                 echo "Not a tag"
               fi
