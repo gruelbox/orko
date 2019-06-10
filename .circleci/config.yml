@@ -69,7 +69,7 @@ jobs:
             - node-v5-
       - run:
           name: Build
-          command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle clean install
+          command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle clean install -Dskip.failsafe.tests=true -DskipTests=true 
       - save_cache:
           paths:
             - ~/.m2
@@ -221,7 +221,8 @@ jobs:
           command: |
             mvn ${BUILD_ARGS} -Pdbonly surefire:test \
               -Dmorf.mysql.noadmin=true \
-              -Dtestdb.url=mysql://open:sesame@127.0.0.1/test
+              -Dtestdb.url=mysql://open:sesame@127.0.0.1/test \
+              -Dskip.failsafe.tests=true
       - run:
           name: Saving test results (MySQL)
           command: |
