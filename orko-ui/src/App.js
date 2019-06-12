@@ -22,7 +22,7 @@ import theme from "./theme"
 import { GlobalStyle } from "./theme"
 
 import { Provider as ReduxProvider } from "react-redux"
-import { compose, createStore, applyMiddleware } from "redux"
+import { createStore, applyMiddleware } from "redux"
 
 import createHistory from "history/createBrowserHistory"
 import { ConnectedRouter, routerMiddleware } from "connected-react-router"
