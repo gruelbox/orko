@@ -36,6 +36,7 @@ import * as socket from "./store/socket/connect"
 import ErrorContainer from "./containers/ErrorContainer"
 import AuthContainer from "./containers/AuthContainer"
 import FrameworkContainer from "./FrameworkContainer"
+import { composeWithDevTools } from "redux-devtools-extension"
 
 import * as authActions from "./store/auth/actions"
 
@@ -43,7 +44,7 @@ const history = createHistory()
 
 const store = createStore(
   enableBatching(createRootReducer(history)),
-  compose(
+  composeWithDevTools(
     applyMiddleware(routerMiddleware(history), thunk.withExtraArgument(socket))
   )
 )

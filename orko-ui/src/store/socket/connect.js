@@ -159,41 +159,42 @@ export function initialise(s, history) {
       bufferAllActions(coinActions.addUserTrade(trade))
   })
   socketClient.onOrderUpdate((coin, order, timestamp) => {
-    if (sameCoin(coin, selectedCoin()))
-      store.dispatch(coinActions.orderUpdated(order, timestamp))
+    store.dispatch(coinActions.orderUpdated(coin, order, timestamp))
   })
 
   // This is a bit hacky. The intent is to move this logic server side,
   // so the presence of a snapshot/poll loop is invisible to the client.
   // In the meantime, I'm not polluting the reducer with it.
   socketClient.onOrdersSnapshot((coin, orders, timestamp) => {
-    if (sameCoin(coin, selectedCoin())) {
-      var idsPresent = []
-      if (orders.length === 0) {
-        // Update that there are no orders
-        store.dispatch(coinActions.orderUpdated(null, timestamp))
-      } else {
-        // Updates for every order mentioned
-        orders.forEach(o => {
-          idsPresent.push(o.id)
-          store.dispatch(coinActions.orderUpdated(o, timestamp))
-        })
-      }
+    var idsPresent = []
+    if (orders.length === 0) {
+      // Update that there are no orders
+      store.dispatch(coinActions.orderUpdated(coin, null, timestamp))
+    } else {
+      // Updates for every order mentioned
+      orders.forEach(o => {
+        idsPresent.push(o.id)
+        store.dispatch(coinActions.orderUpdated(coin, o, timestamp))
+      })
+    }
 
-      // Any order not mentioned should be removed
-      if (store.getState().coin.orders) {
-        store
-          .getState()
-          .coin.orders.filter(o => !idsPresent.includes(o.id))
-          .forEach(o => {
-            store.dispatch(
-              coinActions.orderUpdated(
-                { id: o.id, status: "CANCELED" },
-                timestamp
-              )
+    // Any order not mentioned should be removed
+    if (
+      store.getState().coin.orders &&
+      store.getState().coin.orders[coin.key]
+    ) {
+      store
+        .getState()
+        .coin.orders[coin.key].filter(o => !idsPresent.includes(o.id))
+        .forEach(o => {
+          store.dispatch(
+            coinActions.orderUpdated(
+              coin,
+              { id: o.id, status: "CANCELED" },
+              timestamp
             )
-          })
-      }
+          )
+        })
     }
   })
 }

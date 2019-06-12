@@ -45,8 +45,8 @@ export function clearBalances() {
   return { type: types.CLEAR_BALANCES }
 }
 
-export function orderUpdated(order, timestamp) {
-  return { type: types.ORDER_UPDATED, payload: { order, timestamp } }
+export function orderUpdated(coin, order, timestamp) {
+  return { type: types.ORDER_UPDATED, payload: { coin, order, timestamp } }
 }
 
 export function clearOrders() {

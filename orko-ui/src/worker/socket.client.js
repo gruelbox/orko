@@ -152,7 +152,7 @@ export function resubscribe() {
   })
   send({
     command: socketMessages.CHANGE_OPEN_ORDERS,
-    tickers: serverSelectedCoinTickers
+    tickers: subscribedCoins.map(coin => webCoinToServerCoin(coin))
   })
   send({
     command: socketMessages.CHANGE_ORDER_BOOK,
@@ -164,7 +164,7 @@ export function resubscribe() {
   })
   send({
     command: socketMessages.CHANGE_ORDER_STATUS_CHANGE,
-    tickers: serverSelectedCoinTickers
+    tickers: subscribedCoins.map(coin => webCoinToServerCoin(coin))
   })
   send({
     command: socketMessages.CHANGE_USER_TRADES,

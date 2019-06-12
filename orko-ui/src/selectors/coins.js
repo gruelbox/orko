@@ -18,7 +18,7 @@
 import { createSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getAlertJobs, getStopJobs } from "./jobs"
-import { coinFromKey } from "../util/coinUtils"
+import { coinFromKey, coinFromTicker } from "../util/coinUtils"
 
 const getCoins = state => state.coins.coins
 const getReferencePrices = state => state.coins.referencePrices
@@ -65,7 +65,14 @@ function jobTriggerMatchesCoin(job, coin) {
   )
 }
 
-function serverJobDecorate(job) {
+function orderDecorate(order, exchanges) {
+  return {
+    ...order,
+    exchangeMeta: exchanges.find(e => e.code === order.coin.exchange)
+  }
+}
+
+function serverJobDecorate(job, exchanges) {
   return {
     runningAt: "SERVER",
     jobId: job.id,
@@ -85,40 +92,55 @@ function serverJobDecorate(job) {
     originalAmount: job.high
       ? Number(job.high.job.amount)
       : Number(job.low.job.amount),
-    cumulativeAmount: "--"
+    cumulativeAmount: "--",
+    coin: coinFromTicker(job.tickTrigger),
+    exchangeMeta: exchanges.find(e => e.code === job.tickTrigger.exchange)
   }
 }
 
 export const getOrdersForSelectedCoin = createSelector(
-  [getOrders, getStopJobs, getSelectedCoin],
-  (orders, stopJobs, selectedCoin) => {
+  [getOrders, getStopJobs, getExchanges, getSelectedCoin],
+  (orders, stopJobs, exchanges, selectedCoin) => {
     if (!selectedCoin) return null
-
-    var result = !orders ? [] : orders.filter(o => !o.deleted)
+    var result = !(orders && orders[selectedCoin.key])
+      ? []
+      : orders[selectedCoin.key]
+          .filter(o => !o.deleted)
+          .map(order => orderDecorate(order, exchanges))
 
     const server = stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
-      .map(job => serverJobDecorate(job))
+      .map(job => serverJobDecorate(job, exchanges))
 
     result = result.concat(server)
 
     if (result.length === 0 && !orders) return null
-
     return result
   }
 )
 
 export const getOrdersForAllCoin = createSelector(
-  [getOrders, getStopJobs],
-  (orders, stopJobs) => {
-    var result = !orders ? [] : orders.filter(o => !o.deleted)
+  [getOrders, getStopJobs, getExchanges],
+  (orders, stopJobs, exchanges) => {
+    if (!orders) return null
+    let mergeOrders = []
+    Object.keys(orders).forEach(function(key) {
+      orders[key].forEach(function(item) {
+        mergeOrders.push(item)
+      })
+    })
 
-    const server = stopJobs.map(job => serverJobDecorate(job))
+    var result = !mergeOrders
+      ? []
+      : mergeOrders
+          .filter(o => !o.deleted)
+          .map(order => orderDecorate(order, exchanges))
+
+    const server = stopJobs.map(job => serverJobDecorate(job, exchanges))
 
     result = result.concat(server)
 
     if (result.length === 0 && !orders) return null
-
     return result
   }
 )

@@ -68,7 +68,12 @@ export default function reduce(state = initialState, action = {}) {
         userTradeHistory: undefined
       })
     case types.ORDER_UPDATED:
-      return orderUpdated(state, action.payload.order, action.payload.timestamp)
+      return orderUpdated(
+        state,
+        action.payload.coin,
+        action.payload.order,
+        action.payload.timestamp
+      )
     case types.CLEAR_ORDERS:
       return Immutable.merge(state, {
         orders: undefined
@@ -90,52 +95,75 @@ export default function reduce(state = initialState, action = {}) {
     })
   }
 
-  function orderUpdated(state, order, timestamp) {
+  function orderUpdated(state, coin, order, timestamp) {
     if (order === null) {
-      return Immutable.merge(state, {
-        orders: []
-      })
+      return Immutable.merge(
+        state,
+        {
+          orders: {
+            [coin.key]: []
+          }
+        },
+        { deep: true }
+      )
     }
+
+    // add coin property to order
+    order.coin = coin
 
     const isRemoval =
       order.status === "EXPIRED" ||
       order.status === "CANCELED" ||
       order.status === "FILLED"
 
-    // No orders at all yet
-    if (!state.orders) {
+    // No orders for this con at all yet
+    if (!state.orders[coin.key]) {
       if (isRemoval) return state
-      return Immutable.merge(state, {
-        orders: [
-          {
-            ...order,
-            deleted: false,
-            serverTimestamp: timestamp
+      return Immutable.merge(
+        state,
+        {
+          orders: {
+            [coin.key]: [
+              {
+                ...order,
+                deleted: false,
+                serverTimestamp: timestamp
+              }
+            ]
           }
-        ]
-      })
+        },
+        { deep: true }
+      )
     }
 
     // This order never seen before
-    const index = state.orders.findIndex(o => o.id === order.id)
+    const index = state.orders[coin.key].findIndex(o => o.id === order.id)
     if (index === -1) {
       if (isRemoval) return state
-      return Immutable.merge(state, {
-        orders: state.orders.concat({
-          ...order,
-          deleted: false,
-          serverTimestamp: timestamp
-        })
-      })
+      return Immutable.merge(
+        state,
+        {
+          orders: {
+            [coin.key]: [
+              state.orders[coin.key].concat({
+                ...order,
+                deleted: false,
+                serverTimestamp: timestamp
+              })
+            ]
+          }
+        },
+        { deep: true }
+      )
     }
 
     // If we've previously registered the order as removed, then assume
     // this update is late and stop
-    const prevVersion = state.orders[index]
+    const prevVersion = state.orders[coin.key][index]
     if (prevVersion.deleted) return state
 
     // If it's a removal, remove
-    if (isRemoval) return replaceOrderContent(index, { deleted: true })
+    if (isRemoval) return replaceOrderContent(index, coin, { deleted: true })
 
     // If the previous version is derived from a later timestamp than
     // this update, stop
@@ -143,11 +171,14 @@ export default function reduce(state = initialState, action = {}) {
 
     // Overwrite existing state with any values provided in the
     // update
-    return replaceOrderContent(index, { ...order, serverTimestamp: timestamp })
+    return replaceOrderContent(index, coin, {
+      ...order,
+      serverTimestamp: timestamp
+    })
   }
 
-  function replaceOrderContent(index, replacement) {
-    const orders = Immutable.asMutable(state.orders, { deep: true })
+  function replaceOrderContent(index, coin, replacement) {
+    const orders = Immutable.asMutable(state.orders[coin.key], { deep: true })
     const existing = orders[index]
     for (const key of Object.keys(replacement)) {
       const val = replacement[key]
@@ -155,6 +186,14 @@ export default function reduce(state = initialState, action = {}) {
         existing[key] = val
       }
     }
-    return Immutable.merge(state, { orders })
+    return Immutable.merge(
+      state,
+      {
+        orders: {
+          [coin.key]: orders
+        }
+      },
+      { deep: true }
+    )
   }
 }

@@ -22,6 +22,7 @@ import Href from "../components/primitives/Href"
 import * as dateUtils from "../util/dateUtils"
 import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
+import { Link } from "react-router-dom"
 
 const textStyle = {
   textAlign: "left"
@@ -81,6 +82,46 @@ const runningAtColumn = {
   style: textStyle,
   resizable: true,
   width: 32
+}
+
+const exchangeColumn = {
+  id: "exchange",
+  Header: "Exchange",
+  accessor: "exchange",
+  Cell: ({ original }) => (
+    <Link
+      data-orko={original.coin.key + "/exchange"}
+      to={"/coin/" + original.coin.key}
+      title="Open coin"
+    >
+      {original.exchangeMeta
+        ? original.exchangeMeta.name
+        : original.coin.exchange}
+    </Link>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  resizable: true,
+  minWidth: 40
+}
+
+const nameColumn = {
+  id: "name",
+  Header: "Name",
+  accessor: "shortName",
+  Cell: ({ original }) => (
+    <Link
+      data-orko={original.coin.key + "/name"}
+      to={"/coin/" + original.coin.key}
+      title="Open coin"
+    >
+      {original.coin.shortName}
+    </Link>
+  ),
+  headerStyle: textStyle,
+  style: textStyle,
+  resizable: true,
+  minWidth: 50
 }
 
 const createdDateColumn = {
@@ -228,6 +269,8 @@ const OpenOrders = props => (
       cancelColumn(props.onCancelExchange, props.onCancelServer),
       orderTypeColumn,
       runningAtColumn,
+      exchangeColumn,
+      nameColumn,
       createdDateColumn,
       limitPriceColumn(props.coin),
       stopPriceColumn(props.coin),
