@@ -33,7 +33,7 @@ Orko is a new application which has missing features and some well-known bugs. I
 
 ## Installation
 
-[**Windows**](https://github.com/gruelbox/orko/wiki/Local-installation#on-windows) | [**Ubuntu/Debian**](https://github.com/gruelbox/orko/wiki/Local-installation#on-ubuntudebian) | [**Heroku (quick)**](https://github.com/gruelbox/orko/wiki/One-click-installation-on-Heroku) | [**Heroku (manual)**](https://github.com/gruelbox/orko/wiki/Manual-installation-on-Heroku)
+[**Windows**](https://github.com/gruelbox/orko/wiki/Local-installation#on-windows) | [**Ubuntu/Debian**](https://github.com/gruelbox/orko/wiki/Local-installation#on-ubuntudebian) | [**Docker**](https://github.com/gruelbox/orko/wiki/Installing-using-Docker) | [**Heroku quick**](https://github.com/gruelbox/orko/wiki/One-click-installation-on-Heroku) | [**Heroku manual**](https://github.com/gruelbox/orko/wiki/Manual-installation-on-Heroku)
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gruelbox/orko/tree/stable)
 
