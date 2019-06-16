@@ -51,7 +51,7 @@ workflows:
               only:
                 - master
                 - stable
-      - "Deploy release":
+      - "Deploy release to GitHub":
           requires:
             - "Unit tests (all)"
             - "Unit tests (MySQL)"
