@@ -11,9 +11,9 @@
   "author": "",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "cypress": "^3.2.0"
+    "cypress": "^3.3.1"
   },
   "dependencies": {
-    "otplib": "^11.0.0"
+    "otplib": "^11.0.1"
   }
 }

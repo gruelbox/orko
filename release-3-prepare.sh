@@ -2,4 +2,4 @@
 mvn release:prepare \
     -DpreparationGoals=clean \
     -DautoVersionSubmodules=true \
-    -Pintegration-test
+    -Pui,e2etest

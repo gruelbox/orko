@@ -1,6 +1,6 @@
 /*
- * # Semantic - Menu
- * http://github.com/semantic-org/semantic-ui/
+ * # Fomantic - Menu
+ * http://github.com/fomantic/Fomantic-UI/
  *
  *
  * Copyright 2015 Contributor
@@ -392,6 +392,10 @@
   .ui.menu:not(.secondary):not(.text):not(.tabular):not(.borderless) > .container > .item:not(.right):not(.borderless):first-child {
     border-left: @dividerSize solid @dividerBackground;
   }
+  .ui.menu:not(.secondary):not(.text):not(.tabular):not(.borderless) > .container > .right.item:not(.borderless):last-child,
+  .ui.menu:not(.secondary):not(.text):not(.tabular):not(.borderless) > .container > .right.menu > .item:not(.borderless):last-child {
+    border-right: @dividerSize solid @dividerBackground;
+  }
 }
 
 
@@ -455,7 +459,7 @@
      Disabled
 ---------------*/
 
-.ui.menu .item.disabled {
+.ui.ui.menu .item.disabled {
   cursor: default;
   background-color: transparent;
   color: @disabledTextColor;
@@ -473,7 +477,7 @@ Floated Menu / Item
 
 /* Left Floated */
 .ui.menu:not(.vertical) .left.item,
-.ui.menu:not(.vertical) :not(.dropdown) > .left.menu {
+.ui.menu:not(.vertical) .left.menu {
   display: flex;
   margin-right: auto !important;
 }
@@ -483,6 +487,12 @@ Floated Menu / Item
   display: flex;
   margin-left: auto !important;
 }
+
+.ui.menu:not(.vertical) :not(.dropdown) > .left.menu,
+.ui.menu:not(.vertical) :not(.dropdown) > .right.menu {
+  display: inherit;
+}
+
 /* Center */
 .ui.menu:not(.vertical) .center.item,
 .ui.menu:not(.vertical) .center.menu {
@@ -908,7 +918,7 @@ Floated Menu / Item
 }
 
 /* Inverted */
-.ui.secondary.inverted.menu.menu {
+.ui.secondary.inverted.menu {
   background-color: transparent;
 }
 
@@ -937,7 +947,7 @@ Floated Menu / Item
   border-bottom-width: 0;
 }
 
-.ui.secondary.pointing.menu .item > .label {
+.ui.secondary.pointing.menu .item > .label:not(.floating) {
   margin-top: -@labelVerticalPadding;
   margin-bottom: -@labelVerticalPadding;
 }
@@ -1344,7 +1354,7 @@ each(@colors, {
 }
 
 /* Disabled */
-.ui.inverted.menu .item.disabled {
+.ui.ui.inverted.menu .item.disabled {
   color: @invertedDisabledTextColor;
 }
 
@@ -1519,7 +1529,7 @@ each(@colors, {
   text-align: center;
   justify-content: center;
 }
-.ui.attached.item.menu {
+.ui.attached.item.menu:not(.tabular) {
   margin: 0 @attachedHorizontalOffset !important;
 }
 
@@ -1886,6 +1896,38 @@ each(@colors, {
 }
 .ui.massive.menu .dropdown .menu > .item{
   font-size: @massive;
+}
+
+/*-------------------
+  Inverted dropdowns
+--------------------*/
+.ui.menu .ui.inverted.inverted.dropdown.item .menu {
+  background: @invertedDropdownBackground;
+  box-shadow: @invertedDropdownMenuBoxShadow;
+}
+
+.ui.menu .ui.inverted.dropdown .menu > .item {
+  color: @invertedDropdownItemColor !important;
+}
+
+.ui.menu .ui.inverted.dropdown .menu > .active.item {
+  background: @invertedDropdownActiveItemBackground !important;
+  color: @invertedDropdownActiveItemColor !important;
+}
+
+.ui.menu .ui.inverted.dropdown .menu > .item:hover {
+  background: @invertedDropdownHoveredItemBackground !important;
+  color: @invertedDropdownHoveredItemColor !important;
+}
+
+.ui.menu .ui.inverted.dropdown .menu > .selected.item {
+  background: @invertedDropdownSelectedItemBackground !important;
+  color: @invertedDropdownSelectedItemColor !important;
+}
+
+/* Vertical */
+.ui.vertical.menu .inverted.dropdown.item .menu {
+  box-shadow: @invertedDropdownMenuBoxShadow;
 }
 
 .loadUIOverrides();

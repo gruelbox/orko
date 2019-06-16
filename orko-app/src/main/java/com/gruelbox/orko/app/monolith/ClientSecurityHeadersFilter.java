@@ -64,7 +64,7 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
           + "script-src 'self' https://*.tradingview.com; "
           + "img-src 'self' data:; "
           + "frame-src 'self' https://*.tradingview.com; "
-          + "connect-src 'self' " + wssUri.toString() + "; "
+          + "connect-src 'self' https://api.github.com " + wssUri.toString() + "; "
           + "manifest-src 'self'; "
           + "frame-ancestors 'self';";
     });
