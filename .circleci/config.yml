@@ -48,7 +48,9 @@ workflows:
             tags:
               only: /^.*\..*/
             branches:
-              only: master
+              only:
+                - master
+                - stable
       - "Deploy release":
           requires:
             - "Unit tests (all)"
@@ -58,7 +60,8 @@ workflows:
             tags:
               only: /^.*\..*/
             branches:
-              ignore: /.*/
+              only:
+                - master
 
 jobs:
   "Compile and build":
@@ -249,36 +252,50 @@ jobs:
           command: |
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
               cd orko-app
-              export GIT_HASH=`git log -1 --pretty=%H`
               if [[ -n "$CIRCLE_TAG" ]]; then
-                mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="$CIRCLE_TAG"
+                mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="$CIRCLE_TAG"
               else
-                if [[ (-n "$CIRCLE_BRANCH") && ("$CIRCLE_BRANCH" != "master") ]]; then
-                  echo "Skipping branch"
+                if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
+                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="stable"
                 else
-                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$GIT_HASH" -Ddocker.tag2="latest"
+                  if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
+                    mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="latest"
+                  else
+                    echo "Skipping branch"
+                  fi
                 fi
               fi
             else
               echo "Docker Hub account details not supplied. Probably an external pull request."
             fi
 
-  "Deploy release":
+  "Deploy release to GitHub":
     <<: *setup
     steps:
       - attach_workspace:
           at: /home/circleci
       - restore_cache: *restoremavencache
       - run:
-          name: Release to Github (if tag and key available)
+          name: Release to GitHub
           command: |
             if [[ -n "$GITHUB_API_KEY" ]]; then
+              cd orko-app
               if [[ -n "$CIRCLE_TAG" ]]; then
-                cd orko-app
                 mvn ${BUILD_ARGS} github-release:release \
                   --settings ../etc/.maven-settings.xml
               else
-                echo "Not a tag"
+                if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
+                  COMMIT_MESSAGE=`git log --format=%B -n 1 $CIRCLE_SHA1`
+                  if [[ $COMMIT_MESSAGE == *"[publish snapshot]"* ]]; then
+                    mvn ${BUILD_ARGS} github-release:release \
+                      --settings ../etc/.maven-settings.xml \
+                      -Dgithub.draft=true
+                  else
+                    echo "No [publish snapshot] in commit message"
+                  fi
+                else
+                  echo "Not a tag or master branch"
+                fi
               fi
             else
               echo "Github API key not set"
