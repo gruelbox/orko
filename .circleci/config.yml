@@ -3,7 +3,7 @@ version: 2
 alltags: &alltags
   filters:
     tags:
-      only: /.*/
+      only: /((?!SNAPSHOT).)*/
 restoremavencache: &restoremavencache
   keys:
     - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -46,7 +46,7 @@ workflows:
             - "End-to-end tests"
           filters:
             tags:
-              only: /^.*\..*/
+              only: /^.*\.((?!SNAPSHOT).)*/
             branches:
               only:
                 - master
@@ -58,7 +58,7 @@ workflows:
             - "End-to-end tests"
           filters:
             tags:
-              only: /^.*\..*/
+              only: /^.*\.((?!SNAPSHOT).)*/
             branches:
               only:
                 - master
@@ -282,16 +282,23 @@ jobs:
               cd orko-app
               if [[ -n "$CIRCLE_TAG" ]]; then
                 mvn ${BUILD_ARGS} github-release:release \
-                  --settings ../etc/.maven-settings.xml
+                  --settings ../etc/.maven-settings.xml \
+                  -Dgithub.commitish=$CIRCLE_SHA1 \
+                  -Dgithub.draft=true \
+                  -Dgithub.failOnExistingRelease=true \
+                  -Dgithub.deleteRelease=false
               else
                 if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
                   COMMIT_MESSAGE=`git log --format=%B -n 1 $CIRCLE_SHA1`
                   if [[ $COMMIT_MESSAGE != *"prepare release"* ]]; then
                     mvn ${BUILD_ARGS} github-release:release \
                       --settings ../etc/.maven-settings.xml \
-                      -Dgithub.draft=true
+                      -Dgithub.commitish=$CIRCLE_SHA1 \
+                      -Dgithub.draft=false \
+                      -Dgithub.failOnExistingRelease=false \
+                      -Dgithub.deleteRelease=true
                   else
-                    echo "No [publish snapshot] in commit message"
+                    echo "Skipping pushing snapshot during a release"
                   fi
                 else
                   echo "Not a tag or master branch"

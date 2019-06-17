@@ -231,6 +231,8 @@
           <releaseName>${project.version}</releaseName>
           <repositoryId>gruelbox/orko</repositoryId>
           <tag>${project.version}</tag>
+          <failOnExistingRelease>${github.failOnExistingRelease}</failOnExistingRelease>
+          <deleteRelease>${github.deleteRelease}</deleteRelease>
           <fileSets>
             <fileSet>
               <directory>${project.basedir}</directory>
