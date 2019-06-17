@@ -253,13 +253,13 @@ jobs:
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
               cd orko-app
               if [[ -n "$CIRCLE_TAG" ]]; then
-                mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="$CIRCLE_TAG"
+                mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag="$CIRCLE_TAG"
               else
                 if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
-                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="stable"
+                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag="stable"
                 else
                   if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
-                    mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="latest"
+                    mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag="latest"
                   else
                     echo "Skipping branch"
                   fi
@@ -286,7 +286,7 @@ jobs:
               else
                 if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
                   COMMIT_MESSAGE=`git log --format=%B -n 1 $CIRCLE_SHA1`
-                  if [[ $COMMIT_MESSAGE == *"[publish snapshot]"* ]]; then
+                  if [[ $COMMIT_MESSAGE != *"prepare release"* ]]; then
                     mvn ${BUILD_ARGS} github-release:release \
                       --settings ../etc/.maven-settings.xml \
                       -Dgithub.draft=true
