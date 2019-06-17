@@ -102,11 +102,11 @@ export function initialise(s, history) {
           store.dispatch(notificationActions.localMessage("Socket connected"))
           initialising = false
         } else {
-          store.dispatch(notificationActions.localAlert("Socket reconnected"))
+          store.dispatch(notificationActions.localMessage("Socket reconnected"))
         }
         resubscribe()
       } else {
-        store.dispatch(notificationActions.localError("Socket disconnected"))
+        store.dispatch(notificationActions.localMessage("Socket disconnected"))
       }
     }
   })
