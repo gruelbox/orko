@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@mars/heroku-js-runtime-env": "^3.0.2",
-    "compare-versions": "^3.4.0",
+    "compare-versions": "^3.5.0",
     "connected-react-router": "^6.4.0",
     "cookies-js": "^1.2.3",
     "fetch": "^1.1.0",
