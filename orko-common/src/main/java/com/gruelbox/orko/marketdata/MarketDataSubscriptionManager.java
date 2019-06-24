@@ -767,6 +767,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         return;
       LOGGER.info("Connecting to exchange: {}", exchangeName);
       ProductSubscriptionBuilder builder = ProductSubscription.create();
+      boolean authenticated = exchangeService.isAuthenticated(exchangeName);
       subscriptionsForExchange.stream()
         .forEach(s -> {
           if (s.type().equals(TICKER)) {
@@ -778,13 +779,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           if (s.type().equals(TRADES)) {
             builder.addTrades(s.spec().currencyPair());
           }
-          if (s.type().equals(USER_TRADE)) {
+          if (authenticated && s.type().equals(USER_TRADE) ) {
             builder.addUserTrades(s.spec().currencyPair());
           }
-          if (s.type().equals(ORDER)) {
+          if (authenticated && s.type().equals(ORDER)) {
             builder.addOrders(s.spec().currencyPair());
           }
-          if (s.type().equals(BALANCE)) {
+          if (authenticated && s.type().equals(BALANCE)) {
             builder.addBalances(s.spec().currencyPair().base);
             builder.addBalances(s.spec().currencyPair().counter);
           }

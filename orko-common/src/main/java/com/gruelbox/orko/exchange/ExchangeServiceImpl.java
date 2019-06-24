@@ -19,6 +19,7 @@
 package com.gruelbox.orko.exchange;
 
 import static info.bitrich.xchangestream.service.ConnectableService.BEFORE_CONNECTION_HANDLER;
+import static info.bitrich.xchangestream.util.Events.BEFORE_API_CALL_HANDLER;
 import static java.util.stream.Stream.concat;
 
 import java.time.Duration;
@@ -134,6 +135,10 @@ public class ExchangeServiceImpl implements ExchangeService {
       RateLimiter rateLimiter = RateLimiter.create(0.25); // TODO make this exchange specific
       exSpec.setExchangeSpecificParametersItem(
         BEFORE_CONNECTION_HANDLER,
+        (Runnable) rateLimiter::acquire
+      );
+      exSpec.setExchangeSpecificParametersItem(
+        BEFORE_API_CALL_HANDLER,
         (Runnable) rateLimiter::acquire
       );
       if (Exchanges.SIMULATED.equals(exchangeName)) {
