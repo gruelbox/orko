@@ -472,7 +472,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (InterruptedException e) {
         throw e;
 
-      } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
+      } catch (UnsupportedOperationException e) {
 
         // Disable the feature since XChange doesn't provide support for it.
         LOGGER.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
@@ -688,9 +688,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         } else {
           try {
             disposables.add(connectSubscription(s));
-          } catch (NotAvailableFromExchangeException e) {
-            markAsNotSubscribed.accept(s);
-          } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
+          } catch (UnsupportedOperationException | ExchangeSecurityException e) {
             LOGGER.debug("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
             markAsNotSubscribed.accept(s);
           }
