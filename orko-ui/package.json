@@ -18,7 +18,7 @@
     "react-markdown": "^4.1.0",
     "react-page-visibility": "^4.0.0",
     "react-redux": "^6.0.1",
-    "react-rnd": "^9.2.0",
+    "react-rnd": "^10.0.0",
     "react-router-dom": "^5.0.1",
     "react-scripts": "3.0.1",
     "react-table": "^6.10.0",
