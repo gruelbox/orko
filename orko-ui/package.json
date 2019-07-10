@@ -24,7 +24,7 @@
     "react-table": "^6.10.0",
     "recompose": "^0.30.0",
     "reconnecting-websocket": "^4.1.10",
-    "redux": "^4.0.1",
+    "redux": "^4.0.3",
     "redux-batched-actions": "^0.4.1",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
