@@ -616,7 +616,7 @@
         <plugin>
           <groupId>com.bazaarvoice.maven.plugins</groupId>
           <artifactId>process-exec-maven-plugin</artifactId>
-          <version>0.8</version>
+          <version>0.9</version>
         </plugin>
         <plugin>
           <groupId>com.github.eirslett</groupId>
