@@ -109,7 +109,7 @@
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0</version>
             <configuration>
               <to>
                 <image>orko:latest</image>
@@ -159,7 +159,7 @@
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0</version>
             <configuration>
               <to>
                 <image>docker.io/gruelbox/orko:${docker.tag}</image>
