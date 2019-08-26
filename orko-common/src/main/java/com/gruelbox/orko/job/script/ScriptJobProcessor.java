@@ -75,7 +75,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
  *
  * @author Graham Crockford
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({ "deprecation", "removal" })
 class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final String PERMANENTLY_FAILED = "' permanently failed: ";
@@ -321,7 +321,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   public final class State {
 
-    public final StateManager<String> persistent = new StateManager<String>() {
+    public final StateManager<String> persistent = new StateManager<>() {
 
       @Override
       public void set(String key, String value) {
