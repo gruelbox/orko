@@ -46,6 +46,20 @@ public class TestExchangeService {
     assertTrue(exchangeService.getExchanges().contains(GDAX));
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testInstantiationFailurePublic() {
+    ExchangeServiceImpl exchangeService = vanilla("nonexistent");
+    exchangeService.get("nonexistent");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInstantiationFailurePrivate() {
+    OrkoConfiguration config = baseConfig("nonexistent");
+    config.getExchanges().get("nonexistent").setApiKey("XXX");
+    ExchangeServiceImpl exchangeService = of(config);
+    exchangeService.get("nonexistent");
+  }
+
   @Test
   public void testGdaxSandbox() {
     OrkoConfiguration config = baseConfig(GDAX);
