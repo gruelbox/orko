@@ -18,6 +18,7 @@
 
 package com.gruelbox.orko.jobrun;
 
+
 class TestingJobEvent {
 
   public static final TestingJobEvent create( String jobId, EventType eventType) {
