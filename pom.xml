@@ -246,6 +246,7 @@
   <dependencyManagement>
     <dependencies>
       
+      <!-- Required by maven-compiler-plugin and maven-surefire-plugin on JDK9+ -->
       <dependency>
         <groupId>org.javassist</groupId>
         <artifactId>javassist</artifactId>
@@ -543,6 +544,7 @@
             <target>${maven.compiler.target}</target>
           </configuration>
           <dependencies>
+            <!-- JDK9+ fix -->
             <dependency>
               <groupId>org.ow2.asm</groupId>
               <artifactId>asm</artifactId>
@@ -574,6 +576,7 @@
             <useSystemClassLoader>false</useSystemClassLoader>
           </configuration>
           <dependencies>
+            <!-- JDK9+ fix -->
             <dependency>
               <groupId>org.ow2.asm</groupId>
               <artifactId>asm</artifactId>
