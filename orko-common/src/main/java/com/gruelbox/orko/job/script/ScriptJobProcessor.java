@@ -321,7 +321,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   public final class State {
 
-    public final StateManager<String> persistent = new StateManager<>() {
+    public final StateManager<String> persistent = new StateManager<String>() {
 
       @Override
       public void set(String key, String value) {
