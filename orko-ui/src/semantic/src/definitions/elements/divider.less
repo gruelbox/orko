@@ -1,6 +1,6 @@
 /*!
- * # Semantic UI - Divider
- * http://github.com/semantic-org/semantic-ui/
+ * # Fomantic-UI - Divider
+ * http://github.com/fomantic/Fomantic-UI/
  *
  *
  * Released under the MIT license
@@ -181,6 +181,26 @@
   font-size: @dividerIconSize;
   height: 1em;
   vertical-align: middle;
+}
+
+/*--------------
+     Header
+---------------*/
+.ui.horizontal.divider[class*="left aligned"] {
+  &:before {
+    display: none;
+  }
+  &:after {
+    width: 100%;
+  }
+}
+.ui.horizontal.divider[class*="right aligned"] {
+  &:before {
+    width: 100%;
+  }
+  &:after {
+    display: none;
+  }
 }
 
 /*******************************

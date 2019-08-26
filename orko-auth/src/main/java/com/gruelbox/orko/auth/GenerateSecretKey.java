@@ -40,15 +40,18 @@ public class GenerateSecretKey {
 
   private static void otp(final GenerateSecretKey generator, boolean doCheck) throws IOException {
     final String key = generator.createNewKey();
+    if (doCheck) {
+      System.out.println("Here's your key. Enter it into Google Authenticator:");
+    }
     displayKey(key);
     if (doCheck) {
+      System.out.println("");
       checkKey(generator, key);
     }
   }
 
   private static void displayKey(final String key) {
-    System.out.println("Here's your key. Enter it into Google Authenticator:");
-    System.out.println(key);
+    System.out.print(key);
   }
 
   private static void checkKey(final GenerateSecretKey generator, final String key) throws IOException {

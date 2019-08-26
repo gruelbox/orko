@@ -1,2 +1,3 @@
 #!/bin/bash
-mvn clean package -U -Pproduction -Dmaven.test.skip=true -Dskip.failsafe.tests=true -Dspotbugs.skip=true -Dcheckstyle.skip=true -T 1C
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+mvn clean package -f "$DIR" -U -Pui,bundle -Dmaven.test.skip=true -Dskip.failsafe.tests=true -Dspotbugs.skip=true -Dcheckstyle.skip=true -T 1C

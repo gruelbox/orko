@@ -77,7 +77,7 @@ function build(src, type, compress, config, opts) {
       compress ? config.paths.assets.compressed : config.paths.assets.uncompressed))
     .pipe(gulpif(compress, minifyCSS(settings.minify)))
     .pipe(gulpif(fileExtension, rename(fileExtension)))
-    .pipe(gulpif(config.hasPermission, chmod(config.permission)))
+    .pipe(gulpif(config.hasPermissions, chmod(config.parsedPermissions)))
     .pipe(gulp.dest(compress ? config.paths.output.compressed : config.paths.output.uncompressed))
     .pipe(print(log.created))
     ;
@@ -104,7 +104,7 @@ function pack(type, compress) {
     .pipe(dedupe())
     .pipe(replace(assets.uncompressed, assets.packaged))
     .pipe(concatCSS(concatenatedCSS, settings.concatCSS))
-    .pipe(gulpif(config.hasPermission, chmod(config.permission)))
+    .pipe(gulpif(config.hasPermissions, chmod(config.parsedPermissions)))
     .pipe(gulpif(compress, minifyCSS(settings.concatMinify)))
     .pipe(header(banner, settings.header))
     .pipe(gulp.dest(output.packaged))
@@ -192,7 +192,10 @@ module.exports.watch = function (type, config) {
   const method = type === 'docs' ? docs : rtlAndNormal;
 
   // Watch theme.config file
-  gulp.watch([normalize(config.paths.source.config)])
+  gulp.watch([
+    normalize(config.paths.source.config),
+    normalize(config.paths.source.site + '/**/site.variables')
+  ])
     .on('all', function () {
       // Clear timeout and reset files
       timeout && clearTimeout(timeout);
@@ -217,7 +220,9 @@ module.exports.watch = function (type, config) {
 
       // Determine which LESS file has to be recompiled
       let lessPath;
-      if (path.indexOf(config.paths.source.themes) !== -1) {
+      if(path.indexOf('site.variables') !== -1)  {
+        return;
+      } else if (path.indexOf(config.paths.source.themes) !== -1) {
         console.log('Change detected in packaged theme');
         lessPath = replaceExt(path, '.less');
         lessPath = lessPath.replace(tasks.regExp.theme, config.paths.source.definitions);
