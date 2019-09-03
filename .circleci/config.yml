@@ -110,6 +110,13 @@ jobs:
           at: /home/circleci
       - restore_cache: *restoremavencache
       - run:
+          name: Upgrade Maven
+          command: |
+            cd
+            cp ~/orko/.circleci/apache-maven-3.6.1-bin.tar.gz .
+            tar xzvf apache-maven-3.6.1-bin.tar.gz
+            cd ~/orko
+      - run:
           name: Tests (plus Sonar if possible)
           command: |
             if [[ -n "$SONARQUBE_TOKEN" ]]; then
