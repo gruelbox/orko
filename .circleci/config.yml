@@ -113,7 +113,7 @@ jobs:
           name: Upgrade Maven
           command: |
             cd
-            wget http://apache.mirrors.nublue.co.uk/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+            wget http://mirror.ox.ac.uk/sites/rsync.apache.org/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
             tar xzvf apache-maven-3.6.1-bin.tar.gz
             cd ~/orko
       - run:
