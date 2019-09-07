@@ -84,7 +84,7 @@
  Dropdown Icon
 ---------------*/
 
-.ui.dropdown > .dropdown.icon {
+.ui.dropdown > .dropdown.icon.icon {
   position: relative;
   width: auto;
   font-size: @dropdownIconSize;
@@ -168,16 +168,20 @@
 .ui.dropdown .menu > .header {
   margin: @menuHeaderMargin;
   padding: @menuHeaderPadding;
-  color: @menuHeaderColor;
-  font-size: @menuHeaderFontSize;
   font-weight: @menuHeaderFontWeight;
   text-transform: @menuHeaderTextTransform;
 }
-
+.ui.dropdown .menu > .header:not(.ui) {
+  color: @menuHeaderColor;
+  font-size: @menuHeaderFontSize;
+}
 .ui.dropdown .menu > .divider {
   border-top: @menuDividerBorder;
   height: 0;
   margin: @menuDividerMargin;
+}
+.ui.dropdown .menu > .horizontal.divider {
+  border-top: none;
 }
 
 .ui.dropdown.dropdown .menu > .input {
@@ -750,6 +754,16 @@ select.ui.dropdown {
 }
 .ui.multiple.dropdown > .label ~ .text {
   display: none;
+}
+.ui.multiple.dropdown > .label:not(.image) > img:not(.centered) {
+  margin-right: @itemElementDistance;
+}
+.ui.multiple.dropdown > .label:not(.image) > img.ui:not(.avatar) {
+  margin-bottom: @itemElementBottomDistance;
+}
+.ui.multiple.dropdown > .image.label img {
+  margin: @imageLabelImageMargin;
+  height: @imageLabelHeight;
 }
 
 /*-----------------
