@@ -32,6 +32,7 @@ export function areEqualShallow(a, b) {
 export function replaceInArray(arr, replacement, find) {
   var result = []
   var found = false
+  // eslint-disable-next-line
   for (let o of arr) {
     if (find(o)) {
       result.push(replacement)
