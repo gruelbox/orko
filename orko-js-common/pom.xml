@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>orko-ui</artifactId>
+  <artifactId>orko-js-common</artifactId>
   <packaging>jar</packaging>
 
   <parent>
@@ -11,17 +11,12 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <name>Orko UI</name>
+  <name>Orko JS Common</name>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>orko-semantic</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>orko-js-common</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -32,24 +27,19 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <configuration>
-            <includes>
-              <include>**/*.js</include>
-              <include>src</include>
-            </includes>
-            <excludes>
-              <exclude>node_modules/**</exclude>
-              <exclude>node/**</exclude>
-              <exclude>build/**</exclude>
-            </excludes>
-          </configuration>
+          <executions>
+            <execution>
+              <id>disabled</id>
+              <phase>none</phase>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
     <resources>
       <resource>
         <targetPath>assets</targetPath>
-        <directory>${basedir}/build</directory>
+        <directory>${basedir}/dist</directory>
         <filtering>false</filtering>
         <includes>
           <include>**/*</include>
@@ -90,9 +80,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

@@ -17,8 +17,9 @@
  */
 import React, { Component } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
-import FixedModal from "./primitives/FixedModal"
-import { isValidOtp } from "../util/numberUtils"
+import { numberUtils } from "orko-js-common/build/main"
+
+let { isValidOtp } = numberUtils
 
 export default class Whitelisting extends Component {
   constructor(props) {
@@ -34,7 +35,7 @@ export default class Whitelisting extends Component {
 
   render() {
     return (
-      <FixedModal size="tiny" data-orko="whitelistingModal">
+      <Modal size="tiny" data-orko="whitelistingModal">
         <Modal.Header>
           <Icon name="lock" />
           Unknown or expired origin IP address
@@ -80,7 +81,7 @@ export default class Whitelisting extends Component {
             Authorise
           </Button>
         </Modal.Actions>
-      </FixedModal>
+      </Modal>
     )
   }
 }

@@ -35,7 +35,6 @@ import { connectRouter } from "connected-react-router"
 export default history =>
   combineReducers({
     router: connectRouter(history),
-    auth,
     exchanges,
     coin,
     coins,

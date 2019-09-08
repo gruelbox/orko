@@ -15,25 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const isValidNumber = val => !isNaN(val) && val !== "" && val !== null
+export const formatDate = timestamp => {
+  const d = new Date(timestamp);
+  return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+};
 
-export const isValidOtp = val =>
-  !isNaN(val) && val.length === 6
-
-export const formatNumber = (x, scale, undefinedValue) => {
-  if (!isValidNumber(x)) return undefinedValue
-  const negative = x < 0
-  if (scale < 0) {
-    const split = negative
-      ? (-x).toString().split("-")
-      : x.toString().split("-")
-    if (split.length > 1) {
-      var result = Number(x).toFixed(split[1])
-      return negative ? -result : result
-    } else {
-      return negative ? -split[0] : split[0]
-    }
-  } else {
-    return Number(x).toFixed(scale)
-  }
-}
+export const unixToDate = timestamp => {
+  return new Date(timestamp * 1000);
+};

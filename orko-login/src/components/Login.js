@@ -17,10 +17,11 @@
  */
 import React, { Component } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
-import FixedModal from "./primitives/FixedModal"
 import authService from "../services/auth"
-import { setXsrfToken } from "../services/fetchUtil"
-import { isValidOtp } from "../util/numberUtils"
+import { fetchUtil, numberUtils } from "orko-js-common/build/main"
+
+let { setXsrfToken } = fetchUtil
+let { isValidOtp } = numberUtils
 
 export default class Login extends Component {
   constructor(props) {
@@ -62,7 +63,7 @@ export default class Login extends Component {
 
   render() {
     return (
-      <FixedModal size="tiny" data-orko="loginModal">
+      <Modal size="tiny" data-orko="loginModal">
         <Modal.Header>
           <Icon name="lock" />
           Login
@@ -149,7 +150,7 @@ export default class Login extends Component {
             Login
           </Button>
         </Modal.Actions>
-      </FixedModal>
+      </Modal>
     )
   }
 }
