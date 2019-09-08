@@ -96,6 +96,7 @@
     <profile>
       <id>ui</id>
       <modules>
+        <module>orko-semantic</module>
         <module>orko-ui</module>
       </modules>
     </profile>

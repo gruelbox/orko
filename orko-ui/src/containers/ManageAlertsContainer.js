@@ -29,6 +29,7 @@ import ReactTable from "react-table"
 import * as jobActions from "../store/job/actions"
 import { isAlert } from "../util/jobUtils"
 import theme from "../theme"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 const textStyle = {
   textAlign: "left"
@@ -136,7 +137,9 @@ class ManageAlertsContainer extends React.Component {
           <Section id="manageAlerts" heading={"Manage alerts for " + coin.name}>
             <Alerts
               alerts={alerts}
-              onDelete={job => this.props.dispatch(jobActions.deleteJob(job))}
+              onDelete={job =>
+                this.props.dispatch(jobActions.deleteJob(this.props.auth, job))
+              }
             />
             <CreateAlertContainer coin={coin} />
           </Section>
@@ -153,4 +156,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(ManageAlertsContainer)
+export default withAuth(connect(mapStateToProps)(ManageAlertsContainer))

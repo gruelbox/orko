@@ -23,12 +23,13 @@ import StopOrder from "../components/StopOrder"
 
 import * as focusActions from "../store/focus/actions"
 import * as exchangesActions from "../store/exchanges/actions"
-import { isValidNumber } from "../util/numberUtils"
+import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import uuidv4 from "uuid/v4"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 function coinServerSideSupported(coin) {
   return !["bittrex"].includes(coin.exchange)
@@ -121,10 +122,16 @@ class StopOrderContainer extends React.Component {
     if (this.state.order.useExchange) {
       const order = this.createOrder(direction)
       this.props.dispatch(
-        exchangesActions.submitStopOrder(this.props.coin.exchange, order)
+        exchangesActions.submitStopOrder(
+          this.props.auth,
+          this.props.coin.exchange,
+          order
+        )
       )
     } else {
-      this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
+      this.props.dispatch(
+        jobActions.submitJob(this.props.auth, this.createJob(direction))
+      )
     }
   }
 
@@ -184,4 +191,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(StopOrderContainer)
+export default withAuth(connect(mapStateToProps)(StopOrderContainer))

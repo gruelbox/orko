@@ -24,9 +24,10 @@ import ScriptEditor from "../components/ScriptEditor"
 import ScriptParameterContainer from "./ScriptParameterContainer"
 import { newScript, newParameter } from "../store/scripting/reducer"
 import * as scriptActions from "../store/scripting/actions"
-import { replaceInArray } from "../util/objectUtils"
+import { replaceInArray } from "@orko-ui-common/util/objectUtils"
 
 import uuidv4 from "uuid/v4"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 const NEW_SCRIPT_ROUTE = "new"
 
@@ -97,7 +98,9 @@ class ManageScriptsContainerInner extends React.Component {
     var nextChoice = this.props.scripts.find(
       script => script.id !== this.selectedScriptId()
     )
-    this.props.dispatch(scriptActions.remove(this.selectedScriptId()))
+    this.props.dispatch(
+      scriptActions.remove(this.props.auth, this.selectedScriptId())
+    )
     if (nextChoice) {
       this.onSelect(nextChoice)
     } else {
@@ -113,13 +116,17 @@ class ManageScriptsContainerInner extends React.Component {
           modified: false
         }),
         () => {
-          this.props.dispatch(scriptActions.add(this.state.current))
+          this.props.dispatch(
+            scriptActions.add(this.props.auth, this.state.current)
+          )
           this.props.history.push("/scripts/" + this.state.current.id)
         }
       )
     } else {
       this.setState({ modified: false }, () =>
-        this.props.dispatch(scriptActions.update(this.state.current))
+        this.props.dispatch(
+          scriptActions.update(this.props.auth, this.state.current)
+        )
       )
     }
   }
@@ -222,7 +229,9 @@ class ManageScriptsContainerInner extends React.Component {
   }
 }
 
-export default connect(state => ({
-  scripts: state.scripting.scripts,
-  loading: !state.scripting.loaded
-}))(ManageScriptsContainerOuter)
+export default withAuth(
+  connect(state => ({
+    scripts: state.scripting.scripts,
+    loading: !state.scripting.loaded
+  }))(ManageScriptsContainerOuter)
+)

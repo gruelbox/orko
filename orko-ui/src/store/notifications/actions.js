@@ -39,7 +39,7 @@ export function localMessage(message) {
 }
 
 export function trace(message) {
-  return (dispatch, getState, socket) => {
+  return (dispatch, getState) => {
     dispatch({
       type: types.ADD,
       payload: {
@@ -51,7 +51,7 @@ export function trace(message) {
 }
 
 function local(message, level) {
-  return (dispatch, getState, socket) => {
+  return (dispatch, getState) => {
     if (lastMessage !== message) {
       if (level === "ALERT" || level === "ERROR") {
         notify("Orko Client", message)
@@ -69,7 +69,7 @@ function local(message, level) {
 }
 
 export function add(notification) {
-  return (dispatch, getState, socket) => {
+  return (dispatch, getState) => {
     if (notification.level === "ALERT" || notification.level === "ERROR") {
       notify("Orko Server", notification.message)
     }
@@ -78,7 +78,7 @@ export function add(notification) {
 }
 
 export function addStatusCallback(requestId, callback) {
-  return (dispatch, getState, socket) => {
+  return (dispatch, getState) => {
     const registration = getState().notifications.statusCallbacks[requestId]
     if (registration) {
       if (callback) callback(registration.status)
@@ -93,7 +93,7 @@ export function addStatusCallback(requestId, callback) {
 }
 
 export function statusUpdate(update) {
-  return (dispatch, getState, socket) => {
+  return (dispatch, getState) => {
     const registration = getState().notifications.statusCallbacks[
       update.requestId
     ]

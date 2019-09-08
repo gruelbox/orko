@@ -17,7 +17,7 @@
  */
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
-import { getFromLS, saveToLS } from "../../util/localStorage"
+import { getFromLS, saveToLS } from "@orko-ui-common/util/localStorage"
 
 const VERSION = 1
 

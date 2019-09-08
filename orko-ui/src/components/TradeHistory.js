@@ -20,7 +20,7 @@ import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
-import * as dateUtils from "../util/dateUtils"
+import * as dateUtils from "@orko-ui-common/util/dateUtils"
 
 const BUY_SIDE = "BID"
 
