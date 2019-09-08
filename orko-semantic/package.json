@@ -1,0 +1,14 @@
+{
+  "name": "orko-semantic",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {},
+  "scripts": {
+    "build": "gulp build-css build-assets",
+    "watch": "npm run build-semantic && gulp watch"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "fomantic-ui": "^2.7.8"
+  }
+}

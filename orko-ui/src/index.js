@@ -17,7 +17,7 @@
  */
 import React from "react"
 import ReactDOM from "react-dom"
-import "./semantic/dist/semantic.min.css"
+import "orko-semantic/semantic.min.css"
 import "./index.css"
 import App from "./App"
 
