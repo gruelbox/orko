@@ -23,7 +23,7 @@ import StopOrder from "../components/StopOrder"
 
 import * as focusActions from "../store/focus/actions"
 import * as exchangesActions from "../store/exchanges/actions"
-import { isValidNumber } from "../util/numberUtils"
+import { isValidNumber } from "@orko-js-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 
 import * as jobActions from "../store/job/actions"

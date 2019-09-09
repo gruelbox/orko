@@ -18,7 +18,7 @@
 import React from "react"
 import { connect } from "react-redux"
 
-import * as dateUtils from "../util/dateUtils"
+import * as dateUtils from "@orko-js-common/util/dateUtils"
 import * as notificationActions from "../store/notifications/actions"
 
 import ReactTable from "react-table"

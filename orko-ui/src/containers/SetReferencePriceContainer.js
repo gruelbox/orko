@@ -29,7 +29,7 @@ import * as focusActions from "../store/focus/actions"
 import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
-import { isValidNumber, formatNumber } from "../util/numberUtils"
+import { isValidNumber, formatNumber } from "@orko-js-common/util/numberUtils"
 
 class SetReferencePriceContainer extends Component {
   state = {

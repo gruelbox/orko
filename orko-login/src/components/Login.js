@@ -18,8 +18,8 @@
 import React, { Component } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
 import authService from "services/auth"
-import { setXsrfToken } from "@orko-utils/fetchUtil"
-import { isValidOtp } from "@orko-utils/numberUtils"
+import { setXsrfToken } from "@orko-js-common/util/fetchUtil"
+import { isValidOtp } from "@orko-js-common/util/numberUtils"
 
 export default class Login extends Component {
   constructor(props) {

@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
-import ReactDOM from "react-dom"
-import "@orko-semantic/semantic.min.css"
-import "./index.css"
-import App from "./App"
+import React, { useState } from "react"
+import { Loader, Dimmer } from "semantic-ui-react"
 
-ReactDOM.render(<App />, document.getElementById("root"))
+const AuthContainer = () => {
+  return null
+}
+
+export default AuthContainer

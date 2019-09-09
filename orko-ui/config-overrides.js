@@ -1,7 +1,16 @@
+const {
+  override,
+  removeModuleScopePlugin,
+  babelInclude,
+  addWebpackAlias
+} = require("customize-cra")
 const path = require("path")
-const { removeModuleScopePlugin } = require("customize-cra")
 
-module.exports = function override(config, env) {
-  config = removeModuleScopePlugin()(config)
-  return config
-}
+module.exports = override(
+  removeModuleScopePlugin(),
+  babelInclude([path.resolve("src"), path.resolve(__dirname, "../js-common")]),
+  addWebpackAlias({
+    "@orko-js-common": path.resolve(__dirname, "../js-common"),
+    "@orko-semantic": path.resolve(__dirname, "../orko-semantic/dist")
+  })
+)

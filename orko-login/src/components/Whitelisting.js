@@ -17,7 +17,7 @@
  */
 import React, { Component } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
-import { isValidOtp } from "@orko-utils/numberUtils"
+import { isValidOtp } from "@orko-js-common/util/numberUtils"
 
 export default class Whitelisting extends Component {
   constructor(props) {

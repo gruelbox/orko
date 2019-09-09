@@ -20,7 +20,7 @@ import { connect } from "react-redux"
 
 import Toolbar from "../components/Toolbar"
 
-import { formatNumber } from "../util/numberUtils"
+import { formatNumber } from "@orko-js-common/util/numberUtils"
 import {
   getSelectedCoinTicker,
   getSelectedCoin,

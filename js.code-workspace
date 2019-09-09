@@ -1,11 +1,17 @@
 {
   "folders": [
-	{
-		"path": "orko-login"
-	},
-	{
-		"path": "orko-ui"
-	}
-],
+    {
+      "path": "orko-login"
+    },
+    {
+      "path": "orko-ui"
+    },
+    {
+      "path": "js-common"
+    },
+    {
+      "path": "orko-semantic"
+    }
+  ],
   "settings": {}
 }

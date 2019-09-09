@@ -17,7 +17,7 @@
  */
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
-import { replaceInArray } from "../../util/objectUtils"
+import { replaceInArray } from "@orko-js-common/util/objectUtils"
 
 export const newScript = Immutable({
   name: "New script",
