@@ -37,7 +37,7 @@ export function setAccessToken(token: string, expires: boolean): void {
   });
 }
 
-export function setXsrfToken(token): void {
+export function setXsrfToken(token: string): void {
   xsrfToken = token;
   localStorage.setItem(X_XSRF_TOKEN, token);
 }
@@ -47,23 +47,23 @@ export function clearXsrfToken(): void {
   localStorage.removeItem(X_XSRF_TOKEN);
 }
 
-export function getWeb(url): object {
+export async function getWeb(url: string): Promise<object> {
   return fetchPolyfill(url);
 }
 
-export function get(url): object {
+export async function get(url: string): Promise<object> {
   return fetchPolyfill("/api/" + url, action("GET"));
 }
 
-export function put(url, content): object {
+export async function put(url: string, content?: string): Promise<object> {
   return fetchPolyfill("/api/" + url, action("PUT", content));
 }
 
-export function post(url, content): object {
+export async function post(url: string, content?: string): Promise<object> {
   return fetchPolyfill("/api/" + url, action("POST", content));
 }
 
-export function del(url, content): object {
+export async function del(url: string, content?: string): Promise<object> {
   return fetchPolyfill("/api/" + url, action("DELETE", content));
 }
 

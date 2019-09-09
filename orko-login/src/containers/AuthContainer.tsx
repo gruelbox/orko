@@ -15,37 +15,102 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Loader, Dimmer } from "semantic-ui-react"
 import Whitelisting from "components/Whitelisting"
 import Login from "components/Login"
+import LoginDetails from "models/LoginDetails"
+import authService from "services/auth"
+import { setXsrfToken } from "@orko-js-common/util/fetchUtil"
 import LoggedIn from "components/LoggedIn"
-//import AuthService from "../services/auth"
 
-const AuthContainer = () => {
-  //const [loading, setLoading] = useState(true)
-  //const [loggedIn, setLoggedIn] = useState(false)
-  //const [whitelisted, setWhitelisted] = useState(false)
-  //const [error, setError] = useState<string>(undefined)
+const REDIRECT_TO = new URLSearchParams(window.location.search).get(
+  "redirectTo"
+)
 
-  const [loading] = useState(true)
-  const [loggedIn] = useState(false)
-  const [whitelisted] = useState(false)
-  const [error] = useState<string>("")
+const AuthContainer: React.FC<any> = () => {
+  const [loading, setLoading] = useState(true)
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [whitelisted, setWhitelisted] = useState(false)
+  const [error, setError] = useState<string>(undefined)
 
-  //et onWhitelist = (token: string) =>
-  //  this.props.dispatch(actions.whitelist(token))
-  //let onLogin = (details: any) => this.props.dispatch(actions.login(details))
-  //let onError = (error: string) =>
-  //  this.props.dispatch(errorActions.setForeground("Login error: " + error))
+  const checkConnected = async function(): Promise<boolean> {
+    console.log("Testing access")
+    const success: boolean = await authService.checkLoggedIn()
+    if (success) {
+      console.log("Logged in")
+    } else {
+      console.log("Not logged in")
+    }
+    if (success) {
+      setWhitelisted(true)
+      setLoggedIn(true)
+      setError(null)
+    }
+    return success
+  }
 
-  //let onWhitelist = (token: string) => {}
-  //let onLogin = (details: any) => {}
-  //let onError = (error: string) => {}
+  const onWhitelist = async function(token: string) {
+    try {
+      console.log("Checking whitelist")
+      await authService.whitelist(token)
+      console.log("Accepted whitelist")
+      setWhitelisted(true)
+      setError(null)
+      await checkConnected()
+    } catch (error) {
+      console.log(error.message)
+      setWhitelisted(false)
+      setError(error.message)
+    }
+  }
 
-  let onWhitelist = () => {}
-  let onLogin = () => {}
-  let onError = () => {}
+  const onLogin = async function(details: LoginDetails) {
+    authService
+      .simpleLogin(details)
+      .then(({ expiry, xsrf }) => {
+        try {
+          setXsrfToken(xsrf)
+        } catch (error) {
+          throw new Error("Malformed access token")
+        }
+        setLoggedIn(true)
+        setError(null)
+      })
+      .catch(error => {
+        console.log("Login failed", error.message)
+        setError(error.message)
+      })
+  }
+
+  useEffect(() => {
+    const onSetup = async function() {
+      if (!(await checkConnected())) {
+        console.log("Checking whitelist")
+        try {
+          const result = await authService.checkWhiteList()
+          console.log("Returned", result)
+          if (Boolean(result)) {
+            console.log("Verified whitelist")
+            setWhitelisted(true)
+            setError(null)
+            await checkConnected()
+          } else {
+            console.log("Not whitelisted")
+            setWhitelisted(false)
+            setError(null)
+          }
+        } catch (error) {
+          console.log("Error checking whitelist")
+          setWhitelisted(false)
+          setError(error.message)
+        }
+      }
+      setLoading(false)
+    }
+
+    onSetup()
+  }, [])
 
   if (loading) {
     return (
@@ -56,9 +121,12 @@ const AuthContainer = () => {
   } else if (!whitelisted) {
     return <Whitelisting onApply={onWhitelist} error={error} />
   } else if (!loggedIn) {
-    return <Login error={error} onSuccess={onLogin} onError={onError} />
-  } else {
+    return <Login error={error} onLogin={onLogin} />
+  } else if (!REDIRECT_TO) {
     return <LoggedIn />
+  } else {
+    console.log("Logged in. Redirecting")
+    window.location.href = REDIRECT_TO
   }
 }
 

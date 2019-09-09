@@ -18,8 +18,8 @@
 import { post, put, get, del } from "@orko-js-common/util/fetchUtil"
 
 class AuthService {
-  async checkWhiteList() {
-    const response = await get("auth")
+  async checkWhiteList(): Promise<boolean> {
+    const response: any = await get("auth")
     if (!response.ok) {
       throw Error(response.statusText)
     }
@@ -27,13 +27,13 @@ class AuthService {
     return result === "true"
   }
 
-  async checkLoggedIn() {
-    const response = await get("exchanges")
+  async checkLoggedIn(): Promise<boolean> {
+    const response: any = await get("exchanges")
     return response.ok
   }
 
-  async whitelist(token) {
-    const response = await put("auth?token=" + token)
+  async whitelist(token: string) {
+    const response: any = await put("auth?token=" + token)
     if (!response.ok) {
       if (response.status === 404)
         throw new Error("Whitelisting failed (invalid token)")
@@ -49,7 +49,7 @@ class AuthService {
   }
 
   async clearWhiteList() {
-    const response = await del("auth")
+    const response: any = await del("auth")
     if (!response.ok) {
       throw new Error(
         "Failed to clear whitelisting (" + (await response.text()) + ")"
@@ -58,7 +58,7 @@ class AuthService {
   }
 
   async simpleLogin(credentials) {
-    const response = await post("auth/login", JSON.stringify(credentials))
+    const response: any = await post("auth/login", JSON.stringify(credentials))
     if (!response.ok) {
       throw new Error("Login failed (" + response.statusText + ")")
     }
@@ -70,7 +70,7 @@ class AuthService {
   }
 
   async config() {
-    const result = await get("auth/config")
+    const result: any = await get("auth/config")
     return await result.json()
   }
 }

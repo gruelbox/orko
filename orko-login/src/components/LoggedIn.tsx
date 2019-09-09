@@ -16,16 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import React from "react"
-import { Modal, Icon, Message } from "semantic-ui-react"
+import { Modal, Icon } from "semantic-ui-react"
 
-export default () => (
+const LoggedIn: React.FC<any> = () => (
   <Modal open={true} size="tiny" data-orko="loginModal">
     <Modal.Header>
       <Icon name="lock" />
       Logged in
     </Modal.Header>
-    <Modal.Content>
-      <Message error header="Why are you here?" content="Already logged in" />
-    </Modal.Content>
+    <Modal.Content>Already logged in</Modal.Content>
   </Modal>
 )
+
+export default LoggedIn
