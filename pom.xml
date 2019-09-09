@@ -98,7 +98,7 @@
       <modules>
         <module>orko-semantic</module>
         <module>orko-ui</module>
-        <module>orko-js-common</module>
+        <module>orko-login</module>
       </modules>
     </profile>
     <profile>

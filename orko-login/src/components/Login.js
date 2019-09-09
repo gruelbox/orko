@@ -17,11 +17,9 @@
  */
 import React, { Component } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
-import authService from "../services/auth"
-import { fetchUtil, numberUtils } from "orko-js-common/build/main"
-
-let { setXsrfToken } = fetchUtil
-let { isValidOtp } = numberUtils
+import authService from "services/auth"
+import { setXsrfToken } from "@orko-utils/fetchUtil"
+import { isValidOtp } from "@orko-utils/numberUtils"
 
 export default class Login extends Component {
   constructor(props) {
@@ -63,7 +61,7 @@ export default class Login extends Component {
 
   render() {
     return (
-      <Modal size="tiny" data-orko="loginModal">
+      <Modal open={true} size="tiny" data-orko="loginModal">
         <Modal.Header>
           <Icon name="lock" />
           Login

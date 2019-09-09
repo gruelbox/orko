@@ -17,9 +17,9 @@
  */
 import React, { useState } from "react"
 import { Loader, Dimmer } from "semantic-ui-react"
-import Whitelisting from "../components/Whitelisting"
-import Login from "../components/Login"
-import LoggedIn from "../components/LoggedIn"
+import Whitelisting from "components/Whitelisting"
+import Login from "components/Login"
+import LoggedIn from "components/LoggedIn"
 //import AuthService from "../services/auth"
 
 const AuthContainer = () => {
@@ -31,7 +31,7 @@ const AuthContainer = () => {
   const [loading] = useState(true)
   const [loggedIn] = useState(false)
   const [whitelisted] = useState(false)
-  const [error] = useState<string>(undefined)
+  const [error] = useState<string>("")
 
   //et onWhitelist = (token: string) =>
   //  this.props.dispatch(actions.whitelist(token))
@@ -49,12 +49,12 @@ const AuthContainer = () => {
 
   if (loading) {
     return (
-      <Dimmer>
+      <Dimmer active={true}>
         <Loader active={true} />
       </Dimmer>
     )
   } else if (!whitelisted) {
-    return <Whitelisting onApply={onWhitelist} error={this.props.auth.error} />
+    return <Whitelisting onApply={onWhitelist} error={error} />
   } else if (!loggedIn) {
     return <Login error={error} onSuccess={onLogin} onError={onError} />
   } else {

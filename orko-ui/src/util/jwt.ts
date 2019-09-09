@@ -15,31 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-const globalAny: any = global;
-
-export function getFromLS(key: string): any {
-  const result = getValueFromLS(key);
-  return result === null ? null : JSON.parse(result);
-}
-
-export function getValueFromLS(key: string): string {
-  if (!globalAny.localStorage) {
-    return null;
-  }
-  try {
-    return globalAny.localStorage.getItem(key) || null;
-  } catch (e) {
-    return null;
-  }
-}
-
-export function saveToLS(key: string, value: any): any {
-  saveValueToLS(key, JSON.stringify(value));
-  return value;
-}
-
-export function saveValueToLS(key: string, value: string): void {
-  if (globalAny.localStorage) {
-    globalAny.localStorage.setItem(key, value);
-  }
+export const parseJwt = (token: string) => {
+  const base64Url = token.split(".")[1]
+  const base64 = base64Url.replace("-", "+").replace("_", "/")
+  return JSON.parse(window.atob(base64))
 }

@@ -15,8 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { fetchUtil } from "orko-js-common/build/main"
-let { post, put, get, del } = fetchUtil
+import { post, put, get, del } from "@orko-utils/fetchUtil"
 
 class AuthService {
   async checkWhiteList() {

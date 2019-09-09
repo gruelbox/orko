@@ -15,11 +15,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const formatDate = timestamp => {
-  const d = new Date(timestamp);
-  return d.toLocaleDateString() + " " + d.toLocaleTimeString();
-};
+const globalAny: any = global
 
-export const unixToDate = timestamp => {
-  return new Date(timestamp * 1000);
-};
+export function getFromLS(key: string): any {
+  const result = getValueFromLS(key)
+  return result === null ? null : JSON.parse(result)
+}
+
+export function getValueFromLS(key: string): string {
+  if (!globalAny.localStorage) {
+    return null
+  }
+  try {
+    return globalAny.localStorage.getItem(key) || null
+  } catch (e) {
+    return null
+  }
+}
+
+export function saveToLS(key: string, value: any): any {
+  saveValueToLS(key, JSON.stringify(value))
+  return value
+}
+
+export function saveValueToLS(key: string, value: string): void {
+  if (globalAny.localStorage) {
+    globalAny.localStorage.setItem(key, value)
+  }
+}
