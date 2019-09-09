@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import * as types from "./actionTypes"
 import authService from "../../services/auth"
 import * as notificationActions from "../notifications/actions"
 import * as errorActions from "../error/actions"
@@ -23,32 +22,7 @@ import * as coinActions from "../coins/actions"
 import * as scriptActions from "../scripting/actions"
 import * as supportActions from "../support/actions"
 import * as exchangesActions from "../exchanges/actions"
-
-export function checkWhiteList() {
-  return async (dispatch, getState, socket) => {
-    dispatch(notificationActions.trace("Checking whitelist"))
-    var result
-    try {
-      result = await authService.checkWhiteList()
-    } catch (error) {
-      dispatch(notificationActions.trace("Error checking whitelist"))
-      dispatch({
-        type: types.WHITELIST_UPDATE,
-        error: true,
-        payload: error
-      })
-      return
-    }
-    dispatch({ type: types.WHITELIST_UPDATE, payload: Boolean(result) })
-    if (result) {
-      dispatch(notificationActions.trace("Verified whitelist"))
-      dispatch(attemptConnect())
-    } else {
-      dispatch(notificationActions.trace("Whitelist rejected, disconnecting"))
-      socket.disconnect()
-    }
-  }
-}
+import { clearXsrfToken } from "services/fetchUtil"
 
 export function attemptConnect() {
   return async (dispatch, getState) => {
@@ -56,11 +30,10 @@ export function attemptConnect() {
     var success = await authService.checkLoggedIn()
     if (success) {
       dispatch(notificationActions.trace("Logged in"))
-      dispatch({ type: types.LOGIN, payload: {} })
       dispatch(connect())
     } else {
       dispatch(notificationActions.trace("Not logged in"))
-      dispatch({ type: types.LOGOUT, payload: {} })
+      redirectToLogin()
     }
   }
 }
@@ -79,25 +52,6 @@ function connect() {
   }
 }
 
-export function whitelist(token) {
-  return async (dispatch, getState, socket) => {
-    try {
-      dispatch(notificationActions.trace("Attempting whitelist"))
-      await authService.whitelist(token)
-      dispatch(notificationActions.trace("Accepted whitelist"))
-      dispatch({ type: types.WHITELIST_UPDATE, payload: true })
-      dispatch(attemptConnect())
-    } catch (error) {
-      dispatch(notificationActions.trace(error.message))
-      dispatch({
-        type: types.WHITELIST_UPDATE,
-        error: true,
-        payload: error
-      })
-    }
-  }
-}
-
 export function clearWhitelist() {
   return async (dispatch, getState, socket) => {
     try {
@@ -106,50 +60,17 @@ export function clearWhitelist() {
       dispatch(errorActions.setForeground(error.message))
       return
     }
-    await dispatch({ type: types.WHITELIST_UPDATE, payload: false })
     await socket.disconnect()
-    dispatch(checkWhiteList())
+    redirectToLogin()
   }
 }
 
 export function logout() {
   return (dispatch, getState, socket) => {
-    dispatch({ type: types.LOGOUT })
+    clearXsrfToken()
     socket.disconnect()
-    dispatch(checkWhiteList())
+    redirectToLogin()
   }
-}
-
-export function login(details) {
-  return async (dispatch, getState, socket) => {
-    await dispatch(notificationActions.trace("Logged in successfully"))
-    await dispatch({
-      type: types.LOGIN,
-      payload: details
-    })
-    await dispatch(connect())
-  }
-}
-
-export function invalidateLogin() {
-  return async (dispatch, getState, socket) => {
-    await dispatch({ type: types.INVALIDATE_LOGIN })
-    await socket.disconnect()
-    dispatch(checkWhiteList())
-  }
-}
-
-export function handleHttpResponse(response) {
-  if (response.status === 403) {
-    return {
-      type: types.WHITELIST_UPDATE,
-      error: true,
-      payload: new Error("Whitelisting expired")
-    }
-  } else if (response.status === 401) {
-    return invalidateLogin()
-  }
-  return null
 }
 
 export function wrappedRequest(
@@ -170,6 +91,15 @@ export function wrappedRequest(
   }
 }
 
+function redirectToLogin() {
+  console.log("API request failed. Redirecting to login")
+  if (window.location.pathname.startsWith("/login")) {
+    window.location.href = "/login"
+  } else {
+    window.location.href = "/login?redirectTo=" + window.location.pathname
+  }
+}
+
 export async function dispatchWrappedRequest(
   auth,
   dispatch,
@@ -179,22 +109,13 @@ export async function dispatchWrappedRequest(
   onSuccess
 ) {
   try {
-    // Don't dispatch API requests if we're not authenticated.
-    if (!auth.whitelisted || !auth.loggedIn) {
-      console.log("Warning: Ignoring api request as not logged in")
-      return
-    }
-
     // Dispatch the request
     const response = await apiRequest(auth)
 
     if (!response.ok) {
-      // Check if the response is an authentication error
-      const authAction = handleHttpResponse(response)
-      if (authAction !== null) {
-        // If so, handle it accordingly
-        dispatch(authAction)
-      } else {
+      if (response.status === 403 || response.status === 401) {
+        redirectToLogin()
+      } else if (response.status !== 200) {
         // Otherwise, it's an unexpected error
         var errorMessage = null
         try {

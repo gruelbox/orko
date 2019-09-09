@@ -23,10 +23,7 @@ import * as supportActions from "../store/support/actions"
 import * as supportSelectors from "../selectors/support"
 
 export default connect(state => ({
-  enabled:
-    state.auth.loggedIn &&
-    state.auth.whitelisted &&
-    !state.support.hideReleases,
+  enabled: !state.support.hideReleases,
   releases: supportSelectors.getNewVersions(state)
 }))(({ enabled, releases, dispatch }) => (
   <NewRelease

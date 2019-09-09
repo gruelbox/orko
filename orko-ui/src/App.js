@@ -34,7 +34,6 @@ import createRootReducer from "./store/reducers"
 import * as socket from "./store/socket/connect"
 
 import ErrorContainer from "./containers/ErrorContainer"
-import AuthContainer from "./containers/AuthContainer"
 import FrameworkContainer from "./FrameworkContainer"
 
 import * as authActions from "./store/auth/actions"
@@ -49,7 +48,7 @@ const store = createStore(
 )
 
 socket.initialise(store, history)
-store.dispatch(authActions.checkWhiteList())
+store.dispatch(authActions.attemptConnect())
 
 export default class App extends Component {
   render() {
@@ -62,7 +61,6 @@ export default class App extends Component {
             <ConnectedRouter history={history}>
               <FrameworkContainer />
             </ConnectedRouter>
-            <AuthContainer />
           </>
         </ReduxProvider>
       </ThemeProvider>
