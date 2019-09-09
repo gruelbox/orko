@@ -28,7 +28,7 @@ const REDIRECT_TO = new URLSearchParams(window.location.search).get(
   "redirectTo"
 )
 
-const AuthContainer: React.FC<any> = () => {
+const Authorizer: React.FC<any> = () => {
   const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
   const [whitelisted, setWhitelisted] = useState(false)
@@ -125,9 +125,10 @@ const AuthContainer: React.FC<any> = () => {
   } else if (!REDIRECT_TO) {
     return <LoggedIn />
   } else {
-    console.log("Logged in. Redirecting")
-    window.location.href = REDIRECT_TO
+    //console.log("Logged in. Redirecting")
+    //window.location.href = REDIRECT_TO
+    return <LoggedIn />
   }
 }
 
-export default AuthContainer
+export default Authorizer

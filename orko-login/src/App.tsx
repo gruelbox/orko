@@ -1,5 +1,5 @@
 import React from "react"
-import AuthContainer from "containers/AuthContainer"
+import Authoriser from "containers/Authoriser"
 
-const App = () => <AuthContainer />
+const App = () => <Authoriser />
 export default App
