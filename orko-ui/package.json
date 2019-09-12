@@ -29,7 +29,7 @@
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
     "seamless-immutable": "^7.1.4",
-    "semantic-ui-react": "^0.88.0",
+    "semantic-ui-react": "^0.88.1",
     "styled-components": "^4.3.2",
     "styled-system": "^5.1.2",
     "uuid": "^3.3.3",
