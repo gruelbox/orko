@@ -20,14 +20,13 @@ import { connect } from "react-redux"
 
 import Toolbar from "../components/Toolbar"
 
-import { formatNumber } from "@orko-js-common/util/numberUtils"
+import { formatNumber } from "@orko-ui-common/util/numberUtils"
 import {
   getSelectedCoinTicker,
   getSelectedCoin,
   getSelectedExchange
 } from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
-import * as authActions from "../store/auth/actions"
 
 const ToolbarContainer = props => {
   if (!props.connected) {
@@ -49,8 +48,8 @@ const ToolbarContainer = props => {
   return (
     <Toolbar
       {...props}
-      onLogout={() => props.dispatch(authActions.logout())}
-      onClearWhitelist={() => props.dispatch(authActions.clearWhitelist())}
+      onLogout={props.onLogout}
+      onClearWhitelist={props.onClearWhitelisting}
       onShowPanel={key => props.onTogglePanelVisible(key)}
       balance={props.balance}
       exchangeMetadata={props.exchangeMetadata}

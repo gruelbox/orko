@@ -24,7 +24,7 @@ import ScriptEditor from "../components/ScriptEditor"
 import ScriptParameterContainer from "./ScriptParameterContainer"
 import { newScript, newParameter } from "../store/scripting/reducer"
 import * as scriptActions from "../store/scripting/actions"
-import { replaceInArray } from "@orko-js-common/util/objectUtils"
+import { replaceInArray } from "@orko-ui-common/util/objectUtils"
 
 import uuidv4 from "uuid/v4"
 

@@ -17,7 +17,7 @@
  */
 import React from "react"
 import Immutable from "seamless-immutable"
-import { isValidNumber } from "@orko-js-common/util/numberUtils"
+import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import RawForm from "./primitives/RawForm"
 import FormButtonBar from "./primitives/FormButtonBar"
 import { Form, Label, Button } from "semantic-ui-react"

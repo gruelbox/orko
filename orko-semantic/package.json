@@ -5,7 +5,7 @@
   "dependencies": {},
   "scripts": {
     "build": "gulp build-css build-assets",
-    "watch": "npm run build-semantic && gulp watch"
+    "watch": "gulp watch"
   },
   "devDependencies": {
     "gulp": "^4.0.2",

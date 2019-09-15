@@ -17,7 +17,7 @@
  */
 import React, { useState, FormEvent } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
-import { isValidOtp } from "@orko-js-common/util/numberUtils"
+import { isValidOtp } from "@orko-ui-common/util/numberUtils"
 
 export interface WhiteListingProps {
   error?: string

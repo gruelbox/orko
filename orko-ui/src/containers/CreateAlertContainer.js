@@ -24,7 +24,7 @@ import Alert from "../components/Alert"
 import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
-import { isValidNumber } from "@orko-js-common/util/numberUtils"
+import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 
 import uuidv4 from "uuid/v4"
 

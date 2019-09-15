@@ -23,7 +23,7 @@ import LimitOrder from "../components/LimitOrder"
 
 import * as focusActions from "../store/focus/actions"
 import * as exchangesActions from "../store/exchanges/actions"
-import { isValidNumber } from "@orko-js-common/util/numberUtils"
+import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 import exchangeService from "../services/exchanges"
 import * as errorActions from "../store/error/actions"

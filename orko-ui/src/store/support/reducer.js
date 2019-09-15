@@ -18,7 +18,7 @@
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 import * as compareVersions from "compare-versions"
-import { getFromLS, saveToLS } from "@orko-js-common/util/localStorage"
+import { getFromLS, saveToLS } from "@orko-ui-common/util/localStorage"
 
 const loadedIgnoredVersion = getFromLS("ignoredVersion")
 

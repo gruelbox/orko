@@ -96,6 +96,8 @@ class FrameworkContainer extends React.Component {
         onResizePanel={this.onResizePanel}
         onInteractPanel={this.onInteractPanel}
         onBreakpointChange={this.onBreakpointChange}
+        onLogout={this.props.onLogout}
+        onClearWhitelisting={this.props.onClearWhitelisting}
       />
     )
   }

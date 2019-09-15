@@ -15,63 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import authService from "../../services/auth"
 import * as notificationActions from "../notifications/actions"
-import * as errorActions from "../error/actions"
-import * as coinActions from "../coins/actions"
-import * as scriptActions from "../scripting/actions"
-import * as supportActions from "../support/actions"
-import * as exchangesActions from "../exchanges/actions"
-import { clearXsrfToken } from "services/fetchUtil"
-
-export function attemptConnect() {
-  return async (dispatch, getState) => {
-    dispatch(notificationActions.trace("Attempting connection"))
-    var success = await authService.checkLoggedIn()
-    if (success) {
-      dispatch(notificationActions.trace("Logged in"))
-      dispatch(connect())
-    } else {
-      dispatch(notificationActions.trace("Not logged in"))
-      redirectToLogin()
-    }
-  }
-}
-
-function connect() {
-  return async (dispatch, getState, socket) => {
-    await dispatch(notificationActions.trace("Connecting"))
-    var scriptsPromise = dispatch(scriptActions.fetch())
-    var metaPromise = dispatch(supportActions.fetchMetadata())
-    await dispatch(exchangesActions.fetchExchanges())
-    await dispatch(coinActions.fetch())
-    await dispatch(coinActions.fetchReferencePrices())
-    await scriptsPromise
-    await metaPromise
-    await socket.connect()
-  }
-}
-
-export function clearWhitelist() {
-  return async (dispatch, getState, socket) => {
-    try {
-      await authService.clearWhiteList()
-    } catch (error) {
-      dispatch(errorActions.setForeground(error.message))
-      return
-    }
-    await socket.disconnect()
-    redirectToLogin()
-  }
-}
-
-export function logout() {
-  return (dispatch, getState, socket) => {
-    clearXsrfToken()
-    socket.disconnect()
-    redirectToLogin()
-  }
-}
 
 export function wrappedRequest(
   apiRequest,
@@ -91,16 +35,7 @@ export function wrappedRequest(
   }
 }
 
-function redirectToLogin() {
-  console.log("API request failed. Redirecting to login")
-  if (window.location.pathname.startsWith("/login")) {
-    window.location.href = "/login"
-  } else {
-    window.location.href = "/login?redirectTo=" + window.location.pathname
-  }
-}
-
-export async function dispatchWrappedRequest(
+async function dispatchWrappedRequest(
   auth,
   dispatch,
   apiRequest,
@@ -111,10 +46,10 @@ export async function dispatchWrappedRequest(
   try {
     // Dispatch the request
     const response = await apiRequest(auth)
-
     if (!response.ok) {
       if (response.status === 403 || response.status === 401) {
-        redirectToLogin()
+        dispatch(notificationActions.trace("Failed API request"))
+        // TODO logout()
       } else if (response.status !== 200) {
         // Otherwise, it's an unexpected error
         var errorMessage = null

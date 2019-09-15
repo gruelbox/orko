@@ -2,8 +2,9 @@
   "compilerOptions": {
     "baseUrl": "src",
     "paths": {
-      "@orko-js-common/*": ["../js-common/*"],
-      "@orko-semantic/*": ["../orko-semantic/dist/*"]
+      "@orko-semantic/*": ["../orko-semantic/dist/*"],
+      "@orko-ui-common/*": ["./modules/common/*"],
+      "@orko-ui-auth/*": ["./modules/auth/*"]
     }
   }
 }

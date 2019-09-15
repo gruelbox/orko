@@ -1,16 +1,13 @@
 {
   "folders": [
     {
-      "path": "orko-login"
-    },
-    {
       "path": "orko-ui"
     },
     {
-      "path": "js-common"
+      "path": "orko-semantic"
     },
     {
-      "path": "orko-semantic"
+      "path": "C:\\Users\\graham\\Amazon Drive\\Documents\\Code\\scratch\\src\\main\\js"
     }
   ],
   "settings": {}

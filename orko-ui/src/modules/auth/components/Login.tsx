@@ -17,8 +17,8 @@
  */
 import React, { useState, FormEvent } from "react"
 import { Modal, Icon, Form, Button, Message } from "semantic-ui-react"
-import { isValidOtp } from "@orko-js-common/util/numberUtils"
-import LoginDetails from "models/LoginDetails"
+import { isValidOtp } from "@orko-ui-common/util/numberUtils"
+import LoginDetails from "../models/LoginDetails"
 
 interface LoginProps {
   error: string

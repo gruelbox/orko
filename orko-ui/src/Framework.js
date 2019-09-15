@@ -193,7 +193,9 @@ export default class Framework extends React.Component {
       onMovePanel,
       onResizePanel,
       onInteractPanel,
-      onBreakpointChange
+      onBreakpointChange,
+      onLogout,
+      onClearWhitelisting
     } = this.props
 
     const Settings = () =>
@@ -222,6 +224,8 @@ export default class Framework extends React.Component {
             on
             panels={panels}
             width={width}
+            onLogout={onLogout}
+            onClearWhitelisting={onClearWhitelisting}
           />
         </ErrorBoundary>
         <ErrorBoundary>

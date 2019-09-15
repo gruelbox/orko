@@ -19,7 +19,7 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 import Href from "../components/primitives/Href"
-import * as dateUtils from "@orko-js-common/util/dateUtils"
+import * as dateUtils from "@orko-ui-common/util/dateUtils"
 import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
 
