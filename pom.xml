@@ -98,7 +98,6 @@
       <modules>
         <module>orko-semantic</module>
         <module>orko-ui</module>
-        <module>orko-login</module>
       </modules>
     </profile>
     <profile>

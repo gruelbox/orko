@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "baseUrl": "src",
-    "paths": {
-      "@orko-js-common/*": ["../../js-common/*"],
-      "@orko-semantic/*": ["../../orko-semantic/dist/*"]
-    }
-  }
-}
