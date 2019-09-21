@@ -17,53 +17,38 @@
  */
 import React, { useEffect, ReactElement } from "react"
 import * as socket from "store/socket/connect"
-import * as notificationActions from "store/notifications/actions"
-import * as coinActions from "store/coins/actions"
-import * as scriptActions from "store/scripting/actions"
-import * as supportActions from "store/support/actions"
-import * as exchangesActions from "store/exchanges/actions"
+import { AuthContextFeatures, AuthContext } from "@orko-ui-auth/Authoriser"
 
 export interface SocketProps {
   store
   history
-  children(props: SocketRenderProps): ReactElement
+  children: ReactElement
 }
 
-export interface SocketRenderProps {
-  connect(): void
-  disconnect(): void
+interface SocketPropsInner extends SocketProps {
+  auth: AuthContextFeatures
 }
 
-const Socket: React.FC<SocketProps> = (props: SocketProps) => {
+const Socket: React.FC<SocketPropsInner> = (props: SocketPropsInner) => {
   useEffect(() => {
     socket.initialise(props.store, props.history)
-  })
+  }, [props.store, props.history])
 
-  const doConnect = function() {
-    return async (dispatch, getState) => {
-      await dispatch(notificationActions.trace("Connecting"))
-      var scriptsPromise = dispatch(scriptActions.fetch())
-      var metaPromise = dispatch(supportActions.fetchMetadata())
-      await dispatch(exchangesActions.fetchExchanges())
-      await dispatch(coinActions.fetch())
-      await dispatch(coinActions.fetchReferencePrices())
-      await scriptsPromise
-      await metaPromise
-      await socket.connect()
+  useEffect(() => {
+    if (props.auth.authorised) {
+      socket.connect()
+    } else {
+      socket.disconnect()
     }
-  }
+  }, [props.auth.authorised])
 
-  const doDisconnect = function() {
-    return async (dispatch, getState) => {
-      await dispatch(notificationActions.trace("Disconnecting"))
-      await socket.disconnect()
-    }
-  }
-
-  return props.children({
-    connect: () => props.store.dispatch(doConnect()),
-    disconnect: () => props.store.dispatch(doDisconnect())
-  })
+  return props.children
 }
 
-export default Socket
+const SocketContainer: React.FC<SocketProps> = (props: SocketProps) => (
+  <AuthContext.Consumer>
+    {(auth: AuthContextFeatures) => <Socket {...props} auth={auth} />}
+  </AuthContext.Consumer>
+)
+
+export default SocketContainer

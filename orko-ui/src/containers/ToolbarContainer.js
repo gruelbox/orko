@@ -63,7 +63,7 @@ export default connect((state, props) => {
     version: state.support.meta.version,
     hiddenPanels: getHiddenPanels(state),
     errors: state.error.errorBackground,
-    connected: state.socket.connected,
+    connected: state.socket.connected, // TODO this no longer works
     updateFocusedField: state.focus.fn,
     ticker: getSelectedCoinTicker(state),
     balance: state.coin.balance,

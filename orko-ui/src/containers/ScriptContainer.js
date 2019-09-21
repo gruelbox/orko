@@ -25,6 +25,7 @@ import * as jobActions from "../store/job/actions"
 import { getSelectedCoin } from "../selectors/coins"
 
 import uuidv4 from "uuid/v4"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class ScriptContainer extends React.Component {
   constructor(props) {
@@ -103,7 +104,9 @@ class ScriptContainer extends React.Component {
   }
 
   onSubmit = async () => {
-    this.props.dispatch(jobActions.submitScriptJob(this.createJob()))
+    this.props.dispatch(
+      jobActions.submitScriptJob(this.props.auth, this.createJob())
+    )
   }
 
   render() {
@@ -136,4 +139,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(ScriptContainer)
+export default withAuth(connect(mapStateToProps)(ScriptContainer))

@@ -28,6 +28,7 @@ import * as jobTypes from "../services/jobTypes"
 
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
@@ -83,7 +84,9 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   onSubmit = async direction => {
-    this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
+    this.props.dispatch(
+      jobActions.submitJob(this.props.auth, this.createJob(direction))
+    )
   }
 
   render() {
@@ -124,4 +127,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(TrailingStopOrderContainer)
+export default withAuth(connect(mapStateToProps)(TrailingStopOrderContainer))

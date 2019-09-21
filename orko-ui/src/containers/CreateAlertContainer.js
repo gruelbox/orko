@@ -27,6 +27,7 @@ import * as jobTypes from "../services/jobTypes"
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 
 import uuidv4 from "uuid/v4"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class CreateAlertContainer extends React.Component {
   constructor(props) {
@@ -124,7 +125,7 @@ class CreateAlertContainer extends React.Component {
   }
 
   onSubmit = async () => {
-    this.props.dispatch(jobActions.submitJob(this.createJob()))
+    this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob()))
   }
 
   render() {
@@ -153,4 +154,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(CreateAlertContainer)
+export default withAuth(connect(mapStateToProps)(CreateAlertContainer))

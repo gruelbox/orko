@@ -23,6 +23,7 @@ import * as coinsActions from "../store/coins/actions"
 
 import { Icon, Button, Form, Dropdown, Modal } from "semantic-ui-react"
 import FixedModal from "../components/primitives/FixedModal"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class AddCoinContainer extends Component {
   state = {
@@ -31,12 +32,14 @@ class AddCoinContainer extends Component {
   }
 
   componentDidMount() {
-    this.props.dispatch(exchangesActions.fetchExchanges())
+    this.props.dispatch(exchangesActions.fetchExchanges(this.props.auth))
   }
 
   onChangeExchange = (e, data) => {
     this.setState({ exchange: data.value })
-    this.props.dispatch(exchangesActions.fetchPairs(data.value))
+    this.props.dispatch(
+      exchangesActions.fetchPairs(this.props.auth, data.value)
+    )
   }
 
   onChangePair = (e, data) => {
@@ -45,7 +48,7 @@ class AddCoinContainer extends Component {
   }
 
   onSubmit = coinContainer => {
-    this.props.dispatch(coinsActions.add(this.state.pair))
+    this.props.dispatch(coinsActions.add(this.props.auth, this.state.pair))
     this.props.history.push("/coin/" + this.state.pair.key)
   }
 
@@ -130,4 +133,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(AddCoinContainer)
+export default withAuth(connect(mapStateToProps)(AddCoinContainer))

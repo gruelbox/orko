@@ -18,7 +18,6 @@
 import * as types from "./actionTypes"
 import * as tickerActions from "../ticker/actions"
 import exchangesService from "../../services/exchanges"
-import * as authActions from "../auth/actions"
 import * as errorActions from "../error/actions"
 import { coinFromTicker, tickerFromCoin } from "../../util/coinUtils"
 import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
@@ -29,7 +28,7 @@ export function fetch(auth: AuthContextFeatures) {
     json => ({ type: types.SET, payload: json.map(t => coinFromTicker(t)) }),
     error =>
       errorActions.setForeground("Could not fetch coin list: " + error.message),
-    () => multiFetchMetadata()
+    () => multiFetchMetadata(auth)
   )
 }
 
@@ -55,7 +54,7 @@ export function add(auth: AuthContextFeatures, coin) {
   )
 }
 
-function multiFetchMetadata() {
+function multiFetchMetadata(auth: AuthContextFeatures) {
   return async (dispatch, getState) => {
     getState().coins.coins.forEach(coin => dispatch(fetchMetadata(auth, coin)))
   }
@@ -73,10 +72,9 @@ function fetchMetadata(auth: AuthContextFeatures, coin) {
 }
 
 function applyAdd(auth: AuthContextFeatures, coin) {
-  return (dispatch, getState, socket) => {
+  return (dispatch, getState) => {
     dispatch({ type: types.ADD, payload: coin })
     dispatch(fetchMetadata(auth, coin))
-    socket.resubscribe()
   }
 }
 
@@ -94,9 +92,8 @@ export function remove(auth: AuthContextFeatures, coin) {
 }
 
 function applyRemove(coin) {
-  return (dispatch, getState, socket) => {
+  return (dispatch, getState) => {
     dispatch({ type: types.REMOVE, payload: coin })
-    socket.resubscribe()
     dispatch(tickerActions.clearTicker(coin))
   }
 }

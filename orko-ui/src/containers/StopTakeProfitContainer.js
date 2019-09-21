@@ -27,6 +27,7 @@ import * as jobTypes from "../services/jobTypes"
 import { getSelectedCoin } from "../selectors/coins"
 
 import uuidv4 from "uuid/v4"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {
@@ -125,7 +126,7 @@ class StopTakeProfitContainer extends React.Component {
   }
 
   onSubmit = async () => {
-    this.props.dispatch(jobActions.submitJob(this.createJob()))
+    this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob()))
   }
 
   render() {
@@ -148,4 +149,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(StopTakeProfitContainer)
+export default withAuth(connect(mapStateToProps)(StopTakeProfitContainer))

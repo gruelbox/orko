@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import * as authActions from "../auth/actions"
 import * as errorActions from "../error/actions"
 import supportService from "../../services/support"
+import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
 
-export function fetchMetadata() {
-  return authActions.wrappedRequest(
+export function fetchMetadata(auth: AuthContextFeatures) {
+  return auth.wrappedRequest(
     () => supportService.fetchMetadata(),
     json => ({ type: types.SET_META, payload: json }),
     error =>
@@ -31,8 +31,8 @@ export function fetchMetadata() {
   )
 }
 
-export function fetchReleases() {
-  return authActions.wrappedRequest(
+export function fetchReleases(auth: AuthContextFeatures) {
+  return auth.wrappedRequest(
     () => supportService.fetchReleases(),
     json => ({ type: types.SET_RELEASES, payload: json }),
     error => () => console.log("Could not fetch releases", error)

@@ -27,6 +27,7 @@ import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 import exchangeService from "../services/exchanges"
 import * as errorActions from "../store/error/actions"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -104,7 +105,11 @@ class LimitOrderContainer extends React.Component {
   onSubmit = async direction => {
     const order = this.createOrder(direction)
     this.props.dispatch(
-      exchangesActions.submitLimitOrder(this.props.coin.exchange, order)
+      exchangesActions.submitLimitOrder(
+        this.props.auth,
+        this.props.coin.exchange,
+        order
+      )
     )
   }
 
@@ -140,4 +145,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(LimitOrderContainer)
+export default withAuth(connect(mapStateToProps)(LimitOrderContainer))

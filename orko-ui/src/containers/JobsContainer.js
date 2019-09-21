@@ -28,6 +28,7 @@ import Para from "../components/primitives/Para"
 import Loading from "../components/primitives/Loading"
 import JobShort from "../components/JobShort"
 import Tab from "../components/primitives/Tab"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class JobsContainer extends React.Component {
   constructor(props) {
@@ -48,7 +49,7 @@ class JobsContainer extends React.Component {
   }
 
   onRemove = job => {
-    this.props.dispatch(jobActions.deleteJob(job))
+    this.props.dispatch(jobActions.deleteJob(this.props.auth, job))
   }
 
   render() {
@@ -111,4 +112,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(JobsContainer)
+export default withAuth(connect(mapStateToProps)(JobsContainer))

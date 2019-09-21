@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { useEffect } from "react"
 
 import theme from "./theme"
 import { ThemeProvider } from "styled-components"
@@ -32,9 +32,19 @@ import { ConnectedRouter, routerMiddleware } from "connected-react-router"
 import createRootReducer from "./store/reducers"
 
 import Loadable from "react-loadable"
-import Authoriser from "@orko-ui-auth/Authoriser"
+import Authoriser, {
+  AuthContext,
+  AuthContextFeatures
+} from "@orko-ui-auth/Authoriser"
 import Socket from "@orko-ui-socket/Socket"
-import { SocketRenderProps } from "modules/socket/Socket"
+
+import * as notificationActions from "store/notifications/actions"
+import * as coinActions from "store/coins/actions"
+import * as scriptActions from "store/scripting/actions"
+import * as supportActions from "store/support/actions"
+import * as exchangesActions from "store/exchanges/actions"
+import * as jobActions from "store/job/actions"
+import { useInterval } from "util/hookUtils"
 
 const history = createBrowserHistory()
 const store = createStore(
@@ -63,24 +73,61 @@ const FrameworkContainer = Loadable({
   )
 })
 
+const StoreManagement: React.FC<{ auth: AuthContextFeatures }> = ({ auth }) => {
+  // Load state on successful authorisation
+  useEffect(() => {
+    const syncFunction: any = () => {
+      return async (dispatch, getState) => {
+        await dispatch(notificationActions.trace("Fetching server status"))
+        var releasesPromise = dispatch(supportActions.fetchReleases(auth))
+        var scriptsPromise = dispatch(scriptActions.fetch(auth))
+        var metaPromise = dispatch(supportActions.fetchMetadata(auth))
+        await dispatch(exchangesActions.fetchExchanges(auth))
+        await dispatch(coinActions.fetch(auth))
+        await dispatch(coinActions.fetchReferencePrices(auth))
+        await scriptsPromise
+        await metaPromise
+        await releasesPromise
+      }
+    }
+    if (auth.authorised) {
+      store.dispatch(syncFunction())
+    }
+  }, [auth])
+
+  // Fetch and dispatch the job details on the server.
+  // TODO this should really move to the socket, but for the time being
+  // we'll fetch it on an interval.
+  useInterval(() => {
+    store.dispatch(jobActions.fetchJobs(auth))
+  }, 5000)
+
+  // Periodically check for new versions.
+  useInterval(() => {
+    store.dispatch(supportActions.fetchReleases(auth))
+  }, 180000)
+
+  return <></>
+}
+
 const App: React.FC<any> = () => (
   <ThemeProvider theme={theme}>
     <>
       <GlobalStyle />
       <ReduxProvider store={store}>
         <ErrorContainer />
-        <Socket store={store} history={history}>
-          {(socket: SocketRenderProps) => (
-            <Authoriser
-              onConnect={socket ? socket.connect : () => {}}
-              onDisconnect={socket ? socket.disconnect : () => {}}
-            >
+        <Authoriser>
+          <>
+            <AuthContext.Consumer>
+              {(auth: AuthContextFeatures) => <StoreManagement auth={auth} />}
+            </AuthContext.Consumer>
+            <Socket store={store} history={history}>
               <ConnectedRouter history={history}>
                 <FrameworkContainer />
               </ConnectedRouter>
-            </Authoriser>
-          )}
-        </Socket>
+            </Socket>
+          </>
+        </Authoriser>
       </ReduxProvider>
     </>
   </ThemeProvider>

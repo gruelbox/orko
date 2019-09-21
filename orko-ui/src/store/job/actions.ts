@@ -16,15 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import * as authActions from "../auth/actions"
 import * as errorActions from "../error/actions"
 import jobService from "../../services/job"
 import * as notificationActions from "../notifications/actions"
 import * as jobTypes from "../../services/jobTypes"
+import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
 
-export function submitJob(job, callback) {
-  return authActions.wrappedRequest(
-    auth => jobService.submitJob(job),
+export function submitJob(auth: AuthContextFeatures, job, callback) {
+  return auth.wrappedRequest(
+    () => jobService.submitJob(job),
     null,
     error =>
       errorActions.setForeground("Could not submit job: " + error.message),
@@ -32,13 +32,13 @@ export function submitJob(job, callback) {
   )
 }
 
-export function submitScriptJob(job, callback) {
-  return authActions.wrappedRequest(
-    auth => jobService.submitScriptJob(job),
+export function submitScriptJob(auth: AuthContextFeatures, job, callback) {
+  return auth.wrappedRequest(
+    () => jobService.submitScriptJob(job),
     null,
     error =>
       errorActions.setForeground("Could not submit job: " + error.message),
-    () => addJob({...job, jobType: jobTypes.SCRIPT}, callback)
+    () => addJob({ ...job, jobType: jobTypes.SCRIPT }, callback)
   )
 }
 
@@ -50,18 +50,18 @@ function addJob(job, callback) {
   }
 }
 
-export function fetchJobs() {
-  return authActions.wrappedRequest(
-    auth => jobService.fetchJobs(),
+export function fetchJobs(auth: AuthContextFeatures) {
+  return auth.wrappedRequest(
+    () => jobService.fetchJobs(),
     jobs => ({ type: types.SET_JOBS, payload: jobs }),
     error =>
       notificationActions.localMessage("Could not fetch jobs: " + error.message)
   )
 }
 
-export function deleteJob(job) {
-  return authActions.wrappedRequest(
-    auth => jobService.deleteJob(job),
+export function deleteJob(auth: AuthContextFeatures, job) {
+  return auth.wrappedRequest(
+    () => jobService.deleteJob(job),
     null,
     error =>
       errorActions.setForeground("Failed to delete job: " + error.message),

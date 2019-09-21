@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import * as authActions from "../auth/actions"
 import * as errorActions from "../error/actions"
 import scriptService from "../../services/script"
+import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
 
-export function fetch() {
-  return authActions.wrappedRequest(
+export function fetch(auth: AuthContextFeatures) {
+  return auth.wrappedRequest(
     () => scriptService.fetchScripts(),
     json => ({ type: types.SET_SCRIPTS, payload: json }),
     error =>
@@ -29,8 +29,8 @@ export function fetch() {
   )
 }
 
-export function remove(id) {
-  return authActions.wrappedRequest(
+export function remove(auth: AuthContextFeatures, id) {
+  return auth.wrappedRequest(
     () => scriptService.deleteScript(id),
     null,
     error =>
@@ -39,8 +39,8 @@ export function remove(id) {
   )
 }
 
-export function add(script) {
-  return authActions.wrappedRequest(
+export function add(auth: AuthContextFeatures, script) {
+  return auth.wrappedRequest(
     () => scriptService.saveScript(script),
     null,
     error =>
@@ -49,8 +49,8 @@ export function add(script) {
   )
 }
 
-export function update(script) {
-  return authActions.wrappedRequest(
+export function update(auth: AuthContextFeatures, script) {
+  return auth.wrappedRequest(
     () => scriptService.saveScript(script),
     null,
     error =>

@@ -29,6 +29,7 @@ import Link from "../components/primitives/Link"
 import Coins from "../components/Coins"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 const buttons = () => (
   <Link to="/addCoin" data-orko="addCoin" title="Add a coin">
@@ -36,14 +37,14 @@ const buttons = () => (
   </Link>
 )
 
-const CoinsCointainer = ({ data, dispatch, onHide }) => (
+const CoinsCointainer = ({ auth, data, dispatch, onHide }) => (
   <GetPageVisibility>
     {visible => (
       <RenderIf condition={visible}>
         <Section id="coinList" heading="Coins" nopadding buttons={buttons}>
           <Coins
             data={data}
-            onRemove={coin => dispatch(coinsActions.remove(coin))}
+            onRemove={coin => dispatch(coinsActions.remove(auth, coin))}
             onClickAlerts={coin => dispatch(uiActions.openAlerts(coin))}
             onClickReferencePrice={coin =>
               dispatch(uiActions.openReferencePrice(coin))
@@ -56,6 +57,8 @@ const CoinsCointainer = ({ data, dispatch, onHide }) => (
   </GetPageVisibility>
 )
 
-export default connect(state => ({
-  data: getCoinsForDisplay(state)
-}))(CoinsCointainer)
+export default withAuth(
+  connect(state => ({
+    data: getCoinsForDisplay(state)
+  }))(CoinsCointainer)
+)

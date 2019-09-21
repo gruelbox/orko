@@ -24,6 +24,7 @@ import authService from "./services/auth"
 import { setXsrfToken, clearXsrfToken } from "@orko-ui-common/util/fetchUtil"
 
 export interface AuthContextFeatures {
+  authorised: boolean
   logout(): void
   clearWhitelisting(): void
   wrappedRequest(apiRequest, jsonHandler, errorHandler, onSuccess?)
@@ -32,14 +33,13 @@ export interface AuthContextFeatures {
 export const AuthContext: React.Context<
   AuthContextFeatures
 > = React.createContext({
+  authorised: Boolean(false),
   logout: () => {},
-  clearWhitelisting: () => {}
+  clearWhitelisting: () => {},
+  wrappedRequest: (apiRequest, jsonHandler, errorHandler, onSuccess?) => {}
 })
 
 interface AuthorizerProps {
-  onMessage?(message: string): void
-  onConnect?(): void
-  onDisconnect?(): void
   children: ReactElement
 }
 
@@ -48,38 +48,34 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
   const [loggedIn, setLoggedIn] = useState(false)
   const [whitelisted, setWhitelisted] = useState(false)
   const [error, setError] = useState<string>(undefined)
-
-  const log = !props.onMessage
-    ? (message: string) => console.log(message)
-    : props.onMessage
+  const authorised = whitelisted && loggedIn
 
   const checkConnected = async function(): Promise<boolean> {
-    log("Testing access")
+    console.log("Testing access")
     const success: boolean = await authService.checkLoggedIn()
     if (success) {
-      log("Logged in")
+      console.log("Logged in")
     } else {
-      log("Not logged in")
+      console.log("Not logged in")
     }
     if (success) {
       setWhitelisted(true)
       setLoggedIn(true)
       setError(null)
-      props.onConnect && props.onConnect()
     }
     return success
   }
 
   const onWhitelist = async function(token: string): Promise<void> {
     try {
-      log("Checking whitelist")
+      console.log("Checking whitelist")
       await authService.whitelist(token)
-      log("Accepted whitelist")
+      console.log("Accepted whitelist")
       setWhitelisted(true)
       setError(null)
       await checkConnected()
     } catch (error) {
-      log(error.message)
+      console.log(error.message)
       setWhitelisted(false)
       setError(`Whitelisting failed: ${error.message}`)
     }
@@ -90,7 +86,7 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
       .simpleLogin(details)
       .then(({ expiry, xsrf }) => {
         try {
-          log("Setting XSRF token")
+          console.log("Setting XSRF token")
           setXsrfToken(xsrf)
         } catch (error) {
           throw new Error("Malformed access token")
@@ -100,102 +96,84 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
       })
       .then(checkConnected)
       .catch(error => {
-        log(`Login failed: ${error.message}`)
+        console.log(`Login failed: ${error.message}`)
         setError(error.message)
       })
   }
 
   const clearWhitelisting = async function(): Promise<void> {
-    log("Clearing whitelist")
+    console.log("Clearing whitelist")
     try {
       await authService.clearWhiteList()
     } catch (error) {
-      log(error.message)
+      console.log(error.message)
       return
     }
     setWhitelisted(false)
-    props.onDisconnect && props.onDisconnect()
   }
 
   const logout = function(): void {
-    log("Logging out")
+    console.log("Logging out")
     clearXsrfToken()
     setLoggedIn(false)
-    props.onDisconnect && props.onDisconnect()
   }
 
   const wrappedRequest = (apiRequest, jsonHandler, errorHandler, onSuccess) => {
     return async (dispatch, getState) => {
-      dispatchWrappedRequest(
-        dispatch,
-        apiRequest,
-        jsonHandler,
-        errorHandler,
-        onSuccess
-      )
-    }
-  }
-
-  const dispatchWrappedRequest = async (
-    dispatch,
-    apiRequest,
-    jsonHandler,
-    errorHandler,
-    onSuccess
-  ) => {
-    try {
-      // Dispatch the request
-      const response = await apiRequest()
-      if (!response.ok) {
-        if (response.status === 403) {
-          log("Failed API request due to invalid whitelisting")
-          clearWhitelisting()
-        } else if (response.status === 401) {
-          log("Failed API request due to invalid token/XSRF")
-          logout()
-        } else if (response.status !== 200) {
-          // Otherwise, it's an unexpected error
-          var errorMessage = null
-          try {
-            errorMessage = (await response.json()).message
-          } catch (err) {
-            // No-op
+      try {
+        // Dispatch the request
+        const response = await apiRequest()
+        if (!response.ok) {
+          if (response.status === 403) {
+            console.log("Failed API request due to invalid whitelisting")
+            clearWhitelisting()
+          } else if (response.status === 401) {
+            console.log("Failed API request due to invalid token/XSRF")
+            logout()
+          } else if (response.status !== 200) {
+            // Otherwise, it's an unexpected error
+            var errorMessage = null
+            try {
+              errorMessage = (await response.json()).message
+            } catch (err) {
+              // No-op
+            }
+            if (!errorMessage) {
+              errorMessage = response.statusText
+                ? response.statusText
+                : "Server error (" + response.status + ")"
+            }
+            throw new Error(errorMessage)
           }
-          if (!errorMessage) {
-            errorMessage = response.statusText
-              ? response.statusText
-              : "Server error (" + response.status + ")"
-          }
-          throw new Error(errorMessage)
+        } else {
+          if (jsonHandler) dispatch(jsonHandler(await response.json()))
+          if (onSuccess) dispatch(onSuccess())
         }
-      } else {
-        if (jsonHandler) dispatch(jsonHandler(await response.json()))
-        if (onSuccess) dispatch(onSuccess())
+      } catch (error) {
+        if (errorHandler) dispatch(errorHandler(error))
       }
-    } catch (error) {
-      if (errorHandler) dispatch(errorHandler(error))
     }
   }
 
   useEffect(() => {
     const doSetup = async function(): Promise<void> {
       if (!(await checkConnected())) {
-        log("Checking whitelist")
+        console.log("Checking whitelist")
         try {
           const result = await authService.checkWhiteList()
-          log(`Returned ${result}`)
+          console.log(`Returned ${result}`)
           if (Boolean(result)) {
-            log("Verified whitelist")
+            console.log("Verified whitelist")
             setWhitelisted(true)
             setError(null)
             await checkConnected()
           } else {
-            log("Not whitelisted")
+            console.log("Not whitelisted")
             setWhitelisted(false)
             setError(null)
           }
         } catch (error) {
-          log("Error checking whitelist")
+          console.log("Error checking whitelist")
           setWhitelisted(false)
           setError(error.message)
         }
@@ -219,7 +197,7 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
   } else {
     return (
       <AuthContext.Provider
-        value={{ logout, clearWhitelisting, wrappedRequest }}
+        value={{ authorised, logout, clearWhitelisting, wrappedRequest }}
       >
         {props.children}
       </AuthContext.Provider>
@@ -228,3 +206,11 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
 }
 
 export default Authorizer
+
+export function withAuth(WrappedComponent: React.FC | React.ComponentClass) {
+  return (props: any) => (
+    <AuthContext.Consumer>
+      {auth => <WrappedComponent {...props} auth={auth}></WrappedComponent>}
+    </AuthContext.Consumer>
+  )
+}

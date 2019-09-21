@@ -24,14 +24,15 @@ import WhileLoading from "../components/WhileLoading"
 import * as exchangeActions from "../store/exchanges/actions"
 import * as jobActions from "../store/job/actions"
 import { getOrdersForSelectedCoin } from "../selectors/coins"
+import { withAuth } from "@orko-ui-auth/Authoriser"
 
 class OpenOrdersContainer extends React.Component {
   onCancelExchange = (id, coin) => {
-    this.props.dispatch(exchangeActions.cancelOrder(coin, id))
+    this.props.dispatch(exchangeActions.cancelOrder(this.props.auth, coin, id))
   }
 
   onCancelServer = jobId => {
-    this.props.dispatch(jobActions.deleteJob({ id: jobId }))
+    this.props.dispatch(jobActions.deleteJob(this.props.auth, { id: jobId }))
   }
 
   render() {
@@ -63,4 +64,4 @@ function mapStateToProps(state, props) {
   }
 }
 
-export default connect(mapStateToProps)(OpenOrdersContainer)
+export default withAuth(connect(mapStateToProps)(OpenOrdersContainer))

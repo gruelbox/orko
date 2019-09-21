@@ -22,15 +22,12 @@ import * as tickerActions from "../ticker/actions"
 import * as socketActions from "../socket/actions"
 import { locationToCoin } from "../../selectors/coins"
 import { batchActions } from "redux-batched-actions"
-import * as jobActions from "../job/actions"
-import * as supportActions from "../support/actions"
 
 var store
 var deduplicatedActionBuffer = {}
 var allActionBuffer = []
 var initialising = true
 var jobFetch
-var releaseFetch
 var previousCoin
 
 function subscribedCoins() {
@@ -200,20 +197,6 @@ export function initialise(s, history) {
 }
 
 export function connect() {
-  // Fetch and dispatch the job details on the server.
-  // TODO this should really move to the socket, but for the time being
-  // we'll fetch it on an interval.
-  if (!jobFetch) {
-    jobFetch = setInterval(() => {
-      store.dispatch(jobActions.fetchJobs())
-    }, 5000)
-  }
-  if (!releaseFetch) {
-    store.dispatch(supportActions.fetchReleases())
-    releaseFetch = setInterval(() => {
-      store.dispatch(supportActions.fetchReleases())
-    }, 180000)
-  }
   socketClient.connect()
 }
 
