@@ -17,22 +17,30 @@
  */
 import React, { useState, useEffect, ReactElement } from "react"
 import { Loader, Dimmer } from "semantic-ui-react"
-import Whitelisting from "../components/Whitelisting"
-import Login from "../components/Login"
-import LoginDetails from "../models/LoginDetails"
-import authService from "../services/auth"
+import Whitelisting from "./components/Whitelisting"
+import Login from "./components/Login"
+import LoginDetails from "./models/LoginDetails"
+import authService from "./services/auth"
 import { setXsrfToken, clearXsrfToken } from "@orko-ui-common/util/fetchUtil"
 
-interface AuthOptions {
+export interface AuthContextFeatures {
   logout(): void
   clearWhitelisting(): void
+  wrappedRequest(apiRequest, jsonHandler, errorHandler, onSuccess?)
 }
+
+export const AuthContext: React.Context<
+  AuthContextFeatures
+> = React.createContext({
+  logout: () => {},
+  clearWhitelisting: () => {}
+})
 
 interface AuthorizerProps {
   onMessage?(message: string): void
   onConnect?(): void
   onDisconnect?(): void
-  render(options: AuthOptions): ReactElement
+  children: ReactElement
 }
 
 const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
@@ -116,6 +124,59 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
     props.onDisconnect && props.onDisconnect()
   }
 
+  const wrappedRequest = (apiRequest, jsonHandler, errorHandler, onSuccess) => {
+    return async (dispatch, getState) => {
+      dispatchWrappedRequest(
+        dispatch,
+        apiRequest,
+        jsonHandler,
+        errorHandler,
+        onSuccess
+      )
+    }
+  }
+
+  const dispatchWrappedRequest = async (
+    dispatch,
+    apiRequest,
+    jsonHandler,
+    errorHandler,
+    onSuccess
+  ) => {
+    try {
+      // Dispatch the request
+      const response = await apiRequest()
+      if (!response.ok) {
+        if (response.status === 403) {
+          log("Failed API request due to invalid whitelisting")
+          clearWhitelisting()
+        } else if (response.status === 401) {
+          log("Failed API request due to invalid token/XSRF")
+          logout()
+        } else if (response.status !== 200) {
+          // Otherwise, it's an unexpected error
+          var errorMessage = null
+          try {
+            errorMessage = (await response.json()).message
+          } catch (err) {
+            // No-op
+          }
+          if (!errorMessage) {
+            errorMessage = response.statusText
+              ? response.statusText
+              : "Server error (" + response.status + ")"
+          }
+          throw new Error(errorMessage)
+        }
+      } else {
+        if (jsonHandler) dispatch(jsonHandler(await response.json()))
+        if (onSuccess) dispatch(onSuccess())
+      }
+    } catch (error) {
+      if (errorHandler) dispatch(errorHandler(error))
+    }
+  }
+
   useEffect(() => {
     const doSetup = async function(): Promise<void> {
       if (!(await checkConnected())) {
@@ -156,7 +217,13 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
   } else if (!loggedIn) {
     return <Login error={error} onLogin={onLogin} />
   } else {
-    return props.render({ logout, clearWhitelisting })
+    return (
+      <AuthContext.Provider
+        value={{ logout, clearWhitelisting, wrappedRequest }}
+      >
+        {props.children}
+      </AuthContext.Provider>
+    )
   }
 }
 

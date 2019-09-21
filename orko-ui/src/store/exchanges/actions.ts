@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import * as authActions from "../auth/actions"
 import { augmentCoin } from "../../util/coinUtils"
 import exchangesService from "../../services/exchanges"
 import * as errorActions from "../error/actions"
 import * as coinActions from "../coin/actions"
+import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
 
-export function fetchExchanges() {
-  return authActions.wrappedRequest(
+export function fetchExchanges(auth: AuthContextFeatures) {
+  return auth.wrappedRequest(
     () => exchangesService.fetchExchanges(),
     exchanges => ({ type: types.SET_EXCHANGES, payload: exchanges }),
     error =>
@@ -31,8 +31,8 @@ export function fetchExchanges() {
   )
 }
 
-export function fetchPairs(exchange) {
-  return authActions.wrappedRequest(
+export function fetchPairs(auth: AuthContextFeatures, exchange) {
+  return auth.wrappedRequest(
     () => exchangesService.fetchPairs(exchange),
     json => ({
       type: types.SET_PAIRS,
@@ -45,8 +45,8 @@ export function fetchPairs(exchange) {
   )
 }
 
-export function submitLimitOrder(exchange, order) {
-  return authActions.wrappedRequest(
+export function submitLimitOrder(auth: AuthContextFeatures, exchange, order) {
+  return auth.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
       coinActions.orderUpdated(
@@ -61,8 +61,8 @@ export function submitLimitOrder(exchange, order) {
   )
 }
 
-export function submitStopOrder(exchange, order) {
-  return authActions.wrappedRequest(
+export function submitStopOrder(auth: AuthContextFeatures, exchange, order) {
+  return auth.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
       coinActions.orderUpdated(
@@ -77,7 +77,7 @@ export function submitStopOrder(exchange, order) {
   )
 }
 
-export function cancelOrder(coin, orderId) {
+export function cancelOrder(auth: AuthContextFeatures, coin, orderId) {
   return async (dispatch, getState) => {
     dispatch(
       coinActions.orderUpdated(
@@ -90,7 +90,7 @@ export function cancelOrder(coin, orderId) {
       )
     )
     dispatch(
-      authActions.wrappedRequest(
+      auth.wrappedRequest(
         () => exchangesService.cancelOrder(coin, orderId),
         null,
         error =>

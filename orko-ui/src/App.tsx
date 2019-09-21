@@ -15,111 +15,75 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useEffect } from "react"
+import React from "react"
 
-import { ThemeProvider } from "styled-components"
 import theme from "./theme"
+import { ThemeProvider } from "styled-components"
 import { GlobalStyle } from "./theme"
 import { Loader, Dimmer } from "semantic-ui-react"
 
 import { Provider as ReduxProvider } from "react-redux"
 import { compose, createStore, applyMiddleware } from "redux"
-
-import createHistory from "history/createBrowserHistory"
-import { ConnectedRouter, routerMiddleware } from "connected-react-router"
-import Loadable from "react-loadable"
-
-import { enableBatching } from "redux-batched-actions"
-
 import thunk from "redux-thunk"
+import { enableBatching } from "redux-batched-actions"
+import { createBrowserHistory } from "history"
+import { ConnectedRouter, routerMiddleware } from "connected-react-router"
+
 import createRootReducer from "./store/reducers"
-import * as socket from "./store/socket/connect"
 
-import Authoriser from "@orko-ui-auth/containers/Authoriser"
+import Loadable from "react-loadable"
+import Authoriser from "@orko-ui-auth/Authoriser"
+import Socket from "@orko-ui-socket/Socket"
+import { SocketRenderProps } from "modules/socket/Socket"
 
-import * as notificationActions from "./store/notifications/actions"
-import * as coinActions from "./store/coins/actions"
-import * as scriptActions from "./store/scripting/actions"
-import * as supportActions from "./store/support/actions"
-import * as exchangesActions from "./store/exchanges/actions"
-
-const history = createHistory()
-
+const history = createBrowserHistory()
 const store = createStore(
   enableBatching(createRootReducer(history)),
   compose(
-    applyMiddleware(routerMiddleware(history), thunk.withExtraArgument(socket))
+    applyMiddleware(routerMiddleware(history)),
+    applyMiddleware(thunk)
   )
 )
 
-const App: React.FC<any> = () => {
-  useEffect(() => {
-    socket.initialise(store, history)
-  }, [])
-
-  const connect = function() {
-    return async (dispatch, getState, socket) => {
-      await dispatch(notificationActions.trace("Connecting"))
-      var scriptsPromise = dispatch(scriptActions.fetch())
-      var metaPromise = dispatch(supportActions.fetchMetadata())
-      await dispatch(exchangesActions.fetchExchanges())
-      await dispatch(coinActions.fetch())
-      await dispatch(coinActions.fetchReferencePrices())
-      await scriptsPromise
-      await metaPromise
-      await socket.connect()
-    }
-  }
-
-  const disconnect = function() {
-    return async (dispatch, getState, socket) => {
-      await dispatch(notificationActions.trace("Disconnecting"))
-      await socket.disconnect()
-    }
-  }
-
-  const ErrorContainer = Loadable({
-    loader: () => import("./containers/ErrorContainer"),
-    loading: () => (
-      <Dimmer active={true}>
-        <Loader active={true} />
-      </Dimmer>
-    )
-  })
-
-  const FrameworkContainer = Loadable({
-    loader: () => import("./FrameworkContainer"),
-    loading: () => (
-      <Dimmer active={true}>
-        <Loader active={true} />
-      </Dimmer>
-    )
-  })
-
-  return (
-    <ThemeProvider theme={theme}>
-      <>
-        <GlobalStyle />
-        <ReduxProvider store={store}>
-          <Authoriser
-            onConnect={() => store.dispatch(connect())}
-            onDisconnect={() => store.dispatch(disconnect())}
-            render={({ logout, clearWhitelisting }) => (
-              <>
-                <ErrorContainer />
-                <ConnectedRouter history={history}>
-                  <FrameworkContainer
-                    onLogout={logout}
-                    onClearWhitelisting={clearWhitelisting}
-                  />
-                </ConnectedRouter>
-              </>
-            )}
-          />
-        </ReduxProvider>
-      </>
-    </ThemeProvider>
+const ErrorContainer = Loadable({
+  loader: () => import("./containers/ErrorContainer"),
+  loading: () => (
+    <Dimmer active={true}>
+      <Loader active={true} />
+    </Dimmer>
   )
-}
+})
+
+const FrameworkContainer = Loadable({
+  loader: () => import("./FrameworkContainer"),
+  loading: () => (
+    <Dimmer active={true}>
+      <Loader active={true} />
+    </Dimmer>
+  )
+})
+
+const App: React.FC<any> = () => (
+  <ThemeProvider theme={theme}>
+    <>
+      <GlobalStyle />
+      <ReduxProvider store={store}>
+        <ErrorContainer />
+        <Socket store={store} history={history}>
+          {(socket: SocketRenderProps) => (
+            <Authoriser
+              onConnect={socket ? socket.connect : () => {}}
+              onDisconnect={socket ? socket.disconnect : () => {}}
+            >
+              <ConnectedRouter history={history}>
+                <FrameworkContainer />
+              </ConnectedRouter>
+            </Authoriser>
+          )}
+        </Socket>
+      </ReduxProvider>
+    </>
+  </ThemeProvider>
+)
 
 export default App
