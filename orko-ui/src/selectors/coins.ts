@@ -15,10 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { createSelector } from "reselect"
+import { createSelector, OutputSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getAlertJobs, getStopJobs } from "./jobs"
 import { coinFromKey } from "../util/coinUtils"
+import { Coin, ServerTicker } from "util/Types"
+import Ticker from "components/Ticker"
 
 const getCoins = state => state.coins.coins
 const getReferencePrices = state => state.coins.referencePrices
@@ -33,7 +35,7 @@ export const getMarketTradeHistory = state => state.coin.trades
 
 export const getTopOfOrderBook = getOrderbook // Moved to worker
 
-export const locationToCoin = location => {
+export const locationToCoin = (location: Location): Coin => {
   if (
     location &&
     location.pathname &&
@@ -46,18 +48,26 @@ export const locationToCoin = location => {
   }
 }
 
-export const getSelectedCoin = createSelector(
+export const getSelectedCoin: OutputSelector<
+  any,
+  Coin,
+  (res1: any, res2: any) => Coin
+> = createSelector(
   [getRouterLocation],
   location => locationToCoin(location)
 )
 
-export const getSelectedExchange = createSelector(
+export const getSelectedExchange: OutputSelector<
+  any,
+  Coin,
+  (res1: Coin, res2: any) => string
+> = createSelector(
   [getSelectedCoin, getExchanges],
   (coin, exchanges) =>
     !coin ? null : exchanges.find(e => e.code === coin.exchange)
 )
 
-function jobTriggerMatchesCoin(job, coin) {
+function jobTriggerMatchesCoin(job, coin: ServerTicker) {
   return (
     job.tickTrigger.exchange === coin.exchange &&
     job.tickTrigger.base === coin.base &&
@@ -104,7 +114,11 @@ export const getOrdersForSelectedCoin = createSelector(
   }
 )
 
-export const getSelectedCoinTicker = createSelector(
+export const getSelectedCoinTicker: OutputSelector<
+  any,
+  Ticker,
+  (res1: Coin, res2: any) => Ticker
+> = createSelector(
   [getSelectedCoin, getTickers],
   (coin, tickers) => (coin ? tickers[coin.key] : null)
 )

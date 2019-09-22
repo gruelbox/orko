@@ -28,6 +28,7 @@ import {
 } from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
 import { SocketContext } from "@orko-ui-socket/Socket"
+import { Coin, Ticker } from "util/Types"
 
 interface ToolbarContainerProps {
   onLogout(): void
@@ -43,9 +44,9 @@ interface ToolbarReduxProps extends ToolbarContainerProps {
   hiddenPanels: any // TODO
   errors: Array<string>
   updateFocusedField(): void
-  ticker: any // TODO
+  ticker: Ticker
   balance: Number
-  coin: any // TODO
+  coin: Coin
   coinMetadata: any // TODO
   exchangeMetadata: any // TODO
 }

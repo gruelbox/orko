@@ -35,6 +35,7 @@ import { locationToCoin } from "../../selectors/coins"
 import { batchActions } from "redux-batched-actions"
 import { useInterval } from "util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
+import { Coin } from "util/Types"
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_BALANCE = "balance"
@@ -46,6 +47,16 @@ export interface SocketProps {
   children: ReactElement
 }
 
+/**
+ * Manages the socket, disconnecting when authentication is lost and
+ * reconnecting when enabled, and then dispatching any updates to
+ * the store.
+ *
+ * This is an interim measure as I break up the redux store and switch
+ * to individual contexts, as has now been done for this and Authoriser.
+ *
+ * @param props
+ */
 const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const auth = useContext(AuthContext)
   const [connected, setConnected] = useState(false)
@@ -70,7 +81,7 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     [props.store]
   )
 
-  function bufferLatestAction(key, action) {
+  function bufferLatestAction(key: string, action: object) {
     deduplicatedActionBuffer.current[key] = action
   }
 
@@ -103,7 +114,7 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   // When the coin selected changes, send resubscription messages and clear any
   // coin-specific state
   useEffect(() => {
-    props.history.listen(location => {
+    props.history.listen((location: Location) => {
       const coin = locationToCoin(location)
       if (coin !== previousCoin.current) {
         previousCoin.current = coin
@@ -122,55 +133,58 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   // Forward direct notifications to the store
   useEffect(() => {
-    socketClient.onError(message =>
+    socketClient.onError((message: string) =>
       props.store.dispatch(notificationActions.localError(message))
     )
-    socketClient.onNotification(message =>
+    socketClient.onNotification((message: string) =>
       props.store.dispatch(notificationActions.add(message))
     )
-    socketClient.onStatusUpdate(message =>
+    socketClient.onStatusUpdate((message: string) =>
       props.store.dispatch(notificationActions.statusUpdate(message))
     )
   }, [props.store])
 
   // Dispatch market data to the store
   useEffect(() => {
-    const sameCoin = (left, right) => left && right && left.key === right.key
-    socketClient.onTicker((coin, ticker) =>
+    const sameCoin = (left: Coin, right: Coin) =>
+      left && right && left.key === right.key
+    socketClient.onTicker((coin: Coin, ticker) =>
       bufferLatestAction(
         ACTION_KEY_TICKER + "/" + coin.key,
         tickerActions.setTicker(coin, ticker)
       )
     )
-    socketClient.onBalance((exchange, currency, balance) => {
-      const coin = selectedCoin()
-      if (
-        coin &&
-        coin.exchange === exchange &&
-        (coin.base === currency || coin.counter === currency)
-      ) {
-        bufferLatestAction(
-          ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
-          coinActions.setBalance(exchange, currency, balance)
-        )
+    socketClient.onBalance(
+      (exchange: string, currency: string, balance: Number) => {
+        const coin = selectedCoin()
+        if (
+          coin &&
+          coin.exchange === exchange &&
+          (coin.base === currency || coin.counter === currency)
+        ) {
+          bufferLatestAction(
+            ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
+            coinActions.setBalance(exchange, currency, balance)
+          )
+        }
       }
-    })
-    socketClient.onOrderBook((coin, orderBook) => {
+    )
+    socketClient.onOrderBook((coin: Coin, orderBook) => {
       if (sameCoin(coin, selectedCoin()))
         bufferLatestAction(
           ACTION_KEY_ORDERBOOK,
           coinActions.setOrderBook(orderBook)
         )
     })
-    socketClient.onTrade((coin, trade) => {
+    socketClient.onTrade((coin: Coin, trade) => {
       if (sameCoin(coin, selectedCoin()))
         bufferAllActions(coinActions.addTrade(trade))
     })
-    socketClient.onUserTrade((coin, trade) => {
+    socketClient.onUserTrade((coin: Coin, trade) => {
       if (sameCoin(coin, selectedCoin()))
         bufferAllActions(coinActions.addUserTrade(trade))
     })
-    socketClient.onOrderUpdate((coin, order, timestamp) => {
+    socketClient.onOrderUpdate((coin: Coin, order, timestamp) => {
       if (sameCoin(coin, selectedCoin()))
         props.store.dispatch(coinActions.orderUpdated(order, timestamp))
     })
@@ -178,7 +192,7 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     // This is a bit hacky. The intent is to move this logic server side,
     // so the presence of a snapshot/poll loop is invisible to the client.
     // In the meantime, I'm not polluting the reducer with it.
-    socketClient.onOrdersSnapshot((coin, orders, timestamp) => {
+    socketClient.onOrdersSnapshot((coin: Coin, orders, timestamp) => {
       if (sameCoin(coin, selectedCoin())) {
         var idsPresent = []
         if (orders.length === 0) {
@@ -212,7 +226,7 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   // Sync the state of the socket with the socket itself
   useEffect(() => {
-    socketClient.onConnectionStateChange(newState => {
+    socketClient.onConnectionStateChange((newState: boolean) => {
       setConnected((prevState: boolean) => {
         if (prevState !== newState) {
           if (newState) {
