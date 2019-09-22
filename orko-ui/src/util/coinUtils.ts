@@ -16,8 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import Immutable from "seamless-immutable"
+import { PartialTicker, ServerTicker, Coin } from "./Types"
 
-export function coin(exchange, counter, base) {
+export function coin(
+  exchange: string,
+  counter: string,
+  base: string
+): ServerTicker {
   return augmentCoin(
     {
       counter: counter,
@@ -27,7 +32,7 @@ export function coin(exchange, counter, base) {
   )
 }
 
-export function coinFromKey(key) {
+export function coinFromKey(key: string): Coin {
   const split = key.split("/")
   return augmentCoin(
     {
@@ -38,11 +43,11 @@ export function coinFromKey(key) {
   )
 }
 
-export function coinFromTicker(t) {
+export function coinFromTicker(t: ServerTicker): Coin {
   return augmentCoin(t, t.exchange)
 }
 
-export function tickerFromCoin(coin) {
+export function tickerFromCoin(coin: Coin): ServerTicker {
   return {
     counter: coin.counter,
     base: coin.base,
@@ -50,10 +55,18 @@ export function tickerFromCoin(coin) {
   }
 }
 
-export function augmentCoin(p, exchange) {
+export function augmentCoin(
+  p: ServerTicker | PartialTicker,
+  exchange?: string
+) {
   return Immutable.merge(p, {
-    exchange: exchange ? exchange : p.exchange,
-    key: (exchange ? exchange : p.exchange) + "/" + p.counter + "/" + p.base,
+    exchange: exchange ? exchange : (p as ServerTicker).exchange,
+    key:
+      (exchange ? exchange : (p as ServerTicker).exchange) +
+      "/" +
+      p.counter +
+      "/" +
+      p.base,
     name: p.base + "/" + p.counter + " (" + exchange + ")",
     shortName: p.base + "/" + p.counter
   })

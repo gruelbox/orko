@@ -5,6 +5,7 @@
   "dependencies": {
     "@craco/craco": "^5.4.0",
     "@mars/heroku-js-runtime-env": "^3.0.2",
+    "@types/history": "^4.7.3",
     "@types/jest": "^24.0.18",
     "@types/node": "^12.7.4",
     "@types/react": "^16.9.2",

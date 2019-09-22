@@ -34,6 +34,15 @@ interface AuthorizerProps {
   children: ReactElement
 }
 
+/**
+ * Self-contained authorisation/login component. Displays child components
+ * only if authorised, otherwise shows the relevant login components.
+ *
+ * Provides a context API for logging out and performing API calls, handling
+ * authentication errors by logging out.
+ *
+ * @param props
+ */
 const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
   const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
