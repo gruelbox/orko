@@ -31,6 +31,7 @@ import { setXsrfToken, clearXsrfToken } from "@orko-ui-common/util/fetchUtil"
 import { AuthContext, AuthApi } from "./AuthContext"
 
 interface AuthorizerProps {
+  onError?(message: string): void
   children: ReactElement
 }
 
@@ -50,6 +51,15 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
   const [error, setError] = useState<string>(undefined)
   const authorised = whitelisted && loggedIn
 
+  const propsOnError = props.onError
+  const onError = useMemo(
+    () => (message: string) => {
+      setError(message)
+      if (propsOnError) propsOnError(message)
+    },
+    [setError, propsOnError]
+  )
+
   const checkConnected = useCallback(
     () =>
       (async function(): Promise<boolean> {
@@ -67,7 +77,7 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
         }
         return success
       })(),
-    []
+    [setWhitelisted, setLoggedIn, setError]
   )
 
   const onWhitelist = useMemo(
@@ -83,10 +93,10 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
         } catch (error) {
           console.log(error.message)
           setWhitelisted(false)
-          setError(`Whitelisting failed: ${error.message}`)
+          onError(`Whitelisting failed: ${error.message}`)
         }
       },
-    [checkConnected]
+    [checkConnected, setWhitelisted, setError, onError]
   )
 
   const onLogin = useMemo(
@@ -107,10 +117,10 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
           .then(checkConnected)
           .catch(error => {
             console.log(`Login failed: ${error.message}`)
-            setError(error.message)
+            onError(error.message)
           })
       },
-    [checkConnected]
+    [checkConnected, setLoggedIn, setError, onError]
   )
 
   const clearWhitelisting = useMemo(
@@ -121,11 +131,12 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
           await authService.clearWhiteList()
         } catch (error) {
           console.log(error.message)
+          onError(error.message)
           return
         }
         setWhitelisted(false)
       },
-    []
+    [setWhitelisted, onError]
   )
 
   const logout = useMemo(
@@ -135,7 +146,7 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
         clearXsrfToken()
         setLoggedIn(false)
       },
-    []
+    [setLoggedIn]
   )
 
   // TODO the presence of this as a thunk action is a transitionary
@@ -215,12 +226,12 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
         } catch (error) {
           console.log("Error checking whitelist")
           setWhitelisted(false)
-          setError(error.message)
+          onError(error.message)
         }
       }
     }
     doSetup().finally(() => setLoading(false))
-  }, [checkConnected])
+  }, [checkConnected, onError])
 
   if (loading) {
     return (

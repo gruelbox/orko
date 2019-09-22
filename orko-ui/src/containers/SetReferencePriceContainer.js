@@ -43,7 +43,11 @@ class SetReferencePriceContainer extends Component {
 
   onSubmit = () => {
     this.props.dispatch(
-      coinsActions.setReferencePrice(this.props.coin, this.state.price)
+      coinsActions.setReferencePrice(
+        this.props.auth,
+        this.props.coin,
+        this.state.price
+      )
     )
     this.props.dispatch(uiActions.closeReferencePrice())
     this.setState({ price: "" })

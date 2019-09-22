@@ -40,6 +40,7 @@ import * as scriptActions from "store/scripting/actions"
 import * as supportActions from "store/support/actions"
 import * as exchangesActions from "store/exchanges/actions"
 import * as jobActions from "store/job/actions"
+import * as errorActions from "store/error/actions"
 import { useInterval } from "util/hookUtils"
 import { LogApi, LogContext, LogManager } from "modules/notification/LogContext"
 
@@ -128,7 +129,11 @@ const App: React.FC<any> = () => (
       <LogManager>
         <ReduxProvider store={store}>
           <ErrorContainer />
-          <Authoriser>
+          <Authoriser
+            onError={message =>
+              store.dispatch(errorActions.setForeground(message))
+            }
+          >
             <>
               <ConnectedStoreManagement />
               <Socket store={store} history={history}>

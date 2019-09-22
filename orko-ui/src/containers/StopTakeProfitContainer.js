@@ -144,7 +144,6 @@ class StopTakeProfitContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    auth: state.auth,
     coin: getSelectedCoin(state)
   }
 }
