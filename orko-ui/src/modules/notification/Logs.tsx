@@ -15,18 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
-import { connect } from "react-redux"
+import React, { useContext } from "react"
 
 import * as dateUtils from "@orko-ui-common/util/dateUtils"
-import * as notificationActions from "../store/notifications/actions"
 
 import ReactTable from "react-table"
-import Section from "../components/primitives/Section"
-import Href from "../components/primitives/Href"
-import Span from "../components/primitives/Span"
+import Section from "components/primitives/Section"
+import Href from "components/primitives/Href"
+import Span from "components/primitives/Span"
 import { Icon } from "semantic-ui-react"
-import theme from "../theme"
+import theme from "theme"
+import { LogEntry, LogContext } from "./LogContext"
 
 const textStyle = {
   textAlign: "left"
@@ -41,7 +40,7 @@ const columns = [
     id: "icon",
     Header: null,
     accessor: "notificationType",
-    Cell: ({ original }) =>
+    Cell: ({ original }: { original: LogEntry }) =>
       original.level === "ERROR" ? (
         <Icon fitted name="warning sign" />
       ) : original.level === "ALERT" ? (
@@ -58,7 +57,8 @@ const columns = [
     id: "dateTime",
     Header: "Time",
     accessor: "dateTime",
-    Cell: ({ original }) => dateUtils.formatDate(original.dateTime),
+    Cell: ({ original }: { original: LogEntry }) =>
+      dateUtils.formatDate(original.dateTime),
     headerStyle: textStyle,
     style: textStyle,
     resizable: false,
@@ -68,7 +68,7 @@ const columns = [
     id: "message",
     Header: "Message",
     accessor: "message",
-    Cell: ({ original }) => (
+    Cell: ({ original }: { original: LogEntry }) => (
       <div title={original.message}>{original.message}</div>
     ),
     headerStyle: textStyle,
@@ -77,46 +77,45 @@ const columns = [
   }
 ]
 
-const NotificationsContainer = ({ notifications, dispatch }) => (
-  <Section
-    id="notifications"
-    heading="Server Notifications"
-    nopadding
-    buttons={() => (
-      <Span color="white">
-        <Href
-          title="Clear notifications"
-          onClick={() => dispatch(notificationActions.clear())}
-        >
-          <Icon name="trash" />
-        </Href>
-      </Span>
-    )}
-  >
-    <ReactTable
-      data={notifications}
-      getTrProps={(state, rowInfo, column) => ({
-        style: {
-          color:
-            rowInfo.original.level === "ERROR"
-              ? theme.colors.alert
-              : rowInfo.original.level === "ALERT"
-              ? theme.colors.emphasis
-              : rowInfo.original.level === "TRACE"
-              ? theme.colors.deemphasis
-              : undefined
-        }
-      })}
-      columns={columns}
-      showPagination={false}
-      resizable={false}
-      className="-striped"
-      minRows={0}
-      noDataText="No new notifications"
-    />
-  </Section>
-)
+const Logs: React.FC<any> = () => {
+  const api = useContext(LogContext)
 
-export default connect(state => ({
-  notifications: state.notifications.notifications
-}))(NotificationsContainer)
+  return (
+    <Section
+      id="notifications"
+      heading="Server Notifications"
+      nopadding
+      buttons={() => (
+        <Span color="white">
+          <Href title="Clear notifications" onClick={() => api.clear()}>
+            <Icon name="trash" />
+          </Href>
+        </Span>
+      )}
+    >
+      <ReactTable
+        data={api.logs}
+        getTrProps={(state, { original }: { original: LogEntry }) => ({
+          style: {
+            color:
+              original.level === "ERROR"
+                ? theme.colors.alert
+                : original.level === "ALERT"
+                ? theme.colors.emphasis
+                : original.level === "TRACE"
+                ? theme.colors.deemphasis
+                : undefined
+          }
+        })}
+        columns={columns}
+        showPagination={false}
+        resizable={false}
+        className="-striped"
+        minRows={0}
+        noDataText="No new notifications"
+      />
+    </Section>
+  )
+}
+
+export default Logs

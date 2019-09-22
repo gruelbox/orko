@@ -35,13 +35,13 @@ import Loadable from "react-loadable"
 import Authoriser, { AuthContext, AuthApi } from "@orko-ui-auth/Authoriser"
 import Socket from "@orko-ui-socket/Socket"
 
-import * as notificationActions from "store/notifications/actions"
 import * as coinActions from "store/coins/actions"
 import * as scriptActions from "store/scripting/actions"
 import * as supportActions from "store/support/actions"
 import * as exchangesActions from "store/exchanges/actions"
 import * as jobActions from "store/job/actions"
 import { useInterval } from "util/hookUtils"
+import { LogApi, LogContext, LogManager } from "modules/notification/LogContext"
 
 const history = createBrowserHistory()
 const store = createStore(
@@ -70,12 +70,16 @@ const FrameworkContainer = Loadable({
   )
 })
 
-const StoreManagement: React.FC<{ auth: AuthApi }> = ({ auth }) => {
+const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({
+  auth,
+  logApi
+}) => {
   // Load state on successful authorisation
+  const logTrace = logApi.trace
   useEffect(() => {
     const syncFunction: any = () => {
       return async (dispatch, getState) => {
-        await dispatch(notificationActions.trace("Fetching server status"))
+        await logTrace("Fetching server status")
         var releasesPromise = dispatch(supportActions.fetchReleases(auth))
         var scriptsPromise = dispatch(scriptActions.fetch(auth))
         var metaPromise = dispatch(supportActions.fetchMetadata(auth))
@@ -90,13 +94,13 @@ const StoreManagement: React.FC<{ auth: AuthApi }> = ({ auth }) => {
     if (auth.authorised) {
       store.dispatch(syncFunction())
     }
-  }, [auth])
+  }, [auth, logTrace])
 
   // Fetch and dispatch the job details on the server.
   // TODO this should really move to the socket, but for the time being
   // we'll fetch it on an interval.
   useInterval(() => {
-    store.dispatch(jobActions.fetchJobs(auth))
+    store.dispatch(jobActions.fetchJobs(auth, logApi))
   }, 5000)
 
   // Periodically check for new versions.
@@ -107,25 +111,35 @@ const StoreManagement: React.FC<{ auth: AuthApi }> = ({ auth }) => {
   return <></>
 }
 
+const ConnectedStoreManagement: React.FC<any> = () => (
+  <AuthContext.Consumer>
+    {(auth: AuthApi) => (
+      <LogContext.Consumer>
+        {(logApi: LogApi) => <StoreManagement auth={auth} logApi={logApi} />}
+      </LogContext.Consumer>
+    )}
+  </AuthContext.Consumer>
+)
+
 const App: React.FC<any> = () => (
   <ThemeProvider theme={theme}>
     <>
       <GlobalStyle />
-      <ReduxProvider store={store}>
-        <ErrorContainer />
-        <Authoriser>
-          <>
-            <AuthContext.Consumer>
-              {(auth: AuthApi) => <StoreManagement auth={auth} />}
-            </AuthContext.Consumer>
-            <Socket store={store} history={history}>
-              <ConnectedRouter history={history}>
-                <FrameworkContainer />
-              </ConnectedRouter>
-            </Socket>
-          </>
-        </Authoriser>
-      </ReduxProvider>
+      <LogManager>
+        <ReduxProvider store={store}>
+          <ErrorContainer />
+          <Authoriser>
+            <>
+              <ConnectedStoreManagement />
+              <Socket store={store} history={history}>
+                <ConnectedRouter history={history}>
+                  <FrameworkContainer />
+                </ConnectedRouter>
+              </Socket>
+            </>
+          </Authoriser>
+        </ReduxProvider>
+      </LogManager>
     </>
   </ThemeProvider>
 )

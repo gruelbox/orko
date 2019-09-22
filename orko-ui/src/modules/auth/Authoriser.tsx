@@ -138,6 +138,8 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
     []
   )
 
+  // TODO the presence of this as a thunk action is a transitionary
+  // phase in moving entirely to context-based state
   const wrappedRequest = useMemo(
     () => (apiRequest, jsonHandler, errorHandler, onSuccess) => {
       return async (dispatch, getState) => {
@@ -167,11 +169,20 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
               throw new Error(errorMessage)
             }
           } else {
-            if (jsonHandler) dispatch(jsonHandler(await response.json()))
-            if (onSuccess) dispatch(onSuccess())
+            if (jsonHandler) {
+              const jh = jsonHandler(await response.json())
+              if (jh) dispatch(jh)
+            }
+            if (onSuccess) {
+              const os = onSuccess()
+              if (os) dispatch(os)
+            }
           }
         } catch (error) {
-          if (errorHandler) dispatch(errorHandler(error))
+          if (errorHandler) {
+            const eh = errorHandler(error)
+            if (eh) dispatch(eh)
+          }
         }
       }
     },

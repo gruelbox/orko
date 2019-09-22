@@ -32,7 +32,6 @@ import MarketContainer from "./containers/MarketContainer"
 import OrdersContainer from "./containers/OrdersContainer"
 import TradeContainer from "./containers/TradeContainer"
 import BalanceContainer from "./containers/BalanceContainer"
-import NotificationsContainer from "./containers/NotificationsContainer"
 import ManageAlertsContainer from "./containers/ManageAlertsContainer"
 import ManageScriptsContainer from "./containers/ManageScriptsContainer"
 import SetReferencePriceContainer from "./containers/SetReferencePriceContainer"
@@ -43,6 +42,7 @@ import ViewSettings from "./components/ViewSettings"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { Provider as SectionProvider } from "./components/primitives/Section"
 import { isNull } from "util"
+import Logs from "modules/notification/Logs"
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
@@ -172,7 +172,7 @@ export default class Framework extends React.Component {
           data-grid={this.props.layoutsAsObj.notifications}
         >
           <Panel id="notifications">
-            <NotificationsContainer />
+            <Logs />
           </Panel>
         </LayoutBox>
       )

@@ -28,7 +28,6 @@ import React, {
 import { AuthContext } from "@orko-ui-auth/Authoriser"
 
 import * as coinActions from "../../store/coin/actions"
-import * as notificationActions from "../../store/notifications/actions"
 import * as socketClient from "../../worker/socket.client.js"
 import * as tickerActions from "../../store/ticker/actions"
 import { locationToCoin } from "../../selectors/coins"
@@ -36,6 +35,7 @@ import { batchActions } from "redux-batched-actions"
 import { useInterval } from "util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "util/Types"
+import { LogContext, LogRequest } from "modules/notification/LogContext"
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_BALANCE = "balance"
@@ -58,7 +58,8 @@ export interface SocketProps {
  * @param props
  */
 const Socket: React.FC<SocketProps> = (props: SocketProps) => {
-  const auth = useContext(AuthContext)
+  const authApi = useContext(AuthContext)
+  const logApi = useContext(LogContext)
   const [connected, setConnected] = useState(false)
   const previousCoin = useRef<object>()
 
@@ -132,17 +133,15 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   }, [props.store, props.history, connected, subscribedCoins])
 
   // Forward direct notifications to the store
+  const logError = logApi.localError
+  const logMessage = logApi.localMessage
+  const logNotification = logApi.add
   useEffect(() => {
-    socketClient.onError((message: string) =>
-      props.store.dispatch(notificationActions.localError(message))
+    socketClient.onError((message: string) => logError(message))
+    socketClient.onNotification((logEntry: LogRequest) =>
+      logNotification(logEntry)
     )
-    socketClient.onNotification((message: string) =>
-      props.store.dispatch(notificationActions.add(message))
-    )
-    socketClient.onStatusUpdate((message: string) =>
-      props.store.dispatch(notificationActions.statusUpdate(message))
-    )
-  }, [props.store])
+  }, [props.store, logError, logNotification])
 
   // Dispatch market data to the store
   useEffect(() => {
@@ -224,34 +223,29 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     })
   }, [props.store, selectedCoin])
 
-  // Sync the state of the socket with the socket itself
-  useEffect(() => {
-    socketClient.onConnectionStateChange((newState: boolean) => {
-      setConnected((prevState: boolean) => {
-        if (prevState !== newState) {
-          if (newState) {
-            props.store.dispatch(
-              notificationActions.localMessage("Socket connected")
-            )
-            resubscribe()
-          } else {
-            props.store.dispatch(
-              notificationActions.localMessage("Socket disconnected")
-            )
-          }
-        }
-        return newState
-      })
-    })
-  }, [setConnected, props.store, resubscribe])
-
   // Connect the socket when authorised, and disconnect when deauthorised
   useEffect(() => {
-    if (auth.authorised) {
+    if (authApi.authorised) {
       socketClient.connect()
     }
     return () => socketClient.disconnect()
-  }, [auth.authorised])
+  }, [authApi.authorised])
+
+  // Sync the state of the socket with the socket itself
+  useEffect(() => {
+    socketClient.onConnectionStateChange((newState: boolean) =>
+      setConnected(newState)
+    )
+  }, [setConnected])
+
+  // Log when the socket connects and resubscribe
+  useEffect(() => {
+    if (connected) {
+      logMessage("Socket connected")
+      resubscribe()
+      return () => logMessage("Socket disconnected")
+    }
+  }, [connected, logMessage, resubscribe])
 
   const api: SocketApi = useMemo(() => ({ connected, resubscribe }), [
     connected,
