@@ -221,11 +221,9 @@ export default class Framework extends React.Component {
             mobile={isMobile}
             onShowViewSettings={onToggleViewSettings}
             onTogglePanelVisible={onTogglePanelVisible}
-            on
-            panels={panels}
             width={width}
             onLogout={onLogout}
-            onClearWhitelisting={onClearWhitelisting}
+            onClearWhitelist={onClearWhitelisting}
           />
         </ErrorBoundary>
         <ErrorBoundary>

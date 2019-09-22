@@ -18,9 +18,9 @@
 import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import supportService from "../../services/support"
-import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/Authoriser"
 
-export function fetchMetadata(auth: AuthContextFeatures) {
+export function fetchMetadata(auth: AuthApi) {
   return auth.wrappedRequest(
     () => supportService.fetchMetadata(),
     json => ({ type: types.SET_META, payload: json }),
@@ -31,7 +31,7 @@ export function fetchMetadata(auth: AuthContextFeatures) {
   )
 }
 
-export function fetchReleases(auth: AuthContextFeatures) {
+export function fetchReleases(auth: AuthApi) {
   return auth.wrappedRequest(
     () => supportService.fetchReleases(),
     json => ({ type: types.SET_RELEASES, payload: json }),

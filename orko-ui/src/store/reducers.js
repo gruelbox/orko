@@ -22,7 +22,6 @@ import focus from "./focus/reducer"
 import job from "./job/reducer"
 import error from "./error/reducer"
 import ticker from "./ticker/reducer"
-import socket from "./socket/reducer"
 import notifications from "./notifications/reducer"
 import ui from "./ui/reducer"
 import scripting from "./scripting/reducer"
@@ -43,7 +42,6 @@ export default history =>
     ticker,
     notifications,
     ui,
-    socket,
     scripting,
     support
   })

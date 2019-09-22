@@ -21,7 +21,7 @@ import * as uiActions from "./store/ui/actions"
 import { getAllPanels, getAllLayouts } from "./selectors/ui"
 import Framework from "./Framework"
 import theme from "./theme"
-import { AuthContext, AuthContextFeatures } from "@orko-ui-auth/Authoriser"
+import { AuthContext, AuthApi } from "@orko-ui-auth/Authoriser"
 import { DraggableData } from "react-rnd"
 
 const windowToBreakpoint = (width: number) =>
@@ -33,7 +33,7 @@ const FrameworkContainer: React.FC<any> = props => {
   const [breakpoint, setBreakpoint] = useState(bp)
   const [width, setWidth] = useState(window.innerWidth)
   const [showSettings, setShowSettings] = useState(false)
-  const auth: AuthContextFeatures = useContext(AuthContext)
+  const auth: AuthApi = useContext(AuthContext)
 
   useEffect(() => {
     window.addEventListener("resize", (e: UIEvent) =>

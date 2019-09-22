@@ -20,9 +20,9 @@ import { augmentCoin } from "../../util/coinUtils"
 import exchangesService from "../../services/exchanges"
 import * as errorActions from "../error/actions"
 import * as coinActions from "../coin/actions"
-import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/Authoriser"
 
-export function fetchExchanges(auth: AuthContextFeatures) {
+export function fetchExchanges(auth: AuthApi) {
   return auth.wrappedRequest(
     () => exchangesService.fetchExchanges(),
     exchanges => ({ type: types.SET_EXCHANGES, payload: exchanges }),
@@ -31,7 +31,7 @@ export function fetchExchanges(auth: AuthContextFeatures) {
   )
 }
 
-export function fetchPairs(auth: AuthContextFeatures, exchange) {
+export function fetchPairs(auth: AuthApi, exchange) {
   return auth.wrappedRequest(
     () => exchangesService.fetchPairs(exchange),
     json => ({
@@ -45,7 +45,7 @@ export function fetchPairs(auth: AuthContextFeatures, exchange) {
   )
 }
 
-export function submitLimitOrder(auth: AuthContextFeatures, exchange, order) {
+export function submitLimitOrder(auth: AuthApi, exchange, order) {
   return auth.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
@@ -61,7 +61,7 @@ export function submitLimitOrder(auth: AuthContextFeatures, exchange, order) {
   )
 }
 
-export function submitStopOrder(auth: AuthContextFeatures, exchange, order) {
+export function submitStopOrder(auth: AuthApi, exchange, order) {
   return auth.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
@@ -77,7 +77,7 @@ export function submitStopOrder(auth: AuthContextFeatures, exchange, order) {
   )
 }
 
-export function cancelOrder(auth: AuthContextFeatures, coin, orderId) {
+export function cancelOrder(auth: AuthApi, coin, orderId) {
   return async (dispatch, getState) => {
     dispatch(
       coinActions.orderUpdated(

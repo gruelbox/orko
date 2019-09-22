@@ -18,9 +18,9 @@
 import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import scriptService from "../../services/script"
-import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/Authoriser"
 
-export function fetch(auth: AuthContextFeatures) {
+export function fetch(auth: AuthApi) {
   return auth.wrappedRequest(
     () => scriptService.fetchScripts(),
     json => ({ type: types.SET_SCRIPTS, payload: json }),
@@ -29,7 +29,7 @@ export function fetch(auth: AuthContextFeatures) {
   )
 }
 
-export function remove(auth: AuthContextFeatures, id) {
+export function remove(auth: AuthApi, id) {
   return auth.wrappedRequest(
     () => scriptService.deleteScript(id),
     null,
@@ -39,7 +39,7 @@ export function remove(auth: AuthContextFeatures, id) {
   )
 }
 
-export function add(auth: AuthContextFeatures, script) {
+export function add(auth: AuthApi, script) {
   return auth.wrappedRequest(
     () => scriptService.saveScript(script),
     null,
@@ -49,7 +49,7 @@ export function add(auth: AuthContextFeatures, script) {
   )
 }
 
-export function update(auth: AuthContextFeatures, script) {
+export function update(auth: AuthApi, script) {
   return auth.wrappedRequest(
     () => scriptService.saveScript(script),
     null,

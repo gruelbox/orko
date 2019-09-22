@@ -84,7 +84,7 @@ export function onBalance(handler) {
 }
 
 export function connect() {
-  if (connected) throw Error("Already connected")
+  if (connected) return
   const root = runtimeEnv().REACT_APP_WS_URL
   console.log("Connecting to socket", root)
   socket = ws("ws", root)

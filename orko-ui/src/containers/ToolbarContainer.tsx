@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { useContext } from "react"
 import { connect } from "react-redux"
 
 import Toolbar from "../components/Toolbar"
@@ -27,9 +27,33 @@ import {
   getSelectedExchange
 } from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
+import { SocketContext } from "@orko-ui-socket/Socket"
 
-const ToolbarContainer = props => {
-  if (!props.connected) {
+interface ToolbarContainerProps {
+  onLogout(): void
+  onClearWhitelist(): void
+  onTogglePanelVisible(key: string): void
+  onShowViewSettings(): void
+  width: Number
+  mobile: boolean
+}
+
+interface ToolbarReduxProps extends ToolbarContainerProps {
+  version: string
+  hiddenPanels: any // TODO
+  errors: Array<string>
+  updateFocusedField(): void
+  ticker: any // TODO
+  balance: Number
+  coin: any // TODO
+  coinMetadata: any // TODO
+  exchangeMetadata: any // TODO
+}
+
+const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
+  const socket = useContext(SocketContext)
+
+  if (!socket.connected) {
     document.title = "Not connected"
   } else if (props.ticker && props.coin) {
     document.title =
@@ -48,9 +72,9 @@ const ToolbarContainer = props => {
   return (
     <Toolbar
       {...props}
+      connected={socket.connected}
       onLogout={props.onLogout}
-      onClearWhitelist={props.onClearWhitelisting}
-      onShowPanel={key => props.onTogglePanelVisible(key)}
+      onShowPanel={(key: string) => props.onTogglePanelVisible(key)}
       balance={props.balance}
       exchangeMetadata={props.exchangeMetadata}
     />
@@ -63,7 +87,6 @@ export default connect((state, props) => {
     version: state.support.meta.version,
     hiddenPanels: getHiddenPanels(state),
     errors: state.error.errorBackground,
-    connected: state.socket.connected, // TODO this no longer works
     updateFocusedField: state.focus.fn,
     ticker: getSelectedCoinTicker(state),
     balance: state.coin.balance,

@@ -20,9 +20,9 @@ import * as errorActions from "../error/actions"
 import jobService from "../../services/job"
 import * as notificationActions from "../notifications/actions"
 import * as jobTypes from "../../services/jobTypes"
-import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/Authoriser"
 
-export function submitJob(auth: AuthContextFeatures, job, callback) {
+export function submitJob(auth: AuthApi, job, callback) {
   return auth.wrappedRequest(
     () => jobService.submitJob(job),
     null,
@@ -32,7 +32,7 @@ export function submitJob(auth: AuthContextFeatures, job, callback) {
   )
 }
 
-export function submitScriptJob(auth: AuthContextFeatures, job, callback) {
+export function submitScriptJob(auth: AuthApi, job, callback) {
   return auth.wrappedRequest(
     () => jobService.submitScriptJob(job),
     null,
@@ -50,7 +50,7 @@ function addJob(job, callback) {
   }
 }
 
-export function fetchJobs(auth: AuthContextFeatures) {
+export function fetchJobs(auth: AuthApi) {
   return auth.wrappedRequest(
     () => jobService.fetchJobs(),
     jobs => ({ type: types.SET_JOBS, payload: jobs }),
@@ -59,7 +59,7 @@ export function fetchJobs(auth: AuthContextFeatures) {
   )
 }
 
-export function deleteJob(auth: AuthContextFeatures, job) {
+export function deleteJob(auth: AuthApi, job) {
   return auth.wrappedRequest(
     () => jobService.deleteJob(job),
     null,

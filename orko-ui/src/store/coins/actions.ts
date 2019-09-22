@@ -20,9 +20,9 @@ import * as tickerActions from "../ticker/actions"
 import exchangesService from "../../services/exchanges"
 import * as errorActions from "../error/actions"
 import { coinFromTicker, tickerFromCoin } from "../../util/coinUtils"
-import { AuthContextFeatures } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/Authoriser"
 
-export function fetch(auth: AuthContextFeatures) {
+export function fetch(auth: AuthApi) {
   return auth.wrappedRequest(
     () => exchangesService.fetchSubscriptions(),
     json => ({ type: types.SET, payload: json.map(t => coinFromTicker(t)) }),
@@ -32,7 +32,7 @@ export function fetch(auth: AuthContextFeatures) {
   )
 }
 
-export function fetchReferencePrices(auth: AuthContextFeatures) {
+export function fetchReferencePrices(auth: AuthApi) {
   return auth.wrappedRequest(
     () => exchangesService.fetchReferencePrices(),
     json => ({ type: types.SET_REFERENCE_PRICES, payload: json }),
@@ -41,7 +41,7 @@ export function fetchReferencePrices(auth: AuthContextFeatures) {
   )
 }
 
-export function add(auth: AuthContextFeatures, coin) {
+export function add(auth: AuthApi, coin) {
   return auth.wrappedRequest(
     () =>
       exchangesService.addSubscription(JSON.stringify(tickerFromCoin(coin))),
@@ -54,13 +54,13 @@ export function add(auth: AuthContextFeatures, coin) {
   )
 }
 
-function multiFetchMetadata(auth: AuthContextFeatures) {
+function multiFetchMetadata(auth: AuthApi) {
   return async (dispatch, getState) => {
     getState().coins.coins.forEach(coin => dispatch(fetchMetadata(auth, coin)))
   }
 }
 
-function fetchMetadata(auth: AuthContextFeatures, coin) {
+function fetchMetadata(auth: AuthApi, coin) {
   return auth.wrappedRequest(
     () => exchangesService.fetchMetadata(coin),
     json => ({ type: types.SET_META, payload: { coin: coin, meta: json } }),
@@ -71,14 +71,14 @@ function fetchMetadata(auth: AuthContextFeatures, coin) {
   )
 }
 
-function applyAdd(auth: AuthContextFeatures, coin) {
+function applyAdd(auth: AuthApi, coin) {
   return (dispatch, getState) => {
     dispatch({ type: types.ADD, payload: coin })
     dispatch(fetchMetadata(auth, coin))
   }
 }
 
-export function remove(auth: AuthContextFeatures, coin) {
+export function remove(auth: AuthApi, coin) {
   return auth.wrappedRequest(
     () =>
       exchangesService.removeSubscription(JSON.stringify(tickerFromCoin(coin))),
@@ -98,7 +98,7 @@ function applyRemove(coin) {
   }
 }
 
-export function setReferencePrice(auth: AuthContextFeatures, coin, price) {
+export function setReferencePrice(auth: AuthApi, coin, price) {
   return auth.wrappedRequest(
     () => exchangesService.setReferencePrice(coin, price),
     null,

@@ -32,10 +32,7 @@ import { ConnectedRouter, routerMiddleware } from "connected-react-router"
 import createRootReducer from "./store/reducers"
 
 import Loadable from "react-loadable"
-import Authoriser, {
-  AuthContext,
-  AuthContextFeatures
-} from "@orko-ui-auth/Authoriser"
+import Authoriser, { AuthContext, AuthApi } from "@orko-ui-auth/Authoriser"
 import Socket from "@orko-ui-socket/Socket"
 
 import * as notificationActions from "store/notifications/actions"
@@ -73,7 +70,7 @@ const FrameworkContainer = Loadable({
   )
 })
 
-const StoreManagement: React.FC<{ auth: AuthContextFeatures }> = ({ auth }) => {
+const StoreManagement: React.FC<{ auth: AuthApi }> = ({ auth }) => {
   // Load state on successful authorisation
   useEffect(() => {
     const syncFunction: any = () => {
@@ -119,7 +116,7 @@ const App: React.FC<any> = () => (
         <Authoriser>
           <>
             <AuthContext.Consumer>
-              {(auth: AuthContextFeatures) => <StoreManagement auth={auth} />}
+              {(auth: AuthApi) => <StoreManagement auth={auth} />}
             </AuthContext.Consumer>
             <Socket store={store} history={history}>
               <ConnectedRouter history={history}>
