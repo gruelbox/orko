@@ -15,19 +15,33 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { ReactElement } from "react"
 import { connect } from "react-redux"
 
 import NoCoinSelected from "../components/NoCoinSelected"
 
 import { getSelectedCoin } from "../selectors/coins"
+import { Coin } from "util/Types"
 
-export default connect(state => ({
-  coin: getSelectedCoin(state)
-}))(({ coin, children, padded }) => {
+interface WithCoinProps {
+  children(coin: Coin): ReactElement
+  padded?: boolean
+}
+
+interface WithCoinReduxProps extends WithCoinProps {
+  coin: Coin
+}
+
+const WithCoin: React.FC<WithCoinReduxProps> = ({ coin, children, padded }) => {
   if (!!coin) {
     return children(coin)
   } else {
     return <NoCoinSelected padded={padded} />
   }
-})
+}
+
+const WithCoinContainer: React.FC<WithCoinProps> = connect(state => ({
+  coin: getSelectedCoin(state)
+}))(WithCoin)
+
+export default WithCoinContainer

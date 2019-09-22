@@ -18,44 +18,39 @@
 import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import jobService from "../../services/job"
-import * as notificationActions from "../notifications/actions"
 import * as jobTypes from "../../services/jobTypes"
 import { AuthApi } from "@orko-ui-auth/Authoriser"
+import { LogApi } from "modules/notification/LogContext"
 
-export function submitJob(auth: AuthApi, job, callback) {
+export function submitJob(auth: AuthApi, job) {
   return auth.wrappedRequest(
     () => jobService.submitJob(job),
     null,
     error =>
       errorActions.setForeground("Could not submit job: " + error.message),
-    () => addJob(job, callback)
+    () => addJob(job)
   )
 }
 
-export function submitScriptJob(auth: AuthApi, job, callback) {
+export function submitScriptJob(auth: AuthApi, job) {
   return auth.wrappedRequest(
     () => jobService.submitScriptJob(job),
     null,
     error =>
       errorActions.setForeground("Could not submit job: " + error.message),
-    () => addJob({ ...job, jobType: jobTypes.SCRIPT }, callback)
+    () => addJob({ ...job, jobType: jobTypes.SCRIPT })
   )
 }
 
-function addJob(job, callback) {
-  return async (dispatch, getState) => {
-    if (callback)
-      dispatch(notificationActions.addStatusCallback(job.id, callback))
-    dispatch({ type: types.ADD_JOB, payload: job })
-  }
+function addJob(job) {
+  return { type: types.ADD_JOB, payload: job }
 }
 
-export function fetchJobs(auth: AuthApi) {
+export function fetchJobs(auth: AuthApi, logApi: LogApi) {
   return auth.wrappedRequest(
     () => jobService.fetchJobs(),
     jobs => ({ type: types.SET_JOBS, payload: jobs }),
-    error =>
-      notificationActions.localMessage("Could not fetch jobs: " + error.message)
+    error => logApi.localMessage("Could not fetch jobs: " + error.message)
   )
 }
 

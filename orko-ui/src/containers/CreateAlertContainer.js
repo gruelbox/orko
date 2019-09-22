@@ -149,9 +149,7 @@ class CreateAlertContainer extends React.Component {
 }
 
 function mapStateToProps(state) {
-  return {
-    auth: state.auth
-  }
+  return {}
 }
 
 export default withAuth(connect(mapStateToProps)(CreateAlertContainer))
