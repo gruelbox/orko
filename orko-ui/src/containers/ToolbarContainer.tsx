@@ -35,7 +35,7 @@ interface ToolbarContainerProps {
   onClearWhitelist(): void
   onTogglePanelVisible(key: string): void
   onShowViewSettings(): void
-  width: Number
+  width: number
   mobile: boolean
 }
 
@@ -45,7 +45,7 @@ interface ToolbarReduxProps extends ToolbarContainerProps {
   errors: Array<string>
   updateFocusedField(): void
   ticker: Ticker
-  balance: Number
+  balance: number
   coin: Coin
   coinMetadata: any // TODO
   exchangeMetadata: any // TODO

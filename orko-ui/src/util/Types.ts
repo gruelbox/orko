@@ -16,10 +16,10 @@ export interface Coin extends ServerTicker {
 }
 
 export interface Ticker {
-  bid: Number
-  last: Number
-  ask: Number
-  open: Number
-  low: Number
-  high: Number
+  bid: number
+  last: number
+  ask: number
+  open: number
+  low: number
+  high: number
 }

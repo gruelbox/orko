@@ -1,16 +1,13 @@
-import React, { ReactElement, useReducer, useMemo } from "react"
+import React, { ReactElement, useMemo, useRef } from "react"
 import Immutable from "seamless-immutable"
-import { showBrowserNotification } from "util/browserUtils"
+import { showBrowserNotification } from "@orko-ui-common/util/browserUtils"
+import { useArray } from "@orko-ui-common/util/hookUtils"
 
 const ERROR = "ERROR"
 const ALERT = "ALERT"
 const INFO = "INFO"
 const TRACE = "TRACE"
 export type LogLevel = typeof ERROR | typeof ALERT | typeof INFO | typeof TRACE
-
-const ADD = "ADD"
-const CLEAR = "CLEAR"
-type Action = typeof CLEAR | typeof ADD
 
 export interface LogRequest {
   message: string
@@ -36,71 +33,35 @@ export const LogContext = React.createContext<LogApi>(null)
 export const LogManager: React.FC<{ children: ReactElement }> = ({
   children
 }) => {
-  // Reducer to manage the array of notifications and sneakily
-  // fire off browser notifications as a side-effect
-  const [logs, dispatch] = useReducer(
-    (
-      state: Array<LogEntry>,
-      { type, value }: { type: Action; value?: LogRequest }
-    ) => {
-      switch (type) {
-        case CLEAR:
-          return Immutable([])
-        case ADD:
-          if (value) {
-            if (state.length === 0 || state[0].message !== value.message) {
-              if (value.level === ALERT || value.level === ERROR) {
-                showBrowserNotification("Orko Client", value.message)
-              }
-            }
-            const log: LogEntry = Immutable.set(
-              Immutable(value),
-              "dateTime",
-              new Date()
-            )
-            return Immutable([log]).concat(state)
-          } else {
-            return state
-          }
-        default:
-          return state
-      }
-    },
-    Immutable([])
-  )
-
-  const local = useMemo(
-    () => (message: string, level: LogLevel) => {
-      dispatch({
-        type: ADD,
-        value: {
-          level,
-          message
+  const [logs, updateApi] = useArray<LogEntry>([])
+  const last = useRef<LogEntry>()
+  const add = useMemo(
+    () => (request: LogRequest) => {
+      if (!last.current || last.current.message !== request.message) {
+        if (request.level === ALERT || request.level === ERROR) {
+          showBrowserNotification("Orko Client", request.message)
         }
-      })
+      }
+      if ("dateTime" in request) {
+        last.current = request as LogEntry
+      } else {
+        last.current = Immutable.set(Immutable(request), "dateTime", new Date())
+      }
+      updateApi.add(last.current)
     },
-    [dispatch]
+    [updateApi]
   )
 
   const methods = useMemo(
     () => ({
-      localError: (message: string) => local(message, ERROR),
-      localAlert: (message: string) => local(message, ALERT),
-      localMessage: (message: string) => local(message, INFO),
-      trace: (message: string) => local(message, TRACE),
-      add: (entry: LogRequest) => {
-        console.log("add", entry)
-        dispatch({
-          type: ADD,
-          value: entry
-        })
-      },
-      clear: () =>
-        dispatch({
-          type: CLEAR
-        })
+      localError: (message: string) => add({ message, level: ERROR }),
+      localAlert: (message: string) => add({ message, level: ALERT }),
+      localMessage: (message: string) => add({ message, level: INFO }),
+      trace: (message: string) => add({ message, level: TRACE }),
+      add,
+      clear: updateApi.clear
     }),
-    [local, dispatch]
+    [add, updateApi]
   )
 
   const api = useMemo(

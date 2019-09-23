@@ -41,10 +41,14 @@ import * as supportActions from "store/support/actions"
 import * as exchangesActions from "store/exchanges/actions"
 import * as jobActions from "store/job/actions"
 import * as errorActions from "store/error/actions"
-import { useInterval } from "util/hookUtils"
+import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { LogApi, LogContext, LogManager } from "modules/notification/LogContext"
 
 const history = createBrowserHistory()
+
+// TODO Slowly removing dependency on redux. In the meantime there's a lot of
+// wiring here and in Socket to keep things working as I chop stuff out of
+// the global store into standalone contexts.
 const store = createStore(
   enableBatching(createRootReducer(history)),
   compose(
@@ -71,6 +75,11 @@ const FrameworkContainer = Loadable({
   )
 })
 
+/**
+ * Wiring to hook up Authoriser, Socket and what's left in the redux store.
+ *
+ * @param param0
+ */
 const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({
   auth,
   logApi
@@ -112,6 +121,9 @@ const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({
   return <></>
 }
 
+/**
+ * Wires context data into StoreManagement.
+ */
 const ConnectedStoreManagement: React.FC<any> = () => (
   <AuthContext.Consumer>
     {(auth: AuthApi) => (
