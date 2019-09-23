@@ -17,9 +17,9 @@
  */
 import * as types from "./actionTypes"
 import * as tickerActions from "../ticker/actions"
-import exchangesService from "../../services/exchanges"
+import exchangesService from "@orko-ui-market/exchanges"
 import * as errorActions from "../error/actions"
-import { coinFromTicker, tickerFromCoin } from "../../util/coinUtils"
+import { coinFromTicker, tickerFromCoin } from "@orko-ui-market/coinUtils"
 import { AuthApi } from "@orko-ui-auth/index"
 
 export function fetch(auth: AuthApi) {

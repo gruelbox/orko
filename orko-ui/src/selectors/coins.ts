@@ -18,8 +18,8 @@
 import { createSelector, OutputSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getAlertJobs, getStopJobs } from "./jobs"
-import { coinFromKey } from "../util/coinUtils"
-import { Coin, ServerTicker } from "util/Types"
+import { coinFromKey } from "@orko-ui-market/coinUtils"
+import { Coin, ServerTicker } from "modules/market/Types"
 import Ticker from "components/Ticker"
 
 const getCoins = state => state.coins.coins

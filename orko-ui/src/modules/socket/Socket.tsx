@@ -35,7 +35,7 @@ import { locationToCoin } from "../../selectors/coins"
 import { batchActions } from "redux-batched-actions"
 import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
-import { Coin } from "util/Types"
+import { Coin } from "@orko-ui-market/index"
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_BALANCE = "balance"

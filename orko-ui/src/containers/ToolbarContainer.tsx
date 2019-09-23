@@ -28,7 +28,7 @@ import {
 } from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
 import { SocketContext } from "@orko-ui-socket/index"
-import { Coin, Ticker } from "util/Types"
+import { Coin, Ticker } from "modules/market/Types"
 
 interface ToolbarContainerProps {
   onLogout(): void

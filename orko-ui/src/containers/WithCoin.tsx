@@ -21,7 +21,7 @@ import { connect } from "react-redux"
 import NoCoinSelected from "../components/NoCoinSelected"
 
 import { getSelectedCoin } from "../selectors/coins"
-import { Coin } from "util/Types"
+import { Coin } from "modules/market/Types"
 
 interface WithCoinProps {
   children(coin: Coin): ReactElement

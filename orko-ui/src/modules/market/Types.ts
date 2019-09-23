@@ -1,5 +1,3 @@
-import { bindActionCreators } from "redux"
-
 export interface PartialTicker {
   base: string
   counter: string

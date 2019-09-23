@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import { augmentCoin } from "../../util/coinUtils"
-import exchangesService from "../../services/exchanges"
+import { augmentCoin } from "@orko-ui-market/coinUtils"
+import exchangesService from "@orko-ui-market/exchanges"
 import * as errorActions from "../error/actions"
 import * as coinActions from "../coin/actions"
 import { AuthApi } from "@orko-ui-auth/index"

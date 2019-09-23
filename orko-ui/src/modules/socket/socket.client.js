@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import runtimeEnv from "@mars/heroku-js-runtime-env"
 import * as socketMessages from "./socketMessages"
+import runtimeEnv from "@mars/heroku-js-runtime-env"
 import ReconnectingWebSocket from "reconnecting-websocket"
-import { augmentCoin, coin as createCoin } from "../util/coinUtils"
+import { augmentCoin, coin as createCoin } from "@orko-ui-market/index"
 
 var handleError = message => {}
 var handleConnectionStateChange = connected => {}
