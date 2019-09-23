@@ -27,7 +27,7 @@ import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 import exchangeService from "../services/exchanges"
 import * as errorActions from "../store/error/actions"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {

@@ -28,7 +28,7 @@ import Para from "../components/primitives/Para"
 import Loading from "../components/primitives/Loading"
 import JobShort from "../components/JobShort"
 import Tab from "../components/primitives/Tab"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class JobsContainer extends React.Component {
   constructor(props) {

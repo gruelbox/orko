@@ -44,7 +44,7 @@ interface AuthorizerProps {
  *
  * @param props
  */
-const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
+export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
   const [loading, setLoading] = useState(true)
   const [loggedIn, setLoggedIn] = useState(false)
   const [whitelisted, setWhitelisted] = useState(false)
@@ -249,7 +249,3 @@ const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) => {
     )
   }
 }
-
-export default Authorizer
-export * from "./withAuth"
-export * from "./AuthContext"

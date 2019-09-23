@@ -20,7 +20,7 @@ import * as tickerActions from "../ticker/actions"
 import exchangesService from "../../services/exchanges"
 import * as errorActions from "../error/actions"
 import { coinFromTicker, tickerFromCoin } from "../../util/coinUtils"
-import { AuthApi } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/index"
 
 export function fetch(auth: AuthApi) {
   return auth.wrappedRequest(

@@ -29,7 +29,7 @@ import ReactTable from "react-table"
 import * as jobActions from "../store/job/actions"
 import { isAlert } from "../util/jobUtils"
 import theme from "../theme"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 const textStyle = {
   textAlign: "left"

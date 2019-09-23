@@ -42,7 +42,7 @@ import ViewSettings from "./components/ViewSettings"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { Provider as SectionProvider } from "./components/primitives/Section"
 import { isNull } from "util"
-import Logs from "modules/notification/Logs"
+import { Logs } from "@orko-ui-log/index"
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive)
 

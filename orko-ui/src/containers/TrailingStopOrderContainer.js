@@ -28,7 +28,7 @@ import * as jobTypes from "../services/jobTypes"
 
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {

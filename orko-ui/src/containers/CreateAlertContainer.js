@@ -27,7 +27,7 @@ import * as jobTypes from "../services/jobTypes"
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 
 import uuidv4 from "uuid/v4"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class CreateAlertContainer extends React.Component {
   constructor(props) {

@@ -77,7 +77,7 @@ const columns = [
   }
 ]
 
-const Logs: React.FC<any> = () => {
+export const Logs: React.FC<any> = () => {
   const api = useContext(LogContext)
 
   return (
@@ -117,5 +117,3 @@ const Logs: React.FC<any> = () => {
     </Section>
   )
 }
-
-export default Logs

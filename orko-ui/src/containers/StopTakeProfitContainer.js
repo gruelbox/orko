@@ -27,7 +27,7 @@ import * as jobTypes from "../services/jobTypes"
 import { getSelectedCoin } from "../selectors/coins"
 
 import uuidv4 from "uuid/v4"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {

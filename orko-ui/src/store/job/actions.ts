@@ -19,8 +19,8 @@ import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import jobService from "../../services/job"
 import * as jobTypes from "../../services/jobTypes"
-import { AuthApi } from "@orko-ui-auth/Authoriser"
-import { LogApi } from "modules/notification/LogContext"
+import { AuthApi } from "@orko-ui-auth/index"
+import { LogApi } from "@orko-ui-log/index"
 
 export function submitJob(auth: AuthApi, job) {
   return auth.wrappedRequest(

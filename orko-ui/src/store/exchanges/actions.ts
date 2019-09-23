@@ -20,7 +20,7 @@ import { augmentCoin } from "../../util/coinUtils"
 import exchangesService from "../../services/exchanges"
 import * as errorActions from "../error/actions"
 import * as coinActions from "../coin/actions"
-import { AuthApi } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/index"
 
 export function fetchExchanges(auth: AuthApi) {
   return auth.wrappedRequest(

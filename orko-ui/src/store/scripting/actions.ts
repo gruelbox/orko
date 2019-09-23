@@ -18,7 +18,7 @@
 import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import scriptService from "../../services/script"
-import { AuthApi } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/index"
 
 export function fetch(auth: AuthApi) {
   return auth.wrappedRequest(

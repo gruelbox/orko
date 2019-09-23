@@ -25,7 +25,8 @@ import React, {
   useCallback
 } from "react"
 
-import { AuthContext } from "@orko-ui-auth/Authoriser"
+import { AuthContext } from "@orko-ui-auth/index"
+import { LogContext, LogRequest } from "@orko-ui-log/index"
 
 import * as coinActions from "../../store/coin/actions"
 import * as socketClient from "../../worker/socket.client.js"
@@ -35,7 +36,6 @@ import { batchActions } from "redux-batched-actions"
 import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "util/Types"
-import { LogContext, LogRequest } from "modules/notification/LogContext"
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_BALANCE = "balance"
@@ -57,7 +57,7 @@ export interface SocketProps {
  *
  * @param props
  */
-const Socket: React.FC<SocketProps> = (props: SocketProps) => {
+export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const authApi = useContext(AuthContext)
   const logApi = useContext(LogContext)
   const [connected, setConnected] = useState(false)
@@ -258,6 +258,3 @@ const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     </SocketContext.Provider>
   )
 }
-
-export default Socket
-export * from "./SocketContext"

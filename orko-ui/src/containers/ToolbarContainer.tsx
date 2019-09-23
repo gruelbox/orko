@@ -27,7 +27,7 @@ import {
   getSelectedExchange
 } from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
-import { SocketContext } from "@orko-ui-socket/Socket"
+import { SocketContext } from "@orko-ui-socket/index"
 import { Coin, Ticker } from "util/Types"
 
 interface ToolbarContainerProps {

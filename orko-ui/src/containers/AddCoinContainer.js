@@ -23,7 +23,7 @@ import * as coinsActions from "../store/coins/actions"
 
 import { Icon, Button, Form, Dropdown, Modal } from "semantic-ui-react"
 import FixedModal from "../components/primitives/FixedModal"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class AddCoinContainer extends Component {
   state = {

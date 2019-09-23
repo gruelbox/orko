@@ -18,7 +18,7 @@
 import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import supportService from "../../services/support"
-import { AuthApi } from "@orko-ui-auth/Authoriser"
+import { AuthApi } from "@orko-ui-auth/index"
 
 export function fetchMetadata(auth: AuthApi) {
   return auth.wrappedRequest(

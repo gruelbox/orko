@@ -24,7 +24,7 @@ import WhileLoading from "../components/WhileLoading"
 import * as exchangeActions from "../store/exchanges/actions"
 import * as jobActions from "../store/job/actions"
 import { getOrdersForSelectedCoin } from "../selectors/coins"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class OpenOrdersContainer extends React.Component {
   onCancelExchange = (id, coin) => {

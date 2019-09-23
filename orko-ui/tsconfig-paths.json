@@ -5,7 +5,8 @@
       "@orko-semantic/*": ["../orko-semantic/dist/*"],
       "@orko-ui-common/*": ["./modules/common/*"],
       "@orko-ui-auth/*": ["./modules/auth/*"],
-      "@orko-ui-socket/*": ["./modules/socket/*"]
+      "@orko-ui-socket/*": ["./modules/socket/*"],
+      "@orko-ui-log/*": ["./modules/log/*"]
     }
   }
 }

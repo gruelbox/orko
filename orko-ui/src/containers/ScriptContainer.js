@@ -25,7 +25,7 @@ import * as jobActions from "../store/job/actions"
 import { getSelectedCoin } from "../selectors/coins"
 
 import uuidv4 from "uuid/v4"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class ScriptContainer extends React.Component {
   constructor(props) {

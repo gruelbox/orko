@@ -21,7 +21,7 @@ import * as uiActions from "./store/ui/actions"
 import { getAllPanels, getAllLayouts } from "./selectors/ui"
 import Framework from "./Framework"
 import theme from "./theme"
-import { AuthContext, AuthApi } from "@orko-ui-auth/Authoriser"
+import { AuthContext, AuthApi } from "@orko-ui-auth/index"
 import { DraggableData } from "react-rnd"
 
 const windowToBreakpoint = (width: number) =>

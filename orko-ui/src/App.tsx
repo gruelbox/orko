@@ -32,8 +32,8 @@ import { ConnectedRouter, routerMiddleware } from "connected-react-router"
 import createRootReducer from "./store/reducers"
 
 import Loadable from "react-loadable"
-import Authoriser, { AuthContext, AuthApi } from "@orko-ui-auth/Authoriser"
-import Socket from "@orko-ui-socket/Socket"
+import Authoriser, { AuthContext, AuthApi } from "@orko-ui-auth/index"
+import Socket from "@orko-ui-socket/index"
 
 import * as coinActions from "store/coins/actions"
 import * as scriptActions from "store/scripting/actions"
@@ -42,7 +42,7 @@ import * as exchangesActions from "store/exchanges/actions"
 import * as jobActions from "store/job/actions"
 import * as errorActions from "store/error/actions"
 import { useInterval } from "@orko-ui-common/util/hookUtils"
-import { LogApi, LogContext, LogManager } from "modules/notification/LogContext"
+import { LogApi, LogContext, LogManager } from "@orko-ui-log/index"
 
 const history = createBrowserHistory()
 

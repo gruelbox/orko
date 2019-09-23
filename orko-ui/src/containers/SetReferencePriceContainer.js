@@ -30,7 +30,7 @@ import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
 import { isValidNumber, formatNumber } from "@orko-ui-common/util/numberUtils"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 class SetReferencePriceContainer extends Component {
   state = {

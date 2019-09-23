@@ -29,7 +29,7 @@ import Link from "../components/primitives/Link"
 import Coins from "../components/Coins"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
-import { withAuth } from "@orko-ui-auth/Authoriser"
+import { withAuth } from "@orko-ui-auth/index"
 
 const buttons = () => (
   <Link to="/addCoin" data-orko="addCoin" title="Add a coin">
