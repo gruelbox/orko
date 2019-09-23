@@ -29,7 +29,7 @@ import { AuthContext } from "@orko-ui-auth/index"
 import { LogContext, LogRequest } from "@orko-ui-log/index"
 
 import * as coinActions from "../../store/coin/actions"
-import * as socketClient from "../../worker/socket.client.js"
+import * as socketClient from "./socket.client"
 import * as tickerActions from "../../store/ticker/actions"
 import { locationToCoin } from "../../selectors/coins"
 import { batchActions } from "redux-batched-actions"
@@ -107,9 +107,11 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     const batch = Object.values(deduplicatedActionBuffer.current).concat(
       allActionBuffer
     )
-    deduplicatedActionBuffer.current = {}
-    allActionBuffer.current = []
-    props.store.dispatch(batchActions(batch))
+    if (batch.length > 0) {
+      deduplicatedActionBuffer.current = {}
+      allActionBuffer.current = []
+      props.store.dispatch(batchActions(batch))
+    }
   }, 1000)
 
   // When the coin selected changes, send resubscription messages and clear any
