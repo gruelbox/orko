@@ -17,52 +17,55 @@
  */
 import React, { Component } from "react"
 
-import { connect } from "react-redux"
-import * as exchangesActions from "../store/exchanges/actions"
 import * as coinsActions from "../store/coins/actions"
-
+import { connect } from "react-redux"
 import { Icon, Button, Form, Dropdown, Modal } from "semantic-ui-react"
 import FixedModal from "../components/primitives/FixedModal"
 import { withAuth } from "@orko-ui-auth/index"
+import { withMarket, augmentCoin } from "@orko-ui-market/index"
+import { withLog } from "@orko-ui-log/index"
+import exchangesService from "@orko-ui-market/exchangesService"
 
 class AddCoinContainer extends Component {
   state = {
+    pairs: [],
     exchange: undefined,
     pair: undefined
   }
 
   componentDidMount() {
-    this.props.dispatch(exchangesActions.fetchExchanges(this.props.auth))
+    this.props.marketApi.actions.refreshExchanges()
   }
 
   onChangeExchange = (e, data) => {
-    this.setState({ exchange: data.value })
-    this.props.dispatch(
-      exchangesActions.fetchPairs(this.props.auth, data.value)
-    )
+    const exchange = data.value
+    this.setState({ exchange })
+    this.props.logApi.trace("Fetching pairs for exchange: " + exchange)
+    this.props.auth
+      .authenticatedRequest(() => exchangesService.fetchPairs(exchange))
+      .then(pairs => {
+        this.setState({ pairs: pairs.map(p => augmentCoin(p, exchange)) })
+        this.props.logApi.trace(pairs.length + " pairs fetched")
+      })
+      .catch(error => this.props.logApi.errorPopup(error))
   }
 
   onChangePair = (e, data) => {
-    const pair = this.props.pairs.find(p => p.key === data.value)
-    this.setState({ pair: pair })
+    const pair = this.state.pairs.find(p => p.key === data.value)
+    this.setState({ pair })
   }
 
-  onSubmit = coinContainer => {
+  onSubmit = () => {
     this.props.dispatch(coinsActions.add(this.props.auth, this.state.pair))
     this.props.history.push("/coin/" + this.state.pair.key)
   }
 
   render() {
-    const exchanges = this.props.exchanges
-    const pairs = this.props.pairs
+    const exchanges = this.props.marketApi.data.exchanges
     const ready = !!this.state.pair
 
     return (
-      <FixedModal
-        data-orko="addCoinModal"
-        closeIcon
-        onClose={() => this.props.history.push("/")}
-      >
+      <FixedModal data-orko="addCoinModal" closeIcon onClose={() => this.props.history.push("/")}>
         <Modal.Header>
           <Icon name="bitcoin" />
           Add coin
@@ -77,9 +80,7 @@ class AddCoinContainer extends Component {
                 fluid
                 selection
                 loading={exchanges.length === 0}
-                value={
-                  this.state.exchange ? this.state.exchange.code : undefined
-                }
+                value={this.state.exchange ? this.state.exchange.code : undefined}
                 options={exchanges.map(exchange => ({
                   key: exchange.code,
                   text: exchange.name,
@@ -95,12 +96,10 @@ class AddCoinContainer extends Component {
                 placeholder="Select pair"
                 fluid
                 search
-                loading={
-                  pairs.length === 0 && this.state.exchange !== undefined
-                }
-                disabled={pairs.length === 0}
+                loading={this.state.pairs.length === 0 && this.state.exchange !== undefined}
+                disabled={this.state.pairs.length === 0}
                 selection
-                options={pairs.map(pair => ({
+                options={this.state.pairs.map(pair => ({
                   key: pair.key,
                   text: pair.shortName,
                   value: pair.key
@@ -111,13 +110,7 @@ class AddCoinContainer extends Component {
           </Form>
         </Modal.Content>
         <Modal.Actions>
-          <Button
-            primary
-            disabled={!ready}
-            data-orko="addCoinSubmit"
-            type="submit"
-            form="addCoinForm"
-          >
+          <Button primary disabled={!ready} data-orko="addCoinSubmit" type="submit" form="addCoinForm">
             Add
           </Button>
         </Modal.Actions>
@@ -127,10 +120,7 @@ class AddCoinContainer extends Component {
 }
 
 function mapStateToProps(state) {
-  return {
-    exchanges: state.exchanges.exchanges,
-    pairs: state.exchanges.pairs
-  }
+  return {}
 }
 
-export default withAuth(connect(mapStateToProps)(AddCoinContainer))
+export default withLog(withMarket(withAuth(connect(mapStateToProps)(AddCoinContainer))))

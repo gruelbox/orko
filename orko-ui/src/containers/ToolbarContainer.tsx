@@ -21,14 +21,11 @@ import { connect } from "react-redux"
 import Toolbar from "../components/Toolbar"
 
 import { formatNumber } from "@orko-ui-common/util/numberUtils"
-import {
-  getSelectedCoinTicker,
-  getSelectedCoin,
-  getSelectedExchange
-} from "../selectors/coins"
+import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
 import { SocketContext } from "@orko-ui-socket/index"
 import { Coin, Ticker } from "modules/market/Types"
+import { MarketContext } from "@orko-ui-market/index"
 
 interface ToolbarContainerProps {
   onLogout(): void
@@ -48,21 +45,17 @@ interface ToolbarReduxProps extends ToolbarContainerProps {
   balance: number
   coin: Coin
   coinMetadata: any // TODO
-  exchangeMetadata: any // TODO
 }
 
 const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   const socket = useContext(SocketContext)
+  const marketApi = useContext(MarketContext)
 
   if (!socket.connected) {
     document.title = "Not connected"
   } else if (props.ticker && props.coin) {
     document.title =
-      formatNumber(
-        props.ticker.last,
-        props.coinMetadata ? props.coinMetadata.priceScale : 8,
-        "No price"
-      ) +
+      formatNumber(props.ticker.last, props.coinMetadata ? props.coinMetadata.priceScale : 8, "No price") +
       " " +
       props.coin.base +
       "/" +
@@ -77,7 +70,7 @@ const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
       onLogout={props.onLogout}
       onShowPanel={(key: string) => props.onTogglePanelVisible(key)}
       balance={props.balance}
-      exchangeMetadata={props.exchangeMetadata}
+      exchangeMetadata={marketApi.data.selectedExchange}
     />
   )
 }
@@ -92,8 +85,6 @@ export default connect((state, props) => {
     ticker: getSelectedCoinTicker(state),
     balance: state.coin.balance,
     coin,
-    coinMetadata:
-      coin && state.coins.meta ? state.coins.meta[coin.key] : undefined,
-    exchangeMetadata: getSelectedExchange(state)
+    coinMetadata: coin && state.coins.meta ? state.coins.meta[coin.key] : undefined
   }
 })(ToolbarContainer)

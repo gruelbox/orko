@@ -21,3 +21,10 @@ export interface Ticker {
   low: number
   high: number
 }
+
+export interface Exchange {
+  code: string
+  name: string
+  refLink: string
+  authenticated: boolean
+}

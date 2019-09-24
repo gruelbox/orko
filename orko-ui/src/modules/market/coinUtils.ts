@@ -18,11 +18,7 @@
 import Immutable from "seamless-immutable"
 import { PartialTicker, ServerTicker, Coin } from "./Types"
 
-export function coin(
-  exchange: string,
-  counter: string,
-  base: string
-): ServerTicker {
+export function coin(exchange: string, counter: string, base: string): ServerTicker {
   return augmentCoin(
     {
       counter: counter,
@@ -55,18 +51,10 @@ export function tickerFromCoin(coin: Coin): ServerTicker {
   }
 }
 
-export function augmentCoin(
-  p: ServerTicker | PartialTicker,
-  exchange?: string
-) {
+export function augmentCoin(p: ServerTicker | PartialTicker, exchange?: string): Coin {
   return Immutable.merge(p, {
     exchange: exchange ? exchange : (p as ServerTicker).exchange,
-    key:
-      (exchange ? exchange : (p as ServerTicker).exchange) +
-      "/" +
-      p.counter +
-      "/" +
-      p.base,
+    key: (exchange ? exchange : (p as ServerTicker).exchange) + "/" + p.counter + "/" + p.base,
     name: p.base + "/" + p.counter + " (" + exchange + ")",
     shortName: p.base + "/" + p.counter
   })

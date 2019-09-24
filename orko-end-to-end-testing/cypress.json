@@ -1,9 +1,6 @@
 {
-  "baseUrl": "http://localhost:8080",
-  "blacklistHosts": [
-    "accounts.google.com",
-    "clientservices.googleapis.com"
-  ],
+  "baseUrl": "http://localhost:3000",
+  "blacklistHosts": ["accounts.google.com", "clientservices.googleapis.com"],
   "video": false,
   "reporter": "junit",
   "reporterOptions": {

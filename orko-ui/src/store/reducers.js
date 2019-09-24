@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import exchanges from "./exchanges/reducer"
 import coins from "./coins/reducer"
 import coin from "./coin/reducer"
 import focus from "./focus/reducer"
@@ -32,7 +31,6 @@ import { connectRouter } from "connected-react-router"
 export default history =>
   combineReducers({
     router: connectRouter(history),
-    exchanges,
     coin,
     coins,
     focus,

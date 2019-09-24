@@ -15,28 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import Immutable from 'seamless-immutable';
-import * as types from './actionTypes';
+import React, { useContext } from "react"
+import TradeSelector from "../components/TradeSelector"
+import { MarketContext } from "@orko-ui-market/index"
 
-const initialState = Immutable({
-  exchanges: Immutable([]),
-  pairs: Immutable([]),
-  error: null,
-});
-
-export default function reduce(state = initialState, action = {}) {
-  switch (action.type) {
-    case types.SET_EXCHANGES:
-      return Immutable.merge(state, {
-        exchanges: Immutable(action.payload),
-        error: null,
-      });
-    case types.SET_PAIRS:
-      return Immutable.merge(state, {
-        pairs: Immutable(action.payload),
-        error: null,
-      });
-    default:
-      return state;
-  }
+const TradeContainer: React.FC<any> = () => {
+  const marketApi = useContext(MarketContext)
+  return <TradeSelector exchange={marketApi.data.selectedExchange} />
 }
+
+export default TradeContainer

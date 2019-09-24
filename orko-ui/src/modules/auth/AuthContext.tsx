@@ -5,11 +5,7 @@ export interface AuthApi {
   logout(): void
   clearWhitelisting(): void
   wrappedRequest(apiRequest, jsonHandler, errorHandler, onSuccess?)
+  authenticatedRequest<T extends unknown>(responseGenerator: () => Promise<Response>): Promise<T>
 }
 
-export const AuthContext: React.Context<AuthApi> = React.createContext({
-  authorised: Boolean(false),
-  logout: () => {},
-  clearWhitelisting: () => {},
-  wrappedRequest: (apiRequest, jsonHandler, errorHandler, onSuccess?) => {}
-})
+export const AuthContext: React.Context<AuthApi> = React.createContext(null)

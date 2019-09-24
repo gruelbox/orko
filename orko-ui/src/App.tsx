@@ -38,11 +38,11 @@ import Socket from "@orko-ui-socket/index"
 import * as coinActions from "store/coins/actions"
 import * as scriptActions from "store/scripting/actions"
 import * as supportActions from "store/support/actions"
-import * as exchangesActions from "store/exchanges/actions"
 import * as jobActions from "store/job/actions"
 import * as errorActions from "store/error/actions"
 import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { LogApi, LogContext, LogManager } from "@orko-ui-log/index"
+import { MarketManager } from "@orko-ui-market/index"
 
 const history = createBrowserHistory()
 
@@ -80,10 +80,7 @@ const FrameworkContainer = Loadable({
  *
  * @param param0
  */
-const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({
-  auth,
-  logApi
-}) => {
+const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({ auth, logApi }) => {
   // Load state on successful authorisation
   const logTrace = logApi.trace
   useEffect(() => {
@@ -93,7 +90,6 @@ const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({
         var releasesPromise = dispatch(supportActions.fetchReleases(auth))
         var scriptsPromise = dispatch(scriptActions.fetch(auth))
         var metaPromise = dispatch(supportActions.fetchMetadata(auth))
-        await dispatch(exchangesActions.fetchExchanges(auth))
         await dispatch(coinActions.fetch(auth))
         await dispatch(coinActions.fetchReferencePrices(auth))
         await scriptsPromise
@@ -141,16 +137,14 @@ const App: React.FC<any> = () => (
       <LogManager>
         <ReduxProvider store={store}>
           <ErrorContainer />
-          <Authoriser
-            onError={message =>
-              store.dispatch(errorActions.setForeground(message))
-            }
-          >
+          <Authoriser onError={message => store.dispatch(errorActions.setForeground(message))}>
             <>
               <ConnectedStoreManagement />
               <Socket store={store} history={history}>
                 <ConnectedRouter history={history}>
-                  <FrameworkContainer />
+                  <MarketManager>
+                    <FrameworkContainer />
+                  </MarketManager>
                 </ConnectedRouter>
               </Socket>
             </>

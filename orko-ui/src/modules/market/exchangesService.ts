@@ -18,8 +18,8 @@
 import { get, put, del, post } from "@orko-ui-common/util/fetchUtil"
 
 class ExchangesService {
-  async fetchSubscriptions() {
-    return await get("subscriptions")
+  async fetchSubscriptions(): Promise<Response> {
+    return (await get("subscriptions")) as Promise<Response>
   }
 
   async addSubscription(ticker) {
@@ -27,17 +27,11 @@ class ExchangesService {
   }
 
   async submitOrder(exchange, order) {
-    return await post(
-      "exchanges/" + exchange + "/orders",
-      JSON.stringify(order)
-    )
+    return await post("exchanges/" + exchange + "/orders", JSON.stringify(order))
   }
 
   async calculateOrder(exchange, order) {
-    return await post(
-      "exchanges/" + exchange + "/orders/calc",
-      JSON.stringify(order)
-    )
+    return await post("exchanges/" + exchange + "/orders/calc", JSON.stringify(order))
   }
 
   async fetchReferencePrices() {
@@ -46,12 +40,7 @@ class ExchangesService {
 
   async setReferencePrice(coin, price) {
     return await put(
-      "subscriptions/referencePrices/" +
-        coin.exchange +
-        "/" +
-        coin.base +
-        "-" +
-        coin.counter,
+      "subscriptions/referencePrices/" + coin.exchange + "/" + coin.base + "-" + coin.counter,
       price
     )
   }
@@ -60,65 +49,33 @@ class ExchangesService {
     return await del("subscriptions", ticker)
   }
 
-  async fetchExchanges() {
-    return await get("exchanges")
+  async fetchExchanges(): Promise<Response> {
+    return (await get("exchanges")) as Promise<Response>
   }
 
-  async fetchPairs(exchange) {
-    return await get("exchanges/" + exchange + "/pairs")
+  async fetchPairs(exchange): Promise<Response> {
+    return (await get("exchanges/" + exchange + "/pairs")) as Promise<Response>
   }
 
   async fetchMetadata(coin) {
-    return await get(
-      "exchanges/" + coin.exchange + "/pairs/" + coin.base + "-" + coin.counter
-    )
+    return await get("exchanges/" + coin.exchange + "/pairs/" + coin.base + "-" + coin.counter)
   }
 
   async fetchTicker(coin) {
-    return await get(
-      "exchanges/" +
-        coin.exchange +
-        "/markets/" +
-        coin.base +
-        "-" +
-        coin.counter +
-        "/ticker"
-    )
+    return await get("exchanges/" + coin.exchange + "/markets/" + coin.base + "-" + coin.counter + "/ticker")
   }
 
   async fetchOrders(coin) {
-    return await get(
-      "exchanges/" +
-        coin.exchange +
-        "/markets/" +
-        coin.base +
-        "-" +
-        coin.counter +
-        "/orders"
-    )
+    return await get("exchanges/" + coin.exchange + "/markets/" + coin.base + "-" + coin.counter + "/orders")
   }
 
   async fetchBalance(coin) {
-    return await get(
-      "exchanges/" +
-        coin.exchange +
-        "/balance/" +
-        coin.base +
-        "," +
-        coin.counter
-    )
+    return await get("exchanges/" + coin.exchange + "/balance/" + coin.base + "," + coin.counter)
   }
 
   async cancelOrder(coin, id) {
     return await del(
-      "exchanges/" +
-        coin.exchange +
-        "/markets/" +
-        coin.base +
-        "-" +
-        coin.counter +
-        "/orders/" +
-        id
+      "exchanges/" + coin.exchange + "/markets/" + coin.base + "-" + coin.counter + "/orders/" + id
     )
   }
 }

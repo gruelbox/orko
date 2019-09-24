@@ -27,7 +27,6 @@ const getReferencePrices = state => state.coins.referencePrices
 const getTickers = state => state.ticker.coins
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
-const getExchanges = state => state.exchanges.exchanges
 
 export const getUserTradeHistory = state => state.coin.userTradeHistory
 
@@ -48,23 +47,9 @@ export const locationToCoin = (location: Location): Coin => {
   }
 }
 
-export const getSelectedCoin: OutputSelector<
-  any,
-  Coin,
-  (res1: any, res2: any) => Coin
-> = createSelector(
+export const getSelectedCoin: OutputSelector<any, Coin, (res1: any, res2: any) => Coin> = createSelector(
   [getRouterLocation],
   location => locationToCoin(location)
-)
-
-export const getSelectedExchange: OutputSelector<
-  any,
-  Coin,
-  (res1: Coin, res2: any) => string
-> = createSelector(
-  [getSelectedCoin, getExchanges],
-  (coin, exchanges) =>
-    !coin ? null : exchanges.find(e => e.code === coin.exchange)
 )
 
 function jobTriggerMatchesCoin(job, coin: ServerTicker) {
@@ -94,15 +79,9 @@ export const getOrdersForSelectedCoin = createSelector(
           : job.low.job.direction === "BUY"
           ? "BID"
           : "ASK",
-        stopPrice: job.high
-          ? Number(job.high.thresholdAsString)
-          : Number(job.low.thresholdAsString),
-        limitPrice: job.high
-          ? Number(job.high.job.limitPrice)
-          : Number(job.low.job.limitPrice),
-        originalAmount: job.high
-          ? Number(job.high.job.amount)
-          : Number(job.low.job.amount),
+        stopPrice: job.high ? Number(job.high.thresholdAsString) : Number(job.low.thresholdAsString),
+        limitPrice: job.high ? Number(job.high.job.limitPrice) : Number(job.low.job.limitPrice),
+        originalAmount: job.high ? Number(job.high.job.amount) : Number(job.low.job.amount),
         cumulativeAmount: "--"
       }))
 
@@ -124,14 +103,14 @@ export const getSelectedCoinTicker: OutputSelector<
 )
 
 export const getCoinsForDisplay = createSelector(
-  [getAlertJobs, getCoins, getTickers, getReferencePrices, getExchanges],
-  (alertJobs, coins, tickers, referencePrices, exchanges) =>
+  [getAlertJobs, getCoins, getTickers, getReferencePrices],
+  (alertJobs, coins, tickers, referencePrices) =>
     coins.map(coin => {
       const referencePrice = referencePrices[coin.key]
       const ticker = tickers[coin.key]
       return {
         ...coin,
-        exchangeMeta: exchanges.find(e => e.code === coin.exchange),
+        exchangeMeta: [].find(e => e.code === coin.exchange), // TODO FIXME needs exchange details
         ticker,
         hasAlert: !!alertJobs.find(
           job =>
@@ -141,9 +120,7 @@ export const getCoinsForDisplay = createSelector(
         ),
         priceChange: referencePrice
           ? Number(
-              (((ticker ? ticker.last : referencePrice) - referencePrice) *
-                100) /
-                referencePrice
+              (((ticker ? ticker.last : referencePrice) - referencePrice) * 100) / referencePrice
             ).toFixed(2) + "%"
           : "--"
       }

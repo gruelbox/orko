@@ -46,9 +46,7 @@ const CoinsCointainer = ({ auth, data, dispatch, onHide }) => (
             data={data}
             onRemove={coin => dispatch(coinsActions.remove(auth, coin))}
             onClickAlerts={coin => dispatch(uiActions.openAlerts(coin))}
-            onClickReferencePrice={coin =>
-              dispatch(uiActions.openReferencePrice(coin))
-            }
+            onClickReferencePrice={coin => dispatch(uiActions.openReferencePrice(coin))}
             visible
           />
         </Section>

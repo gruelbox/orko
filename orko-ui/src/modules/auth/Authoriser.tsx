@@ -15,13 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, {
-  useState,
-  useEffect,
-  ReactElement,
-  useCallback,
-  useMemo
-} from "react"
+import React, { useState, useEffect, ReactElement, useCallback, useMemo } from "react"
 import { Loader, Dimmer } from "semantic-ui-react"
 import Whitelisting from "./Whitelisting"
 import Login from "./Login"
@@ -149,6 +143,33 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
     [setLoggedIn]
   )
 
+  const authenticatedRequest = useMemo(
+    () => async <T extends unknown>(responseGenerator: () => Promise<Response>): Promise<T> => {
+      const response = await responseGenerator()
+      if (!response.ok) {
+        var errorMessage = null
+        if (response.status === 403) {
+          errorMessage = "Failed API request due to invalid whitelisting"
+          clearWhitelisting()
+        } else if (response.status === 401) {
+          errorMessage = "Failed API request due to invalid token/XSRF"
+          logout()
+        } else {
+          try {
+            errorMessage = (await response.json()).message
+          } catch (err) {
+            errorMessage = response.statusText ? response.statusText : "Server error (" + response.status + ")"
+          }
+        }
+        console.log(errorMessage)
+        throw new Error(errorMessage)
+      } else {
+        return await response.json()
+      }
+    },
+    [clearWhitelisting, logout]
+  )
+
   // TODO the presence of this as a thunk action is a transitionary
   // phase in moving entirely to context-based state
   const wrappedRequest = useMemo(
@@ -173,9 +194,7 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
                 // No-op
               }
               if (!errorMessage) {
-                errorMessage = response.statusText
-                  ? response.statusText
-                  : "Server error (" + response.status + ")"
+                errorMessage = response.statusText ? response.statusText : "Server error (" + response.status + ")"
               }
               throw new Error(errorMessage)
             }
@@ -201,8 +220,14 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
   )
 
   const api: AuthApi = useMemo(
-    () => ({ authorised, logout, clearWhitelisting, wrappedRequest }),
-    [authorised, logout, clearWhitelisting, wrappedRequest]
+    () => ({
+      authorised,
+      logout,
+      clearWhitelisting,
+      wrappedRequest,
+      authenticatedRequest
+    }),
+    [authorised, logout, clearWhitelisting, wrappedRequest, authenticatedRequest]
   )
 
   // On mount, go through a full connection check
@@ -244,8 +269,6 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
   } else if (!loggedIn) {
     return <Login error={error} onLogin={onLogin} />
   } else {
-    return (
-      <AuthContext.Provider value={api}>{props.children}</AuthContext.Provider>
-    )
+    return <AuthContext.Provider value={api}>{props.children}</AuthContext.Provider>
   }
 }

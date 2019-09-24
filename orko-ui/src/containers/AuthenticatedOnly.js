@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { useContext } from "react"
 import { connect } from "react-redux"
 
 import styled from "styled-components"
@@ -23,20 +23,14 @@ import { space } from "styled-system"
 
 import NotAuthenticated from "../components/NotAuthenticated"
 
-import { getSelectedExchange } from "../selectors/coins"
 import * as uiActions from "../store/ui/actions"
+import { MarketContext } from "@orko-ui-market/index"
 
 const Padded = styled.div`
   ${space}
 `
 
-const AuthenticatedOnly = ({
-  exchange,
-  children,
-  padded,
-  dispatch,
-  paperTrading
-}) => {
+const Inner = ({ exchange, children, padded, dispatch, paperTrading }) => {
   if (paperTrading || !exchange || exchange.authenticated) {
     return children
   } else {
@@ -51,7 +45,13 @@ const AuthenticatedOnly = ({
   }
 }
 
-export default connect(state => ({
-  exchange: getSelectedExchange(state),
+const AddExchange = props => {
+  const marketApi = useContext(MarketContext)
+  return <Inner {...props} exchange={marketApi.data.selectedExchange} />
+}
+
+const Connected = connect(state => ({
   paperTrading: state.ui.paperTrading
-}))(AuthenticatedOnly)
+}))(AddExchange)
+
+export default Connected

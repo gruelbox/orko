@@ -15,35 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import * as types from "./actionTypes"
-import { augmentCoin } from "@orko-ui-market/coinUtils"
-import exchangesService from "@orko-ui-market/exchanges"
+import exchangesService from "@orko-ui-market/exchangesService"
 import * as errorActions from "../error/actions"
 import * as coinActions from "../coin/actions"
 import { AuthApi } from "@orko-ui-auth/index"
-
-export function fetchExchanges(auth: AuthApi) {
-  return auth.wrappedRequest(
-    () => exchangesService.fetchExchanges(),
-    exchanges => ({ type: types.SET_EXCHANGES, payload: exchanges }),
-    error =>
-      errorActions.setForeground("Could not fetch exchanges: " + error.message)
-  )
-}
-
-export function fetchPairs(auth: AuthApi, exchange) {
-  return auth.wrappedRequest(
-    () => exchangesService.fetchPairs(exchange),
-    json => ({
-      type: types.SET_PAIRS,
-      payload: json.map(p => augmentCoin(p, exchange))
-    }),
-    error =>
-      errorActions.setForeground(
-        "Could not fetch currency pairs for " + exchange + ": " + error.message
-      )
-  )
-}
 
 export function submitLimitOrder(auth: AuthApi, exchange, order) {
   return auth.wrappedRequest(
@@ -56,8 +31,7 @@ export function submitLimitOrder(auth: AuthApi, exchange, order) {
         },
         0 // Deliberately old timestamp
       ),
-    error =>
-      errorActions.setForeground("Could not submit order: " + error.message)
+    error => errorActions.setForeground("Could not submit order: " + error.message)
   )
 }
 
@@ -72,8 +46,7 @@ export function submitStopOrder(auth: AuthApi, exchange, order) {
         },
         0 // Deliberately old timestamp
       ),
-    error =>
-      errorActions.setForeground("Could not submit order: " + error.message)
+    error => errorActions.setForeground("Could not submit order: " + error.message)
   )
 }
 
@@ -90,11 +63,8 @@ export function cancelOrder(auth: AuthApi, coin, orderId) {
       )
     )
     dispatch(
-      auth.wrappedRequest(
-        () => exchangesService.cancelOrder(coin, orderId),
-        null,
-        error =>
-          errorActions.setForeground("Could not cancel order: " + error.message)
+      auth.wrappedRequest(() => exchangesService.cancelOrder(coin, orderId), null, error =>
+        errorActions.setForeground("Could not cancel order: " + error.message)
       )
     )
   }

@@ -1,7 +1,8 @@
-import React, { ReactElement, useMemo, useRef } from "react"
+import React, { ReactElement, useMemo, useRef, useState } from "react"
 import Immutable from "seamless-immutable"
 import { showBrowserNotification } from "@orko-ui-common/util/browserUtils"
 import { useArray } from "@orko-ui-common/util/hookUtils"
+import { ErrorPopup } from "./ErrorPopup"
 
 const ERROR = "ERROR"
 const ALERT = "ALERT"
@@ -20,6 +21,7 @@ export interface LogEntry extends LogRequest {
 
 export interface LogApi {
   logs: Array<LogEntry>
+  errorPopup(message: string): void
   localError(message: string): void
   localAlert(message: string): void
   localMessage(message: string): void
@@ -30,9 +32,8 @@ export interface LogApi {
 
 export const LogContext = React.createContext<LogApi>(null)
 
-export const LogManager: React.FC<{ children: ReactElement }> = ({
-  children
-}) => {
+export const LogManager: React.FC<{ children: ReactElement }> = ({ children }) => {
+  const [error, setError] = useState<string>(null)
   const [logs, updateApi] = useArray<LogEntry>([])
   const last = useRef<LogEntry>()
   const add = useMemo(
@@ -54,6 +55,10 @@ export const LogManager: React.FC<{ children: ReactElement }> = ({
 
   const methods = useMemo(
     () => ({
+      errorPopup: (message: string) => {
+        setError(message)
+        add({ message, level: ERROR })
+      },
       localError: (message: string) => add({ message, level: ERROR }),
       localAlert: (message: string) => add({ message, level: ALERT }),
       localMessage: (message: string) => add({ message, level: INFO }),
@@ -61,7 +66,7 @@ export const LogManager: React.FC<{ children: ReactElement }> = ({
       add,
       clear: updateApi.clear
     }),
-    [add, updateApi]
+    [add, updateApi, setError]
   )
 
   const api = useMemo(
@@ -72,5 +77,12 @@ export const LogManager: React.FC<{ children: ReactElement }> = ({
     [logs, methods]
   )
 
-  return <LogContext.Provider value={api}>{children}</LogContext.Provider>
+  return (
+    <LogContext.Provider value={api}>
+      <>
+        {error !== null ? <ErrorPopup message={error} onClose={() => setError(null)} /> : null}
+        {children}
+      </>
+    </LogContext.Provider>
+  )
 }
