@@ -15,37 +15,35 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { useContext } from "react"
 import { connect } from "react-redux"
 import Balance from "../components/Balance"
 import Section from "../components/primitives/Section"
 import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
-import { getSelectedCoinTicker } from "../selectors/coins"
+import { SocketContext, Ticker } from "@orko-ui-socket/index"
+import { Coin } from "@orko-ui-market/index"
 
-class BalanceContainer extends React.Component {
-  render() {
-    return (
-      <Section id="balance" heading="Balances">
-        <AuthenticatedOnly>
-          <WithCoin>
-            {coin => (
-              <Balance
-                coin={coin}
-                balance={this.props.balance}
-                ticker={this.props.ticker}
-              />
-            )}
-          </WithCoin>
-        </AuthenticatedOnly>
-      </Section>
-    )
-  }
+interface BalanceContainerProps {
+  balance: Ticker
+  coin: Coin
+}
+
+const BalanceContainer: React.FC<BalanceContainerProps> = ({ balance }) => {
+  const ticker = useContext(SocketContext).selectedCoinTicker
+  return (
+    <Section id="balance" heading="Balances">
+      <AuthenticatedOnly>
+        <WithCoin>
+          {coin => <Balance coin={coin} balance={balance} ticker={ticker} onClickNumber={undefined} />}
+        </WithCoin>
+      </AuthenticatedOnly>
+    </Section>
+  )
 }
 
 export default connect(state => {
   return {
-    balance: state.coin.balance,
-    ticker: getSelectedCoinTicker(state)
+    balance: state.coin.balance
   }
 })(BalanceContainer)

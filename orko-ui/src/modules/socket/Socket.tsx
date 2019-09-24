@@ -22,16 +22,16 @@ import { LogContext, LogRequest } from "@orko-ui-log/index"
 
 import * as coinActions from "../../store/coin/actions"
 import * as socketClient from "./socket.client"
-import * as tickerActions from "../../store/ticker/actions"
 import { locationToCoin } from "../../selectors/coins"
 import { batchActions } from "redux-batched-actions"
 import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "@orko-ui-market/index"
+import { Map } from "immutable"
+import { Ticker } from "./Types"
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_BALANCE = "balance"
-const ACTION_KEY_TICKER = "ticker"
 
 export interface SocketProps {
   store
@@ -50,9 +50,22 @@ export interface SocketProps {
  * @param props
  */
 export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
+  //////////////////////// SOCKET STATE ////////////////////////////
+
+  // Contexts required
   const authApi = useContext(AuthContext)
   const logApi = useContext(LogContext)
+
+  // Connection state
   const [connected, setConnected] = useState(false)
+
+  //////////////////////// MARKET DATA /////////////////////////////
+
+  // Data from the socket
+  const [tickers, setTickers] = useState(Map<String, Ticker>())
+
+  /////////////////////// NON-STATE DATA ///////////////////////////
+
   const previousCoin = useRef<object>()
 
   const deduplicatedActionBuffer = useRef<object>()
@@ -64,11 +77,6 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   useEffect(() => {
     allActionBuffer.current = []
   }, [])
-
-  const subscribedCoins = useCallback(() => props.store.getState().coins.coins, [props.store])
-  const selectedCoin = useCallback(() => locationToCoin(props.store.getState().router.location), [
-    props.store
-  ])
 
   function bufferLatestAction(key: string, action: object) {
     deduplicatedActionBuffer.current[key] = action
@@ -85,10 +93,24 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     }
   }
 
+  /////////////////////// SOCKET MANAGEMENT ///////////////////////////
+
+  const subscribedCoins = useCallback(() => props.store.getState().coins.coins, [props.store])
+  const getSelectedCoin = useCallback(() => locationToCoin(props.store.getState().router.location), [
+    props.store
+  ])
+
+  const location = props.store.getState().router.location
+  const selectedCoin = useMemo(() => locationToCoin(location), [location])
+  const selectedCoinTicker = useMemo(() => (selectedCoin ? tickers.get(selectedCoin.key) : null), [
+    tickers,
+    selectedCoin
+  ])
+
   const resubscribe = useCallback(() => {
-    socketClient.changeSubscriptions(subscribedCoins(), selectedCoin())
+    socketClient.changeSubscriptions(subscribedCoins(), getSelectedCoin())
     socketClient.resubscribe()
-  }, [subscribedCoins, selectedCoin])
+  }, [subscribedCoins, getSelectedCoin])
 
   // Buffer and dispatch as a batch all the actions from the socket once a second
   useInterval(() => {
@@ -132,11 +154,11 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   // Dispatch market data to the store
   useEffect(() => {
     const sameCoin = (left: Coin, right: Coin) => left && right && left.key === right.key
-    socketClient.onTicker((coin: Coin, ticker) =>
-      bufferLatestAction(ACTION_KEY_TICKER + "/" + coin.key, tickerActions.setTicker(coin, ticker))
+    socketClient.onTicker((coin: Coin, ticker: Ticker) =>
+      setTickers(tickers => tickers.set(coin.key, ticker))
     )
     socketClient.onBalance((exchange: string, currency: string, balance: number) => {
-      const coin = selectedCoin()
+      const coin = getSelectedCoin()
       if (coin && coin.exchange === exchange && (coin.base === currency || coin.counter === currency)) {
         bufferLatestAction(
           ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
@@ -145,24 +167,24 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
       }
     })
     socketClient.onOrderBook((coin: Coin, orderBook) => {
-      if (sameCoin(coin, selectedCoin()))
+      if (sameCoin(coin, getSelectedCoin()))
         bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(orderBook))
     })
     socketClient.onTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, selectedCoin())) bufferAllActions(coinActions.addTrade(trade))
+      if (sameCoin(coin, getSelectedCoin())) bufferAllActions(coinActions.addTrade(trade))
     })
     socketClient.onUserTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, selectedCoin())) bufferAllActions(coinActions.addUserTrade(trade))
+      if (sameCoin(coin, getSelectedCoin())) bufferAllActions(coinActions.addUserTrade(trade))
     })
     socketClient.onOrderUpdate((coin: Coin, order, timestamp) => {
-      if (sameCoin(coin, selectedCoin())) props.store.dispatch(coinActions.orderUpdated(order, timestamp))
+      if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.orderUpdated(order, timestamp))
     })
 
     // This is a bit hacky. The intent is to move this logic server side,
     // so the presence of a snapshot/poll loop is invisible to the client.
     // In the meantime, I'm not polluting the reducer with it.
     socketClient.onOrdersSnapshot((coin: Coin, orders, timestamp) => {
-      if (sameCoin(coin, selectedCoin())) {
+      if (sameCoin(coin, getSelectedCoin())) {
         var idsPresent = []
         if (orders.length === 0) {
           // Update that there are no orders
@@ -186,7 +208,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
         }
       }
     })
-  }, [props.store, selectedCoin])
+  }, [props.store, getSelectedCoin])
 
   // Connect the socket when authorised, and disconnect when deauthorised
   useEffect(() => {
@@ -210,7 +232,12 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     }
   }, [connected, logMessage, resubscribe])
 
-  const api: SocketApi = useMemo(() => ({ connected, resubscribe }), [connected, resubscribe])
+  const api: SocketApi = useMemo(() => ({ connected, resubscribe, tickers, selectedCoinTicker }), [
+    connected,
+    resubscribe,
+    tickers,
+    selectedCoinTicker
+  ])
 
   return <SocketContext.Provider value={api}>{props.children}</SocketContext.Provider>
 }

@@ -21,10 +21,11 @@ import { connect } from "react-redux"
 import Toolbar from "../components/Toolbar"
 
 import { formatNumber } from "@orko-ui-common/util/numberUtils"
-import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
+import { getSelectedCoin } from "../selectors/coins"
 import { getHiddenPanels } from "../selectors/ui"
 import { SocketContext } from "@orko-ui-socket/index"
-import { Coin, Ticker } from "modules/market/Types"
+import { Coin } from "modules/market/index"
+import { Ticker } from "modules/socket/index"
 import { MarketContext } from "@orko-ui-market/index"
 
 interface ToolbarContainerProps {
@@ -50,12 +51,13 @@ interface ToolbarReduxProps extends ToolbarContainerProps {
 const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   const socket = useContext(SocketContext)
   const marketApi = useContext(MarketContext)
+  const ticker = useContext(SocketContext).selectedCoinTicker
 
   if (!socket.connected) {
     document.title = "Not connected"
-  } else if (props.ticker && props.coin) {
+  } else if (ticker && props.coin) {
     document.title =
-      formatNumber(props.ticker.last, props.coinMetadata ? props.coinMetadata.priceScale : 8, "No price") +
+      formatNumber(ticker.last, props.coinMetadata ? props.coinMetadata.priceScale : 8, "No price") +
       " " +
       props.coin.base +
       "/" +
@@ -82,7 +84,6 @@ export default connect((state, props) => {
     hiddenPanels: getHiddenPanels(state),
     errors: state.error.errorBackground,
     updateFocusedField: state.focus.fn,
-    ticker: getSelectedCoinTicker(state),
     balance: state.coin.balance,
     coin,
     coinMetadata: coin && state.coins.meta ? state.coins.meta[coin.key] : undefined

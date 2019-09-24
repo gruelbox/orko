@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import * as tickerActions from "../ticker/actions"
 import exchangesService from "@orko-ui-market/exchangesService"
 import * as errorActions from "../error/actions"
 import { coinFromTicker, tickerFromCoin } from "@orko-ui-market/coinUtils"
@@ -26,8 +25,7 @@ export function fetch(auth: AuthApi) {
   return auth.wrappedRequest(
     () => exchangesService.fetchSubscriptions(),
     json => ({ type: types.SET, payload: json.map(t => coinFromTicker(t)) }),
-    error =>
-      errorActions.setForeground("Could not fetch coin list: " + error.message),
+    error => errorActions.setForeground("Could not fetch coin list: " + error.message),
     () => multiFetchMetadata(auth)
   )
 }
@@ -36,20 +34,15 @@ export function fetchReferencePrices(auth: AuthApi) {
   return auth.wrappedRequest(
     () => exchangesService.fetchReferencePrices(),
     json => ({ type: types.SET_REFERENCE_PRICES, payload: json }),
-    error =>
-      errorActions.setForeground("Could not fetch coin list: " + error.message)
+    error => errorActions.setForeground("Could not fetch coin list: " + error.message)
   )
 }
 
 export function add(auth: AuthApi, coin) {
   return auth.wrappedRequest(
-    () =>
-      exchangesService.addSubscription(JSON.stringify(tickerFromCoin(coin))),
+    () => exchangesService.addSubscription(JSON.stringify(tickerFromCoin(coin))),
     null,
-    error =>
-      errorActions.setForeground(
-        "Could not add subscription: " + error.message
-      ),
+    error => errorActions.setForeground("Could not add subscription: " + error.message),
     () => applyAdd(auth, coin)
   )
 }
@@ -65,9 +58,7 @@ function fetchMetadata(auth: AuthApi, coin) {
     () => exchangesService.fetchMetadata(coin),
     json => ({ type: types.SET_META, payload: { coin: coin, meta: json } }),
     error =>
-      errorActions.setForeground(
-        "Could not fetch coin metadata for " + coin.name + " : " + error.message
-      )
+      errorActions.setForeground("Could not fetch coin metadata for " + coin.name + " : " + error.message)
   )
 }
 
@@ -80,13 +71,9 @@ function applyAdd(auth: AuthApi, coin) {
 
 export function remove(auth: AuthApi, coin) {
   return auth.wrappedRequest(
-    () =>
-      exchangesService.removeSubscription(JSON.stringify(tickerFromCoin(coin))),
+    () => exchangesService.removeSubscription(JSON.stringify(tickerFromCoin(coin))),
     null,
-    error =>
-      errorActions.setForeground(
-        "Could not remove subscription: " + error.message
-      ),
+    error => errorActions.setForeground("Could not remove subscription: " + error.message),
     () => applyRemove(coin)
   )
 }
@@ -94,7 +81,6 @@ export function remove(auth: AuthApi, coin) {
 function applyRemove(coin) {
   return (dispatch, getState) => {
     dispatch({ type: types.REMOVE, payload: coin })
-    dispatch(tickerActions.clearTicker(coin))
   }
 }
 
@@ -102,10 +88,7 @@ export function setReferencePrice(auth: AuthApi, coin, price) {
   return auth.wrappedRequest(
     () => exchangesService.setReferencePrice(coin, price),
     null,
-    error =>
-      errorActions.setForeground(
-        "Could not set reference price on server: " + error.message
-      ),
+    error => errorActions.setForeground("Could not set reference price on server: " + error.message),
     () => ({ type: types.SET_REFERENCE_PRICE, payload: { coin, price } })
   )
 }

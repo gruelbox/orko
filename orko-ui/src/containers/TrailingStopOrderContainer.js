@@ -27,8 +27,9 @@ import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
-import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
+import { getSelectedCoin } from "../selectors/coins"
 import { withAuth } from "@orko-ui-auth/index"
+import { withSocket } from "@orko-ui-socket/"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
@@ -62,7 +63,9 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   currentPrice = direction =>
-    direction === "BUY" ? this.props.ticker.ask : this.props.ticker.bid
+    direction === "BUY"
+      ? this.props.socketApi.selectedCoinTicker.ask
+      : this.props.socketApi.selectedCoinTicker.bid
 
   createJob = direction => {
     const startPrice = this.currentPrice(direction)
@@ -84,9 +87,7 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   onSubmit = async direction => {
-    this.props.dispatch(
-      jobActions.submitJob(this.props.auth, this.createJob(direction))
-    )
+    this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob(direction)))
   }
 
   render() {
@@ -99,9 +100,7 @@ class TrailingStopOrderContainer extends React.Component {
       isValidNumber(this.state.order.limitPrice) &&
       this.state.order.limitPrice > 0
     const amountValid =
-      this.state.order.amount &&
-      isValidNumber(this.state.order.amount) &&
-      this.state.order.amount > 0
+      this.state.order.amount && isValidNumber(this.state.order.amount) && this.state.order.amount > 0
 
     return (
       <TrailingStopOrder
@@ -122,9 +121,8 @@ class TrailingStopOrderContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    coin: getSelectedCoin(state),
-    ticker: getSelectedCoinTicker(state)
+    coin: getSelectedCoin(state)
   }
 }
 
-export default withAuth(connect(mapStateToProps)(TrailingStopOrderContainer))
+export default withSocket(withAuth(connect(mapStateToProps)(TrailingStopOrderContainer)))

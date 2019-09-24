@@ -19,12 +19,10 @@ import { createSelector, OutputSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getAlertJobs, getStopJobs } from "./jobs"
 import { coinFromKey } from "@orko-ui-market/coinUtils"
-import { Coin, ServerTicker } from "modules/market/Types"
-import Ticker from "components/Ticker"
+import { Coin, ServerCoin } from "modules/market/Types"
 
 const getCoins = state => state.coins.coins
 const getReferencePrices = state => state.coins.referencePrices
-const getTickers = state => state.ticker.coins
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
 
@@ -52,7 +50,7 @@ export const getSelectedCoin: OutputSelector<any, Coin, (res1: any, res2: any) =
   location => locationToCoin(location)
 )
 
-function jobTriggerMatchesCoin(job, coin: ServerTicker) {
+function jobTriggerMatchesCoin(job, coin: ServerCoin) {
   return (
     job.tickTrigger.exchange === coin.exchange &&
     job.tickTrigger.base === coin.base &&
@@ -93,24 +91,16 @@ export const getOrdersForSelectedCoin = createSelector(
   }
 )
 
-export const getSelectedCoinTicker: OutputSelector<
-  any,
-  Ticker,
-  (res1: Coin, res2: any) => Ticker
-> = createSelector(
-  [getSelectedCoin, getTickers],
-  (coin, tickers) => (coin ? tickers[coin.key] : null)
-)
-
 export const getCoinsForDisplay = createSelector(
-  [getAlertJobs, getCoins, getTickers, getReferencePrices],
-  (alertJobs, coins, tickers, referencePrices) =>
-    coins.map(coin => {
+  [getAlertJobs, getCoins, getReferencePrices],
+  (alertJobs, coins, referencePrices) => {
+    const exchanges = [] // TODO FIXME needs exchange details
+    return coins.map(coin => {
       const referencePrice = referencePrices[coin.key]
-      const ticker = tickers[coin.key]
+      const ticker = null // TODO FIXME needs ticker
       return {
         ...coin,
-        exchangeMeta: [].find(e => e.code === coin.exchange), // TODO FIXME needs exchange details
+        exchangeMeta: exchanges.find(e => e.code === coin.exchange),
         ticker,
         hasAlert: !!alertJobs.find(
           job =>
@@ -125,4 +115,5 @@ export const getCoinsForDisplay = createSelector(
           : "--"
       }
     })
+  }
 )

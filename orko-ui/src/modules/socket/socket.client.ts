@@ -18,13 +18,14 @@
 import * as socketMessages from "./socketMessages"
 import runtimeEnv from "@mars/heroku-js-runtime-env"
 import ReconnectingWebSocket from "reconnecting-websocket"
-import { augmentCoin, coin as createCoin } from "@orko-ui-market/index"
+import { augmentCoin, coin as createCoin, Coin } from "@orko-ui-market/index"
+import { Ticker } from "./Types"
 
-var handleError = message => {}
+var handleError = (message: string) => {}
 var handleConnectionStateChange = connected => {}
 var handleNotification = message => {}
 var handleStatusUpdate = message => {}
-var handleTicker = (coin, ticker) => {}
+var handleTicker = (coin: Coin, ticker: Ticker) => {}
 var handleOrderBook = (coin, orderBook) => {}
 var handleTrade = (coin, trade) => {}
 var handleOrdersSnapshot = (coin, orders, timestamp) => {}
@@ -39,7 +40,7 @@ var connected = false
 var socket
 var timer
 
-export function onError(handler) {
+export function onError(handler: (message: string) => void) {
   handleError = handler
 }
 
@@ -55,7 +56,7 @@ export function onStatusUpdate(handler) {
   handleStatusUpdate = handler
 }
 
-export function onTicker(handler) {
+export function onTicker(handler: (coin: Coin, ticker: Ticker) => any) {
   handleTicker = handler
 }
 
@@ -110,10 +111,7 @@ export function connect() {
     try {
       content = preProcess(content)
     } catch (e) {
-      console.log(
-        "Failed to pre-process message from server (" + e + ")",
-        evt.data
-      )
+      console.log("Failed to pre-process message from server (" + e + ")", evt.data)
     }
     try {
       receive(content)
@@ -143,9 +141,7 @@ export function changeSubscriptions(coins, selected) {
 }
 
 export function resubscribe() {
-  const serverSelectedCoinTickers = selectedCoin
-    ? [webCoinToServerCoin(selectedCoin)]
-    : []
+  const serverSelectedCoinTickers = selectedCoin ? [webCoinToServerCoin(selectedCoin)] : []
   send({
     command: socketMessages.CHANGE_TICKERS,
     tickers: subscribedCoins.map(coin => webCoinToServerCoin(coin))
@@ -197,11 +193,7 @@ function receive(message) {
 
       case socketMessages.TICKER:
         handleTicker(
-          createCoin(
-            message.data.spec.exchange,
-            message.data.spec.counter,
-            message.data.spec.base
-          ),
+          createCoin(message.data.spec.exchange, message.data.spec.counter, message.data.spec.base),
           message.data.ticker
         )
         break
@@ -223,11 +215,7 @@ function receive(message) {
         break
 
       case socketMessages.ORDER_STATUS_CHANGE:
-        handleOrderUpdate(
-          augmentCoin(message.data.spec),
-          message.data.order,
-          message.data.timestamp
-        )
+        handleOrderUpdate(augmentCoin(message.data.spec), message.data.order, message.data.timestamp)
         break
 
       case socketMessages.USER_TRADE:
@@ -235,11 +223,7 @@ function receive(message) {
         break
 
       case socketMessages.BALANCE:
-        handleBalance(
-          message.data.exchange,
-          message.data.currency,
-          message.data.balance
-        )
+        handleBalance(message.data.exchange, message.data.currency, message.data.balance)
         break
 
       case socketMessages.NOTIFICATION:
