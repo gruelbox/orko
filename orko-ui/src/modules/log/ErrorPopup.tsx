@@ -2,7 +2,14 @@ import React from "react"
 import { Button, Modal, Icon } from "semantic-ui-react"
 
 export const ErrorPopup: React.FC<{ message: string; onClose(): void }> = ({ message, onClose }) => (
-  <Modal data-orko="errorModal">
+  <Modal
+    data-orko="errorModal"
+    style={{
+      marginTop: "0px !important",
+      marginLeft: "auto",
+      marginRight: "auto"
+    }}
+  >
     <Modal.Header>
       <Icon name="warning" />
       Error

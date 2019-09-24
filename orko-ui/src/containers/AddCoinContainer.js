@@ -47,7 +47,7 @@ class AddCoinContainer extends Component {
         this.setState({ pairs: pairs.map(p => augmentCoin(p, exchange)) })
         this.props.logApi.trace(pairs.length + " pairs fetched")
       })
-      .catch(error => this.props.logApi.errorPopup(error))
+      .catch(error => this.props.logApi.errorPopup(error.message))
   }
 
   onChangePair = (e, data) => {

@@ -57,8 +57,7 @@ const columns = [
     id: "dateTime",
     Header: "Time",
     accessor: "dateTime",
-    Cell: ({ original }: { original: LogEntry }) =>
-      dateUtils.formatDate(original.dateTime),
+    Cell: ({ original }: { original: LogEntry }) => dateUtils.formatDate(original.dateTime),
     headerStyle: textStyle,
     style: textStyle,
     resizable: false,
@@ -68,9 +67,7 @@ const columns = [
     id: "message",
     Header: "Message",
     accessor: "message",
-    Cell: ({ original }: { original: LogEntry }) => (
-      <div title={original.message}>{original.message}</div>
-    ),
+    Cell: ({ original }: { original: LogEntry }) => <div title={original.message}>{original.message}</div>,
     headerStyle: textStyle,
     style: textStyle,
     resizable: true

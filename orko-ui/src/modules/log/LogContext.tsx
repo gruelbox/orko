@@ -57,7 +57,6 @@ export const LogManager: React.FC<{ children: ReactElement }> = ({ children }) =
     () => ({
       errorPopup: (message: string) => {
         setError(message)
-        add({ message, level: ERROR })
       },
       localError: (message: string) => add({ message, level: ERROR }),
       localAlert: (message: string) => add({ message, level: ALERT }),
