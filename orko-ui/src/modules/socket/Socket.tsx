@@ -15,15 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, {
-  useEffect,
-  ReactElement,
-  useContext,
-  useState,
-  useMemo,
-  useRef,
-  useCallback
-} from "react"
+import React, { useEffect, ReactElement, useContext, useState, useMemo, useRef, useCallback } from "react"
 
 import { AuthContext } from "@orko-ui-auth/index"
 import { LogContext, LogRequest } from "@orko-ui-log/index"
@@ -73,14 +65,10 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     allActionBuffer.current = []
   }, [])
 
-  const subscribedCoins = useCallback(
-    () => props.store.getState().coins.coins,
-    [props.store]
-  )
-  const selectedCoin = useCallback(
-    () => locationToCoin(props.store.getState().router.location),
-    [props.store]
-  )
+  const subscribedCoins = useCallback(() => props.store.getState().coins.coins, [props.store])
+  const selectedCoin = useCallback(() => locationToCoin(props.store.getState().router.location), [
+    props.store
+  ])
 
   function bufferLatestAction(key: string, action: object) {
     deduplicatedActionBuffer.current[key] = action
@@ -104,9 +92,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   // Buffer and dispatch as a batch all the actions from the socket once a second
   useInterval(() => {
-    const batch = Object.values(deduplicatedActionBuffer.current).concat(
-      allActionBuffer
-    )
+    const batch = Object.values(deduplicatedActionBuffer.current).concat(allActionBuffer)
     if (batch.length > 0) {
       deduplicatedActionBuffer.current = {}
       allActionBuffer.current = []
@@ -140,54 +126,36 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const logNotification = logApi.add
   useEffect(() => {
     socketClient.onError((message: string) => logError(message))
-    socketClient.onNotification((logEntry: LogRequest) =>
-      logNotification(logEntry)
-    )
+    socketClient.onNotification((logEntry: LogRequest) => logNotification(logEntry))
   }, [props.store, logError, logNotification])
 
   // Dispatch market data to the store
   useEffect(() => {
-    const sameCoin = (left: Coin, right: Coin) =>
-      left && right && left.key === right.key
+    const sameCoin = (left: Coin, right: Coin) => left && right && left.key === right.key
     socketClient.onTicker((coin: Coin, ticker) =>
-      bufferLatestAction(
-        ACTION_KEY_TICKER + "/" + coin.key,
-        tickerActions.setTicker(coin, ticker)
-      )
+      bufferLatestAction(ACTION_KEY_TICKER + "/" + coin.key, tickerActions.setTicker(coin, ticker))
     )
-    socketClient.onBalance(
-      (exchange: string, currency: string, balance: Number) => {
-        const coin = selectedCoin()
-        if (
-          coin &&
-          coin.exchange === exchange &&
-          (coin.base === currency || coin.counter === currency)
-        ) {
-          bufferLatestAction(
-            ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
-            coinActions.setBalance(exchange, currency, balance)
-          )
-        }
+    socketClient.onBalance((exchange: string, currency: string, balance: number) => {
+      const coin = selectedCoin()
+      if (coin && coin.exchange === exchange && (coin.base === currency || coin.counter === currency)) {
+        bufferLatestAction(
+          ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
+          coinActions.setBalance(exchange, currency, balance)
+        )
       }
-    )
+    })
     socketClient.onOrderBook((coin: Coin, orderBook) => {
       if (sameCoin(coin, selectedCoin()))
-        bufferLatestAction(
-          ACTION_KEY_ORDERBOOK,
-          coinActions.setOrderBook(orderBook)
-        )
+        bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(orderBook))
     })
     socketClient.onTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, selectedCoin()))
-        bufferAllActions(coinActions.addTrade(trade))
+      if (sameCoin(coin, selectedCoin())) bufferAllActions(coinActions.addTrade(trade))
     })
     socketClient.onUserTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, selectedCoin()))
-        bufferAllActions(coinActions.addUserTrade(trade))
+      if (sameCoin(coin, selectedCoin())) bufferAllActions(coinActions.addUserTrade(trade))
     })
     socketClient.onOrderUpdate((coin: Coin, order, timestamp) => {
-      if (sameCoin(coin, selectedCoin()))
-        props.store.dispatch(coinActions.orderUpdated(order, timestamp))
+      if (sameCoin(coin, selectedCoin())) props.store.dispatch(coinActions.orderUpdated(order, timestamp))
     })
 
     // This is a bit hacky. The intent is to move this logic server side,
@@ -213,12 +181,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
             .getState()
             .coin.orders.filter(o => !idsPresent.includes(o.id))
             .forEach(o => {
-              props.store.dispatch(
-                coinActions.orderUpdated(
-                  { id: o.id, status: "CANCELED" },
-                  timestamp
-                )
-              )
+              props.store.dispatch(coinActions.orderUpdated({ id: o.id, status: "CANCELED" }, timestamp))
             })
         }
       }
@@ -235,9 +198,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   // Sync the state of the socket with the socket itself
   useEffect(() => {
-    socketClient.onConnectionStateChange((newState: boolean) =>
-      setConnected(newState)
-    )
+    socketClient.onConnectionStateChange((newState: boolean) => setConnected(newState))
   }, [setConnected])
 
   // Log when the socket connects and resubscribe
@@ -249,14 +210,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     }
   }, [connected, logMessage, resubscribe])
 
-  const api: SocketApi = useMemo(() => ({ connected, resubscribe }), [
-    connected,
-    resubscribe
-  ])
+  const api: SocketApi = useMemo(() => ({ connected, resubscribe }), [connected, resubscribe])
 
-  return (
-    <SocketContext.Provider value={api}>
-      {props.children}
-    </SocketContext.Provider>
-  )
+  return <SocketContext.Provider value={api}>{props.children}</SocketContext.Provider>
 }

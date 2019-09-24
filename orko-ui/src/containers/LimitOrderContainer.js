@@ -22,7 +22,7 @@ import Immutable from "seamless-immutable"
 import LimitOrder from "../components/LimitOrder"
 
 import * as focusActions from "../store/focus/actions"
-import * as exchangesActions from "../store/exchanges/actions"
+import * as coinActions from "../store/coin/actions"
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 import exchangeService from "@orko-ui-market/exchangesService"
@@ -81,9 +81,7 @@ class LimitOrderContainer extends React.Component {
           // No-op
         }
         if (!errorMessage) {
-          errorMessage = response.statusText
-            ? response.statusText
-            : "Server error (" + response.status + ")"
+          errorMessage = response.statusText ? response.statusText : "Server error (" + response.status + ")"
         }
 
         throw new Error(errorMessage)
@@ -104,13 +102,7 @@ class LimitOrderContainer extends React.Component {
 
   onSubmit = async direction => {
     const order = this.createOrder(direction)
-    this.props.dispatch(
-      exchangesActions.submitLimitOrder(
-        this.props.auth,
-        this.props.coin.exchange,
-        order
-      )
-    )
+    this.props.dispatch(coinActions.submitLimitOrder(this.props.auth, this.props.coin.exchange, order))
   }
 
   render() {
@@ -119,9 +111,7 @@ class LimitOrderContainer extends React.Component {
       isValidNumber(this.state.order.limitPrice) &&
       this.state.order.limitPrice > 0
     const amountValid =
-      this.state.order.amount &&
-      isValidNumber(this.state.order.amount) &&
-      this.state.order.amount > 0
+      this.state.order.amount && isValidNumber(this.state.order.amount) && this.state.order.amount > 0
 
     return (
       <LimitOrder

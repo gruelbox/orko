@@ -15,16 +15,52 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import exchangesService from "@orko-ui-market/exchangesService"
-import * as errorActions from "../error/actions"
-import * as coinActions from "../coin/actions"
+import * as types from "./actionTypes"
 import { AuthApi } from "@orko-ui-auth/index"
+import * as errorActions from "../error/actions"
+import exchangesService from "@orko-ui-market/exchangesService"
+
+export function setOrderBook(orderBook) {
+  return { type: types.SET_ORDERBOOK, payload: orderBook }
+}
+
+export function clearUserTrades() {
+  return { type: types.CLEAR_USER_TRADES }
+}
+
+export function addUserTrade(trade) {
+  return { type: types.ADD_USER_TRADE, payload: trade }
+}
+
+export function setBalance(exchange: string, currency: string, balance: number) {
+  return { type: types.SET_BALANCE, payload: { currency, balance } }
+}
+
+export function addTrade(trade) {
+  return { type: types.ADD_TRADE, payload: trade }
+}
+
+export function clearTrades() {
+  return { type: types.CLEAR_TRADES }
+}
+
+export function clearBalances() {
+  return { type: types.CLEAR_BALANCES }
+}
+
+export function orderUpdated(order, timestamp) {
+  return { type: types.ORDER_UPDATED, payload: { order, timestamp } }
+}
+
+export function clearOrders() {
+  return { type: types.CLEAR_ORDERS }
+}
 
 export function submitLimitOrder(auth: AuthApi, exchange, order) {
   return auth.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
-      coinActions.orderUpdated(
+      orderUpdated(
         {
           ...response,
           status: "PENDING_NEW"
@@ -39,7 +75,7 @@ export function submitStopOrder(auth: AuthApi, exchange, order) {
   return auth.wrappedRequest(
     () => exchangesService.submitOrder(exchange, order),
     response =>
-      coinActions.orderUpdated(
+      orderUpdated(
         {
           ...response,
           status: "PENDING_NEW"
@@ -53,7 +89,7 @@ export function submitStopOrder(auth: AuthApi, exchange, order) {
 export function cancelOrder(auth: AuthApi, coin, orderId) {
   return async (dispatch, getState) => {
     dispatch(
-      coinActions.orderUpdated(
+      orderUpdated(
         {
           id: orderId,
           status: "PENDING_CANCEL"
