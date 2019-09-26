@@ -17,12 +17,10 @@
  */
 import { createSelector, OutputSelector } from "reselect"
 import { getRouterLocation } from "./router"
-import { getAlertJobs, getStopJobs } from "./jobs"
+import { getStopJobs } from "./jobs"
 import { coinFromKey } from "@orko-ui-market/coinUtils"
 import { Coin, ServerCoin } from "modules/market/Types"
 
-const getCoins = state => state.coins.coins
-const getReferencePrices = state => state.coins.referencePrices
 const getOrders = state => state.coin.orders
 const getOrderbook = state => state.coin.orderBook
 
@@ -88,32 +86,5 @@ export const getOrdersForSelectedCoin = createSelector(
     if (result.length === 0 && !orders) return null
 
     return result
-  }
-)
-
-export const getCoinsForDisplay = createSelector(
-  [getAlertJobs, getCoins, getReferencePrices],
-  (alertJobs, coins, referencePrices) => {
-    const exchanges = [] // TODO FIXME needs exchange details
-    return coins.map(coin => {
-      const referencePrice = referencePrices[coin.key]
-      const ticker = null // TODO FIXME needs ticker
-      return {
-        ...coin,
-        exchangeMeta: exchanges.find(e => e.code === coin.exchange),
-        ticker,
-        hasAlert: !!alertJobs.find(
-          job =>
-            job.tickTrigger.exchange === coin.exchange &&
-            job.tickTrigger.base === coin.base &&
-            job.tickTrigger.counter === coin.counter
-        ),
-        priceChange: referencePrice
-          ? Number(
-              (((ticker ? ticker.last : referencePrice) - referencePrice) * 100) / referencePrice
-            ).toFixed(2) + "%"
-          : "--"
-      }
-    })
   }
 )

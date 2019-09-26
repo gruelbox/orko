@@ -66,7 +66,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   /////////////////////// NON-STATE DATA ///////////////////////////
 
-  const previousCoin = useRef<object>()
+  const previousCoin = useRef<Coin>()
 
   const deduplicatedActionBuffer = useRef<object>()
   useEffect(() => {
@@ -93,6 +93,17 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     }
   }
 
+  // Buffer and dispatch as a batch all the redux actions from the socket once a second
+  // TODO consider a non-redux equivalent
+  useInterval(() => {
+    const batch = Object.values(deduplicatedActionBuffer.current).concat(allActionBuffer)
+    if (batch.length > 0) {
+      deduplicatedActionBuffer.current = {}
+      allActionBuffer.current = []
+      props.store.dispatch(batchActions(batch))
+    }
+  }, 1000)
+
   /////////////////////// SOCKET MANAGEMENT ///////////////////////////
 
   const subscribedCoins = useCallback(() => props.store.getState().coins.coins, [props.store])
@@ -112,22 +123,13 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     socketClient.resubscribe()
   }, [subscribedCoins, getSelectedCoin])
 
-  // Buffer and dispatch as a batch all the actions from the socket once a second
-  useInterval(() => {
-    const batch = Object.values(deduplicatedActionBuffer.current).concat(allActionBuffer)
-    if (batch.length > 0) {
-      deduplicatedActionBuffer.current = {}
-      allActionBuffer.current = []
-      props.store.dispatch(batchActions(batch))
-    }
-  }, 1000)
-
   // When the coin selected changes, send resubscription messages and clear any
   // coin-specific state
+  // TODO can just drive this off the value of location changing
   useEffect(() => {
     props.history.listen((location: Location) => {
       const coin = locationToCoin(location)
-      if (coin !== previousCoin.current) {
+      if (!previousCoin.current || coin.key !== previousCoin.current.key) {
         previousCoin.current = coin
         console.log("Resubscribing following coin change")
         socketClient.changeSubscriptions(subscribedCoins(), coin)
