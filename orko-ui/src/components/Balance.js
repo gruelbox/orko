@@ -35,64 +35,34 @@ export const Balance = ({ coin, balance, ticker, onClickNumber }) => {
   const noBalances = !balance || !coin
   const noTicker = !ticker
 
-  const noBaseBalance =
-    noBalances || (!balance[coin.base] && balance[coin.base] !== 0)
-  const noCounterBalance =
-    noBalances || (!balance[coin.counter] && balance[coin.counter] !== 0)
+  const noBaseBalance = noBalances || (!balance.get(coin.base) && balance.get(coin.base) !== 0)
+  const noCounterBalance = noBalances || (!balance.get(coin.counter) && balance.get(coin.counter) !== 0)
 
-  const counterScale = meta =>
-    meta.minimumAmount ? scaleOfValue(meta.minimumAmount) : 8
+  const counterScale = meta => (meta.minimumAmount ? scaleOfValue(meta.minimumAmount) : 8)
+
+  const baseBalance = balance.get(coin.base)
+  const baseCounter = balance.get(coin.counter)
 
   if (coin) {
     return (
       <Container>
         <Amount name="Balance" fontSize={1} onClick={onClickNumber} coin={coin}>
-          {noBaseBalance ? undefined : balance[coin.base].total}
+          {noBaseBalance ? undefined : baseBalance.total}
         </Amount>
-        <Amount
-          name="Can sell"
-          fontSize={1}
-          onClick={onClickNumber}
-          coin={coin}
-        >
-          {noBaseBalance ? undefined : balance[coin.base].available}
+        <Amount name="Can sell" fontSize={1} onClick={onClickNumber} coin={coin}>
+          {noBaseBalance ? undefined : baseBalance.available}
         </Amount>
-        <Amount
-          name="Sale value at bid"
-          fontSize={1}
-          onClick={onClickNumber}
-          coin={coin}
-        >
-          {noBaseBalance || noTicker
-            ? undefined
-            : +Number(balance[coin.base].total * ticker.bid).toFixed(8)}
+        <Amount name="Sale value at bid" fontSize={1} onClick={onClickNumber} coin={coin}>
+          {noBaseBalance || noTicker ? undefined : +Number(baseBalance.total * ticker.bid).toFixed(8)}
         </Amount>
-        <Amount
-          name={coin.counter + " balance"}
-          fontSize={1}
-          onClick={onClickNumber}
-          coin={coin}
-        >
-          {noCounterBalance ? undefined : balance[coin.counter].total}
+        <Amount name={coin.counter + " balance"} fontSize={1} onClick={onClickNumber} coin={coin}>
+          {noCounterBalance ? undefined : baseCounter.total}
         </Amount>
-        <Amount
-          name={coin.counter + " available"}
-          fontSize={1}
-          onClick={onClickNumber}
-          coin={coin}
-        >
-          {noCounterBalance ? undefined : balance[coin.counter].available}
+        <Amount name={coin.counter + " available"} fontSize={1} onClick={onClickNumber} coin={coin}>
+          {noCounterBalance ? undefined : baseCounter.available}
         </Amount>
-        <Amount
-          name="Can buy"
-          deriveScale={counterScale}
-          fontSize={1}
-          onClick={onClickNumber}
-          coin={coin}
-        >
-          {noCounterBalance || noTicker
-            ? undefined
-            : balance[coin.counter].available / ticker.ask}
+        <Amount name="Can buy" deriveScale={counterScale} fontSize={1} onClick={onClickNumber} coin={coin}>
+          {noCounterBalance || noTicker ? undefined : baseCounter.available / ticker.ask}
         </Amount>
       </Container>
     )

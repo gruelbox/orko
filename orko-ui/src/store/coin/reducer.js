@@ -21,7 +21,6 @@ import * as types from "./actionTypes"
 const MAX_PUBLIC_TRADES = 48
 
 const initialState = Immutable({
-  balance: undefined,
   ticker: undefined,
   orders: undefined,
   orderBook: undefined,
@@ -31,16 +30,6 @@ const initialState = Immutable({
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.SET_BALANCE:
-      return Immutable.merge(
-        state,
-        {
-          balance: {
-            [action.payload.currency]: action.payload.balance
-          }
-        },
-        { deep: true }
-      )
     case types.CLEAR_TRADES:
       return Immutable.merge(state, {
         trades: null
@@ -48,9 +37,7 @@ export default function reduce(state = initialState, action = {}) {
     case types.ADD_TRADE:
       return Immutable.merge(state, {
         trades: state.trades
-          ? Immutable(
-              [action.payload].concat(state.trades.slice(0, MAX_PUBLIC_TRADES))
-            )
+          ? Immutable([action.payload].concat(state.trades.slice(0, MAX_PUBLIC_TRADES)))
           : Immutable([action.payload])
       })
     case types.ADD_USER_TRADE:
@@ -83,8 +70,7 @@ export default function reduce(state = initialState, action = {}) {
         userTradeHistory: Immutable([trade])
       })
     }
-    if (!!trade.id && state.userTradeHistory.some(t => t.id === trade.id))
-      return state
+    if (!!trade.id && state.userTradeHistory.some(t => t.id === trade.id)) return state
     return Immutable.merge(state, {
       userTradeHistory: Immutable([trade].concat(state.userTradeHistory))
     })
@@ -97,10 +83,7 @@ export default function reduce(state = initialState, action = {}) {
       })
     }
 
-    const isRemoval =
-      order.status === "EXPIRED" ||
-      order.status === "CANCELED" ||
-      order.status === "FILLED"
+    const isRemoval = order.status === "EXPIRED" || order.status === "CANCELED" || order.status === "FILLED"
 
     // No orders at all yet
     if (!state.orders) {

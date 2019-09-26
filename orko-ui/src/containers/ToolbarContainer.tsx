@@ -68,10 +68,11 @@ const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   return (
     <Toolbar
       {...props}
+      ticker={ticker}
       connected={socket.connected}
       onLogout={props.onLogout}
       onShowPanel={(key: string) => props.onTogglePanelVisible(key)}
-      balance={props.balance}
+      balance={socket.balances}
       exchangeMetadata={marketApi.data.selectedExchange}
     />
   )
@@ -84,7 +85,6 @@ export default connect((state, props) => {
     hiddenPanels: getHiddenPanels(state),
     errors: state.error.errorBackground,
     updateFocusedField: state.focus.fn,
-    balance: state.coin.balance,
     coin,
     coinMetadata: coin && state.coins.meta ? state.coins.meta[coin.key] : undefined
   }

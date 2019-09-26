@@ -21,21 +21,19 @@ import Balance from "../components/Balance"
 import Section from "../components/primitives/Section"
 import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
-import { SocketContext, Ticker } from "@orko-ui-socket/index"
+import { SocketContext } from "@orko-ui-socket/index"
 import { Coin } from "@orko-ui-market/index"
+import { getSelectedCoin } from "selectors/coins"
 
-interface BalanceContainerProps {
-  balance: Ticker
-  coin: Coin
-}
-
-const BalanceContainer: React.FC<BalanceContainerProps> = ({ balance }) => {
-  const ticker = useContext(SocketContext).selectedCoinTicker
+const BalanceContainer: React.FC<{ coin: Coin }> = ({ coin }) => {
+  const socketApi = useContext(SocketContext)
+  const ticker = socketApi.selectedCoinTicker
+  const balances = socketApi.balances
   return (
     <Section id="balance" heading="Balances">
       <AuthenticatedOnly>
         <WithCoin>
-          {coin => <Balance coin={coin} balance={balance} ticker={ticker} onClickNumber={undefined} />}
+          {coin => <Balance coin={coin} balance={balances} ticker={ticker} onClickNumber={undefined} />}
         </WithCoin>
       </AuthenticatedOnly>
     </Section>
@@ -44,6 +42,6 @@ const BalanceContainer: React.FC<BalanceContainerProps> = ({ balance }) => {
 
 export default connect(state => {
   return {
-    balance: state.coin.balance
+    coin: getSelectedCoin(state)
   }
 })(BalanceContainer)

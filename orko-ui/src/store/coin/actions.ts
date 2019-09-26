@@ -29,10 +29,6 @@ export function addUserTrade(trade) {
   return { type: types.ADD_USER_TRADE, payload: trade }
 }
 
-export function setBalance(exchange: string, currency: string, balance: number) {
-  return { type: types.SET_BALANCE, payload: { currency, balance } }
-}
-
 export function addTrade(trade) {
   return { type: types.ADD_TRADE, payload: trade }
 }

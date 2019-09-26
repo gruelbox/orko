@@ -28,7 +28,7 @@ import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "@orko-ui-market/index"
 import { Map } from "immutable"
-import { Ticker } from "./Types"
+import { Ticker, Balance } from "./Types"
 
 const ACTION_KEY_ORDERBOOK = "orderbook"
 const ACTION_KEY_BALANCE = "balance"
@@ -62,6 +62,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   // Data from the socket
   const [tickers, setTickers] = useState(Map<String, Ticker>())
+  const [balances, setBalances] = useState(Map<String, Balance>())
 
   /////////////////////// NON-STATE DATA ///////////////////////////
 
@@ -115,7 +116,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     selectedCoin
   ])
 
-  // Forward direct notifications to the store
+  // Forward notifications/errors to the log API
   const logError = logApi.localError
   const logMessage = logApi.localMessage
   const logNotification = logApi.add
@@ -130,13 +131,15 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     socketClient.onTicker((coin: Coin, ticker: Ticker) =>
       setTickers(tickers => tickers.set(coin.key, ticker))
     )
-    socketClient.onBalance((exchange: string, currency: string, balance: number) => {
+    socketClient.onBalance((exchange: string, currency: string, balance: Balance) => {
       const coin = getSelectedCoin()
-      if (coin && coin.exchange === exchange && (coin.base === currency || coin.counter === currency)) {
-        bufferLatestAction(
-          ACTION_KEY_BALANCE + "/" + exchange + "/" + currency,
-          coinActions.setBalance(exchange, currency, balance)
-        )
+      if (coin && coin.exchange === exchange) {
+        if (coin.base === currency) {
+          setBalances(balances => Map.of(currency, balance, coin.counter, balances.get(coin.counter)))
+        }
+        if (coin.counter === currency) {
+          setBalances(balances => Map.of(currency, balance, coin.base, balances.get(coin.base)))
+        }
       }
     })
     socketClient.onOrderBook((coin: Coin, orderBook) => {
@@ -223,10 +226,11 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     bufferAllActions(coinActions.clearBalances())
   }, [props.store, connected, subscribedCoins, selectedCoin])
 
-  const api: SocketApi = useMemo(() => ({ connected, resubscribe, tickers, selectedCoinTicker }), [
+  const api: SocketApi = useMemo(() => ({ connected, resubscribe, tickers, balances, selectedCoinTicker }), [
     connected,
     resubscribe,
     tickers,
+    balances,
     selectedCoinTicker
   ])
 

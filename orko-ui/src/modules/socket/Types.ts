@@ -6,3 +6,8 @@ export interface Ticker {
   low: number
   high: number
 }
+
+export interface Balance {
+  total: number
+  available: number
+}
