@@ -35,7 +35,6 @@ const ACTION_KEY_BALANCE = "balance"
 
 export interface SocketProps {
   store
-  history
   children: ReactElement
 }
 
@@ -65,8 +64,6 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const [tickers, setTickers] = useState(Map<String, Ticker>())
 
   /////////////////////// NON-STATE DATA ///////////////////////////
-
-  const previousCoin = useRef<Coin>()
 
   const deduplicatedActionBuffer = useRef<object>()
   useEffect(() => {
@@ -117,32 +114,6 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     tickers,
     selectedCoin
   ])
-
-  const resubscribe = useCallback(() => {
-    socketClient.changeSubscriptions(subscribedCoins(), getSelectedCoin())
-    socketClient.resubscribe()
-  }, [subscribedCoins, getSelectedCoin])
-
-  // When the coin selected changes, send resubscription messages and clear any
-  // coin-specific state
-  // TODO can just drive this off the value of location changing
-  useEffect(() => {
-    props.history.listen((location: Location) => {
-      const coin = locationToCoin(location)
-      if (!previousCoin.current || coin.key !== previousCoin.current.key) {
-        previousCoin.current = coin
-        console.log("Resubscribing following coin change")
-        socketClient.changeSubscriptions(subscribedCoins(), coin)
-        socketClient.resubscribe()
-        clearActionsForPrefix(ACTION_KEY_BALANCE)
-        bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
-        bufferAllActions(coinActions.clearUserTrades())
-        props.store.dispatch(coinActions.clearOrders())
-        bufferAllActions(coinActions.clearTrades())
-        bufferAllActions(coinActions.clearBalances())
-      }
-    })
-  }, [props.store, props.history, connected, subscribedCoins])
 
   // Forward direct notifications to the store
   const logError = logApi.localError
@@ -226,6 +197,10 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   }, [setConnected])
 
   // Log when the socket connects and resubscribe
+  const resubscribe = useCallback(() => {
+    socketClient.changeSubscriptions(subscribedCoins(), getSelectedCoin())
+    socketClient.resubscribe()
+  }, [subscribedCoins, getSelectedCoin])
   useEffect(() => {
     if (connected) {
       logMessage("Socket connected")
@@ -233,6 +208,20 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
       return () => logMessage("Socket disconnected")
     }
   }, [connected, logMessage, resubscribe])
+
+  // When the coin selected changes, send resubscription messages and clear any
+  // coin-specific state
+  useEffect(() => {
+    console.log("Resubscribing following coin change")
+    socketClient.changeSubscriptions(subscribedCoins(), selectedCoin)
+    socketClient.resubscribe()
+    clearActionsForPrefix(ACTION_KEY_BALANCE)
+    bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
+    bufferAllActions(coinActions.clearUserTrades())
+    props.store.dispatch(coinActions.clearOrders())
+    bufferAllActions(coinActions.clearTrades())
+    bufferAllActions(coinActions.clearBalances())
+  }, [props.store, connected, subscribedCoins, selectedCoin])
 
   const api: SocketApi = useMemo(() => ({ connected, resubscribe, tickers, selectedCoinTicker }), [
     connected,

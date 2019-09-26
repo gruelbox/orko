@@ -140,7 +140,7 @@ const App: React.FC<any> = () => (
           <Authoriser onError={message => store.dispatch(errorActions.setForeground(message))}>
             <>
               <ConnectedStoreManagement />
-              <Socket store={store} history={history}>
+              <Socket store={store}>
                 <ConnectedRouter history={history}>
                   <MarketManager>
                     <FrameworkContainer />
