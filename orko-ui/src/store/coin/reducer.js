@@ -23,7 +23,6 @@ const MAX_PUBLIC_TRADES = 48
 const initialState = Immutable({
   ticker: undefined,
   orders: undefined,
-  orderBook: undefined,
   userTradeHistory: undefined,
   trades: undefined
 })
@@ -42,14 +41,6 @@ export default function reduce(state = initialState, action = {}) {
       })
     case types.ADD_USER_TRADE:
       return addUserTrade(state, action.payload)
-    case types.CLEAR_BALANCES:
-      return Immutable.merge(state, {
-        balance: null
-      })
-    case types.SET_ORDERBOOK:
-      return Immutable.merge(state, {
-        orderBook: action.payload
-      })
     case types.CLEAR_USER_TRADES:
       return Immutable.merge(state, {
         userTradeHistory: undefined

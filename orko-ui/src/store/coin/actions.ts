@@ -17,10 +17,6 @@
  */
 import * as types from "./actionTypes"
 
-export function setOrderBook(orderBook) {
-  return { type: types.SET_ORDERBOOK, payload: orderBook }
-}
-
 export function clearUserTrades() {
   return { type: types.CLEAR_USER_TRADES }
 }
@@ -35,10 +31,6 @@ export function addTrade(trade) {
 
 export function clearTrades() {
   return { type: types.CLEAR_TRADES }
-}
-
-export function clearBalances() {
-  return { type: types.CLEAR_BALANCES }
 }
 
 export function orderUpdated(order, timestamp) {

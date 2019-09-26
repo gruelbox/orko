@@ -28,10 +28,7 @@ import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "@orko-ui-market/index"
 import { Map } from "immutable"
-import { Ticker, Balance } from "./Types"
-
-const ACTION_KEY_ORDERBOOK = "orderbook"
-const ACTION_KEY_BALANCE = "balance"
+import { Ticker, Balance, OrderBook } from "./Types"
 
 export interface SocketProps {
   store
@@ -63,6 +60,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   // Data from the socket
   const [tickers, setTickers] = useState(Map<String, Ticker>())
   const [balances, setBalances] = useState(Map<String, Balance>())
+  const [orderBook, setOrderBook] = useState<OrderBook>(null)
 
   /////////////////////// NON-STATE DATA ///////////////////////////
 
@@ -76,19 +74,8 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     allActionBuffer.current = []
   }, [])
 
-  function bufferLatestAction(key: string, action: object) {
-    deduplicatedActionBuffer.current[key] = action
-  }
-
   function bufferAllActions(action: object) {
     allActionBuffer.current.push(action)
-  }
-
-  function clearActionsForPrefix(prefix: string) {
-    // eslint-disable-next-line
-    for (const key of Object.keys(deduplicatedActionBuffer.current)) {
-      if (key.startsWith(prefix)) delete deduplicatedActionBuffer.current[key]
-    }
   }
 
   // Buffer and dispatch as a batch all the redux actions from the socket once a second
@@ -142,9 +129,8 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
         }
       }
     })
-    socketClient.onOrderBook((coin: Coin, orderBook) => {
-      if (sameCoin(coin, getSelectedCoin()))
-        bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(orderBook))
+    socketClient.onOrderBook((coin: Coin, orderBook: OrderBook) => {
+      if (sameCoin(coin, getSelectedCoin())) setOrderBook(orderBook)
     })
     socketClient.onTrade((coin: Coin, trade) => {
       if (sameCoin(coin, getSelectedCoin())) bufferAllActions(coinActions.addTrade(trade))
@@ -218,21 +204,17 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     console.log("Resubscribing following coin change")
     socketClient.changeSubscriptions(subscribedCoins(), selectedCoin)
     socketClient.resubscribe()
-    clearActionsForPrefix(ACTION_KEY_BALANCE)
-    bufferLatestAction(ACTION_KEY_ORDERBOOK, coinActions.setOrderBook(null))
+    setOrderBook(null)
     bufferAllActions(coinActions.clearUserTrades())
     props.store.dispatch(coinActions.clearOrders())
     bufferAllActions(coinActions.clearTrades())
-    bufferAllActions(coinActions.clearBalances())
+    setBalances(Map<String, Balance>())
   }, [props.store, connected, subscribedCoins, selectedCoin])
 
-  const api: SocketApi = useMemo(() => ({ connected, resubscribe, tickers, balances, selectedCoinTicker }), [
-    connected,
-    resubscribe,
-    tickers,
-    balances,
-    selectedCoinTicker
-  ])
+  const api: SocketApi = useMemo(
+    () => ({ connected, resubscribe, tickers, balances, orderBook, selectedCoinTicker }),
+    [connected, resubscribe, tickers, balances, orderBook, selectedCoinTicker]
+  )
 
   return <SocketContext.Provider value={api}>{props.children}</SocketContext.Provider>
 }

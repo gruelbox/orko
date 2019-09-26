@@ -15,11 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const SET_ORDERBOOK = "coin.SET_ORDERBOOK"
 export const CLEAR_USER_TRADES = "coin.CLEAR_USER_TRADES"
 export const ADD_USER_TRADE = "coin.ADD_USER_TRADE"
 export const ADD_TRADE = "coin.ADD_TRADE"
 export const CLEAR_TRADES = "coin.CLEAR_TRADES"
-export const CLEAR_BALANCES = "coin.CLEAR_BALANCES"
 export const ORDER_UPDATED = "coin.ORDER_UPDATED"
 export const CLEAR_ORDERS = "coin.CLEAR_ORDERS"

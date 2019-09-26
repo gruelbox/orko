@@ -22,13 +22,10 @@ import { coinFromKey } from "@orko-ui-market/coinUtils"
 import { Coin, ServerCoin } from "modules/market/Types"
 
 const getOrders = state => state.coin.orders
-const getOrderbook = state => state.coin.orderBook
 
 export const getUserTradeHistory = state => state.coin.userTradeHistory
 
 export const getMarketTradeHistory = state => state.coin.trades
-
-export const getTopOfOrderBook = getOrderbook // Moved to worker
 
 export const locationToCoin = (location: Location): Coin => {
   if (
