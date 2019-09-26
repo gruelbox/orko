@@ -15,13 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useContext, useRef } from "react"
-
+import React, { useContext, useRef, useEffect } from "react"
+import { connect } from "react-redux"
 import OrderBookSide from "../components/OrderBookSide"
 import styled from "styled-components"
 import WhileLoading from "../components/WhileLoading"
 import WithCoin from "./WithCoin"
 import { SocketContext } from "@orko-ui-socket/index"
+import { getSelectedCoin } from "selectors/coins"
+import { Coin } from "@orko-ui-market/index"
 
 const Split = styled.section`
   display: flex;
@@ -40,9 +42,12 @@ const AskSide = styled.div`
   flex-grow: 1;
 `
 
-const OrderBookContainer: React.FC<{ animate: boolean }> = ({ animate }) => {
+const OrderBookContainer: React.FC<{ coin: Coin; animate: boolean }> = ({ coin, animate }) => {
   const orderBook = useContext(SocketContext).orderBook
   const largestOrder = useRef(0)
+  useEffect(() => {
+    largestOrder.current = 0
+  }, [coin])
 
   return (
     <WithCoin padded>
@@ -87,4 +92,10 @@ const OrderBookContainer: React.FC<{ animate: boolean }> = ({ animate }) => {
   )
 }
 
-export default OrderBookContainer
+function mapStateToProps(state, props) {
+  return {
+    coin: getSelectedCoin(state)
+  }
+}
+
+export default connect(mapStateToProps)(OrderBookContainer)
