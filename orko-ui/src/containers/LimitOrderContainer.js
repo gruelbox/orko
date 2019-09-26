@@ -28,6 +28,8 @@ import { getSelectedCoin } from "../selectors/coins"
 import exchangeService from "@orko-ui-market/exchangesService"
 import * as errorActions from "../store/error/actions"
 import { withAuth } from "@orko-ui-auth/index"
+import { withLog } from "@orko-ui-log/"
+import exchangesService from "@orko-ui-market/exchangesService"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -100,9 +102,22 @@ class LimitOrderContainer extends React.Component {
     }
   }
 
-  onSubmit = async direction => {
+  onSubmit = direction => {
     const order = this.createOrder(direction)
-    this.props.dispatch(coinActions.submitLimitOrder(this.props.auth, this.props.coin.exchange, order))
+    this.props.auth
+      .authenticatedRequest(() => exchangesService.submitOrder(this.props.coin.exchange, order))
+      .then(response =>
+        this.props.dispatch(
+          coinActions.orderUpdated(
+            {
+              ...response,
+              status: "PENDING_NEW"
+            },
+            0 // Deliberately old timestamp
+          )
+        )
+      )
+      .catch(error => this.props.logApi.errorPopup("Could not submit order: " + error.message))
   }
 
   render() {
@@ -135,4 +150,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withAuth(connect(mapStateToProps)(LimitOrderContainer))
+export default withLog(withAuth(connect(mapStateToProps)(LimitOrderContainer)))

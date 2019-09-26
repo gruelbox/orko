@@ -30,6 +30,7 @@ import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import uuidv4 from "uuid/v4"
 import { withAuth } from "@orko-ui-auth/index"
+import exchangesService from "@orko-ui-market/exchangesService"
 
 function coinServerSideSupported(coin) {
   return !["bittrex"].includes(coin.exchange)
@@ -116,10 +117,23 @@ class StopOrderContainer extends React.Component {
     }
   })
 
-  onSubmit = async direction => {
+  onSubmit = direction => {
     if (this.state.order.useExchange) {
       const order = this.createOrder(direction)
-      this.props.dispatch(coinActions.submitStopOrder(this.props.auth, this.props.coin.exchange, order))
+      this.props.auth
+        .authenticatedRequest(() => exchangesService.submitOrder(this.props.coin.exchange, order))
+        .then(response =>
+          this.props.dispatch(
+            coinActions.orderUpdated(
+              {
+                ...response,
+                status: "PENDING_NEW"
+              },
+              0 // Deliberately old timestamp
+            )
+          )
+        )
+        .catch(error => this.props.logApi.errorPopup("Could not submit order: " + error.message))
     } else {
       this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob(direction)))
     }

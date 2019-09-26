@@ -25,10 +25,25 @@ import * as coinActions from "../store/coin/actions"
 import * as jobActions from "../store/job/actions"
 import { getOrdersForSelectedCoin } from "../selectors/coins"
 import { withAuth } from "@orko-ui-auth/index"
+import { withLog } from "@orko-ui-log/"
+import exchangesService from "@orko-ui-market/exchangesService"
 
 class OpenOrdersContainer extends React.Component {
   onCancelExchange = (id, coin) => {
-    this.props.dispatch(coinActions.cancelOrder(this.props.auth, coin, id))
+    this.props.dispatch(
+      coinActions.orderUpdated(
+        {
+          id,
+          status: "PENDING_CANCEL"
+        },
+        // Deliberately new enough to be relevant now but get immediately overwritten
+        this.props.orders.find(o => o.id === id).serverTimestamp + 1
+      )
+    )
+
+    this.props.auth
+      .authenticatedRequest(() => exchangesService.cancelOrder(coin, id))
+      .catch(error => this.props.logApi.errorPopup("Could not cancel order: " + error.message))
   }
 
   onCancelServer = jobId => {
@@ -64,4 +79,4 @@ function mapStateToProps(state, props) {
   }
 }
 
-export default withAuth(connect(mapStateToProps)(OpenOrdersContainer))
+export default withLog(withAuth(connect(mapStateToProps)(OpenOrdersContainer)))

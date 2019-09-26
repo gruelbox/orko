@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import { AuthApi } from "@orko-ui-auth/index"
-import * as errorActions from "../error/actions"
-import exchangesService from "@orko-ui-market/exchangesService"
 
 export function setOrderBook(orderBook) {
   return { type: types.SET_ORDERBOOK, payload: orderBook }
@@ -54,54 +51,4 @@ export function orderUpdated(order, timestamp) {
 
 export function clearOrders() {
   return { type: types.CLEAR_ORDERS }
-}
-
-export function submitLimitOrder(auth: AuthApi, exchange, order) {
-  return auth.wrappedRequest(
-    () => exchangesService.submitOrder(exchange, order),
-    response =>
-      orderUpdated(
-        {
-          ...response,
-          status: "PENDING_NEW"
-        },
-        0 // Deliberately old timestamp
-      ),
-    error => errorActions.setForeground("Could not submit order: " + error.message)
-  )
-}
-
-export function submitStopOrder(auth: AuthApi, exchange, order) {
-  return auth.wrappedRequest(
-    () => exchangesService.submitOrder(exchange, order),
-    response =>
-      orderUpdated(
-        {
-          ...response,
-          status: "PENDING_NEW"
-        },
-        0 // Deliberately old timestamp
-      ),
-    error => errorActions.setForeground("Could not submit order: " + error.message)
-  )
-}
-
-export function cancelOrder(auth: AuthApi, coin, orderId) {
-  return async (dispatch, getState) => {
-    dispatch(
-      orderUpdated(
-        {
-          id: orderId,
-          status: "PENDING_CANCEL"
-        },
-        // Deliberately new enough to be relevant now but get immediately overwritten
-        getState().coin.orders.find(o => o.id === orderId).serverTimestamp + 1
-      )
-    )
-    dispatch(
-      auth.wrappedRequest(() => exchangesService.cancelOrder(coin, orderId), null, error =>
-        errorActions.setForeground("Could not cancel order: " + error.message)
-      )
-    )
-  }
 }
