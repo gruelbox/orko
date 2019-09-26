@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useEffect, ReactElement, useContext, useState, useMemo, useRef, useCallback } from "react"
+import React, { useEffect, ReactElement, useContext, useState, useMemo, useCallback } from "react"
 
 import { AuthContext } from "@orko-ui-auth/index"
 import { LogContext, LogRequest } from "@orko-ui-log/index"
@@ -23,8 +23,6 @@ import { LogContext, LogRequest } from "@orko-ui-log/index"
 import * as coinActions from "../../store/coin/actions"
 import * as socketClient from "./socket.client"
 import { locationToCoin } from "../../selectors/coins"
-import { batchActions } from "redux-batched-actions"
-import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "@orko-ui-market/index"
 import { Map } from "immutable"
@@ -61,33 +59,6 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const [tickers, setTickers] = useState(Map<String, Ticker>())
   const [balances, setBalances] = useState(Map<String, Balance>())
   const [orderBook, setOrderBook] = useState<OrderBook>(null)
-
-  /////////////////////// NON-STATE DATA ///////////////////////////
-
-  const deduplicatedActionBuffer = useRef<object>()
-  useEffect(() => {
-    deduplicatedActionBuffer.current = {}
-  }, [])
-
-  const allActionBuffer = useRef<Array<object>>()
-  useEffect(() => {
-    allActionBuffer.current = []
-  }, [])
-
-  function bufferAllActions(action: object) {
-    allActionBuffer.current.push(action)
-  }
-
-  // Buffer and dispatch as a batch all the redux actions from the socket once a second
-  // TODO consider a non-redux equivalent
-  useInterval(() => {
-    const batch = Object.values(deduplicatedActionBuffer.current).concat(allActionBuffer)
-    if (batch.length > 0) {
-      deduplicatedActionBuffer.current = {}
-      allActionBuffer.current = []
-      props.store.dispatch(batchActions(batch))
-    }
-  }, 1000)
 
   /////////////////////// SOCKET MANAGEMENT ///////////////////////////
 
@@ -133,10 +104,10 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
       if (sameCoin(coin, getSelectedCoin())) setOrderBook(orderBook)
     })
     socketClient.onTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, getSelectedCoin())) bufferAllActions(coinActions.addTrade(trade))
+      if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.addTrade(trade))
     })
     socketClient.onUserTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, getSelectedCoin())) bufferAllActions(coinActions.addUserTrade(trade))
+      if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.addUserTrade(trade))
     })
     socketClient.onOrderUpdate((coin: Coin, order, timestamp) => {
       if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.orderUpdated(order, timestamp))
@@ -205,9 +176,9 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     socketClient.changeSubscriptions(subscribedCoins(), selectedCoin)
     socketClient.resubscribe()
     setOrderBook(null)
-    bufferAllActions(coinActions.clearUserTrades())
+    props.store.dispatch(coinActions.clearUserTrades())
     props.store.dispatch(coinActions.clearOrders())
-    bufferAllActions(coinActions.clearTrades())
+    props.store.dispatch(coinActions.clearTrades())
     setBalances(Map<String, Balance>())
   }, [props.store, connected, subscribedCoins, selectedCoin])
 
