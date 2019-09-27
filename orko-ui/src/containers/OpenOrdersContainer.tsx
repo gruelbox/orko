@@ -38,7 +38,7 @@ const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin }> 
   const logApi = useContext(LogContext)
 
   const allOrders = socketApi.openOrders
-  const orders = coin ? allOrders.filter(o => !o.deleted).concat(jobsAsOrders) : null
+  const orders = coin && allOrders ? allOrders.filter(o => !o.deleted).concat(jobsAsOrders) : null
 
   const onCancelExchange = (id: string, coin: Coin) => {
     socketApi.pendingCancelOrder(

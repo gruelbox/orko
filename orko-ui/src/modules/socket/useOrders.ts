@@ -20,76 +20,144 @@ import { Order, OrderStatus } from "@orko-ui-socket/index"
 import { useReducer, useMemo } from "react"
 
 export interface UseOrderArrayApi {
+  clear(): void
+  updateSnapshot(orders: Array<Order>, timestamp: number): void
   orderUpdated(order: Order, timestamp: number): void
-  cancelledOrder(id: string, timestamp: number): void
   pendingCancelOrder(id: string, timestamp: number): void
-  clearIfTimestampedBefore(timestamp: number): void
   createPlaceholder(order: Order): void
   removePlaceholder(): void
 }
 
-type ActionType = "ORDER_UPDATED" | "CLEAR_ORDERS" | "CREATE_PLACEHOLDER" | "REMOVE_PLACEHOLDER"
-
 const PLACEHOLDER_ID = "PLACEHOLDER"
 
-type Action = {
-  type: ActionType
-  order?: Order
-  id?: string
-  timestamp?: number
-  status?: OrderStatus
+interface BaseAction {
+  reduce(state: Array<Order>): Array<Order>
 }
 
-function reducer(state: Array<Order>, action: Action) {
-  switch (action.type) {
-    case "CLEAR_ORDERS":
-      return state
-        ? state.filter(o => o.id === PLACEHOLDER_ID || o.timestamp > action.timestamp)
-        : Immutable([])
-    case "ORDER_UPDATED":
-      return orderUpdated(
-        state.filter(o => o.id !== PLACEHOLDER_ID),
-        action.order ? action.order : { id: action.id, status: action.status },
-        action.timestamp
-      )
-    case "CREATE_PLACEHOLDER":
-      return orderUpdated(
-        state.filter(o => o.id !== PLACEHOLDER_ID),
-        { ...action.order, id: PLACEHOLDER_ID, status: "PENDING_NEW" },
-        action.timestamp
-      )
-    case "REMOVE_PLACEHOLDER":
-      return state.filter(o => o.id !== PLACEHOLDER_ID)
-    default:
-      return state
+class RemovePlaceholderAction implements BaseAction {
+  reduce(state: Array<Order>): Array<Order> {
+    return state ? state.filter(o => o.id !== PLACEHOLDER_ID) : state
   }
+}
+
+class ClearAction implements BaseAction {
+  private timestamp: number
+
+  constructor(timestamp: number) {
+    this.timestamp = timestamp
+  }
+
+  reduce(state: Array<Order>): Array<Order> {
+    return state ? state.filter(o => o.id !== PLACEHOLDER_ID) : state
+  }
+}
+
+class FullUpdateAction implements BaseAction {
+  private timestamp: number
+  private order: Order
+
+  constructor(order: Order, timestamp: number) {
+    this.order = order
+    this.timestamp = timestamp
+  }
+
+  reduce(state: Array<Order>): Array<Order> {
+    return orderUpdated(
+      state ? state.filter(o => o.id !== PLACEHOLDER_ID) : state,
+      this.order,
+      this.timestamp
+    )
+  }
+}
+
+class CreatePlaceholderAction extends FullUpdateAction {
+  constructor(order: Order) {
+    super({ ...order, id: PLACEHOLDER_ID, status: "PENDING_NEW" }, new Date().getTime())
+  }
+}
+
+class StateUpdateAction implements BaseAction {
+  private timestamp: number
+  private id: string
+  private status: OrderStatus
+
+  constructor(id: string, status: OrderStatus, timestamp: number) {
+    this.id = id
+    this.status = status
+    this.timestamp = timestamp
+  }
+
+  reduce(state: Array<Order>): Array<Order> {
+    return orderUpdated(
+      state ? state.filter(o => o.id !== PLACEHOLDER_ID) : state,
+      { id: this.id, status: this.status },
+      this.timestamp
+    )
+  }
+}
+
+class UpdateSnapshotAction implements BaseAction {
+  private orders: Array<Order>
+  private timestamp: number
+
+  constructor(orders: Array<Order>, timestamp: number) {
+    this.orders = orders
+    this.timestamp = timestamp
+  }
+
+  reduce(state: Array<Order>): Array<Order> {
+    // Updates for every order mentioned
+    let result = state ? state : []
+    const idsPresent = new Set<string>()
+    for (const order of this.orders) {
+      idsPresent.add(order.id)
+      result = orderUpdated(state, order, this.timestamp)
+    }
+
+    // Any order not mentioned should be removed
+    if (state) {
+      for (const order of state) {
+        if (order.id === PLACEHOLDER_ID || idsPresent.has(order.id)) {
+          continue
+        }
+        result = orderUpdated(
+          state,
+          { id: order.id, status: order.status === "PENDING_CANCEL" ? "CANCELED" : "PENDING_CANCEL" },
+          this.timestamp
+        )
+      }
+    }
+
+    return Immutable(result)
+  }
+}
+
+function reducer(state: Array<Order>, action: BaseAction) {
+  return action.reduce(state)
 }
 
 export function useOrders(): [Array<Order>, UseOrderArrayApi] {
   const [value, dispatch] = useReducer(reducer, null)
   const api: UseOrderArrayApi = useMemo(
     () => ({
-      orderUpdated: (order: Order, timestamp: number) =>
-        dispatch({
-          type: "ORDER_UPDATED",
-          order,
-          timestamp: timestamp !== undefined ? timestamp : order.timestamp
-        }),
-      cancelledOrder: (id: string, timestamp: number) =>
-        dispatch({ type: "ORDER_UPDATED", id, timestamp, status: "CANCELED" }),
-      pendingCancelOrder: (id: string, timestamp: number) =>
-        dispatch({ type: "ORDER_UPDATED", id, timestamp, status: "PENDING_CANCEL" }),
-      clearIfTimestampedBefore: (timestamp: number) => dispatch({ type: "CLEAR_ORDERS", timestamp }),
-      createPlaceholder: (order: Order) =>
-        dispatch({
-          type: "CREATE_PLACEHOLDER",
-          order,
-          timestamp: new Date().getTime()
-        }),
-      removePlaceholder: () =>
-        dispatch({
-          type: "REMOVE_PLACEHOLDER"
-        })
+      updateSnapshot: (orders: Array<Order>, timestamp: number) => {
+        dispatch(new UpdateSnapshotAction(orders, timestamp))
+      },
+      orderUpdated: (order: Order, timestamp: number) => {
+        dispatch(new FullUpdateAction(order, timestamp !== undefined ? timestamp : order.timestamp))
+      },
+      pendingCancelOrder: (id: string, timestamp: number) => {
+        dispatch(new StateUpdateAction(id, "PENDING_CANCEL", timestamp))
+      },
+      createPlaceholder: (order: Order) => {
+        dispatch(new CreatePlaceholderAction(order))
+      },
+      removePlaceholder: () => {
+        dispatch(new RemovePlaceholderAction())
+      },
+      clear: () => {
+        dispatch(new ClearAction(Infinity))
+      }
     }),
     [dispatch]
   )

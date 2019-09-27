@@ -121,30 +121,9 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     socketClient.onOrderUpdate((coin: Coin, order: Order, timestamp: number) => {
       if (sameCoin(coin, getSelectedCoin())) openOrdersUpdateApi.orderUpdated(order, timestamp)
     })
-
-    // This is a bit hacky. The intent is to move this logic server side,
-    // so the presence of a snapshot/poll loop is invisible to the client.
-    // In the meantime, I'm not polluting the reducer with it.
     socketClient.onOrdersSnapshot((coin: Coin, orders: Array<Order>, timestamp: number) => {
       if (sameCoin(coin, getSelectedCoin())) {
-        var idsPresent = []
-        if (orders.length === 0) {
-          // Update that there are no orders
-          openOrdersUpdateApi.clearIfTimestampedBefore(timestamp)
-        } else {
-          // Updates for every order mentioned
-          orders.forEach(o => {
-            idsPresent.push(o.id)
-            openOrdersUpdateApi.orderUpdated(o, timestamp)
-          })
-        }
-
-        // Any order not mentioned should be removed
-        if (orders) {
-          orders
-            .filter((o: Order) => !idsPresent.includes(o.id))
-            .forEach((o: Order) => openOrdersUpdateApi.cancelledOrder(o.id, timestamp))
-        }
+        openOrdersUpdateApi.updateSnapshot(orders, timestamp)
       }
     })
   }, [props.store, getSelectedCoin, tradesUpdateApi, userTradesUpdateApi, openOrdersUpdateApi])
@@ -183,7 +162,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     socketClient.resubscribe()
     setOrderBook(null)
     userTradesUpdateApi.clear()
-    openOrdersUpdateApi.clearIfTimestampedBefore(Infinity)
+    openOrdersUpdateApi.clear()
     tradesUpdateApi.clear()
     setBalances(Map<String, Balance>())
   }, [
