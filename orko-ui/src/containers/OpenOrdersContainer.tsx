@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useContext } from "react"
+import React, { useContext, useMemo } from "react"
 import { connect } from "react-redux"
 import OpenOrders from "../components/OpenOrders"
 import AuthenticatedOnly from "./AuthenticatedOnly"
@@ -29,9 +29,10 @@ import { SocketContext, Order } from "@orko-ui-socket/index"
 import { getSelectedCoin, getJobsAsOrdersForSelectedCoin } from "selectors/coins"
 import { LogContext } from "@orko-ui-log/index"
 
-const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin }> = ({
+const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin; dispatch }> = ({
   jobsAsOrders,
-  coin
+  coin,
+  dispatch
 }) => {
   const socketApi = useContext(SocketContext)
   const authApi = useContext(AuthContext)
@@ -39,21 +40,30 @@ const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin }> 
 
   const allOrders = socketApi.openOrders
   const orders = coin && allOrders ? allOrders.filter(o => !o.deleted).concat(jobsAsOrders) : null
+  const authenticatedRequest = authApi.authenticatedRequest
+  const logPopup = logApi.errorPopup
+  const pendingCancelOrder = socketApi.pendingCancelOrder
 
-  const onCancelExchange = (id: string, coin: Coin) => {
-    socketApi.pendingCancelOrder(
-      id,
-      // Deliberately new enough to be relevant now but get immediately overwritten
-      orders.find((o: Order) => o.id === id).serverTimestamp + 1
-    )
-    authApi
-      .authenticatedRequest(() => exchangesService.cancelOrder(coin, id))
-      .catch(error => logApi.errorPopup("Could not cancel order: " + error.message))
-  }
+  const onCancelExchange = useMemo(
+    () => (id: string, coin: Coin) => {
+      pendingCancelOrder(
+        id,
+        // Deliberately new enough to be relevant now but get immediately overwritten
+        orders.find((o: Order) => o.id === id).serverTimestamp + 1
+      )
+      authenticatedRequest(() => exchangesService.cancelOrder(coin, id)).catch(error =>
+        logPopup("Could not cancel order: " + error.message)
+      )
+    },
+    [authenticatedRequest, logPopup, pendingCancelOrder, orders]
+  )
 
-  const onCancelServer = (jobId: string) => {
-    this.props.dispatch(jobActions.deleteJob(authApi, { id: jobId }))
-  }
+  const onCancelServer = useMemo(
+    () => (jobId: string) => {
+      dispatch(jobActions.deleteJob(authApi, { id: jobId }))
+    },
+    [dispatch, authApi]
+  )
 
   return (
     <AuthenticatedOnly padded>
