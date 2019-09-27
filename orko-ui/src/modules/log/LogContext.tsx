@@ -48,7 +48,7 @@ export const LogManager: React.FC<{ children: ReactElement }> = ({ children }) =
       } else {
         last.current = Immutable.set(Immutable(request), "dateTime", new Date())
       }
-      updateApi.add(last.current)
+      updateApi.unshift(last.current)
     },
     [updateApi]
   )

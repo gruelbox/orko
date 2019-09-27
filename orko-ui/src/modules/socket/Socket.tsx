@@ -26,7 +26,10 @@ import { locationToCoin } from "../../selectors/coins"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "@orko-ui-market/index"
 import { Map } from "immutable"
-import { Ticker, Balance, OrderBook } from "./Types"
+import { Ticker, Balance, OrderBook, Trade, UserTrade } from "./Types"
+import { useArray } from "@orko-ui-common/util/hookUtils"
+
+const MAX_PUBLIC_TRADES = 48
 
 export interface SocketProps {
   store
@@ -59,6 +62,8 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const [tickers, setTickers] = useState(Map<String, Ticker>())
   const [balances, setBalances] = useState(Map<String, Balance>())
   const [orderBook, setOrderBook] = useState<OrderBook>(null)
+  const [trades, tradesUpdateApi] = useArray<Trade>(null)
+  const [userTrades, userTradesUpdateApi] = useArray<UserTrade>(null)
 
   /////////////////////// SOCKET MANAGEMENT ///////////////////////////
 
@@ -103,11 +108,14 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     socketClient.onOrderBook((coin: Coin, orderBook: OrderBook) => {
       if (sameCoin(coin, getSelectedCoin())) setOrderBook(orderBook)
     })
-    socketClient.onTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.addTrade(trade))
+    socketClient.onTrade((coin: Coin, trade: Trade) => {
+      if (sameCoin(coin, getSelectedCoin())) tradesUpdateApi.unshift(trade, { maxLength: MAX_PUBLIC_TRADES })
     })
-    socketClient.onUserTrade((coin: Coin, trade) => {
-      if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.addUserTrade(trade))
+    socketClient.onUserTrade((coin: Coin, trade: UserTrade) => {
+      if (sameCoin(coin, getSelectedCoin()))
+        userTradesUpdateApi.unshift(trade, {
+          skipIfAnyMatch: existing => !!trade.id && existing.id === trade.id
+        })
     })
     socketClient.onOrderUpdate((coin: Coin, order, timestamp) => {
       if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.orderUpdated(order, timestamp))
@@ -141,7 +149,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
         }
       }
     })
-  }, [props.store, getSelectedCoin])
+  }, [props.store, getSelectedCoin, tradesUpdateApi, userTradesUpdateApi])
 
   // Connect the socket when authorised, and disconnect when deauthorised
   useEffect(() => {
@@ -176,15 +184,15 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     socketClient.changeSubscriptions(subscribedCoins(), selectedCoin)
     socketClient.resubscribe()
     setOrderBook(null)
-    props.store.dispatch(coinActions.clearUserTrades())
+    userTradesUpdateApi.clear()
     props.store.dispatch(coinActions.clearOrders())
-    props.store.dispatch(coinActions.clearTrades())
+    tradesUpdateApi.clear()
     setBalances(Map<String, Balance>())
-  }, [props.store, connected, subscribedCoins, selectedCoin])
+  }, [props.store, connected, subscribedCoins, selectedCoin, userTradesUpdateApi, tradesUpdateApi])
 
   const api: SocketApi = useMemo(
-    () => ({ connected, resubscribe, tickers, balances, orderBook, selectedCoinTicker }),
-    [connected, resubscribe, tickers, balances, orderBook, selectedCoinTicker]
+    () => ({ connected, resubscribe, tickers, balances, trades, userTrades, orderBook, selectedCoinTicker }),
+    [connected, resubscribe, tickers, balances, trades, userTrades, orderBook, selectedCoinTicker]
   )
 
   return <SocketContext.Provider value={api}>{props.children}</SocketContext.Provider>

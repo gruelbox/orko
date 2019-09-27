@@ -15,38 +15,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
-import { connect } from "react-redux"
+import React, { useContext } from "react"
 import TradeHistory from "../components/TradeHistory"
 import WhileLoading from "../components/WhileLoading"
+import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
+import { SocketContext } from "@orko-ui-socket/index"
 
-import { getMarketTradeHistory } from "../selectors/coins"
-
-class MarketTradesContainer extends React.Component {
-  render() {
-    return (
+const UserTradeHistoryContainer: React.FC<any> = () => {
+  const userTrades = useContext(SocketContext).userTrades
+  return (
+    <AuthenticatedOnly padded>
       <WithCoin padded>
         {coin => (
-          <WhileLoading data={this.props.tradeHistory} padded>
-            {() => (
-              <TradeHistory
-                coin={coin}
-                trades={this.props.tradeHistory}
-                excludeFees={true}
-              />
-            )}
+          <WhileLoading data={userTrades} padded>
+            {() => <TradeHistory coin={coin} trades={userTrades} excludeFees={false} />}
           </WhileLoading>
         )}
       </WithCoin>
-    )
-  }
+    </AuthenticatedOnly>
+  )
 }
 
-function mapStateToProps(state, props) {
-  return {
-    tradeHistory: getMarketTradeHistory(state)
-  }
-}
-
-export default connect(mapStateToProps)(MarketTradesContainer)
+export default UserTradeHistoryContainer

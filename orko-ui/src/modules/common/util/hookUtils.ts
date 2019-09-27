@@ -33,9 +33,16 @@ export function useInterval(callback: () => void, delay: number) {
  * Mutator methods returned by useArray.
  */
 export interface UseArrayApi<T> {
-  add(value: T): void
-  clear()
+  unshift(value: T, param?: MutateParam<T>): void
+  clear(): void
 }
+
+export interface MutateParam<T> {
+  maxLength?: number
+  skipIfAnyMatch?: (existing: T) => boolean
+}
+
+type ActionType = "CLEAR" | "UNSHIFT"
 
 /**
  * A state hook which allows an array state to be maintained.
@@ -45,12 +52,26 @@ export interface UseArrayApi<T> {
  */
 export function useArray<T>(initial: Array<T>): [Array<T>, UseArrayApi<T>] {
   const [value, dispatch] = useReducer(
-    (state: Array<T>, { type, value }: { type: string; value?: T }) => {
+    (state: Array<T>, { type, value, param }: { type: ActionType; value?: T; param?: MutateParam<T> }) => {
       switch (type) {
         case "CLEAR":
           return Immutable([])
-        case "ADD":
-          return value ? Immutable([value]).concat(state) : state
+        case "UNSHIFT":
+          if (value === undefined) {
+            return state
+          } else {
+            if (!(state instanceof Array)) {
+              return Immutable([value])
+            } else {
+              if (param && param.skipIfAnyMatch && state.some(param.skipIfAnyMatch)) {
+                return state
+              } else if (param && param.maxLength) {
+                return Immutable([value]).concat(state.slice(0, param.maxLength))
+              } else {
+                return Immutable([value]).concat(state)
+              }
+            }
+          }
         default:
           return state
       }
@@ -59,7 +80,7 @@ export function useArray<T>(initial: Array<T>): [Array<T>, UseArrayApi<T>] {
   )
   const api: UseArrayApi<T> = useMemo(
     () => ({
-      add: (value: T) => dispatch({ type: "ADD", value }),
+      unshift: (value: T, param?: MutateParam<T>) => dispatch({ type: "UNSHIFT", value, param }),
       clear: () => dispatch({ type: "CLEAR" })
     }),
     [dispatch]

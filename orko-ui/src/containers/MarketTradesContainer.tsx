@@ -15,5 +15,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const ORDER_UPDATED = "coin.ORDER_UPDATED"
-export const CLEAR_ORDERS = "coin.CLEAR_ORDERS"
+import React, { useContext } from "react"
+import TradeHistory from "../components/TradeHistory"
+import WhileLoading from "../components/WhileLoading"
+import WithCoin from "./WithCoin"
+import { SocketContext } from "@orko-ui-socket/index"
+
+const MarketTradesContainer: React.FC<any> = () => {
+  const socketApi = useContext(SocketContext)
+  return (
+    <WithCoin padded>
+      {coin => (
+        <WhileLoading data={socketApi.trades} padded>
+          {() => <TradeHistory coin={coin} trades={socketApi.trades} excludeFees={true} />}
+        </WhileLoading>
+      )}
+    </WithCoin>
+  )
+}
+
+export default MarketTradesContainer

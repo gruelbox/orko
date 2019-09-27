@@ -1,5 +1,5 @@
 import React from "react"
-import { Ticker, Balance, OrderBook } from "./Types"
+import { Ticker, Balance, OrderBook, Trade, UserTrade } from "./Types"
 import { Map } from "immutable"
 
 export interface SocketApi {
@@ -7,6 +7,8 @@ export interface SocketApi {
   resubscribe(): void
   tickers: Map<String, Ticker>
   balances: Map<String, Balance>
+  trades: Array<Trade>
+  userTrades: Array<UserTrade>
   orderBook: OrderBook
   selectedCoinTicker: Ticker
 }

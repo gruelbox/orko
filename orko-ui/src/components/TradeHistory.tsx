@@ -21,6 +21,8 @@ import ReactTable from "react-table"
 import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
 import * as dateUtils from "@orko-ui-common/util/dateUtils"
+import { Trade, UserTrade } from "@orko-ui-socket/index"
+import { Coin } from "@orko-ui-market/index"
 
 const BUY_SIDE = "BID"
 
@@ -34,9 +36,8 @@ const numberStyle = {
 
 const dateColumn = {
   id: "date",
-  accessor: "d",
   Header: "Created",
-  Cell: ({ original }) => dateUtils.formatDate(original.d),
+  Cell: ({ original }: { original: Trade }) => dateUtils.formatDate(original.timestamp),
   headerStyle: textStyle,
   style: textStyle,
   resizable: true,
@@ -46,12 +47,11 @@ const dateColumn = {
 const orderTypeColumn = {
   id: "orderType",
   Header: <Icon fitted name="sort" title="Direction" />,
-  accessor: "t",
-  Cell: ({ original }) => (
+  Cell: ({ original }: { original: Trade }) => (
     <Icon
       fitted
-      name={original.t === BUY_SIDE ? "arrow up" : "arrow down"}
-      title={original.t === BUY_SIDE ? "Buy" : "Sell"}
+      name={original.type === BUY_SIDE ? "arrow up" : "arrow down"}
+      title={original.type === BUY_SIDE ? "Buy" : "Sell"}
     />
   ),
   headerStyle: textStyle,
@@ -60,16 +60,11 @@ const orderTypeColumn = {
   width: 32
 }
 
-const priceColumn = coin => ({
+const priceColumn = {
   Header: "Price",
-  Cell: ({ original }) => (
-    <Price
-      coin={coin}
-      color={original.t === BUY_SIDE ? "buy" : "sell"}
-      noflash
-      bare
-    >
-      {original.p}
+  Cell: ({ original }: { original: Trade }) => (
+    <Price coin={original.coin} color={original.type === BUY_SIDE ? "buy" : "sell"} noflash bare>
+      {original.price}
     </Price>
   ),
   headerStyle: numberStyle,
@@ -77,18 +72,13 @@ const priceColumn = coin => ({
   sortable: false,
   resizable: true,
   minWidth: 50
-})
+}
 
-const amountColumn = coin => ({
+const amountColumn = {
   Header: "Amount",
-  Cell: ({ original }) => (
-    <Amount
-      coin={coin}
-      color={original.t === BUY_SIDE ? "buy" : "sell"}
-      noflash
-      bare
-    >
-      {original.a}
+  Cell: ({ original }: { original: Trade }) => (
+    <Amount coin={original.coin} color={original.type === BUY_SIDE ? "buy" : "sell"} noflash bare>
+      {original.originalAmount}
     </Amount>
   ),
   headerStyle: numberStyle,
@@ -96,18 +86,13 @@ const amountColumn = coin => ({
   sortable: false,
   resizable: true,
   minWidth: 50
-})
+}
 
 const feeAmountColumn = {
   Header: "Fee",
-  Cell: ({ original }) => (
-    <Amount
-      color={original.t === BUY_SIDE ? "buy" : "sell"}
-      noflash
-      bare
-      noValue="--"
-    >
-      {original.fa}
+  Cell: ({ original }: { original: Trade }) => (
+    <Amount color={original.type === BUY_SIDE ? "buy" : "sell"} noflash bare noValue="--">
+      {original instanceof UserTrade ? (original as UserTrade).feeAmount : null}
     </Amount>
   ),
   headerStyle: numberStyle,
@@ -119,7 +104,7 @@ const feeAmountColumn = {
 
 const feeCurrencyColumn = {
   Header: "Fee Ccy",
-  accessor: "fc",
+  accessor: "feeCurrency",
   headerStyle: numberStyle,
   style: numberStyle,
   sortable: false,
@@ -127,25 +112,22 @@ const feeCurrencyColumn = {
   minWidth: 50
 }
 
-const columns = (coin, excludeFees) =>
+const columns = (coin: Coin, excludeFees: boolean) =>
   excludeFees
-    ? [orderTypeColumn, dateColumn, priceColumn(coin), amountColumn(coin)]
-    : [
-        orderTypeColumn,
-        dateColumn,
-        priceColumn(coin),
-        amountColumn(coin),
-        feeAmountColumn,
-        feeCurrencyColumn
-      ]
+    ? [orderTypeColumn, dateColumn, priceColumn, amountColumn]
+    : [orderTypeColumn, dateColumn, priceColumn, amountColumn, feeAmountColumn, feeCurrencyColumn]
 
-const TradeHistory = props => (
+const TradeHistory: React.FC<{ coin: Coin; trades: Array<Trade>; excludeFees: boolean }> = ({
+  coin,
+  trades,
+  excludeFees
+}) => (
   <ReactTable
-    data={props.trades}
-    getTrProps={(state, rowInfo, column) => ({
-      className: rowInfo.original.t === BUY_SIDE ? "oco-buy" : "oco-sell"
+    data={trades}
+    getTrProps={(state, rowInfo) => ({
+      className: rowInfo.original.type === BUY_SIDE ? "oco-buy" : "oco-sell"
     })}
-    columns={columns(props.coin, props.excludeFees)}
+    columns={columns(coin, excludeFees)}
     showPagination={false}
     resizable={false}
     className="-striped"

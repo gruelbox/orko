@@ -17,22 +17,6 @@
  */
 import * as types from "./actionTypes"
 
-export function clearUserTrades() {
-  return { type: types.CLEAR_USER_TRADES }
-}
-
-export function addUserTrade(trade) {
-  return { type: types.ADD_USER_TRADE, payload: trade }
-}
-
-export function addTrade(trade) {
-  return { type: types.ADD_TRADE, payload: trade }
-}
-
-export function clearTrades() {
-  return { type: types.CLEAR_TRADES }
-}
-
 export function orderUpdated(order, timestamp) {
   return { type: types.ORDER_UPDATED, payload: { order, timestamp } }
 }

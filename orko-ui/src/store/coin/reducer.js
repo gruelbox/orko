@@ -18,33 +18,14 @@
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 
-const MAX_PUBLIC_TRADES = 48
-
 const initialState = Immutable({
   ticker: undefined,
   orders: undefined,
-  userTradeHistory: undefined,
-  trades: undefined
+  userTradeHistory: undefined
 })
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.CLEAR_TRADES:
-      return Immutable.merge(state, {
-        trades: null
-      })
-    case types.ADD_TRADE:
-      return Immutable.merge(state, {
-        trades: state.trades
-          ? Immutable([action.payload].concat(state.trades.slice(0, MAX_PUBLIC_TRADES)))
-          : Immutable([action.payload])
-      })
-    case types.ADD_USER_TRADE:
-      return addUserTrade(state, action.payload)
-    case types.CLEAR_USER_TRADES:
-      return Immutable.merge(state, {
-        userTradeHistory: undefined
-      })
     case types.ORDER_UPDATED:
       return orderUpdated(state, action.payload.order, action.payload.timestamp)
     case types.CLEAR_ORDERS:
@@ -53,18 +34,6 @@ export default function reduce(state = initialState, action = {}) {
       })
     default:
       return state
-  }
-
-  function addUserTrade(state, trade) {
-    if (!state.userTradeHistory) {
-      return Immutable.merge(state, {
-        userTradeHistory: Immutable([trade])
-      })
-    }
-    if (!!trade.id && state.userTradeHistory.some(t => t.id === trade.id)) return state
-    return Immutable.merge(state, {
-      userTradeHistory: Immutable([trade].concat(state.userTradeHistory))
-    })
   }
 
   function orderUpdated(state, order, timestamp) {

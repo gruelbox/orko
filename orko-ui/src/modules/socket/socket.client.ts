@@ -19,19 +19,26 @@ import * as socketMessages from "./socketMessages"
 import runtimeEnv from "@mars/heroku-js-runtime-env"
 import ReconnectingWebSocket from "reconnecting-websocket"
 import { augmentCoin, coin as createCoin, Coin } from "@orko-ui-market/index"
-import { Ticker } from "./Types"
+import { Ticker, Trade, OrderBook, Balance, ServerTrade, UserTrade } from "./Types"
+import { LogRequest } from "@orko-ui-log/index"
 
-var handleError = (message: string) => {}
-var handleConnectionStateChange = connected => {}
-var handleNotification = message => {}
-var handleStatusUpdate = message => {}
-var handleTicker = (coin: Coin, ticker: Ticker) => {}
-var handleOrderBook = (coin, orderBook) => {}
-var handleTrade = (coin, trade) => {}
-var handleOrdersSnapshot = (coin, orders, timestamp) => {}
-var handleOrderUpdate = (coin, order, timestamp) => {}
-var handleUserTrade = (coin, trade) => {}
-var handleBalance = (exchange, currency, balance) => {}
+type MessageHandler = (message: string) => void
+type NotificationHandler = (logEntry: LogRequest) => void
+type ConnectionStateHandler = (connected: boolean) => void
+type CoinAndPayloadHandler<T> = (coin: Coin, payload: T) => void
+type BalanceHandler = (exchange: string, currency: string, balance: Balance) => void
+
+var handleError: MessageHandler = (message: string) => {}
+var handleConnectionStateChange: ConnectionStateHandler = (connected: boolean) => {}
+var handleNotification: NotificationHandler = (logEntry: LogRequest) => {}
+var handleStatusUpdate: MessageHandler = (message: string) => {}
+var handleTicker: CoinAndPayloadHandler<Ticker> = (coin: Coin, ticker: Ticker) => {}
+var handleOrderBook: CoinAndPayloadHandler<OrderBook> = (coin: Coin, orderBook: OrderBook) => {}
+var handleTrade: CoinAndPayloadHandler<Trade> = (coin: Coin, trade: Trade) => {}
+var handleOrdersSnapshot = (coin: Coin, orders, timestamp) => {}
+var handleOrderUpdate = (coin: Coin, order, timestamp) => {}
+var handleUserTrade: CoinAndPayloadHandler<UserTrade> = (coin: Coin, trade: UserTrade) => {}
+var handleBalance: BalanceHandler = (exchange: string, currency: string, balance: Balance) => {}
 
 var subscribedCoins = []
 var selectedCoin = null
@@ -40,31 +47,31 @@ var connected = false
 var socket
 var timer
 
-export function onError(handler: (message: string) => void) {
+export function onError(handler: MessageHandler) {
   handleError = handler
 }
 
-export function onConnectionStateChange(handler) {
+export function onConnectionStateChange(handler: ConnectionStateHandler) {
   handleConnectionStateChange = handler
 }
 
-export function onNotification(handler) {
+export function onNotification(handler: NotificationHandler) {
   handleNotification = handler
 }
 
-export function onStatusUpdate(handler) {
+export function onStatusUpdate(handler: MessageHandler) {
   handleStatusUpdate = handler
 }
 
-export function onTicker(handler: (coin: Coin, ticker: Ticker) => any) {
+export function onTicker(handler: CoinAndPayloadHandler<Ticker>) {
   handleTicker = handler
 }
 
-export function onOrderBook(handler) {
+export function onOrderBook(handler: CoinAndPayloadHandler<OrderBook>) {
   handleOrderBook = handler
 }
 
-export function onTrade(handler) {
+export function onTrade(handler: CoinAndPayloadHandler<Trade>) {
   handleTrade = handler
 }
 
@@ -76,11 +83,11 @@ export function onOrderUpdate(handler) {
   handleOrderUpdate = handler
 }
 
-export function onUserTrade(handler) {
+export function onUserTrade(handler: CoinAndPayloadHandler<UserTrade>) {
   handleUserTrade = handler
 }
 
-export function onBalance(handler) {
+export function onBalance(handler: BalanceHandler) {
   handleBalance = handler
 }
 
@@ -211,7 +218,10 @@ function receive(message) {
         break
 
       case socketMessages.TRADE:
-        handleTrade(augmentCoin(message.data.spec), message.data.trade)
+        handleTrade(
+          augmentCoin(message.data.spec),
+          new Trade(message.data.trade as ServerTrade, message.data.spec.exchange)
+        )
         break
 
       case socketMessages.ORDER_STATUS_CHANGE:
@@ -219,7 +229,10 @@ function receive(message) {
         break
 
       case socketMessages.USER_TRADE:
-        handleUserTrade(augmentCoin(message.data.spec), message.data.trade)
+        handleUserTrade(
+          augmentCoin(message.data.spec),
+          new UserTrade(message.data.trade as ServerTrade, message.data.spec.exchange)
+        )
         break
 
       case socketMessages.BALANCE:

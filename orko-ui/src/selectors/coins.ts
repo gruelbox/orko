@@ -23,10 +23,6 @@ import { Coin, ServerCoin } from "modules/market/Types"
 
 const getOrders = state => state.coin.orders
 
-export const getUserTradeHistory = state => state.coin.userTradeHistory
-
-export const getMarketTradeHistory = state => state.coin.trades
-
 export const locationToCoin = (location: Location): Coin => {
   if (
     location &&
