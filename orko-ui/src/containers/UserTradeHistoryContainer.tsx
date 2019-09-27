@@ -27,9 +27,9 @@ const UserTradeHistoryContainer: React.FC<any> = () => {
   return (
     <AuthenticatedOnly padded>
       <WithCoin padded>
-        {coin => (
+        {() => (
           <WhileLoading data={userTrades} padded>
-            {() => <TradeHistory coin={coin} trades={userTrades} excludeFees={false} />}
+            {() => <TradeHistory trades={userTrades} excludeFees={false} />}
           </WhileLoading>
         )}
       </WithCoin>

@@ -25,9 +25,9 @@ const MarketTradesContainer: React.FC<any> = () => {
   const socketApi = useContext(SocketContext)
   return (
     <WithCoin padded>
-      {coin => (
+      {() => (
         <WhileLoading data={socketApi.trades} padded>
-          {() => <TradeHistory coin={coin} trades={socketApi.trades} excludeFees={true} />}
+          {() => <TradeHistory trades={socketApi.trades} excludeFees={true} />}
         </WhileLoading>
       )}
     </WithCoin>

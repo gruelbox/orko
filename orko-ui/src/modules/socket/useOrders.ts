@@ -41,14 +41,8 @@ class RemovePlaceholderAction implements BaseAction {
 }
 
 class ClearAction implements BaseAction {
-  private timestamp: number
-
-  constructor(timestamp: number) {
-    this.timestamp = timestamp
-  }
-
   reduce(state: Array<Order>): Array<Order> {
-    return state ? state.filter(o => o.id !== PLACEHOLDER_ID) : state
+    return Immutable([])
   }
 }
 
@@ -156,7 +150,7 @@ export function useOrders(): [Array<Order>, UseOrderArrayApi] {
         dispatch(new RemovePlaceholderAction())
       },
       clear: () => {
-        dispatch(new ClearAction(Infinity))
+        dispatch(new ClearAction())
       }
     }),
     [dispatch]

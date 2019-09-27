@@ -22,7 +22,6 @@ import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
 import * as dateUtils from "@orko-ui-common/util/dateUtils"
 import { Trade, UserTrade } from "@orko-ui-socket/index"
-import { Coin } from "@orko-ui-market/index"
 
 const BUY_SIDE = "BID"
 
@@ -112,22 +111,18 @@ const feeCurrencyColumn = {
   minWidth: 50
 }
 
-const columns = (coin: Coin, excludeFees: boolean) =>
+const columns = (excludeFees: boolean) =>
   excludeFees
     ? [orderTypeColumn, dateColumn, priceColumn, amountColumn]
     : [orderTypeColumn, dateColumn, priceColumn, amountColumn, feeAmountColumn, feeCurrencyColumn]
 
-const TradeHistory: React.FC<{ coin: Coin; trades: Array<Trade>; excludeFees: boolean }> = ({
-  coin,
-  trades,
-  excludeFees
-}) => (
+const TradeHistory: React.FC<{ trades: Array<Trade>; excludeFees: boolean }> = ({ trades, excludeFees }) => (
   <ReactTable
     data={trades}
     getTrProps={(state, rowInfo) => ({
       className: rowInfo.original.type === BUY_SIDE ? "oco-buy" : "oco-sell"
     })}
-    columns={columns(coin, excludeFees)}
+    columns={columns(excludeFees)}
     showPagination={false}
     resizable={false}
     className="-striped"
