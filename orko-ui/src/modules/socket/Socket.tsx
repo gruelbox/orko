@@ -20,14 +20,14 @@ import React, { useEffect, ReactElement, useContext, useState, useMemo, useCallb
 import { AuthContext } from "@orko-ui-auth/index"
 import { LogContext, LogRequest } from "@orko-ui-log/index"
 
-import * as coinActions from "../../store/coin/actions"
 import * as socketClient from "./socket.client"
 import { locationToCoin } from "../../selectors/coins"
 import { SocketContext, SocketApi } from "./SocketContext"
 import { Coin } from "@orko-ui-market/index"
 import { Map } from "immutable"
-import { Ticker, Balance, OrderBook, Trade, UserTrade } from "./Types"
+import { Ticker, Balance, OrderBook, Trade, UserTrade, Order } from "./Types"
 import { useArray } from "@orko-ui-common/util/hookUtils"
+import { useOrders } from "./useOrders"
 
 const MAX_PUBLIC_TRADES = 48
 
@@ -64,10 +64,11 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const [orderBook, setOrderBook] = useState<OrderBook>(null)
   const [trades, tradesUpdateApi] = useArray<Trade>(null)
   const [userTrades, userTradesUpdateApi] = useArray<UserTrade>(null)
+  const [openOrders, openOrdersUpdateApi] = useOrders()
 
   /////////////////////// SOCKET MANAGEMENT ///////////////////////////
 
-  const subscribedCoins = useCallback(() => props.store.getState().coins.coins, [props.store])
+  const getSubscribedCoins = useCallback(() => props.store.getState().coins.coins, [props.store])
   const getSelectedCoin = useCallback(() => locationToCoin(props.store.getState().router.location), [
     props.store
   ])
@@ -117,39 +118,36 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
           skipIfAnyMatch: existing => !!trade.id && existing.id === trade.id
         })
     })
-    socketClient.onOrderUpdate((coin: Coin, order, timestamp) => {
-      if (sameCoin(coin, getSelectedCoin())) props.store.dispatch(coinActions.orderUpdated(order, timestamp))
+    socketClient.onOrderUpdate((coin: Coin, order: Order, timestamp: number) => {
+      if (sameCoin(coin, getSelectedCoin())) openOrdersUpdateApi.orderUpdated(order, timestamp)
     })
 
     // This is a bit hacky. The intent is to move this logic server side,
     // so the presence of a snapshot/poll loop is invisible to the client.
     // In the meantime, I'm not polluting the reducer with it.
-    socketClient.onOrdersSnapshot((coin: Coin, orders, timestamp) => {
+    socketClient.onOrdersSnapshot((coin: Coin, orders: Array<Order>, timestamp: number) => {
       if (sameCoin(coin, getSelectedCoin())) {
         var idsPresent = []
         if (orders.length === 0) {
           // Update that there are no orders
-          props.store.dispatch(coinActions.orderUpdated(null, timestamp))
+          openOrdersUpdateApi.clearIfTimestampedBefore(timestamp)
         } else {
           // Updates for every order mentioned
           orders.forEach(o => {
             idsPresent.push(o.id)
-            props.store.dispatch(coinActions.orderUpdated(o, timestamp))
+            openOrdersUpdateApi.orderUpdated(o, timestamp)
           })
         }
 
         // Any order not mentioned should be removed
-        if (props.store.getState().coin.orders) {
-          props.store
-            .getState()
-            .coin.orders.filter(o => !idsPresent.includes(o.id))
-            .forEach(o => {
-              props.store.dispatch(coinActions.orderUpdated({ id: o.id, status: "CANCELED" }, timestamp))
-            })
+        if (orders) {
+          orders
+            .filter((o: Order) => !idsPresent.includes(o.id))
+            .forEach((o: Order) => openOrdersUpdateApi.cancelledOrder(o.id, timestamp))
         }
       }
     })
-  }, [props.store, getSelectedCoin, tradesUpdateApi, userTradesUpdateApi])
+  }, [props.store, getSelectedCoin, tradesUpdateApi, userTradesUpdateApi, openOrdersUpdateApi])
 
   // Connect the socket when authorised, and disconnect when deauthorised
   useEffect(() => {
@@ -166,9 +164,9 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   // Log when the socket connects and resubscribe
   const resubscribe = useCallback(() => {
-    socketClient.changeSubscriptions(subscribedCoins(), getSelectedCoin())
+    socketClient.changeSubscriptions(getSubscribedCoins(), getSelectedCoin())
     socketClient.resubscribe()
-  }, [subscribedCoins, getSelectedCoin])
+  }, [getSubscribedCoins, getSelectedCoin])
   useEffect(() => {
     if (connected) {
       logMessage("Socket connected")
@@ -181,18 +179,59 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   // coin-specific state
   useEffect(() => {
     console.log("Resubscribing following coin change")
-    socketClient.changeSubscriptions(subscribedCoins(), selectedCoin)
+    socketClient.changeSubscriptions(getSubscribedCoins(), selectedCoin)
     socketClient.resubscribe()
     setOrderBook(null)
     userTradesUpdateApi.clear()
-    props.store.dispatch(coinActions.clearOrders())
+    openOrdersUpdateApi.clearIfTimestampedBefore(Infinity)
     tradesUpdateApi.clear()
     setBalances(Map<String, Balance>())
-  }, [props.store, connected, subscribedCoins, selectedCoin, userTradesUpdateApi, tradesUpdateApi])
+  }, [
+    props.store,
+    connected,
+    getSubscribedCoins,
+    selectedCoin,
+    userTradesUpdateApi,
+    tradesUpdateApi,
+    openOrdersUpdateApi
+  ])
+
+  const createdOrder = openOrdersUpdateApi.orderUpdated
+  const pendingCancelOrder = openOrdersUpdateApi.pendingCancelOrder
+  const createPlaceholder = openOrdersUpdateApi.createPlaceholder
+  const removePlaceholder = openOrdersUpdateApi.removePlaceholder
 
   const api: SocketApi = useMemo(
-    () => ({ connected, resubscribe, tickers, balances, trades, userTrades, orderBook, selectedCoinTicker }),
-    [connected, resubscribe, tickers, balances, trades, userTrades, orderBook, selectedCoinTicker]
+    () => ({
+      connected,
+      resubscribe,
+      tickers,
+      balances,
+      trades,
+      userTrades,
+      orderBook,
+      openOrders,
+      selectedCoinTicker,
+      createdOrder,
+      pendingCancelOrder,
+      createPlaceholder,
+      removePlaceholder
+    }),
+    [
+      connected,
+      resubscribe,
+      tickers,
+      balances,
+      trades,
+      userTrades,
+      orderBook,
+      openOrders,
+      selectedCoinTicker,
+      createdOrder,
+      pendingCancelOrder,
+      createPlaceholder,
+      removePlaceholder
+    ]
   )
 
   return <SocketContext.Provider value={api}>{props.children}</SocketContext.Provider>

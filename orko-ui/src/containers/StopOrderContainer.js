@@ -22,7 +22,6 @@ import Immutable from "seamless-immutable"
 import StopOrder from "../components/StopOrder"
 
 import * as focusActions from "../store/focus/actions"
-import * as coinActions from "../store/coin/actions"
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 
@@ -31,6 +30,7 @@ import * as jobTypes from "../services/jobTypes"
 import uuidv4 from "uuid/v4"
 import { withAuth } from "@orko-ui-auth/index"
 import exchangesService from "@orko-ui-market/exchangesService"
+import { withSocket } from "@orko-ui-socket/"
 
 function coinServerSideSupported(coin) {
   return !["bittrex"].includes(coin.exchange)
@@ -120,20 +120,13 @@ class StopOrderContainer extends React.Component {
   onSubmit = direction => {
     if (this.state.order.useExchange) {
       const order = this.createOrder(direction)
+      this.props.socketApi.createPlaceholder(order)
       this.props.auth
         .authenticatedRequest(() => exchangesService.submitOrder(this.props.coin.exchange, order))
-        .then(response =>
-          this.props.dispatch(
-            coinActions.orderUpdated(
-              {
-                ...response,
-                status: "PENDING_NEW"
-              },
-              0 // Deliberately old timestamp
-            )
-          )
-        )
-        .catch(error => this.props.logApi.errorPopup("Could not submit order: " + error.message))
+        .catch(error => {
+          this.props.socketApi.removePlaceholder()
+          this.props.logApi.errorPopup("Could not submit order: " + error.message)
+        })
     } else {
       this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob(direction)))
     }
@@ -181,4 +174,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withAuth(connect(mapStateToProps)(StopOrderContainer))
+export default withSocket(withAuth(connect(mapStateToProps)(StopOrderContainer)))

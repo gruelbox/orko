@@ -20,8 +20,7 @@ import { getRouterLocation } from "./router"
 import { getStopJobs } from "./jobs"
 import { coinFromKey } from "@orko-ui-market/coinUtils"
 import { Coin, ServerCoin } from "modules/market/Types"
-
-const getOrders = state => state.coin.orders
+import { Order } from "@orko-ui-socket/index"
 
 export const locationToCoin = (location: Location): Coin => {
   if (
@@ -49,14 +48,15 @@ function jobTriggerMatchesCoin(job, coin: ServerCoin) {
   )
 }
 
-export const getOrdersForSelectedCoin = createSelector(
-  [getOrders, getStopJobs, getSelectedCoin],
-  (orders, stopJobs, selectedCoin) => {
-    if (!selectedCoin) return null
-
-    var result = !orders ? [] : orders.filter(o => !o.deleted)
-
-    const server = stopJobs
+export const getJobsAsOrdersForSelectedCoin: OutputSelector<
+  any,
+  Coin,
+  (res1: any, res2: any) => Array<Order>
+> = createSelector(
+  [getStopJobs, getSelectedCoin],
+  (stopJobs, selectedCoin) => {
+    if (!selectedCoin) return []
+    return stopJobs
       .filter(job => jobTriggerMatchesCoin(job, selectedCoin))
       .map(job => ({
         runningAt: "SERVER",
@@ -73,11 +73,5 @@ export const getOrdersForSelectedCoin = createSelector(
         originalAmount: job.high ? Number(job.high.job.amount) : Number(job.low.job.amount),
         cumulativeAmount: "--"
       }))
-
-    result = result.concat(server)
-
-    if (result.length === 0 && !orders) return null
-
-    return result
   }
 )

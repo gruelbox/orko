@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import coins from "./coins/reducer"
-import coin from "./coin/reducer"
 import focus from "./focus/reducer"
 import job from "./job/reducer"
 import error from "./error/reducer"
@@ -30,7 +29,6 @@ import { connectRouter } from "connected-react-router"
 export default history =>
   combineReducers({
     router: connectRouter(history),
-    coin,
     coins,
     focus,
     job,

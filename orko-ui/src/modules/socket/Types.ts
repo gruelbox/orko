@@ -36,7 +36,9 @@ export type OrderStatus =
   | "EXPIRED"
   | "UNKNOWN"
 
-export interface LimitOrder {
+type RunningAtType = "SERVER" | "EXCHANGE"
+
+export interface Order {
   type: OrderType
   originalAmount: number
   currencyPair: PartialServerCoin
@@ -47,7 +49,19 @@ export interface LimitOrder {
   remainingAmount: number
   averagePrice: number
   fee: number
-  limitOrder: number
+  deleted: boolean
+  serverTimestamp: number
+  runningAt: RunningAtType
+  jobId: string
+}
+
+export interface LimitOrder extends Order {
+  limitPrice: number
+}
+
+export interface StopOrder extends Order {
+  limitPrice: number
+  stopPrice: number
 }
 
 export interface ServerTrade {

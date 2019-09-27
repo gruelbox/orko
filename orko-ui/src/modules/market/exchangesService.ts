@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { get, put, del, post } from "@orko-ui-common/util/fetchUtil"
+import { Coin } from "./Types"
 
 class ExchangesService {
   async fetchSubscriptions(): Promise<Response> {
@@ -73,10 +74,10 @@ class ExchangesService {
     return await get("exchanges/" + coin.exchange + "/balance/" + coin.base + "," + coin.counter)
   }
 
-  async cancelOrder(coin, id) {
-    return await del(
+  async cancelOrder(coin: Coin, id: string): Promise<Response> {
+    return (await del(
       "exchanges/" + coin.exchange + "/markets/" + coin.base + "-" + coin.counter + "/orders/" + id
-    )
+    )) as Promise<Response>
   }
 }
 
