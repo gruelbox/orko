@@ -26,7 +26,7 @@ import { SocketContext } from "@orko-ui-socket/index"
 import { Coin } from "modules/market/index"
 import { Ticker } from "modules/socket/index"
 import { MarketContext } from "@orko-ui-market/index"
-import { Panel } from "layoutSetup"
+import { Panel } from "useUiConfig"
 
 interface ToolbarContainerProps {
   onLogout(): void

@@ -349,7 +349,7 @@ export interface UiConfigApi {
   updateLayouts(payload: object): void
 }
 
-export function useUiConfig(): [UiConfig, UiConfigApi] {
+function useUiConfig(): [UiConfig, UiConfigApi] {
   const [uiConfig, dispatch] = useReducer(reducer, { panels: initPanels, layouts: initLayouts })
   const api: UiConfigApi = useMemo(
     () => ({
@@ -407,3 +407,5 @@ export function useUiConfig(): [UiConfig, UiConfigApi] {
   )
   return [uiConfig, api]
 }
+
+export default useUiConfig

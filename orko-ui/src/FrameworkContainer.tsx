@@ -21,7 +21,7 @@ import theme from "./theme"
 import { AuthContext, AuthApi } from "@orko-ui-auth/index"
 import { DraggableData } from "react-rnd"
 import Immutable from "seamless-immutable"
-import { useUiConfig, Panel } from "./layoutSetup"
+import useUiConfig, { Panel } from "./useUiConfig"
 import { Layouts, Layout } from "react-grid-layout"
 
 const windowToBreakpoint = (width: number) => (width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg")
