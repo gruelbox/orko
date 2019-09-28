@@ -34,10 +34,8 @@ export interface FrameworkApi {
 
 export const FrameworkContext = React.createContext<FrameworkApi>(null)
 
-const FrameworkContainer: React.FC<any> = props => {
-  const bp = windowToBreakpoint(window.innerWidth)
-  const [mobile, setMobile] = useState(bp === "sm")
-  const [breakpoint, setBreakpoint] = useState(bp)
+const FrameworkContainer: React.FC<any> = () => {
+  const [breakpoint, setBreakpoint] = useState(windowToBreakpoint(window.innerWidth))
   const [width, setWidth] = useState(window.innerWidth)
   const [paperTrading, setPaperTrading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -75,50 +73,25 @@ const FrameworkContainer: React.FC<any> = props => {
     [panels]
   )
 
-  const onMovePanel = (key: string, d: DraggableData) => {
-    uiConfigApi.movePanel(key, d.x, d.y)
-  }
-
-  const onResizePanel = (key: string, d: DragData) => {
-    uiConfigApi.resizePanel(key, d.x, d.y, d.w, d.h) // FIXME hm  something
-  }
-
-  const onInteractPanel = (key: string) => {
-    uiConfigApi.panelToFront(key)
-  }
-
-  const onLayoutChange = (layout: Layout[], layouts: Layouts) => {
-    uiConfigApi.updateLayouts(layouts)
-  }
-
-  const onToggleViewSettings = () => {
-    setShowSettings(!showSettings)
-  }
-
-  const onBreakpointChange = (breakpoint: string) => {
-    setBreakpoint(breakpoint)
-    setMobile(breakpoint === "sm")
-  }
-
   return (
     <FrameworkContext.Provider value={api}>
       <Framework
-        isMobile={mobile}
+        isMobile={breakpoint === "sm"}
         width={width}
         showSettings={showSettings}
         panels={panels}
         hiddenPanels={hiddenPanels}
         layouts={layouts}
         layoutsAsObj={layoutsAsObject[breakpoint]}
-        onToggleViewSettings={onToggleViewSettings}
+        onToggleViewSettings={() => setShowSettings(!showSettings)}
         onTogglePanelAttached={uiConfigApi.togglePanelAttached}
         onTogglePanelVisible={uiConfigApi.togglePanelVisible}
         onResetLayout={uiConfigApi.resetPanelsAndLayouts}
-        onLayoutChange={onLayoutChange}
-        onMovePanel={onMovePanel}
-        onResizePanel={onResizePanel}
-        onInteractPanel={onInteractPanel}
-        onBreakpointChange={onBreakpointChange}
+        onLayoutChange={(layout: Layout[], layouts: Layouts) => uiConfigApi.updateLayouts(layouts)}
+        onMovePanel={(key: string, d: DraggableData) => uiConfigApi.movePanel(key, d.x, d.y)}
+        onResizePanel={(key: string, d: DragData) => uiConfigApi.resizePanel(key, d.x, d.y, d.w, d.h)}
+        onInteractPanel={(key: string) => uiConfigApi.panelToFront(key)}
+        onBreakpointChange={(breakpoint: string) => setBreakpoint(breakpoint)}
         onLogout={authApi.logout}
         onClearWhitelisting={authApi.clearWhitelisting}
         alertsShownForCoin={alertsShownForCoin}
