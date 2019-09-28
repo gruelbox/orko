@@ -17,10 +17,6 @@
  */
 import * as types from "./actionTypes"
 
-export function acceptPaperTrading() {
-  return { type: types.ACCEPT_PAPER_TRADING }
-}
-
 export function openReferencePrice(coin) {
   return { type: types.OPEN_REFERENCE_PRICE, payload: coin }
 }

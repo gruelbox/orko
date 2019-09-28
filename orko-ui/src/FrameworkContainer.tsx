@@ -27,15 +27,31 @@ import { Coin } from "@orko-ui-market/index"
 
 const windowToBreakpoint = (width: number) => (width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg")
 
+export interface FrameworkApi {
+  paperTrading: boolean
+  enablePaperTrading(): void
+}
+
+export const FrameworkContext = React.createContext<FrameworkApi>(null)
+
 const FrameworkContainer: React.FC<any> = props => {
   const bp = windowToBreakpoint(window.innerWidth)
   const [mobile, setMobile] = useState(bp === "sm")
   const [breakpoint, setBreakpoint] = useState(bp)
   const [width, setWidth] = useState(window.innerWidth)
+  const [paperTrading, setPaperTrading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [alertsShownForCoin, setAlertsShownForCoin] = useState<Coin>(null)
   const [uiConfig, uiConfigApi] = useUiConfig()
   const authApi: AuthApi = useContext(AuthContext)
+
+  const api: FrameworkApi = useMemo(
+    () => ({
+      paperTrading,
+      enablePaperTrading: () => setPaperTrading(true)
+    }),
+    [paperTrading, setPaperTrading]
+  )
 
   useEffect(() => {
     window.addEventListener("resize", (e: UIEvent) => setWidth(window.innerWidth))
@@ -85,29 +101,31 @@ const FrameworkContainer: React.FC<any> = props => {
   }
 
   return (
-    <Framework
-      isMobile={mobile}
-      width={width}
-      showSettings={showSettings}
-      panels={panels}
-      hiddenPanels={hiddenPanels}
-      layouts={layouts}
-      layoutsAsObj={layoutsAsObject[breakpoint]}
-      onToggleViewSettings={onToggleViewSettings}
-      onTogglePanelAttached={uiConfigApi.togglePanelAttached}
-      onTogglePanelVisible={uiConfigApi.togglePanelVisible}
-      onResetLayout={uiConfigApi.resetPanelsAndLayouts}
-      onLayoutChange={onLayoutChange}
-      onMovePanel={onMovePanel}
-      onResizePanel={onResizePanel}
-      onInteractPanel={onInteractPanel}
-      onBreakpointChange={onBreakpointChange}
-      onLogout={authApi.logout}
-      onClearWhitelisting={authApi.clearWhitelisting}
-      alertsShownForCoin={alertsShownForCoin}
-      onShowAlerts={setAlertsShownForCoin}
-      onHideAlerts={() => setAlertsShownForCoin(null)}
-    />
+    <FrameworkContext.Provider value={api}>
+      <Framework
+        isMobile={mobile}
+        width={width}
+        showSettings={showSettings}
+        panels={panels}
+        hiddenPanels={hiddenPanels}
+        layouts={layouts}
+        layoutsAsObj={layoutsAsObject[breakpoint]}
+        onToggleViewSettings={onToggleViewSettings}
+        onTogglePanelAttached={uiConfigApi.togglePanelAttached}
+        onTogglePanelVisible={uiConfigApi.togglePanelVisible}
+        onResetLayout={uiConfigApi.resetPanelsAndLayouts}
+        onLayoutChange={onLayoutChange}
+        onMovePanel={onMovePanel}
+        onResizePanel={onResizePanel}
+        onInteractPanel={onInteractPanel}
+        onBreakpointChange={onBreakpointChange}
+        onLogout={authApi.logout}
+        onClearWhitelisting={authApi.clearWhitelisting}
+        alertsShownForCoin={alertsShownForCoin}
+        onShowAlerts={setAlertsShownForCoin}
+        onHideAlerts={() => setAlertsShownForCoin(null)}
+      />
+    </FrameworkContext.Provider>
   )
 }
 

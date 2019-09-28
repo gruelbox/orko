@@ -15,43 +15,36 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useContext } from "react"
-import { connect } from "react-redux"
-
+import React, { useContext, ReactElement } from "react"
 import styled from "styled-components"
 import { space } from "styled-system"
-
 import NotAuthenticated from "../components/NotAuthenticated"
-
-import * as uiActions from "../store/ui/actions"
 import { MarketContext } from "@orko-ui-market/index"
+import { FrameworkContext } from "FrameworkContainer"
 
 const Padded = styled.div`
   ${space}
 `
 
-const Inner = ({ exchange, children, padded, dispatch, paperTrading }) => {
+interface AuthenticatedOnlyProps {
+  padded?: boolean
+  children: ReactElement
+}
+
+const AuthenticatedOnly: React.FC<AuthenticatedOnlyProps> = ({ children, padded }) => {
+  const exchange = useContext(MarketContext).data.selectedExchange
+  const { paperTrading, enablePaperTrading } = useContext(FrameworkContext)
   if (paperTrading || !exchange || exchange.authenticated) {
     return children
   } else {
     return (
       <Padded p={padded ? 2 : 0}>
-        <NotAuthenticated
-          exchange={exchange}
-          onEnablePaperTrading={() => dispatch(uiActions.acceptPaperTrading())}
-        />
+        <NotAuthenticated exchange={exchange} onEnablePaperTrading={enablePaperTrading} />
       </Padded>
     )
   }
 }
 
-const AddExchange = props => {
-  const marketApi = useContext(MarketContext)
-  return <Inner {...props} exchange={marketApi.data.selectedExchange} />
-}
+AuthenticatedOnly.defaultProps = { padded: false, children: null }
 
-const Connected = connect(state => ({
-  paperTrading: state.ui.paperTrading
-}))(AddExchange)
-
-export default Connected
+export default AuthenticatedOnly

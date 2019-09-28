@@ -19,7 +19,6 @@ import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 
 const initialState = Immutable({
-  paperTrading: false,
   referencePriceCoin: null
 })
 
@@ -29,10 +28,6 @@ export default function reduce(state = initialState, action = {}) {
       return Immutable.merge(state, { referencePriceCoin: action.payload })
     case types.CLOSE_REFERENCE_PRICE:
       return Immutable.merge(state, { referencePriceCoin: null })
-    case types.ACCEPT_PAPER_TRADING:
-      return Immutable.merge(state, {
-        paperTrading: true
-      })
     default:
       return state
   }
