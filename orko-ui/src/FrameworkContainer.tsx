@@ -15,17 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useState, useContext, useEffect } from "react"
-import { connect } from "react-redux"
-import * as uiActions from "./store/ui/actions"
-import { getAllPanels, getAllLayouts } from "./selectors/ui"
-import Framework from "./Framework"
+import React, { useState, useContext, useEffect, useMemo } from "react"
+import Framework, { DragData } from "./Framework"
 import theme from "./theme"
 import { AuthContext, AuthApi } from "@orko-ui-auth/index"
 import { DraggableData } from "react-rnd"
+import Immutable from "seamless-immutable"
+import { useUiConfig, Panel } from "./layoutSetup"
+import { Layouts, Layout } from "react-grid-layout"
 
-const windowToBreakpoint = (width: number) =>
-  width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg"
+const windowToBreakpoint = (width: number) => (width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg")
 
 const FrameworkContainer: React.FC<any> = props => {
   const bp = windowToBreakpoint(window.innerWidth)
@@ -33,41 +32,45 @@ const FrameworkContainer: React.FC<any> = props => {
   const [breakpoint, setBreakpoint] = useState(bp)
   const [width, setWidth] = useState(window.innerWidth)
   const [showSettings, setShowSettings] = useState(false)
-  const auth: AuthApi = useContext(AuthContext)
+  const [uiConfig, uiConfigApi] = useUiConfig()
+  const authApi: AuthApi = useContext(AuthContext)
 
   useEffect(() => {
-    window.addEventListener("resize", (e: UIEvent) =>
-      setWidth(window.innerWidth)
-    )
-  })
+    window.addEventListener("resize", (e: UIEvent) => setWidth(window.innerWidth))
+  }, [])
 
-  const onResetLayout = () => {
-    props.dispatch(uiActions.resetPanels())
-    props.dispatch(uiActions.resetLayouts())
-  }
+  const layoutsAsObject = uiConfig.layouts
+  const layouts = useMemo<Layouts>(
+    () =>
+      Immutable({
+        lg: Object.values(layoutsAsObject.lg),
+        md: Object.values(layoutsAsObject.md),
+        sm: Object.values(layoutsAsObject.sm)
+      }),
+    [layoutsAsObject]
+  )
 
-  const onTogglePanelVisible = (id: string) => {
-    props.dispatch(uiActions.togglePanelVisible(id))
-  }
-
-  const onTogglePanelAttached = (id: string) => {
-    props.dispatch(uiActions.togglePanelAttached(id))
-  }
+  const panelsAsObject = uiConfig.panels
+  const panels = useMemo<Panel[]>(() => Immutable(Object.values(panelsAsObject)), [panelsAsObject])
+  const hiddenPanels = useMemo<Panel[]>(
+    () => (panels ? panels.filter(panel => !panel.visible) : Immutable([])),
+    [panels]
+  )
 
   const onMovePanel = (key: string, d: DraggableData) => {
-    props.dispatch(uiActions.movePanel(key, d))
+    uiConfigApi.movePanel(key, d.x, d.y)
   }
 
-  const onResizePanel = (key: string, d: DraggableData) => {
-    props.dispatch(uiActions.resizePanel(key, d))
+  const onResizePanel = (key: string, d: DragData) => {
+    uiConfigApi.resizePanel(key, d.x, d.y, d.w, d.h) // FIXME hm  something
   }
 
-  const onInteractPanel = (key: string, d: DraggableData) => {
-    props.dispatch(uiActions.interactPanel(key))
+  const onInteractPanel = (key: string) => {
+    uiConfigApi.panelToFront(key)
   }
 
-  const onLayoutChange = (layout, layouts) => {
-    props.dispatch(uiActions.updateLayouts(layouts))
+  const onLayoutChange = (layout: Layout[], layouts: Layouts) => {
+    uiConfigApi.updateLayouts(layouts)
   }
 
   const onToggleViewSettings = () => {
@@ -84,26 +87,23 @@ const FrameworkContainer: React.FC<any> = props => {
       isMobile={mobile}
       width={width}
       showSettings={showSettings}
-      panels={props.panels}
-      layouts={props.layouts}
-      layoutsAsObj={props.layoutsAsObj[breakpoint]}
+      panels={panels}
+      hiddenPanels={hiddenPanels}
+      layouts={layouts}
+      layoutsAsObj={layoutsAsObject[breakpoint]}
       onToggleViewSettings={onToggleViewSettings}
-      onTogglePanelAttached={onTogglePanelAttached}
-      onTogglePanelVisible={onTogglePanelVisible}
-      onResetLayout={onResetLayout}
+      onTogglePanelAttached={uiConfigApi.togglePanelAttached}
+      onTogglePanelVisible={uiConfigApi.togglePanelVisible}
+      onResetLayout={uiConfigApi.resetPanelsAndLayouts}
       onLayoutChange={onLayoutChange}
       onMovePanel={onMovePanel}
       onResizePanel={onResizePanel}
       onInteractPanel={onInteractPanel}
       onBreakpointChange={onBreakpointChange}
-      onLogout={auth.logout}
-      onClearWhitelisting={auth.clearWhitelisting}
+      onLogout={authApi.logout}
+      onClearWhitelisting={authApi.clearWhitelisting}
     />
   )
 }
 
-export default connect(state => ({
-  panels: getAllPanels(state),
-  layouts: getAllLayouts(state),
-  layoutsAsObj: state.ui.layouts
-}))(FrameworkContainer)
+export default FrameworkContainer

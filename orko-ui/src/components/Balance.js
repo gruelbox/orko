@@ -40,8 +40,8 @@ export const Balance = ({ coin, balance, ticker, onClickNumber }) => {
 
   const counterScale = meta => (meta.minimumAmount ? scaleOfValue(meta.minimumAmount) : 8)
 
-  const baseBalance = balance.get(coin.base)
-  const baseCounter = balance.get(coin.counter)
+  const baseBalance = noBalances ? null : balance.get(coin.base)
+  const baseCounter = noBalances ? null : balance.get(coin.counter)
 
   if (coin) {
     return (

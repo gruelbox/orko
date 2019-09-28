@@ -22,11 +22,11 @@ import Toolbar from "../components/Toolbar"
 
 import { formatNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
-import { getHiddenPanels } from "../selectors/ui"
 import { SocketContext } from "@orko-ui-socket/index"
 import { Coin } from "modules/market/index"
 import { Ticker } from "modules/socket/index"
 import { MarketContext } from "@orko-ui-market/index"
+import { Panel } from "layoutSetup"
 
 interface ToolbarContainerProps {
   onLogout(): void
@@ -35,11 +35,11 @@ interface ToolbarContainerProps {
   onShowViewSettings(): void
   width: number
   mobile: boolean
+  hiddenPanels: Panel[]
 }
 
 interface ToolbarReduxProps extends ToolbarContainerProps {
   version: string
-  hiddenPanels: any // TODO
   errors: Array<string>
   updateFocusedField(): void
   ticker: Ticker
@@ -82,7 +82,6 @@ export default connect((state, props) => {
   const coin = getSelectedCoin(state)
   return {
     version: state.support.meta.version,
-    hiddenPanels: getHiddenPanels(state),
     errors: state.error.errorBackground,
     updateFocusedField: state.focus.fn,
     coin,

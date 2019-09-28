@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { ReactElement } from "react"
 
 import { Route } from "react-router-dom"
-import { WidthProvider, Responsive } from "react-grid-layout"
-import { Rnd } from "react-rnd"
+import { WidthProvider, Responsive, Layouts, Layout } from "react-grid-layout"
+import { Rnd, DraggableData } from "react-rnd"
 import styled from "styled-components"
 import theme from "./theme"
 
@@ -41,8 +41,8 @@ import Section from "./components/primitives/Section"
 import ViewSettings from "./components/ViewSettings"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { Provider as SectionProvider } from "./components/primitives/Section"
-import { isNull } from "util"
 import { Logs } from "@orko-ui-log/index"
+import { Panel, KeyedLayouts } from "layoutSetup"
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
@@ -52,11 +52,7 @@ const LayoutBox = styled.div`
 `
 
 const PositioningWrapper = ({ mobile, children }) =>
-  mobile ? (
-    <div>{children}</div>
-  ) : (
-    <FloatingPositioningWrapper>{children}</FloatingPositioningWrapper>
-  )
+  mobile ? <div>{children}</div> : <FloatingPositioningWrapper>{children}</FloatingPositioningWrapper>
 
 const FloatingPositioningWrapper = styled.div`
   position: absolute;
@@ -74,10 +70,38 @@ const FloatingPositioningWrapper = styled.div`
   }
 `
 
-export default class Framework extends React.Component {
-  panelsRenderers = isNull
+interface FrameworkProps {
+  isMobile: boolean
+  width: number
+  panels: Panel[]
+  hiddenPanels: Panel[]
+  layouts: Layouts
+  layoutsAsObj: KeyedLayouts
+  showSettings: boolean
+  onToggleViewSettings(): void
+  onTogglePanelAttached(key: string): void
+  onTogglePanelVisible(key: string): void
+  onResetLayout(): void
+  onLayoutChange(layout: Layout[], layouts: Layouts): void
+  onMovePanel(key: string, d: DraggableData): void
+  onResizePanel(key: string, d: DragData): void
+  onInteractPanel(key: string): void
+  onBreakpointChange(breakpoint: string): void
+  onLogout(): void
+  onClearWhitelisting(): void
+}
 
-  constructor(props) {
+export interface DragData {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export default class Framework extends React.Component<FrameworkProps> {
+  panelsRenderers = null
+
+  constructor(props: FrameworkProps) {
     super(props)
 
     const icons = this.props.panels.reduce(function(accumulator, panel) {
@@ -85,24 +109,18 @@ export default class Framework extends React.Component {
       return accumulator
     }, {})
 
-    const Panel = props => (
+    const Panel: React.FC<{ id: string; children: ReactElement }> = ({ id, children }) => (
       <SectionProvider
         value={{
           draggable: true,
           compactDragHandle: this.props.isMobile,
-          icon: icons[props.id],
-          onHide: () => this.props.onTogglePanelVisible(props.id),
-          onToggleAttached: this.props.isMobile
-            ? null
-            : () => this.props.onTogglePanelAttached(props.id)
+          icon: icons[id],
+          onHide: () => this.props.onTogglePanelVisible(id),
+          onToggleAttached: this.props.isMobile ? null : () => this.props.onTogglePanelAttached(id)
         }}
       >
-        <ErrorBoundary
-          wrapper={({ message, children }) => (
-            <Section heading={message}>{children}</Section>
-          )}
-        >
-          {props.children}
+        <ErrorBoundary wrapper={({ message, children }) => <Section heading={message}>{children}</Section>}>
+          {children}
         </ErrorBoundary>
       </SectionProvider>
     )
@@ -116,10 +134,7 @@ export default class Framework extends React.Component {
         </LayoutBox>
       ),
       openOrders: () => (
-        <LayoutBox
-          key="openOrders"
-          data-grid={this.props.layoutsAsObj.openOrders}
-        >
+        <LayoutBox key="openOrders" data-grid={this.props.layoutsAsObj.openOrders}>
           <Panel id="openOrders">
             <OrdersContainer />
           </Panel>
@@ -133,10 +148,7 @@ export default class Framework extends React.Component {
         </LayoutBox>
       ),
       tradeSelector: () => (
-        <LayoutBox
-          key="tradeSelector"
-          data-grid={this.props.layoutsAsObj.tradeSelector}
-        >
+        <LayoutBox key="tradeSelector" data-grid={this.props.layoutsAsObj.tradeSelector}>
           <Panel id="tradeSelector">
             <TradeContainer />
           </Panel>
@@ -157,20 +169,14 @@ export default class Framework extends React.Component {
         </LayoutBox>
       ),
       marketData: () => (
-        <LayoutBox
-          key="marketData"
-          data-grid={this.props.layoutsAsObj.marketData}
-        >
+        <LayoutBox key="marketData" data-grid={this.props.layoutsAsObj.marketData}>
           <Panel id="marketData">
             <MarketContainer allowAnimate={!this.props.isMobile} />
           </Panel>
         </LayoutBox>
       ),
       notifications: () => (
-        <LayoutBox
-          key="notifications"
-          data-grid={this.props.layoutsAsObj.notifications}
-        >
+        <LayoutBox key="notifications" data-grid={this.props.layoutsAsObj.notifications}>
           <Panel id="notifications">
             <Logs />
           </Panel>
@@ -184,6 +190,7 @@ export default class Framework extends React.Component {
       isMobile,
       width,
       panels,
+      hiddenPanels,
       layouts,
       showSettings,
       onToggleViewSettings,
@@ -210,9 +217,7 @@ export default class Framework extends React.Component {
         <React.Fragment />
       )
 
-    const ManageScripts = props => (
-      <ManageScriptsContainer {...props} key={props.match.params.id} />
-    )
+    const ManageScripts = props => <ManageScriptsContainer {...props} key={props.match.params.id} />
 
     return (
       <>
@@ -224,6 +229,7 @@ export default class Framework extends React.Component {
             width={width}
             onLogout={onLogout}
             onClearWhitelist={onClearWhitelisting}
+            hiddenPanels={hiddenPanels}
           />
         </ErrorBoundary>
         <ErrorBoundary>
@@ -251,7 +257,7 @@ export default class Framework extends React.Component {
             breakpoints={theme.panelBreakpoints}
             cols={{ lg: 40, md: 32, sm: 4 }}
             rowHeight={24}
-            layouts={layouts.asMutable()}
+            layouts={(layouts as any).asMutable()}
             onLayoutChange={onLayoutChange}
             onBreakpointChange={onBreakpointChange}
             margin={[theme.space[1], theme.space[1]]}
@@ -284,9 +290,10 @@ export default class Framework extends React.Component {
                   onDragStop={(e, d) => onMovePanel(p.key, d)}
                   onResizeStop={(e, direction, ref, delta, position) => {
                     onResizePanel(p.key, {
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      ...position
+                      w: ref.offsetWidth,
+                      h: ref.offsetHeight,
+                      x: position.x,
+                      y: position.y
                     })
                   }}
                 >
