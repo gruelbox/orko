@@ -21,7 +21,6 @@ import { connect } from "react-redux"
 import { Icon } from "semantic-ui-react"
 
 import * as coinsActions from "../store/coins/actions"
-import * as uiActions from "../store/ui/actions"
 
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
@@ -32,6 +31,7 @@ import { AuthContext } from "@orko-ui-auth/index"
 import { getAlertJobs } from "selectors/jobs"
 import { MarketContext, Coin } from "@orko-ui-market/index"
 import { SocketContext } from "@orko-ui-socket/index"
+import { FrameworkContext } from "FrameworkContainer"
 
 const buttons = () => (
   <Link to="/addCoin" data-orko="addCoin" title="Add a coin">
@@ -57,6 +57,7 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({
   const authApi = useContext(AuthContext)
   const marketApi = useContext(MarketContext)
   const socketApi = useContext(SocketContext)
+  const frameworkApi = useContext(FrameworkContext)
 
   const tickers = socketApi.tickers
   const exchanges = marketApi.data.exchanges
@@ -95,7 +96,7 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({
               data={data}
               onRemove={(coin: Coin) => dispatch(coinsActions.remove(authApi, coin))}
               onClickAlerts={onShowAlerts}
-              onClickReferencePrice={(coin: Coin) => dispatch(uiActions.openReferencePrice(coin))}
+              onClickReferencePrice={frameworkApi.setReferencePriceCoin}
             />
           </Section>
         </RenderIf>

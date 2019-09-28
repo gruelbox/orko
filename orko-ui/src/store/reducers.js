@@ -19,7 +19,6 @@ import coins from "./coins/reducer"
 import focus from "./focus/reducer"
 import job from "./job/reducer"
 import error from "./error/reducer"
-import ui from "./ui/reducer"
 import scripting from "./scripting/reducer"
 import support from "./support/reducer"
 
@@ -33,7 +32,6 @@ export default history =>
     focus,
     job,
     error,
-    ui,
     scripting,
     support
   })

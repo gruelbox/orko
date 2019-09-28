@@ -25,11 +25,15 @@ import useUiConfig, { Panel } from "./useUiConfig"
 import { Layouts, Layout } from "react-grid-layout"
 import { Coin } from "@orko-ui-market/index"
 
-const windowToBreakpoint = (width: number) => (width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg")
+function windowToBreakpoint(width: number) {
+  return width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg"
+}
 
 export interface FrameworkApi {
   paperTrading: boolean
   enablePaperTrading(): void
+  referencePriceCoin: Coin
+  setReferencePriceCoin(coin: Coin): void
 }
 
 export const FrameworkContext = React.createContext<FrameworkApi>(null)
@@ -40,15 +44,18 @@ const FrameworkContainer: React.FC<any> = () => {
   const [paperTrading, setPaperTrading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [alertsShownForCoin, setAlertsShownForCoin] = useState<Coin>(null)
+  const [referencePriceCoin, setReferencePriceCoin] = useState<Coin>(null)
   const [uiConfig, uiConfigApi] = useUiConfig()
   const authApi: AuthApi = useContext(AuthContext)
 
   const api: FrameworkApi = useMemo(
     () => ({
       paperTrading,
-      enablePaperTrading: () => setPaperTrading(true)
+      enablePaperTrading: () => setPaperTrading(true),
+      referencePriceCoin,
+      setReferencePriceCoin
     }),
-    [paperTrading, setPaperTrading]
+    [paperTrading, setPaperTrading, referencePriceCoin, setReferencePriceCoin]
   )
 
   useEffect(() => {
