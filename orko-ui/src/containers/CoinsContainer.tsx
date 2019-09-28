@@ -25,7 +25,7 @@ import * as uiActions from "../store/ui/actions"
 
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
-import Coins from "../components/Coins"
+import Coins, { CoinCallback } from "../components/Coins"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
 import { AuthContext } from "@orko-ui-auth/index"
@@ -44,9 +44,16 @@ interface CoinsContainerProps {
   alertJobs
   coins: Array<Coin>
   referencePrices
+  onShowAlerts: CoinCallback
 }
 
-const CoinsCointainer: React.FC<CoinsContainerProps> = ({ dispatch, alertJobs, coins, referencePrices }) => {
+const CoinsCointainer: React.FC<CoinsContainerProps> = ({
+  dispatch,
+  alertJobs,
+  coins,
+  referencePrices,
+  onShowAlerts
+}) => {
   const authApi = useContext(AuthContext)
   const marketApi = useContext(MarketContext)
   const socketApi = useContext(SocketContext)
@@ -87,7 +94,7 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({ dispatch, alertJobs, c
             <Coins
               data={data}
               onRemove={(coin: Coin) => dispatch(coinsActions.remove(authApi, coin))}
-              onClickAlerts={(coin: Coin) => dispatch(uiActions.openAlerts(coin))}
+              onClickAlerts={onShowAlerts}
               onClickReferencePrice={(coin: Coin) => dispatch(uiActions.openReferencePrice(coin))}
             />
           </Section>

@@ -21,14 +21,6 @@ export function acceptPaperTrading() {
   return { type: types.ACCEPT_PAPER_TRADING }
 }
 
-export function openAlerts(coin) {
-  return { type: types.OPEN_ALERTS, payload: coin }
-}
-
-export function closeAlerts() {
-  return { type: types.CLOSE_ALERTS }
-}
-
 export function openReferencePrice(coin) {
   return { type: types.OPEN_REFERENCE_PRICE, payload: coin }
 }

@@ -16,20 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import React from "react"
-import { connect } from "react-redux"
-import Section, {
-  Provider as SectionProvider
-} from "../components/primitives/Section"
-import Window from "../components/primitives/Window"
 import Href from "../components/primitives/Href"
-import CreateAlertContainer from "./CreateAlertContainer"
-import * as uiActions from "../store/ui/actions"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
-import * as jobActions from "../store/job/actions"
-import { isAlert } from "../util/jobUtils"
 import theme from "../theme"
-import { withAuth } from "@orko-ui-auth/index"
 
 const textStyle = {
   textAlign: "left"
@@ -52,8 +42,7 @@ const lowStyle = {
 const lowPriceColumn = {
   id: "lowPrice",
   Header: "Low price",
-  Cell: ({ original }) =>
-    original.low ? original.low.thresholdAsString : "--",
+  Cell: ({ original }) => (original.low ? original.low.thresholdAsString : "--"),
   headerStyle: numberStyle,
   style: lowStyle,
   resizable: true,
@@ -63,8 +52,7 @@ const lowPriceColumn = {
 const highPriceColumn = {
   id: "highPrice",
   Header: "High price",
-  Cell: ({ original }) =>
-    original.high ? original.high.thresholdAsString : "--",
+  Cell: ({ original }) => (original.high ? original.high.thresholdAsString : "--"),
   headerStyle: numberStyle,
   style: highStyle,
   resizable: true,
@@ -82,7 +70,12 @@ const defaultSort = [
   }
 ]
 
-const Alerts = ({ alerts, onDelete }) => (
+interface AlertsProps {
+  alerts
+  onDelete(job): void
+}
+
+const Alerts: React.FC<AlertsProps> = ({ alerts, onDelete }) => (
   <ReactTable
     data={alerts.asMutable()}
     style={{
@@ -115,45 +108,4 @@ const Alerts = ({ alerts, onDelete }) => (
   />
 )
 
-class ManageAlertsContainer extends React.Component {
-  render() {
-    const coin = this.props.coin
-    if (!coin) return null
-    const alerts = this.props.jobs.filter(
-      job =>
-        isAlert(job) &&
-        job.tickTrigger.exchange === coin.exchange &&
-        job.tickTrigger.base === coin.base &&
-        job.tickTrigger.counter === coin.counter
-    )
-    return (
-      <Window mobile={this.props.mobile}>
-        <SectionProvider
-          value={{
-            draggable: !this.props.mobile,
-            onHide: () => this.props.dispatch(uiActions.closeAlerts())
-          }}
-        >
-          <Section id="manageAlerts" heading={"Manage alerts for " + coin.name}>
-            <Alerts
-              alerts={alerts}
-              onDelete={job =>
-                this.props.dispatch(jobActions.deleteJob(this.props.auth, job))
-              }
-            />
-            <CreateAlertContainer coin={coin} />
-          </Section>
-        </SectionProvider>
-      </Window>
-    )
-  }
-}
-
-function mapStateToProps(state) {
-  return {
-    coin: state.ui.alertsCoin,
-    jobs: state.job.jobs
-  }
-}
-
-export default withAuth(connect(mapStateToProps)(ManageAlertsContainer))
+export default Alerts

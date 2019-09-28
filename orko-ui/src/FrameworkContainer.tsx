@@ -23,6 +23,7 @@ import { DraggableData } from "react-rnd"
 import Immutable from "seamless-immutable"
 import useUiConfig, { Panel } from "./useUiConfig"
 import { Layouts, Layout } from "react-grid-layout"
+import { Coin } from "@orko-ui-market/index"
 
 const windowToBreakpoint = (width: number) => (width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg")
 
@@ -32,6 +33,7 @@ const FrameworkContainer: React.FC<any> = props => {
   const [breakpoint, setBreakpoint] = useState(bp)
   const [width, setWidth] = useState(window.innerWidth)
   const [showSettings, setShowSettings] = useState(false)
+  const [alertsShownForCoin, setAlertsShownForCoin] = useState<Coin>(null)
   const [uiConfig, uiConfigApi] = useUiConfig()
   const authApi: AuthApi = useContext(AuthContext)
 
@@ -102,6 +104,9 @@ const FrameworkContainer: React.FC<any> = props => {
       onBreakpointChange={onBreakpointChange}
       onLogout={authApi.logout}
       onClearWhitelisting={authApi.clearWhitelisting}
+      alertsShownForCoin={alertsShownForCoin}
+      onShowAlerts={setAlertsShownForCoin}
+      onHideAlerts={() => setAlertsShownForCoin(null)}
     />
   )
 }

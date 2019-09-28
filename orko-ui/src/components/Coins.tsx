@@ -23,6 +23,8 @@ import ReactTable from "react-table"
 import Link from "../components/primitives/Link"
 import Href from "../components/primitives/Href"
 import Price from "../components/primitives/Price"
+import { Exchange, Coin } from "@orko-ui-market/index"
+import { Ticker } from "@orko-ui-socket/index"
 
 const textStyle = {
   textAlign: "left"
@@ -37,11 +39,7 @@ const exchangeColumn = {
   Header: "Exchange",
   accessor: "exchange",
   Cell: ({ original }) => (
-    <Link
-      data-orko={original.key + "/exchange"}
-      to={"/coin/" + original.key}
-      title="Open coin"
-    >
+    <Link data-orko={original.key + "/exchange"} to={"/coin/" + original.key} title="Open coin">
       {original.exchangeMeta ? original.exchangeMeta.name : original.exchange}
     </Link>
   ),
@@ -56,11 +54,7 @@ const nameColumn = {
   Header: "Name",
   accessor: "shortName",
   Cell: ({ original }) => (
-    <Link
-      data-orko={original.key + "/name"}
-      to={"/coin/" + original.key}
-      title="Open coin"
-    >
+    <Link data-orko={original.key + "/name"} to={"/coin/" + original.key} title="Open coin">
       {original.shortName}
     </Link>
   ),
@@ -109,11 +103,7 @@ const closeColumn = onRemove => ({
   id: "close",
   Header: null,
   Cell: ({ original }) => (
-    <Href
-      data-orko={original.key + "/remove"}
-      title="Remove coin"
-      onClick={() => onRemove(original)}
-    >
+    <Href data-orko={original.key + "/remove"} title="Remove coin" onClick={() => onRemove(original)}>
       <Icon fitted name="close" />
     </Href>
   ),
@@ -128,11 +118,7 @@ const alertColumn = onClickAlerts => ({
   id: "alert",
   Header: <Icon fitted name="bell outline" />,
   Cell: ({ original }) => (
-    <Href
-      data-orko={original.key + "/alerts"}
-      title="Manage alerts"
-      onClick={() => onClickAlerts(original)}
-    >
+    <Href data-orko={original.key + "/alerts"} title="Manage alerts" onClick={() => onClickAlerts(original)}>
       <Icon fitted name={original.hasAlert ? "bell" : "bell outline"} />
     </Href>
   ),
@@ -145,11 +131,33 @@ const alertColumn = onClickAlerts => ({
 
 export const DATA_ATTRIBUTE = "data-orko"
 
-const Coins = ({ data, onRemove, onClickAlerts, onClickReferencePrice }) => (
+interface FullCoinData {
+  exchangeMeta: Exchange
+  ticker: Ticker
+  hasAlert: boolean
+  priceChange: string
+  key: string
+  name: string
+  shortName: string
+  exchange: string
+  base: string
+  counter: string
+}
+
+export type CoinCallback = (coin: Coin) => void
+
+interface CoinsProps {
+  data: FullCoinData[]
+  onRemove: CoinCallback
+  onClickAlerts: CoinCallback
+  onClickReferencePrice: CoinCallback
+}
+
+const Coins: React.FC<CoinsProps> = ({ data, onRemove, onClickAlerts, onClickReferencePrice }) => (
   <ReactTable
     data={data}
-    getTrProps={(state, rowInfo) => ({
-      [DATA_ATTRIBUTE]: "coin/" + rowInfo.original.key
+    getTrProps={(state, { original }: { original: FullCoinData }) => ({
+      [DATA_ATTRIBUTE]: "coin/" + original.key
     })}
     columns={[
       closeColumn(onRemove),

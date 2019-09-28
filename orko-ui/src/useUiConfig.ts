@@ -19,6 +19,7 @@ import Immutable from "seamless-immutable"
 import { getFromLS, saveToLS } from "@orko-ui-common/util/localStorage"
 import { Layout } from "react-grid-layout"
 import { useReducer, useMemo } from "react"
+import { OfAllPanels } from "Framework"
 
 const VERSION = 1
 
@@ -42,16 +43,9 @@ export interface Panel extends BasePanel {
   h: number
 }
 
-export interface AllKeyedPanels {
-  coins: Panel
-  jobs: Panel
-  chart: Panel
-  openOrders: Panel
-  balance: Panel
-  tradeSelector: Panel
-  marketData: Panel
-  notifications: Panel
-}
+export interface AllKeyedPanels extends OfAllPanels<Panel> {}
+
+export interface KeyedLayouts extends OfAllPanels<Layout> {}
 
 export interface UiConfig {
   layouts: AllKeyedLayouts
@@ -66,17 +60,6 @@ export interface AllKeyedLayouts {
   lg: KeyedLayouts
   md: KeyedLayouts
   sm: KeyedLayouts
-}
-
-export interface KeyedLayouts {
-  coins: Layout
-  jobs: Layout
-  chart: Layout
-  openOrders: Layout
-  balance: Layout
-  tradeSelector: Layout
-  marketData: Layout
-  notifications: Layout
 }
 
 const basePanelMetadata: BasePanels = Immutable({
