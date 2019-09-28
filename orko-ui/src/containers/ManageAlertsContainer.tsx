@@ -15,31 +15,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { useContext } from "react"
 import { connect } from "react-redux"
 import Section, { Provider as SectionProvider } from "../components/primitives/Section"
 import Window from "../components/primitives/Window"
 import CreateAlertContainer from "./CreateAlertContainer"
 import * as jobActions from "../store/job/actions"
 import { isAlert } from "../util/jobUtils"
-import { withAuth, AuthApi } from "@orko-ui-auth/index"
-import { Coin } from "@orko-ui-market/index"
+import { AuthContext } from "@orko-ui-auth/index"
 import Alerts from "components/Alerts"
+import { FrameworkContext } from "FrameworkContainer"
 
 interface ManageAlertsProps {
-  coin: Coin
   mobile: boolean
-  onClose(): void
 }
 
 interface ManageAlertsConnectedProps extends ManageAlertsProps {
   jobs
   dispatch
-  auth: AuthApi
 }
 
 const ManageAlertsContainer: React.FC<ManageAlertsConnectedProps> = props => {
-  const coin = props.coin
+  const authApi = useContext(AuthContext)
+  const frameworkApi = useContext(FrameworkContext)
+
+  const coin = frameworkApi.alertsCoin
   if (!coin) return null
   const alerts = props.jobs.filter(
     job =>
@@ -53,11 +53,11 @@ const ManageAlertsContainer: React.FC<ManageAlertsConnectedProps> = props => {
       <SectionProvider
         value={{
           draggable: !props.mobile,
-          onHide: props.onClose
+          onHide: () => frameworkApi.setAlertsCoin(null)
         }}
       >
         <Section id="manageAlerts" heading={"Manage alerts for " + coin.name}>
-          <Alerts alerts={alerts} onDelete={job => props.dispatch(jobActions.deleteJob(props.auth, job))} />
+          <Alerts alerts={alerts} onDelete={job => props.dispatch(jobActions.deleteJob(authApi, job))} />
           <CreateAlertContainer coin={coin} />
         </Section>
       </SectionProvider>
@@ -71,4 +71,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withAuth(connect(mapStateToProps)(ManageAlertsContainer))
+export default connect(mapStateToProps)(ManageAlertsContainer)

@@ -43,8 +43,6 @@ import ErrorBoundary from "./components/ErrorBoundary"
 import { Provider as SectionProvider } from "./components/primitives/Section"
 import { Logs } from "@orko-ui-log/index"
 import { Panel, KeyedLayouts } from "useUiConfig"
-import { Coin } from "@orko-ui-market/index"
-import { CoinCallback } from "components/Coins"
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive)
 
@@ -80,7 +78,6 @@ interface FrameworkProps {
   layouts: Layouts
   layoutsAsObj: KeyedLayouts
   showSettings: boolean
-  alertsShownForCoin: Coin
   onToggleViewSettings(): void
   onTogglePanelAttached(key: string): void
   onTogglePanelVisible(key: string): void
@@ -92,8 +89,6 @@ interface FrameworkProps {
   onBreakpointChange(breakpoint: string): void
   onLogout(): void
   onClearWhitelisting(): void
-  onShowAlerts: CoinCallback
-  onHideAlerts(): void
 }
 
 export interface OfAllPanels<T> {
@@ -175,7 +170,7 @@ export default class Framework extends React.Component<FrameworkProps> {
       coins: () => (
         <LayoutBox key="coins" data-grid={this.props.layoutsAsObj.coins}>
           <Panel id="coins">
-            <CoinsContainer onShowAlerts={this.props.onShowAlerts} />
+            <CoinsContainer />
           </Panel>
         </LayoutBox>
       ),
@@ -220,9 +215,7 @@ export default class Framework extends React.Component<FrameworkProps> {
       onInteractPanel,
       onBreakpointChange,
       onLogout,
-      onClearWhitelisting,
-      alertsShownForCoin,
-      onHideAlerts
+      onClearWhitelisting
     } = this.props
 
     const Settings = () =>
@@ -266,7 +259,7 @@ export default class Framework extends React.Component<FrameworkProps> {
         </ErrorBoundary>
         <PositioningWrapper mobile={isMobile}>
           <ErrorBoundary>
-            <ManageAlertsContainer mobile={isMobile} coin={alertsShownForCoin} onClose={onHideAlerts} />
+            <ManageAlertsContainer mobile={isMobile} />
           </ErrorBoundary>
           <ErrorBoundary>
             <SetReferencePriceContainer mobile={isMobile} />

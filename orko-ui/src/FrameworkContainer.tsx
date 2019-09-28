@@ -24,6 +24,7 @@ import Immutable from "seamless-immutable"
 import useUiConfig, { Panel } from "./useUiConfig"
 import { Layouts, Layout } from "react-grid-layout"
 import { Coin } from "@orko-ui-market/index"
+import { CoinCallback } from "components/Coins"
 
 function windowToBreakpoint(width: number) {
   return width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg"
@@ -33,7 +34,9 @@ export interface FrameworkApi {
   paperTrading: boolean
   enablePaperTrading(): void
   referencePriceCoin: Coin
-  setReferencePriceCoin(coin: Coin): void
+  setReferencePriceCoin: CoinCallback
+  alertsCoin: Coin
+  setAlertsCoin: CoinCallback
 }
 
 export const FrameworkContext = React.createContext<FrameworkApi>(null)
@@ -43,7 +46,7 @@ const FrameworkContainer: React.FC<any> = () => {
   const [width, setWidth] = useState(window.innerWidth)
   const [paperTrading, setPaperTrading] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [alertsShownForCoin, setAlertsShownForCoin] = useState<Coin>(null)
+  const [alertsCoin, setAlertsCoin] = useState<Coin>(null)
   const [referencePriceCoin, setReferencePriceCoin] = useState<Coin>(null)
   const [uiConfig, uiConfigApi] = useUiConfig()
   const authApi: AuthApi = useContext(AuthContext)
@@ -53,9 +56,11 @@ const FrameworkContainer: React.FC<any> = () => {
       paperTrading,
       enablePaperTrading: () => setPaperTrading(true),
       referencePriceCoin,
-      setReferencePriceCoin
+      setReferencePriceCoin,
+      alertsCoin,
+      setAlertsCoin
     }),
-    [paperTrading, setPaperTrading, referencePriceCoin, setReferencePriceCoin]
+    [paperTrading, setPaperTrading, referencePriceCoin, setReferencePriceCoin, alertsCoin, setAlertsCoin]
   )
 
   useEffect(() => {
@@ -101,9 +106,6 @@ const FrameworkContainer: React.FC<any> = () => {
         onBreakpointChange={(breakpoint: string) => setBreakpoint(breakpoint)}
         onLogout={authApi.logout}
         onClearWhitelisting={authApi.clearWhitelisting}
-        alertsShownForCoin={alertsShownForCoin}
-        onShowAlerts={setAlertsShownForCoin}
-        onHideAlerts={() => setAlertsShownForCoin(null)}
       />
     </FrameworkContext.Provider>
   )
