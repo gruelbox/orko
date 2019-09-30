@@ -17,7 +17,6 @@
  */
 import React, { useState, useEffect, useContext } from "react"
 
-import * as coinsActions from "../store/coins/actions"
 import { connect } from "react-redux"
 import { Icon, Button, Form, Dropdown, Modal } from "semantic-ui-react"
 import FixedModal from "../components/primitives/FixedModal"
@@ -25,13 +24,13 @@ import { AuthContext } from "@orko-ui-auth/index"
 import { augmentCoin, Coin, MarketContext, PartialServerCoin, Exchange } from "@orko-ui-market/index"
 import { LogContext } from "@orko-ui-log/index"
 import exchangesService from "@orko-ui-market/exchangesService"
-import { SocketContext } from "@orko-ui-socket/index"
+import { ServerContext } from "modules/server"
 
 const AddCoinContainer: React.FC<{ dispatch; history }> = ({ dispatch, history }) => {
   const marketApi = useContext(MarketContext)
   const logApi = useContext(LogContext)
   const authApi = useContext(AuthContext)
-  const socketApi = useContext(SocketContext)
+  const serverApi = useContext(ServerContext)
 
   const [pairs, setPairs] = useState<Array<Coin>>([])
   const [exchange, setExchange] = useState<Exchange>(null)
@@ -60,9 +59,8 @@ const AddCoinContainer: React.FC<{ dispatch; history }> = ({ dispatch, history }
   }
 
   const onSubmit = () => {
-    dispatch(coinsActions.add(authApi, pair))
+    serverApi.addSubscription(pair)
     history.push("/coin/" + pair.key)
-    socketApi.resubscribe()
   }
 
   const ready = !!pair

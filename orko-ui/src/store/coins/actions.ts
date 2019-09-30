@@ -18,77 +18,22 @@
 import * as types from "./actionTypes"
 import exchangesService from "@orko-ui-market/exchangesService"
 import * as errorActions from "../error/actions"
-import { coinFromTicker, tickerFromCoin } from "@orko-ui-market/coinUtils"
 import { AuthApi } from "@orko-ui-auth/index"
-
-export function fetch(auth: AuthApi) {
-  return auth.wrappedRequest(
-    () => exchangesService.fetchSubscriptions(),
-    json => ({ type: types.SET, payload: json.map(t => coinFromTicker(t)) }),
-    error => errorActions.setForeground("Could not fetch coin list: " + error.message),
-    () => multiFetchMetadata(auth)
-  )
-}
+import { Coin } from "@orko-ui-market/index"
 
 export function fetchReferencePrices(auth: AuthApi) {
   return auth.wrappedRequest(
     () => exchangesService.fetchReferencePrices(),
     json => ({ type: types.SET_REFERENCE_PRICES, payload: json }),
-    error => errorActions.setForeground("Could not fetch coin list: " + error.message)
+    (error: Error) => errorActions.setForeground("Could not fetch coin list: " + error.message)
   )
 }
 
-export function add(auth: AuthApi, coin) {
-  return auth.wrappedRequest(
-    () => exchangesService.addSubscription(JSON.stringify(tickerFromCoin(coin))),
-    null,
-    error => errorActions.setForeground("Could not add subscription: " + error.message),
-    () => applyAdd(auth, coin)
-  )
-}
-
-function multiFetchMetadata(auth: AuthApi) {
-  return async (dispatch, getState) => {
-    getState().coins.coins.forEach(coin => dispatch(fetchMetadata(auth, coin)))
-  }
-}
-
-function fetchMetadata(auth: AuthApi, coin) {
-  return auth.wrappedRequest(
-    () => exchangesService.fetchMetadata(coin),
-    json => ({ type: types.SET_META, payload: { coin: coin, meta: json } }),
-    error =>
-      errorActions.setForeground("Could not fetch coin metadata for " + coin.name + " : " + error.message)
-  )
-}
-
-function applyAdd(auth: AuthApi, coin) {
-  return (dispatch, getState) => {
-    dispatch({ type: types.ADD, payload: coin })
-    dispatch(fetchMetadata(auth, coin))
-  }
-}
-
-export function remove(auth: AuthApi, coin) {
-  return auth.wrappedRequest(
-    () => exchangesService.removeSubscription(JSON.stringify(tickerFromCoin(coin))),
-    null,
-    error => errorActions.setForeground("Could not remove subscription: " + error.message),
-    () => applyRemove(coin)
-  )
-}
-
-function applyRemove(coin) {
-  return (dispatch, getState) => {
-    dispatch({ type: types.REMOVE, payload: coin })
-  }
-}
-
-export function setReferencePrice(auth: AuthApi, coin, price) {
+export function setReferencePrice(auth: AuthApi, coin: Coin, price: number) {
   return auth.wrappedRequest(
     () => exchangesService.setReferencePrice(coin, price),
     null,
-    error => errorActions.setForeground("Could not set reference price on server: " + error.message),
+    (error: Error) => errorActions.setForeground("Could not set reference price on server: " + error.message),
     () => ({ type: types.SET_REFERENCE_PRICE, payload: { coin, price } })
   )
 }

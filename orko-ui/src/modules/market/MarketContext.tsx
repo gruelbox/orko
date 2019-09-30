@@ -37,7 +37,7 @@ const MarketManagerInner: React.FC<{ coin: Coin; children: ReactElement }> = ({ 
       return authenticatedRequest<Array<Exchange>>(() => exchangesService.fetchExchanges())
         .then(exchanges => {
           setExchanges(exchanges)
-          trace(exchanges.length + " Exchanges fetched")
+          trace("Fetched " + exchanges.length + " exchanges")
         })
         .catch((error: Error) => errorPopup(error.message))
     },

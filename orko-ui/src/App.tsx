@@ -43,6 +43,7 @@ import * as errorActions from "store/error/actions"
 import { useInterval } from "@orko-ui-common/util/hookUtils"
 import { LogApi, LogContext, LogManager } from "@orko-ui-log/index"
 import { MarketManager } from "@orko-ui-market/index"
+import Server from "modules/server"
 
 const history = createBrowserHistory()
 
@@ -90,7 +91,6 @@ const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({ auth, lo
         var releasesPromise = dispatch(supportActions.fetchReleases(auth))
         var scriptsPromise = dispatch(scriptActions.fetch(auth))
         var metaPromise = dispatch(supportActions.fetchMetadata(auth))
-        await dispatch(coinActions.fetch(auth))
         await dispatch(coinActions.fetchReferencePrices(auth))
         await scriptsPromise
         await metaPromise
@@ -140,13 +140,15 @@ const App: React.FC<any> = () => (
           <Authoriser onError={message => store.dispatch(errorActions.setForeground(message))}>
             <>
               <ConnectedStoreManagement />
-              <Socket store={store}>
-                <ConnectedRouter history={history}>
-                  <MarketManager>
-                    <FrameworkContainer />
-                  </MarketManager>
-                </ConnectedRouter>
-              </Socket>
+              <MarketManager>
+                <Server>
+                  <Socket getLocation={() => store.getState().router.location}>
+                    <ConnectedRouter history={history}>
+                      <FrameworkContainer />
+                    </ConnectedRouter>
+                  </Socket>
+                </Server>
+              </MarketManager>
             </>
           </Authoriser>
         </ReduxProvider>

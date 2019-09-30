@@ -23,6 +23,7 @@ import { formatNumber } from "@orko-ui-common/util/numberUtils"
 import Loading from "./Loading"
 import { connect } from "react-redux"
 import { withFramework } from "FrameworkContainer"
+import { withServer } from "modules/server"
 
 const PriceKey = styled.div.attrs({
   py: 0,
@@ -170,8 +171,11 @@ class Price extends React.PureComponent {
 
 const nullOnCLick = () => {}
 
+/**
+ * TODO this can be removed now along with the redux connect
+ */
 function mapStateToProps(state, props) {
-  const meta = props.coin ? state.coins.meta[props.coin.key] : undefined
+  const meta = props.coin ? props.serverApi.coinMetadata.get(props.coin.key) : undefined
   const scale = meta ? meta.priceScale : 8
   return {
     title: props.onClick ? undefined : "Copy price to target field",
@@ -184,4 +188,4 @@ function mapStateToProps(state, props) {
   }
 }
 
-export default withFramework(connect(mapStateToProps)(Price))
+export default withServer(withFramework(connect(mapStateToProps)(Price)))

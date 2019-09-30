@@ -11,7 +11,6 @@ export interface SocketApi {
   openOrders: Array<Order>
   orderBook: OrderBook
   selectedCoinTicker: Ticker
-  resubscribe(): void
   createdOrder(Order: Order, timestamp: number): void
   pendingCancelOrder(id: string, timestamp: number): void
   createPlaceholder(Order: Order): void

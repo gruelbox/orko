@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useContext } from "react"
+import React, { useContext, useMemo } from "react"
 import { connect } from "react-redux"
 
 import Toolbar from "../components/Toolbar"
@@ -28,6 +28,7 @@ import { Ticker } from "modules/socket/index"
 import { MarketContext } from "@orko-ui-market/index"
 import { Panel } from "useUiConfig"
 import { FrameworkContext } from "FrameworkContainer"
+import { ServerContext } from "modules/server"
 
 interface ToolbarContainerProps {
   onLogout(): void
@@ -41,24 +42,30 @@ interface ToolbarContainerProps {
 
 interface ToolbarReduxProps extends ToolbarContainerProps {
   version: string
-  errors: Array<string>
   ticker: Ticker
   balance: number
   coin: Coin
-  coinMetadata: any // TODO
 }
 
 const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   const socket = useContext(SocketContext)
   const marketApi = useContext(MarketContext)
+  const serverApi = useContext(ServerContext)
+
   const ticker = useContext(SocketContext).selectedCoinTicker
   const updateFocusedField = useContext(FrameworkContext).populateLastFocusedField
+
+  const allMetadata = serverApi.coinMetadata
+  const coinMetadata = useMemo(() => (props.coin ? allMetadata.get(props.coin.key) : null), [
+    props.coin,
+    allMetadata
+  ])
 
   if (!socket.connected) {
     document.title = "Not connected"
   } else if (ticker && props.coin) {
     document.title =
-      formatNumber(ticker.last, props.coinMetadata ? props.coinMetadata.priceScale : 8, "No price") +
+      formatNumber(ticker.last, coinMetadata ? coinMetadata.priceScale : 8, "No price") +
       " " +
       props.coin.base +
       "/" +
@@ -80,12 +87,9 @@ const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   )
 }
 
-export default connect((state, props) => {
-  const coin = getSelectedCoin(state)
+export default connect(state => {
   return {
     version: state.support.meta.version,
-    errors: state.error.errorBackground,
-    coin,
-    coinMetadata: coin && state.coins.meta ? state.coins.meta[coin.key] : undefined
+    coin: getSelectedCoin(state)
   }
 })(ToolbarContainer)

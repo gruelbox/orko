@@ -38,7 +38,7 @@ const exchangeColumn = {
   id: "exchange",
   Header: "Exchange",
   accessor: "exchange",
-  Cell: ({ original }) => (
+  Cell: ({ original }: { original: FullCoinData }) => (
     <Link data-orko={original.key + "/exchange"} to={"/coin/" + original.key} title="Open coin">
       {original.exchangeMeta ? original.exchangeMeta.name : original.exchange}
     </Link>
@@ -53,7 +53,7 @@ const nameColumn = {
   id: "name",
   Header: "Name",
   accessor: "shortName",
-  Cell: ({ original }) => (
+  Cell: ({ original }: { original: FullCoinData }) => (
     <Link data-orko={original.key + "/name"} to={"/coin/" + original.key} title="Open coin">
       {original.shortName}
     </Link>
@@ -67,7 +67,7 @@ const nameColumn = {
 const priceColumn = {
   id: "price",
   Header: "Price",
-  Cell: ({ original }) => (
+  Cell: ({ original }: { original: FullCoinData }) => (
     <Price data-orko={original.key + "/price"} coin={original} bare>
       {original.ticker ? original.ticker.last : undefined}
     </Price>
@@ -79,11 +79,11 @@ const priceColumn = {
   sortable: false
 }
 
-const changeColumn = onClick => ({
+const changeColumn = (onClick: CoinCallback) => ({
   id: "change",
   Header: "Change",
   accessor: "change",
-  Cell: ({ original }) => (
+  Cell: ({ original }: { original: FullCoinData }) => (
     <Href
       data-orko={original.key + "/setReferencePrice"}
       color={original.priceChange.slice(0, 1) === "-" ? "sell" : "buy"}
@@ -99,10 +99,10 @@ const changeColumn = onClick => ({
   minWidth: 40
 })
 
-const closeColumn = onRemove => ({
+const closeColumn = (onRemove: CoinCallback) => ({
   id: "close",
   Header: null,
-  Cell: ({ original }) => (
+  Cell: ({ original }: { original: FullCoinData }) => (
     <Href data-orko={original.key + "/remove"} title="Remove coin" onClick={() => onRemove(original)}>
       <Icon fitted name="close" />
     </Href>
@@ -114,10 +114,10 @@ const closeColumn = onRemove => ({
   resizable: false
 })
 
-const alertColumn = onClickAlerts => ({
+const alertColumn = (onClickAlerts: CoinCallback) => ({
   id: "alert",
   Header: <Icon fitted name="bell outline" />,
-  Cell: ({ original }) => (
+  Cell: ({ original }: { original: FullCoinData }) => (
     <Href data-orko={original.key + "/alerts"} title="Manage alerts" onClick={() => onClickAlerts(original)}>
       <Icon fitted name={original.hasAlert ? "bell" : "bell outline"} />
     </Href>

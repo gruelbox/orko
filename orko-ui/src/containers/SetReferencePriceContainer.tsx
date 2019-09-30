@@ -28,14 +28,26 @@ import Button from "../components/primitives/Button"
 import { isValidNumber, formatNumber } from "@orko-ui-common/util/numberUtils"
 import { AuthContext } from "@orko-ui-auth/index"
 import { FrameworkContext } from "FrameworkContainer"
+import { ServerContext } from "modules/server"
 
-const SetReferencePriceContainer = ({ mobile, dispatch, meta, referencePrices }) => {
+interface SetReferencePriceContainerProps {
+  mobile: boolean
+  dispatch
+  referencePrices
+}
+
+const SetReferencePriceContainer: React.FC<SetReferencePriceContainerProps> = ({
+  mobile,
+  dispatch,
+  referencePrices
+}) => {
   const [price, setPrice] = useState("")
   const frameworkApi = useContext(FrameworkContext)
   const authApi = useContext(AuthContext)
+  const serverApi = useContext(ServerContext)
 
   const coin = frameworkApi.referencePriceCoin
-  const coinMetadata = meta && coin ? meta[coin.key] : null
+  const coinMetadata = coin ? serverApi.coinMetadata.get(coin.key) : null
   const referencePriceUnformatted = coin ? referencePrices[coin.key] : null
   const referencePrice = useMemo(() => {
     const priceScale = coinMetadata ? coinMetadata.priceScale : 8
@@ -45,7 +57,7 @@ const SetReferencePriceContainer = ({ mobile, dispatch, meta, referencePrices })
   if (!coin) return null
 
   const onSubmit = () => {
-    dispatch(coinsActions.setReferencePrice(authApi, coin, price))
+    dispatch(coinsActions.setReferencePrice(authApi, coin, Number(price)))
     frameworkApi.setReferencePriceCoin(null)
     setPrice("")
   }
@@ -60,9 +72,9 @@ const SetReferencePriceContainer = ({ mobile, dispatch, meta, referencePrices })
     frameworkApi.setLastFocusedFieldPopulater(setPrice)
   }
 
-  const ready = price && isValidNumber(price) && price > 0
+  const ready = price && isValidNumber(price) && Number(price) > 0
   return (
-    <Window mobile={mobile}>
+    <Window mobile={mobile} large={false}>
       <SectionProvider
         value={{
           draggable: !mobile,
@@ -101,7 +113,6 @@ const SetReferencePriceContainer = ({ mobile, dispatch, meta, referencePrices })
 
 function mapStateToProps(state) {
   return {
-    meta: state.coins.meta,
     referencePrices: state.coins.referencePrices
   }
 }

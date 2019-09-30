@@ -16,15 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { get, put, del, post } from "@orko-ui-common/util/fetchUtil"
-import { Coin } from "./Types"
+import { Coin, ServerCoin } from "./Types"
 
 class ExchangesService {
   async fetchSubscriptions(): Promise<Response> {
     return (await get("subscriptions")) as Promise<Response>
   }
 
-  async addSubscription(ticker) {
-    return await put("subscriptions", ticker)
+  async addSubscription(ticker: ServerCoin): Promise<Response> {
+    return (await put("subscriptions", JSON.stringify(ticker))) as Promise<Response>
   }
 
   async submitOrder(exchange, order) {
@@ -46,8 +46,8 @@ class ExchangesService {
     )
   }
 
-  async removeSubscription(ticker) {
-    return await del("subscriptions", ticker)
+  async removeSubscription(ticker: ServerCoin): Promise<Response> {
+    return (await del("subscriptions", JSON.stringify(ticker))) as Promise<Response>
   }
 
   async fetchExchanges(): Promise<Response> {
@@ -58,8 +58,10 @@ class ExchangesService {
     return (await get("exchanges/" + exchange + "/pairs")) as Promise<Response>
   }
 
-  async fetchMetadata(coin) {
-    return await get("exchanges/" + coin.exchange + "/pairs/" + coin.base + "-" + coin.counter)
+  async fetchMetadata(coin: Coin): Promise<Response> {
+    return (await get("exchanges/" + coin.exchange + "/pairs/" + coin.base + "-" + coin.counter)) as Promise<
+      Response
+    >
   }
 
   async fetchTicker(coin) {

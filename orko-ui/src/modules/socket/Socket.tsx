@@ -28,11 +28,12 @@ import { Map } from "immutable"
 import { Ticker, Balance, OrderBook, Trade, UserTrade, Order } from "./Types"
 import { useArray } from "@orko-ui-common/util/hookUtils"
 import { useOrders } from "./useOrders"
+import { ServerContext } from "modules/server"
 
 const MAX_PUBLIC_TRADES = 48
 
 export interface SocketProps {
-  store
+  getLocation()
   children: ReactElement
 }
 
@@ -52,6 +53,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   // Contexts required
   const authApi = useContext(AuthContext)
   const logApi = useContext(LogContext)
+  const serverApi = useContext(ServerContext)
 
   // Connection state
   const [connected, setConnected] = useState(false)
@@ -68,29 +70,23 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
 
   /////////////////////// SOCKET MANAGEMENT ///////////////////////////
 
-  const getSubscribedCoins = useCallback(() => props.store.getState().coins.coins, [props.store])
-  const getSelectedCoin = useCallback(() => locationToCoin(props.store.getState().router.location), [
-    props.store
-  ])
-
-  const location = props.store.getState().router.location
+  const getLocation = props.getLocation
+  const location = getLocation()
   const selectedCoin = useMemo(() => locationToCoin(location), [location])
   const selectedCoinTicker = useMemo(() => (selectedCoin ? tickers.get(selectedCoin.key) : null), [
     tickers,
     selectedCoin
   ])
 
-  // Forward notifications/errors to the log API
+  // Dispatch any incoming messages on the socket to state
   const logError = logApi.localError
   const logMessage = logApi.localMessage
   const logNotification = logApi.add
+  const getSelectedCoin = useCallback(() => locationToCoin(getLocation()), [getLocation])
   useEffect(() => {
     socketClient.onError((message: string) => logError(message))
     socketClient.onNotification((logEntry: LogRequest) => logNotification(logEntry))
-  }, [props.store, logError, logNotification])
 
-  // Dispatch market data to the store
-  useEffect(() => {
     const sameCoin = (left: Coin, right: Coin) => left && right && left.key === right.key
     socketClient.onTicker((coin: Coin, ticker: Ticker) =>
       setTickers(tickers => tickers.set(coin.key, ticker))
@@ -126,54 +122,58 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
         openOrdersUpdateApi.updateSnapshot(orders, timestamp)
       }
     })
-  }, [props.store, getSelectedCoin, tradesUpdateApi, userTradesUpdateApi, openOrdersUpdateApi])
+  }, [getSelectedCoin, tradesUpdateApi, userTradesUpdateApi, openOrdersUpdateApi, logError, logNotification])
 
   // Connect the socket when authorised, and disconnect when deauthorised
   useEffect(() => {
     if (authApi.authorised) {
       socketClient.connect()
     }
-    return () => socketClient.disconnect()
+    return () => {
+      console.log("Authorisation lost")
+      socketClient.disconnect()
+    }
   }, [authApi.authorised])
 
   // Sync the state of the socket with the socket itself
   useEffect(() => {
-    socketClient.onConnectionStateChange((newState: boolean) => setConnected(newState))
+    socketClient.onConnectionStateChange((newState: boolean) => {
+      console.log("Detected socket connected state", newState)
+      setConnected(newState)
+    })
   }, [setConnected])
 
-  // Log when the socket connects and resubscribe
-  const resubscribe = useCallback(() => {
-    socketClient.changeSubscriptions(getSubscribedCoins(), getSelectedCoin())
-    socketClient.resubscribe()
-  }, [getSubscribedCoins, getSelectedCoin])
+  // Log when the socket connects
   useEffect(() => {
     if (connected) {
+      console.log("Reconnected")
       logMessage("Socket connected")
-      resubscribe()
-      return () => logMessage("Socket disconnected")
+      return () => {
+        console.log("Disconnected")
+        logMessage("Socket disconnected")
+      }
     }
-  }, [connected, logMessage, resubscribe])
+  }, [connected, logMessage])
 
-  // When the coin selected changes, send resubscription messages and clear any
-  // coin-specific state
+  // When the connection state or subscription list changes, resubscribe on the socket
+  const subscribedCoins = serverApi.subscriptions
   useEffect(() => {
-    console.log("Resubscribing following coin change")
-    socketClient.changeSubscriptions(getSubscribedCoins(), selectedCoin)
-    socketClient.resubscribe()
+    if (connected) {
+      console.log("Resubscribing")
+      socketClient.changeSubscriptions(subscribedCoins, selectedCoin)
+      socketClient.resubscribe()
+    }
+  }, [connected, subscribedCoins, selectedCoin])
+
+  // When the selected coin changes, clear any coin-specific state
+  useEffect(() => {
+    console.log("Clearing current coin state")
     setOrderBook(null)
     userTradesUpdateApi.clear()
     openOrdersUpdateApi.clear()
     tradesUpdateApi.clear()
     setBalances(Map<String, Balance>())
-  }, [
-    props.store,
-    connected,
-    getSubscribedCoins,
-    selectedCoin,
-    userTradesUpdateApi,
-    tradesUpdateApi,
-    openOrdersUpdateApi
-  ])
+  }, [selectedCoin, userTradesUpdateApi, tradesUpdateApi, openOrdersUpdateApi, setBalances, setOrderBook])
 
   const createdOrder = openOrdersUpdateApi.orderUpdated
   const pendingCancelOrder = openOrdersUpdateApi.pendingCancelOrder
@@ -183,7 +183,6 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const api: SocketApi = useMemo(
     () => ({
       connected,
-      resubscribe,
       tickers,
       balances,
       trades,
@@ -198,7 +197,6 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     }),
     [
       connected,
-      resubscribe,
       tickers,
       balances,
       trades,

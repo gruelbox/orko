@@ -17,21 +17,17 @@
  */
 import React, { useContext, useMemo } from "react"
 import { connect } from "react-redux"
-
 import { Icon } from "semantic-ui-react"
-
-import * as coinsActions from "../store/coins/actions"
-
 import Section from "../components/primitives/Section"
 import Link from "../components/primitives/Link"
 import Coins from "../components/Coins"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
-import { AuthContext } from "@orko-ui-auth/index"
 import { getAlertJobs } from "selectors/jobs"
 import { MarketContext, Coin } from "@orko-ui-market/index"
 import { SocketContext } from "@orko-ui-socket/index"
 import { FrameworkContext } from "FrameworkContainer"
+import { ServerContext } from "modules/server"
 
 const buttons = () => (
   <Link to="/addCoin" data-orko="addCoin" title="Add a coin">
@@ -40,18 +36,17 @@ const buttons = () => (
 )
 
 interface CoinsContainerProps {
-  dispatch
   alertJobs
-  coins: Array<Coin>
   referencePrices
 }
 
-const CoinsCointainer: React.FC<CoinsContainerProps> = ({ dispatch, alertJobs, coins, referencePrices }) => {
-  const authApi = useContext(AuthContext)
+const CoinsCointainer: React.FC<CoinsContainerProps> = ({ alertJobs, referencePrices }) => {
   const marketApi = useContext(MarketContext)
   const socketApi = useContext(SocketContext)
   const frameworkApi = useContext(FrameworkContext)
+  const serverApi = useContext(ServerContext)
 
+  const coins = serverApi.subscriptions
   const tickers = socketApi.tickers
   const exchanges = marketApi.data.exchanges
 
@@ -87,7 +82,7 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({ dispatch, alertJobs, c
           <Section id="coinList" heading="Coins" nopadding buttons={buttons}>
             <Coins
               data={data}
-              onRemove={(coin: Coin) => dispatch(coinsActions.remove(authApi, coin))}
+              onRemove={(coin: Coin) => serverApi.removeSubscription(coin)}
               onClickAlerts={frameworkApi.setAlertsCoin}
               onClickReferencePrice={frameworkApi.setReferencePriceCoin}
             />
@@ -101,7 +96,6 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({ dispatch, alertJobs, c
 const ConnectedCoinsContainer = connect(state => {
   return {
     alertJobs: getAlertJobs(state),
-    coins: state.coins.coins,
     referencePrices: state.coins.referencePrices
   }
 })(CoinsCointainer)
