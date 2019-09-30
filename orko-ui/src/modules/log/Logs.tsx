@@ -61,7 +61,7 @@ const columns = [
     headerStyle: textStyle,
     style: textStyle,
     resizable: false,
-    width: 134
+    width: 150
   },
   {
     id: "message",
