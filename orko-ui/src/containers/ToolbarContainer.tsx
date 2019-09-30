@@ -27,6 +27,7 @@ import { Coin } from "modules/market/index"
 import { Ticker } from "modules/socket/index"
 import { MarketContext } from "@orko-ui-market/index"
 import { Panel } from "useUiConfig"
+import { FrameworkContext } from "FrameworkContainer"
 
 interface ToolbarContainerProps {
   onLogout(): void
@@ -41,7 +42,6 @@ interface ToolbarContainerProps {
 interface ToolbarReduxProps extends ToolbarContainerProps {
   version: string
   errors: Array<string>
-  updateFocusedField(): void
   ticker: Ticker
   balance: number
   coin: Coin
@@ -52,6 +52,7 @@ const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   const socket = useContext(SocketContext)
   const marketApi = useContext(MarketContext)
   const ticker = useContext(SocketContext).selectedCoinTicker
+  const updateFocusedField = useContext(FrameworkContext).populateLastFocusedField
 
   if (!socket.connected) {
     document.title = "Not connected"
@@ -68,6 +69,7 @@ const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   return (
     <Toolbar
       {...props}
+      updateFocusedField={updateFocusedField}
       ticker={ticker}
       connected={socket.connected}
       onLogout={props.onLogout}
@@ -83,7 +85,6 @@ export default connect((state, props) => {
   return {
     version: state.support.meta.version,
     errors: state.error.errorBackground,
-    updateFocusedField: state.focus.fn,
     coin,
     coinMetadata: coin && state.coins.meta ? state.coins.meta[coin.key] : undefined
   }

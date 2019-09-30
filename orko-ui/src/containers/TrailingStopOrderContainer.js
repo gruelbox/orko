@@ -19,17 +19,14 @@ import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
 import uuidv4 from "uuid/v4"
-
 import TrailingStopOrder from "../components/TrailingStopOrder"
-
-import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
-
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 import { withAuth } from "@orko-ui-auth/index"
 import { withSocket } from "@orko-ui-socket/"
+import { withFramework } from "FrameworkContainer"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
@@ -51,15 +48,13 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   onFocus = focusedProperty => {
-    this.props.dispatch(
-      focusActions.setUpdateAction(value => {
-        this.setState(prev => ({
-          order: prev.order.merge({
-            [focusedProperty]: value
-          })
-        }))
-      })
-    )
+    this.props.frameworkApi.setLastFocusedFieldPopulater(value => {
+      this.setState(prev => ({
+        order: prev.order.merge({
+          [focusedProperty]: value
+        })
+      }))
+    })
   }
 
   currentPrice = direction =>
@@ -125,4 +120,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withSocket(withAuth(connect(mapStateToProps)(TrailingStopOrderContainer)))
+export default withFramework(withSocket(withAuth(connect(mapStateToProps)(TrailingStopOrderContainer))))

@@ -30,6 +30,8 @@ function windowToBreakpoint(width: number) {
   return width < theme.lg ? (width < theme.md ? "sm" : "md") : "lg"
 }
 
+type LastFocusedFieldPopulater = (value: string) => void
+
 export interface FrameworkApi {
   paperTrading: boolean
   enablePaperTrading(): void
@@ -37,9 +39,19 @@ export interface FrameworkApi {
   setReferencePriceCoin: CoinCallback
   alertsCoin: Coin
   setAlertsCoin: CoinCallback
+  populateLastFocusedField: LastFocusedFieldPopulater
+  setLastFocusedFieldPopulater(populater: LastFocusedFieldPopulater): void
 }
 
 export const FrameworkContext = React.createContext<FrameworkApi>(null)
+
+export function withFramework(WrappedComponent: React.FC | React.ComponentClass) {
+  return (props: any) => (
+    <FrameworkContext.Consumer>
+      {frameworkApi => <WrappedComponent {...props} frameworkApi={frameworkApi}></WrappedComponent>}
+    </FrameworkContext.Consumer>
+  )
+}
 
 const FrameworkContainer: React.FC<any> = () => {
   const [breakpoint, setBreakpoint] = useState(windowToBreakpoint(window.innerWidth))
@@ -48,7 +60,10 @@ const FrameworkContainer: React.FC<any> = () => {
   const [showSettings, setShowSettings] = useState(false)
   const [alertsCoin, setAlertsCoin] = useState<Coin>(null)
   const [referencePriceCoin, setReferencePriceCoin] = useState<Coin>(null)
+  const [lastFocusedFieldPopulater, setLastFocusedFieldPopulater] = useState<LastFocusedFieldPopulater[]>([])
+
   const [uiConfig, uiConfigApi] = useUiConfig()
+
   const authApi: AuthApi = useContext(AuthContext)
 
   const api: FrameworkApi = useMemo(
@@ -58,9 +73,24 @@ const FrameworkContainer: React.FC<any> = () => {
       referencePriceCoin,
       setReferencePriceCoin,
       alertsCoin,
-      setAlertsCoin
+      setAlertsCoin,
+      populateLastFocusedField: (value: string) => {
+        if (lastFocusedFieldPopulater.length === 1) {
+          lastFocusedFieldPopulater[0](value)
+        }
+      },
+      setLastFocusedFieldPopulater: (fn: LastFocusedFieldPopulater) => setLastFocusedFieldPopulater([fn])
     }),
-    [paperTrading, setPaperTrading, referencePriceCoin, setReferencePriceCoin, alertsCoin, setAlertsCoin]
+    [
+      paperTrading,
+      setPaperTrading,
+      referencePriceCoin,
+      setReferencePriceCoin,
+      alertsCoin,
+      setAlertsCoin,
+      lastFocusedFieldPopulater,
+      setLastFocusedFieldPopulater
+    ]
   )
 
   useEffect(() => {

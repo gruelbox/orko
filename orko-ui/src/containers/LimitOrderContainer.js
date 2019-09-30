@@ -18,10 +18,7 @@
 import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
-
 import LimitOrder from "../components/LimitOrder"
-
-import * as focusActions from "../store/focus/actions"
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 import exchangeService from "@orko-ui-market/exchangesService"
@@ -30,6 +27,7 @@ import { withAuth } from "@orko-ui-auth/index"
 import { withLog } from "@orko-ui-log/"
 import exchangesService from "@orko-ui-market/exchangesService"
 import { withSocket } from "@orko-ui-socket/"
+import { withFramework } from "FrameworkContainer"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -49,15 +47,13 @@ class LimitOrderContainer extends React.Component {
   }
 
   onFocus = focusedProperty => {
-    this.props.dispatch(
-      focusActions.setUpdateAction(value => {
-        this.setState(prev => ({
-          order: prev.order.merge({
-            [focusedProperty]: value
-          })
-        }))
-      })
-    )
+    this.props.frameworkApi.setLastFocusedFieldPopulater(value => {
+      this.setState(prev => ({
+        order: prev.order.merge({
+          [focusedProperty]: value
+        })
+      }))
+    })
   }
 
   createOrder = direction => ({
@@ -143,4 +139,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withSocket(withLog(withAuth(connect(mapStateToProps)(LimitOrderContainer))))
+export default withFramework(withSocket(withLog(withAuth(connect(mapStateToProps)(LimitOrderContainer)))))

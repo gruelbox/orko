@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import coins from "./coins/reducer"
-import focus from "./focus/reducer"
 import job from "./job/reducer"
 import error from "./error/reducer"
 import scripting from "./scripting/reducer"
@@ -29,7 +28,6 @@ export default history =>
   combineReducers({
     router: connectRouter(history),
     coins,
-    focus,
     job,
     error,
     scripting,

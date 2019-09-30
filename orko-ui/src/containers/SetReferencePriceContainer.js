@@ -22,7 +22,6 @@ import { connect } from "react-redux"
 import Section, { Provider as SectionProvider } from "../components/primitives/Section"
 import Window from "../components/primitives/Window"
 import * as coinsActions from "../store/coins/actions"
-import * as focusActions from "../store/focus/actions"
 import Input from "../components/primitives/Input.js"
 import Form from "../components/primitives/Form"
 import Button from "../components/primitives/Button"
@@ -58,7 +57,7 @@ const SetReferencePriceContainer = ({ mobile, dispatch, meta, referencePrices })
   }
 
   const onFocus = () => {
-    dispatch(focusActions.setUpdateAction(setPrice))
+    frameworkApi.setLastFocusedFieldPopulater(setPrice)
   }
 
   const ready = price && isValidNumber(price) && price > 0

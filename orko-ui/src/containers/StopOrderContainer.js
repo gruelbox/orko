@@ -18,19 +18,16 @@
 import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
-
 import StopOrder from "../components/StopOrder"
-
-import * as focusActions from "../store/focus/actions"
 import { isValidNumber } from "@orko-ui-common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
-
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import uuidv4 from "uuid/v4"
 import { withAuth } from "@orko-ui-auth/index"
 import exchangesService from "@orko-ui-market/exchangesService"
 import { withSocket } from "@orko-ui-socket/"
+import { withFramework } from "FrameworkContainer"
 
 function coinServerSideSupported(coin) {
   return !["bittrex"].includes(coin.exchange)
@@ -72,15 +69,13 @@ class StopOrderContainer extends React.Component {
   }
 
   onFocus = focusedProperty => {
-    this.props.dispatch(
-      focusActions.setUpdateAction(value => {
-        this.setState(prev => ({
-          order: prev.order.merge({
-            [focusedProperty]: value
-          })
-        }))
-      })
-    )
+    this.props.frameworkApi.setLastFocusedFieldPopulater(value => {
+      this.setState(prev => ({
+        order: prev.order.merge({
+          [focusedProperty]: value
+        })
+      }))
+    })
   }
 
   createOrder = direction => ({
@@ -174,4 +169,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withSocket(withAuth(connect(mapStateToProps)(StopOrderContainer)))
+export default withFramework(withSocket(withAuth(connect(mapStateToProps)(StopOrderContainer))))
