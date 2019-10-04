@@ -41,7 +41,9 @@ function checkCancelServerSideOrder({
     cy.o("all").click()
   })
   cy.o("section/jobs").within(() => {
-    cy.get('[data-orko^="job/"]')
+    cy.get('[data-orko^="job/"]', {
+      timeout: LONG_WAIT
+    })
   })
   cy.o("section/orders").within(() => {
     cy.get("[data-type='openOrder/" + direction + "']").within(() => {
