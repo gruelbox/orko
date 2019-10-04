@@ -34,3 +34,5 @@
 /orko-end-to-end-testing/cypress/screenshots/**/*
 **/*.versionsBackup
 **/*.releaseBackup
+/orko-semantic/dist/**
+/orko-semantic/target/**
