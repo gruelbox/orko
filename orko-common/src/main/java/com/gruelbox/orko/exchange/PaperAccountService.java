@@ -64,13 +64,13 @@ class PaperAccountService implements AccountService {
     Collection<Balance> balanceList = Collections2.transform(balances.values(), AtomicReference::get);
     if (exchange.equals(Exchanges.BITFINEX)) {
       return new AccountInfo(
-        new Wallet("margin", Collections.emptyList()),
-        new Wallet("funding", Collections.emptyList()),
-        new Wallet("exchange", balanceList)
+        Wallet.Builder.from(Collections.emptyList()).id("margin").build(),
+        Wallet.Builder.from(Collections.emptyList()).id("funding").build(),
+        Wallet.Builder.from(balanceList).id("exchange").build()
       );
     } else {
       return new AccountInfo(
-        new Wallet(balanceList)
+          Wallet.Builder.from(balanceList).build()
       );
     }
   }
