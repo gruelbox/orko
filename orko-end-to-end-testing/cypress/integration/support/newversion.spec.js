@@ -36,7 +36,7 @@ context("New version", () => {
     cy.loginApi()
     cy.visit("/")
     cy.wait("@getReleases")
-    cy.wait(2000)
+    cy.wait(8000)
     cy.o("newReleases").should("not.exist")
   })
 
@@ -50,7 +50,7 @@ context("New version", () => {
     cy.loginApi()
     cy.visit("/")
     cy.wait("@getReleases")
-    cy.wait(2000)
+    cy.wait(8000)
     cy.o("newReleases").within(() => {
       cy.o("release/0.1.0").should("exist")
       cy.o("release/0.0.2").should("not.exist")
@@ -78,7 +78,7 @@ context("New version", () => {
     cy.loginApi()
     cy.visit("/")
     cy.wait("@getReleases")
-    cy.wait(2000)
+    cy.wait(8000)
     cy.o("newReleases").within(() => {
       cy.o("release/0.1.0").should("exist")
       cy.o("release/0.0.2").should("exist")
