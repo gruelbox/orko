@@ -36,7 +36,7 @@ context("New version", () => {
     cy.loginApi()
     cy.visit("/")
     cy.wait("@getReleases", {
-      timeout: LONG_WAIT
+      requestTimeout: LONG_WAIT
     })
     cy.wait(2000)
     cy.o("newReleases").should("not.exist")
@@ -52,7 +52,7 @@ context("New version", () => {
     cy.loginApi()
     cy.visit("/")
     cy.wait("@getReleases", {
-      timeout: LONG_WAIT
+      requestTimeout: LONG_WAIT
     })
     cy.wait(2000)
     cy.o("newReleases").within(() => {
@@ -82,7 +82,7 @@ context("New version", () => {
     cy.loginApi()
     cy.visit("/")
     cy.wait("@getReleases", {
-      timeout: LONG_WAIT
+      requestTimeout: LONG_WAIT
     })
     cy.wait(2000)
     cy.o("newReleases").within(() => {
