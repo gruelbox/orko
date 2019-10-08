@@ -164,7 +164,7 @@ jobs:
     steps:
       - run:
           name: apt update
-          command: sudo apt-get update -y
+          command: sudo rm -rf /var/lib/apt/lists/* && sudo apt-get update -y
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
