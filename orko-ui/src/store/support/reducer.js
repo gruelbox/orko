@@ -46,10 +46,12 @@ export default function reduce(
       return Immutable.merge(state, { ignoredVersion })
     case types.SET_RELEASES:
       return Immutable.merge(state, {
-        releases: action.payload.map(r => ({
-          name: r.tag_name,
-          body: r.body
-        }))
+        releases: action.payload
+          .filter(r => !r.prerelease)
+          .map(r => ({
+            name: r.tag_name,
+            body: r.body
+          }))
       })
     default:
       return state
