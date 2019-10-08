@@ -3,7 +3,7 @@ version: 2
 alltags: &alltags
   filters:
     tags:
-      only: /.*/
+      only: /((?!SNAPSHOT).)*/
 restoremavencache: &restoremavencache
   keys:
     - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
@@ -46,7 +46,7 @@ workflows:
             - "End-to-end tests"
           filters:
             tags:
-              only: /^.*\..*/
+              only: /^.*\.((?!SNAPSHOT).)*/
             branches:
               only:
                 - master
@@ -58,7 +58,7 @@ workflows:
             - "End-to-end tests"
           filters:
             tags:
-              only: /^.*\..*/
+              only: /^.*\.((?!SNAPSHOT).)*/
             branches:
               only:
                 - master
@@ -113,7 +113,7 @@ jobs:
           name: Upgrade Maven
           command: |
             cd
-            wget http://apache.mirror.anlx.net/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+            cp ~/orko/.circleci/apache-maven-3.6.1-bin.tar.gz .
             tar xzvf apache-maven-3.6.1-bin.tar.gz
             cd ~/orko
       - run:
@@ -162,6 +162,9 @@ jobs:
   "End-to-end tests":
     <<: *setup
     steps:
+      - run:
+          name: apt update
+          command: sudo apt-get update -y
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
@@ -253,13 +256,13 @@ jobs:
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
               cd orko-app
               if [[ -n "$CIRCLE_TAG" ]]; then
-                mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="$CIRCLE_TAG"
+                mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="$CIRCLE_TAG"
               else
                 if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
-                  mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="stable"
+                  mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="stable"
                 else
                   if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
-                    mvn ${BUILD_ARGS} -Pdockerhub jib:build -Ddocker.tag1="$CIRCLE_SHA1" -Ddocker.tag2="latest"
+                    mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="latest"
                   else
                     echo "Skipping branch"
                   fi
@@ -281,17 +284,24 @@ jobs:
             if [[ -n "$GITHUB_API_KEY" ]]; then
               cd orko-app
               if [[ -n "$CIRCLE_TAG" ]]; then
-                mvn ${BUILD_ARGS} github-release:release \
-                  --settings ../etc/.maven-settings.xml
+                mvn ${BUILD_ARGS} -Pui github-release:release \
+                  --settings ../etc/.maven-settings.xml \
+                  -Dgithub.commitish=$CIRCLE_SHA1 \
+                  -Dgithub.draft=true \
+                  -Dgithub.failOnExistingRelease=true \
+                  -Dgithub.deleteRelease=false
               else
                 if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
                   COMMIT_MESSAGE=`git log --format=%B -n 1 $CIRCLE_SHA1`
-                  if [[ $COMMIT_MESSAGE == *"[publish snapshot]"* ]]; then
-                    mvn ${BUILD_ARGS} github-release:release \
+                  if [[ $COMMIT_MESSAGE != *"prepare release"* ]]; then
+                    mvn ${BUILD_ARGS} -Pui github-release:release \
                       --settings ../etc/.maven-settings.xml \
-                      -Dgithub.draft=true
+                      -Dgithub.commitish=$CIRCLE_SHA1 \
+                      -Dgithub.draft=false \
+                      -Dgithub.failOnExistingRelease=false \
+                      -Dgithub.deleteRelease=true
                   else
-                    echo "No [publish snapshot] in commit message"
+                    echo "Skipping pushing snapshot during a release"
                   fi
                 else
                   echo "Not a tag or master branch"

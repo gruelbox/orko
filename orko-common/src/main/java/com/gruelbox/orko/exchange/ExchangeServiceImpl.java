@@ -19,6 +19,7 @@
 package com.gruelbox.orko.exchange;
 
 import static info.bitrich.xchangestream.service.ConnectableService.BEFORE_CONNECTION_HANDLER;
+import static info.bitrich.xchangestream.util.Events.BEFORE_API_CALL_HANDLER;
 import static java.util.stream.Stream.concat;
 
 import java.time.Duration;
@@ -47,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -54,6 +56,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.RateLimiter;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.spi.TickerSpec;
 
@@ -95,8 +98,8 @@ public class ExchangeServiceImpl implements ExchangeService {
         LOGGER.debug("No API connection details.  Connecting to public API: {}", name);
         final ExchangeSpecification exSpec = createExchangeSpecification(name, exchangeConfiguration);
         return createExchange(exSpec);
-      } catch (InstantiationException | IllegalAccessException e) {
-        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]", e);
       }
     }
 
@@ -109,8 +112,8 @@ public class ExchangeServiceImpl implements ExchangeService {
         exSpec.setSecretKey(exchangeConfiguration.getSecretKey());
         exSpec.setExchangeSpecificParametersItem("passphrase", exchangeConfiguration.getPassphrase());
         return createExchange(exSpec);
-      } catch (InstantiationException | IllegalAccessException e) {
-        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]");
+      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+        throw new IllegalArgumentException("Failed to connect to exchange [" + name + "]", e);
       }
     }
 
@@ -134,6 +137,10 @@ public class ExchangeServiceImpl implements ExchangeService {
       RateLimiter rateLimiter = RateLimiter.create(0.25); // TODO make this exchange specific
       exSpec.setExchangeSpecificParametersItem(
         BEFORE_CONNECTION_HANDLER,
+        (Runnable) rateLimiter::acquire
+      );
+      exSpec.setExchangeSpecificParametersItem(
+        BEFORE_API_CALL_HANDLER,
         (Runnable) rateLimiter::acquire
       );
       if (Exchanges.SIMULATED.equals(exchangeName)) {
@@ -198,7 +205,12 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Override
   public Exchange get(String name) {
-    return exchanges.getUnchecked(name);
+    try {
+      return exchanges.getUnchecked(name);
+    } catch (UncheckedExecutionException e) {
+      Throwables.throwIfUnchecked(e.getCause());
+      throw e;
+    }
   }
 
   @Override

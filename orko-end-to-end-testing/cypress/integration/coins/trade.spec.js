@@ -41,7 +41,9 @@ function checkCancelServerSideOrder({
     cy.o("all").click()
   })
   cy.o("section/jobs").within(() => {
-    cy.get('[data-orko^="job/"]')
+    cy.get('[data-orko^="job/"]', {
+      timeout: LONG_WAIT
+    })
   })
   cy.o("section/orders").within(() => {
     cy.get("[data-type='openOrder/" + direction + "']").within(() => {
@@ -152,7 +154,7 @@ context("Trading", () => {
             "Limit price"
           ).to.eql(tradePrice(tickerPrice))
           expect(
-            $orders.openOrders[0].originalAmount.toFixed(1),
+            $orders.openOrders[0].originalAmount.toFixed(2),
             "Amount"
           ).to.eql(amount)
           expect($orders.openOrders[0].type).to.eql(
@@ -186,8 +188,8 @@ context("Trading", () => {
       cy.o("enablePaperTrading").click()
     })
 
-    limitTrade("buy", -100, "0.1")
-    limitTrade("sell", 100, "0.2")
+    limitTrade("buy", -100, "0.01")
+    limitTrade("sell", 100, "0.02")
   })
 
   it("Hidden orders", () => {

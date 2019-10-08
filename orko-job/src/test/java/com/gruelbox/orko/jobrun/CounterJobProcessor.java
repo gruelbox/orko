@@ -74,7 +74,7 @@ class CounterJobProcessor implements JobProcessor<CounterJob> {
 
   @Override
   public void setReplacedJob(CounterJob job) {
-    eventBus.post(new Integer(job.counter()));
+    eventBus.post(job.counter());
     this.job = job;
   }
 

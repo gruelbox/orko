@@ -149,6 +149,7 @@ export default function reduce(state = initialState, action = {}) {
   function replaceOrderContent(index, replacement) {
     const orders = Immutable.asMutable(state.orders, { deep: true })
     const existing = orders[index]
+    // eslint-disable-next-line
     for (const key of Object.keys(replacement)) {
       const val = replacement[key]
       if (val !== undefined && val !== null) {

@@ -11,7 +11,7 @@
     <connection>scm:git:https://github.com/gruelbox/orko.git</connection>
     <developerConnection>scm:git:git@github.com:gruelbox/orko.git</developerConnection>
     <url>https://github.com/gruelbox/orko</url>
-    <tag>0.14.1</tag>
+    <tag>0.14.2</tag>
   </scm>
 
   <issueManagement>
@@ -40,7 +40,7 @@
 
   <groupId>com.gruelbox</groupId>
   <artifactId>orko-parent</artifactId>
-  <version>0.14.1</version>
+  <version>0.14.2</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -217,22 +217,24 @@
     <skip.surefire.tests>${skipTests}</skip.surefire.tests>
 
     <guice.version>4.2.2</guice.version>
-    <autovalue.version>1.6.5</autovalue.version>
-    <dropwizard.version>1.3.12</dropwizard.version>
+    <autovalue.version>1.6.6</autovalue.version>
+    <dropwizard.version>1.3.15</dropwizard.version>
 
-    <!--<xchange.groupid>org.knowm.xchange</xchange.groupid> -->
-    <xchange.groupid>com.gruelbox</xchange.groupid>
-    <xchange.version>4.3.19.2</xchange.version>
+    <!--<xchange.groupid>com.gruelbox</xchange.groupid> -->
+    <xchange.groupid>org.knowm.xchange</xchange.groupid>
+    <xchange.version>4.4.0</xchange.version>
 
-    <!--<xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid> -->
-    <xchange.stream.groupid>com.gruelbox</xchange.stream.groupid>
-    <xchange.stream.version>4.3.16.3</xchange.stream.version>
+    <!--<xchange.stream.groupid>com.gruelbox</xchange.stream.groupid> -->
+    <xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid>
+    <xchange.stream.version>4.4.0</xchange.stream.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.badgerwithagun.2</morf.version>
 
     <dropwizard-https-redirect-version>0.0.5</dropwizard-https-redirect-version>
-    <dropwizard-guice-box-version>0.0.6</dropwizard-guice-box-version>
+    <dropwizard-guice-box-version>0.0.7</dropwizard-guice-box-version>
+  
+    <asm.version>7.2</asm.version>
 
     <!-- Sonar -->
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
@@ -243,6 +245,14 @@
 
   <dependencyManagement>
     <dependencies>
+      
+      <!-- Required by maven-compiler-plugin and maven-surefire-plugin on JDK9+ -->
+      <dependency>
+        <groupId>org.javassist</groupId>
+        <artifactId>javassist</artifactId>
+        <version>3.26.0-GA</version>
+      </dependency>
+      
       <dependency>
         <groupId>io.dropwizard</groupId>
         <artifactId>dropwizard-bom</artifactId>
@@ -250,6 +260,29 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      
+      <!-- Required by dropwizard on JDK9+ -->
+      <dependency>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+          <version>1.1.1</version>
+      </dependency>
+      <dependency>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+          <version>2.3.1</version>
+      </dependency>
+      <dependency>
+          <groupId>com.sun.xml.bind</groupId>
+          <artifactId>jaxb-core</artifactId>
+          <version>2.3.0.1</version>
+      </dependency>
+      <dependency>
+          <groupId>com.sun.xml.bind</groupId>
+          <artifactId>jaxb-impl</artifactId>
+          <version>2.3.2</version>
+      </dependency>
+      
       <dependency>
         <groupId>com.gruelbox</groupId>
         <artifactId>dropwizard-https-redirect</artifactId>
@@ -278,7 +311,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>28.0-jre</version>
+        <version>28.1-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject</groupId>
@@ -288,7 +321,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-collections4</artifactId>
-        <version>4.3</version>
+        <version>4.4</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
@@ -319,7 +352,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>2.28.2</version>
+        <version>3.1.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -332,7 +365,7 @@
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.16</version>
+        <version>8.0.17</version>
       </dependency>
       <dependency>
         <groupId>${morf.groupid}</groupId>
@@ -382,7 +415,7 @@
       <dependency>
         <groupId>org.jooq</groupId>
         <artifactId>jooq</artifactId>
-        <version>3.11.11</version>
+        <version>3.12.1</version>
       </dependency>
 
       <dependency>
@@ -408,13 +441,13 @@
       <dependency>
         <groupId>com.liveperson</groupId>
         <artifactId>dropwizard-websockets</artifactId>
-        <version>1.3.2</version>
+        <version>1.3.14</version>
       </dependency>
 
       <dependency>
         <groupId>io.reactivex.rxjava2</groupId>
         <artifactId>rxjava</artifactId>
-        <version>2.2.9</version>
+        <version>2.2.13</version>
       </dependency>
       <dependency>
         <groupId>${xchange.groupid}</groupId>
@@ -479,23 +512,23 @@
       </dependency>
       <dependency>
         <groupId>${xchange.stream.groupid}</groupId>
-        <artifactId>xchange-stream-binance</artifactId>
+        <artifactId>xchange-binance</artifactId>
         <version>${xchange.stream.version}</version>
       </dependency>
       <dependency>
         <groupId>${xchange.stream.groupid}</groupId>
-        <artifactId>xchange-stream-bitfinex</artifactId>
+        <artifactId>xchange-bitfinex</artifactId>
         <version>${xchange.stream.version}</version>
       </dependency>
       <dependency>
         <groupId>${xchange.stream.groupid}</groupId>
-        <artifactId>xchange-stream-coinbasepro</artifactId>
+        <artifactId>xchange-coinbasepro</artifactId>
         <version>${xchange.stream.version}</version>
       </dependency>
       <dependency>
         <groupId>org.sonarsource.java</groupId>
         <artifactId>sonar-jacoco-listeners</artifactId>
-        <version>5.13.0.18197</version>
+        <version>5.14.0.18788</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -510,6 +543,14 @@
             <source>${maven.compiler.source}</source>
             <target>${maven.compiler.target}</target>
           </configuration>
+          <dependencies>
+            <!-- JDK9+ fix -->
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm</artifactId>
+              <version>${asm.version}</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -534,6 +575,14 @@
             </excludes>
             <useSystemClassLoader>false</useSystemClassLoader>
           </configuration>
+          <dependencies>
+            <!-- JDK9+ fix -->
+            <dependency>
+              <groupId>org.ow2.asm</groupId>
+              <artifactId>asm</artifactId>
+              <version>${asm.version}</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -546,7 +595,7 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>3.1.12</version>
+          <version>3.1.12.2</version>
           <configuration>
             <excludeFilterFile>../etc/findbugs-exclude.xml</excludeFilterFile>
           </configuration>
@@ -568,7 +617,7 @@
             <dependency>
               <groupId>com.puppycrawl.tools</groupId>
               <artifactId>checkstyle</artifactId>
-              <version>8.21</version>
+              <version>8.25</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -580,6 +629,7 @@
             <failsOnError>true</failsOnError>
             <violationSeverity>warning</violationSeverity>
             <linkXRef>false</linkXRef>
+            <excludes>**/info/bitrich/**</excludes>
           </configuration>
           <executions>
             <execution>
@@ -616,17 +666,17 @@
         <plugin>
           <groupId>com.bazaarvoice.maven.plugins</groupId>
           <artifactId>process-exec-maven-plugin</artifactId>
-          <version>0.8</version>
+          <version>0.9</version>
         </plugin>
         <plugin>
           <groupId>com.github.eirslett</groupId>
           <artifactId>frontend-maven-plugin</artifactId>
-          <version>1.7.6</version>
+          <version>1.8.0</version>
         </plugin>
         <plugin>
           <groupId>de.jutzig</groupId>
           <artifactId>github-release-plugin</artifactId>
-          <version>1.3.0</version>
+          <version>1.4.0</version>
         </plugin>
       </plugins>
     </pluginManagement>

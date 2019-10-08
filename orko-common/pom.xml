@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.14.1</version>
+    <version>0.14.2</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -123,11 +123,11 @@
     </dependency>
     <dependency>
       <groupId>${xchange.groupid}</groupId>
-      <artifactId>xchange-stream-coinbasepro</artifactId>
+      <artifactId>xchange-coinbasepro</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.groupid}</groupId>
-      <artifactId>xchange-stream-binance</artifactId>
+      <artifactId>xchange-binance</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.groupid}</groupId>
@@ -135,7 +135,7 @@
     </dependency>
     <dependency>
       <groupId>${xchange.groupid}</groupId>
-      <artifactId>xchange-stream-bitfinex</artifactId>
+      <artifactId>xchange-bitfinex</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.groupid}</groupId>

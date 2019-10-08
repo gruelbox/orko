@@ -63,7 +63,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.bitfinex.common.dto.BitfinexException;
+import org.knowm.xchange.bitfinex.dto.BitfinexException;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
@@ -472,7 +472,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
       } catch (InterruptedException e) {
         throw e;
 
-      } catch (NotAvailableFromExchangeException | NotYetImplementedForExchangeException e) {
+      } catch (UnsupportedOperationException e) {
 
         // Disable the feature since XChange doesn't provide support for it.
         LOGGER.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
@@ -688,9 +688,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         } else {
           try {
             disposables.add(connectSubscription(s));
-          } catch (NotAvailableFromExchangeException e) {
-            markAsNotSubscribed.accept(s);
-          } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
+          } catch (UnsupportedOperationException | ExchangeSecurityException e) {
             LOGGER.debug("Not subscribing to {} on socket due to {}: {}", s.key(), e.getClass().getSimpleName(), e.getMessage());
             markAsNotSubscribed.accept(s);
           }
@@ -767,6 +765,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
         return;
       LOGGER.info("Connecting to exchange: {}", exchangeName);
       ProductSubscriptionBuilder builder = ProductSubscription.create();
+      boolean authenticated = exchangeService.isAuthenticated(exchangeName);
       subscriptionsForExchange.stream()
         .forEach(s -> {
           if (s.type().equals(TICKER)) {
@@ -778,13 +777,13 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
           if (s.type().equals(TRADES)) {
             builder.addTrades(s.spec().currencyPair());
           }
-          if (s.type().equals(USER_TRADE)) {
+          if (authenticated && s.type().equals(USER_TRADE) ) {
             builder.addUserTrades(s.spec().currencyPair());
           }
-          if (s.type().equals(ORDER)) {
+          if (authenticated && s.type().equals(ORDER)) {
             builder.addOrders(s.spec().currencyPair());
           }
-          if (s.type().equals(BALANCE)) {
+          if (authenticated && s.type().equals(BALANCE)) {
             builder.addBalances(s.spec().currencyPair().base);
             builder.addBalances(s.spec().currencyPair().counter);
           }

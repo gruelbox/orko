@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.14.1</version>
+    <version>0.14.2</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -109,7 +109,7 @@
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
-            <version>1.3.0</version>
+            <version>1.6.1</version>
             <configuration>
               <to>
                 <image>orko:latest</image>
@@ -159,13 +159,10 @@
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
-            <version>1.3.0</version>
+            <version>1.6.1</version>
             <configuration>
               <to>
-                <image>docker.io/gruelbox/orko:${docker.tag1}</image>
-                <tags>
-                  <tag>${docker.tag2}</tag>
-                </tags>
+                <image>docker.io/gruelbox/orko:${docker.tag}</image>
                 <auth>
                   <username>${env.DOCKERHUB_USER}</username>
                   <password>${env.DOCKERHUB_PASSWORD}</password>
@@ -234,6 +231,8 @@
           <releaseName>${project.version}</releaseName>
           <repositoryId>gruelbox/orko</repositoryId>
           <tag>${project.version}</tag>
+          <failOnExistingRelease>${github.failOnExistingRelease}</failOnExistingRelease>
+          <deleteRelease>${github.deleteRelease}</deleteRelease>
           <fileSets>
             <fileSet>
               <directory>${project.basedir}</directory>
