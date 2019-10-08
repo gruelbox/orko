@@ -629,6 +629,7 @@
             <failsOnError>true</failsOnError>
             <violationSeverity>warning</violationSeverity>
             <linkXRef>false</linkXRef>
+            <excludes>**/info/bitrich/**</excludes>
           </configuration>
           <executions>
             <execution>
