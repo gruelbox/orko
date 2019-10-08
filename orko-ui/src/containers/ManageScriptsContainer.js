@@ -33,7 +33,7 @@ const NEW_SCRIPT_ROUTE = "new"
 
 class ManageScriptsContainerOuter extends React.Component {
   componentDidMount() {
-    this.props.dispatch(scriptActions.fetch())
+    this.props.dispatch(scriptActions.fetch(this.props.auth))
   }
 
   render() {
@@ -45,6 +45,7 @@ class ManageScriptsContainerOuter extends React.Component {
         match={this.props.match}
         history={this.props.history}
         dispatch={this.props.dispatch}
+        auth={this.props.auth}
       />
     )
   }
