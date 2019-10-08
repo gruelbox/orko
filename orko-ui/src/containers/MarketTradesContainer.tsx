@@ -19,7 +19,7 @@ import React, { useContext } from "react"
 import TradeHistory from "../components/TradeHistory"
 import WhileLoading from "../components/WhileLoading"
 import WithCoin from "./WithCoin"
-import { SocketContext } from "@orko-ui-socket/index"
+import { SocketContext } from "modules/socket"
 
 const MarketTradesContainer: React.FC<any> = () => {
   const socketApi = useContext(SocketContext)

@@ -18,14 +18,13 @@
 import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import scriptService from "../../services/script"
-import { AuthApi } from "@orko-ui-auth/index"
+import { AuthApi } from "modules/auth"
 
 export function fetch(auth: AuthApi) {
   return auth.wrappedRequest(
     () => scriptService.fetchScripts(),
     json => ({ type: types.SET_SCRIPTS, payload: json }),
-    error =>
-      errorActions.setForeground("Could not fetch scripts: " + error.message)
+    error => errorActions.setForeground("Could not fetch scripts: " + error.message)
   )
 }
 
@@ -33,8 +32,7 @@ export function remove(auth: AuthApi, id) {
   return auth.wrappedRequest(
     () => scriptService.deleteScript(id),
     null,
-    error =>
-      errorActions.setForeground("Could not delete script: " + error.message),
+    error => errorActions.setForeground("Could not delete script: " + error.message),
     () => ({ type: types.DELETE_SCRIPT, payload: id })
   )
 }
@@ -43,8 +41,7 @@ export function add(auth: AuthApi, script) {
   return auth.wrappedRequest(
     () => scriptService.saveScript(script),
     null,
-    error =>
-      errorActions.setForeground("Could not add script: " + error.message),
+    error => errorActions.setForeground("Could not add script: " + error.message),
     () => ({ type: types.ADD_SCRIPT, payload: script })
   )
 }
@@ -53,8 +50,7 @@ export function update(auth: AuthApi, script) {
   return auth.wrappedRequest(
     () => scriptService.saveScript(script),
     null,
-    error =>
-      errorActions.setForeground("Could not update script: " + error.message),
+    error => errorActions.setForeground("Could not update script: " + error.message),
     () => ({ type: types.UPDATE_SCRIPT, payload: script })
   )
 }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import Immutable from "seamless-immutable"
-import { getFromLS, saveToLS } from "@orko-ui-common/util/localStorage"
+import { getFromLS, saveToLS } from "modules/common/util/localStorage"
 import { Layout } from "react-grid-layout"
 import { useReducer, useMemo } from "react"
 import { OfAllPanels } from "Framework"

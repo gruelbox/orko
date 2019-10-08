@@ -22,12 +22,12 @@ import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
 import WhileLoading from "../components/WhileLoading"
 import * as jobActions from "../store/job/actions"
-import { AuthContext } from "@orko-ui-auth/index"
-import exchangesService from "@orko-ui-market/exchangesService"
-import { Coin } from "@orko-ui-market/index"
-import { SocketContext, Order } from "@orko-ui-socket/index"
+import { AuthContext } from "modules/auth"
+import exchangesService from "modules/market/exchangesService"
+import { Coin } from "modules/market"
+import { SocketContext, Order } from "modules/socket"
 import { getSelectedCoin, getJobsAsOrdersForSelectedCoin } from "selectors/coins"
-import { LogContext } from "@orko-ui-log/index"
+import { LogContext } from "modules/log"
 
 const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin; dispatch }> = ({
   jobsAsOrders,

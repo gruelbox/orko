@@ -17,7 +17,7 @@
  */
 import React, { useContext } from "react"
 
-import * as dateUtils from "@orko-ui-common/util/dateUtils"
+import * as dateUtils from "modules/common/util/dateUtils"
 
 import ReactTable from "react-table"
 import Section from "components/primitives/Section"

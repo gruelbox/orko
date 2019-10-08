@@ -23,8 +23,8 @@ import ReactTable from "react-table"
 import Link from "../components/primitives/Link"
 import Href from "../components/primitives/Href"
 import Price from "../components/primitives/Price"
-import { Exchange, Coin } from "@orko-ui-market/index"
-import { Ticker } from "@orko-ui-socket/index"
+import { Exchange, Coin } from "modules/market"
+import { Ticker } from "modules/socket"
 
 const textStyle = {
   textAlign: "left"

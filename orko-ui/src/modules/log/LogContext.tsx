@@ -1,7 +1,7 @@
 import React, { ReactElement, useMemo, useRef, useState } from "react"
 import Immutable from "seamless-immutable"
-import { showBrowserNotification } from "@orko-ui-common/util/browserUtils"
-import { useArray } from "@orko-ui-common/util/hookUtils"
+import { showBrowserNotification } from "modules/common/util/browserUtils"
+import { useArray } from "modules/common/util/hookUtils"
 import { ErrorPopup } from "./ErrorPopup"
 
 const ERROR = "ERROR"

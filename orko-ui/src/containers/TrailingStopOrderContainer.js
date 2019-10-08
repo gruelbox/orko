@@ -22,10 +22,10 @@ import uuidv4 from "uuid/v4"
 import TrailingStopOrder from "../components/TrailingStopOrder"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
-import { isValidNumber } from "@orko-ui-common/util/numberUtils"
+import { isValidNumber } from "modules/common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
-import { withAuth } from "@orko-ui-auth/index"
-import { withSocket } from "@orko-ui-socket/"
+import { withAuth } from "modules/auth"
+import { withSocket } from "modules/socket/"
 import { withFramework } from "FrameworkContainer"
 
 class TrailingStopOrderContainer extends React.Component {

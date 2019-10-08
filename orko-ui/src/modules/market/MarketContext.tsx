@@ -1,9 +1,9 @@
 import React, { ReactElement, useMemo, useEffect, useContext, useState } from "react"
 import Immutable from "seamless-immutable"
-import { AuthContext } from "@orko-ui-auth/index"
+import { AuthContext } from "modules/auth"
 import { Exchange, Coin } from "./Types"
 import exchangesService from "./exchangesService"
-import { LogContext } from "@orko-ui-log/index"
+import { LogContext } from "modules/log"
 import { connect } from "react-redux"
 import { getSelectedCoin } from "selectors/coins"
 

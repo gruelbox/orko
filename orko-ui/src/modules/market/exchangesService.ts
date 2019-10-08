@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { get, put, del, post } from "@orko-ui-common/util/fetchUtil"
+import { get, put, del, post } from "modules/common/util/fetchUtil"
 import { Coin, ServerCoin } from "./Types"
 
 class ExchangesService {

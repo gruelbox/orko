@@ -22,7 +22,7 @@ import Window from "../components/primitives/Window"
 import CreateAlertContainer from "./CreateAlertContainer"
 import * as jobActions from "../store/job/actions"
 import { isAlert } from "../util/jobUtils"
-import { AuthContext } from "@orko-ui-auth/index"
+import { AuthContext } from "modules/auth"
 import Alerts from "components/Alerts"
 import { FrameworkContext } from "FrameworkContainer"
 

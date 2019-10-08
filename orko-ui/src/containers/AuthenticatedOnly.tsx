@@ -19,7 +19,7 @@ import React, { useContext, ReactElement } from "react"
 import styled from "styled-components"
 import { space } from "styled-system"
 import NotAuthenticated from "../components/NotAuthenticated"
-import { MarketContext } from "@orko-ui-market/index"
+import { MarketContext } from "modules/market"
 import { FrameworkContext } from "FrameworkContainer"
 
 const Padded = styled.div`

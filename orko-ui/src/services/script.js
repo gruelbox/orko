@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { put, get, del } from "@orko-ui-common/util/fetchUtil"
+import { put, get, del } from "modules/common/util/fetchUtil"
 
 class ScriptService {
   async fetchScripts() {

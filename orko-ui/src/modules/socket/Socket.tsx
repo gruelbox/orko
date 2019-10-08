@@ -17,16 +17,16 @@
  */
 import React, { useEffect, ReactElement, useContext, useState, useMemo, useCallback } from "react"
 
-import { AuthContext } from "@orko-ui-auth/index"
-import { LogContext, LogRequest } from "@orko-ui-log/index"
+import { AuthContext } from "modules/auth"
+import { LogContext, LogRequest } from "modules/log"
 
 import * as socketClient from "./socket.client"
 import { locationToCoin } from "../../selectors/coins"
 import { SocketContext, SocketApi } from "./SocketContext"
-import { Coin } from "@orko-ui-market/index"
+import { Coin } from "modules/market"
 import { Map } from "immutable"
 import { Ticker, Balance, OrderBook, Trade, UserTrade, Order } from "./Types"
-import { useArray } from "@orko-ui-common/util/hookUtils"
+import { useArray } from "modules/common/util/hookUtils"
 import { useOrders } from "./useOrders"
 import { ServerContext } from "modules/server"
 

@@ -18,9 +18,9 @@
 import * as socketMessages from "./socketMessages"
 import runtimeEnv from "@mars/heroku-js-runtime-env"
 import ReconnectingWebSocket from "reconnecting-websocket"
-import { augmentCoin, coin as createCoin, Coin } from "@orko-ui-market/index"
+import { augmentCoin, coin as createCoin, Coin } from "modules/market"
 import { Ticker, Trade, OrderBook, Balance, ServerTrade, UserTrade } from "./Types"
-import { LogRequest } from "@orko-ui-log/index"
+import { LogRequest } from "modules/log"
 
 type MessageHandler = (message: string) => void
 type NotificationHandler = (logEntry: LogRequest) => void

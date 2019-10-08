@@ -21,9 +21,9 @@ import OrderBookSide from "../components/OrderBookSide"
 import styled from "styled-components"
 import WhileLoading from "../components/WhileLoading"
 import WithCoin from "./WithCoin"
-import { SocketContext } from "@orko-ui-socket/index"
+import { SocketContext } from "modules/socket"
 import { getSelectedCoin } from "selectors/coins"
-import { Coin } from "@orko-ui-market/index"
+import { Coin } from "modules/market"
 
 const Split = styled.section`
   display: flex;

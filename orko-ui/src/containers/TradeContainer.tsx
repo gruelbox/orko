@@ -17,7 +17,7 @@
  */
 import React, { useContext } from "react"
 import TradeSelector from "../components/TradeSelector"
-import { MarketContext } from "@orko-ui-market/index"
+import { MarketContext } from "modules/market"
 
 const TradeContainer: React.FC<any> = () => {
   const marketApi = useContext(MarketContext)

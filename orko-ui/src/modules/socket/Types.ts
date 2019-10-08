@@ -1,4 +1,4 @@
-import { PartialServerCoin, augmentCoin, Coin } from "@orko-ui-market/index"
+import { PartialServerCoin, augmentCoin, Coin } from "modules/market"
 
 export interface Ticker {
   bid: number

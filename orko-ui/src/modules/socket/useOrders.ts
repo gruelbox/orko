@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import Immutable from "seamless-immutable"
-import { Order, OrderStatus } from "@orko-ui-socket/index"
+import { Order, OrderStatus } from "modules/socket"
 import { useReducer, useMemo } from "react"
 
 export interface UseOrderArrayApi {

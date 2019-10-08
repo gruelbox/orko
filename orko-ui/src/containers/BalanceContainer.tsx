@@ -20,7 +20,7 @@ import Balance from "../components/Balance"
 import Section from "../components/primitives/Section"
 import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
-import { SocketContext } from "@orko-ui-socket/index"
+import { SocketContext } from "modules/socket"
 
 const BalanceContainer: React.FC<any> = () => {
   const socketApi = useContext(SocketContext)

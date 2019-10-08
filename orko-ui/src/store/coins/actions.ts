@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import * as types from "./actionTypes"
-import exchangesService from "@orko-ui-market/exchangesService"
+import exchangesService from "modules/market/exchangesService"
 import * as errorActions from "../error/actions"
-import { AuthApi } from "@orko-ui-auth/index"
-import { Coin } from "@orko-ui-market/index"
+import { AuthApi } from "modules/auth"
+import { Coin } from "modules/market"
 
 export function fetchReferencePrices(auth: AuthApi) {
   return auth.wrappedRequest(

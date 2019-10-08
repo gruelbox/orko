@@ -18,16 +18,13 @@
 import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import supportService from "../../services/support"
-import { AuthApi } from "@orko-ui-auth/index"
+import { AuthApi } from "modules/auth"
 
 export function fetchMetadata(auth: AuthApi) {
   return auth.wrappedRequest(
     () => supportService.fetchMetadata(),
     json => ({ type: types.SET_META, payload: json }),
-    error =>
-      errorActions.setForeground(
-        "Could not fetch application metadata: " + error.message
-      )
+    error => errorActions.setForeground("Could not fetch application metadata: " + error.message)
   )
 }
 

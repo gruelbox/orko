@@ -18,9 +18,9 @@
 import { createSelector, OutputSelector } from "reselect"
 import { getRouterLocation } from "./router"
 import { getStopJobs } from "./jobs"
-import { coinFromKey } from "@orko-ui-market/coinUtils"
+import { coinFromKey } from "modules/market/coinUtils"
 import { Coin, ServerCoin } from "modules/market/Types"
-import { Order } from "@orko-ui-socket/index"
+import { Order } from "modules/socket"
 
 export const locationToCoin = (location: Location): Coin => {
   if (

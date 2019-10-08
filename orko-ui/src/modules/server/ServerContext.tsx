@@ -1,5 +1,5 @@
 import React from "react"
-import { Coin } from "@orko-ui-market/index"
+import { Coin } from "modules/market"
 import { CoinMetadata } from "./Types"
 import { Map } from "immutable"
 

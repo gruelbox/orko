@@ -19,15 +19,14 @@ import * as types from "./actionTypes"
 import * as errorActions from "../error/actions"
 import jobService from "../../services/job"
 import * as jobTypes from "../../services/jobTypes"
-import { AuthApi } from "@orko-ui-auth/index"
-import { LogApi } from "@orko-ui-log/index"
+import { AuthApi } from "modules/auth"
+import { LogApi } from "modules/log"
 
 export function submitJob(auth: AuthApi, job) {
   return auth.wrappedRequest(
     () => jobService.submitJob(job),
     null,
-    error =>
-      errorActions.setForeground("Could not submit job: " + error.message),
+    error => errorActions.setForeground("Could not submit job: " + error.message),
     () => addJob(job)
   )
 }
@@ -36,8 +35,7 @@ export function submitScriptJob(auth: AuthApi, job) {
   return auth.wrappedRequest(
     () => jobService.submitScriptJob(job),
     null,
-    error =>
-      errorActions.setForeground("Could not submit job: " + error.message),
+    error => errorActions.setForeground("Could not submit job: " + error.message),
     () => addJob({ ...job, jobType: jobTypes.SCRIPT })
   )
 }
@@ -58,8 +56,7 @@ export function deleteJob(auth: AuthApi, job) {
   return auth.wrappedRequest(
     () => jobService.deleteJob(job),
     null,
-    error =>
-      errorActions.setForeground("Failed to delete job: " + error.message),
+    error => errorActions.setForeground("Failed to delete job: " + error.message),
     () => ({ type: types.DELETE_JOB, payload: job })
   )
 }

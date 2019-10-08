@@ -25,7 +25,7 @@ import RenderIf from "../components/RenderIf"
 import {
   getValueFromLS,
   saveValueToLS
-} from "@orko-ui-common/util/localStorage"
+} from "modules/common/util/localStorage"
 
 const LOCAL_STORAGE_KEY = "MarketContainer.animate"
 

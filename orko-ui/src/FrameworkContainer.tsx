@@ -18,12 +18,12 @@
 import React, { useState, useContext, useEffect, useMemo } from "react"
 import Framework, { DragData } from "./Framework"
 import theme from "./theme"
-import { AuthContext, AuthApi } from "@orko-ui-auth/index"
+import { AuthContext, AuthApi } from "modules/auth"
 import { DraggableData } from "react-rnd"
 import Immutable from "seamless-immutable"
 import useUiConfig, { Panel } from "./useUiConfig"
 import { Layouts, Layout } from "react-grid-layout"
-import { Coin } from "@orko-ui-market/index"
+import { Coin } from "modules/market"
 import { CoinCallback } from "components/Coins"
 
 function windowToBreakpoint(width: number) {

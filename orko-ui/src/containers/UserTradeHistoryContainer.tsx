@@ -20,7 +20,7 @@ import TradeHistory from "../components/TradeHistory"
 import WhileLoading from "../components/WhileLoading"
 import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
-import { SocketContext } from "@orko-ui-socket/index"
+import { SocketContext } from "modules/socket"
 
 const UserTradeHistoryContainer: React.FC<any> = () => {
   const userTrades = useContext(SocketContext).userTrades

@@ -21,9 +21,9 @@ import Immutable from "seamless-immutable"
 import Alert from "../components/Alert"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
-import { isValidNumber } from "@orko-ui-common/util/numberUtils"
+import { isValidNumber } from "modules/common/util/numberUtils"
 import uuidv4 from "uuid/v4"
-import { withAuth } from "@orko-ui-auth/index"
+import { withAuth } from "modules/auth"
 import { withFramework } from "FrameworkContainer"
 
 class CreateAlertContainer extends React.Component {

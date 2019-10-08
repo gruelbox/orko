@@ -21,7 +21,7 @@ import Whitelisting from "./Whitelisting"
 import Login from "./Login"
 import LoginDetails from "./LoginDetails"
 import authService from "./auth"
-import { setXsrfToken, clearXsrfToken } from "@orko-ui-common/util/fetchUtil"
+import { setXsrfToken, clearXsrfToken } from "modules/common/util/fetchUtil"
 import { AuthContext, AuthApi } from "./AuthContext"
 
 interface AuthorizerProps {

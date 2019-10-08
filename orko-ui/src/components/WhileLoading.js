@@ -17,7 +17,7 @@
  */
 import React from "react"
 import Loading from "./primitives/Loading"
-import { isFunction } from "@orko-ui-common/util/objectUtils"
+import { isFunction } from "modules/common/util/objectUtils"
 
 export default ({ data, padded, children }) => {
   if (data) {

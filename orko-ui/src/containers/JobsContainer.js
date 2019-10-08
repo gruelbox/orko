@@ -28,7 +28,7 @@ import Para from "../components/primitives/Para"
 import Loading from "../components/primitives/Loading"
 import JobShort from "../components/JobShort"
 import Tab from "../components/primitives/Tab"
-import { withAuth } from "@orko-ui-auth/index"
+import { withAuth } from "modules/auth"
 
 class JobsContainer extends React.Component {
   constructor(props) {
@@ -55,8 +55,7 @@ class JobsContainer extends React.Component {
   render() {
     const onRemove = this.onRemove
     const complexOnly = this.state.selected === "onlycomplex"
-    const show = job =>
-      !complexOnly || (!jobUtils.isAlert(job) && !jobUtils.isStop(job))
+    const show = job => !complexOnly || (!jobUtils.isAlert(job) && !jobUtils.isStop(job))
     const rawJobs = this.props.jobs.filter(job => show(job))
     var jobs
     if (this.state.loading) {
@@ -68,9 +67,7 @@ class JobsContainer extends React.Component {
         jobs = <Para>No active jobs</Para>
       }
     } else {
-      jobs = rawJobs.map(job => (
-        <JobShort key={job.id} job={job} onRemove={() => onRemove(job)} />
-      ))
+      jobs = rawJobs.map(job => <JobShort key={job.id} job={job} onRemove={() => onRemove(job)} />)
     }
 
     var buttons = (
