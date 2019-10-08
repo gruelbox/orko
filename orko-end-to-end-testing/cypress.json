@@ -9,5 +9,6 @@
   },
   "viewportWidth": 1200,
   "viewportHeight": 1080,
-  "projectId": "ttud56"
+  "projectId": "ttud56",
+  "defaultCommandTimeout": 10000
 }
