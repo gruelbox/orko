@@ -14,7 +14,7 @@ mainenvironment: &mainenvironment
   BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 setup: &setup
   docker:
-    - image: circleci/openjdk:8-jdk-browsers
+    - image: circleci/openjdk:11-jdk-browsers
       environment: *mainenvironment
   working_directory: ~/orko
 
@@ -164,7 +164,7 @@ jobs:
     steps:
       - run:
           name: apt update
-          command: sudo apt-get update -y
+          command: sudo rm -rf /var/lib/apt/lists/* && sudo apt-get update -y
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
@@ -203,7 +203,7 @@ jobs:
 
   "Unit tests (MySQL)":
     docker:
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: circleci/openjdk:11-jdk-browsers
         environment: *mainenvironment
       - image: circleci/mysql:5.7
         environment:
