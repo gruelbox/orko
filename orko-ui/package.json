@@ -41,7 +41,7 @@
     "semantic-ui-react": "^0.88.1",
     "styled-components": "^4.4.0",
     "styled-system": "^5.1.2",
-    "typescript": "^3.6.2",
+    "typescript": "^3.6.4",
     "uuid": "^3.3.3",
     "whatwg-fetch": "^3.0.0"
   },
