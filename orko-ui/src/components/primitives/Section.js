@@ -48,19 +48,13 @@ const SectionHeadingBox = styled.div`
 const SectionInner = styled.section`
   background-color: ${props => props.theme.colors.backgrounds[1]};
   padding-top: ${props => (props.nopadding ? 0 : "10px")};
-  padding-bottom: ${props =>
-    props.nopadding ? 0 : props.theme.space[2] + "px"};
+  padding-bottom: ${props => (props.nopadding ? 0 : props.theme.space[2] + "px")};
   padding-left: ${props => (props.nopadding ? 0 : props.theme.space[2] + "px")};
-  padding-right: ${props =>
-    props.nopadding ? 0 : props.theme.space[2] + "px"};
+  padding-right: ${props => (props.nopadding ? 0 : props.theme.space[2] + "px")};
   flex: 1
   position: relative;
-  overflow-x: ${props =>
-    props.scroll === "horizontal" || props.scroll === "both"
-      ? "scroll"
-      : "auto"};
-  overflow-y: ${props =>
-    props.scroll === "vertical" || props.scroll === "both" ? "scroll" : "auto"};
+  overflow-x: ${props => (props.scroll === "horizontal" || props.scroll === "both" ? "scroll" : "auto")};
+  overflow-y: ${props => (props.scroll === "vertical" || props.scroll === "both" ? "scroll" : "auto")};
 `
 
 const FloatingIcon = styled.div`
@@ -80,11 +74,7 @@ class Section extends React.Component {
         {context => (
           <SectionBox>
             <SectionHeadingBox
-              className={
-                context && context.draggable && !context.compactDragHandle
-                  ? "dragMe"
-                  : undefined
-              }
+              className={context && context.draggable && !context.compactDragHandle ? "dragMe" : undefined}
               data-orko={"section/" + this.props.id + "/tabs"}
             >
               <Heading p={0} my={0} ml={0} mr={3} color="heading">
@@ -101,11 +91,7 @@ class Section extends React.Component {
                 )}
                 {context && context.draggable && context.compactDragHandle && (
                   <Span color="deemphasis">
-                    <Icon
-                      name="arrows alternate"
-                      title="Drag to re-order panel"
-                      className="dragMe"
-                    />
+                    <Icon name="arrows alternate" title="Drag to re-order panel" className="dragMe" />
                   </Span>
                 )}
                 {context && context.draggable && !!context.onToggleAttached && (
@@ -115,17 +101,10 @@ class Section extends React.Component {
                     color="deemphasis"
                     onClick={context.onToggleAttached}
                   >
-                    <Icon
-                      name="external square alternate"
-                      title="Detach/detach window"
-                    />
+                    <Icon name="external square alternate" title="Detach/detach window" />
                   </Href>
                 )}
-                <Span
-                  ml={
-                    context && (!!context.onHide || !!context.draggable) ? 1 : 0
-                  }
-                >
+                <Span ml={context && (!!context.onHide || !!context.draggable) ? 1 : 0}>
                   {this.props.heading}
                 </Span>
                 {context && context.icon && (
@@ -134,9 +113,7 @@ class Section extends React.Component {
                   </FloatingIcon>
                 )}
               </Heading>
-              <div style={{ whiteSpace: "nowrap" }}>
-                {this.props.buttons && this.props.buttons()}
-              </div>
+              <div style={{ whiteSpace: "nowrap" }}>{this.props.buttons && this.props.buttons()}</div>
             </SectionHeadingBox>
             <SectionInner
               data-orko={"section/" + this.props.id}
@@ -155,5 +132,5 @@ class Section extends React.Component {
 
 export default Section
 
-const Context = React.createContext("Section")
+const Context = React.createContext()
 export const Provider = Context.Provider

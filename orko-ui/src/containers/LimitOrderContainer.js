@@ -18,15 +18,16 @@
 import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
-
 import LimitOrder from "../components/LimitOrder"
-
-import * as focusActions from "../store/focus/actions"
-import * as exchangesActions from "../store/exchanges/actions"
-import { isValidNumber } from "../util/numberUtils"
+import { isValidNumber } from "modules/common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
-import exchangeService from "../services/exchanges"
+import exchangeService from "modules/market/exchangesService"
 import * as errorActions from "../store/error/actions"
+import { withAuth } from "modules/auth"
+import { withLog } from "modules/log/"
+import exchangesService from "modules/market/exchangesService"
+import { withSocket } from "modules/socket/"
+import { withFramework } from "FrameworkContainer"
 
 class LimitOrderContainer extends React.Component {
   constructor(props) {
@@ -46,15 +47,13 @@ class LimitOrderContainer extends React.Component {
   }
 
   onFocus = focusedProperty => {
-    this.props.dispatch(
-      focusActions.setUpdateAction(value => {
-        this.setState(prev => ({
-          order: prev.order.merge({
-            [focusedProperty]: value
-          })
-        }))
-      })
-    )
+    this.props.frameworkApi.setLastFocusedFieldPopulater(value => {
+      this.setState(prev => ({
+        order: prev.order.merge({
+          [focusedProperty]: value
+        })
+      }))
+    })
   }
 
   createOrder = direction => ({
@@ -80,9 +79,7 @@ class LimitOrderContainer extends React.Component {
           // No-op
         }
         if (!errorMessage) {
-          errorMessage = response.statusText
-            ? response.statusText
-            : "Server error (" + response.status + ")"
+          errorMessage = response.statusText ? response.statusText : "Server error (" + response.status + ")"
         }
 
         throw new Error(errorMessage)
@@ -101,11 +98,15 @@ class LimitOrderContainer extends React.Component {
     }
   }
 
-  onSubmit = async direction => {
+  onSubmit = direction => {
     const order = this.createOrder(direction)
-    this.props.dispatch(
-      exchangesActions.submitLimitOrder(this.props.coin.exchange, order)
-    )
+    this.props.socketApi.createPlaceholder(order)
+    this.props.auth
+      .authenticatedRequest(() => exchangesService.submitOrder(this.props.coin.exchange, order))
+      .catch(error => {
+        this.props.socketApi.removePlaceholder()
+        this.props.logApi.errorPopup("Could not submit order: " + error.message)
+      })
   }
 
   render() {
@@ -114,9 +115,7 @@ class LimitOrderContainer extends React.Component {
       isValidNumber(this.state.order.limitPrice) &&
       this.state.order.limitPrice > 0
     const amountValid =
-      this.state.order.amount &&
-      isValidNumber(this.state.order.amount) &&
-      this.state.order.amount > 0
+      this.state.order.amount && isValidNumber(this.state.order.amount) && this.state.order.amount > 0
 
     return (
       <LimitOrder
@@ -140,4 +139,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(LimitOrderContainer)
+export default withFramework(withSocket(withLog(withAuth(connect(mapStateToProps)(LimitOrderContainer)))))

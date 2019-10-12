@@ -1,0 +1,47 @@
+/*
+ * Orko
+ * Copyright © 2018-2019 Graham Crockford
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+import React, { ReactElement } from "react"
+import { connect } from "react-redux"
+
+import NoCoinSelected from "../components/NoCoinSelected"
+
+import { getSelectedCoin } from "../selectors/coins"
+import { Coin } from "modules/market/Types"
+
+interface WithCoinProps {
+  children(coin: Coin): ReactElement
+  padded?: boolean
+}
+
+interface WithCoinReduxProps extends WithCoinProps {
+  coin: Coin
+}
+
+const WithCoin: React.FC<WithCoinReduxProps> = ({ coin, children, padded }) => {
+  if (!!coin) {
+    return children(coin)
+  } else {
+    return <NoCoinSelected padded={padded} />
+  }
+}
+
+const WithCoinContainer: React.FC<WithCoinProps> = connect(state => ({
+  coin: getSelectedCoin(state)
+}))(WithCoin)
+
+export default WithCoinContainer

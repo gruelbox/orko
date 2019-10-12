@@ -19,9 +19,11 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import styled from "styled-components"
 import { fontSize, color, fontWeight, space } from "styled-system"
-import { formatNumber } from "../../util/numberUtils"
+import { formatNumber } from "modules/common/util/numberUtils"
 import Loading from "./Loading"
 import { connect } from "react-redux"
+import { withFramework } from "FrameworkContainer"
+import { withServer } from "modules/server"
 
 const PriceKey = styled.div.attrs({
   py: 0,
@@ -108,11 +110,7 @@ class Price extends React.PureComponent {
         clearTimeout(this.timeout)
         this.setState(
           { movement: movement },
-          () =>
-            (this.timeout = setTimeout(
-              () => this.setState({ movement: null }),
-              2100
-            ))
+          () => (this.timeout = setTimeout(() => this.setState({ movement: null }), 2100))
         )
       }
     }
@@ -129,10 +127,7 @@ class Price extends React.PureComponent {
   }
 
   render() {
-    if (
-      this.props.hideMissing &&
-      (this.props.children === undefined || this.props.children === null)
-    ) {
+    if (this.props.hideMissing && (this.props.children === undefined || this.props.children === null)) {
       return null
     }
     const noValue = this.props.noValue ? this.props.noValue : <Loading fitted />
@@ -147,20 +142,14 @@ class Price extends React.PureComponent {
           className={this.props.className}
           data-orko={this.props["data-orko"]}
         >
-          {this.props.children === "--"
-            ? "--"
-            : formatNumber(this.props.children, this.props.scale, noValue)}
+          {this.props.children === "--" ? "--" : formatNumber(this.props.children, this.props.scale, noValue)}
         </BarePriceValue>
       )
     } else {
       return (
         <Container my={0} mx={2}>
-          <PriceKey
-            color={this.props.nameColor ? this.props.nameColor : "fore"}
-            fontSize={1}
-          >
-            {this.props.name}{" "}
-            {this.props.icon ? <Icon name={this.props.icon} /> : ""}
+          <PriceKey color={this.props.nameColor ? this.props.nameColor : "fore"} fontSize={1}>
+            {this.props.name} {this.props.icon ? <Icon name={this.props.icon} /> : ""}
           </PriceKey>
           <PriceValue
             color={this.props.color ? this.props.color : "heading"}
@@ -180,20 +169,23 @@ class Price extends React.PureComponent {
   }
 }
 
-const nullOnCLick = number => {}
+const nullOnCLick = () => {}
 
+/**
+ * TODO this can be removed now along with the redux connect
+ */
 function mapStateToProps(state, props) {
-  const meta = props.coin ? state.coins.meta[props.coin.key] : undefined
+  const meta = props.coin ? props.serverApi.coinMetadata.get(props.coin.key) : undefined
   const scale = meta ? meta.priceScale : 8
   return {
     title: props.onClick ? undefined : "Copy price to target field",
     onClick: props.onClick
       ? props.onClick
-      : state.focus.fn
-      ? value => state.focus.fn(formatNumber(value, scale, ""))
+      : props.frameworkApi.populateLastFocusedField
+      ? value => props.frameworkApi.populateLastFocusedField(formatNumber(value, scale, ""))
       : nullOnCLick,
     scale
   }
 }
 
-export default connect(mapStateToProps)(Price)
+export default withServer(withFramework(connect(mapStateToProps)(Price)))

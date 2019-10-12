@@ -19,9 +19,11 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import styled from "styled-components"
 import { fontSize, color, fontWeight, space } from "styled-system"
-import { formatNumber } from "../../util/numberUtils"
+import { formatNumber } from "modules/common/util/numberUtils"
 import Loading from "./Loading"
 import { connect } from "react-redux"
+import { withFramework } from "FrameworkContainer"
+import { withServer } from "modules/server"
 
 const AmountKey = styled.div.attrs({
   py: 0,
@@ -108,11 +110,7 @@ class Amount extends React.PureComponent {
         clearTimeout(this.timeout)
         this.setState(
           { movement: movement },
-          () =>
-            (this.timeout = setTimeout(
-              () => this.setState({ movement: null }),
-              2100
-            ))
+          () => (this.timeout = setTimeout(() => this.setState({ movement: null }), 2100))
         )
       }
     }
@@ -141,20 +139,14 @@ class Amount extends React.PureComponent {
           className={this.props.className}
           data-orko={this.props["data-orko"]}
         >
-          {this.props.children === "--"
-            ? "--"
-            : formatNumber(this.props.children, this.props.scale, noValue)}
+          {this.props.children === "--" ? "--" : formatNumber(this.props.children, this.props.scale, noValue)}
         </BareAmountValue>
       )
     } else {
       return (
         <Container my={0} mx={2}>
-          <AmountKey
-            color={this.props.nameColor ? this.props.nameColor : "fore"}
-            fontSize={1}
-          >
-            {this.props.name}{" "}
-            {this.props.icon ? <Icon name={this.props.icon} /> : ""}
+          <AmountKey color={this.props.nameColor ? this.props.nameColor : "fore"} fontSize={1}>
+            {this.props.name} {this.props.icon ? <Icon name={this.props.icon} /> : ""}
           </AmountKey>
           <AmountValue
             color={this.props.color ? this.props.color : "heading"}
@@ -174,23 +166,23 @@ class Amount extends React.PureComponent {
   }
 }
 
-const nullOnCLick = number => {}
+const nullOnCLick = () => {}
 
+/**
+ * TODO this can be removed now along with the redux connect
+ */
 function mapStateToProps(state, props) {
-  const meta =
-    props.deriveScale && props.coin
-      ? state.coins.meta[props.coin.key]
-      : undefined
+  const meta = props.deriveScale && props.coin ? props.serverApi.coinMetadata.get(props.coin.key) : undefined
   const scale = meta ? props.deriveScale(meta) : -1
   return {
     title: props.onClick ? undefined : "Copy amount to target field",
     onClick: props.onClick
       ? props.onClick
-      : state.focus.fn
-      ? value => state.focus.fn(formatNumber(value, scale, ""))
+      : props.frameworkApi.populateLastFocusedField
+      ? value => props.frameworkApi.populateLastFocusedField(formatNumber(value, scale, ""))
       : nullOnCLick,
     scale
   }
 }
 
-export default connect(mapStateToProps)(Amount)
+export default withServer(withFramework(connect(mapStateToProps)(Amount)))

@@ -24,15 +24,16 @@ import ScriptEditor from "../components/ScriptEditor"
 import ScriptParameterContainer from "./ScriptParameterContainer"
 import { newScript, newParameter } from "../store/scripting/reducer"
 import * as scriptActions from "../store/scripting/actions"
-import { replaceInArray } from "../util/objectUtils"
+import { replaceInArray } from "modules/common/util/objectUtils"
 
 import uuidv4 from "uuid/v4"
+import { withAuth } from "modules/auth"
 
 const NEW_SCRIPT_ROUTE = "new"
 
 class ManageScriptsContainerOuter extends React.Component {
   componentDidMount() {
-    this.props.dispatch(scriptActions.fetch())
+    this.props.dispatch(scriptActions.fetch(this.props.auth))
   }
 
   render() {
@@ -44,6 +45,7 @@ class ManageScriptsContainerOuter extends React.Component {
         match={this.props.match}
         history={this.props.history}
         dispatch={this.props.dispatch}
+        auth={this.props.auth}
       />
     )
   }
@@ -94,10 +96,8 @@ class ManageScriptsContainerInner extends React.Component {
   }
 
   onDelete = () => {
-    var nextChoice = this.props.scripts.find(
-      script => script.id !== this.selectedScriptId()
-    )
-    this.props.dispatch(scriptActions.remove(this.selectedScriptId()))
+    var nextChoice = this.props.scripts.find(script => script.id !== this.selectedScriptId())
+    this.props.dispatch(scriptActions.remove(this.props.auth, this.selectedScriptId()))
     if (nextChoice) {
       this.onSelect(nextChoice)
     } else {
@@ -113,13 +113,13 @@ class ManageScriptsContainerInner extends React.Component {
           modified: false
         }),
         () => {
-          this.props.dispatch(scriptActions.add(this.state.current))
+          this.props.dispatch(scriptActions.add(this.props.auth, this.state.current))
           this.props.history.push("/scripts/" + this.state.current.id)
         }
       )
     } else {
       this.setState({ modified: false }, () =>
-        this.props.dispatch(scriptActions.update(this.state.current))
+        this.props.dispatch(scriptActions.update(this.props.auth, this.state.current))
       )
     }
   }
@@ -147,9 +147,7 @@ class ManageScriptsContainerInner extends React.Component {
       parameterUnderEdit: undefined,
       current: {
         ...state.current,
-        parameters: state.current.parameters.filter(
-          p => p.name !== parameter.name
-        )
+        parameters: state.current.parameters.filter(p => p.name !== parameter.name)
       }
     }))
   }
@@ -160,11 +158,7 @@ class ManageScriptsContainerInner extends React.Component {
       parameterUnderEdit: undefined,
       current: {
         ...state.current,
-        parameters: replaceInArray(
-          state.current.parameters,
-          parameter,
-          p => p.name === parameter.name
-        )
+        parameters: replaceInArray(state.current.parameters, parameter, p => p.name === parameter.name)
       }
     }))
   }
@@ -210,9 +204,7 @@ class ManageScriptsContainerInner extends React.Component {
         {this.state.editingParameter && (
           <ScriptParameterContainer
             parameter={this.state.parameterUnderEdit}
-            onDelete={() =>
-              this.onDeleteParameter(this.state.parameterUnderEdit)
-            }
+            onDelete={() => this.onDeleteParameter(this.state.parameterUnderEdit)}
             onUpdate={updated => this.onUpdateParameter(updated)}
             onClose={this.onCloseParameterEditor}
           />
@@ -222,7 +214,9 @@ class ManageScriptsContainerInner extends React.Component {
   }
 }
 
-export default connect(state => ({
-  scripts: state.scripting.scripts,
-  loading: !state.scripting.loaded
-}))(ManageScriptsContainerOuter)
+export default withAuth(
+  connect(state => ({
+    scripts: state.scripting.scripts,
+    loading: !state.scripting.loaded
+  }))(ManageScriptsContainerOuter)
+)

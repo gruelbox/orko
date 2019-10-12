@@ -19,15 +19,14 @@ import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
 import uuidv4 from "uuid/v4"
-
 import TrailingStopOrder from "../components/TrailingStopOrder"
-
-import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
-
-import { isValidNumber } from "../util/numberUtils"
-import { getSelectedCoinTicker, getSelectedCoin } from "../selectors/coins"
+import { isValidNumber } from "modules/common/util/numberUtils"
+import { getSelectedCoin } from "../selectors/coins"
+import { withAuth } from "modules/auth"
+import { withSocket } from "modules/socket/"
+import { withFramework } from "FrameworkContainer"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
@@ -49,19 +48,19 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   onFocus = focusedProperty => {
-    this.props.dispatch(
-      focusActions.setUpdateAction(value => {
-        this.setState(prev => ({
-          order: prev.order.merge({
-            [focusedProperty]: value
-          })
-        }))
-      })
-    )
+    this.props.frameworkApi.setLastFocusedFieldPopulater(value => {
+      this.setState(prev => ({
+        order: prev.order.merge({
+          [focusedProperty]: value
+        })
+      }))
+    })
   }
 
   currentPrice = direction =>
-    direction === "BUY" ? this.props.ticker.ask : this.props.ticker.bid
+    direction === "BUY"
+      ? this.props.socketApi.selectedCoinTicker.ask
+      : this.props.socketApi.selectedCoinTicker.bid
 
   createJob = direction => {
     const startPrice = this.currentPrice(direction)
@@ -83,7 +82,7 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   onSubmit = async direction => {
-    this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
+    this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob(direction)))
   }
 
   render() {
@@ -96,9 +95,7 @@ class TrailingStopOrderContainer extends React.Component {
       isValidNumber(this.state.order.limitPrice) &&
       this.state.order.limitPrice > 0
     const amountValid =
-      this.state.order.amount &&
-      isValidNumber(this.state.order.amount) &&
-      this.state.order.amount > 0
+      this.state.order.amount && isValidNumber(this.state.order.amount) && this.state.order.amount > 0
 
     return (
       <TrailingStopOrder
@@ -119,9 +116,8 @@ class TrailingStopOrderContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    coin: getSelectedCoin(state),
-    ticker: getSelectedCoinTicker(state)
+    coin: getSelectedCoin(state)
   }
 }
 
-export default connect(mapStateToProps)(TrailingStopOrderContainer)
+export default withFramework(withSocket(withAuth(connect(mapStateToProps)(TrailingStopOrderContainer))))

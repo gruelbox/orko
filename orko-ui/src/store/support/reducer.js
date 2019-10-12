@@ -18,7 +18,7 @@
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 import * as compareVersions from "compare-versions"
-import { getFromLS, saveToLS } from "../../util/localStorage"
+import { getFromLS, saveToLS } from "modules/common/util/localStorage"
 
 const loadedIgnoredVersion = getFromLS("ignoredVersion")
 

@@ -19,49 +19,11 @@ import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
 
 const initialState = Immutable({
-  coins: Immutable([]),
-  referencePrices: Immutable({}),
-  meta: Immutable({})
+  referencePrices: Immutable({})
 })
-
-function compareCoins(a, b) {
-  if (a.exchange < b.exchange) return -1
-  if (a.exchange > b.exchange) return 1
-  if (a.base < b.base) return -1
-  if (a.base > b.base) return 1
-  if (a.counter < b.counter) return -1
-  if (a.counter > b.counter) return 1
-  return 0
-}
-
-function insertCoin(arr, coin) {
-  for (var i = 0, len = arr.length; i < len; i++) {
-    if (compareCoins(coin, arr[i]) < 0) {
-       arr.splice(i, 0, coin);
-       return arr
-    }
-  }
-  return arr.concat([coin])
-}
 
 export default function reduce(state = initialState, action = {}) {
   switch (action.type) {
-    case types.SET:
-      return Immutable.merge(state, { coins: action.payload.sort(compareCoins) })
-    case types.SET_META:
-      return Immutable.merge(
-        state,
-        {
-          meta: {
-            [action.payload.coin.key]: action.payload.meta
-          }
-        },
-        { deep: true }
-      )
-    case types.ADD:
-      return Immutable.merge(state, { coins: insertCoin(state.coins.asMutable(), action.payload) })
-    case types.REMOVE:
-      return Immutable.merge(state, { coins: state.coins.filter(c => c.key !== action.payload.key) })
     case types.SET_REFERENCE_PRICE:
       return Immutable.merge(
         state,

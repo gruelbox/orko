@@ -18,15 +18,13 @@
 import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
-
 import StopTakeProfit from "../components/StopTakeProfit"
-
-import * as focusActions from "../store/focus/actions"
 import * as jobActions from "../store/job/actions"
 import * as jobTypes from "../services/jobTypes"
 import { getSelectedCoin } from "../selectors/coins"
-
 import uuidv4 from "uuid/v4"
+import { withAuth } from "modules/auth"
+import { withFramework } from "FrameworkContainer"
 
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {
@@ -53,16 +51,14 @@ class StopTakeProfitContainer extends React.Component {
   }
 
   onFocus = focusedProperty => {
-    this.props.dispatch(
-      focusActions.setUpdateAction(value => {
-        console.log("Set focus to" + focusedProperty)
-        this.setState(prev => ({
-          job: prev.job.merge({
-            [focusedProperty]: value
-          })
-        }))
-      })
-    )
+    this.props.frameworkApi.setLastFocusedFieldPopulater(value => {
+      console.log("Set focus to" + focusedProperty)
+      this.setState(prev => ({
+        job: prev.job.merge({
+          [focusedProperty]: value
+        })
+      }))
+    })
   }
 
   createJob = () => {
@@ -125,7 +121,7 @@ class StopTakeProfitContainer extends React.Component {
   }
 
   onSubmit = async () => {
-    this.props.dispatch(jobActions.submitJob(this.createJob()))
+    this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob()))
   }
 
   render() {
@@ -143,9 +139,8 @@ class StopTakeProfitContainer extends React.Component {
 
 function mapStateToProps(state) {
   return {
-    auth: state.auth,
     coin: getSelectedCoin(state)
   }
 }
 
-export default connect(mapStateToProps)(StopTakeProfitContainer)
+export default withFramework(withAuth(connect(mapStateToProps)(StopTakeProfitContainer)))

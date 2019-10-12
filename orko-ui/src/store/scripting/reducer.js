@@ -17,7 +17,7 @@
  */
 import Immutable from "seamless-immutable"
 import * as types from "./actionTypes"
-import { replaceInArray } from "../../util/objectUtils"
+import { replaceInArray } from "modules/common/util/objectUtils"
 
 export const newScript = Immutable({
   name: "New script",

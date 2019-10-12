@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@orko-semantic/*": ["../orko-semantic/dist/*"]
+    }
+  }
+}

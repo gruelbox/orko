@@ -19,7 +19,7 @@ import React from "react"
 
 import styled from "styled-components"
 import Price from "./primitives/Price"
-import { areEqualShallow } from "../util/objectUtils"
+import { areEqualShallow } from "modules/common/util/objectUtils"
 
 const Container = styled.div`
   display: flex;

@@ -222,7 +222,7 @@ public final class OrkoWebSocketServer {
       // Order book should be throttled globally
       private final Disposable orderBook = subscription.getOrderBooks()
           .filter(o -> isReady())
-          .throttleLast(2, TimeUnit.SECONDS)
+          .throttleLast(1, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
 
       // Trades, balances and order status changes are unthrottled - the assumption is that you need the lot
