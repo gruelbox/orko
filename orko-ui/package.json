@@ -32,7 +32,7 @@
     "react-scripts": "3.1.1",
     "react-table": "^6.10.3",
     "recompose": "^0.30.0",
-    "reconnecting-websocket": "^4.1.10",
+    "reconnecting-websocket": "^4.2.0",
     "redux": "^4.0.4",
     "redux-batched-actions": "^0.4.1",
     "redux-thunk": "^2.3.0",

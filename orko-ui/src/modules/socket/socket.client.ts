@@ -44,8 +44,8 @@ var subscribedCoins = []
 var selectedCoin = null
 var connected = false
 
-var socket
-var timer
+var socket: ReconnectingWebSocket
+var timer: NodeJS.Timeout
 
 export function onError(handler: MessageHandler) {
   handleError = handler
@@ -96,19 +96,19 @@ export function connect() {
   const root = runtimeEnv().REACT_APP_WS_URL
   console.log("Connecting to socket", root)
   socket = ws("ws", root)
-  socket.onopen = () => {
+  socket.addEventListener("open", () => {
     connected = true
     console.log("Socket (re)connected")
     handleConnectionStateChange(true)
     resubscribe()
-  }
-  socket.onclose = () => {
+  })
+  socket.addEventListener("close", () => {
     connected = false
     console.log("Socket connection temporarily lost")
     handleConnectionStateChange(false)
-  }
-  socket.onmessage = evt => {
-    var content
+  })
+  socket.addEventListener("message", (evt: MessageEvent) => {
+    var content: any
     try {
       content = JSON.parse(evt.data)
     } catch (e) {
@@ -125,14 +125,14 @@ export function connect() {
     } catch (e) {
       console.log("Failed to handle message from server (" + e + ")", evt.data)
     }
-  }
+  })
   timer = setInterval(() => send({ command: socketMessages.READY }), 3000)
 }
 
 export function disconnect() {
   if (connected) {
     console.log("Disconnecting socket")
-    socket.close(undefined, "Shutdown", { keepClosed: true })
+    socket.close(undefined, "Shutdown")
     connected = false
     clearInterval(timer)
   }
@@ -278,8 +278,8 @@ function preProcess(obj) {
   }
 }
 
-function ws(url, root) {
-  var fullUrl
+function ws(url: string, root: string): ReconnectingWebSocket {
+  var fullUrl: string
   if (root) {
     fullUrl = root + "/" + url
   } else {
