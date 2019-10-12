@@ -117,7 +117,7 @@
               <container>
                 <jvmFlags>
                   <jvmFlag>-XX:+UnlockExperimentalVMOptions</jvmFlag>
-                  <jvmFlag>-XX:+UseCGroupMemoryLimitForHeap</jvmFlag>
+                  <jvmFlag>-XX:MaxRAMPercentage=75.0</jvmFlag>
                   <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
                   <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
                   <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
@@ -171,7 +171,7 @@
               <container>
                 <jvmFlags>
                   <jvmFlag>-XX:+UnlockExperimentalVMOptions</jvmFlag>
-                  <jvmFlag>-XX:+UseCGroupMemoryLimitForHeap</jvmFlag>
+                  <jvmFlag>-XX:MaxRAMPercentage=75.0</jvmFlag>
                   <jvmFlag>-Dsun.net.inetaddr.ttl=60</jvmFlag>
                   <jvmFlag>-Dio.netty.leakDetectionLevel=advanced</jvmFlag>
                   <jvmFlag>-Dmorf.mysql.noadmin=true</jvmFlag>
