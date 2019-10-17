@@ -73,7 +73,7 @@ public class TestDbDump {
   public void before() {
 
     DbConfiguration dbConfig = new DbConfiguration();
-    dbConfig.setConnectionString("h2:mem:test;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000");
+    dbConfig.setConnectionString("h2:mem:test;DB_CLOSE_DELAY=-1;DEFAULT_LOCK_TIMEOUT=60000");
 
     MockitoAnnotations.initMocks(this);
 
