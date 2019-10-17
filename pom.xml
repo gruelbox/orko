@@ -630,7 +630,7 @@
             <failsOnError>true</failsOnError>
             <violationSeverity>warning</violationSeverity>
             <linkXRef>false</linkXRef>
-            <excludes>**/info/bitrich/**</excludes>
+            <excludes>**/info/bitrich/**,**/org/knowm/**</excludes>
           </configuration>
           <executions>
             <execution>
