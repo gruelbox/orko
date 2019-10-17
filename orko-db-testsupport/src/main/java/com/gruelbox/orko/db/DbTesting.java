@@ -50,7 +50,7 @@ public final class DbTesting {
   private static final DatabaseSchemaManager SCHEMA_MANAGER;
 
   static {
-    String testDbUrl = MoreObjects.firstNonNull(System.getProperty("testdb.url"), "h2:mem:test;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000");
+    String testDbUrl = MoreObjects.firstNonNull(System.getProperty("testdb.url"), "h2:mem:test;DB_CLOSE_DELAY=-1;DEFAULT_LOCK_TIMEOUT=60000");
     CONNECTION_RESOURCES = DatabaseType.Registry.urlToConnectionResources("jdbc:" + testDbUrl);
     DB_CONFIGURATION.setConnectionString(testDbUrl);
     SCHEMA_MANAGER = new DatabaseSchemaManager(CONNECTION_RESOURCES, CONNECTION_RESOURCES.getDataSource(), new SqlScriptExecutorProvider(CONNECTION_RESOURCES)) {};
