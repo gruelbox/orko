@@ -143,7 +143,7 @@ public class BinanceAdapters {
           order.cummulativeQuoteQty.divide(order.executedQty, MathContext.DECIMAL32));
     }
     if (order.clientOrderId != null) {
-      builder.flag((BinanceOrderFlags & Serializable) () -> order.clientOrderId);
+      builder.flag(new BinanceOrderFlagsImpl(order.clientOrderId));
     }
     return builder.build();
   }
@@ -162,5 +162,22 @@ public class BinanceAdapters {
     return priceQuantities.stream()
         .map(BinanceAdapters::adaptPriceQuantity)
         .collect(Collectors.toList());
+  }
+
+  private static final class BinanceOrderFlagsImpl implements BinanceOrderFlags, Serializable {
+
+    private static final long serialVersionUID = -6899387783010332520L;
+
+    private final String clientId;
+
+    private BinanceOrderFlagsImpl(String clientId) {
+      super();
+      this.clientId = clientId;
+    }
+
+    @Override
+    public String getClientId() {
+      return clientId;
+    }
   }
 }
