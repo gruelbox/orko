@@ -26,7 +26,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -547,7 +547,7 @@ public class TestSoftTrailingStopProcessorBuy {
   }
 
   private void verifyWillRepeatWithoutChange() {
-    verifyZeroInteractions(jobControl);
+    verifyNoInteractions(jobControl);
   }
 
   private void verifyDidNothingElse() {
