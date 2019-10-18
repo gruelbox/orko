@@ -20,7 +20,7 @@ package com.gruelbox.orko.auth.jwt;
 
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -109,7 +109,7 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { });
     xsrfFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -117,7 +117,7 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", validJwt().getCompactSerialization()) });
     xsrfFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -126,7 +126,7 @@ public class TestJwtAuthentication {
     when(request.getHeader(Headers.X_XSRF_TOKEN)).thenReturn("XXX");
     xsrfFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -137,7 +137,7 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", validJwt.getCompactSerialization()) });
     when(request.getHeader(Headers.X_XSRF_TOKEN)).thenReturn(claims.getClaimValue("xsrf", String.class));
     xsrfFilter.doFilter(request, response, chain);
-    verifyZeroInteractions(response);
+    verifyNoInteractions(response);
     verify(chain).doFilter(request, response);
   }
 
@@ -146,7 +146,7 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { });
     authFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -154,7 +154,7 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", "nonsense") });
     authFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -163,7 +163,7 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", forgedToken) });
     authFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -172,7 +172,7 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", forgedToken) });
     authFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -181,14 +181,14 @@ public class TestJwtAuthentication {
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", forgedToken) });
     authFilter.doFilter(request, response, chain);
     verify(response).sendError(401);
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
   public void testValid() throws IOException, ServletException, JoseException {
     when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("accessToken", validJwt().getCompactSerialization()) });
     authFilter.doFilter(request, response, chain);
-    verifyZeroInteractions(response);
+    verifyNoInteractions(response);
     verify(chain).doFilter(request, response);
   }
 

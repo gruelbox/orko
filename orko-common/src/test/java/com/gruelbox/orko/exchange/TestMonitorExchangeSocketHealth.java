@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import org.junit.After;
@@ -91,7 +91,7 @@ public class TestMonitorExchangeSocketHealth {
   public void testTickNothingToDo() {
     when(ticker.read()).thenReturn(MINUTES.toNanos(19));
     interval.onNext(1);
-    verifyZeroInteractions(notificationService);
+    verifyNoInteractions(notificationService);
   }
 
   @Test
@@ -125,7 +125,7 @@ public class TestMonitorExchangeSocketHealth {
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(28));
     interval.onNext(1);
-    verifyZeroInteractions(notificationService);
+    verifyNoInteractions(notificationService);
     reset(notificationService);
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(29));
@@ -151,7 +151,7 @@ public class TestMonitorExchangeSocketHealth {
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(28));
     interval.onNext(1);
-    verifyZeroInteractions(notificationService);
+    verifyNoInteractions(notificationService);
     reset(notificationService);
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(29));
