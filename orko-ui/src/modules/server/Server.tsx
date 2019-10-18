@@ -69,7 +69,7 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
       authApi
         .authenticatedRequest(() => exchangesService.addSubscription(tickerFromCoin(coin)))
         .catch((error: Error) => errorPopup("Could not add subscription: " + error.message))
-        .then(() => setSubscriptions(current => insertCoin((current as any).asMutable(), coin)))
+        .then(() => setSubscriptions(current => Immutable(insertCoin((current as any).asMutable(), coin))))
         .then(() => fetchMetadata(coin))
     },
     [setSubscriptions, errorPopup, authApi, fetchMetadata]
