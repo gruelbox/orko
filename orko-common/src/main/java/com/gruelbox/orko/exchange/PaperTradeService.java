@@ -67,6 +67,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
@@ -342,19 +343,19 @@ final class PaperTradeService implements TradeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Factory.class);
 
-    private final ExchangeEventRegistry exchangeEventRegistry;
+    private final Provider<ExchangeEventRegistry> exchangeEventRegistry;
     private final PaperAccountService.Factory accountServiceFactory;
 
     private final LoadingCache<String, TradeService> services = CacheBuilder.newBuilder().initialCapacity(1000).build(new CacheLoader<String, TradeService>() {
       @Override
       public TradeService load(String exchange) throws Exception {
         LOGGER.debug("No API connection details for {}. Using paper trading.", exchange);
-        return new PaperTradeService(exchange, exchangeEventRegistry, accountServiceFactory.getForExchange(exchange));
+        return new PaperTradeService(exchange, exchangeEventRegistry.get(), accountServiceFactory.getForExchange(exchange));
       }
     });
 
     @Inject
-    Factory(ExchangeEventRegistry exchangeEventRegistry, PaperAccountService.Factory accountServiceFactory) {
+    Factory(Provider<ExchangeEventRegistry> exchangeEventRegistry, PaperAccountService.Factory accountServiceFactory) {
       this.exchangeEventRegistry = exchangeEventRegistry;
       this.accountServiceFactory = accountServiceFactory;
     }

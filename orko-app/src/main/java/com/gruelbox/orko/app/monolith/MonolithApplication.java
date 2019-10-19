@@ -18,13 +18,19 @@
 
 package com.gruelbox.orko.app.monolith;
 
+import javax.inject.Inject;
+
 import com.google.inject.Module;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.WebHostApplication;
+import com.gruelbox.orko.db.DatabaseSetup;
 
 import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
 
 public class MonolithApplication extends WebHostApplication {
+
+  @Inject private DatabaseSetup databaseSetup;
 
   public static void main(final String... args) throws Exception {
     new MonolithApplication().run(args);
@@ -47,5 +53,11 @@ public class MonolithApplication extends WebHostApplication {
     bootstrap.addCommand(new HashCommand());
     bootstrap.addCommand(new SaltCommand());
     bootstrap.addCommand(new DbInitCommand());
+  }
+
+  @Override
+  public void run(final OrkoConfiguration configuration, final Environment environment) throws Exception {
+    databaseSetup.setup();
+    super.run(configuration, environment);
   }
 }

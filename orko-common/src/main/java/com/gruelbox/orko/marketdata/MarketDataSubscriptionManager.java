@@ -63,7 +63,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.bitfinex.dto.BitfinexException;
+import org.knowm.xchange.bitfinex.v1.dto.BitfinexException;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;

@@ -66,6 +66,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.util.Providers;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
 import com.gruelbox.orko.marketdata.TickerEvent;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -108,7 +109,7 @@ public class TestPaperTrading {
     PaperAccountService.Factory accountServiceFactory = new PaperAccountService.Factory(exchangeService);
     accountService = accountServiceFactory.getForExchange(EXCHANGE);
     tradeService = (PaperTradeService) new PaperTradeService.Factory(
-      exchangeEventRegistry, accountServiceFactory
+      Providers.of(exchangeEventRegistry), accountServiceFactory
     ).getForExchange(EXCHANGE);
   }
 

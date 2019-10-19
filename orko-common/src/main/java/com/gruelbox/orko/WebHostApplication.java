@@ -49,7 +49,7 @@ public abstract class WebHostApplication extends BaseApplication {
   protected abstract Module createApplicationModule();
 
   @Override
-  public final void run(final OrkoConfiguration configuration, final Environment environment) {
+  public void run(final OrkoConfiguration configuration, final Environment environment) throws Exception {
     urlRewriteEnvironment.init(environment);
     super.run(configuration, environment);
     webSocketBundleInit.init(websocketBundle);

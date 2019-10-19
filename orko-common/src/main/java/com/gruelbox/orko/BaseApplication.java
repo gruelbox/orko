@@ -18,10 +18,7 @@
 
 package com.gruelbox.orko;
 
-import javax.inject.Inject;
-
 import com.google.inject.Module;
-import com.gruelbox.orko.db.DatabaseSetup;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
 import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
@@ -34,9 +31,6 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 public abstract class BaseApplication extends Application<OrkoConfiguration> {
-
-  @Inject private DatabaseSetup databaseSetup;
-
 
   @Override
   public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
@@ -69,7 +63,7 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
   protected abstract Module createApplicationModule();
 
   @Override
-  public void run(final OrkoConfiguration configuration, final Environment environment) {
-    databaseSetup.setup();
+  public void run(OrkoConfiguration configuration, Environment environment) throws Exception {
+    // No-op
   }
 }

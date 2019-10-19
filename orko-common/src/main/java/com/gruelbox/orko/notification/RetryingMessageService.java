@@ -31,7 +31,7 @@ import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
 @Singleton
-class RetryingMessageService implements NotificationService, StatusUpdateService {
+public class RetryingMessageService implements NotificationService, StatusUpdateService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RetryingMessageService.class);
 

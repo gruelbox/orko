@@ -16,35 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gruelbox.orko.app.monolith;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
+package com.gruelbox.orko.app.exchangebroker;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.CommonModule;
 import com.gruelbox.orko.OrkoConfiguration;
-import com.gruelbox.orko.auth.AuthModule;
-import com.gruelbox.orko.db.DbResource;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
-import com.gruelbox.orko.exchange.ExchangeResourceModule;
 import com.gruelbox.orko.exchange.Exchanges;
-import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
-import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.marketdata.MarketDataModule;
 import com.gruelbox.orko.marketdata.SimulatorModule;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.notification.RetryingMessageService;
-import com.gruelbox.orko.websocket.WebSocketModule;
+import com.gruelbox.orko.notification.TransientNotificationService;
 import com.gruelbox.tools.dropwizard.guice.Configured;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
-import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
  * Top level bindings.
  */
-class MonolithModule extends AbstractModule implements Configured<OrkoConfiguration> {
+class ExchangeBrokerModule extends AbstractModule implements Configured<OrkoConfiguration> {
 
   private OrkoConfiguration configuration;
 
@@ -55,16 +44,10 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
 
   @Override
   protected void configure() {
-    install(new CommonModule());
-    install(new AuthModule(configuration.getAuth()));
-    install(new WebSocketModule());
-    install(new ExchangeResourceModule());
-    bind(NotificationService.class).to(RetryingMessageService.class);
-    bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
+    install(new MarketDataModule());
+    bind(NotificationService.class).to(TransientNotificationService.class);
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
-      .addBinding().to(MonolithEnvironment.class);
-    Multibinder.newSetBinder(binder(), WebResource.class)
-      .addBinding().to(DbResource.class);
+      .addBinding().to(ExchangeBrokerEnvironment.class);
     if (isSimulatorEnabled())
       install(new SimulatorModule());
   }
@@ -74,19 +57,5 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
       return false;
     ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(Exchanges.SIMULATED);
     return exchangeConfiguration != null && exchangeConfiguration.isAuthenticated();
-  }
-
-  @Provides
-  @Named(AuthModule.ROOT_PATH)
-  @Singleton
-  String rootPath(OrkoConfiguration configuration) {
-    return configuration.getRootPath();
-  }
-
-  @Provides
-  @Named(AuthModule.WEBSOCKET_ENTRY_POINT)
-  @Singleton
-  String webSocketEntryPoint(OrkoConfiguration configuration) {
-    return WebSocketModule.ENTRY_POINT;
   }
 }

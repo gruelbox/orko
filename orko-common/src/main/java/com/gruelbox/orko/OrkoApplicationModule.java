@@ -35,7 +35,6 @@ public class OrkoApplicationModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new ServletModule());
-    install(new CommonModule());
   }
 
   @Provides

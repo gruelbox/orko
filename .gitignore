@@ -36,3 +36,4 @@
 **/*.releaseBackup
 /orko-semantic/dist/**
 /orko-semantic/target/**
+/orko-semantic/node/**
