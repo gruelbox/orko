@@ -43,7 +43,7 @@ public class MonolithApplication extends WebHostApplication {
 
   @Override
   protected Module createApplicationModule() {
-    return new MonolithModule();
+    return new OrkoModule();
   }
 
   @Override

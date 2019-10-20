@@ -68,4 +68,27 @@ logging:
     "com.gruelbox.orko": INFO
     "com.gruelbox.orko.app.exchangebroker": DEBUG
     "si.mazi.rescu": ERROR
-remoteData: false
+remoteData: true
+producer:
+  type: basic
+  bootstrapServers:
+    - localhost:9092
+  name: main
+  keySerializer:
+    type: string
+  valueSerializer:
+    type: string
+  acks: all
+  retries: 2147483647 # int max value
+  maxInFlightRequestsPerConnection: 1
+  maxPollBlockTime: 10s
+consumer: 
+  type: basic
+  bootstrapServers:
+    - localhost:9092
+  consumerGroupId: main
+  name: main  
+  keyDeserializer:
+    type: string
+  valueDeserializer:
+    type: string

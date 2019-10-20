@@ -33,6 +33,7 @@ import com.gruelbox.orko.exchange.ExchangeResourceModule;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.marketdata.MarketDataModule.RemoteType;
 import com.gruelbox.orko.marketdata.SimulatorModule;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.notification.RetryingMessageService;
@@ -44,7 +45,7 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 /**
  * Top level bindings.
  */
-class MonolithModule extends AbstractModule implements Configured<OrkoConfiguration> {
+class OrkoModule extends AbstractModule implements Configured<OrkoConfiguration> {
 
   private OrkoConfiguration configuration;
 
@@ -55,7 +56,12 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
 
   @Override
   protected void configure() {
-    install(new CommonModule());
+
+    RemoteType remoteType = configuration.isRemoteData()
+        ? RemoteType.REMOTE
+        : RemoteType.LOCAL;
+
+    install(new CommonModule(remoteType));
     install(new AuthModule(configuration.getAuth()));
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
@@ -65,7 +71,7 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
       .addBinding().to(MonolithEnvironment.class);
     Multibinder.newSetBinder(binder(), WebResource.class)
       .addBinding().to(DbResource.class);
-    if (isSimulatorEnabled())
+    if (remoteType == RemoteType.LOCAL && isSimulatorEnabled())
       install(new SimulatorModule());
   }
 

@@ -265,7 +265,7 @@ public abstract class AbstractMarketDataFullStackTest {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> Flowable<T> getSubscription(MarketDataSubscriptionManager manager, MarketDataSubscription sub) {
+  private <T> Flowable<T> getSubscription(MarketDataSource manager, MarketDataSubscription sub) {
     switch (sub.type()) {
       case OPEN_ORDERS:
         return (Flowable<T>) manager.getOrderSnapshots().filter(o -> o.spec().equals(sub.spec()));

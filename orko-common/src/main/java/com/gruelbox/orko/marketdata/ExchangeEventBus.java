@@ -48,10 +48,10 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeEventBus.class);
 
   private final ConcurrentMap<MarketDataSubscription, AtomicInteger> allSubscriptions = Maps.newConcurrentMap();
-  private final MarketDataSubscriptionManager marketDataSubscriptionManager;
+  private final MarketDataSource marketDataSubscriptionManager;
 
   @Inject
-  ExchangeEventBus(MarketDataSubscriptionManager marketDataSubscriptionManager) {
+  ExchangeEventBus(MarketDataSource marketDataSubscriptionManager) {
     this.marketDataSubscriptionManager = marketDataSubscriptionManager;
   }
 

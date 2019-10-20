@@ -45,6 +45,7 @@ import org.mockito.Mockito;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResource.ErrorResponse;
 import com.gruelbox.orko.exchange.ExchangeResource.OrderPrototype;
+import com.gruelbox.orko.marketdata.MarketDataSource;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
 import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -58,7 +59,7 @@ public class TestExchangeResource {
   private static ExchangeService exchangeService = mock(ExchangeService.class);
   private static TradeServiceFactory tradeServiceFactory = mock(TradeServiceFactory.class);
   private static AccountServiceFactory accountServiceFactory = mock(AccountServiceFactory.class);
-  private static MarketDataSubscriptionManager subscriptionManager = mock(MarketDataSubscriptionManager.class);
+  private static MarketDataSource subscriptionManager = mock(MarketDataSubscriptionManager.class);
   private static MaxTradeAmountCalculator.Factory calculatorFactory = mock(MaxTradeAmountCalculator.Factory.class);
   private static OrkoConfiguration configuration = new OrkoConfiguration();
 

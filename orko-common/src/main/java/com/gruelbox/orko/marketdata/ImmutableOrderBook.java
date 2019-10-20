@@ -25,6 +25,8 @@ import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.trade.LimitOrder;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -52,7 +54,10 @@ public class ImmutableOrderBook {
    * @param asks The ASK orders
    * @param bids The BID orders
    */
-  ImmutableOrderBook(Date timeStamp, List<LimitOrder> asks, List<LimitOrder> bids) {
+  @JsonCreator
+  ImmutableOrderBook(@JsonProperty("timeStamp") Date timeStamp,
+                     @JsonProperty("asks") List<LimitOrder> asks,
+                     @JsonProperty("bids") List<LimitOrder> bids) {
     this.timeStamp = timeStamp;
     this.asks = ImmutableList.copyOf(asks);
     this.bids = ImmutableList.copyOf(bids);

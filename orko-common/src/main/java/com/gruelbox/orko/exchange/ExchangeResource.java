@@ -70,7 +70,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.marketdata.Balance;
-import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
+import com.gruelbox.orko.marketdata.MarketDataSource;
 import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
 import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator.Factory;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -90,7 +90,7 @@ public class ExchangeResource implements WebResource {
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
   private final OrkoConfiguration configuration;
-  private final MarketDataSubscriptionManager subscriptionManager;
+  private final MarketDataSource subscriptionManager;
   private final Factory calculatorFactory;
 
 
@@ -98,7 +98,7 @@ public class ExchangeResource implements WebResource {
   ExchangeResource(ExchangeService exchanges,
                    TradeServiceFactory tradeServiceFactory,
                    AccountServiceFactory accountServiceFactory,
-                   MarketDataSubscriptionManager subscriptionManager,
+                   MarketDataSource subscriptionManager,
                    OrkoConfiguration configuration,
                    MaxTradeAmountCalculator.Factory calculatorFactory) {
     this.exchanges = exchanges;

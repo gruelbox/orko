@@ -20,10 +20,12 @@ package com.gruelbox.orko;
 
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
@@ -34,7 +36,10 @@ import com.gruelbox.tools.dropwizard.httpsredirect.HttpsResponsibility;
 
 import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.kafka.KafkaConsumerFactory;
+import io.dropwizard.kafka.KafkaProducerFactory;
 import io.dropwizard.server.AbstractServerFactory;
+import io.dropwizard.validation.ValidationMethod;
 
 /**
  * Runtime config. Should really be broken up.
@@ -79,6 +84,19 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
   @NotNull
   @JsonProperty("jerseyClient")
   private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
+
+  @JsonProperty()
+  private boolean remoteData;
+
+  @Valid
+  @Nullable
+  @JsonProperty("producer")
+  private KafkaProducerFactory<String, String> kafkaProducerFactory;
+
+  @Valid
+  @Nullable
+  @JsonProperty("consumer")
+  private KafkaConsumerFactory<String, String> kafkaConsumerFactory;
 
   private Map<String, ExchangeConfiguration> exchanges;
 
@@ -163,5 +181,29 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     return auth.isProxied()
         ? HttpsResponsibility.HTTPS_AT_PROXY
         : HttpsResponsibility.HTTPS_DIRECT;
+  }
+
+  public KafkaProducerFactory<String, String> getKafkaProducerFactory() {
+    return kafkaProducerFactory;
+  }
+
+  public KafkaConsumerFactory<String, String> getKafkaConsumerFactory() {
+    return kafkaConsumerFactory;
+  }
+
+  public boolean isRemoteData() {
+    return this.remoteData;
+  }
+
+  @ValidationMethod(message="Both producer and consumer must be specified, or neither")
+  @JsonIgnore
+  public boolean checkConsumerAndProducer() {
+    return (kafkaConsumerFactory == null) == (kafkaProducerFactory == null);
+  }
+
+  @ValidationMethod(message="Producer and consumer are required if remote data is enabled")
+  @JsonIgnore
+  public boolean checkRemoteData() {
+    return !remoteData || kafkaProducerFactory != null;
   }
 }

@@ -18,17 +18,18 @@
 
 package com.gruelbox.orko.app.exchangebroker;
 
+import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.Exchanges;
 import com.gruelbox.orko.marketdata.MarketDataModule;
+import com.gruelbox.orko.marketdata.MarketDataModule.RemoteType;
 import com.gruelbox.orko.marketdata.SimulatorModule;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.notification.TransientNotificationService;
 import com.gruelbox.tools.dropwizard.guice.Configured;
-import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 /**
  * Top level bindings.
@@ -44,10 +45,11 @@ class ExchangeBrokerModule extends AbstractModule implements Configured<OrkoConf
 
   @Override
   protected void configure() {
-    install(new MarketDataModule());
-    bind(NotificationService.class).to(TransientNotificationService.class);
-    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
-      .addBinding().to(ExchangeBrokerEnvironment.class);
+    install(new MarketDataModule(RemoteType.LOCAL));
+    bind(NotificationService.class)
+        .to(TransientNotificationService.class);
+    Multibinder.newSetBinder(binder(), Service.class)
+        .addBinding().to(ExchangeBrokerManager.class);
     if (isSimulatorEnabled())
       install(new SimulatorModule());
   }

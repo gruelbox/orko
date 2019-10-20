@@ -29,11 +29,24 @@ import com.google.inject.multibindings.Multibinder;
 
 public class MarketDataModule extends AbstractModule {
 
+  private final RemoteType remote;
+
+  public MarketDataModule(RemoteType remote) {
+    this.remote = remote;
+  }
+
   @Override
   protected void configure() {
-    bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);
+    bind(ExchangeEventRegistry.class)
+        .to(ExchangeEventBus.class);
     Multibinder.newSetBinder(binder(), Service.class)
-        .addBinding().to(MarketDataSubscriptionManager.class);
+        .addBinding().to(remote == RemoteType.REMOTE
+            ? RemoteMarketDataSource.class
+            : MarketDataSubscriptionManager.class);
+    bind(MarketDataSource.class)
+        .to(remote == RemoteType.REMOTE
+            ? RemoteMarketDataSource.class
+            : MarketDataSubscriptionManager.class);
   }
 
   @Provides
@@ -46,5 +59,10 @@ public class MarketDataModule extends AbstractModule {
   @Singleton
   MatchingEngineFactory matchingEngineFactory(AccountFactory accountFactory) {
     return new MatchingEngineFactory(accountFactory);
+  }
+
+  public enum RemoteType {
+    LOCAL,
+    REMOTE
   }
 }

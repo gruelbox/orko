@@ -28,6 +28,7 @@ import com.gruelbox.orko.job.JobsModule;
 import com.gruelbox.orko.jobrun.JobRunModule;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.marketdata.MarketDataModule;
+import com.gruelbox.orko.marketdata.MarketDataModule.RemoteType;
 import com.gruelbox.orko.notification.NotificationModule;
 import com.gruelbox.orko.strategy.StrategyModule;
 import com.gruelbox.orko.subscription.SubscriptionModule;
@@ -36,6 +37,12 @@ import com.gruelbox.orko.wiring.WiringModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 public class CommonModule extends AbstractModule {
+
+  private final RemoteType remoteType;
+
+  public CommonModule(RemoteType remoteType) {
+    this.remoteType = remoteType;
+  }
 
   @Override
   protected void configure() {
@@ -47,7 +54,7 @@ public class CommonModule extends AbstractModule {
     install(new DbModule());
     install(new JobRunModule());
     install(new ExchangeModule());
-    install(new MarketDataModule());
+    install(new MarketDataModule(remoteType));
     install(new SubscriptionModule());
     install(new JobsModule());
     install(new NotificationModule());

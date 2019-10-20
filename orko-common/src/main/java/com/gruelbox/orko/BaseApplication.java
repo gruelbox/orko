@@ -18,7 +18,12 @@
 
 package com.gruelbox.orko;
 
+import java.util.Collections;
+
+import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener;
+
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
 import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
@@ -27,6 +32,10 @@ import com.gruelbox.tools.dropwizard.guice.hibernate.HibernateBundleFactory;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.kafka.KafkaConsumerBundle;
+import io.dropwizard.kafka.KafkaConsumerFactory;
+import io.dropwizard.kafka.KafkaProducerBundle;
+import io.dropwizard.kafka.KafkaProducerFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -48,16 +57,36 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
     HibernateBundleFactory<OrkoConfiguration> hibernateBundleFactory
       = new HibernateBundleFactory<>(configuration -> configuration.getDatabase().toDataSourceFactory());
 
+    KafkaProducerBundle<String, String, OrkoConfiguration> kafkaProducer = new KafkaProducerBundle<>(Collections.emptyList()) {
+      @Override
+      public KafkaProducerFactory<String, String> getKafkaProducerFactory(OrkoConfiguration configuration) {
+        return configuration.getKafkaProducerFactory();
+      }
+    };
+
+    KafkaConsumerBundle<String, String, OrkoConfiguration> kafkaConsumer = new KafkaConsumerBundle<>(Collections.emptyList(), new NoOpConsumerRebalanceListener()) {
+      @Override
+      public KafkaConsumerFactory<String, String> getKafkaConsumerFactory(OrkoConfiguration configuration) {
+          return configuration.getKafkaConsumerFactory();
+      }
+    };
+
     bootstrap.addBundle(
       new GuiceBundle<OrkoConfiguration>(
         this,
         new OrkoApplicationModule(),
         new GuiceHibernateModule(hibernateBundleFactory),
+        binder -> {
+          binder.bind(new TypeLiteral<KafkaProducerBundle<String, String, OrkoConfiguration>>() {}).toInstance(kafkaProducer);
+          binder.bind(new TypeLiteral<KafkaConsumerBundle<String, String, OrkoConfiguration>>() {}).toInstance(kafkaConsumer);
+        },
         createApplicationModule()
       )
     );
 
     bootstrap.addBundle(hibernateBundleFactory.bundle());
+    bootstrap.addBundle(kafkaProducer);
+    bootstrap.addBundle(kafkaConsumer);
   }
 
   protected abstract Module createApplicationModule();

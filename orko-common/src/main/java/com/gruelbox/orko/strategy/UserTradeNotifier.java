@@ -25,7 +25,7 @@ import java.util.Date;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
+import com.gruelbox.orko.marketdata.MarketDataSource;
 import com.gruelbox.orko.marketdata.UserTradeEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.util.SafelyDispose;
@@ -37,12 +37,12 @@ import io.reactivex.disposables.Disposable;
 class UserTradeNotifier implements Managed {
 
   private final NotificationService notificationService;
-  private final MarketDataSubscriptionManager marketDataSubscriptionManager;
+  private final MarketDataSource marketDataSubscriptionManager;
 
   private Disposable subscription;
 
   @Inject
-  UserTradeNotifier(MarketDataSubscriptionManager marketDataSubscriptionManager, NotificationService notificationService) {
+  UserTradeNotifier(MarketDataSource marketDataSubscriptionManager, NotificationService notificationService) {
     this.marketDataSubscriptionManager = marketDataSubscriptionManager;
     this.notificationService = notificationService;
   }
