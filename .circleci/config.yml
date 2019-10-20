@@ -249,17 +249,30 @@ jobs:
       - run:
           name: Release to Docker Hub
           command: |
+            export JIB="${BUILD_ARGS} -Pui,brokers,dockerhub jib:build"
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
               if [[ -n "$CIRCLE_TAG" ]]; then
-                mvn ${BUILD_ARGS} -Pui,brokers,dockerhub jib:build -Ddocker.tag="$CIRCLE_TAG"
+                cd orko-app
+                mvn ${JIB} -Ddocker.tag="$CIRCLE_TAG"
+                cd ../orko-exchange-broker
+                mvn ${JIB} -Ddocker.tag="$CIRCLE_TAG"
               else
                 if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
-                  mvn ${BUILD_ARGS} -Pui,brokers,dockerhub jib:build -Ddocker.tag="stable"
+                  cd orko-app
+                  mvn ${JIB} -Ddocker.tag="stable"
+                  cd ../orko-exchange-broker
+                  mvn ${JIB} -Ddocker.tag="stable"
                 else
                   if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
-                    mvn ${BUILD_ARGS} -Pui,brokers,dockerhub jib:build -Ddocker.tag="latest"
+                    cd orko-app
+                    mvn ${JIB} -Ddocker.tag="latest"
+                    cd ../orko-exchange-broker
+                    mvn ${JIB} -Ddocker.tag="latest"
                   else
-                    mvn ${BUILD_ARGS} -Pui,brokers,dockerhub jib:build -Ddocker.tag="dev-donotuse-$CIRCLE_BRANCH"
+                    cd orko-app
+                    mvn ${JIB} -Ddocker.tag="dev-donotuse-$CIRCLE_BRANCH"
+                    cd ../orko-exchange-broker
+                    mvn ${JIB} -Ddocker.tag="dev-donotuse-$CIRCLE_BRANCH"
                   fi
                 fi
               fi
