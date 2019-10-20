@@ -70,16 +70,13 @@
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
             <configuration>
-              <to>
-                <image>docker.io/gruelbox/orko-exchange-broker:${docker.tag}</image>
-              </to>
               <container>
                 <args>
                   <arg>server</arg>
                   <arg>docker-config.yml</arg>
                 </args>
                 <ports>
-                  <port>8080</port>
+                  <port>8081</port>
                 </ports>
               </container>
             </configuration>

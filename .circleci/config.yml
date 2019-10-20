@@ -255,24 +255,24 @@ jobs:
                 cd orko-app
                 mvn ${JIB} -Ddocker.tag="$CIRCLE_TAG"
                 cd ../orko-exchange-broker
-                mvn ${JIB} -Ddocker.tag="$CIRCLE_TAG"
+                mvn ${JIB} -Ddocker.tag="$CIRCLE_TAG-exchanges"
               else
                 if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
                   cd orko-app
                   mvn ${JIB} -Ddocker.tag="stable"
                   cd ../orko-exchange-broker
-                  mvn ${JIB} -Ddocker.tag="stable"
+                  mvn ${JIB} -Ddocker.tag="stable-exchanges"
                 else
                   if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
                     cd orko-app
                     mvn ${JIB} -Ddocker.tag="latest"
                     cd ../orko-exchange-broker
-                    mvn ${JIB} -Ddocker.tag="latest"
+                    mvn ${JIB} -Ddocker.tag="latest-exchanges"
                   else
                     cd orko-app
                     mvn ${JIB} -Ddocker.tag="dev-donotuse-$CIRCLE_BRANCH"
                     cd ../orko-exchange-broker
-                    mvn ${JIB} -Ddocker.tag="dev-donotuse-$CIRCLE_BRANCH"
+                    mvn ${JIB} -Ddocker.tag="dev-donotuse-$CIRCLE_BRANCH-exchanges"
                   fi
                 fi
               fi
