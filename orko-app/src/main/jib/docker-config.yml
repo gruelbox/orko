@@ -76,3 +76,27 @@ logging:
     "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.binance.BinanceUserDataStreamingService": ${LOG_LEVEL_BINANCE_RAW_USER:-INFO}
     "si.mazi.rescu": ERROR
+remoteData: ${REMOTE_WORKERS:-false}
+producer:
+  type: basic
+  bootstrapServers:
+    - kafka:9092
+  name: main
+  keySerializer:
+    type: string
+  valueSerializer:
+    type: string
+  acks: all
+  retries: 2147483647 # int max value
+  maxInFlightRequestsPerConnection: 1
+  maxPollBlockTime: 10s
+consumer: 
+  type: basic
+  bootstrapServers:
+    - kafka:9092
+  consumerGroupId: main
+  name: main  
+  keyDeserializer:
+    type: string
+  valueDeserializer:
+    type: string

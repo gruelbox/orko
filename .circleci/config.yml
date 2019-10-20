@@ -250,7 +250,6 @@ jobs:
           name: Release to Docker Hub
           command: |
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
-              cd orko-app
               if [[ -n "$CIRCLE_TAG" ]]; then
                 mvn ${BUILD_ARGS} -Pui,brokers,dockerhub jib:build -Ddocker.tag="$CIRCLE_TAG"
               else
