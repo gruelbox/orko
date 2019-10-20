@@ -62,6 +62,12 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
       public KafkaProducerFactory<String, String> getKafkaProducerFactory(OrkoConfiguration configuration) {
         return configuration.getKafkaProducerFactory();
       }
+
+      public void run(OrkoConfiguration configuration, Environment environment) throws Exception {
+        if (!configuration.isRemoteData()) {
+          return;
+        }
+      };
     };
 
     KafkaConsumerBundle<String, String, OrkoConfiguration> kafkaConsumer = new KafkaConsumerBundle<>(Collections.emptyList(), new NoOpConsumerRebalanceListener()) {
@@ -69,6 +75,12 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
       public KafkaConsumerFactory<String, String> getKafkaConsumerFactory(OrkoConfiguration configuration) {
           return configuration.getKafkaConsumerFactory();
       }
+
+      public void run(OrkoConfiguration configuration, Environment environment) throws Exception {
+        if (!configuration.isRemoteData()) {
+          return;
+        }
+      };
     };
 
     bootstrap.addBundle(
