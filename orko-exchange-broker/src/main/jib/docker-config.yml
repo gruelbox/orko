@@ -65,7 +65,7 @@ logging:
 producer:
   type: basic
   bootstrapServers:
-    - localhost:9092
+    - kafka:9092
   name: marketdata
   keySerializer:
     type: string
@@ -78,7 +78,7 @@ producer:
 consumer: 
   type: basic
   bootstrapServers:
-    - localhost:9092
+    - kafka:9092
   consumerGroupId: marketdata
   name: marketdata  
   keyDeserializer:
