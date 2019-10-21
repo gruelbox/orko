@@ -39,6 +39,24 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 public class TestDockerSecretLookup {
 
   @Test
+  public void testDummyBlank() throws IOException {
+    File tempDir = Files.createTempDir();
+    try {
+      DockerSecretLookup notStrict = new DockerSecretLookup(tempDir.getAbsolutePath(), false);
+      File file = new File(tempDir.getAbsolutePath() + File.separator + "secret-thing");
+      file.createNewFile();
+      try {
+        Files.asCharSink(file, StandardCharsets.UTF_8).write(DockerSecretLookup.BLANK);
+        assertEquals("", notStrict.lookup("secret-thing"));
+      } finally {
+        file.delete();
+      }
+    } finally {
+      tempDir.delete();
+    }
+  }
+
+  @Test
   public void testNotStrict() throws IOException {
     File tempDir = Files.createTempDir();
     try {

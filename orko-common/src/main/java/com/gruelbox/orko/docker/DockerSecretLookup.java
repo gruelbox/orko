@@ -35,6 +35,9 @@ import io.dropwizard.configuration.UndefinedEnvironmentVariableException;
  */
 class DockerSecretLookup extends StrLookup<Object> {
 
+  /* Magic string to allow secrets to be empty. */
+  static final String BLANK=".empty.";
+
   private final boolean strict;
   private final boolean enabled;
   private final String path;
@@ -86,6 +89,9 @@ class DockerSecretLookup extends StrLookup<Object> {
           + "' is not defined; could not substitute the expression '${" + key + "}'.");
     }
     if (value == null && key.startsWith("secret-")) {
+      return "";
+    }
+    if (BLANK.equals(value)) {
       return "";
     }
     return value;
