@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.text.StrLookup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -36,8 +34,6 @@ import io.dropwizard.configuration.UndefinedEnvironmentVariableException;
  * Docker secrets as lookup source.
  */
 class DockerSecretLookup extends StrLookup<Object> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(DockerSecretLookup.class);
 
   /* Magic string to allow secrets to be empty. */
   static final String BLANK=".empty.";
@@ -64,7 +60,7 @@ class DockerSecretLookup extends StrLookup<Object> {
   DockerSecretLookup(String path, boolean strict) {
     this.path = path;
     this.enabled = new File(path).exists();
-    LOGGER.info("Docker secrets enabled = {}", this.enabled);
+    System.out.println("Docker secrets enabled = " + this.enabled);
     this.strict = strict;
   }
 
@@ -88,24 +84,19 @@ class DockerSecretLookup extends StrLookup<Object> {
       } catch (IOException e) {
         throw new RuntimeException("IOException when scanning for " + key, e);
       }
-      LOGGER.debug("Found value for {} (length={})", key, value.length());
-    } else {
-      LOGGER.debug("No value value for {}", key);
+      System.out.println("Found value for " + key + " (length=" + value == null ? -1 : value.length() + ")");
     }
     if (value == null && strict) {
-      LOGGER.debug(" - rejecting as null (strict)");
       throw new IllegalArgumentException("Docker secret for '" + key
           + "' is not defined; could not substitute the expression '${" + key + "}'.");
     }
     if (value == null && key.startsWith("secret-")) {
-      LOGGER.debug(" - accepting blank");
       return "";
     }
     if (BLANK.equals(value)) {
-      LOGGER.debug(" - treating as blank");
+      System.out.println(" - treating as blank");
       return "";
     }
-    LOGGER.debug(" - returning direct");
     return value;
   }
 }
