@@ -55,7 +55,7 @@ class ExchangeBrokerManager extends AbstractExecutionThreadService {
   }
 
   private String subToTopic(MarketDataSubscription sub) {
-    return sub.key().replace('/', '_');
+    return sub.key().replace('/', '.');
   }
 
   @Override

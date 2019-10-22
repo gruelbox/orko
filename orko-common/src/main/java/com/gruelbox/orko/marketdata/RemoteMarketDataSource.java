@@ -43,7 +43,7 @@ class RemoteMarketDataSource extends AbstractMarketSourceManager {
   }
 
   private void resubscribe(Producer<String, String> producer, Consumer<String, String> consumer) {
-    this.subsByTopic = Maps.uniqueIndex(nextSubs, sub -> sub.key().replace('/', '_'));
+    this.subsByTopic = Maps.uniqueIndex(nextSubs, sub -> sub.key().replace('/', '.'));
     if (!nextSubs.isEmpty()) {
       nextSubs.forEach(sub -> {
         logger.info("Sending subscription for {}", sub);
