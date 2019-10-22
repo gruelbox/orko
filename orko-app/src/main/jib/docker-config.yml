@@ -75,6 +75,7 @@ logging:
     "info.bitrich.xchangestream.binance": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.binance.BinanceUserDataStreamingService": ${LOG_LEVEL_BINANCE_RAW_USER:-INFO}
+    "org.apache.kafka.clients": ${LOG_LEVEL_KAFKA:-WARN}
     "si.mazi.rescu": ERROR
 remoteData: ${REMOTE_WORKERS:-false}
 producer:
