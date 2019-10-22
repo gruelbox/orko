@@ -10,5 +10,9 @@ update_configs:
     update_schedule: "daily"
 
   - package_manager: "javascript"
+    directory: "/orko-semantic"
+    update_schedule: "daily"
+
+  - package_manager: "javascript"
     directory: "/orko-end-to-end-testing"
     update_schedule: "daily"
