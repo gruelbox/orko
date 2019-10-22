@@ -681,7 +681,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>1.7.0</version>
+          <version>3.2.1</version>
           <executions>
             <execution>
               <id>shade</id>
@@ -737,7 +737,7 @@
         <plugin>
           <groupId>com.google.cloud.tools</groupId>
           <artifactId>jib-maven-plugin</artifactId>
-          <version>1.6.1</version>
+          <version>1.7.0</version>
           <configuration>
             <to>
               <image>docker.io/gruelbox/orko:${docker.tag}</image>
