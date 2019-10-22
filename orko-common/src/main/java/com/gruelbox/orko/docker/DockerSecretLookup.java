@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.text.StrLookup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -34,6 +36,8 @@ import io.dropwizard.configuration.UndefinedEnvironmentVariableException;
  * Docker secrets as lookup source.
  */
 class DockerSecretLookup extends StrLookup<Object> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DockerSecretLookup.class);
 
   /* Magic string to allow secrets to be empty. */
   static final String BLANK=".empty.";
@@ -83,8 +87,10 @@ class DockerSecretLookup extends StrLookup<Object> {
       } catch (IOException e) {
         throw new RuntimeException("IOException when scanning for " + key, e);
       }
+      LOGGER.debug("Found value for {} (length={})", key, value.length());
     }
     if (value == null && strict) {
+      LOGGER.debug(" - rejecting as null (strict)");
       throw new IllegalArgumentException("Docker secret for '" + key
           + "' is not defined; could not substitute the expression '${" + key + "}'.");
     }
@@ -92,8 +98,10 @@ class DockerSecretLookup extends StrLookup<Object> {
       return "";
     }
     if (BLANK.equals(value)) {
+      LOGGER.debug(" - treating as blank");
       return "";
     }
+    LOGGER.debug(" - returning direct");
     return value;
   }
 }
