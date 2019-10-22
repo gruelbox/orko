@@ -67,6 +67,7 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
         if (!configuration.isRemoteData()) {
           return;
         }
+        super.run(configuration, environment);
       };
     };
 
@@ -80,6 +81,7 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
         if (!configuration.isRemoteData()) {
           return;
         }
+        super.run(configuration, environment);
       };
     };
 
