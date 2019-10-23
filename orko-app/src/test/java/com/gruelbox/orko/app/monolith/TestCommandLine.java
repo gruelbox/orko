@@ -70,7 +70,7 @@ public class TestCommandLine {
   @Test
   public void testOtp() throws Exception {
     String result = captureStdOut(() -> MonolithApplication.main("otp", "--nocheck"));
-    assertEquals(3, result.length());
+    assertTrue(result.length() > 3);
   }
 
   private String captureStdOut(ExceptionThrowingRunnable runnable) throws Exception {
