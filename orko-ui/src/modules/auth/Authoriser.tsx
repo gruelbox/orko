@@ -169,7 +169,7 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
         return await response.json()
       }
     },
-    [clearWhitelisting, logout]
+    [logout]
   )
 
   // TODO the presence of this as a thunk action is a transitionary
@@ -220,7 +220,7 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
         }
       }
     },
-    [clearWhitelisting, logout]
+    [logout]
   )
 
   const api: AuthApi = useMemo(
