@@ -16,7 +16,6 @@
   <name>Orko Monolith Application</name>
 
   <properties>
-    <main.basedir>${project.basedir}${file.separator}..</main.basedir>
     <mainClass>com.gruelbox.orko.app.monolith.MonolithApplication</mainClass>
   </properties>
 

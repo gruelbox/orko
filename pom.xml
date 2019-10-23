@@ -67,13 +67,16 @@
       </snapshots>
     </repository>
     <repository>
-      <id>local-maven-repo</id>
-      <url>file:///${main.basedir}/local-maven-repo</url>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
       <releases>
         <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
       </releases>
       <snapshots>
         <enabled>false</enabled>
+        <updatePolicy>always</updatePolicy>
       </snapshots>
     </repository>
   </repositories>
@@ -216,8 +219,6 @@
   <name>Orko</name>
 
   <properties>
-    <main.basedir>${project.basedir}</main.basedir>
-
     <min.maven.version>3.0.0</min.maven.version>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>

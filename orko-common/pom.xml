@@ -17,10 +17,6 @@
 
   <name>Orko Common</name>
 
-  <properties>
-    <main.basedir>${project.basedir}${file.separator}..</main.basedir>
-  </properties>
-
   <dependencies>
 
     <dependency>
