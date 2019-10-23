@@ -150,7 +150,7 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
         var errorMessage = null
         if (response.status === 403) {
           errorMessage = "Failed API request due to invalid whitelisting"
-          clearWhitelisting()
+          setWhitelisted(false)
         } else if (response.status === 401) {
           errorMessage = "Failed API request due to invalid token/XSRF"
           logout()
@@ -158,7 +158,9 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
           try {
             errorMessage = (await response.json()).message
           } catch (err) {
-            errorMessage = response.statusText ? response.statusText : "Server error (" + response.status + ")"
+            errorMessage = response.statusText
+              ? response.statusText
+              : "Server error (" + response.status + ")"
           }
         }
         console.log(errorMessage)
@@ -167,7 +169,7 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
         return await response.json()
       }
     },
-    [clearWhitelisting, logout]
+    [logout]
   )
 
   // TODO the presence of this as a thunk action is a transitionary
@@ -181,7 +183,7 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
           if (!response.ok) {
             if (response.status === 403) {
               console.log("Failed API request due to invalid whitelisting")
-              clearWhitelisting()
+              setWhitelisted(false)
             } else if (response.status === 401) {
               console.log("Failed API request due to invalid token/XSRF")
               logout()
@@ -194,7 +196,9 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
                 // No-op
               }
               if (!errorMessage) {
-                errorMessage = response.statusText ? response.statusText : "Server error (" + response.status + ")"
+                errorMessage = response.statusText
+                  ? response.statusText
+                  : "Server error (" + response.status + ")"
               }
               throw new Error(errorMessage)
             }
@@ -216,7 +220,7 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
         }
       }
     },
-    [clearWhitelisting, logout]
+    [logout]
   )
 
   const api: AuthApi = useMemo(
