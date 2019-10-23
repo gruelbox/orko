@@ -17,6 +17,7 @@
  */
 package com.gruelbox.orko.app.monolith;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -56,20 +57,20 @@ public class TestCommandLine {
   public void testHashWithSaltLongArg() throws Exception {
     String salt = "bIR3DvCFPKLfY410OR2u5g==";
     String result = captureStdOut(() -> MonolithApplication.main("hash", "--salt", salt, "porky pig the beast"));
-    assertTrue(result.equals("HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)"));
+    assertEquals("HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)", result);
   }
 
   @Test
   public void testHashWithSaltShortArg() throws Exception {
     String salt = "bIR3DvCFPKLfY410OR2u5g==";
     String result = captureStdOut(() -> MonolithApplication.main("hash", "-s", salt, "porky pig the beast"));
-    assertTrue(result.equals("HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)"));
+    assertEquals("HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)", result);
   }
 
   @Test
   public void testOtp() throws Exception {
     String result = captureStdOut(() -> MonolithApplication.main("otp", "--nocheck"));
-    assertTrue(result.length() > 3);
+    assertEquals(3, result.length());
   }
 
   private String captureStdOut(ExceptionThrowingRunnable runnable) throws Exception {

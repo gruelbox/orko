@@ -66,5 +66,6 @@ server:
 logging:
   loggers:
     "com.gruelbox.orko": INFO
+    "com.gruelbox.orko.docker": DEBUG
     "com.gruelbox.orko.app.exchangebroker": DEBUG
     "si.mazi.rescu": ERROR

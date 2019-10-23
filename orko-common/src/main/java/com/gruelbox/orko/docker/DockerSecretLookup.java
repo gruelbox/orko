@@ -20,6 +20,8 @@ package com.gruelbox.orko.docker;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.text.StrLookup;
 
@@ -37,6 +39,9 @@ class DockerSecretLookup extends StrLookup<Object> {
 
   /* Magic string to allow secrets to be empty. */
   static final String BLANK=".empty.";
+
+  /* Log which we can spit out later during startup */
+  private final List<String> log = new CopyOnWriteArrayList<>();
 
   private final boolean strict;
   private final boolean enabled;
@@ -60,7 +65,7 @@ class DockerSecretLookup extends StrLookup<Object> {
   DockerSecretLookup(String path, boolean strict) {
     this.path = path;
     this.enabled = new File(path).exists();
-    System.out.println("Docker secrets enabled = " + this.enabled);
+    log.add("Docker secrets enabled = " + this.enabled);
     this.strict = strict;
   }
 
@@ -84,7 +89,7 @@ class DockerSecretLookup extends StrLookup<Object> {
       } catch (IOException e) {
         throw new RuntimeException("IOException when scanning for " + key, e);
       }
-      System.out.println("Found value for " + key + " (length=" + value == null ? -1 : value.length() + ")");
+      log.add("Found value for " + key + " (length=" + (value == null ? "-1" : value.length()) + ")");
     }
     if (value == null && strict) {
       throw new IllegalArgumentException("Docker secret for '" + key
@@ -94,9 +99,13 @@ class DockerSecretLookup extends StrLookup<Object> {
       return "";
     }
     if (BLANK.equals(value)) {
-      System.out.println(" - treating as blank");
+      log.add(" - treating as blank");
       return "";
     }
     return value;
+  }
+
+  List<String> getLog() {
+    return log;
   }
 }

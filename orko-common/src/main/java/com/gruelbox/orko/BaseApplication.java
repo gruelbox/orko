@@ -21,6 +21,8 @@ package com.gruelbox.orko;
 import java.util.Collections;
 
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
@@ -41,16 +43,19 @@ import io.dropwizard.setup.Environment;
 
 public abstract class BaseApplication extends Application<OrkoConfiguration> {
 
+  private DockerSecretSubstitutor dockerSecretSubstitutor;
+
   @Override
   public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
 
+    dockerSecretSubstitutor = new DockerSecretSubstitutor(false, false, true);
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         new SubstitutingSourceProvider(
           bootstrap.getConfigurationSourceProvider(),
           new EnvironmentVariableSubstitutor(false)
         ),
-        new DockerSecretSubstitutor(false, false, true)
+        dockerSecretSubstitutor
       )
     );
 
@@ -107,6 +112,10 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
 
   @Override
   public void run(OrkoConfiguration configuration, Environment environment) throws Exception {
-    // No-op
+    Logger dockerLogger = LoggerFactory.getLogger(DockerSecretSubstitutor.class);
+    if (dockerLogger.isDebugEnabled()) {
+      dockerSecretSubstitutor.getLog().stream()
+          .forEach(entry -> dockerLogger.debug(entry));
+    }
   }
 }
