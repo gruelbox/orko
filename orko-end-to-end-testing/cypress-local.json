@@ -1,0 +1,14 @@
+{
+  "baseUrl": "http://localhost:3000",
+  "blacklistHosts": ["accounts.google.com", "clientservices.googleapis.com"],
+  "video": false,
+  "reporter": "junit",
+  "reporterOptions": {
+    "mochaFile": "target/mocha-reports/mocha-results.[hash].xml",
+    "toConsole": true
+  },
+  "viewportWidth": 1200,
+  "viewportHeight": 1080,
+  "projectId": "ttud56",
+  "defaultCommandTimeout": 10000
+}
