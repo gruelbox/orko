@@ -2,6 +2,7 @@
 **/.classpath
 **/.factorypath
 **/.fbExcludeFilterFile
+**/.idea
 **/.project
 **/.settings
 **/dependency-reduced-pom.xml
