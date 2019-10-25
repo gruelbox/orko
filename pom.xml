@@ -426,7 +426,7 @@
       <dependency>
         <groupId>org.jooq</groupId>
         <artifactId>jooq</artifactId>
-        <version>3.12.1</version>
+        <version>3.12.2</version>
       </dependency>
 
       <dependency>
@@ -442,12 +442,12 @@
       <dependency>
         <groupId>com.warrenstrange</groupId>
         <artifactId>googleauth</artifactId>
-        <version>1.2.0</version>
+        <version>1.4.0</version>
       </dependency>
       <dependency>
         <groupId>org.bitbucket.b_c</groupId>
         <artifactId>jose4j</artifactId>
-        <version>0.6.5</version>
+        <version>0.7.0</version>
       </dependency>
       <dependency>
         <groupId>com.liveperson</groupId>

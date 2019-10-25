@@ -1,0 +1,5 @@
+/cypress/**/*.mp4
+/cypress/screenshots/**/*
+/app.log
+/node
+/target
