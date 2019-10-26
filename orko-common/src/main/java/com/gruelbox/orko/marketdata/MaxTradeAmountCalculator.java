@@ -61,8 +61,7 @@ public class MaxTradeAmountCalculator {
     if (amountStepSize != null) {
       BigDecimal remainder = amount.remainder(amountStepSize);
       if (remainder.compareTo(ZERO) != 0) {
-        BigDecimal newAmount = amount.subtract(remainder);
-        return newAmount;
+        return amount.subtract(remainder);
       }
     }
     return amount;
