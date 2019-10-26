@@ -73,7 +73,7 @@ public abstract class BaseApplication<T extends Configuration> extends Applicati
     Logger dockerLogger = LoggerFactory.getLogger(DockerSecretSubstitutor.class);
     if (dockerLogger.isDebugEnabled()) {
       dockerSecretSubstitutor.getLog().stream()
-          .forEach(entry -> dockerLogger.debug(entry));
+          .forEach(dockerLogger::debug);
     }
   }
 }

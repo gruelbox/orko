@@ -20,7 +20,6 @@ package com.gruelbox.orko.auth;
 
 
 import javax.inject.Inject;
-import javax.ws.rs.client.Client;
 
 import com.google.inject.Singleton;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingEnvironment;

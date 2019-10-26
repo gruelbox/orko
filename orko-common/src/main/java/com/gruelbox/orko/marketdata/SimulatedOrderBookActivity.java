@@ -114,7 +114,7 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
     }
   }
 
-  private void mockMarket() throws IOException {
+  private void mockMarket() {
     marketMakerExchange.getAccountService().deposit(USD, new BigDecimal("99999999999999999"));
     marketMakerExchange.getAccountService().deposit(BTC, new BigDecimal("99999999999999999"));
     BigDecimal startPrice = new BigDecimal(5000);
