@@ -93,10 +93,11 @@ public class TestJwtAuthentication {
               return unscoped;
             }
           });
+          binder.bind(AuthConfiguration.class).toInstance(config);
         }
       },
       new GoogleAuthenticatorModule(),
-      new AuthModule.Testing(config),
+      new AuthModule.Testing(),
       new JwtModule(config)
     );
 

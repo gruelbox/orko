@@ -20,16 +20,17 @@ package com.gruelbox.orko;
 
 import javax.ws.rs.client.Client;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.setup.Environment;
 
-class JerseySupportModule extends AbstractConfiguredModule<HasJerseyClientConfiguration> {
+class JerseySupportModule extends AbstractModule {
 
   @Override
   protected void configure() {
@@ -41,11 +42,9 @@ class JerseySupportModule extends AbstractConfiguredModule<HasJerseyClientConfig
 
   @Provides
   @Singleton
-  Client jerseyClient(Environment environment) {
-    return getConfiguration() == null
-        ? new JerseyClientBuilder(environment).build("client")
-        : new JerseyClientBuilder(environment)
-            .using(getConfiguration().getJerseyClientConfiguration())
-            .build("client");
+  Client jerseyClient(Environment environment, JerseyClientConfiguration configuration) {
+    return new JerseyClientBuilder(environment)
+        .using(configuration == null ? new JerseyClientConfiguration() : configuration)
+        .build("client");
   }
 }

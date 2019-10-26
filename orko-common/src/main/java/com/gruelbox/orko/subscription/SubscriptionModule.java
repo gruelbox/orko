@@ -20,15 +20,15 @@ package com.gruelbox.orko.subscription;
 
 import org.alfasoftware.morf.upgrade.TableContribution;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.db.DbModule;
-import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.lifecycle.Managed;
 
-public class SubscriptionModule extends AbstractConfiguredModule<Object> {
+public class SubscriptionModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new DbModule());

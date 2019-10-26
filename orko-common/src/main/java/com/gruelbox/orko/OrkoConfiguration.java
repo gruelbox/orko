@@ -24,11 +24,13 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.inject.Binder;
+import com.google.inject.TypeLiteral;
+import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.AuthConfiguration;
-import com.gruelbox.orko.auth.HasAuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
-import com.gruelbox.orko.db.HasDbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
+import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpsResponsibility;
@@ -40,11 +42,7 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Runtime config. Should really be broken up.
  */
-public class OrkoConfiguration extends Configuration
-    implements HttpEnforcementConfiguration,
-                HasAuthConfiguration,
-                HasDbConfiguration,
-                HasJerseyClientConfiguration {
+public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -99,7 +97,6 @@ public class OrkoConfiguration extends Configuration
     this.loopSeconds = loopSeconds;
   }
 
-  @Override
   public AuthConfiguration getAuth() {
     return auth;
   }
@@ -108,7 +105,6 @@ public class OrkoConfiguration extends Configuration
     this.auth = auth;
   }
 
-  @Override
   public DbConfiguration getDatabase() {
     return database;
   }
@@ -170,5 +166,24 @@ public class OrkoConfiguration extends Configuration
     return auth.isProxied()
         ? HttpsResponsibility.HTTPS_AT_PROXY
         : HttpsResponsibility.HTTPS_DIRECT;
+  }
+
+  /**
+   * Takes all the configuration components and binds them to the injector
+   * so they become available to modules throughout the application.
+   *
+   * @param binder The Guice binder.
+   */
+  public void bind(Binder binder) {
+    binder.bind(DbConfiguration.class).toProvider(Providers.of(database));
+    binder.bind(AuthConfiguration.class).toProvider(Providers.of(auth));
+    binder.bind(JerseyClientConfiguration.class).toProvider(Providers.of(jerseyClient));
+    binder.bind(TelegramConfiguration.class).toProvider(Providers.of(telegram));
+    binder.bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {}).toProvider(Providers.of(exchanges));
+
+    JobRunConfiguration jobRunConfiguration = new JobRunConfiguration();
+    jobRunConfiguration.setDatabaseLockSeconds(database.getLockSeconds());
+    jobRunConfiguration.setGuardianLoopSeconds(loopSeconds);
+    binder.bind(JobRunConfiguration.class).toInstance(jobRunConfiguration);
   }
 }

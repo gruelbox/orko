@@ -30,41 +30,39 @@ import com.gruelbox.orko.auth.blacklist.Blacklisting;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.gruelbox.orko.auth.jwt.JwtModule;
 import com.gruelbox.orko.db.DbModule;
-import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.lifecycle.Managed;
 
-public class AuthModule extends AbstractConfiguredModule<HasAuthConfiguration> {
+public class AuthModule extends AbstractModule {
 
   public static final String BIND_ACCESS_TOKEN_KEY = "accessToken";
   public static final String BIND_ROOT_PATH = "auth-rootPath";
   public static final String BIND_WEBSOCKET_ENTRY_POINT = "auth-ws-entry";
 
+  private AuthConfiguration configuration;
+
+  public AuthModule(AuthConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
   @Override
   protected void configure() {
     install(new DbModule());
-    if (getConfiguration() != null) {
+    if (configuration != null) {
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());
-      install(new JwtModule(getConfiguration().getAuth()));
+      install(new JwtModule(configuration));
       Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
       Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(Blacklisting.class);
-      install(new Testing(getConfiguration().getAuth()));
+      install(new Testing());
     }
   }
 
+
   public static final class Testing extends AbstractModule {
-
-    private final AuthConfiguration configuration;
-
-    public Testing(AuthConfiguration configuration) {
-      this.configuration = configuration;
-    }
-
     @Override
     protected void configure() {
-      bind(AuthConfiguration.class).toInstance(configuration);
       bind(new TypeLiteral<Optional<String>>() {}).annotatedWith(Names.named(BIND_ACCESS_TOKEN_KEY))
         .toProvider(AccessTokenProvider.class)
         .in(RequestScoped.class);
