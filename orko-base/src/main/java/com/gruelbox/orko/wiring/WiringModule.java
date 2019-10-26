@@ -27,6 +27,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.gruelbox.orko.db.DbModule;
 
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Environment;
@@ -55,4 +56,13 @@ public class WiringModule extends AbstractModule {
     return environment.getObjectMapper();
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof WiringModule;
+  }
+
+  @Override
+  public int hashCode() {
+    return WiringModule.class.getName().hashCode();
+  }
 }

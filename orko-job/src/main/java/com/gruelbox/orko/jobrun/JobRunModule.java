@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.Service;
 import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.db.DbModule;
 import com.gruelbox.orko.wiring.AbstractConfiguredModule;
+import com.gruelbox.orko.wiring.WiringModule;
 import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
@@ -34,6 +35,7 @@ public class JobRunModule extends AbstractConfiguredModule<Object> {
   @Override
   protected void configure() {
     install(new DbModule());
+    install(new WiringModule());
     Multibinder<TableContribution> tableContributions = Multibinder.newSetBinder(binder(), TableContribution.class);
     tableContributions.addBinding().to(JobRecordContribution.class);
     tableContributions.addBinding().to(JobLockContribution.class);

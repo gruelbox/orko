@@ -22,8 +22,10 @@ import javax.ws.rs.client.Client;
 
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.servlet.ServletModule;
 import com.gruelbox.orko.wiring.AbstractConfiguredModule;
+import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.setup.Environment;
@@ -33,7 +35,10 @@ public class BaseApplicationModule extends AbstractConfiguredModule<OrkoConfigur
   @Override
   protected void configure() {
     install(new ServletModule());
-    install(new CommonModule());
+    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
+        .addBinding()
+        .toInstance(environment -> environment.jersey()
+            .register(new JerseyMappingErrorLoggingExceptionHandler()));
   }
 
   @Provides

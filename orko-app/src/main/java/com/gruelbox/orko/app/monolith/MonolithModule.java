@@ -27,11 +27,19 @@ import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.db.DbResource;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
-import com.gruelbox.orko.exchange.ExchangeResourceModule;
+import com.gruelbox.orko.exchange.ExchangeModule;
 import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.job.JobsModule;
 import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
+import com.gruelbox.orko.jobrun.JobRunModule;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
+import com.gruelbox.orko.marketdata.MarketDataModule;
 import com.gruelbox.orko.marketdata.SimulatorModule;
+import com.gruelbox.orko.notification.NotificationModule;
+import com.gruelbox.orko.strategy.StrategyModule;
+import com.gruelbox.orko.subscription.SubscriptionModule;
+import com.gruelbox.orko.support.SupportModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
@@ -54,10 +62,22 @@ class MonolithModule extends AbstractConfiguredModule<OrkoConfiguration> {
     install(guiceHibernateModule);
     install(new AuthModule());
     install(new WebSocketModule());
-    install(new ExchangeResourceModule());
+
+    install(new ExchangeModule());
+
+    install(new JobRunModule());
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
+
     Multibinder.newSetBinder(binder(), WebResource.class)
       .addBinding().to(DbResource.class);
+
+    install(new MarketDataModule());
+    install(new SubscriptionModule());
+    install(new JobsModule());
+    install(new NotificationModule());
+    install(new StrategyModule());
+    install(new SupportModule());
+
     if (isSimulatorEnabled())
       install(new SimulatorModule());
   }
@@ -70,16 +90,18 @@ class MonolithModule extends AbstractConfiguredModule<OrkoConfiguration> {
   }
 
   @Provides
-  @Named(AuthModule.ROOT_PATH)
+  @Named(AuthModule.BIND_ROOT_PATH)
   @Singleton
   String rootPath() {
     return getConfiguration().getRootPath();
   }
 
   @Provides
-  @Named(AuthModule.WEBSOCKET_ENTRY_POINT)
-  @Singleton
-  String webSocketEntryPoint() {
-    return WebSocketModule.ENTRY_POINT;
+  @com.google.inject.Singleton
+  JobRunConfiguration jobRunConfiguration(OrkoConfiguration orkoConfiguration) {
+    JobRunConfiguration jobRunConfiguration = new JobRunConfiguration();
+    jobRunConfiguration.setDatabaseLockSeconds(orkoConfiguration.getDatabase().getLockSeconds());
+    jobRunConfiguration.setGuardianLoopSeconds(orkoConfiguration.getLoopSeconds());
+    return jobRunConfiguration;
   }
 }

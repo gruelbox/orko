@@ -37,9 +37,9 @@ import io.dropwizard.lifecycle.Managed;
 
 public class AuthModule extends AbstractConfiguredModule<HasAuthConfiguration> {
 
-  public static final String ACCESS_TOKEN_KEY = "accessToken";
-  public static final String ROOT_PATH = "auth-rootPath";
-  public static final String WEBSOCKET_ENTRY_POINT = "auth-ws-entry";
+  public static final String BIND_ACCESS_TOKEN_KEY = "accessToken";
+  public static final String BIND_ROOT_PATH = "auth-rootPath";
+  public static final String BIND_WEBSOCKET_ENTRY_POINT = "auth-ws-entry";
 
   @Override
   protected void configure() {
@@ -65,7 +65,7 @@ public class AuthModule extends AbstractConfiguredModule<HasAuthConfiguration> {
     @Override
     protected void configure() {
       bind(AuthConfiguration.class).toInstance(configuration);
-      bind(new TypeLiteral<Optional<String>>() {}).annotatedWith(Names.named(ACCESS_TOKEN_KEY))
+      bind(new TypeLiteral<Optional<String>>() {}).annotatedWith(Names.named(BIND_ACCESS_TOKEN_KEY))
         .toProvider(AccessTokenProvider.class)
         .in(RequestScoped.class);
     }

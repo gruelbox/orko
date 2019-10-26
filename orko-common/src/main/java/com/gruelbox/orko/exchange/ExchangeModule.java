@@ -18,8 +18,10 @@
 
 package com.gruelbox.orko.exchange;
 
+import com.codahale.metrics.health.HealthCheck;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
+import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 import io.dropwizard.lifecycle.Managed;
 
@@ -27,7 +29,8 @@ public class ExchangeModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), Managed.class)
-      .addBinding().to(MonitorExchangeSocketHealth.class);
+    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(MonitorExchangeSocketHealth.class);
+    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(ExchangeResource.class);
+    Multibinder.newSetBinder(binder(), HealthCheck.class).addBinding().to(ExchangeAccessHealthCheck.class);
   }
 }
