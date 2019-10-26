@@ -20,7 +20,6 @@ package com.gruelbox.orko;
 
 import javax.ws.rs.client.Client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
@@ -35,11 +34,6 @@ public class OrkoApplicationModule extends AbstractConfiguredModule<OrkoConfigur
   protected void configure() {
     install(new ServletModule());
     install(new CommonModule());
-  }
-
-  @Provides
-  ObjectMapper objectMapper(Environment environment) {
-    return environment.getObjectMapper();
   }
 
   @Provides
