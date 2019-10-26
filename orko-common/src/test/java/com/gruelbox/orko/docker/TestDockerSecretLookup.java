@@ -17,7 +17,9 @@
  */
 package com.gruelbox.orko.docker;
 
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import com.google.common.io.Files;
@@ -37,6 +40,28 @@ import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 
 public class TestDockerSecretLookup {
+
+  @Test
+  public void testDummyBlank() throws IOException {
+    File tempDir = Files.createTempDir();
+    try {
+      DockerSecretLookup notStrict = new DockerSecretLookup(tempDir.getAbsolutePath(), false);
+      File file = new File(tempDir.getAbsolutePath() + File.separator + "secret-thing");
+      file.createNewFile();
+      try {
+        Files.asCharSink(file, StandardCharsets.UTF_8).write(DockerSecretLookup.BLANK);
+        assertEquals("", notStrict.lookup("secret-thing"));
+      } finally {
+        file.delete();
+      }
+      assertThat(notStrict.getLog(),
+          contains("Docker secrets enabled = true",
+                   "Found value for secret-thing (length=7)",
+                   " - treating as blank"));
+    } finally {
+      tempDir.delete();
+    }
+  }
 
   @Test
   public void testNotStrict() throws IOException {
@@ -53,6 +78,9 @@ public class TestDockerSecretLookup {
       } finally {
         file.delete();
       }
+      assertThat(notStrict.getLog(),
+          contains("Docker secrets enabled = true",
+                   "Found value for secret-thing (length=7)"));
     } finally {
       tempDir.delete();
     }
@@ -62,6 +90,7 @@ public class TestDockerSecretLookup {
   public void testNotStrictMissingDir() throws IOException {
     DockerSecretLookup notStrict = new DockerSecretLookup("here", false);
     assertEquals(null, notStrict.lookup("thing"));
+    assertThat(notStrict.getLog(), Matchers.contains("Docker secrets enabled = false"));
   }
 
   @Test
@@ -89,6 +118,9 @@ public class TestDockerSecretLookup {
       } finally {
         file.delete();
       }
+      assertThat(strict.getLog(),
+          contains("Docker secrets enabled = true",
+                   "Found value for secret-thing (length=7)"));
     } finally {
       tempDir.delete();
     }

@@ -20,6 +20,8 @@ package com.gruelbox.orko;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.inject.Module;
 import com.gruelbox.orko.db.DatabaseSetup;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
@@ -37,17 +39,19 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
 
   @Inject private DatabaseSetup databaseSetup;
 
+  private DockerSecretSubstitutor dockerSecretSubstitutor;
 
   @Override
   public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
 
+    dockerSecretSubstitutor = new DockerSecretSubstitutor(false, false, true);
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         new SubstitutingSourceProvider(
           bootstrap.getConfigurationSourceProvider(),
           new EnvironmentVariableSubstitutor(false)
         ),
-        new DockerSecretSubstitutor(false, false, true)
+        dockerSecretSubstitutor
       )
     );
 
@@ -69,7 +73,12 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
   protected abstract Module createApplicationModule();
 
   @Override
-  public void run(final OrkoConfiguration configuration, final Environment environment) {
+  public void run(OrkoConfiguration configuration, Environment environment) {
     databaseSetup.setup();
+    Logger dockerLogger = LoggerFactory.getLogger(DockerSecretSubstitutor.class);
+    if (dockerLogger.isDebugEnabled()) {
+      dockerSecretSubstitutor.getLog().stream()
+          .forEach(entry -> dockerLogger.debug(entry));
+    }
   }
 }
