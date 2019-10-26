@@ -38,8 +38,6 @@ import com.google.common.net.HttpHeaders;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.auth.AbstractHttpServletFilter;
-import com.gruelbox.orko.auth.AuthConfiguration;
 
 @Singleton
 class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
