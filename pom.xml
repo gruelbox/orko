@@ -186,19 +186,6 @@
                         <ignore />
                       </action>
                     </pluginExecution>
-                    <pluginExecution>
-                      <pluginExecutionFilter>
-                        <groupId>com.github.spotbugs</groupId>
-                        <artifactId>spotbugs-maven-plugin</artifactId>
-                        <versionRange>${spotbugs-maven-plugin.version}</versionRange>
-                        <goals>
-                          <goal>check</goal>
-                        </goals>
-                      </pluginExecutionFilter>
-                      <action>
-                        <ignore />
-                      </action>
-                    </pluginExecution>
                   </pluginExecutions>
                 </lifecycleMappingMetadata>
               </configuration>
@@ -595,23 +582,6 @@
           <configuration>
             <tagNameFormat>@{project.version}</tagNameFormat>
           </configuration>
-        </plugin>
-        <plugin>
-          <groupId>com.github.spotbugs</groupId>
-          <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>3.1.12.2</version>
-          <configuration>
-            <excludeFilterFile>../etc/findbugs-exclude.xml</excludeFilterFile>
-          </configuration>
-          <executions>
-            <execution>
-              <id>sca-spotbugs</id>
-              <phase>validate</phase>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
