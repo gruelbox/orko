@@ -56,8 +56,6 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
-    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
-      .addBinding().to(MonolithEnvironment.class);
     Multibinder.newSetBinder(binder(), WebResource.class)
       .addBinding().to(DbResource.class);
     if (isSimulatorEnabled())
