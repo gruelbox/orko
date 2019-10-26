@@ -20,6 +20,7 @@ package com.gruelbox.orko.auth;
 
 
 import javax.inject.Inject;
+import javax.ws.rs.client.Client;
 
 import com.google.inject.Singleton;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingEnvironment;
@@ -33,18 +34,23 @@ class AuthEnvironment implements EnvironmentInitialiser {
 
   private final IpWhitelistingEnvironment ipWhitelistingEnvironment;
   private final JwtEnvironment jwtEnvironment;
+  private final ClientSecurityHeadersFilter clientSecurityHeadersFilter;
 
 
   @Inject
   AuthEnvironment(IpWhitelistingEnvironment ipWhitelistingEnvironment,
-                  JwtEnvironment jwtEnvironment) {
+                  JwtEnvironment jwtEnvironment,
+                  ClientSecurityHeadersFilter clientSecurityHeadersFilter) {
     this.ipWhitelistingEnvironment = ipWhitelistingEnvironment;
     this.jwtEnvironment = jwtEnvironment;
+    this.clientSecurityHeadersFilter = clientSecurityHeadersFilter;
   }
 
   @Override
   public void init(Environment environment) {
     ipWhitelistingEnvironment.init(environment);
     jwtEnvironment.init(environment);
+    environment.servlets().addFilter(ClientSecurityHeadersFilter.class.getSimpleName(), clientSecurityHeadersFilter)
+        .addMappingForUrlPatterns(null, true, "/*");
   }
 }

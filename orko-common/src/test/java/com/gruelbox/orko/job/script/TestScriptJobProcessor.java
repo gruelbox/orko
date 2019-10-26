@@ -46,7 +46,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.LimitOrderJob;
@@ -319,8 +318,12 @@ public class TestScriptJobProcessor {
   }
 
   private ScriptJobProcessor processor(ScriptJob scriptJob) {
-    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
-    orkoConfiguration.setScriptSigningKey(SCRIPT_SIGNING_KEY);
+    ScriptConfiguration orkoConfiguration = new ScriptConfiguration() {
+      @Override
+      public String getScriptSigningKey() {
+        return SCRIPT_SIGNING_KEY;
+      }
+    };
     return new ScriptJobProcessor(scriptJob, jobControl,
         exchangeEventRegistry, notificationService,
         jobSubmitter, transactionally, hasher, orkoConfiguration);

@@ -21,10 +21,14 @@ package com.gruelbox.orko.app.monolith;
 import com.google.inject.Module;
 import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.WebHostApplication;
+import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
+import com.gruelbox.tools.dropwizard.guice.hibernate.HibernateBundleFactory;
 
 import io.dropwizard.setup.Bootstrap;
 
-public class MonolithApplication extends WebHostApplication {
+public class MonolithApplication extends WebHostApplication<OrkoConfiguration> {
+
+  private MonolithModule monolithModule;
 
   public static void main(final String... args) throws Exception {
     new MonolithApplication().run(args);
@@ -36,8 +40,16 @@ public class MonolithApplication extends WebHostApplication {
   }
 
   @Override
+  public void initialize(Bootstrap<OrkoConfiguration> bootstrap) {
+    HibernateBundleFactory<OrkoConfiguration> hibernateBundleFactory = new HibernateBundleFactory<>(configuration -> configuration.getDatabase().toDataSourceFactory());
+    monolithModule = new MonolithModule(new GuiceHibernateModule(hibernateBundleFactory));
+    super.initialize(bootstrap);
+    bootstrap.addBundle(hibernateBundleFactory.bundle());
+  }
+
+  @Override
   protected Module createApplicationModule() {
-    return new MonolithModule();
+    return monolithModule;
   }
 
   @Override

@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.FluentIterable;
 import com.google.inject.Provider;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
 
 import jersey.repackaged.com.google.common.collect.Maps;
@@ -47,13 +46,13 @@ class ScriptAccess {
 
   private final Provider<SessionFactory> sessionFactory;
   private final Hasher hasher;
-  private final OrkoConfiguration config;
+  private final ScriptConfiguration config;
 
   @Inject
-  ScriptAccess(Provider<SessionFactory> sf, Hasher hasher, OrkoConfiguration orkoConfiguration) {
+  ScriptAccess(Provider<SessionFactory> sf, Hasher hasher, ScriptConfiguration config) {
     this.sessionFactory = sf;
     this.hasher = hasher;
-    this.config = orkoConfiguration;
+    this.config = config;
   }
 
   void saveOrUpdate(Script script) {

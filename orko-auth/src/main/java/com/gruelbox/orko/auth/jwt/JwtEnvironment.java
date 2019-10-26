@@ -41,8 +41,8 @@ public class JwtEnvironment implements EnvironmentInitialiser {
 
   @Inject
   JwtEnvironment(AuthConfiguration configuration,
-                 @Named(AuthModule.ROOT_PATH) String rootPath,
-                 @Named(AuthModule.WEBSOCKET_ENTRY_POINT) String wsEntryPoint,
+                 @Named(AuthModule.BIND_ROOT_PATH) String rootPath,
+                 @Named(AuthModule.BIND_WEBSOCKET_ENTRY_POINT) String wsEntryPoint,
                  Provider<JwtAuthenticationFilter> jwtAuthenticationFilter,
                  Provider<JwtXsrfProtectionFilter> jwtXsrfProtectionFilter) {
     this.configuration = configuration;

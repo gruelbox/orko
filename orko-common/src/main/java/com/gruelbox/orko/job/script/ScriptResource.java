@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.jobrun.JobResource;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
@@ -53,11 +52,11 @@ public class ScriptResource implements WebResource {
 
   private final JobResource jobResource;
   private final Hasher hasher;
-  private final OrkoConfiguration config;
+  private final ScriptConfiguration config;
   private final ScriptAccess scriptAccess;
 
   @Inject
-  ScriptResource(JobResource jobResource, ScriptAccess scriptAccess, OrkoConfiguration configuration, Hasher hasher) {
+  ScriptResource(JobResource jobResource, ScriptAccess scriptAccess, ScriptConfiguration configuration, Hasher hasher) {
     this.jobResource = jobResource;
     this.scriptAccess = scriptAccess;
     this.config = configuration;

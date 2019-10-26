@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gruelbox.orko.app.monolith;
+package com.gruelbox.orko.auth;
 
 import static com.google.common.net.HttpHeaders.CONTENT_SECURITY_POLICY;
 import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
@@ -38,8 +38,6 @@ import com.google.common.net.HttpHeaders;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.auth.AbstractHttpServletFilter;
-import com.gruelbox.orko.auth.AuthConfiguration;
 
 @Singleton
 class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
@@ -51,13 +49,15 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
   private Supplier<String> contentSecurityPolicy;
 
   @Inject
-  ClientSecurityHeadersFilter(Provider<HttpServletRequest> httpServletRequest, Provider<AuthConfiguration> authConfiguration) {
+  ClientSecurityHeadersFilter(Provider<HttpServletRequest> httpServletRequest,
+                              Provider<AuthConfiguration> authConfiguration) {
     this.contentSecurityPolicy = Suppliers.memoize(() -> {
       final StringBuilder wssUri = new StringBuilder(128);
       URIUtil.appendSchemeHostPort(wssUri,
           authConfiguration.get().isHttpsOnly() ? "wss" : "ws",
           httpServletRequest.get().getServerName(),
           0); // TODO either use httpServletRequest.get().getServerPort() or proxy header if behind a proxy
+      // TODO can bind these as plugins in the future to suit different apps if that's ever an issue
       return "default-src 'none'; "
           + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
           + "font-src 'self' https://fonts.gstatic.com data:; "

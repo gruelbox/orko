@@ -28,14 +28,21 @@ import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.db.DbResource;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
-import com.gruelbox.orko.exchange.ExchangeResourceModule;
+import com.gruelbox.orko.exchange.ExchangeModule;
 import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.job.JobsModule;
 import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
+import com.gruelbox.orko.jobrun.JobRunModule;
 import com.gruelbox.orko.jobrun.JobSubmitter;
+import com.gruelbox.orko.marketdata.MarketDataModule;
 import com.gruelbox.orko.marketdata.SimulatorModule;
+import com.gruelbox.orko.notification.NotificationModule;
+import com.gruelbox.orko.strategy.StrategyModule;
+import com.gruelbox.orko.subscription.SubscriptionModule;
+import com.gruelbox.orko.support.SupportModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.tools.dropwizard.guice.Configured;
-import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
+import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
@@ -43,7 +50,13 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
  */
 class MonolithModule extends AbstractModule implements Configured<OrkoConfiguration> {
 
+  private final GuiceHibernateModule guiceHibernateModule;
   private OrkoConfiguration configuration;
+
+  MonolithModule(GuiceHibernateModule guiceHibernateModule) {
+    super();
+    this.guiceHibernateModule = guiceHibernateModule;
+  }
 
   @Override
   public void setConfiguration(OrkoConfiguration configuration) {
@@ -52,16 +65,25 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
 
   @Override
   protected void configure() {
+    install(guiceHibernateModule);
+    configuration.bind(binder());
+
     install(new AuthModule(configuration.getAuth()));
     install(new WebSocketModule());
-    install(new ExchangeResourceModule());
+    install(new ExchangeModule());
+    install(new JobRunModule());
+    install(new MarketDataModule());
+    install(new SubscriptionModule());
+    install(new JobsModule());
+    install(new NotificationModule());
+    install(new StrategyModule());
+    install(new SupportModule());
+
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
-    Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
-      .addBinding().to(MonolithEnvironment.class);
-    Multibinder.newSetBinder(binder(), WebResource.class)
-      .addBinding().to(DbResource.class);
-    if (isSimulatorEnabled())
+    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(DbResource.class);
+    if (isSimulatorEnabled()) {
       install(new SimulatorModule());
+    }
   }
 
   private boolean isSimulatorEnabled() {
@@ -72,16 +94,9 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
   }
 
   @Provides
-  @Named(AuthModule.ROOT_PATH)
+  @Named(AuthModule.BIND_ROOT_PATH)
   @Singleton
-  String rootPath(OrkoConfiguration configuration) {
+  String rootPath() {
     return configuration.getRootPath();
-  }
-
-  @Provides
-  @Named(AuthModule.WEBSOCKET_ENTRY_POINT)
-  @Singleton
-  String webSocketEntryPoint(OrkoConfiguration configuration) {
-    return WebSocketModule.ENTRY_POINT;
   }
 }

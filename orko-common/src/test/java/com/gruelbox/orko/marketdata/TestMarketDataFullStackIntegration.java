@@ -50,7 +50,7 @@ public class TestMarketDataFullStackIntegration extends AbstractMarketDataFullSt
 
   @Override
   protected ExchangeService buildExchangeService() {
-    return new ExchangeServiceImpl(orkoConfiguration,
+    return new ExchangeServiceImpl(orkoConfiguration.getExchanges(),
         mock(AccountFactory.class),
         mock(MatchingEngineFactory.class));
   }

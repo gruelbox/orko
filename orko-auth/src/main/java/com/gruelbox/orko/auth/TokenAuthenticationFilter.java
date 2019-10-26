@@ -40,7 +40,7 @@ public abstract class TokenAuthenticationFilter extends AbstractHttpSecurityServ
   protected abstract Optional<AuthenticatedUser> extractPrincipal(String token);
 
   @Inject
-  @Named(AuthModule.ACCESS_TOKEN_KEY)
+  @Named(AuthModule.BIND_ACCESS_TOKEN_KEY)
   private Provider<Optional<String>> accessToken;
 
   @Inject

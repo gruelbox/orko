@@ -65,7 +65,6 @@ import com.google.inject.multibindings.Multibinder;
 @Category(DatabaseTest.class)
 public class TestDbDump {
 
-  @Inject private DatabaseSetup databaseSetup;
   @Inject private ConnectionResources connectionResources;
   @Inject private SqlScriptExecutorProvider sqlScriptExecutorProvider;
 
@@ -77,7 +76,8 @@ public class TestDbDump {
 
     MockitoAnnotations.initMocks(this);
 
-    Injector injector = Guice.createInjector(new DbModule(), (Module) binder -> {
+    DbModule dbModule = new DbModule();
+    Injector injector = Guice.createInjector(dbModule, (Module) binder -> {
       binder.bind(DbConfiguration.class).toInstance(dbConfig);
       Multibinder.newSetBinder(binder, TableContribution.class)
           .addBinding().toInstance(new TableContribution() {
@@ -102,7 +102,6 @@ public class TestDbDump {
           });
     });
     injector.injectMembers(this);
-    databaseSetup.setup();
   }
 
   @Test

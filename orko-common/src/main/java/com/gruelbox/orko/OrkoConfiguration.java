@@ -22,13 +22,18 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.inject.Binder;
+import com.google.inject.TypeLiteral;
+import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
+import com.gruelbox.orko.job.script.ScriptConfiguration;
+import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
+import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpsResponsibility;
 
@@ -39,13 +44,12 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Runtime config. Should really be broken up.
  */
-public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration {
+public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
    * cache timeouts etc).  This is the loop time.
    */
-  @NotNull
   @Min(1L)
   @JsonProperty
   private int loopSeconds = 15;
@@ -53,7 +57,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
   /**
    * Authentication configuration
    */
-  @NotNull
+  @Valid
   @JsonProperty
   private AuthConfiguration auth;
 
@@ -62,6 +66,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
    * volatile in-memory storage, which is obviously fine for trying things
    * out but quickly becomes useless in real life.
    */
+  @Valid
   @JsonProperty
   private DbConfiguration database = new DbConfiguration();
 
@@ -69,6 +74,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
    * Telegram configuration. Currently required for notifications.  Can
    * be left out but then you have no idea what the application is doing.
    */
+  @Valid
   @JsonProperty
   private TelegramConfiguration telegram;
 
@@ -76,9 +82,8 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
   private String scriptSigningKey;
 
   @Valid
-  @NotNull
   @JsonProperty("jerseyClient")
-  private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
+  private JerseyClientConfiguration jerseyClient;
 
   private Map<String, ExchangeConfiguration> exchanges;
 
@@ -86,6 +91,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     super();
   }
 
+  @Override
   public int getLoopSeconds() {
     return loopSeconds;
   }
@@ -126,6 +132,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     exchanges = exchange;
   }
 
+  @Override
   public String getScriptSigningKey() {
     return scriptSigningKey;
   }
@@ -163,5 +170,26 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     return auth.isProxied()
         ? HttpsResponsibility.HTTPS_AT_PROXY
         : HttpsResponsibility.HTTPS_DIRECT;
+  }
+
+  /**
+   * Takes all the configuration components and binds them to the injector
+   * so they become available to modules throughout the application.
+   *
+   * @param binder The Guice binder.
+   */
+  public void bind(Binder binder) {
+    binder.bind(BackgroundProcessingConfiguration.class).toInstance(this);
+    binder.bind(ScriptConfiguration.class).toInstance(this);
+    binder.bind(DbConfiguration.class).toProvider(Providers.of(database));
+    binder.bind(AuthConfiguration.class).toProvider(Providers.of(auth));
+    binder.bind(JerseyClientConfiguration.class).toProvider(Providers.of(jerseyClient));
+    binder.bind(TelegramConfiguration.class).toProvider(Providers.of(telegram));
+    binder.bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {}).toProvider(Providers.of(exchanges));
+
+    JobRunConfiguration jobRunConfiguration = new JobRunConfiguration();
+    jobRunConfiguration.setDatabaseLockSeconds(database.getLockSeconds());
+    jobRunConfiguration.setGuardianLoopSeconds(loopSeconds);
+    binder.bind(JobRunConfiguration.class).toInstance(jobRunConfiguration);
   }
 }

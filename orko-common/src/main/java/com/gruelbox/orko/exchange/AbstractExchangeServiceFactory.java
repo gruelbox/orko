@@ -21,22 +21,19 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.gruelbox.orko.OrkoConfiguration;
-
 abstract class AbstractExchangeServiceFactory<T> {
 
-  private final OrkoConfiguration configuration;
+  private final Map<String, ExchangeConfiguration> configuration;
 
-  AbstractExchangeServiceFactory(OrkoConfiguration configuration) {
+  AbstractExchangeServiceFactory(Map<String, ExchangeConfiguration> configuration) {
     this.configuration = configuration;
   }
 
   public T getForExchange(String exchange) {
-    Map<String, ExchangeConfiguration> exchangeConfig = configuration.getExchanges();
-    if (exchangeConfig == null) {
+    if (configuration == null) {
       return getPaperFactory().getForExchange(exchange);
     }
-    final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(exchange);
+    final ExchangeConfiguration exchangeConfiguration = configuration.get(exchange);
     if (exchangeConfiguration == null || StringUtils.isEmpty(exchangeConfiguration.getApiKey())) {
       return getPaperFactory().getForExchange(exchange);
     }
