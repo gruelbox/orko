@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Module;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
-import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
-import com.gruelbox.tools.dropwizard.guice.hibernate.HibernateBundleFactory;
 
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -51,19 +49,14 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
       )
     );
 
-    HibernateBundleFactory<OrkoConfiguration> hibernateBundleFactory
-      = new HibernateBundleFactory<>(configuration -> configuration.getDatabase().toDataSourceFactory());
-
     bootstrap.addBundle(
       new GuiceBundle<OrkoConfiguration>(
         this,
         new BaseApplicationModule(),
-        new GuiceHibernateModule(hibernateBundleFactory),
         createApplicationModule()
       )
     );
 
-    bootstrap.addBundle(hibernateBundleFactory.bundle());
   }
 
   protected abstract Module createApplicationModule();

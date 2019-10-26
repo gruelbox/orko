@@ -34,6 +34,7 @@ import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.marketdata.SimulatorModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
 import com.gruelbox.orko.wiring.AbstractConfiguredModule;
+import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
@@ -41,8 +42,16 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
  */
 class MonolithModule extends AbstractConfiguredModule<OrkoConfiguration> {
 
+  private final GuiceHibernateModule guiceHibernateModule;
+
+  MonolithModule(GuiceHibernateModule guiceHibernateModule) {
+    super();
+    this.guiceHibernateModule = guiceHibernateModule;
+  }
+
   @Override
   protected void configure() {
+    install(guiceHibernateModule);
     install(new AuthModule());
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
