@@ -68,7 +68,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.marketdata.Balance;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
 import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
@@ -89,7 +88,7 @@ public class ExchangeResource implements WebResource {
   private final ExchangeService exchanges;
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
-  private final OrkoConfiguration configuration;
+  private final Map<String, ExchangeConfiguration>  configuration;
   private final MarketDataSubscriptionManager subscriptionManager;
   private final Factory calculatorFactory;
 
@@ -99,7 +98,7 @@ public class ExchangeResource implements WebResource {
                    TradeServiceFactory tradeServiceFactory,
                    AccountServiceFactory accountServiceFactory,
                    MarketDataSubscriptionManager subscriptionManager,
-                   OrkoConfiguration configuration,
+                   Map<String, ExchangeConfiguration> configuration,
                    MaxTradeAmountCalculator.Factory calculatorFactory) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
@@ -120,7 +119,7 @@ public class ExchangeResource implements WebResource {
   public Collection<ExchangeMeta> list() {
     return exchanges.getExchanges().stream()
         .map(code -> {
-          ExchangeConfiguration exchangeConfig = configuration.getExchanges().get(code);
+          ExchangeConfiguration exchangeConfig = configuration.get(code);
           return new ExchangeMeta(
               code,
               Exchanges.name(code),

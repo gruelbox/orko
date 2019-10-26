@@ -67,7 +67,7 @@ public class TestExchangeResource {
   @ClassRule public static final ResourceTestRule resources = ResourceTestRule.builder()
       .addResource(new ExchangeResource(
           exchangeService, tradeServiceFactory, accountServiceFactory,
-          subscriptionManager, configuration, calculatorFactory)
+          subscriptionManager, configuration.getExchanges(), calculatorFactory)
       ).build();
 
   @Before
