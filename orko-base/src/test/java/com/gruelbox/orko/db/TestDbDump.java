@@ -77,7 +77,7 @@ public class TestDbDump {
     MockitoAnnotations.initMocks(this);
 
     DbModule dbModule = new DbModule();
-    dbModule.setConfiguration(() -> dbConfig);
+    dbModule.setConfiguration(new AppConfiguration(dbConfig));
     Injector injector = Guice.createInjector(dbModule, (Module) binder -> {
       Multibinder.newSetBinder(binder, TableContribution.class)
           .addBinding().toInstance(new TableContribution() {
@@ -133,6 +133,20 @@ public class TestDbDump {
       assertEquals(1, values.size());
       assertEquals(13, values.get(0).get(field(ID), Integer.class).intValue());
       assertEquals("TEST", values.get(0).get(field(FIELD_1), String.class));
+    }
+  }
+
+  private static final class AppConfiguration implements HasDbConfiguration {
+
+    private final DbConfiguration db;
+
+    AppConfiguration(DbConfiguration db) {
+      this.db = db;
+    }
+
+    @Override
+    public DbConfiguration getDatabase() {
+      return db;
     }
   }
 }
