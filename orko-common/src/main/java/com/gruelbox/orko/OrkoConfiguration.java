@@ -22,7 +22,6 @@ import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.auth.AuthConfiguration;
@@ -42,13 +41,15 @@ import io.dropwizard.server.AbstractServerFactory;
  * Runtime config. Should really be broken up.
  */
 public class OrkoConfiguration extends Configuration
-    implements HttpEnforcementConfiguration, HasAuthConfiguration, HasDbConfiguration {
+    implements HttpEnforcementConfiguration,
+                HasAuthConfiguration,
+                HasDbConfiguration,
+                HasJerseyClientConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
    * cache timeouts etc).  This is the loop time.
    */
-  @NotNull
   @Min(1L)
   @JsonProperty
   private int loopSeconds = 15;
@@ -56,7 +57,7 @@ public class OrkoConfiguration extends Configuration
   /**
    * Authentication configuration
    */
-  @NotNull
+  @Valid
   @JsonProperty
   private AuthConfiguration auth;
 
@@ -65,6 +66,7 @@ public class OrkoConfiguration extends Configuration
    * volatile in-memory storage, which is obviously fine for trying things
    * out but quickly becomes useless in real life.
    */
+  @Valid
   @JsonProperty
   private DbConfiguration database = new DbConfiguration();
 
@@ -72,6 +74,7 @@ public class OrkoConfiguration extends Configuration
    * Telegram configuration. Currently required for notifications.  Can
    * be left out but then you have no idea what the application is doing.
    */
+  @Valid
   @JsonProperty
   private TelegramConfiguration telegram;
 
@@ -79,9 +82,8 @@ public class OrkoConfiguration extends Configuration
   private String scriptSigningKey;
 
   @Valid
-  @NotNull
   @JsonProperty("jerseyClient")
-  private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
+  private JerseyClientConfiguration jerseyClient;
 
   private Map<String, ExchangeConfiguration> exchanges;
 

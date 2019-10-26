@@ -20,16 +20,20 @@ package com.gruelbox.orko;
 
 import javax.inject.Inject;
 
+import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.servlet.ServletModule;
 import com.gruelbox.orko.websocket.WebSocketBundleInit;
+import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpsEnforcementBundle;
 
+import io.dropwizard.Configuration;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 
-public abstract class WebHostApplication extends BaseApplication {
+public abstract class WebHostApplication<T extends Configuration & HttpEnforcementConfiguration> extends BaseApplication<T> implements Module {
 
   @Inject private WebSocketBundleInit webSocketBundleInit;
   @Inject private UrlRewriteEnvironment urlRewriteEnvironment;
@@ -37,7 +41,7 @@ public abstract class WebHostApplication extends BaseApplication {
   private WebsocketBundle websocketBundle;
 
   @Override
-  public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
+  public void initialize(final Bootstrap<T> bootstrap) {
     bootstrap.addBundle(new AssetsBundle("/assets/", "/", "index.html"));
     super.initialize(bootstrap);
     websocketBundle = new WebsocketBundle(new Class[] {});
@@ -49,9 +53,15 @@ public abstract class WebHostApplication extends BaseApplication {
   protected abstract Module createApplicationModule();
 
   @Override
-  public final void run(final OrkoConfiguration configuration, final Environment environment) {
+  public final void run(final T configuration, final Environment environment) {
     urlRewriteEnvironment.init(environment);
     super.run(configuration, environment);
     webSocketBundleInit.init(websocketBundle);
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+    binder.install(new ServletModule());
   }
 }

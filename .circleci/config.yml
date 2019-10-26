@@ -142,7 +142,7 @@ jobs:
               fi
             else
               echo "Test only"
-              mvn ${BUILD_ARGS} test -Dskip.failsafe.tests=true
+              mvn ${BUILD_ARGS} -T 1C surefire:test -Dskip.failsafe.tests=true
             fi
       - save_cache:
           paths:

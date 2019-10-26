@@ -23,18 +23,16 @@ import javax.ws.rs.client.Client;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
-import com.google.inject.servlet.ServletModule;
 import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.setup.Environment;
 
-public class BaseApplicationModule extends AbstractConfiguredModule<OrkoConfiguration> {
+class JerseySupportModule extends AbstractConfiguredModule<HasJerseyClientConfiguration> {
 
   @Override
   protected void configure() {
-    install(new ServletModule());
     Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class)
         .addBinding()
         .toInstance(environment -> environment.jersey()
@@ -43,9 +41,11 @@ public class BaseApplicationModule extends AbstractConfiguredModule<OrkoConfigur
 
   @Provides
   @Singleton
-  Client jerseyClient(Environment environment, OrkoConfiguration configuration) {
-    return new JerseyClientBuilder(environment)
-      .using(configuration.getJerseyClientConfiguration())
-      .build("client");
+  Client jerseyClient(Environment environment) {
+    return getConfiguration() == null
+        ? new JerseyClientBuilder(environment).build("client")
+        : new JerseyClientBuilder(environment)
+            .using(getConfiguration().getJerseyClientConfiguration())
+            .build("client");
   }
 }

@@ -21,22 +21,24 @@ package com.gruelbox.orko;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
 
 import io.dropwizard.Application;
+import io.dropwizard.Configuration;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-public abstract class BaseApplication extends Application<OrkoConfiguration> {
+public abstract class BaseApplication<T extends Configuration> extends Application<T> implements Module {
 
   private DockerSecretSubstitutor dockerSecretSubstitutor;
 
   @Override
-  public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
+  public void initialize(final Bootstrap<T> bootstrap) {
 
     dockerSecretSubstitutor = new DockerSecretSubstitutor(false, false, true);
     bootstrap.setConfigurationSourceProvider(
@@ -50,9 +52,9 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
     );
 
     bootstrap.addBundle(
-      new GuiceBundle<OrkoConfiguration>(
+      new GuiceBundle<T>(
         this,
-        new BaseApplicationModule(),
+        this,
         createApplicationModule()
       )
     );
@@ -62,7 +64,12 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
   protected abstract Module createApplicationModule();
 
   @Override
-  public void run(OrkoConfiguration configuration, Environment environment) {
+  public void configure(Binder binder) {
+    binder.install(new JerseySupportModule());
+  }
+
+  @Override
+  public void run(T configuration, Environment environment) {
     Logger dockerLogger = LoggerFactory.getLogger(DockerSecretSubstitutor.class);
     if (dockerLogger.isDebugEnabled()) {
       dockerSecretSubstitutor.getLog().stream()

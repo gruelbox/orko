@@ -26,7 +26,7 @@ import com.gruelbox.tools.dropwizard.guice.hibernate.HibernateBundleFactory;
 
 import io.dropwizard.setup.Bootstrap;
 
-public class MonolithApplication extends WebHostApplication {
+public class MonolithApplication extends WebHostApplication<OrkoConfiguration> {
 
   private MonolithModule monolithModule;
 
