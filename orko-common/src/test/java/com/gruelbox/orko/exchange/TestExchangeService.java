@@ -27,6 +27,8 @@ import static com.gruelbox.orko.exchange.Exchanges.KRAKEN;
 import static com.gruelbox.orko.exchange.Exchanges.KUCOIN;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
 import org.junit.Test;
 import org.knowm.xchange.kucoin.KucoinExchange;
 import org.knowm.xchange.simulated.AccountFactory;
@@ -34,7 +36,6 @@ import org.knowm.xchange.simulated.MatchingEngineFactory;
 import org.mockito.Mockito;
 
 import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.OrkoConfiguration;
 
 import info.bitrich.xchangestream.coinbasepro.CoinbaseProStreamingExchange;
 
@@ -54,16 +55,16 @@ public class TestExchangeService {
 
   @Test(expected = IllegalArgumentException.class)
   public void testInstantiationFailurePrivate() {
-    OrkoConfiguration config = baseConfig("nonexistent");
-    config.getExchanges().get("nonexistent").setApiKey("XXX");
+    Map<String, ExchangeConfiguration> config = baseConfig("nonexistent");
+    config.get("nonexistent").setApiKey("XXX");
     ExchangeServiceImpl exchangeService = of(config);
     exchangeService.get("nonexistent");
   }
 
   @Test
   public void testGdaxSandbox() {
-    OrkoConfiguration config = baseConfig(GDAX);
-    config.getExchanges().get(GDAX).setSandbox(true);
+    Map<String, ExchangeConfiguration> config = baseConfig(GDAX);
+    config.get(GDAX).setSandbox(true);
     ExchangeServiceImpl exchangeService = of(config);
     assertTrue(exchangeService.getExchanges().contains(GDAX));
     assertTrue(exchangeService.get(GDAX) instanceof CoinbaseProStreamingExchange);
@@ -108,25 +109,24 @@ public class TestExchangeService {
 
   @Test
   public void testKucoinSandbox() {
-    OrkoConfiguration config = baseConfig(KUCOIN);
-    config.getExchanges().get(KUCOIN).setSandbox(true);
+    Map<String, ExchangeConfiguration> config = baseConfig(KUCOIN);
+    config.get(KUCOIN).setSandbox(true);
     ExchangeServiceImpl exchangeService = of(config);
     assertTrue(exchangeService.getExchanges().contains(KUCOIN));
     assertTrue(exchangeService.get(KUCOIN) instanceof KucoinExchange);
   }
 
-  private OrkoConfiguration baseConfig(String exchange) {
-    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
-    orkoConfiguration.setExchanges(ImmutableMap.of(exchange, new ExchangeConfiguration()));
-    orkoConfiguration.getExchanges().get(exchange).setLoadRemoteData(false);
-    return orkoConfiguration;
+  private Map<String, ExchangeConfiguration> baseConfig(String exchange) {
+    ImmutableMap<String, ExchangeConfiguration> exchanges = ImmutableMap.of(exchange, new ExchangeConfiguration());
+    exchanges.get(exchange).setLoadRemoteData(false);
+    return exchanges;
   }
 
   private ExchangeServiceImpl vanilla(String exchange) {
     return of(baseConfig(exchange));
   }
 
-  private ExchangeServiceImpl of(OrkoConfiguration config) {
+  private ExchangeServiceImpl of(Map<String, ExchangeConfiguration> config) {
     ExchangeServiceImpl exchangeService = new ExchangeServiceImpl(config,
         Mockito.mock(AccountFactory.class), Mockito.mock(MatchingEngineFactory.class));
     return exchangeService;

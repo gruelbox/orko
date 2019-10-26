@@ -25,6 +25,7 @@ import static java.util.stream.Stream.concat;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -57,7 +58,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import info.bitrich.xchangestream.core.StreamingExchangeFactory;
@@ -76,16 +76,16 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeServiceImpl.class);
 
-  private final OrkoConfiguration configuration;
+  private final Map<String, ExchangeConfiguration> exchangesConfig;
   private final AccountFactory accountFactory;
   private final MatchingEngineFactory matchingEngineFactory;
 
   private final LoadingCache<String, Exchange> exchanges = CacheBuilder.newBuilder().build(new CacheLoader<String, Exchange>() {
     @Override
     public Exchange load(String name) throws Exception {
-      final ExchangeConfiguration exchangeConfiguration = configuration.getExchanges() == null
+      final ExchangeConfiguration exchangeConfiguration = ExchangeServiceImpl.this.exchangesConfig == null
         ? VANILLA_CONFIG
-        : MoreObjects.firstNonNull(configuration.getExchanges().get(name), VANILLA_CONFIG);
+        : MoreObjects.firstNonNull(ExchangeServiceImpl.this.exchangesConfig.get(name), VANILLA_CONFIG);
       if (exchangeConfiguration.isAuthenticated()) {
         return privateApi(name, exchangeConfiguration);
       } else {
@@ -187,9 +187,9 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Inject
   @VisibleForTesting
-  public ExchangeServiceImpl(OrkoConfiguration configuration,
-      AccountFactory accountFactory, MatchingEngineFactory matchingEngineFactory) {
-    this.configuration = configuration;
+  public ExchangeServiceImpl(Map<String, ExchangeConfiguration> configuration,
+                             AccountFactory accountFactory, MatchingEngineFactory matchingEngineFactory) {
+    this.exchangesConfig = configuration;
     this.accountFactory = accountFactory;
     this.matchingEngineFactory = matchingEngineFactory;
   }
@@ -238,9 +238,9 @@ public class ExchangeServiceImpl implements ExchangeService {
 
   @Override
   public boolean isAuthenticated(String name) {
-    if (configuration.getExchanges() == null)
+    if (exchangesConfig == null)
       return false;
-    ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(name);
+    ExchangeConfiguration exchangeConfiguration = this.exchangesConfig.get(name);
     return exchangeConfiguration != null &&
            StringUtils.isNotEmpty(exchangeConfiguration.getApiKey());
   }
