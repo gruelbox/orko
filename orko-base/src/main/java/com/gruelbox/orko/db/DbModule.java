@@ -33,4 +33,14 @@ public class DbModule extends AbstractConfiguredModule<HasDbConfiguration> {
   DbConfiguration dbConfiguration() {
     return getConfiguration().getDatabase();
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof DbModule;
+  }
+
+  @Override
+  public int hashCode() {
+    return DbModule.class.getName().hashCode();
+  }
 }

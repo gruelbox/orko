@@ -29,6 +29,7 @@ import com.google.inject.servlet.RequestScoped;
 import com.gruelbox.orko.auth.blacklist.Blacklisting;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.gruelbox.orko.auth.jwt.JwtModule;
+import com.gruelbox.orko.db.DbModule;
 import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
@@ -42,6 +43,7 @@ public class AuthModule extends AbstractConfiguredModule<HasAuthConfiguration> {
 
   @Override
   protected void configure() {
+    install(new DbModule());
     if (getConfiguration() != null) {
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());
