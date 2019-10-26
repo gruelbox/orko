@@ -28,7 +28,7 @@ import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.setup.Environment;
 
-public class OrkoApplicationModule extends AbstractConfiguredModule<OrkoConfiguration> {
+public class BaseApplicationModule extends AbstractConfiguredModule<OrkoConfiguration> {
 
   @Override
   protected void configure() {

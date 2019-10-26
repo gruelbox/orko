@@ -18,12 +18,10 @@
 
 package com.gruelbox.orko;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.inject.Module;
-import com.gruelbox.orko.db.DatabaseSetup;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
 import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
@@ -36,8 +34,6 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 public abstract class BaseApplication extends Application<OrkoConfiguration> {
-
-  @Inject private DatabaseSetup databaseSetup;
 
   private DockerSecretSubstitutor dockerSecretSubstitutor;
 
@@ -61,7 +57,7 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
     bootstrap.addBundle(
       new GuiceBundle<OrkoConfiguration>(
         this,
-        new OrkoApplicationModule(),
+        new BaseApplicationModule(),
         new GuiceHibernateModule(hibernateBundleFactory),
         createApplicationModule()
       )
@@ -74,7 +70,6 @@ public abstract class BaseApplication extends Application<OrkoConfiguration> {
 
   @Override
   public void run(OrkoConfiguration configuration, Environment environment) {
-    databaseSetup.setup();
     Logger dockerLogger = LoggerFactory.getLogger(DockerSecretSubstitutor.class);
     if (dockerLogger.isDebugEnabled()) {
       dockerSecretSubstitutor.getLog().stream()
