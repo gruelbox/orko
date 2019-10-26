@@ -46,7 +46,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.LimitOrderJob;
@@ -91,7 +90,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   private final JobSubmitter jobSubmitter;
   private final Transactionally transactionally;
   private final Hasher hasher;
-  private final OrkoConfiguration configuration;
+  private final ScriptConfiguration configuration;
 
   private volatile ScriptJob job;
   private volatile boolean done;
@@ -104,7 +103,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
                             JobSubmitter jobSubmitter,
                             Transactionally transactionally,
                             Hasher hasher,
-                            OrkoConfiguration configuration) {
+                            ScriptConfiguration configuration) {
     this.job = job;
     this.jobControl = jobControl;
     this.exchangeEventRegistry = exchangeEventRegistry;

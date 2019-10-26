@@ -30,6 +30,7 @@ import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
+import com.gruelbox.orko.job.script.ScriptConfiguration;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
@@ -43,7 +44,7 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Runtime config. Should really be broken up.
  */
-public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration {
+public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -131,6 +132,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     exchanges = exchange;
   }
 
+  @Override
   public String getScriptSigningKey() {
     return scriptSigningKey;
   }
@@ -178,6 +180,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
    */
   public void bind(Binder binder) {
     binder.bind(BackgroundProcessingConfiguration.class).toInstance(this);
+    binder.bind(ScriptConfiguration.class).toInstance(this);
     binder.bind(DbConfiguration.class).toProvider(Providers.of(database));
     binder.bind(AuthConfiguration.class).toProvider(Providers.of(auth));
     binder.bind(JerseyClientConfiguration.class).toProvider(Providers.of(jerseyClient));
