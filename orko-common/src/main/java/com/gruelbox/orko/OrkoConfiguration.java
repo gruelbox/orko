@@ -26,7 +26,9 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gruelbox.orko.auth.AuthConfiguration;
+import com.gruelbox.orko.auth.HasAuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
+import com.gruelbox.orko.db.HasDbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
@@ -39,7 +41,8 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Runtime config. Should really be broken up.
  */
-public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration {
+public class OrkoConfiguration extends Configuration
+    implements HttpEnforcementConfiguration, HasAuthConfiguration, HasDbConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -94,6 +97,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     this.loopSeconds = loopSeconds;
   }
 
+  @Override
   public AuthConfiguration getAuth() {
     return auth;
   }
@@ -102,6 +106,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
     this.auth = auth;
   }
 
+  @Override
   public DbConfiguration getDatabase() {
     return database;
   }

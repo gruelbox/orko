@@ -21,7 +21,6 @@ package com.gruelbox.orko.app.monolith;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.OrkoConfiguration;
@@ -34,25 +33,17 @@ import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.marketdata.SimulatorModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
-import com.gruelbox.tools.dropwizard.guice.Configured;
-import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
+import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**
  * Top level bindings.
  */
-class MonolithModule extends AbstractModule implements Configured<OrkoConfiguration> {
-
-  private OrkoConfiguration configuration;
-
-  @Override
-  public void setConfiguration(OrkoConfiguration configuration) {
-    this.configuration = configuration;
-  }
+class MonolithModule extends AbstractConfiguredModule<OrkoConfiguration> {
 
   @Override
   protected void configure() {
-    install(new AuthModule(configuration.getAuth()));
+    install(new AuthModule());
     install(new WebSocketModule());
     install(new ExchangeResourceModule());
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
@@ -63,23 +54,23 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
   }
 
   private boolean isSimulatorEnabled() {
-    if (configuration.getExchanges() == null)
+    if (getConfiguration().getExchanges() == null)
       return false;
-    ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(Exchanges.SIMULATED);
+    ExchangeConfiguration exchangeConfiguration = getConfiguration().getExchanges().get(Exchanges.SIMULATED);
     return exchangeConfiguration != null && exchangeConfiguration.isAuthenticated();
   }
 
   @Provides
   @Named(AuthModule.ROOT_PATH)
   @Singleton
-  String rootPath(OrkoConfiguration configuration) {
-    return configuration.getRootPath();
+  String rootPath() {
+    return getConfiguration().getRootPath();
   }
 
   @Provides
   @Named(AuthModule.WEBSOCKET_ENTRY_POINT)
   @Singleton
-  String webSocketEntryPoint(OrkoConfiguration configuration) {
+  String webSocketEntryPoint() {
     return WebSocketModule.ENTRY_POINT;
   }
 }

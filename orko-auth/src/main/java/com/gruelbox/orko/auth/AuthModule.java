@@ -29,31 +29,26 @@ import com.google.inject.servlet.RequestScoped;
 import com.gruelbox.orko.auth.blacklist.Blacklisting;
 import com.gruelbox.orko.auth.ipwhitelisting.IpWhitelistingModule;
 import com.gruelbox.orko.auth.jwt.JwtModule;
+import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
 import io.dropwizard.lifecycle.Managed;
 
-public class AuthModule extends AbstractModule {
+public class AuthModule extends AbstractConfiguredModule<HasAuthConfiguration> {
 
   public static final String ACCESS_TOKEN_KEY = "accessToken";
   public static final String ROOT_PATH = "auth-rootPath";
   public static final String WEBSOCKET_ENTRY_POINT = "auth-ws-entry";
 
-  private final AuthConfiguration configuration;
-
-  public AuthModule(AuthConfiguration configuration) {
-    this.configuration = configuration;
-  }
-
   @Override
   protected void configure() {
-    if (configuration != null) {
+    if (getConfiguration() != null) {
       install(new GoogleAuthenticatorModule());
       install(new IpWhitelistingModule());
-      install(new JwtModule(configuration));
+      install(new JwtModule(getConfiguration().getAuth()));
       Multibinder.newSetBinder(binder(), EnvironmentInitialiser.class).addBinding().to(AuthEnvironment.class);
       Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(Blacklisting.class);
-      install(new Testing(configuration));
+      install(new Testing(getConfiguration().getAuth()));
     }
   }
 

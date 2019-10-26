@@ -19,11 +19,18 @@
 package com.gruelbox.orko.db;
 
 
-import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 
-public class DbModule extends AbstractModule {
+public class DbModule extends AbstractConfiguredModule<HasDbConfiguration> {
+
   @Override
   protected void configure() {
     install(new DatabaseAccessModule());
+  }
+
+  @Provides
+  DbConfiguration dbConfiguration() {
+    return getConfiguration().getDatabase();
   }
 }

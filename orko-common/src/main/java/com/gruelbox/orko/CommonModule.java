@@ -18,7 +18,6 @@
 
 package com.gruelbox.orko;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
@@ -32,10 +31,11 @@ import com.gruelbox.orko.notification.NotificationModule;
 import com.gruelbox.orko.strategy.StrategyModule;
 import com.gruelbox.orko.subscription.SubscriptionModule;
 import com.gruelbox.orko.support.SupportModule;
+import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 import com.gruelbox.orko.wiring.WiringModule;
 import com.gruelbox.tools.dropwizard.guice.EnvironmentInitialiser;
 
-class CommonModule extends AbstractModule {
+class CommonModule extends AbstractConfiguredModule<Object> {
 
   @Override
   protected void configure() {

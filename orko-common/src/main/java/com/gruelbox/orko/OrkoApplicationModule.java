@@ -21,26 +21,20 @@ package com.gruelbox.orko;
 import javax.ws.rs.client.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
-import com.gruelbox.orko.db.DbConfiguration;
+import com.gruelbox.orko.wiring.AbstractConfiguredModule;
 
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.setup.Environment;
 
-public class OrkoApplicationModule extends AbstractModule {
+public class OrkoApplicationModule extends AbstractConfiguredModule<OrkoConfiguration> {
 
   @Override
   protected void configure() {
     install(new ServletModule());
     install(new CommonModule());
-  }
-
-  @Provides
-  DbConfiguration dbConfiguration(OrkoConfiguration configuration) {
-    return configuration.getDatabase();
   }
 
   @Provides
