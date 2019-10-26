@@ -105,7 +105,7 @@ class UpdateSnapshotAction implements BaseAction {
     const idsPresent = new Set<string>()
     for (const order of this.orders) {
       idsPresent.add(order.id)
-      result = orderUpdated(state, order, this.timestamp)
+      result = orderUpdated(result, order, this.timestamp)
     }
 
     // Any order not mentioned should be removed
@@ -160,7 +160,6 @@ export function useOrders(): [Array<Order>, UseOrderArrayApi] {
 
 function orderUpdated(state: Array<Order>, order: any, timestamp: number) {
   if (order === null) {
-    console.log(" - Clearing down")
     return Immutable([])
   }
 
