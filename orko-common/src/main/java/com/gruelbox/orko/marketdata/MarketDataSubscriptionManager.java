@@ -110,7 +110,6 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
@@ -120,6 +119,7 @@ import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions;
 import com.gruelbox.orko.util.SafelyDispose;
+import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
@@ -148,7 +148,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
   private final ExchangeService exchangeService;
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
-  private final OrkoConfiguration configuration;
+  private final BackgroundProcessingConfiguration configuration;
   private final NotificationService notificationService;
 
   private final Map<String, AtomicReference<Set<MarketDataSubscription>>> nextSubscriptions;
@@ -173,7 +173,7 @@ public class MarketDataSubscriptionManager extends AbstractExecutionThreadServic
 
   @Inject
   @VisibleForTesting
-  public MarketDataSubscriptionManager(ExchangeService exchangeService, OrkoConfiguration configuration, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, NotificationService notificationService) {
+  public MarketDataSubscriptionManager(ExchangeService exchangeService, BackgroundProcessingConfiguration configuration, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, NotificationService notificationService) {
     this.exchangeService = exchangeService;
     this.configuration = configuration;
     this.tradeServiceFactory = tradeServiceFactory;
