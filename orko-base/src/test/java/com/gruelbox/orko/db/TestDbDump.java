@@ -65,7 +65,6 @@ import com.google.inject.multibindings.Multibinder;
 @Category(DatabaseTest.class)
 public class TestDbDump {
 
-  @Inject private DatabaseSetup databaseSetup;
   @Inject private ConnectionResources connectionResources;
   @Inject private SqlScriptExecutorProvider sqlScriptExecutorProvider;
 
@@ -103,7 +102,6 @@ public class TestDbDump {
           });
     });
     injector.injectMembers(this);
-    databaseSetup.setup();
   }
 
   @Test
