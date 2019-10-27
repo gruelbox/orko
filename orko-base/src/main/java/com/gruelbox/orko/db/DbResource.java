@@ -25,8 +25,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -38,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
 /**

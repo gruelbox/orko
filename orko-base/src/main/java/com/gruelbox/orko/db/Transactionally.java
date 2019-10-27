@@ -29,6 +29,7 @@ import org.hibernate.context.internal.ManagedSessionContext;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -37,7 +38,6 @@ import com.google.inject.util.Providers;
 import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.hibernate.UnitOfWork;
 import io.dropwizard.hibernate.UnitOfWorkAspect;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 @Singleton
 public class Transactionally {
