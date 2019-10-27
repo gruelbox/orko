@@ -29,10 +29,10 @@ import org.alfasoftware.morf.jdbc.DatabaseType;
 import org.hibernate.cfg.AvailableSettings;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.util.Duration;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 public class DbConfiguration {
 

@@ -23,8 +23,6 @@ import static java.util.stream.Collectors.toSet;
 
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 import org.alfasoftware.morf.metadata.Schema;
 import org.alfasoftware.morf.metadata.SchemaResource;
@@ -35,6 +33,8 @@ import org.alfasoftware.morf.upgrade.UpgradeStep;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
 
 public class DatabaseSetup {
 
