@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gruelbox.orko;
+package com.gruelbox.orko.app.monolith;
 
 import java.util.Map;
 
@@ -42,9 +42,9 @@ import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.server.AbstractServerFactory;
 
 /**
- * Runtime config. Should really be broken up.
+ * Configuration for the monolith application.
  */
-public class OrkoConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration {
+public class MonolithConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -87,7 +87,7 @@ public class OrkoConfiguration extends Configuration implements HttpEnforcementC
 
   private Map<String, ExchangeConfiguration> exchanges;
 
-  public OrkoConfiguration() {
+  public MonolithConfiguration() {
     super();
   }
 

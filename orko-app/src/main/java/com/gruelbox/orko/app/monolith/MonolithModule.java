@@ -24,7 +24,6 @@ import javax.inject.Singleton;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.db.DbResource;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
@@ -48,10 +47,10 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 /**
  * Top level bindings.
  */
-class MonolithModule extends AbstractModule implements Configured<OrkoConfiguration> {
+class MonolithModule extends AbstractModule implements Configured<MonolithConfiguration> {
 
   private final GuiceHibernateModule guiceHibernateModule;
-  private OrkoConfiguration configuration;
+  private MonolithConfiguration configuration;
 
   MonolithModule(GuiceHibernateModule guiceHibernateModule) {
     super();
@@ -59,7 +58,7 @@ class MonolithModule extends AbstractModule implements Configured<OrkoConfigurat
   }
 
   @Override
-  public void setConfiguration(OrkoConfiguration configuration) {
+  public void setConfiguration(MonolithConfiguration configuration) {
     this.configuration = configuration;
   }
 

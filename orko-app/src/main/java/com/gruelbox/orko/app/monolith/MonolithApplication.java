@@ -19,14 +19,13 @@
 package com.gruelbox.orko.app.monolith;
 
 import com.google.inject.Module;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.WebHostApplication;
 import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
 import com.gruelbox.tools.dropwizard.guice.hibernate.HibernateBundleFactory;
 
 import io.dropwizard.setup.Bootstrap;
 
-public class MonolithApplication extends WebHostApplication<OrkoConfiguration> {
+public class MonolithApplication extends WebHostApplication<MonolithConfiguration> {
 
   private MonolithModule monolithModule;
 
@@ -40,8 +39,8 @@ public class MonolithApplication extends WebHostApplication<OrkoConfiguration> {
   }
 
   @Override
-  public void initialize(Bootstrap<OrkoConfiguration> bootstrap) {
-    HibernateBundleFactory<OrkoConfiguration> hibernateBundleFactory = new HibernateBundleFactory<>(configuration -> configuration.getDatabase().toDataSourceFactory());
+  public void initialize(Bootstrap<MonolithConfiguration> bootstrap) {
+    HibernateBundleFactory<MonolithConfiguration> hibernateBundleFactory = new HibernateBundleFactory<>(configuration -> configuration.getDatabase().toDataSourceFactory());
     monolithModule = new MonolithModule(new GuiceHibernateModule(hibernateBundleFactory));
     super.initialize(bootstrap);
     bootstrap.addBundle(hibernateBundleFactory.bundle());
@@ -53,7 +52,7 @@ public class MonolithApplication extends WebHostApplication<OrkoConfiguration> {
   }
 
   @Override
-  protected void addDefaultCommands(Bootstrap<OrkoConfiguration> bootstrap) {
+  protected void addDefaultCommands(Bootstrap<MonolithConfiguration> bootstrap) {
     super.addDefaultCommands(bootstrap);
     bootstrap.addCommand(new OtpCommand());
     bootstrap.addCommand(new HashCommand());
