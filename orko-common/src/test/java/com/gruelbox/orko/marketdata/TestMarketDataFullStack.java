@@ -25,15 +25,15 @@ import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import org.knowm.xchange.simulated.AccountFactory;
 import org.knowm.xchange.simulated.MatchingEngineFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.ExchangeServiceImpl;
@@ -51,6 +51,7 @@ public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {
   private SimulatedOrderBookActivity simulator;
   private AccountFactory accountFactory;
   private MatchingEngineFactory matchingEngineFactory;
+  private Map<String, ExchangeConfiguration> exchangeConfiguration;
 
   @Override
   public void setup() throws TimeoutException {
@@ -58,6 +59,7 @@ public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {
     matchingEngineFactory = new MatchingEngineFactory(accountFactory);
     simulator = new SimulatedOrderBookActivity(accountFactory, matchingEngineFactory);
     simulator.startAsync().awaitRunning(30, SECONDS);
+    exchangeConfiguration = buildConfig();
     super.setup();
   }
 
@@ -67,10 +69,8 @@ public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {
     simulator.stopAsync().awaitTerminated(30, SECONDS);
   }
 
-  @Override
-  protected OrkoConfiguration buildConfig() {
-    OrkoConfiguration config = super.buildConfig();
-    config.setExchanges(new HashMap<>());
+  private Map<String, ExchangeConfiguration> buildConfig() {
+    ImmutableMap.Builder<String, ExchangeConfiguration> result = ImmutableMap.builder();
     Exchanges.EXCHANGE_TYPES.get().forEach(clazz -> {
       String name = Exchanges.classToFriendlyName(clazz);
       ExchangeConfiguration exchangeConfiguration = new ExchangeConfiguration();
@@ -78,14 +78,14 @@ public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {
       if (name.equals(Exchanges.SIMULATED)) {
         exchangeConfiguration.setApiKey("Test");
       }
-      config.getExchanges().put(name, exchangeConfiguration);
+      result.put(name, exchangeConfiguration);
     });
-    return config;
+    return result.build();
   }
 
   @Override
   protected ExchangeService buildExchangeService() {
-    return new ExchangeServiceImpl(orkoConfiguration.getExchanges(),
+    return new ExchangeServiceImpl(exchangeConfiguration,
         accountFactory,
         matchingEngineFactory);
   }
