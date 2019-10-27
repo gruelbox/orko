@@ -23,6 +23,7 @@ import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
 import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.knowm.xchange.simulated.AccountFactory;
@@ -50,7 +51,7 @@ public class TestMarketDataFullStackIntegration extends AbstractMarketDataFullSt
 
   @Override
   protected ExchangeService buildExchangeService() {
-    return new ExchangeServiceImpl(orkoConfiguration.getExchanges(),
+    return new ExchangeServiceImpl(Collections.emptyMap(),
         mock(AccountFactory.class),
         mock(MatchingEngineFactory.class));
   }

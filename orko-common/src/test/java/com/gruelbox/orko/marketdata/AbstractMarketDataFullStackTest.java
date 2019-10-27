@@ -40,12 +40,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.util.SafelyDispose;
+import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 
 import ch.qos.logback.classic.Level;
 import io.reactivex.Flowable;
@@ -59,7 +59,7 @@ public abstract class AbstractMarketDataFullStackTest {
   protected MarketDataSubscriptionManager marketDataSubscriptionManager;
   protected ExchangeEventBus exchangeEventBus;
   protected final NotificationService notificationService = mock(NotificationService.class);
-  protected OrkoConfiguration orkoConfiguration;
+  protected BackgroundProcessingConfiguration backgroundProcessingConfiguration;
 
 
   @Before
@@ -67,28 +67,26 @@ public abstract class AbstractMarketDataFullStackTest {
 
     ((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
 
-    orkoConfiguration = buildConfig();
+    backgroundProcessingConfiguration = new BackgroundProcessingConfiguration() {
+      @Override
+      public int getLoopSeconds() {
+        return 2;
+      }
+    };
     exchangeService = buildExchangeService();
     marketDataSubscriptionManager = new MarketDataSubscriptionManager(
-      exchangeService,
-      orkoConfiguration,
-      exchange -> exchangeService.get(exchange).getTradeService(),
-      new AccountServiceFactory() {
-        @Override
-        public AccountService getForExchange(String exchange) {
-          return exchangeService.get(exchange).getAccountService();
-        }
-      },
-      notificationService
-    );
+        exchangeService,
+        backgroundProcessingConfiguration,
+        exchange -> exchangeService.get(exchange).getTradeService(),
+        new AccountServiceFactory() {
+          @Override
+          public AccountService getForExchange(String exchange) {
+            return exchangeService.get(exchange).getAccountService();
+          }
+        },
+        notificationService);
     exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
     marketDataSubscriptionManager.startAsync().awaitRunning(20, SECONDS);
-  }
-
-  protected OrkoConfiguration buildConfig() {
-    OrkoConfiguration result = new OrkoConfiguration();
-    result.setLoopSeconds(2);
-    return result;
   }
 
   protected abstract ExchangeService buildExchangeService();

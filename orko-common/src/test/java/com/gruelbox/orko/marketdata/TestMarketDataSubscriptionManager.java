@@ -32,12 +32,12 @@ import org.knowm.xchange.Exchange;
 import org.mockito.Mock;
 
 import com.google.common.collect.ImmutableList;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.AccountServiceFactory;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
 import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager.LifecycleListener;
 import com.gruelbox.orko.notification.NotificationService;
+import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 
 import jersey.repackaged.com.google.common.collect.Sets;
 
@@ -48,7 +48,7 @@ public class TestMarketDataSubscriptionManager {
   private static final String EXCHANGE2 = "exchange2";
 
   @Mock private ExchangeService exchangeService;
-  @Mock private OrkoConfiguration configuration;
+  @Mock private BackgroundProcessingConfiguration configuration;
   @Mock private TradeServiceFactory tradeServiceFactory;
   @Mock private AccountServiceFactory accountServiceFactory;
   @Mock private NotificationService notificationService;
