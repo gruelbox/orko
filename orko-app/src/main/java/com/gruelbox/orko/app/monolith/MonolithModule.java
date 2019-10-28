@@ -18,6 +18,7 @@
 
 package com.gruelbox.orko.app.monolith;
 
+import static com.gruelbox.orko.exchange.MarketDataModule.MarketDataSource.MANAGE_LOCALLY;
 import static com.gruelbox.orko.notification.NotificationModule.SubmissionType.ASYNC;
 import static com.gruelbox.orko.notification.NotificationModule.TelegramState.TELEGRAM_ENABLED;
 
@@ -85,8 +86,8 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
     install(new StandardJobLibraryModule());
 
-    // Both managing and running market data access (TODO the two are currently coupled)
-    install(new MarketDataModule());
+    // Both managing and running market data access
+    install(new MarketDataModule(MANAGE_LOCALLY));
 
     // Manages UI support
     install(new SubscriptionModule());

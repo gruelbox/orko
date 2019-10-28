@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.gruelbox.orko.spi.TickerSpec;
 
 /**
- * Stack tests for {@link MarketDataSubscriptionManager}. Actually connects to exchanges.
+ * Stack tests for {@link MarketDataSubscriptionManagerImpl}. Actually connects to exchanges.
  */
 public class TestMarketDataFullStackIntegration extends AbstractMarketDataFullStackTest {
 

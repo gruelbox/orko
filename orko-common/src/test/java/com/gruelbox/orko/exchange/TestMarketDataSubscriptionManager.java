@@ -32,7 +32,7 @@ import org.knowm.xchange.Exchange;
 import org.mockito.Mock;
 
 import com.google.common.collect.ImmutableList;
-import com.gruelbox.orko.exchange.MarketDataSubscriptionManager.LifecycleListener;
+import com.gruelbox.orko.exchange.MarketDataSubscriptionManagerImpl.LifecycleListener;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 
@@ -58,7 +58,7 @@ public class TestMarketDataSubscriptionManager {
 
   private final Set<Thread> threads = Sets.newConcurrentHashSet();
 
-  private MarketDataSubscriptionManager subscriptionManager;
+  private MarketDataSubscriptionManagerImpl subscriptionManager;
 
   @Before
   public void setup() throws TimeoutException {
@@ -66,7 +66,7 @@ public class TestMarketDataSubscriptionManager {
     when(exchangeService.getExchanges()).thenReturn(ImmutableList.of(EXCHANGE1, EXCHANGE2));
     when(exchangeService.get(EXCHANGE1)).thenReturn(exchangeOne);
     when(exchangeService.get(EXCHANGE2)).thenReturn(exchangeTwo);
-    subscriptionManager = new MarketDataSubscriptionManager(exchangeService, configuration, tradeServiceFactory,
+    subscriptionManager = new MarketDataSubscriptionManagerImpl(exchangeService, configuration, tradeServiceFactory,
         accountServiceFactory, notificationService);
     subscriptionManager.setLifecycleListener(new LifecycleListener() {
       @Override
