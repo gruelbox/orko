@@ -54,7 +54,7 @@ import jersey.repackaged.com.google.common.collect.Maps;
 public abstract class AbstractMarketDataFullStackTest {
 
   protected ExchangeService exchangeService;
-  protected MarketDataSubscriptionManager marketDataSubscriptionManager;
+  protected MarketDataSubscriptionManagerImpl marketDataSubscriptionManager;
   protected ExchangeEventBus exchangeEventBus;
   protected final NotificationService notificationService = mock(NotificationService.class);
   protected BackgroundProcessingConfiguration backgroundProcessingConfiguration;
@@ -72,7 +72,7 @@ public abstract class AbstractMarketDataFullStackTest {
       }
     };
     exchangeService = buildExchangeService();
-    marketDataSubscriptionManager = new MarketDataSubscriptionManager(
+    marketDataSubscriptionManager = new MarketDataSubscriptionManagerImpl(
         exchangeService,
         backgroundProcessingConfiguration,
         exchange -> exchangeService.get(exchange).getTradeService(),

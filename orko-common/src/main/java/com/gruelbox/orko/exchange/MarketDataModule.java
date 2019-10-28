@@ -31,14 +31,27 @@ import com.gruelbox.orko.wiring.WiringModule;
 
 public class MarketDataModule extends AbstractModule {
 
+  private final MarketDataSource marketDataSource;
+
+  public MarketDataModule(MarketDataSource marketDataSource) {
+    this.marketDataSource = marketDataSource;
+  }
+
   @Override
   protected void configure() {
     install(new WiringModule());
     bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);
-    Multibinder.newSetBinder(binder(), Service.class)
-        .addBinding().to(MarketDataSubscriptionManager.class);
-    Multibinder.newSetBinder(binder(), HealthCheck.class)
-        .addBinding().to(ExchangeAccessHealthCheck.class);
+    switch (marketDataSource) {
+      case MANAGE_LOCALLY:
+        bind(MarketDataSubscriptionManager.class).to(MarketDataSubscriptionManagerImpl.class);
+        Multibinder.newSetBinder(binder(), Service.class)
+            .addBinding().to(MarketDataSubscriptionManagerImpl.class);
+        Multibinder.newSetBinder(binder(), HealthCheck.class)
+            .addBinding().to(ExchangeAccessHealthCheck.class);
+        break;
+      default:
+        throw new IllegalStateException("Unexpected value: " + marketDataSource);
+    }
   }
 
   @Provides
@@ -51,5 +64,9 @@ public class MarketDataModule extends AbstractModule {
   @Singleton
   MatchingEngineFactory matchingEngineFactory(AccountFactory accountFactory) {
     return new MatchingEngineFactory(accountFactory);
+  }
+
+  public enum MarketDataSource {
+    MANAGE_LOCALLY
   }
 }
