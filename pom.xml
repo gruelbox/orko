@@ -162,22 +162,8 @@
                   <pluginExecutions>
                     <pluginExecution>
                       <pluginExecutionFilter>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <versionRange>${maven-dependency-plugin.version}</versionRange>
-                        <goals>
-                          <goal>copy-dependencies</goal>
-                        </goals>
-                      </pluginExecutionFilter>
-                      <action>
-                        <ignore />
-                      </action>
-                    </pluginExecution>
-                    <pluginExecution>
-                      <pluginExecutionFilter>
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
-                        <versionRange>${frontend-maven-plugin-version}</versionRange>
                         <goals>
                           <goal>install-node-and-npm</goal>
                           <goal>npm</goal>
@@ -746,10 +732,8 @@
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>[${min_maven_version},)</version>
+                  <version>[${min.maven.version},)</version>
                 </requireMavenVersion>
-              </rules>
-              <rules>
                 <bannedDependencies>
                   <excludes>
                     <exclude>log4j:log4j</exclude>
