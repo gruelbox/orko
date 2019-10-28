@@ -32,7 +32,6 @@ import org.knowm.xchange.Exchange;
 import org.mockito.Mock;
 
 import com.google.common.collect.ImmutableList;
-import com.gruelbox.orko.exchange.MarketDataSubscriptionManagerImpl.LifecycleListener;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 

@@ -49,6 +49,11 @@ public class MarketDataModule extends AbstractModule {
         Multibinder.newSetBinder(binder(), HealthCheck.class)
             .addBinding().to(ExchangeAccessHealthCheck.class);
         break;
+      case MANAGE_REMOTELY:
+        bind(MarketDataSubscriptionManager.class).to(WSRemoteMarketDataSubscriptionManager.class);
+        Multibinder.newSetBinder(binder(), Service.class)
+            .addBinding().to(WSRemoteMarketDataSubscriptionManager.class);
+        break;
       default:
         throw new IllegalStateException("Unexpected value: " + marketDataSource);
     }
@@ -67,6 +72,7 @@ public class MarketDataModule extends AbstractModule {
   }
 
   public enum MarketDataSource {
-    MANAGE_LOCALLY
+    MANAGE_LOCALLY,
+    MANAGE_REMOTELY
   }
 }

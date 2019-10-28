@@ -25,21 +25,19 @@ import com.google.auto.value.AutoValue;
 
 @AutoValue
 @JsonDeserialize
-abstract class OrkoWebSocketOutgoingMessage {
+public abstract class OrkoWebSocketOutgoingMessage {
 
   @JsonCreator
-  static OrkoWebSocketOutgoingMessage create(@JsonProperty("nature") Nature nature,
-                                            @JsonProperty("data") Object data) {
+  public static OrkoWebSocketOutgoingMessage create(@JsonProperty("nature") Nature nature, @JsonProperty("data") Object data) {
     return new AutoValue_OrkoWebSocketOutgoingMessage(nature, data);
   }
 
   @JsonProperty
-  abstract Nature nature();
+  public abstract Nature nature();
 
-  @JsonProperty
-  abstract Object data();
+  public abstract Object data();
 
-  enum Nature {
+  public enum Nature {
     ERROR,
     TICKER,
     OPEN_ORDERS,
