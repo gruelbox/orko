@@ -66,8 +66,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.TickerEvent;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.reactivex.BackpressureStrategy;

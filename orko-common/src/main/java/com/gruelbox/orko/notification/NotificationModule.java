@@ -25,10 +25,36 @@ import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import io.dropwizard.lifecycle.Managed;
 
 public class NotificationModule extends AbstractModule {
+
+  private final SubmissionType submissionType;
+  private final TelegramState telegramState;
+
+  public NotificationModule(SubmissionType submissionType, TelegramState telegramState) {
+    this.submissionType = submissionType;
+    this.telegramState = telegramState;
+  }
+
   @Override
   protected void configure() {
-    Multibinder.newSetBinder(binder(), Managed.class)
-        .addBinding().to(TelegramNotificationsTask.class);
-    bind(StatusUpdateService.class).to(StatusUpdateServiceImpl.class);
+    if (submissionType == SubmissionType.ASYNC) {
+      bind(NotificationService.class).to(AsynchronousNotificationService.class);
+    } else {
+      bind(NotificationService.class).to(SynchronousNotificationService.class);
+    }
+    bind(StatusUpdateService.class).to(SynchronousStatusUpdateService.class);
+    if (telegramState == TelegramState.TELEGRAM_ENABLED) {
+      Multibinder.newSetBinder(binder(), Managed.class)
+          .addBinding().to(TelegramNotificationsTask.class);
+    }
+  }
+
+  public enum SubmissionType {
+    ASYNC,
+    SYNC
+  }
+
+  public enum TelegramState {
+    TELEGRAM_ENABLED,
+    TELEGRAM_DISABLED
   }
 }

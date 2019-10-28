@@ -18,13 +18,13 @@
 
 package com.gruelbox.orko.subscription;
 
-import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
-import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE;
+import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
+import static com.gruelbox.orko.exchange.MarketDataType.OPEN_ORDERS;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDER;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
+import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
 
 import java.util.Collection;
 import java.util.Set;
@@ -37,9 +37,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.db.Transactionally;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
 
