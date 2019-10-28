@@ -27,16 +27,16 @@ import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.db.DbResource;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
-import com.gruelbox.orko.exchange.ExchangeModule;
+import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.Exchanges;
-import com.gruelbox.orko.job.JobsModule;
+import com.gruelbox.orko.exchange.MarketDataModule;
+import com.gruelbox.orko.exchange.SimulatedExchangeActivityModule;
+import com.gruelbox.orko.job.StandardJobLibraryModule;
 import com.gruelbox.orko.jobrun.InProcessJobSubmitter;
 import com.gruelbox.orko.jobrun.JobRunModule;
 import com.gruelbox.orko.jobrun.JobSubmitter;
-import com.gruelbox.orko.marketdata.MarketDataModule;
-import com.gruelbox.orko.marketdata.SimulatorModule;
+import com.gruelbox.orko.monitor.MonitorModule;
 import com.gruelbox.orko.notification.NotificationModule;
-import com.gruelbox.orko.strategy.StrategyModule;
 import com.gruelbox.orko.subscription.SubscriptionModule;
 import com.gruelbox.orko.support.SupportModule;
 import com.gruelbox.orko.websocket.WebSocketModule;
@@ -64,24 +64,48 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
 
   @Override
   protected void configure() {
+
+    // Enable Hibernate access
     install(guiceHibernateModule);
+
+    // Make elements of configuration available to child modules
     configuration.bind(binder());
 
+    // Publicly visible and requires authentication
     install(new AuthModule(configuration.getAuth()));
+
+    // Exposes the web socket
     install(new WebSocketModule());
-    install(new ExchangeModule());
+
+    // Both managing and running jobs (TODO the two are currently coupled)
     install(new JobRunModule());
+    bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
+    install(new StandardJobLibraryModule());
+
+    // Both managing and running market data access (TODO the two are currently coupled)
     install(new MarketDataModule());
+
+    // Manages UI support
     install(new SubscriptionModule());
-    install(new JobsModule());
-    install(new NotificationModule());
-    install(new StrategyModule());
     install(new SupportModule());
 
-    bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
-    Multibinder.newSetBinder(binder(), WebResource.class).addBinding().to(DbResource.class);
+    // Forwards notifications to Telegram (TODO needs unpicking)
+    install(new NotificationModule());
+
+    // Monitors various status issues are fires notifications if things go wrong.
+    install(new MonitorModule());
+
+    // Exposes API access to exchanges
+    Multibinder.newSetBinder(binder(), WebResource.class)
+        .addBinding().to(ExchangeResource.class);
+
+    // Provides access to the database
+    Multibinder.newSetBinder(binder(), WebResource.class)
+        .addBinding().to(DbResource.class);
+
+    // Runs some simulated order book activity on the simulated exchange
     if (isSimulatorEnabled()) {
-      install(new SimulatorModule());
+      install(new SimulatedExchangeActivityModule());
     }
   }
 

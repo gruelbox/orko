@@ -20,7 +20,7 @@ package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_TRANSIENT;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static com.gruelbox.orko.util.MoreBigDecimals.stripZeros;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,10 +42,10 @@ import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.TickerEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.TickerEvent;
 import com.gruelbox.orko.notification.Notification;
 import com.gruelbox.orko.notification.NotificationLevel;
 import com.gruelbox.orko.notification.NotificationService;

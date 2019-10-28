@@ -19,7 +19,7 @@
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.db.MockTransactionallyFactory.mockTransactionally;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -53,10 +53,10 @@ import com.gruelbox.orko.jobrun.spi.Job;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.TickerEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.TickerEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 

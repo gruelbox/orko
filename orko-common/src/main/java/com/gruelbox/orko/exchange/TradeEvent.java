@@ -16,24 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gruelbox.orko.support;
+package com.gruelbox.orko.exchange;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import org.knowm.xchange.dto.marketdata.Trade;
 
-import org.apache.commons.io.IOUtils;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.auto.value.AutoValue;
+import com.gruelbox.orko.spi.TickerSpec;
 
-final class ReadVersion {
+@AutoValue
+@JsonDeserialize
+public abstract class TradeEvent {
 
-  private ReadVersion() {}
-
-  public static String readVersionInfoInManifest() {
-    try (InputStream stream = new BufferedInputStream(ReadVersion.class.getResourceAsStream("/VERSION"))) {
-      return IOUtils.toString(stream, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  @JsonCreator
+  public static TradeEvent create(@JsonProperty("spec") TickerSpec spec,
+                                  @JsonProperty("trade") Trade trade) {
+    return new AutoValue_TradeEvent(spec, trade);
   }
+
+  @JsonProperty
+  public abstract TickerSpec spec();
+
+  @JsonProperty
+  public abstract Trade trade();
 }

@@ -45,8 +45,6 @@ import org.mockito.Mockito;
 
 import com.gruelbox.orko.exchange.ExchangeResource.ErrorResponse;
 import com.gruelbox.orko.exchange.ExchangeResource.OrderPrototype;
-import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.dropwizard.testing.junit.ResourceTestRule;

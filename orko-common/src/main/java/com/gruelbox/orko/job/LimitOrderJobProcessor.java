@@ -56,8 +56,8 @@ import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 import com.gruelbox.orko.jobrun.spi.Validatable;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.MaxTradeAmountCalculator;
 import com.gruelbox.orko.notification.NotificationService;
 
 /**

@@ -16,24 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.gruelbox.orko.support;
+package com.gruelbox.orko.monitor;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.Multibinder;
 
-import org.apache.commons.io.IOUtils;
+import io.dropwizard.lifecycle.Managed;
 
-final class ReadVersion {
-
-  private ReadVersion() {}
-
-  public static String readVersionInfoInManifest() {
-    try (InputStream stream = new BufferedInputStream(ReadVersion.class.getResourceAsStream("/VERSION"))) {
-      return IOUtils.toString(stream, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+public class MonitorModule extends AbstractModule {
+  @Override
+  protected void configure() {
+    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(ExchangeSocketHealthMonitor.class);
+    Multibinder.newSetBinder(binder(), Managed.class).addBinding().to(UserTradeMonitor.class);
   }
 }

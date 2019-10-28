@@ -66,8 +66,7 @@ import info.bitrich.xchangestream.core.StreamingExchangeFactory;
  * API-friendly name mapping for exchanges.
  */
 @Singleton
-@VisibleForTesting
-public class ExchangeServiceImpl implements ExchangeService {
+class ExchangeServiceImpl implements ExchangeService {
 
   private static final ExchangeConfiguration VANILLA_CONFIG = new ExchangeConfiguration();
   private static final RateLimit DEFAULT_RATE = new RateLimit(1, 3, TimeUnit.SECONDS);

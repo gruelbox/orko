@@ -18,13 +18,13 @@
 
 package com.gruelbox.orko.websocket;
 
-import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
-import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE;
+import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
+import static com.gruelbox.orko.exchange.MarketDataType.OPEN_ORDERS;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDER;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
+import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
 
 import java.util.List;
 import java.util.Set;
@@ -56,13 +56,13 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.gruelbox.orko.jobrun.spi.StatusUpdate;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.MarketDataType;
-import com.gruelbox.orko.marketdata.SerializableTrade;
-import com.gruelbox.orko.marketdata.TradeEvent;
-import com.gruelbox.orko.marketdata.UserTradeEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.MarketDataType;
+import com.gruelbox.orko.exchange.SerializableTrade;
+import com.gruelbox.orko.exchange.TradeEvent;
+import com.gruelbox.orko.exchange.UserTradeEvent;
 import com.gruelbox.orko.notification.Notification;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;

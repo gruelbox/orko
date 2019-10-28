@@ -68,10 +68,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.gruelbox.orko.marketdata.Balance;
-import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator.Factory;
+import com.gruelbox.orko.exchange.MaxTradeAmountCalculator.Factory;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
