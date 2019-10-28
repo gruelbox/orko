@@ -26,15 +26,15 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
-import com.gruelbox.orko.notification.TransientNotificationService;
+import com.gruelbox.orko.notification.SynchronousNotificationService;
 
 class AlertProcessor implements Alert.Processor {
 
-  private final TransientNotificationService notificationService;
+  private final SynchronousNotificationService notificationService;
   private final Alert job;
 
   @AssistedInject
-  public AlertProcessor(@Assisted Alert job, @Assisted JobControl jobControl, TransientNotificationService notificationService) {
+  public AlertProcessor(@Assisted Alert job, @Assisted JobControl jobControl, SynchronousNotificationService notificationService) {
     this.job = job;
     this.notificationService = notificationService;
   }

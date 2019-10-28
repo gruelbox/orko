@@ -24,15 +24,15 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
-import com.gruelbox.orko.notification.TransientStatusUpdateService;
+import com.gruelbox.orko.notification.SynchronousStatusUpdateService;
 
 class StatusUpdateJobProcessor implements StatusUpdateJob.Processor {
 
-  private final TransientStatusUpdateService statusUpdateService;
+  private final SynchronousStatusUpdateService statusUpdateService;
   private final StatusUpdateJob job;
 
   @AssistedInject
-  public StatusUpdateJobProcessor(@Assisted StatusUpdateJob job, @Assisted JobControl jobControl, TransientStatusUpdateService statusUpdateService) {
+  public StatusUpdateJobProcessor(@Assisted StatusUpdateJob job, @Assisted JobControl jobControl, SynchronousStatusUpdateService statusUpdateService) {
     this.job = job;
     this.statusUpdateService = statusUpdateService;
   }

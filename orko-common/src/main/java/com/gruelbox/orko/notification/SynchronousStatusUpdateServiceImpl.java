@@ -24,12 +24,12 @@ import com.google.inject.Singleton;
 import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 
 @Singleton
-class StatusUpdateServiceImpl implements TransientStatusUpdateService {
+class SynchronousStatusUpdateServiceImpl implements SynchronousStatusUpdateService {
 
   private final EventBus eventBus;
 
   @Inject
-  StatusUpdateServiceImpl(EventBus eventBus) {
+  SynchronousStatusUpdateServiceImpl(EventBus eventBus) {
     this.eventBus = eventBus;
   }
 

@@ -31,15 +31,15 @@ import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
 @Singleton
-class RetryingMessageService implements NotificationService, StatusUpdateService {
+class AsynchronousNotificationService implements NotificationService, StatusUpdateService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RetryingMessageService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousNotificationService.class);
 
   private final JobSubmitter jobSubmitter;
   private final Transactionally transactionally;
 
   @Inject
-  RetryingMessageService(JobSubmitter jobSubmitter, Transactionally transactionally) {
+  AsynchronousNotificationService(JobSubmitter jobSubmitter, Transactionally transactionally) {
     this.jobSubmitter = jobSubmitter;
     this.transactionally = transactionally;
   }

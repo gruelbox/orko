@@ -18,27 +18,10 @@
 
 package com.gruelbox.orko.notification;
 
-import com.google.common.eventbus.EventBus;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import com.google.inject.ImplementedBy;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
-@Singleton
-class NotificationServiceImpl implements TransientNotificationService {
+@ImplementedBy(SynchronousStatusUpdateServiceImpl.class)
+public interface SynchronousStatusUpdateService extends StatusUpdateService {
 
-  private final EventBus eventBus;
-
-  @Inject
-  NotificationServiceImpl(EventBus eventBus) {
-    this.eventBus = eventBus;
-  }
-
-  @Override
-  public void send(Notification notification) {
-    eventBus.post(notification);
-  }
-
-  @Override
-  public void error(String message, Throwable cause) {
-    error(message);
-  }
 }

@@ -18,6 +18,9 @@
 
 package com.gruelbox.orko.app.monolith;
 
+import static com.gruelbox.orko.notification.NotificationModule.SubmissionType.ASYNC;
+import static com.gruelbox.orko.notification.NotificationModule.TelegramState.TELEGRAM_ENABLED;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -89,8 +92,8 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     install(new SubscriptionModule());
     install(new SupportModule());
 
-    // Forwards notifications to Telegram (TODO needs unpicking)
-    install(new NotificationModule());
+    // Forwards notifications to Telegram asynchronously
+    install(new NotificationModule(ASYNC, TELEGRAM_ENABLED));
 
     // Monitors various status issues are fires notifications if things go wrong.
     install(new MonitorModule());
