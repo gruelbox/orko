@@ -35,6 +35,7 @@ public abstract class OrkoWebSocketOutgoingMessage {
   @JsonProperty
   public abstract Nature nature();
 
+  @JsonProperty
   public abstract Object data();
 
   public enum Nature {

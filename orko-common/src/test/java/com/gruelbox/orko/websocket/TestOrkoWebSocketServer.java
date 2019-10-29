@@ -237,6 +237,7 @@ public class TestOrkoWebSocketServer {
     List<String> messagesSent = new CopyOnWriteArrayList<>();
     CountDownLatch callCounter = new CountDownLatch(2);
     doAnswer(inv -> {
+      System.out.println("Sent:" + inv.getArgument(0));
       messagesSent.add(inv.getArgument(0));
       callCounter.countDown();
       return null;
