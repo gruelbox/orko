@@ -6,9 +6,9 @@ alltags: &alltags
       only: /((?!SNAPSHOT).)*/
 restoremavencache: &restoremavencache
   keys:
-    - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-    - maven-repo-v3-{{ .Branch }}-
-    - maven-repo-v3-
+    - maven-repo-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+    - maven-repo-v4-{{ .Branch }}-
+    - maven-repo-v4-
 mainenvironment: &mainenvironment
   MAVEN_OPTS: -Xmx3200m
   BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
@@ -80,7 +80,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: maven-repo-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
       - save_cache:
           paths:
             - ~/usr/local/lib/node_modules
