@@ -206,7 +206,7 @@
     <xchange.stream.version>4.4.0</xchange.stream.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
-    <morf.version>0.1.3.badgerwithagun.2</morf.version>
+    <morf.version>0.1.3.badgerwithagun.3</morf.version>
 
     <dropwizard-https-redirect-version>0.0.6</dropwizard-https-redirect-version>
     <dropwizard-guice-box-version>0.0.8</dropwizard-guice-box-version>
