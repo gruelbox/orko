@@ -39,7 +39,7 @@
     "reselect": "^4.0.0",
     "seamless-immutable": "^7.1.4",
     "semantic-ui-react": "^0.88.1",
-    "styled-components": "^4.4.0",
+    "styled-components": "^4.4.1",
     "styled-system": "^5.1.2",
     "typescript": "^3.6.4",
     "uuid": "^3.3.3",
