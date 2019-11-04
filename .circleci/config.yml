@@ -39,7 +39,7 @@ workflows:
           requires:
             - "Compile and build"
           <<: *alltags
-      - "Docker Hub":
+      - "Deploy release to Docker registry":
           requires:
             - "Unit tests (all)"
             - "Unit tests (MySQL)"
@@ -244,14 +244,14 @@ jobs:
       - store_test_results:
           path: ~/junit
 
-  "Docker Hub":
+  "Deploy release to Docker registry":
     <<: *setup
     steps:
       - attach_workspace:
           at: /home/circleci
       - restore_cache: *restoremavencache
       - run:
-          name: Release to Docker Hub
+          name: Deploy release to Docker registry
           command: |
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
               cd orko-app
