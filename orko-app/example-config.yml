@@ -12,7 +12,7 @@ auth:
 #    secondFactorSecret: YOURTOKEN
 #    expirationMinutes: 1440
 database:
-  connectionString: h2:file:./orko;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000
+  connectionString: h2:file:./orko;DB_CLOSE_DELAY=-1;DEFAULT_LOCK_TIMEOUT=60000
 # telegram:
 #   botToken: YOU
 #   chatId: REALLYWANTTHIS
