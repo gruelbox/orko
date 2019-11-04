@@ -681,7 +681,7 @@
           <version>1.7.0</version>
           <configuration>
             <to>
-              <image>docker.io/gruelbox/orko:${docker.tag}</image>
+              <image>${env.DOCKERHUB_REPO}:${docker.tag}</image>
               <auth>
                 <username>${env.DOCKERHUB_USER}</username>
                 <password>${env.DOCKERHUB_PASSWORD}</password>
