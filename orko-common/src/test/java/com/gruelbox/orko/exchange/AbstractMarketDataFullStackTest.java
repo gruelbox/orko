@@ -54,7 +54,8 @@ import jersey.repackaged.com.google.common.collect.Maps;
 public abstract class AbstractMarketDataFullStackTest {
 
   protected ExchangeService exchangeService;
-  protected MarketDataSubscriptionManagerImpl marketDataSubscriptionManager;
+  protected MarketDataSubscriptionManager manager;
+  protected SubscriptionControllerImpl controller;
   protected ExchangeEventBus exchangeEventBus;
   protected final NotificationService notificationService = mock(NotificationService.class);
   protected BackgroundProcessingConfiguration backgroundProcessingConfiguration;
@@ -72,7 +73,8 @@ public abstract class AbstractMarketDataFullStackTest {
       }
     };
     exchangeService = buildExchangeService();
-    marketDataSubscriptionManager = new MarketDataSubscriptionManagerImpl(
+    manager = new SubscriptionPublisher();
+    controller = new SubscriptionControllerImpl(
         exchangeService,
         backgroundProcessingConfiguration,
         exchange -> exchangeService.get(exchange).getTradeService(),
@@ -82,9 +84,10 @@ public abstract class AbstractMarketDataFullStackTest {
             return exchangeService.get(exchange).getAccountService();
           }
         },
-        notificationService);
-    exchangeEventBus = new ExchangeEventBus(marketDataSubscriptionManager);
-    marketDataSubscriptionManager.startAsync().awaitRunning(20, SECONDS);
+        notificationService,
+        (SubscriptionPublisher) manager);
+    exchangeEventBus = new ExchangeEventBus(manager);
+    controller.startAsync().awaitRunning(20, SECONDS);
   }
 
   protected abstract ExchangeService buildExchangeService();
@@ -95,31 +98,31 @@ public abstract class AbstractMarketDataFullStackTest {
 
   @After
   public void tearDown() throws TimeoutException {
-    marketDataSubscriptionManager.stopAsync().awaitTerminated(20, SECONDS);
+    controller.stopAsync().awaitTerminated(20, SECONDS);
   }
 
   @Test
   public void testBase() throws InterruptedException {
-    marketDataSubscriptionManager.updateSubscriptions(emptySet());
+    manager.updateSubscriptions(emptySet());
   }
 
   @Test
   public void testSubscribeUnsubscribe() throws InterruptedException {
-    marketDataSubscriptionManager.updateSubscriptions(subscriptions());
-    marketDataSubscriptionManager.updateSubscriptions(emptySet());
+    manager.updateSubscriptions(subscriptions());
+    manager.updateSubscriptions(emptySet());
   }
 
   @Test
   public void testSubscribePauseAndUnsubscribe() throws InterruptedException {
-    marketDataSubscriptionManager.updateSubscriptions(subscriptions());
+    manager.updateSubscriptions(subscriptions());
     Thread.sleep(2500);
-    marketDataSubscriptionManager.updateSubscriptions(emptySet());
+    manager.updateSubscriptions(emptySet());
   }
 
   @Test
   public void testSubscriptionsDirect() throws InterruptedException {
     Set<MarketDataSubscription> subscriptions = subscriptions();
-    marketDataSubscriptionManager.updateSubscriptions(subscriptions);
+    manager.updateSubscriptions(subscriptions);
     Set<Disposable> disposables = null;
     try {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber = Maps.toMap(
@@ -127,10 +130,10 @@ public abstract class AbstractMarketDataFullStackTest {
         sub -> ImmutableList.of(new CountDownLatch(2), new CountDownLatch(2))
       );
       disposables = FluentIterable.from(subscriptions).transformAndConcat(sub -> ImmutableSet.<Disposable>of(
-        getSubscription(marketDataSubscriptionManager, sub).subscribe(t -> {
+        getSubscription(manager, sub).subscribe(t -> {
           latchesBySubscriber.get(sub).get(0).countDown();
         }),
-        getSubscription(marketDataSubscriptionManager, sub).subscribe(t -> {
+        getSubscription(manager, sub).subscribe(t -> {
           latchesBySubscriber.get(sub).get(1).countDown();
         })
       )).toSet();
@@ -138,7 +141,7 @@ public abstract class AbstractMarketDataFullStackTest {
         MarketDataSubscription sub = entry.getKey();
         List<CountDownLatch> latches = entry.getValue();
         try {
-          assertTrue("Missing two responses (A) for " + sub, latches.get(0).await(120, TimeUnit.SECONDS));
+          assertTrue("Missing two responses (A) for " + sub, latches.get(0).await(30, TimeUnit.SECONDS));
           System.out.println("Found responses (A) for " + sub);
           assertTrue("Missing two responses (B) for " + sub, latches.get(1).await(1, TimeUnit.SECONDS));
           System.out.println("Found responses (B) for " + sub);
@@ -148,7 +151,7 @@ public abstract class AbstractMarketDataFullStackTest {
       });
     } finally {
       SafelyDispose.of(disposables);
-      marketDataSubscriptionManager.updateSubscriptions(emptySet());
+      manager.updateSubscriptions(emptySet());
     }
   }
 

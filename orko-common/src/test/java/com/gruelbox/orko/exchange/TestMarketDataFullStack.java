@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableSet;
 import com.gruelbox.orko.spi.TickerSpec;
 
 /**
- * Stack tests for {@link MarketDataSubscriptionManagerImpl} which use the simulated
+ * Stack tests for {@link SubscriptionControllerImpl} which use the simulated
  * exchange. These can run as part of the main build.
  */
 public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {

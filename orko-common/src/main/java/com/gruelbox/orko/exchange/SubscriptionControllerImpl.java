@@ -118,7 +118,7 @@ import si.mazi.rescu.HttpStatusIOException;
  * streams of data which are persistent and recover in the event of disconnections/reconnections.
  */
 @Singleton
-class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionManager {
+class SubscriptionControllerImpl extends AbstractPollingController {
 
   private static final int MAX_TRADES = 20;
   private static final int ORDERBOOK_DEPTH = 20;
@@ -140,8 +140,13 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
 
   @Inject
   @VisibleForTesting
-  public MarketDataSubscriptionManagerImpl(ExchangeService exchangeService, BackgroundProcessingConfiguration configuration, TradeServiceFactory tradeServiceFactory, AccountServiceFactory accountServiceFactory, NotificationService notificationService) {
-    super(configuration);
+  public SubscriptionControllerImpl(ExchangeService exchangeService,
+                                    BackgroundProcessingConfiguration configuration,
+                                    TradeServiceFactory tradeServiceFactory,
+                                    AccountServiceFactory accountServiceFactory,
+                                    NotificationService notificationService,
+                                    SubscriptionPublisher publisher) {
+    super(configuration, publisher);
     this.exchangeService = exchangeService;
     this.tradeServiceFactory = tradeServiceFactory;
     this.accountServiceFactory = accountServiceFactory;
@@ -154,16 +159,6 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
     });
   }
 
-  /**
-   * Updates the subscriptions for the specified exchanges on the next loop
-   * tick. The delay is to avoid a large number of new subscriptions in quick
-   * succession causing rate bans on exchanges. Call with an empty set to cancel
-   * all subscriptions. None of the streams (e.g. {@link #getTickers()}
-   * will return anything until this is called, but there is no strict order in
-   * which they need to be called.
-   *
-   * @param subscriptions The subscriptions.
-   */
   @Override
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
 
@@ -313,7 +308,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
       if (!balanceCurrencies.isEmpty()) {
         manageExchangeExceptions(
             "Balances",
-            () -> fetchBalances(balanceCurrencies).forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b))),
+            () -> fetchBalances(balanceCurrencies).forEach(b -> publisher.emit(BalanceEvent.create(exchangeName, b))),
             () -> FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE))
         );
       }
@@ -444,7 +439,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
 
         // Clear cached tickers and order books for anything we've unsubscribed so that we don't feed out-of-date data
         Sets.difference(oldSubscriptions, subscriptions)
-          .forEach(this::clearCacheForSubscription);
+          .forEach(publisher::clearCacheForSubscription);
 
         // Add new subscriptions if we have any
         if (subscriptions.isEmpty()) {
@@ -461,15 +456,6 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
         }
         throw e;
       }
-    }
-
-    private void clearCacheForSubscription(MarketDataSubscription subscription) {
-      tickersOut.removeFromCache(subscription.spec());
-      orderbookOut.removeFromCache(subscription.spec());
-      openOrdersOut.removeFromCache(subscription.spec());
-      userTradesOut.removeFromCache(t -> t.spec().equals(subscription.spec()));
-      balanceOut.removeFromCache(subscription.spec().exchange() + "/" + subscription.spec().base());
-      balanceOut.removeFromCache(subscription.spec().exchange() + "/" + subscription.spec().counter());
     }
 
     private ImmutableSet<MarketDataSubscription> activePolls() {
@@ -553,7 +539,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
           disposables.add(
             streamingExchange.getStreamingAccountService().getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
               .map(b -> BalanceEvent.create(exchangeName, b)) // TODO consider timestamping?
-              .subscribe(balanceOut::emit, e -> logger.error("Error in balance stream for " + exchangeName + "/" + currency, e)));
+              .subscribe(publisher::emit, e -> logger.error("Error in balance stream for " + exchangeName + "/" + currency, e)));
         }
       } catch (NotAvailableFromExchangeException e) {
         subscriptions.stream()
@@ -576,25 +562,25 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
         case ORDERBOOK:
           return streamingExchange.getStreamingMarketDataService().getOrderBook(sub.spec().currencyPair())
               .map(t -> OrderBookEvent.create(sub.spec(), t))
-              .subscribe(orderbookOut::emit, e -> logger.error("Error in order book stream for " + sub, e));
+              .subscribe(publisher::emit, e -> logger.error("Error in order book stream for " + sub, e));
         case TICKER:
           logger.debug("Subscribing to {}", sub.spec());
           return streamingExchange.getStreamingMarketDataService().getTicker(sub.spec().currencyPair())
               .map(t -> TickerEvent.create(sub.spec(), t))
-              .subscribe(tickersOut::emit, e -> logger.error("Error in ticker stream for " + sub, e));
+              .subscribe(publisher::emit, e -> logger.error("Error in ticker stream for " + sub, e));
         case TRADES:
           return streamingExchange.getStreamingMarketDataService().getTrades(sub.spec().currencyPair())
               .map(t -> convertBinanceOrderType(sub, t))
               .map(t -> TradeEvent.create(sub.spec(), t))
-              .subscribe(tradesOut::emit, e -> logger.error("Error in trade stream for " + sub, e));
+              .subscribe(publisher::emit, e -> logger.error("Error in trade stream for " + sub, e));
         case USER_TRADE:
           return streamingExchange.getStreamingTradeService().getUserTrades(sub.spec().currencyPair())
               .map(t -> UserTradeEvent.create(sub.spec(), t))
-              .subscribe(userTradesOut::emit, e -> logger.error("Error in trade stream for " + sub, e));
+              .subscribe(publisher::emit, e -> logger.error("Error in trade stream for " + sub, e));
         case ORDER:
           return streamingExchange.getStreamingTradeService().getOrderChanges(sub.spec().currencyPair())
               .map(t -> OrderChangeEvent.create(sub.spec(), t, new Date())) // TODO need server side timestamping
-              .subscribe(orderStatusChangeOut::emit, e -> logger.error("Error in order stream for " + sub, e));
+              .subscribe(publisher::emit, e -> logger.error("Error in order stream for " + sub, e));
         default:
           throw new NotAvailableFromExchangeException();
       }
@@ -713,7 +699,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
       TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription);
       tradeService.getTradeHistory(tradeHistoryParams)
         .getUserTrades()
-        .forEach(trade -> userTradesOut.emit(UserTradeEvent.create(subscription.spec(), trade)));
+        .forEach(trade -> publisher.emit(UserTradeEvent.create(subscription.spec(), trade)));
     }
 
     @SuppressWarnings("unchecked")
@@ -730,7 +716,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
         fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
       }
 
-      openOrdersOut.emit(OpenOrdersEvent.create(subscription.spec(), fetched, originatingTimestamp));
+      publisher.emit(OpenOrdersEvent.create(subscription.spec(), fetched, originatingTimestamp));
     }
 
     private void pollAndEmitTrades(MarketDataSubscription subscription) throws IOException {
@@ -745,7 +731,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
               newMostRecent = thisTradeTiming;
             } else if (thisTradeTiming.isAfter(previousTiming)) {
               newMostRecent = thisTradeTiming;
-              tradesOut.emit(TradeEvent.create(subscription.spec(), t));
+              publisher.emit(TradeEvent.create(subscription.spec(), t));
             }
             return newMostRecent;
           })
@@ -754,7 +740,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
 
     private void pollAndEmitOrderbook(TickerSpec spec) throws IOException {
       OrderBook orderBook = marketDataService.getOrderBook(spec.currencyPair(), exchangeOrderbookArgs(spec));
-      orderbookOut.emit(OrderBookEvent.create(spec, orderBook));
+      publisher.emit(OrderBookEvent.create(spec, orderBook));
     }
 
     private Object[] exchangeOrderbookArgs(TickerSpec spec) {
@@ -766,7 +752,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
     }
 
     private void pollAndEmitTicker(TickerSpec spec) throws IOException {
-      tickersOut.emit(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
+      publisher.emit(TickerEvent.create(spec, marketDataService.getTicker(spec.currencyPair())));
     }
 
     private TradeHistoryParams tradeHistoryParams(MarketDataSubscription subscription) {

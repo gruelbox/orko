@@ -5,12 +5,10 @@ import static org.junit.Assert.assertNotEquals;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import javax.ws.rs.client.Entity;
@@ -29,7 +27,8 @@ import com.google.common.collect.Sets;
 import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
 import com.gruelbox.orko.exchange.MarketDataType;
-import com.gruelbox.orko.exchange.WSRemoteMarketDataSubscriptionManager;
+import com.gruelbox.orko.exchange.SubscriptionControllerRemoteImpl;
+import com.gruelbox.orko.exchange.SubscriptionPublisher;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.dropwizard.testing.ResourceHelpers;
@@ -44,9 +43,10 @@ public class TestMarketDataApplication {
       new DropwizardAppRule<MarketDataAppConfiguration>(MarketDataApplication.class, ResourceHelpers.resourceFilePath("test-config.yml"));
 
   @Test
-  public void testMarketDataApplication() throws TimeoutException, InterruptedException {
-    WSRemoteMarketDataSubscriptionManager client = new WSRemoteMarketDataSubscriptionManager(RULE.getConfiguration());
-    client.startAsync().awaitRunning(Duration.ofSeconds(30));
+  public void testMarketDataApplication() throws Exception {
+    SubscriptionPublisher publisher = new SubscriptionPublisher();
+    SubscriptionControllerRemoteImpl client = new SubscriptionControllerRemoteImpl(publisher);
+    client.start();
     try {
 
       // Subscribe to everything about BTC/USD
@@ -69,13 +69,13 @@ public class TestMarketDataApplication {
           latch.countDown();
         }
       };
-      client.getTickers().map(t -> MarketDataType.TICKER).subscribe(get::accept);
-      client.getBalances().map(t -> MarketDataType.BALANCE).subscribe(get::accept);
-      client.getOrderBookSnapshots().map(t -> MarketDataType.ORDERBOOK).subscribe(get::accept);
-      client.getOrderChanges().map(t -> MarketDataType.ORDER).subscribe(get::accept);
-      client.getOrderSnapshots().map(t -> MarketDataType.OPEN_ORDERS).subscribe(get::accept);
-      client.getTrades().map(t -> MarketDataType.TRADES).subscribe(get::accept);
-      client.getUserTrades().map(t -> MarketDataType.USER_TRADE).subscribe(get::accept);
+      publisher.getTickers().map(t -> MarketDataType.TICKER).subscribe(get::accept);
+      publisher.getBalances().map(t -> MarketDataType.BALANCE).subscribe(get::accept);
+      publisher.getOrderBookSnapshots().map(t -> MarketDataType.ORDERBOOK).subscribe(get::accept);
+      publisher.getOrderChanges().map(t -> MarketDataType.ORDER).subscribe(get::accept);
+      publisher.getOrderSnapshots().map(t -> MarketDataType.OPEN_ORDERS).subscribe(get::accept);
+      publisher.getTrades().map(t -> MarketDataType.TRADES).subscribe(get::accept);
+      publisher.getUserTrades().map(t -> MarketDataType.USER_TRADE).subscribe(get::accept);
 
       // Wait until there's balance available (the simulator does it)
       BigDecimal usdBalance = BigDecimal.ZERO;
@@ -109,7 +109,7 @@ public class TestMarketDataApplication {
       Assert.assertTrue(latch.await(1, TimeUnit.MINUTES));
 
     } finally {
-      client.stopAsync().awaitTerminated(Duration.ofSeconds(30));
+      client.stop();
     }
   }
 }

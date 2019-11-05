@@ -20,23 +20,17 @@ package com.gruelbox.orko.exchange;
 
 import static java.util.Collections.emptySet;
 
-import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.knowm.xchange.dto.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
-
-import io.reactivex.Flowable;
 
 /**
  * Background process implementation of {@link MarketDataSubscriptionManager} which
@@ -44,139 +38,33 @@ import io.reactivex.Flowable;
  * to be disconnected and reconnected, and allows snapshot-type streams to cache
  * the last snapshot for immediate delivery upon subscription.
  */
-abstract class AbstractMarketDataSubscriptionManager extends AbstractExecutionThreadService implements MarketDataSubscriptionManager {
+abstract class AbstractPollingController extends AbstractExecutionThreadService implements SubscriptionController {
 
   protected final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final BackgroundProcessingConfiguration configuration;
-
-  protected final CachingPersistentPublisher<TickerEvent, TickerSpec> tickersOut;
-  protected final CachingPersistentPublisher<OpenOrdersEvent, TickerSpec> openOrdersOut;
-  protected final CachingPersistentPublisher<OrderBookEvent, TickerSpec> orderbookOut;
-  protected final PersistentPublisher<TradeEvent> tradesOut;
-  protected final CachingPersistentPublisher<BalanceEvent, String> balanceOut;
-  protected final PersistentPublisher<OrderChangeEvent> orderStatusChangeOut;
-  protected final CachingPersistentPublisher<UserTradeEvent, String> userTradesOut;
-
+  protected final SubscriptionPublisher publisher;
   private final Phaser phaser = new Phaser(1);
 
   private LifecycleListener lifecycleListener = new LifecycleListener() {};
 
-  protected AbstractMarketDataSubscriptionManager(BackgroundProcessingConfiguration configuration) {
+  protected AbstractPollingController(BackgroundProcessingConfiguration configuration, SubscriptionPublisher publisher) {
     this.configuration = configuration;
-    this.tickersOut = new CachingPersistentPublisher<>(TickerEvent::spec);
-    this.openOrdersOut = new CachingPersistentPublisher<>(OpenOrdersEvent::spec);
-    this.orderbookOut = new CachingPersistentPublisher<>(OrderBookEvent::spec);
-    this.tradesOut = new PersistentPublisher<>();
-    this.userTradesOut = new CachingPersistentPublisher<>((UserTradeEvent e) -> e.trade().getId())
-        .orderInitialSnapshotBy(iterable -> Ordering.natural().onResultOf((UserTradeEvent e) -> e.trade().getTimestamp()).sortedCopy(iterable));
-    this.balanceOut = new CachingPersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.balance().getCurrency());
-    this.orderStatusChangeOut = new PersistentPublisher<>();
+    this.publisher = publisher;
+    this.publisher.setController(this);
   }
-
 
   /**
    * Updates the subscriptions for the specified exchanges on the next loop
    * tick. The delay is to avoid a large number of new subscriptions in quick
    * succession causing rate bans on exchanges. Call with an empty set to cancel
-   * all subscriptions. None of the streams (e.g. {@link #getTickers()}
-   * will return anything until this is called, but there is no strict order in
-   * which they need to be called.
+   * all subscriptions. None of the streams will return anything until this is
+   * called, but there is no strict order in which they need to be called.
    *
    * @param subscriptions The subscriptions.
    */
   @Override
   public abstract void updateSubscriptions(Set<MarketDataSubscription> subscriptions);
-
-
-  /**
-   * Gets the stream of subscribed tickers, starting with any cached tickers.
-   *
-   * @return The stream.
-   */
-  @Override
-  public Flowable<TickerEvent> getTickers() {
-    return tickersOut.getAll();
-  }
-
-
-  /**
-   * Gets the stream of subscribed open order lists.
-   *
-   * @return The stream.
-   */
-  @Override
-  public Flowable<OpenOrdersEvent> getOrderSnapshots() {
-    return openOrdersOut.getAll();
-  }
-
-
-  /**
-   * Gets a stream containing updates to the order book.
-   *
-   * @return The stream.
-   */
-  @Override
-  public Flowable<OrderBookEvent> getOrderBookSnapshots() {
-    return orderbookOut.getAll();
-  }
-
-
-  /**
-   * Gets a stream of trades.
-   *
-   * @return The stream.
-   */
-  @Override
-  public Flowable<TradeEvent> getTrades() {
-    return tradesOut.getAll();
-  }
-
-
-  /**
-   * Gets a stream of user trades.
-   *
-   * @return The stream.
-   */
-  @Override
-  public Flowable<UserTradeEvent> getUserTrades() {
-    return userTradesOut.getAll();
-  }
-
-
-  /**
-   * Gets a stream with updates to the balance.
-   *
-   * @return The stream.
-   */
-  @Override
-  public Flowable<BalanceEvent> getBalances() {
-    return balanceOut.getAll();
-  }
-
-
-  /**
-   * Call immediately after submitting an order to ensure the full order details appear
-   * in the event stream at some point (allows for Coinbase not providing everything).
-   *
-   * TODO temporary until better support is arrange in xchange-stream
-   */
-  @Override
-  public void postOrder(TickerSpec spec, Order order) {
-    orderStatusChangeOut.emit(OrderChangeEvent.create(spec, order, new Date()));
-  }
-
-
-  /**
-   * Gets a stream with binance execution reports.
-   *
-   * @return The stream.
-   */
-  @Override
-  public Flowable<OrderChangeEvent> getOrderChanges() {
-    return orderStatusChangeOut.getAll();
-  }
-
 
   @Override
   protected final void run() {
@@ -199,7 +87,6 @@ abstract class AbstractMarketDataSubscriptionManager extends AbstractExecutionTh
   }
 
   protected abstract void doRun() throws InterruptedException;
-
 
   protected void wake() {
     int phase = phaser.arrive();
