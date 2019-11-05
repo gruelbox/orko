@@ -60,7 +60,7 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
     Completable completable = super.connect();
     return completable.doOnComplete(() -> {
       LOG.info("Connected to {}", apiUrl);
-      this.interval = Observable.interval(3, TimeUnit.SECONDS)
+      this.interval = Observable.interval(2, TimeUnit.SECONDS)
           .subscribe(i -> sendMessage(OrkoWebSocketIncomingMessage.Command.READY, Set.of()));
     });
   }
@@ -82,7 +82,7 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
   }
 
   private void sendSubscriptions(Set<MarketDataSubscription> subscriptions) {
-    LOG.info("Sending {} resubscriptions", subscriptions.size());
+    LOG.debug("Sending {} resubscriptions", subscriptions.size());
     sendSubscription(subscriptions, MarketDataType.TICKER, CHANGE_TICKERS);
     sendSubscription(subscriptions, BALANCE, CHANGE_BALANCE);
     sendSubscription(subscriptions, OPEN_ORDERS, CHANGE_OPEN_ORDERS);

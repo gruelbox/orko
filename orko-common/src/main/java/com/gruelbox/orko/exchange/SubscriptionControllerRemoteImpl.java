@@ -1,6 +1,7 @@
 package com.gruelbox.orko.exchange;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import com.gruelbox.orko.websocket.OrkoWebsocketStreamingService;
 
 import info.bitrich.xchangestream.service.netty.StreamingObjectMapperHelper;
 import io.dropwizard.lifecycle.Managed;
+import io.reactivex.Observable;
 
 /**
  * Remote websocket-based {@link MarketDataSubscriptionManager} interacting with
@@ -28,6 +30,7 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   private final RemoteMarketDataConfiguration configuration;
   private final OrkoWebsocketStreamingService streamingService;
   private volatile Set<MarketDataSubscription> subscriptions = Set.of();
+  private volatile boolean disconnected;
 
   @VisibleForTesting
   @Inject
@@ -42,22 +45,33 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   public void start() throws Exception {
     LOGGER.debug("Opening connection");
     this.streamingService.connect()
-        .retry()
-        .subscribe(() -> {
-          LOGGER.debug("Connection opened");
-          openChannels();
-          this.streamingService.updateSubscriptions(subscriptions);
-        }, t -> LOGGER.error("Connection failed", t));
+        .subscribe(
+            () -> {
+              LOGGER.debug("Connection opened");
+              openChannels();
+              this.streamingService.updateSubscriptions(subscriptions);
+            },
+            t -> {
+              if (disconnected) {
+                LOGGER.info("Connection failed. Disconnected and will not re-attempt");
+              } else {
+                LOGGER.info("Connection failed. Scheduling re-attempt in 20s");
+                Observable.timer(20, TimeUnit.SECONDS).subscribe(i -> start());
+              }
+            });
   }
 
   @Override
   public void stop() throws Exception {
     LOGGER.debug("Closing connection");
     try {
+      disconnected = true;
       this.streamingService.disconnect()
-          .subscribe(() -> LOGGER.debug("Connection closed"));
+          .subscribe(
+              () -> LOGGER.debug("Connection closed"),
+              t -> LOGGER.error("Error closing connection", t));
     } catch (Exception e) {
-      LOGGER.error("Error closing connection", e);
+      LOGGER.error("Error requesting close of connection", e);
     }
   }
 

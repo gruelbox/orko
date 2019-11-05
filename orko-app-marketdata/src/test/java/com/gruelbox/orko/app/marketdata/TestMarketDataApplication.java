@@ -62,12 +62,16 @@ public class TestMarketDataApplication {
       publisher,
       new RemoteMarketDataConfiguration("ws://localhost:8080/ws"));
 
-  private CountDownLatch latch = new CountDownLatch(subscriptions.size());
+  private CountDownLatch gotTicker = new CountDownLatch(1);
+  private CountDownLatch gotAll = new CountDownLatch(subscriptions.size());
   private Set<MarketDataType> got = Sets.newConcurrentHashSet();
 
   @Before
   public void setup() {
-    publisher.getTickers().map(t -> MarketDataType.TICKER).subscribe(this::received);
+    publisher.getTickers().map(t -> MarketDataType.TICKER).subscribe(type -> {
+      received(type);
+      gotTicker.countDown();
+    });
     publisher.getBalances().map(t -> MarketDataType.BALANCE).subscribe(this::received);
     publisher.getOrderBookSnapshots().map(t -> MarketDataType.ORDERBOOK).subscribe(this::received);
     publisher.getOrderChanges().map(t -> MarketDataType.ORDER).subscribe(this::received);
@@ -85,6 +89,7 @@ public class TestMarketDataApplication {
       try {
         controller.updateSubscriptions(subscriptions);
         waitUntilBalanceAvailable();
+        waitUntilHadATicker();
         performTrade();
         confirmAllDataTypesReceived();
       } finally {
@@ -105,6 +110,7 @@ public class TestMarketDataApplication {
       try {
         client = new JerseyClientBuilder(SUPPORT.getEnvironment()).build("test client");
         waitUntilBalanceAvailable();
+        waitUntilHadATicker();
         performTrade();
         confirmAllDataTypesReceived();
       } finally {
@@ -119,8 +125,12 @@ public class TestMarketDataApplication {
   private void received(MarketDataType type) {
     if (got.add(type)) {
       LOGGER.info("Got {}", type);
-      latch.countDown();
+      gotAll.countDown();
     }
+  }
+
+  private void waitUntilHadATicker() throws InterruptedException {
+    Assert.assertTrue(gotTicker.await(1, TimeUnit.MINUTES));
   }
 
   private void waitUntilBalanceAvailable() throws InterruptedException {
@@ -153,6 +163,6 @@ public class TestMarketDataApplication {
 
   private void confirmAllDataTypesReceived() throws InterruptedException {
     LOGGER.info("Waiting for receipt");
-    Assert.assertTrue(latch.await(1, TimeUnit.MINUTES));
+    Assert.assertTrue(gotAll.await(1, TimeUnit.MINUTES));
   }
 }
