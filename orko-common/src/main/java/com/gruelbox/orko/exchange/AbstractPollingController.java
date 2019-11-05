@@ -77,6 +77,7 @@ abstract class AbstractPollingController extends AbstractExecutionThreadService 
       }
     } catch (InterruptedException e) {
       logger.error("{} stopping due to interrupt", this, e);
+      Thread.currentThread().interrupt();
     } catch (Exception e) {
       logger.error("{} stopping due to uncaught exception", this, e);
     } finally {

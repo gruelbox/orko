@@ -369,7 +369,9 @@ class SubscriptionControllerImpl extends AbstractPollingController {
     private void handleHttpStatusException(String dataDescription, HttpStatusIOException e) {
       if (e.getHttpStatusCode() == 408 || e.getHttpStatusCode() == 502 || e.getHttpStatusCode() == 504 || e.getHttpStatusCode() == 521) {
         // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or connection timeouts.
-        logger.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
+        if (logger.isWarnEnabled()) {
+          logger.warn("Throttling {} - failed at gateway ({} - {}) when fetching {}", exchangeName, e.getHttpStatusCode(), exceptionMessage(e), dataDescription);
+        }
         exchangeService.rateController(exchangeName).throttle();
       } else {
         handleUnknownPollException(e);
@@ -396,7 +398,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
           !firstNonNull(exceptionMessage(lastPollException), "").equals(exceptionMessage) ||
           lastPollErrorNotificationTime.until(now, MINUTES) > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
         lastPollErrorNotificationTime = now;
-        logger.error("Error fetching data for " + exchangeName, e);
+        logger.error("Error fetching data for {}", exchangeName, e);
         notificationService.error("Throttling access to " + exchangeName + " due to server error (" + e.getClass().getSimpleName() + " - " + exceptionMessage + ")");
       } else {
         logger.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
