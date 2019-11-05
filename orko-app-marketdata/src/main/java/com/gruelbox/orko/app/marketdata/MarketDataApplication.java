@@ -39,7 +39,7 @@ public class MarketDataApplication extends BaseApplication<MarketDataAppConfigur
 
   @Override
   public String getName() {
-    return "Orko all-in-one application";
+    return "Orko market data application";
   }
 
   @Override
@@ -47,7 +47,6 @@ public class MarketDataApplication extends BaseApplication<MarketDataAppConfigur
     super.initialize(bootstrap);
     websocketBundle = new WebsocketBundle(new Class[] {});
     bootstrap.addBundle(websocketBundle);
-
   }
 
   @Override

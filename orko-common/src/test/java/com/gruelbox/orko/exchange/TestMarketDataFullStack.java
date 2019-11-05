@@ -47,32 +47,35 @@ public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {
   private SimulatedOrderBookActivity simulator;
   private AccountFactory accountFactory;
   private MatchingEngineFactory matchingEngineFactory;
-  private Map<String, ExchangeConfiguration> exchangeConfiguration;
 
   @Override
   public void setup() throws TimeoutException {
     accountFactory = new AccountFactory();
     matchingEngineFactory = new MatchingEngineFactory(accountFactory);
+    super.setup();
     simulator = new SimulatedOrderBookActivity(accountFactory, matchingEngineFactory);
     simulator.startAsync().awaitRunning(30, SECONDS);
-    exchangeConfiguration = buildConfig();
-    super.setup();
   }
 
   @Override
   public void tearDown() throws TimeoutException {
-    super.tearDown();
     simulator.stopAsync().awaitTerminated(30, SECONDS);
+    super.tearDown();
   }
 
-  private Map<String, ExchangeConfiguration> buildConfig() {
+  @Override
+  protected Map<String, ExchangeConfiguration> buildConfig() {
     ImmutableMap.Builder<String, ExchangeConfiguration> result = ImmutableMap.builder();
     Exchanges.EXCHANGE_TYPES.get().forEach(clazz -> {
       String name = Exchanges.classToFriendlyName(clazz);
       ExchangeConfiguration exchangeConfiguration = new ExchangeConfiguration();
-      exchangeConfiguration.setLoadRemoteData(false);
       if (name.equals(Exchanges.SIMULATED)) {
         exchangeConfiguration.setApiKey("Test");
+        exchangeConfiguration.setEnabled(true);
+        exchangeConfiguration.setLoadRemoteData(true);
+      } else {
+        exchangeConfiguration.setLoadRemoteData(false);
+        exchangeConfiguration.setEnabled(false);
       }
       result.put(name, exchangeConfiguration);
     });
@@ -81,7 +84,7 @@ public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {
 
   @Override
   protected ExchangeService buildExchangeService() {
-    return new ExchangeServiceImpl(exchangeConfiguration,
+    return new ExchangeServiceImpl(getExchangeConfiguration(),
         accountFactory,
         matchingEngineFactory);
   }

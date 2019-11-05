@@ -24,6 +24,7 @@ import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
 import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.knowm.xchange.simulated.AccountFactory;
@@ -51,6 +52,11 @@ public class TestMarketDataFullStackIntegration extends AbstractMarketDataFullSt
     return new ExchangeServiceImpl(Collections.emptyMap(),
         mock(AccountFactory.class),
         mock(MatchingEngineFactory.class));
+  }
+
+  @Override
+  protected Map<String, ExchangeConfiguration> buildConfig() {
+    return Map.of();
   }
 
   @Override

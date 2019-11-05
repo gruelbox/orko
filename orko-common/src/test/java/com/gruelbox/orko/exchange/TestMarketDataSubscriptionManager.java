@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
@@ -66,7 +67,7 @@ public class TestMarketDataSubscriptionManager {
     when(exchangeService.get(EXCHANGE1)).thenReturn(exchangeOne);
     when(exchangeService.get(EXCHANGE2)).thenReturn(exchangeTwo);
     subscriptionManager = new SubscriptionControllerImpl(exchangeService, configuration, tradeServiceFactory,
-        accountServiceFactory, notificationService, new SubscriptionPublisher());
+        accountServiceFactory, notificationService, new SubscriptionPublisher(), Map.of());
     subscriptionManager.setLifecycleListener(new LifecycleListener() {
       @Override
       public void onBlocked(String exchange) {

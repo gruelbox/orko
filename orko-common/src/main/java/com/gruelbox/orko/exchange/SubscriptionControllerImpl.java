@@ -128,6 +128,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
   private final NotificationService notificationService;
+  private final Map<String, ExchangeConfiguration> exchangeConfiguration;
 
   private final Map<String, AtomicReference<Set<MarketDataSubscription>>> nextSubscriptions;
   private final ConcurrentMap<String, Set<MarketDataSubscription>> subscriptionsPerExchange = Maps.newConcurrentMap();
@@ -145,7 +146,8 @@ class SubscriptionControllerImpl extends AbstractPollingController {
                                     TradeServiceFactory tradeServiceFactory,
                                     AccountServiceFactory accountServiceFactory,
                                     NotificationService notificationService,
-                                    SubscriptionPublisher publisher) {
+                                    SubscriptionPublisher publisher,
+                                    Map<String, ExchangeConfiguration> exchangeConfiguration) {
     super(configuration, publisher);
     this.exchangeService = exchangeService;
     this.tradeServiceFactory = tradeServiceFactory;
@@ -153,6 +155,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
     this.notificationService = notificationService;
     this.nextSubscriptions = FluentIterable.from(exchangeService.getExchanges())
         .toMap(e -> new AtomicReference<>());
+    this.exchangeConfiguration = exchangeConfiguration;
     exchangeService.getExchanges().forEach(e -> {
       subscriptionsPerExchange.put(e, ImmutableSet.of());
       pollsPerExchange.put(e, ImmutableSet.of());
@@ -192,7 +195,9 @@ class SubscriptionControllerImpl extends AbstractPollingController {
   private void submitExchangesAndWaitForCompletion(ExecutorService threadPool) throws InterruptedException {
     Map<String, Future<?>> futures = new HashMap<>();
     for (String exchange : exchangeService.getExchanges()) {
-      futures.put(exchange, threadPool.submit(new Poller(exchange)));
+      if (exchangeConfiguration.getOrDefault(exchange, new ExchangeConfiguration()).isEnabled()) {
+        futures.put(exchange, threadPool.submit(new Poller(exchange)));
+      }
     }
     for (Entry<String, Future<?>> entry : futures.entrySet()) {
       try {

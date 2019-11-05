@@ -40,6 +40,7 @@ import io.reactivex.disposables.Disposable;
 public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
 
   private static final Logger LOG = LoggerFactory.getLogger(OrkoWebsocketStreamingService.class);
+  private final String apiUrl;
 
   private volatile Disposable interval;
   private volatile Set<MarketDataSubscription> currentSubscriptions = Set.of();
@@ -50,19 +51,23 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
    */
   public OrkoWebsocketStreamingService(String apiUrl) {
     super(apiUrl, 2147483647);
+    this.apiUrl = apiUrl;
   }
 
   @Override
   public Completable connect() {
+    LOG.info("Connecting to {}", apiUrl);
     Completable completable = super.connect();
-    return completable.doOnComplete(() ->
+    return completable.doOnComplete(() -> {
+      LOG.info("Connected to {}", apiUrl);
       this.interval = Observable.interval(3, TimeUnit.SECONDS)
-          .subscribe(i -> sendMessage(OrkoWebSocketIncomingMessage.Command.READY, Set.of()))
-    );
+          .subscribe(i -> sendMessage(OrkoWebSocketIncomingMessage.Command.READY, Set.of()));
+    });
   }
 
   @Override
   public Completable disconnect() {
+    LOG.info("Disconnecting from {}", apiUrl);
     SafelyDispose.of(interval);
     return super.disconnect();
   }
@@ -71,6 +76,8 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
     if (!currentSubscriptions.equals(newSubscriptions)) {
       sendSubscriptions(newSubscriptions);
       this.currentSubscriptions = Set.copyOf(newSubscriptions);
+    } else {
+      LOG.info("No subscriptions");
     }
   }
 

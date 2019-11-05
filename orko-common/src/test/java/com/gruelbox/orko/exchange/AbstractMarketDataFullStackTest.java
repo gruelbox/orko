@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -53,12 +54,13 @@ import jersey.repackaged.com.google.common.collect.Maps;
 
 public abstract class AbstractMarketDataFullStackTest {
 
-  protected ExchangeService exchangeService;
-  protected MarketDataSubscriptionManager manager;
-  protected SubscriptionControllerImpl controller;
-  protected ExchangeEventBus exchangeEventBus;
-  protected final NotificationService notificationService = mock(NotificationService.class);
-  protected BackgroundProcessingConfiguration backgroundProcessingConfiguration;
+  private ExchangeService exchangeService;
+  private MarketDataSubscriptionManager manager;
+  private SubscriptionControllerImpl controller;
+  private ExchangeEventBus exchangeEventBus;
+  private final NotificationService notificationService = mock(NotificationService.class);
+  private BackgroundProcessingConfiguration backgroundProcessingConfiguration;
+  private Map<String, ExchangeConfiguration> exchangeConfiguration;
 
 
   @Before
@@ -72,6 +74,7 @@ public abstract class AbstractMarketDataFullStackTest {
         return 2;
       }
     };
+    exchangeConfiguration = buildConfig();
     exchangeService = buildExchangeService();
     manager = new SubscriptionPublisher();
     controller = new SubscriptionControllerImpl(
@@ -85,9 +88,17 @@ public abstract class AbstractMarketDataFullStackTest {
           }
         },
         notificationService,
-        (SubscriptionPublisher) manager);
+        (SubscriptionPublisher) manager,
+        exchangeConfiguration);
     exchangeEventBus = new ExchangeEventBus(manager);
     controller.startAsync().awaitRunning(20, SECONDS);
+
+  }
+
+  protected abstract Map<String, ExchangeConfiguration> buildConfig();
+
+  protected Map<String, ExchangeConfiguration> getExchangeConfiguration() {
+    return exchangeConfiguration;
   }
 
   protected abstract ExchangeService buildExchangeService();

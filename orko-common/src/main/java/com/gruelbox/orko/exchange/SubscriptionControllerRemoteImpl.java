@@ -25,49 +25,39 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionControllerRemoteImpl.class);
 
   private final SubscriptionPublisher publisher;
-  private volatile OrkoWebsocketStreamingService streamingService;
+  private final RemoteMarketDataConfiguration configuration;
+  private final OrkoWebsocketStreamingService streamingService;
   private volatile Set<MarketDataSubscription> subscriptions = Set.of();
 
   @VisibleForTesting
   @Inject
-  public SubscriptionControllerRemoteImpl(SubscriptionPublisher publisher) {
+  public SubscriptionControllerRemoteImpl(SubscriptionPublisher publisher, RemoteMarketDataConfiguration configuration) {
     this.publisher = publisher;
+    this.configuration = configuration;
     this.publisher.setController(this);
+    this.streamingService = new OrkoWebsocketStreamingService(configuration.getRemoteUri());
   }
 
   @Override
   public void start() throws Exception {
-    do {
-      try {
-        this.streamingService = new OrkoWebsocketStreamingService("ws://localhost:8080/ws");
-        this.streamingService.connect().blockingAwait();
-        openChannels();
-        if (subscriptions != null) {
+    LOGGER.debug("Opening connection");
+    this.streamingService.connect()
+        .retry()
+        .subscribe(() -> {
+          LOGGER.debug("Connection opened");
+          openChannels();
           this.streamingService.updateSubscriptions(subscriptions);
-        }
-      } catch (Exception e) {
-        if (this.streamingService != null) {
-          if (this.streamingService.isSocketOpen())
-            this.streamingService.disconnect();
-          this.streamingService = null;
-        }
-        LOGGER.error("Failed to open connection", e);
-        Thread.sleep(10000);
-      }
-    } while (this.streamingService == null && !Thread.currentThread().isInterrupted());
+        }, t -> LOGGER.error("Connection failed", t));
   }
 
   @Override
   public void stop() throws Exception {
-    LOGGER.info("Shutting down...");
-    if (this.streamingService != null) {
-      LOGGER.info("Closing connection");
-      try {
-        this.streamingService.disconnect();
-        LOGGER.info("Connection closed");
-      } catch (Exception e) {
-        LOGGER.error("Error closing connection", e);
-      }
+    LOGGER.debug("Closing connection");
+    try {
+      this.streamingService.disconnect()
+          .subscribe(() -> LOGGER.debug("Connection closed"));
+    } catch (Exception e) {
+      LOGGER.error("Error closing connection", e);
     }
   }
 
@@ -110,8 +100,10 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   @Override
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
     this.subscriptions = subscriptions;
-    if (this.streamingService != null && this.streamingService.isSocketOpen()) {
+    if (this.streamingService.isSocketOpen()) {
       this.streamingService.updateSubscriptions(subscriptions);
+    } else {
+      LOGGER.debug("Not sending subscriptions, socket not ready");
     }
   }
 }
