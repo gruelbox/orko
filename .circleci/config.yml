@@ -6,9 +6,9 @@ alltags: &alltags
       only: /((?!SNAPSHOT).)*/
 restoremavencache: &restoremavencache
   keys:
-    - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-    - maven-repo-v3-{{ .Branch }}-
-    - maven-repo-v3-
+    - maven-repo-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+    - maven-repo-v4-{{ .Branch }}-
+    - maven-repo-v4-
 mainenvironment: &mainenvironment
   MAVEN_OPTS: -Xmx3200m
   BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
@@ -39,7 +39,7 @@ workflows:
           requires:
             - "Compile and build"
           <<: *alltags
-      - "Docker Hub":
+      - "Deploy release to Docker registry":
           requires:
             - "Unit tests (all)"
             - "Unit tests (MySQL)"
@@ -80,7 +80,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: maven-repo-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
       - save_cache:
           paths:
             - ~/usr/local/lib/node_modules
@@ -244,14 +244,14 @@ jobs:
       - store_test_results:
           path: ~/junit
 
-  "Docker Hub":
+  "Deploy release to Docker registry":
     <<: *setup
     steps:
       - attach_workspace:
           at: /home/circleci
       - restore_cache: *restoremavencache
       - run:
-          name: Release to Docker Hub
+          name: Deploy release to Docker registry
           command: |
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
               cd orko-app
