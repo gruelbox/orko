@@ -46,13 +46,16 @@
 
     <profiles>
         <profile>
-            <id>dockerhub</id>
+            <id>docker</id>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>com.google.cloud.tools</groupId>
                         <artifactId>jib-maven-plugin</artifactId>
                         <configuration>
+                            <to>
+                                <image>${env.DOCKERHUB_REPO}:${docker.tag}-marketdata</image>
+                            </to>
                             <container>
                                 <args>
                                     <arg>server</arg>

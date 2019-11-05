@@ -71,7 +71,7 @@
       </build>
     </profile>
     <profile>
-      <id>dockerhub</id>
+      <id>docker</id>
       <build>
         <plugins>
           <plugin>
