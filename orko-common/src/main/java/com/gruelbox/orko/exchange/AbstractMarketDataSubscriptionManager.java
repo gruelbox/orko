@@ -70,7 +70,7 @@ abstract class AbstractMarketDataSubscriptionManager extends AbstractExecutionTh
     this.tradesOut = new PersistentPublisher<>();
     this.userTradesOut = new CachingPersistentPublisher<>((UserTradeEvent e) -> e.trade().getId())
         .orderInitialSnapshotBy(iterable -> Ordering.natural().onResultOf((UserTradeEvent e) -> e.trade().getTimestamp()).sortedCopy(iterable));
-    this.balanceOut = new CachingPersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.currency());
+    this.balanceOut = new CachingPersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.balance().getCurrency());
     this.orderStatusChangeOut = new PersistentPublisher<>();
   }
 

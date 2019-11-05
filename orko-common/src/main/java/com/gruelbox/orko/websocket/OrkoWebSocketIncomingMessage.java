@@ -34,7 +34,7 @@ public abstract class OrkoWebSocketIncomingMessage {
 
   @JsonCreator
   public static OrkoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
-                                            @JsonProperty("tickers") Collection<TickerSpec> tickers) {
+                                                    @Nullable @JsonProperty("tickers") Collection<TickerSpec> tickers) {
     return new AutoValue_OrkoWebSocketIncomingMessage(command, tickers);
   }
 

@@ -236,7 +236,7 @@ function receive(message) {
         break
 
       case socketMessages.BALANCE:
-        handleBalance(message.data.exchange, message.data.currency, message.data.balance)
+        handleBalance(message.data.exchange, message.data.balance.currency, message.data.balance)
         break
 
       case socketMessages.NOTIFICATION:

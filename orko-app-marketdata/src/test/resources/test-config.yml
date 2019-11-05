@@ -1,0 +1,34 @@
+scriptSigningKey: "WHATEVS"
+server:
+  type: simple
+  rootPath: /api/
+  applicationContextPath: /
+  connector:
+    type: http
+    port: 8080
+  maxThreads: 16
+exchanges:
+  simulated:
+    apiKey: DEMO
+  gdax:
+    loadRemoteData: false
+  binance:
+    loadRemoteData: false
+  kucoin:
+    loadRemoteData: false
+  bitfinex:
+    loadRemoteData: false
+  bitmex:
+    loadRemoteData: false
+  kraken:
+    loadRemoteData: false
+  bittrex:
+    loadRemoteData: false
+jerseyClient:
+  timeout: 30000ms
+  connectionTimeout: 30000ms
+  connectionRequestTimeout: 30000ms
+logging:
+  loggers:
+    "com.gruelbox.orko": INFO
+    "si.mazi.rescu": ERROR

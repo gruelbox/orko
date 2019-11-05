@@ -168,6 +168,8 @@ public final class OrkoWebSocketServer {
   }
 
   private void mutateSubscriptions(MarketDataType marketDataType, Iterable<TickerSpec> tickers) {
+    if (tickers == null)
+      tickers = Set.of();
     marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
       .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(marketDataType)))
       .addAll(FluentIterable.from(tickers).transform(spec -> MarketDataSubscription.create(spec, marketDataType)))

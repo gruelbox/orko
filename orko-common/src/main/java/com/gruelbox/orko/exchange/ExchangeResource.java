@@ -49,6 +49,7 @@ import org.knowm.xchange.binance.service.BinanceCancelOrderParams;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
+import org.knowm.xchange.dto.account.Balance;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
@@ -64,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
@@ -275,7 +277,6 @@ public class ExchangeResource implements WebResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) {
-
     Optional<Response> error = checkOrderPreconditions(exchange, order);
     if (error.isPresent())
       return error.get();
@@ -531,11 +532,10 @@ public class ExchangeResource implements WebResource {
             .entrySet()
         )
         .transform(Map.Entry::getValue)
-        .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()))
-        .transform(Balance::create);
+        .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()));
 
       return Response.ok()
-          .entity(Maps.uniqueIndex(balances, Balance::currency))
+          .entity(Maps.uniqueIndex(balances, Balance::getCurrency))
           .build();
 
     } catch (NotAvailableFromExchangeException e) {
@@ -598,35 +598,37 @@ public class ExchangeResource implements WebResource {
       return amount;
     }
 
+    @JsonIgnore
     boolean isStop() {
       return stopPrice != null;
     }
 
+    @JsonIgnore
     boolean isLimit() {
       return limitPrice != null;
     }
 
-    void setCounter(String counter) {
+    public void setCounter(String counter) {
       this.counter = counter;
     }
 
-    void setBase(String base) {
+    public void setBase(String base) {
       this.base = base;
     }
 
-    void setStopPrice(BigDecimal stopPrice) {
+    public void setStopPrice(BigDecimal stopPrice) {
       this.stopPrice = stopPrice;
     }
 
-    void setLimitPrice(BigDecimal limitPrice) {
+    public void setLimitPrice(BigDecimal limitPrice) {
       this.limitPrice = limitPrice;
     }
 
-    void setType(Order.OrderType type) {
+    public void setType(Order.OrderType type) {
       this.type = type;
     }
 
-    void setAmount(BigDecimal amount) {
+    public void setAmount(BigDecimal amount) {
       this.amount = amount;
     }
   }

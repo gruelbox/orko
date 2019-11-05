@@ -60,6 +60,7 @@ import org.knowm.xchange.bitfinex.v1.dto.BitfinexException;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
+import org.knowm.xchange.dto.account.Balance;
 import org.knowm.xchange.dto.account.Wallet;
 import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Trade;
@@ -312,7 +313,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
       if (!balanceCurrencies.isEmpty()) {
         manageExchangeExceptions(
             "Balances",
-            () -> fetchBalances(balanceCurrencies).forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b.currency(), b))),
+            () -> fetchBalances(balanceCurrencies).forEach(b -> balanceOut.emit(BalanceEvent.create(exchangeName, b))),
             () -> FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE))
         );
       }
@@ -551,8 +552,7 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
         for (String currency : balanceCurrencies) {
           disposables.add(
             streamingExchange.getStreamingAccountService().getBalanceChanges(Currency.getInstance(currency), "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-              .map(Balance::create)
-              .map(b -> BalanceEvent.create(exchangeName, b.currency(), b)) // TODO consider timestamping?
+              .map(b -> BalanceEvent.create(exchangeName, b)) // TODO consider timestamping?
               .subscribe(balanceOut::emit, e -> logger.error("Error in balance stream for " + exchangeName + "/" + currency, e)));
         }
       } catch (NotAvailableFromExchangeException e) {
@@ -647,13 +647,14 @@ class MarketDataSubscriptionManagerImpl extends AbstractMarketDataSubscriptionMa
 
     private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException, InterruptedException {
       Map<String, Balance> result = new HashMap<>();
-      currencyCodes.stream().map(Balance::zero)
-        .forEach(balance -> result.put(balance.currency(), balance));
+      currencyCodes.stream()
+          .map(Currency::getInstance)
+          .map(Balance::zero)
+          .forEach(balance -> result.put(balance.getCurrency().getCurrencyCode(), balance));
       wallet().getBalances().entrySet().stream()
-        .map(Map.Entry::getValue)
-        .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
-        .map(Balance::create)
-        .forEach(balance -> result.put(balance.currency(), balance));
+          .map(Map.Entry::getValue)
+          .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
+          .forEach(balance -> result.put(balance.getCurrency().getCurrencyCode(), balance));
       return result.values();
     }
 

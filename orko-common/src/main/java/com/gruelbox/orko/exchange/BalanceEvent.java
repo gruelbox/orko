@@ -18,6 +18,8 @@
 
 package com.gruelbox.orko.exchange;
 
+import org.knowm.xchange.dto.account.Balance;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -29,16 +31,12 @@ public abstract class BalanceEvent {
 
   @JsonCreator
   public static BalanceEvent create(@JsonProperty("exchange") String exchange,
-                                    @JsonProperty("currency") String currency,
                                     @JsonProperty("balance") Balance balance) {
-    return new AutoValue_BalanceEvent(exchange, currency, balance);
+    return new AutoValue_BalanceEvent(exchange, balance);
   }
 
   @JsonProperty
   public abstract String exchange();
-
-  @JsonProperty
-  public abstract String currency();
 
   @JsonProperty
   public abstract Balance balance();
