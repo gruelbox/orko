@@ -288,7 +288,8 @@ public abstract class AbstractMarketDataFullStackTest {
       case USER_TRADE:
         return (Flowable<T>) manager.getUserTrades().filter(o -> o.spec().equals(sub.spec()));
       case BALANCE:
-        return (Flowable<T>) manager.getBalances().filter(b -> b.balance().getCurrency().equals(sub.spec().base()) || b.balance().getCurrency().equals(sub.spec().counter()));
+        return (Flowable<T>) manager.getBalances().filter(b -> b.balance().getCurrency().getCurrencyCode().equals(sub.spec().base()) ||
+                                                               b.balance().getCurrency().getCurrencyCode().equals(sub.spec().counter()));
       default:
         throw new IllegalArgumentException("Unknown market data type");
     }
