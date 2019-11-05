@@ -36,7 +36,7 @@ import io.reactivex.Flowable;
 @Singleton
 public final class SubscriptionPublisher implements MarketDataSubscriptionManager {
 
-  private final Logger LOGGER = LoggerFactory.getLogger(SubscriptionPublisher.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionPublisher.class);
 
   private final CachingPersistentPublisher<TickerEvent, TickerSpec> tickersOut;
   private final CachingPersistentPublisher<OpenOrdersEvent, TickerSpec> openOrdersOut;
