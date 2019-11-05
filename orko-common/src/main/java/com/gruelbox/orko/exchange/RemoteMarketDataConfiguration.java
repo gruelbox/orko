@@ -1,10 +1,7 @@
 package com.gruelbox.orko.exchange;
 
-import javax.validation.constraints.NotNull;
-
 public final class RemoteMarketDataConfiguration {
 
-  @NotNull
   private String remoteUri;
 
   public RemoteMarketDataConfiguration() {}

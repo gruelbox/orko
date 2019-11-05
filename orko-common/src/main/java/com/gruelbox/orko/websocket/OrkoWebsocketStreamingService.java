@@ -42,7 +42,7 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
   private static final Logger LOG = LoggerFactory.getLogger(OrkoWebsocketStreamingService.class);
   private final String apiUrl;
 
-  private volatile Disposable interval;
+  private Disposable interval;
   private volatile Set<MarketDataSubscription> currentSubscriptions = Set.of();
 
   /**

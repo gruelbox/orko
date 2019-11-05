@@ -265,7 +265,8 @@ jobs:
                 if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
                   mvn ${BUILD_ARGS} -Pui,docker $DOCKER_TARGET -Ddocker.tag="latest"
                 else
-                  echo "Skipping branch"
+                  echo "Branch. Building locally only"
+                  mvn ${BUILD_ARGS} -Pui,docker jib:buildTar -Ddocker.tag="dev-$CIRCLE_BRANCH"
                 fi
               fi
             fi

@@ -19,10 +19,6 @@
 package com.gruelbox.orko.exchange;
 
 import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
-import static com.gruelbox.orko.exchange.MarketDataType.ORDER;
-import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
-import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
 import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
 import static java.time.LocalDateTime.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
@@ -594,6 +590,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
     }
 
 
+
     /**
      * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
      */
@@ -613,24 +610,34 @@ class SubscriptionControllerImpl extends AbstractPollingController {
       boolean authenticated = exchangeService.isAuthenticated(exchangeName);
       subscriptionsForExchange.stream()
         .forEach(s -> {
-          if (s.type().equals(TICKER)) {
-            builder.addTicker(s.spec().currencyPair());
-          }
-          if (s.type().equals(ORDERBOOK)) {
-            builder.addOrderbook(s.spec().currencyPair());
-          }
-          if (s.type().equals(TRADES)) {
-            builder.addTrades(s.spec().currencyPair());
-          }
-          if (authenticated && s.type().equals(USER_TRADE) ) {
-            builder.addUserTrades(s.spec().currencyPair());
-          }
-          if (authenticated && s.type().equals(ORDER)) {
-            builder.addOrders(s.spec().currencyPair());
-          }
-          if (authenticated && s.type().equals(BALANCE)) {
-            builder.addBalances(s.spec().currencyPair().base);
-            builder.addBalances(s.spec().currencyPair().counter);
+          switch (s.type()) {
+            case TICKER:
+              builder.addTicker(s.spec().currencyPair());
+              break;
+            case ORDERBOOK:
+              builder.addOrderbook(s.spec().currencyPair());
+              break;
+            case TRADES:
+              builder.addTrades(s.spec().currencyPair());
+              break;
+            case ORDER:
+              if (authenticated) {
+                builder.addOrders(s.spec().currencyPair());
+              }
+              break;
+            case USER_TRADE:
+              if (authenticated) {
+                builder.addUserTrades(s.spec().currencyPair());
+              }
+              break;
+            case BALANCE:
+              if (authenticated) {
+                builder.addBalances(s.spec().currencyPair().base);
+                builder.addBalances(s.spec().currencyPair().counter);
+              }
+              break;
+            default:
+              // Not available from socket
           }
         });
       exchangeService.rateController(exchangeName).acquire();
