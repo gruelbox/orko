@@ -78,6 +78,7 @@
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
             <configuration>
+              <skip>false</skip>
               <container>
                 <args>
                   <arg>server</arg>

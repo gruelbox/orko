@@ -681,6 +681,7 @@
           <artifactId>jib-maven-plugin</artifactId>
           <version>1.7.0</version>
           <configuration>
+            <skip>true</skip>
             <to>
               <image>${env.DOCKERHUB_REPO}:${docker.tag}</image>
               <auth>

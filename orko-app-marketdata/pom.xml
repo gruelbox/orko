@@ -53,6 +53,7 @@
                         <groupId>com.google.cloud.tools</groupId>
                         <artifactId>jib-maven-plugin</artifactId>
                         <configuration>
+                            <skip>false</skip>
                             <to>
                                 <image>${env.DOCKERHUB_REPO}:${docker.tag}-marketdata</image>
                             </to>
