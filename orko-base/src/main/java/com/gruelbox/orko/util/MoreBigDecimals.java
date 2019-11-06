@@ -19,7 +19,9 @@ package com.gruelbox.orko.util;
 
 import java.math.BigDecimal;
 
-public class MoreBigDecimals {
+public final class MoreBigDecimals {
+
+  private MoreBigDecimals() {}
 
   /**
    * Removes any superfluous significant figures in a {@link BigDecimal},
