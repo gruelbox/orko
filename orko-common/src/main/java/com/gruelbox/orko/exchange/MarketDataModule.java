@@ -29,6 +29,8 @@ import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 import com.gruelbox.orko.wiring.WiringModule;
 
+import io.dropwizard.lifecycle.Managed;
+
 public class MarketDataModule extends AbstractModule {
 
   private final MarketDataSource marketDataSource;
@@ -41,13 +43,19 @@ public class MarketDataModule extends AbstractModule {
   protected void configure() {
     install(new WiringModule());
     bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);
+    bind(MarketDataSubscriptionManager.class).to(SubscriptionPublisher.class);
     switch (marketDataSource) {
       case MANAGE_LOCALLY:
-        bind(MarketDataSubscriptionManager.class).to(MarketDataSubscriptionManagerImpl.class);
+        bind(SubscriptionController.class).to(SubscriptionControllerImpl.class);
         Multibinder.newSetBinder(binder(), Service.class)
-            .addBinding().to(MarketDataSubscriptionManagerImpl.class);
+            .addBinding().to(SubscriptionControllerImpl.class);
         Multibinder.newSetBinder(binder(), HealthCheck.class)
             .addBinding().to(ExchangeAccessHealthCheck.class);
+        break;
+      case MANAGE_REMOTELY:
+        bind(SubscriptionController.class).to(SubscriptionControllerRemoteImpl.class);
+        Multibinder.newSetBinder(binder(), Managed.class)
+            .addBinding().to(SubscriptionControllerRemoteImpl.class);
         break;
       default:
         throw new IllegalStateException("Unexpected value: " + marketDataSource);
@@ -67,6 +75,7 @@ public class MarketDataModule extends AbstractModule {
   }
 
   public enum MarketDataSource {
-    MANAGE_LOCALLY
+    MANAGE_LOCALLY,
+    MANAGE_REMOTELY
   }
 }

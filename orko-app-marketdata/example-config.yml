@@ -1,0 +1,51 @@
+scriptSigningKey: "MAKE SURE YOU CHANGE THIS IN PRODUCTION"
+# telegram:
+#   botToken: YOU
+#   chatId: REALLYWANTTHIS
+exchanges:
+  simulated:
+    apiKey: DEMO
+  gdax:
+    apiKey:
+    secretKey:
+    passphrase:
+    sandbox: false # default
+    loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
+  binance:
+    apiKey:
+    secretKey:
+    loadRemoteData: true
+  kucoin:
+    apiKey:
+    secretKey:
+    passphrase:
+    sandbox: false
+    loadRemoteData: true
+  bitfinex:
+    apiKey:
+    secretKey:
+    loadRemoteData: true
+  bitmex:
+    apiKey:
+    secretKey:
+    loadRemoteData: true
+  kraken:
+    apiKey:
+    secretKey:
+    loadRemoteData: true
+  bittrex:
+    apiKey:
+    secretKey:
+    loadRemoteData:
+server:
+  type: simple
+  rootPath: /api/
+  applicationContextPath: /
+  connector:
+    type: http
+    port: 8080
+  maxThreads: 16
+logging:
+  loggers:
+    "com.gruelbox.orko": INFO
+    "si.mazi.rescu": ERROR

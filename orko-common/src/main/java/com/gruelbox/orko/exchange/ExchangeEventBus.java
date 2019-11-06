@@ -141,7 +141,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
         .transformAndConcat(s -> ImmutableSet.of(s.exchange() + "/" + s.base(), s.exchange() + "/" + s.counter()))
         .toSet();
       return marketDataSubscriptionManager.getBalances()
-          .filter(e -> exchangeCurrenciesSubscribed.contains(e.exchange() + "/" + e.currency()))
+          .filter(e -> exchangeCurrenciesSubscribed.contains(e.exchange() + "/" + e.balance().getCurrency()))
           .onBackpressureLatest();
     }
 

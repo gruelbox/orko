@@ -66,7 +66,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
-import com.gruelbox.orko.exchange.Balance;
 import com.gruelbox.orko.exchange.BalanceEvent;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
@@ -151,8 +150,8 @@ public class TestOrkoWebSocketServer {
 
   @Test
   public void testBalances() throws IOException, InterruptedException {
-    BalanceEvent event1 = BalanceEvent.create("binance", "USD", Balance.create(new org.knowm.xchange.dto.account.Balance.Builder().currency(USD).total(ZERO).build()));
-    BalanceEvent event2 = BalanceEvent.create("binance", "BTC", Balance.create(new org.knowm.xchange.dto.account.Balance.Builder().currency(BTC).total(ZERO).build()));
+    BalanceEvent event1 = BalanceEvent.create("binance", new org.knowm.xchange.dto.account.Balance.Builder().currency(USD).total(ZERO).build());
+    BalanceEvent event2 = BalanceEvent.create("binance", new org.knowm.xchange.dto.account.Balance.Builder().currency(BTC).total(ZERO).build());
     Flowable<BalanceEvent> events = Flowable.just(event1, event2);
     when(subscription.getBalances()).thenReturn(events);
     List<String> messagesSent = messaging("CHANGE_BALANCE", BALANCE, false);
@@ -237,6 +236,7 @@ public class TestOrkoWebSocketServer {
     List<String> messagesSent = new CopyOnWriteArrayList<>();
     CountDownLatch callCounter = new CountDownLatch(2);
     doAnswer(inv -> {
+      System.out.println("Sent:" + inv.getArgument(0));
       messagesSent.add(inv.getArgument(0));
       callCounter.countDown();
       return null;

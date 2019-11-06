@@ -81,10 +81,10 @@ public class MaxTradeAmountCalculator {
 
   private BigDecimal blockingBalance(ExchangeEventSubscription subscription, String currency) {
     return subscription.getBalances()
-        .filter(b -> b.currency().equals(currency))
+        .filter(b -> b.balance().getCurrency().getCurrencyCode().equals(currency))
         .blockingFirst()
         .balance()
-        .available();
+        .getAvailable();
   }
 
   public static class Factory {

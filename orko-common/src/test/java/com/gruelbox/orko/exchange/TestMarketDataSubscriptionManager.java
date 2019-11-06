@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
@@ -32,7 +33,6 @@ import org.knowm.xchange.Exchange;
 import org.mockito.Mock;
 
 import com.google.common.collect.ImmutableList;
-import com.gruelbox.orko.exchange.MarketDataSubscriptionManagerImpl.LifecycleListener;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 
@@ -58,7 +58,7 @@ public class TestMarketDataSubscriptionManager {
 
   private final Set<Thread> threads = Sets.newConcurrentHashSet();
 
-  private MarketDataSubscriptionManagerImpl subscriptionManager;
+  private SubscriptionControllerImpl subscriptionManager;
 
   @Before
   public void setup() throws TimeoutException {
@@ -66,8 +66,8 @@ public class TestMarketDataSubscriptionManager {
     when(exchangeService.getExchanges()).thenReturn(ImmutableList.of(EXCHANGE1, EXCHANGE2));
     when(exchangeService.get(EXCHANGE1)).thenReturn(exchangeOne);
     when(exchangeService.get(EXCHANGE2)).thenReturn(exchangeTwo);
-    subscriptionManager = new MarketDataSubscriptionManagerImpl(exchangeService, configuration, tradeServiceFactory,
-        accountServiceFactory, notificationService);
+    subscriptionManager = new SubscriptionControllerImpl(exchangeService, configuration, tradeServiceFactory,
+        accountServiceFactory, notificationService, new SubscriptionPublisher(), Map.of());
     subscriptionManager.setLifecycleListener(new LifecycleListener() {
       @Override
       public void onBlocked(String exchange) {

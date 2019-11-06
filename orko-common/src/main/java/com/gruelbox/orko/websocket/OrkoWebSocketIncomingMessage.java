@@ -30,22 +30,22 @@ import com.gruelbox.orko.spi.TickerSpec;
 
 @AutoValue
 @JsonDeserialize
-abstract class OrkoWebSocketIncomingMessage {
+public abstract class OrkoWebSocketIncomingMessage {
 
   @JsonCreator
-  static OrkoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
-                                            @JsonProperty("tickers") Collection<TickerSpec> tickers) {
+  public static OrkoWebSocketIncomingMessage create(@JsonProperty("command") Command command,
+                                                    @Nullable @JsonProperty("tickers") Collection<TickerSpec> tickers) {
     return new AutoValue_OrkoWebSocketIncomingMessage(command, tickers);
   }
 
   @JsonProperty
-  abstract Command command();
+  public abstract Command command();
 
   @JsonProperty
   @Nullable
-  abstract Collection<TickerSpec> tickers();
+  public abstract Collection<TickerSpec> tickers();
 
-  enum Command {
+  public enum Command {
     CHANGE_TICKERS,
     CHANGE_OPEN_ORDERS,
     CHANGE_ORDER_BOOK,

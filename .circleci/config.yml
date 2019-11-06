@@ -47,10 +47,6 @@ workflows:
           filters:
             tags:
               only: /^.*\.((?!SNAPSHOT).)*/
-            branches:
-              only:
-                - master
-                - stable
       - "Deploy release to GitHub":
           requires:
             - "Unit tests (all)"
@@ -76,7 +72,7 @@ jobs:
             - node-v5-
       - run:
           name: Build
-          command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle clean install -Dskip.failsafe.tests=true -DskipTests=true
+          command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle,services clean install -Dskip.failsafe.tests=true -DskipTests=true
       - save_cache:
           paths:
             - ~/.m2
@@ -122,7 +118,7 @@ jobs:
             if [[ -n "$SONARQUBE_TOKEN" ]]; then
               echo "Build and Sonar"
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-              export SONAR_TARGETS="-Pci org.jacoco:jacoco-maven-plugin:prepare-agent@default-prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report@default-report sonar:sonar"
+              export SONAR_TARGETS="-Pci,services org.jacoco:jacoco-maven-plugin:prepare-agent@default-prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report@default-report sonar:sonar"
               export SONAR_ARGS="-Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
                   -Dsonar.login=${SONARQUBE_TOKEN}
@@ -229,7 +225,7 @@ jobs:
       - run:
           name: MySQL tests
           command: |
-            mvn ${BUILD_ARGS} -Pdbonly surefire:test \
+            mvn ${BUILD_ARGS} -Pdbonly,services surefire:test \
               -Dmorf.mysql.noadmin=true \
               -Dtestdb.url=mysql://open:sesame@127.0.0.1/test \
               -Dskip.failsafe.tests=true
@@ -253,23 +249,27 @@ jobs:
       - run:
           name: Deploy release to Docker registry
           command: |
+            export PROFILES="-Pui,docker,services"
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
-              cd orko-app
-              if [[ -n "$CIRCLE_TAG" ]]; then
-                mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="$CIRCLE_TAG"
+              export DOCKER_TARGET="jib:build"
+            else
+              echo "Docker Hub account details not supplied. Probably an external pull request. Building locally only"
+              export DOCKERHUB_REPO=orko
+              export DOCKER_TARGET="jib:buildTar"
+            fi
+            if [[ -n "$CIRCLE_TAG" ]]; then
+              mvn ${BUILD_ARGS} $PROFILES $DOCKER_TARGET -Ddocker.tag="$CIRCLE_TAG"
+            else
+              if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
+                mvn ${BUILD_ARGS} $PROFILES $DOCKER_TARGET -Ddocker.tag="stable"
               else
-                if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
-                  mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="stable"
+                if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
+                  mvn ${BUILD_ARGS} $PROFILES $DOCKER_TARGET -Ddocker.tag="latest"
                 else
-                  if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
-                    mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="latest"
-                  else
-                    echo "Skipping branch"
-                  fi
+                  echo "Branch. Building locally only"
+                  mvn ${BUILD_ARGS} $PROFILES jib:buildTar -Ddocker.tag="dev-$CIRCLE_BRANCH"
                 fi
               fi
-            else
-              echo "Docker Hub account details not supplied. Probably an external pull request."
             fi
 
   "Deploy release to GitHub":

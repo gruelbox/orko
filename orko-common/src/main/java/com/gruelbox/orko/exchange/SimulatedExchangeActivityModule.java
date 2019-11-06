@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.simulated.SimulatedExchange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
@@ -44,6 +46,8 @@ public class SimulatedExchangeActivityModule extends AbstractModule {
    */
   private static final class DepositCreator implements Managed {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DepositCreator.class);
+
     private final ExchangeService exchangeService;
 
     @Inject
@@ -53,6 +57,7 @@ public class SimulatedExchangeActivityModule extends AbstractModule {
 
     @Override
     public void start() throws Exception {
+      LOGGER.info("Creating initial USD deposit");
       SimulatedExchange exchange = (SimulatedExchange) exchangeService.get(Exchanges.SIMULATED);
       exchange.getAccountService().deposit(Currency.USD, new BigDecimal(200000));
     }

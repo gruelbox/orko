@@ -10,6 +10,7 @@
 **/node_modules
 **/orko.mv.db
 **/orko.trace.db
+**/*.iml
 **/*.versionsBackup
 **/*.releaseBackup
 /release.properties

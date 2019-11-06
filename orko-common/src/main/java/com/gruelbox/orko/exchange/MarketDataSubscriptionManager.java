@@ -1,7 +1,5 @@
 package com.gruelbox.orko.exchange;
 
-import java.util.Set;
-
 import org.knowm.xchange.dto.Order;
 
 import com.gruelbox.orko.spi.TickerSpec;
@@ -14,14 +12,7 @@ import io.reactivex.Flowable;
  * subscriptions managed here are process-global and include the aggregated
  * total of all subscriptions made to {@code ExchangeEventRegistry}.
  */
-public interface MarketDataSubscriptionManager {
-
-  /**
-   * Changes the market data currently being published.
-   *
-   * @param subscriptions The subscriptions.
-   */
-  void updateSubscriptions(Set<MarketDataSubscription> subscriptions);
+public interface MarketDataSubscriptionManager extends SubscriptionController {
 
   /**
    * Gets the stream of subscribed tickers, starting with any cached tickers.
@@ -66,6 +57,13 @@ public interface MarketDataSubscriptionManager {
   Flowable<BalanceEvent> getBalances();
 
   /**
+   * Gets a stream with binance execution reports.
+   *
+   * @return The stream.
+   */
+  Flowable<OrderChangeEvent> getOrderChanges();
+
+  /**
    * Call immediately after submitting an order to ensure the full order details appear
    * in the event stream at some point (allows for Coinbase not providing everything).
    *
@@ -73,10 +71,4 @@ public interface MarketDataSubscriptionManager {
    */
   void postOrder(TickerSpec spec, Order order);
 
-  /**
-   * Gets a stream with binance execution reports.
-   *
-   * @return The stream.
-   */
-  Flowable<OrderChangeEvent> getOrderChanges();
 }
