@@ -53,7 +53,6 @@
     <module>orko-job</module>
     <module>orko-common</module>
     <module>orko-app</module>
-    <module>orko-app-marketdata</module>
   </modules>
 
   <repositories>
@@ -84,6 +83,15 @@
   </repositories>
 
   <profiles>
+    <profile>
+      <id>services</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>orko-app-marketdata</module>
+      </modules>
+    </profile>
     <profile>
       <id>dbonly</id>
       <build>
