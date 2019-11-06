@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.Set;
 
 import org.knowm.xchange.dto.Order;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
@@ -32,11 +30,12 @@ import com.gruelbox.orko.spi.TickerSpec;
 
 import io.reactivex.Flowable;
 
+/**
+ * Central fanout point for market data.
+ */
 @VisibleForTesting
 @Singleton
 public final class SubscriptionPublisher implements MarketDataSubscriptionManager {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionPublisher.class);
 
   private final CachingPersistentPublisher<TickerEvent, TickerSpec> tickersOut;
   private final CachingPersistentPublisher<OpenOrdersEvent, TickerSpec> openOrdersOut;

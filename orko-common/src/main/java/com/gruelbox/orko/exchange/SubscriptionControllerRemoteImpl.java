@@ -27,7 +27,6 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionControllerRemoteImpl.class);
 
   private final SubscriptionPublisher publisher;
-  private final RemoteMarketDataConfiguration configuration;
   private final OrkoWebsocketStreamingService streamingService;
   private volatile Set<MarketDataSubscription> subscriptions = Set.of();
   private volatile boolean disconnected;
@@ -36,7 +35,6 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   @Inject
   public SubscriptionControllerRemoteImpl(SubscriptionPublisher publisher, RemoteMarketDataConfiguration configuration) {
     this.publisher = publisher;
-    this.configuration = configuration;
     this.publisher.setController(this);
     this.streamingService = new OrkoWebsocketStreamingService(configuration.getRemoteUri());
   }

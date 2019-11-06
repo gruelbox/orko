@@ -645,7 +645,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
       logger.info("Connected to exchange: {}", exchangeName);
     }
 
-    private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException, InterruptedException {
+    private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException {
       Map<String, Balance> result = new HashMap<>();
       currencyCodes.stream()
           .map(Currency::getInstance)
