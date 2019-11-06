@@ -85,9 +85,6 @@
   <profiles>
     <profile>
       <id>services</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <modules>
         <module>orko-app-marketdata</module>
       </modules>
