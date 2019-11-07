@@ -267,7 +267,7 @@ jobs:
                   mvn ${BUILD_ARGS} $PROFILES $DOCKER_TARGET -Ddocker.tag="latest"
                 else
                   echo "Branch. Building locally only"
-                  mvn ${BUILD_ARGS} $PROFILES jib:buildTar -Ddocker.tag="dev-$CIRCLE_BRANCH"
+                  mvn ${BUILD_ARGS} $PROFILES jib:buildTar -Ddocker.tag="dev-$CIRCLE_SHA1"
                 fi
               fi
             fi
