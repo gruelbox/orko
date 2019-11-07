@@ -19,6 +19,7 @@
 package com.gruelbox.orko.app.monolith;
 
 import static com.gruelbox.orko.exchange.MarketDataModule.MarketDataSource.MANAGE_LOCALLY;
+import static com.gruelbox.orko.exchange.MarketDataModule.MarketDataSource.MANAGE_REMOTELY;
 import static com.gruelbox.orko.notification.NotificationModule.SubmissionType.ASYNC;
 import static com.gruelbox.orko.notification.NotificationModule.TelegramState.TELEGRAM_ENABLED;
 
@@ -86,9 +87,6 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     bind(JobSubmitter.class).to(InProcessJobSubmitter.class);
     install(new StandardJobLibraryModule());
 
-    // Both managing and running market data access
-    install(new MarketDataModule(MANAGE_LOCALLY));
-
     // Manages UI support
     install(new SubscriptionModule());
     install(new SupportModule());
@@ -96,8 +94,19 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     // Forwards notifications to Telegram asynchronously
     install(new NotificationModule(ASYNC, TELEGRAM_ENABLED));
 
-    // Monitors various status issues are fires notifications if things go wrong.
-    install(new MonitorModule());
+    if (configuration.getRemoteMarketData().getWebSocketUri() == null) {
+      // Both managing and running market data access
+      install(new MarketDataModule(MANAGE_LOCALLY));
+      // Monitors various status issues are fires notifications if things go wrong.
+      install(new MonitorModule());
+      // Runs some simulated order book activity on the simulated exchange
+      if (isSimulatorEnabled()) {
+        install(new SimulatedExchangeActivityModule());
+      }
+    } else {
+      // Remote market management
+      install(new MarketDataModule(MANAGE_REMOTELY));
+    }
 
     // Exposes API access to exchanges
     Multibinder.newSetBinder(binder(), WebResource.class)
@@ -106,11 +115,6 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     // Provides access to the database
     Multibinder.newSetBinder(binder(), WebResource.class)
         .addBinding().to(DbResource.class);
-
-    // Runs some simulated order book activity on the simulated exchange
-    if (isSimulatorEnabled()) {
-      install(new SimulatedExchangeActivityModule());
-    }
   }
 
   private boolean isSimulatorEnabled() {

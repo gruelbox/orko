@@ -1,4 +1,4 @@
-package com.gruelbox.orko.app.marketdata;
+package com.gruelbox.orko.integration;
 
 import static java.math.BigDecimal.ZERO;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -26,6 +26,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Sets;
+import com.gruelbox.orko.app.marketdata.MarketDataAppConfiguration;
+import com.gruelbox.orko.app.marketdata.MarketDataApplication;
+import com.gruelbox.orko.app.monolith.MonolithApplication;
+import com.gruelbox.orko.app.monolith.MonolithConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
 import com.gruelbox.orko.exchange.MarketDataType;
@@ -38,13 +42,21 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
 
-public class TestMarketDataApplication {
+/**
+ * Chains together the market data and primary service via websockets and confirms we get
+ * data through both.
+ */
+public class TestAllServices {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TestMarketDataApplication.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TestAllServices.class);
 
-  private static final DropwizardTestSupport<MarketDataAppConfiguration> SUPPORT =
+  private static final DropwizardTestSupport<MarketDataAppConfiguration> MARKET_DATA_APP =
       new DropwizardTestSupport<MarketDataAppConfiguration>(MarketDataApplication.class,
-          ResourceHelpers.resourceFilePath("test-config.yml"));
+          ResourceHelpers.resourceFilePath("marketdata-test-config.yml"));
+
+  private static final DropwizardTestSupport<MonolithConfiguration> MAIN_APP =
+      new DropwizardTestSupport<MonolithConfiguration>(MonolithApplication.class,
+          ResourceHelpers.resourceFilePath("main-test-config.yml"));
 
   private Client client;
 
@@ -81,52 +93,38 @@ public class TestMarketDataApplication {
   }
 
   @Test
-  public void testWithServerReady() throws Exception {
-    SUPPORT.before();
+  public void testWebSockets() throws Exception {
+    MARKET_DATA_APP.before();
     try {
-      client = new JerseyClientBuilder(SUPPORT.getEnvironment())
-          .using(SUPPORT.getConfiguration().getJerseyClientConfiguration())
-          .build("test client");
-      controller.start();
+      MAIN_APP.before();
       try {
-        controller.updateSubscriptions(subscriptions);
-        waitUntilBalanceAvailable();
-        waitUntilHadATicker();
-        performTrade();
-        confirmAllDataTypesReceived();
+        client = new JerseyClientBuilder(MARKET_DATA_APP.getEnvironment())
+            .using(MARKET_DATA_APP.getConfiguration().getJerseyClientConfiguration())
+            .build("test client");
+        controller.start();
+        try {
+          controller.updateSubscriptions(subscriptions);
+          waitUntilBalanceAvailable();
+          waitUntilHadATicker();
+          performTrade();
+          confirmAllDataTypesReceived();
+        } catch (Exception e) {
+          LOGGER.error("Error in main test body", e);
+          throw new RuntimeException(e);
+        } finally {
+          controller.stop();
+        }
       } finally {
-        controller.stop();
+        MAIN_APP.after();
       }
     } finally {
-      SUPPORT.after();
+      MARKET_DATA_APP.after();
     }
   }
-  @Test
-  public void testWithServerStartDelayed() throws Exception {
-    controller.start();
-    try {
-      controller.updateSubscriptions(subscriptions);
-      Thread.sleep(3000);
-      LOGGER.info("Starting server");
-      SUPPORT.before();
-      try {
-        client = new JerseyClientBuilder(SUPPORT.getEnvironment()).build("test client");
-        waitUntilBalanceAvailable();
-        waitUntilHadATicker();
-        performTrade();
-        confirmAllDataTypesReceived();
-      } finally {
-        SUPPORT.after();
-      }
-    } finally {
-      controller.stop();
-    }
-  }
-
 
   private void received(MarketDataType type) {
+    LOGGER.info("Got {}", type);
     if (got.add(type)) {
-      LOGGER.info("Got {}", type);
       gotAll.countDown();
     }
   }
@@ -141,7 +139,7 @@ public class TestMarketDataApplication {
     var stopwatch = Stopwatch.createStarted();
     do {
       Thread.sleep(1000);
-      usdBalance = client.target(String.format("http://localhost:%d/exchanges/simulated/balance/USD", SUPPORT.getLocalPort()))
+      usdBalance = client.target(String.format("http://localhost:%d/main/exchanges/simulated/balance/USD", MAIN_APP.getLocalPort()))
           .request()
           .get(new GenericType<Map<String, Balance>>() { })
           .getOrDefault("USD", zero)
@@ -157,7 +155,8 @@ public class TestMarketDataApplication {
     order.setCounter("USD");
     order.setLimitPrice(new BigDecimal(50_000));
     order.setType(BID);
-    var response = client.target(String.format("http://localhost:%d/exchanges/simulated/orders", SUPPORT.getLocalPort()))
+    // TODO this should be the main app - we should forward all trade access
+    var response = client.target(String.format("http://localhost:%d/data/exchanges/simulated/orders", MARKET_DATA_APP.getLocalPort()))
         .request()
         .post(Entity.json(order));
     assertEquals("Error: " + response.getEntity().toString(), 200, response.getStatus());

@@ -22,13 +22,8 @@ import static com.gruelbox.orko.exchange.MarketDataModule.MarketDataSource.MANAG
 import static com.gruelbox.orko.notification.NotificationModule.SubmissionType.SYNC;
 import static com.gruelbox.orko.notification.NotificationModule.TelegramState.TELEGRAM_ENABLED;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
-import com.gruelbox.orko.auth.AuthModule;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.Exchanges;
@@ -85,12 +80,5 @@ class MarketDataAppModule extends AbstractModule implements Configured<MarketDat
       return false;
     ExchangeConfiguration exchangeConfiguration = configuration.getExchanges().get(Exchanges.SIMULATED);
     return exchangeConfiguration != null && exchangeConfiguration.isAuthenticated();
-  }
-
-  @Provides
-  @Named(AuthModule.BIND_ROOT_PATH)
-  @Singleton
-  String rootPath() {
-    return configuration.getRootPath();
   }
 }

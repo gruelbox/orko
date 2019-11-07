@@ -87,6 +87,7 @@
       <id>services</id>
       <modules>
         <module>orko-app-marketdata</module>
+        <module>orko-integration-testing</module>
       </modules>
     </profile>
     <profile>

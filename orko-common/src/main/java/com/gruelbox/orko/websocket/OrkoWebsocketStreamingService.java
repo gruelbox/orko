@@ -56,7 +56,6 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
 
   @Override
   public Completable connect() {
-    LOG.info("Connecting to {}", apiUrl);
     Completable completable = super.connect();
     return completable.doOnComplete(() -> {
       LOG.info("Connected to {}", apiUrl);
@@ -77,12 +76,12 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
       sendSubscriptions(newSubscriptions);
       this.currentSubscriptions = Set.copyOf(newSubscriptions);
     } else {
-      LOG.info("No subscriptions");
+      LOG.info("No subscriptions on {}", apiUrl);
     }
   }
 
   private void sendSubscriptions(Set<MarketDataSubscription> subscriptions) {
-    LOG.debug("Sending {} resubscriptions", subscriptions.size());
+    LOG.debug("Sending {} resubscriptions on {}", subscriptions.size(), apiUrl);
     sendSubscription(subscriptions, MarketDataType.TICKER, CHANGE_TICKERS);
     sendSubscription(subscriptions, BALANCE, CHANGE_BALANCE);
     sendSubscription(subscriptions, OPEN_ORDERS, CHANGE_OPEN_ORDERS);
@@ -91,7 +90,7 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
     sendSubscription(subscriptions, TRADES, CHANGE_TRADES);
     sendSubscription(subscriptions, USER_TRADE, CHANGE_USER_TRADES);
     sendMessage(UPDATE_SUBSCRIPTIONS, null);
-    LOG.debug("{} resubscriptions sent", subscriptions.size());
+    LOG.debug("{} resubscriptions sent on {}", subscriptions.size(), apiUrl);
   }
 
   private void sendSubscription(Set<MarketDataSubscription> subscriptions, MarketDataType marketDataType, OrkoWebSocketIncomingMessage.Command command) {

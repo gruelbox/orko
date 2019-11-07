@@ -18,6 +18,7 @@
 
 package com.gruelbox.orko.app.monolith;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.Valid;
@@ -30,6 +31,7 @@ import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
+import com.gruelbox.orko.exchange.RemoteMarketDataConfiguration;
 import com.gruelbox.orko.job.script.ScriptConfiguration;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
@@ -85,7 +87,14 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
   @JsonProperty("jerseyClient")
   private JerseyClientConfiguration jerseyClient;
 
-  private Map<String, ExchangeConfiguration> exchanges;
+  @Valid
+  @JsonProperty
+  private Map<String, ExchangeConfiguration> exchanges = new HashMap<>();
+
+  @Valid
+  @JsonProperty
+  private RemoteMarketDataConfiguration remoteMarketData = new RemoteMarketDataConfiguration();
+
 
   public MonolithConfiguration() {
     super();
@@ -149,6 +158,14 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
       this.jerseyClient = jerseyClient;
   }
 
+  public RemoteMarketDataConfiguration getRemoteMarketData() {
+    return remoteMarketData;
+  }
+
+  public void setRemoteMarketData(RemoteMarketDataConfiguration remoteMarketData) {
+    this.remoteMarketData = remoteMarketData;
+  }
+
   public String getRootPath() {
     AbstractServerFactory serverFactory = (AbstractServerFactory) getServerFactory();
     return serverFactory.getJerseyRootPath().orElse("/") + "*";
@@ -186,6 +203,7 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
     binder.bind(JerseyClientConfiguration.class).toProvider(Providers.of(jerseyClient));
     binder.bind(TelegramConfiguration.class).toProvider(Providers.of(telegram));
     binder.bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {}).toProvider(Providers.of(exchanges));
+    binder.bind(RemoteMarketDataConfiguration.class).toInstance(this.remoteMarketData);
 
     JobRunConfiguration jobRunConfiguration = new JobRunConfiguration();
     jobRunConfiguration.setDatabaseLockSeconds(database.getLockSeconds());
