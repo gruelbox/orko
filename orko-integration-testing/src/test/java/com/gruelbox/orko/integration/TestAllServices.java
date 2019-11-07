@@ -155,8 +155,7 @@ public class TestAllServices {
     order.setCounter("USD");
     order.setLimitPrice(new BigDecimal(50_000));
     order.setType(BID);
-    // TODO this should be the main app - we should forward all trade access
-    var response = client.target(String.format("http://localhost:%d/data/exchanges/simulated/orders", MARKET_DATA_APP.getLocalPort()))
+    var response = client.target(String.format("http://localhost:%d/main/exchanges/simulated/orders", MAIN_APP.getLocalPort()))
         .request()
         .post(Entity.json(order));
     assertEquals("Error: " + response.getEntity().toString(), 200, response.getStatus());

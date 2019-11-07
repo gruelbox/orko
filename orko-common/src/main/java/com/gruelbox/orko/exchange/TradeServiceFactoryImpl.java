@@ -29,23 +29,37 @@ class TradeServiceFactoryImpl extends AbstractExchangeServiceFactory<TradeServic
 
   private final ExchangeService exchangeService;
   private final PaperTradeService.Factory paperTradeServiceFactory;
+  private final RemoteTradeService.Factory remoteTradeServiceFactory;
+  private final RemoteMarketDataConfiguration remoteConfiguration;
 
   @Inject
   TradeServiceFactoryImpl(ExchangeService exchangeService,
                           Map<String, ExchangeConfiguration> configuration,
-                          PaperTradeService.Factory paperTradeServiceFactory) {
+                          PaperTradeService.Factory paperTradeServiceFactory,
+                          RemoteTradeService.Factory remoteTradeServiceFactory,
+                          RemoteMarketDataConfiguration remoteConfiguration) {
     super(configuration);
     this.exchangeService = exchangeService;
     this.paperTradeServiceFactory = paperTradeServiceFactory;
+    this.remoteTradeServiceFactory = remoteTradeServiceFactory;
+    this.remoteConfiguration = remoteConfiguration;
   }
 
   @Override
   protected ExchangeServiceFactory<TradeService> getRealFactory() {
-    return exchange -> exchangeService.get(exchange).getTradeService();
+    if (remoteConfiguration.getExchangeEndpointUri() == null) {
+      return exchange -> exchangeService.get(exchange).getTradeService();
+    } else {
+      return exchange -> remoteTradeServiceFactory.create(exchange);
+    }
   }
 
   @Override
   protected ExchangeServiceFactory<TradeService> getPaperFactory() {
-    return paperTradeServiceFactory;
+    if (remoteConfiguration.getExchangeEndpointUri() == null) {
+      return paperTradeServiceFactory;
+    } else {
+      return exchange -> remoteTradeServiceFactory.create(exchange);
+    }
   }
 }

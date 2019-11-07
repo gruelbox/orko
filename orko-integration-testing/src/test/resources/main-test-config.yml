@@ -1,6 +1,7 @@
 scriptSigningKey: "WHATEVS"
 remoteMarketData:
   webSocketUri: ws://localhost:8081/ws
+  exchangeEndpointUri: http://localhost:8081/data/exchanges
 server:
   type: simple
   rootPath: /main
