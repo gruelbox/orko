@@ -16,8 +16,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.dto.account.Balance;
@@ -39,8 +41,8 @@ import com.gruelbox.orko.exchange.SubscriptionPublisher;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.dropwizard.client.JerseyClientBuilder;
-import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
+import io.dropwizard.testing.junit.DropwizardAppRule;
 
 /**
  * Chains together the market data and primary service via websockets and confirms we get
@@ -50,12 +52,16 @@ public class TestAllServices {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestAllServices.class);
 
-  private static final DropwizardTestSupport<MarketDataAppConfiguration> MARKET_DATA_APP =
-      new DropwizardTestSupport<MarketDataAppConfiguration>(MarketDataApplication.class,
+  @ClassRule
+  public static final DropwizardAppRule<MarketDataAppConfiguration> DATA_APP =
+      new DropwizardAppRule<MarketDataAppConfiguration>(
+          MarketDataApplication.class,
           ResourceHelpers.resourceFilePath("marketdata-test-config.yml"));
 
-  private static final DropwizardTestSupport<MonolithConfiguration> MAIN_APP =
-      new DropwizardTestSupport<MonolithConfiguration>(MonolithApplication.class,
+  @ClassRule
+  public static final DropwizardAppRule<MonolithConfiguration> MAIN_APP =
+      new DropwizardAppRule<MonolithConfiguration>(
+          MonolithApplication.class,
           ResourceHelpers.resourceFilePath("main-test-config.yml"));
 
   private Client client;
@@ -74,15 +80,15 @@ public class TestAllServices {
       publisher,
       new RemoteMarketDataConfiguration("ws://localhost:8080/ws"));
 
-  private CountDownLatch gotTicker = new CountDownLatch(1);
+  private CountDownLatch gotTickers = new CountDownLatch(3);
   private CountDownLatch gotAll = new CountDownLatch(subscriptions.size());
   private Set<MarketDataType> got = Sets.newConcurrentHashSet();
 
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     publisher.getTickers().map(t -> MarketDataType.TICKER).subscribe(type -> {
       received(type);
-      gotTicker.countDown();
+      gotTickers.countDown();
     });
     publisher.getBalances().map(t -> MarketDataType.BALANCE).subscribe(this::received);
     publisher.getOrderBookSnapshots().map(t -> MarketDataType.ORDERBOOK).subscribe(this::received);
@@ -90,35 +96,29 @@ public class TestAllServices {
     publisher.getOrderSnapshots().map(t -> MarketDataType.OPEN_ORDERS).subscribe(this::received);
     publisher.getTrades().map(t -> MarketDataType.TRADES).subscribe(this::received);
     publisher.getUserTrades().map(t -> MarketDataType.USER_TRADE).subscribe(this::received);
+
+    client = new JerseyClientBuilder(MAIN_APP.getEnvironment())
+        .using(MAIN_APP.getConfiguration().getJerseyClientConfiguration())
+        .build("test client");
+    controller.start();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    controller.stop();
   }
 
   @Test
-  public void testWebSockets() throws Exception {
-    MARKET_DATA_APP.before();
+  public void testWebSockets() {
     try {
-      MAIN_APP.before();
-      try {
-        client = new JerseyClientBuilder(MARKET_DATA_APP.getEnvironment())
-            .using(MARKET_DATA_APP.getConfiguration().getJerseyClientConfiguration())
-            .build("test client");
-        controller.start();
-        try {
-          controller.updateSubscriptions(subscriptions);
-          waitUntilBalanceAvailable();
-          waitUntilHadATicker();
-          performTrade();
-          confirmAllDataTypesReceived();
-        } catch (Exception e) {
-          LOGGER.error("Error in main test body", e);
-          throw new RuntimeException(e);
-        } finally {
-          controller.stop();
-        }
-      } finally {
-        MAIN_APP.after();
-      }
-    } finally {
-      MARKET_DATA_APP.after();
+      controller.updateSubscriptions(subscriptions);
+      waitUntilBalanceAvailable();
+      waitUntilHadAFewTickers();
+      performTrade();
+      confirmAllDataTypesReceived();
+    } catch (Exception e) {
+      LOGGER.error("Error in main test body", e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -129,8 +129,8 @@ public class TestAllServices {
     }
   }
 
-  private void waitUntilHadATicker() throws InterruptedException {
-    Assert.assertTrue(gotTicker.await(1, TimeUnit.MINUTES));
+  private void waitUntilHadAFewTickers() throws InterruptedException {
+    Assert.assertTrue(gotTickers.await(1, TimeUnit.MINUTES));
   }
 
   private void waitUntilBalanceAvailable() throws InterruptedException {
