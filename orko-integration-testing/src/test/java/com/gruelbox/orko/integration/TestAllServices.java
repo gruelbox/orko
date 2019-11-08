@@ -137,7 +137,7 @@ public class TestAllServices {
                     balanceEvent.getTotal()))
             .filter(it -> it.getCurrency().getCurrencyCode().equals(currency))
             .limit(2).skip(1) // The first balance we get after an action is likely to be stale.
-            .timeout(1, TimeUnit.MINUTES)
+            .timeout(30, TimeUnit.SECONDS)
             .map(it -> it.getTotal())
             .blockingFirst();
   }  
@@ -157,6 +157,6 @@ public class TestAllServices {
 
   private void confirmAllDataTypesReceived() throws InterruptedException {
     LOGGER.info("Waiting for receipt");
-    Assert.assertTrue(gotAll.await(1, TimeUnit.MINUTES));
+    Assert.assertTrue(gotAll.await(30, TimeUnit.SECONDS));
   }
 }
