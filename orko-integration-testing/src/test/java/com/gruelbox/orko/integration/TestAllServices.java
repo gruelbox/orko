@@ -1,32 +1,26 @@
 package com.gruelbox.orko.integration;
 
-import static java.math.BigDecimal.ZERO;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import java.math.BigDecimal;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.knowm.xchange.currency.Currency;
-import org.knowm.xchange.dto.account.Balance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Sets;
 import com.gruelbox.orko.app.marketdata.MarketDataAppConfiguration;
 import com.gruelbox.orko.app.marketdata.MarketDataApplication;
@@ -112,10 +106,11 @@ public class TestAllServices {
   public void testWebSockets() {
     try {
       controller.updateSubscriptions(subscriptions);
-      waitUntilBalanceAvailable();
+      assertThat(waitForBalance("USD"), comparesEqualTo(new BigDecimal("200000")));
       waitUntilHadAFewTickers();
       performTrade();
       confirmAllDataTypesReceived();
+      assertThat(waitForBalance("BTC"), comparesEqualTo(new BigDecimal("0.01")));
     } catch (Exception e) {
       LOGGER.error("Error in main test body", e);
       throw new RuntimeException(e);
@@ -133,20 +128,19 @@ public class TestAllServices {
     Assert.assertTrue(gotTickers.await(1, TimeUnit.MINUTES));
   }
 
-  private void waitUntilBalanceAvailable() throws InterruptedException {
-    var usdBalance = ZERO;
-    var zero = Balance.zero(Currency.getInstance("USD"));
-    var stopwatch = Stopwatch.createStarted();
-    do {
-      Thread.sleep(1000);
-      usdBalance = client.target(String.format("http://localhost:%d/main/exchanges/simulated/balance/USD", MAIN_APP.getLocalPort()))
-          .request()
-          .get(new GenericType<Map<String, Balance>>() { })
-          .getOrDefault("USD", zero)
-          .getAvailable();
-    } while (stopwatch.elapsed(SECONDS) < 30 && usdBalance.compareTo(ZERO) == 0);
-    assertNotEquals(0, usdBalance.compareTo(ZERO));
-  }
+  private BigDecimal waitForBalance(String currency) {
+    return publisher.getBalances()
+            .map(it -> it.balance())
+            .doOnNext(balanceEvent ->
+                LOGGER.info("Balance received for {}: {}",
+                    balanceEvent.getCurrency(),
+                    balanceEvent.getTotal()))
+            .filter(it -> it.getCurrency().getCurrencyCode().equals(currency))
+            .limit(2).skip(1) // The first balance we get after an action is likely to be stale.
+            .timeout(1, TimeUnit.MINUTES)
+            .map(it -> it.getTotal())
+            .blockingFirst();
+  }  
 
   private void performTrade() {
     var order = new ExchangeResource.OrderPrototype();

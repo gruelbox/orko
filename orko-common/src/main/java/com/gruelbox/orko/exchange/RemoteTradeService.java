@@ -19,6 +19,10 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
+/**
+ * Trade service implementation which simply forwards the requests to a
+ * remote market data application.
+ */
 class RemoteTradeService implements TradeService {
 
   private final RemoteMarketDataConfiguration configuration;

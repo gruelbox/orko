@@ -72,10 +72,6 @@ class ExchangesService {
     return await get("exchanges/" + coin.exchange + "/markets/" + coin.base + "-" + coin.counter + "/orders")
   }
 
-  async fetchBalance(coin) {
-    return await get("exchanges/" + coin.exchange + "/balance/" + coin.base + "," + coin.counter)
-  }
-
   async cancelOrder(coin: Coin, id: string): Promise<Response> {
     return (await del(
       "exchanges/" + coin.exchange + "/markets/" + coin.base + "-" + coin.counter + "/orders/" + id
