@@ -94,7 +94,10 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     // Forwards notifications to Telegram asynchronously
     install(new NotificationModule(ASYNC, TELEGRAM_ENABLED));
 
-    if (configuration.getRemoteMarketData().getWebSocketUri() == null) {
+    if (configuration.getRemoteMarketData().isEnabled()) {
+      // Remote market management
+      install(new MarketDataModule(MANAGE_REMOTELY));
+    } else {
       // Both managing and running market data access
       install(new MarketDataModule(MANAGE_LOCALLY));
       // Monitors various status issues are fires notifications if things go wrong.
@@ -103,9 +106,6 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
       if (isSimulatorEnabled()) {
         install(new SimulatedExchangeActivityModule());
       }
-    } else {
-      // Remote market management
-      install(new MarketDataModule(MANAGE_REMOTELY));
     }
 
     // Exposes API access to exchanges

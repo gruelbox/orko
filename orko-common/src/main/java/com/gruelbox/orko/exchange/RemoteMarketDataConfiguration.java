@@ -1,5 +1,7 @@
 package com.gruelbox.orko.exchange;
 
+import org.apache.commons.lang3.StringUtils;
+
 public final class RemoteMarketDataConfiguration {
 
   private String webSocketUri;
@@ -17,6 +19,11 @@ public final class RemoteMarketDataConfiguration {
 
   public void setWebSocketUri(String webSocketUri) {
     this.webSocketUri = webSocketUri;
+  }
+
+  public boolean isEnabled() {
+    return StringUtils.isNotBlank(webSocketUri) &&
+        StringUtils.isNotBlank(exchangeEndpointUri);
   }
 
   public String getExchangeEndpointUri() {

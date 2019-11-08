@@ -47,19 +47,19 @@ class TradeServiceFactoryImpl extends AbstractExchangeServiceFactory<TradeServic
 
   @Override
   protected ExchangeServiceFactory<TradeService> getRealFactory() {
-    if (remoteConfiguration.getExchangeEndpointUri() == null) {
-      return exchange -> exchangeService.get(exchange).getTradeService();
-    } else {
+    if (remoteConfiguration.isEnabled()) {
       return exchange -> remoteTradeServiceFactory.create(exchange);
+    } else {
+      return exchange -> exchangeService.get(exchange).getTradeService();
     }
   }
 
   @Override
   protected ExchangeServiceFactory<TradeService> getPaperFactory() {
-    if (remoteConfiguration.getExchangeEndpointUri() == null) {
-      return paperTradeServiceFactory;
-    } else {
+    if (remoteConfiguration.isEnabled()) {
       return exchange -> remoteTradeServiceFactory.create(exchange);
+    } else {
+      return paperTradeServiceFactory;
     }
   }
 }
