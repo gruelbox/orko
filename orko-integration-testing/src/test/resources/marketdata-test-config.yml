@@ -38,7 +38,6 @@ jerseyClient:
 logging:
   loggers:
     "com.gruelbox.orko": INFO
-    "com.gruelbox.orko.exchange": DEBUG
     "si.mazi.rescu": ERROR
   appenders:
     - type: console

@@ -1,6 +1,8 @@
 package com.gruelbox.orko.integration;
 
 import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
@@ -18,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.knowm.xchange.dto.trade.LimitOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,6 +156,12 @@ public class TestAllServices {
         .request()
         .post(Entity.json(order));
     assertEquals("Error: " + response.getEntity().toString(), 200, response.getStatus());
+    LimitOrder result = response.readEntity(LimitOrder.class);
+    LOGGER.info("Order posted : {}", result);
+    assertEquals(order.getAmount(), result.getOriginalAmount());
+    assertEquals(order.getLimitPrice(), result.getLimitPrice());
+    assertEquals(order.getType(), result.getType());
+    assertThat(result.getId(), not(emptyString()));
   }
 
   private void confirmAllDataTypesReceived() throws InterruptedException {
