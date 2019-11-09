@@ -140,10 +140,6 @@ jobs:
               echo "Test only"
               mvn ${BUILD_ARGS} -T 1C surefire:test -Dskip.failsafe.tests=true
             fi
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
       - run:
           name: Saving test results (H2)
           command: |
