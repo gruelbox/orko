@@ -1,5 +1,6 @@
 package com.gruelbox.orko.integration;
 
+import static io.dropwizard.testing.ResourceHelpers.resourceFilePath;
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.not;
@@ -10,25 +11,27 @@ import static org.knowm.xchange.dto.Order.OrderType.BID;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import javax.validation.ValidatorFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.Sets;
-import com.gruelbox.orko.app.marketdata.MarketDataAppConfiguration;
 import com.gruelbox.orko.app.marketdata.MarketDataApplication;
 import com.gruelbox.orko.app.monolith.MonolithApplication;
-import com.gruelbox.orko.app.monolith.MonolithConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResource;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
 import com.gruelbox.orko.exchange.MarketDataType;
@@ -36,10 +39,16 @@ import com.gruelbox.orko.exchange.RemoteMarketDataConfiguration;
 import com.gruelbox.orko.exchange.SubscriptionControllerRemoteImpl;
 import com.gruelbox.orko.exchange.SubscriptionPublisher;
 import com.gruelbox.orko.spi.TickerSpec;
+import com.gruelbox.orko.util.Safely;
 
+import ch.qos.logback.classic.Level;
+import info.bitrich.xchangestream.service.netty.StreamingObjectMapperHelper;
 import io.dropwizard.client.JerseyClientBuilder;
-import io.dropwizard.testing.ResourceHelpers;
-import io.dropwizard.testing.junit.DropwizardAppRule;
+import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.jersey.validation.Validators;
+import io.dropwizard.logging.BootstrapLogging;
+import io.dropwizard.setup.Environment;
+import io.dropwizard.util.Duration;
 
 /**
  * Chains together the market data and primary service via websockets and confirms we get
@@ -49,19 +58,15 @@ public class TestAllServices {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestAllServices.class);
 
-  @ClassRule
-  public static final DropwizardAppRule<MarketDataAppConfiguration> DATA_APP =
-      new DropwizardAppRule<MarketDataAppConfiguration>(
-          MarketDataApplication.class,
-          ResourceHelpers.resourceFilePath("marketdata-test-config.yml"));
-
-  @ClassRule
-  public static final DropwizardAppRule<MonolithConfiguration> MAIN_APP =
-      new DropwizardAppRule<MonolithConfiguration>(
-          MonolithApplication.class,
-          ResourceHelpers.resourceFilePath("main-test-config.yml"));
+  private Process marketDataProcess;
+  private Process mainProcess;
+  private Future<?> marketDataProcessOutput;
+  private Future<?> mainProcessOutput;
+  private Future<?> marketDataProcessInput;
+  private Future<?> mainProcessInput;
 
   private Client client;
+  private ValidatorFactory validatorFactory;
 
   private Set<MarketDataSubscription> subscriptions = Set.of(
       MarketDataSubscription.create(TickerSpec.fromKey("simulated/USD/BTC"), MarketDataType.TICKER),
@@ -81,8 +86,25 @@ public class TestAllServices {
   private CountDownLatch gotAll = new CountDownLatch(subscriptions.size());
   private Set<MarketDataType> got = Sets.newConcurrentHashSet();
 
+  private ExecutorService executorService;
+
+
   @Before
   public void setup() throws Exception {
+    BootstrapLogging.bootstrap(Level.INFO);
+    executorService = Executors.newFixedThreadPool(8);
+
+    LOGGER.info("Starting market data service...");
+    marketDataProcess = Fork.exec(MarketDataApplication.class, "server", resourceFilePath("marketdata-test-config.yml"));
+    marketDataProcessInput = Fork.keepAlive(marketDataProcess, executorService);
+    marketDataProcessOutput = Fork.pipeOutput(marketDataProcess, System.out, executorService);
+
+    LOGGER.info("Starting main service...");
+    mainProcess = Fork.exec(MonolithApplication.class, "server", resourceFilePath("main-test-config.yml"));
+    mainProcessInput = Fork.keepAlive(mainProcess, executorService);
+    mainProcessOutput = Fork.pipeOutput(mainProcess, System.out, executorService);
+
+    LOGGER.info("Connecting subscribers...");
     publisher.getTickers().map(t -> MarketDataType.TICKER).subscribe(type -> {
       received(type);
       gotTickers.countDown();
@@ -94,15 +116,59 @@ public class TestAllServices {
     publisher.getTrades().map(t -> MarketDataType.TRADES).subscribe(this::received);
     publisher.getUserTrades().map(t -> MarketDataType.USER_TRADE).subscribe(this::received);
 
-    client = new JerseyClientBuilder(MAIN_APP.getEnvironment())
-        .using(MAIN_APP.getConfiguration().getJerseyClientConfiguration())
-        .build("test client");
+    LOGGER.info("Creating client...");
+    validatorFactory = Validators.newValidatorFactory();
+    client = createJerseyClient();
+
+    LOGGER.info("Connecting to websocket...");
     controller.start();
+  }
+
+  private Client createJerseyClient() {
+    Environment environment = new Environment(
+        "Main app",
+        StreamingObjectMapperHelper.getObjectMapper(),
+        validatorFactory.getValidator(),
+        new MetricRegistry(),
+        null);
+    JerseyClientConfiguration jerseyClientConfiguration = new JerseyClientConfiguration();
+    jerseyClientConfiguration.setTimeout(Duration.seconds(30));
+    jerseyClientConfiguration.setConnectionTimeout(Duration.seconds(30));
+    jerseyClientConfiguration.setConnectionRequestTimeout(Duration.seconds(30));
+    return new JerseyClientBuilder(environment)
+        .using(jerseyClientConfiguration)
+        .build("Test client");
   }
 
   @After
   public void tearDown() throws Exception {
-    controller.stop();
+    LOGGER.info("Stopping controller...");
+    if (controller != null) Safely.run("stopping controller", controller::stop);
+    LOGGER.info("Closing client...");
+    if (client != null) Safely.run("closing client", client::close);
+    LOGGER.info("Closing validator factory...");
+    if (validatorFactory != null) Safely.run("closing validator factory", validatorFactory::close);
+    LOGGER.info("Stopping main app...");
+    stopFuture("stopping main process output pipe", mainProcessOutput);
+    stopFuture("stopping main process input pipe", mainProcessInput);
+    if (mainProcess != null) shutdown("stopping main app gracefully", mainProcess);
+    LOGGER.info("Stopping market data app...");
+    stopFuture("stopping market data process pipe", marketDataProcessOutput);
+    stopFuture("stopping main process input pipe", marketDataProcessInput);
+    if (marketDataProcess != null) shutdown("stopping market data app gracefully", marketDataProcess);
+    executorService.shutdown();
+    executorService.awaitTermination(30,TimeUnit.SECONDS);
+  }
+
+  private void stopFuture(String s, Future<?> mainProcessInput) {
+    Safely.run(s, () -> mainProcessInput.cancel(true));
+  }
+
+  private void shutdown(String description, Process process) throws InterruptedException {
+    Safely.run(description, process::destroy);
+    if (!process.waitFor(1, TimeUnit.MINUTES)) {
+      Safely.run("stopping main app gracefully", process::destroyForcibly);
+    }
   }
 
   @Test
@@ -140,7 +206,7 @@ public class TestAllServices {
                     balanceEvent.getTotal()))
             .filter(it -> it.getCurrency().getCurrencyCode().equals(currency))
             .limit(2).skip(1) // The first balance we get after an action is likely to be stale.
-            .timeout(30, TimeUnit.SECONDS)
+            .timeout(1, TimeUnit.MINUTES)
             .map(it -> it.getTotal())
             .blockingFirst();
   }  
@@ -152,7 +218,7 @@ public class TestAllServices {
     order.setCounter("USD");
     order.setLimitPrice(new BigDecimal(50_000));
     order.setType(BID);
-    var response = client.target(String.format("http://localhost:%d/main/exchanges/simulated/orders", MAIN_APP.getLocalPort()))
+    var response = client.target("http://localhost:8080/main/exchanges/simulated/orders")
         .request()
         .post(Entity.json(order));
     assertEquals("Error: " + response.getEntity().toString(), 200, response.getStatus());
@@ -166,6 +232,6 @@ public class TestAllServices {
 
   private void confirmAllDataTypesReceived() throws InterruptedException {
     LOGGER.info("Waiting for receipt");
-    Assert.assertTrue(gotAll.await(30, TimeUnit.SECONDS));
+    Assert.assertTrue(gotAll.await(1, TimeUnit.MINUTES));
   }
 }

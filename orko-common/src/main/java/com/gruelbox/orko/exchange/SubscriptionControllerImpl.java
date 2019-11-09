@@ -81,8 +81,6 @@ import org.knowm.xchange.service.trade.params.TradeHistoryParams;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
@@ -117,8 +115,6 @@ import si.mazi.rescu.HttpStatusIOException;
  */
 @Singleton
 class SubscriptionControllerImpl extends AbstractPollingController {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionControllerImpl.class);
 
   private static final int MAX_TRADES = 20;
   private static final int ORDERBOOK_DEPTH = 20;
@@ -714,14 +710,10 @@ class SubscriptionControllerImpl extends AbstractPollingController {
     }
 
     private void pollAndEmitUserTradeHistory(MarketDataSubscription subscription) throws IOException {
-      LOGGER.info("Polling user trade history");
       TradeHistoryParams tradeHistoryParams = tradeHistoryParams(subscription);
       tradeService.getTradeHistory(tradeHistoryParams)
         .getUserTrades()
-        .forEach(trade -> {
-          LOGGER.info("Found {}", trade);
-          publisher.emit(UserTradeEvent.create(subscription.spec(), trade));
-        });
+        .forEach(trade -> publisher.emit(UserTradeEvent.create(subscription.spec(), trade)));
     }
 
     @SuppressWarnings("unchecked")

@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Binder;
 import com.google.inject.TypeLiteral;
 import com.google.inject.util.Providers;
+import com.gruelbox.orko.BaseApplicationConfiguration;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
@@ -46,7 +47,7 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Configuration for the monolith application.
  */
-public class MonolithConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration {
+public class MonolithConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration, BaseApplicationConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -94,6 +95,8 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
   @Valid
   @JsonProperty
   private RemoteMarketDataConfiguration remoteMarketData = new RemoteMarketDataConfiguration();
+
+  private boolean childProcess;
 
 
   public MonolithConfiguration() {
@@ -164,6 +167,15 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
 
   public void setRemoteMarketData(RemoteMarketDataConfiguration remoteMarketData) {
     this.remoteMarketData = remoteMarketData;
+  }
+
+  public void setChildProcess(boolean childProcess) {
+    this.childProcess = childProcess;
+  }
+
+  @Override
+  public boolean isChildProcess() {
+    return childProcess;
   }
 
   public String getRootPath() {

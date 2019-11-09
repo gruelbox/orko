@@ -19,30 +19,24 @@
 package com.gruelbox.orko.util;
 
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.disposables.Disposable;
+public final class Safely {
 
-public final class SafelyDispose {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(SafelyDispose.class);
-
-  private SafelyDispose() {
+  private Safely() {
     // Not instantiatable
   }
 
-  public static void of(Disposable... disposables) {
-    of(Arrays.asList(disposables));
-  }
+  private static final Logger LOGGER = LoggerFactory.getLogger(Safely.class);
 
-  public static void of(Iterable<Disposable> disposables) {
-    disposables.forEach(d -> {
-      if (d == null)
-        return;
-      Safely.run("disposing of subscription", d::dispose);
-    });
+  public static boolean run(String gerund, CheckedExceptions.ThrowingRunnable runnable) {
+    try {
+      runnable.run();
+      return true;
+    } catch (Exception e) {
+      LOGGER.error("Error when {}", gerund, e);
+      return false;
+    }
   }
 }

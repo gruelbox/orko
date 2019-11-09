@@ -18,10 +18,14 @@
 
 package com.gruelbox.orko;
 
+import java.util.concurrent.ExecutorService;
+
+import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Binder;
+import com.google.inject.Inject;
 import com.google.inject.Module;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
@@ -33,9 +37,13 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-public abstract class BaseApplication<T extends Configuration> extends Application<T> implements Module {
+public abstract class BaseApplication<T extends Configuration & BaseApplicationConfiguration> extends Application<T> implements Module {
 
   private DockerSecretSubstitutor dockerSecretSubstitutor;
+
+  @Inject private ExecutorService executorService;
+
+  private ServerProvider serverProvider = new ServerProvider();
 
   @Override
   public void initialize(final Bootstrap<T> bootstrap) {
@@ -55,6 +63,7 @@ public abstract class BaseApplication<T extends Configuration> extends Applicati
       new GuiceBundle<T>(
         this,
         this,
+        new ChildProcessSupportModule(),
         createApplicationModule()
       )
     );
@@ -66,10 +75,14 @@ public abstract class BaseApplication<T extends Configuration> extends Applicati
   @Override
   public void configure(Binder binder) {
     binder.install(new JerseySupportModule());
+    binder.bind(Server.class).toProvider(serverProvider);
   }
 
   @Override
   public void run(T configuration, Environment environment) {
+    environment.lifecycle().addServerLifecycleListener(serverProvider);
+
+    // We can't use the logger during the docker YAML parsing, so it's delayed until here.
     Logger dockerLogger = LoggerFactory.getLogger(DockerSecretSubstitutor.class);
     if (dockerLogger.isDebugEnabled()) {
       dockerSecretSubstitutor.getLog().stream()
