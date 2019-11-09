@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Binder;
 import com.google.inject.TypeLiteral;
 import com.google.inject.util.Providers;
+import com.gruelbox.orko.BaseApplicationConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.job.script.ScriptConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
@@ -39,7 +40,7 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Configuration for the market data application.
  */
-public class MarketDataAppConfiguration extends Configuration implements BackgroundProcessingConfiguration, ScriptConfiguration {
+public class MarketDataAppConfiguration extends Configuration implements BackgroundProcessingConfiguration, ScriptConfiguration, BaseApplicationConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -66,6 +67,8 @@ public class MarketDataAppConfiguration extends Configuration implements Backgro
 
   @JsonProperty
   private Map<String, ExchangeConfiguration> exchanges;
+
+  private boolean childProcess;
 
   public MarketDataAppConfiguration() {
     super();
@@ -111,6 +114,15 @@ public class MarketDataAppConfiguration extends Configuration implements Backgro
 
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
     this.jerseyClient = jerseyClient;
+  }
+
+  public void setChildProcess(boolean childProcess) {
+    this.childProcess = childProcess;
+  }
+
+  @Override
+  public boolean isChildProcess() {
+    return childProcess;
   }
 
   public String getRootPath() {

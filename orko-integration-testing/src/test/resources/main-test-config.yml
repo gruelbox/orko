@@ -1,0 +1,24 @@
+childProcess: true
+scriptSigningKey: "WHATEVS"
+remoteMarketData:
+  webSocketUri: ws://localhost:8081/ws
+  exchangeEndpointUri: http://localhost:8081/data/exchanges
+server:
+  type: simple
+  rootPath: /main
+  applicationContextPath: /
+  connector:
+    type: http
+    port: 8080
+  maxThreads: 16
+jerseyClient:
+  timeout: 30000ms
+  connectionTimeout: 30000ms
+  connectionRequestTimeout: 30000ms
+logging:
+  loggers:
+    "com.gruelbox.orko": INFO
+    "si.mazi.rescu": ERROR
+  appenders:
+    - type: console
+      logFormat: " - MAIN - %-5p [%t] %c: %m%n%rEx"

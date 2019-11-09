@@ -18,6 +18,7 @@
 
 package com.gruelbox.orko.app.monolith;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.Valid;
@@ -27,9 +28,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Binder;
 import com.google.inject.TypeLiteral;
 import com.google.inject.util.Providers;
+import com.gruelbox.orko.BaseApplicationConfiguration;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.db.DbConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
+import com.gruelbox.orko.exchange.RemoteMarketDataConfiguration;
 import com.gruelbox.orko.job.script.ScriptConfiguration;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
@@ -44,7 +47,7 @@ import io.dropwizard.server.AbstractServerFactory;
 /**
  * Configuration for the monolith application.
  */
-public class MonolithConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration {
+public class MonolithConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration, BaseApplicationConfiguration {
 
   /**
    * Some operations require polling (exchanges with no websocket support,
@@ -85,7 +88,16 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
   @JsonProperty("jerseyClient")
   private JerseyClientConfiguration jerseyClient;
 
-  private Map<String, ExchangeConfiguration> exchanges;
+  @Valid
+  @JsonProperty
+  private Map<String, ExchangeConfiguration> exchanges = new HashMap<>();
+
+  @Valid
+  @JsonProperty
+  private RemoteMarketDataConfiguration remoteMarketData = new RemoteMarketDataConfiguration();
+
+  private boolean childProcess;
+
 
   public MonolithConfiguration() {
     super();
@@ -149,6 +161,23 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
       this.jerseyClient = jerseyClient;
   }
 
+  public RemoteMarketDataConfiguration getRemoteMarketData() {
+    return remoteMarketData;
+  }
+
+  public void setRemoteMarketData(RemoteMarketDataConfiguration remoteMarketData) {
+    this.remoteMarketData = remoteMarketData;
+  }
+
+  public void setChildProcess(boolean childProcess) {
+    this.childProcess = childProcess;
+  }
+
+  @Override
+  public boolean isChildProcess() {
+    return childProcess;
+  }
+
   public String getRootPath() {
     AbstractServerFactory serverFactory = (AbstractServerFactory) getServerFactory();
     return serverFactory.getJerseyRootPath().orElse("/") + "*";
@@ -186,6 +215,7 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
     binder.bind(JerseyClientConfiguration.class).toProvider(Providers.of(jerseyClient));
     binder.bind(TelegramConfiguration.class).toProvider(Providers.of(telegram));
     binder.bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {}).toProvider(Providers.of(exchanges));
+    binder.bind(RemoteMarketDataConfiguration.class).toInstance(this.remoteMarketData);
 
     JobRunConfiguration jobRunConfiguration = new JobRunConfiguration();
     jobRunConfiguration.setDatabaseLockSeconds(database.getLockSeconds());

@@ -19,6 +19,9 @@ telegram:
 database:
   connectionString: ${JDBC_URL:-h2:file:/app/db/orko;DB_CLOSE_DELAY=-1;DEFAULT_LOCK_TIMEOUT=60000}
   lockSeconds: ${LOCK_SECONDS:-45}
+remoteMarketData:
+  webSocketUri: ${REMOTE_MARKET_DATA_WEBSOCKET:-}
+  exchangeEndpointUri: ${REMOTE_MARKET_DATA_ENDPOINT`:-}
 exchanges:
   simulated:
     apiKey: ${SIMULATED_API_KEY:-}

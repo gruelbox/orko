@@ -33,7 +33,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.websockets.WebsocketBundle;
 
-public abstract class WebHostApplication<T extends Configuration & HttpEnforcementConfiguration> extends BaseApplication<T> implements Module {
+public abstract class WebHostApplication<T extends Configuration & BaseApplicationConfiguration & HttpEnforcementConfiguration> extends BaseApplication<T> implements Module {
 
   @Inject private WebSocketBundleInit webSocketBundleInit;
   @Inject private UrlRewriteEnvironment urlRewriteEnvironment;

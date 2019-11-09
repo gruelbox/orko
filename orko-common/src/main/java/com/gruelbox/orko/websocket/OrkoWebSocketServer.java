@@ -49,20 +49,20 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
 import com.gruelbox.orko.exchange.MarketDataType;
 import com.gruelbox.orko.exchange.SerializableTrade;
+import com.gruelbox.orko.exchange.SerializableTradeEvent;
 import com.gruelbox.orko.exchange.TradeEvent;
 import com.gruelbox.orko.exchange.UserTradeEvent;
+import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 import com.gruelbox.orko.notification.Notification;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
@@ -271,20 +271,14 @@ public final class OrkoWebSocketServer {
    * Workaround for lack of serializability of the XChange object
    */
   private Object serialiseUserTradeEvent(UserTradeEvent e) {
-    return ImmutableMap.of(
-      "spec", e.spec(),
-      "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
-    );
+    return SerializableTradeEvent.create(e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
   }
 
   /**
    * Workaround for lack of serializability of the XChange object
    */
   private Object serialiseTradeEvent(TradeEvent e) {
-    return ImmutableMap.of(
-      "spec", e.spec(),
-      "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
-    );
+    return SerializableTradeEvent.create(e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
   }
 
   @Subscribe

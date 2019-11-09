@@ -23,11 +23,13 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
+import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.UserTrade;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.auto.value.AutoValue;
@@ -86,7 +88,7 @@ public abstract class SerializableTrade {
                              @JsonProperty("oid") String orderId,
                              @JsonProperty("fa") BigDecimal feeAmount,
                              @JsonProperty("fc") String feeCurrency) {
-    return new AutoValue_SerializableTrade(type, originalAmount.toPlainString(), spec, price.toPlainString(), timestamp, id, orderId, feeAmount == null ? null : feeAmount.toPlainString(), feeCurrency);
+    return new AutoValue_SerializableTrade(type, originalAmount, spec, price, timestamp, id, orderId, feeAmount == null ? null : feeAmount, feeCurrency);
   }
 
   /** Did this trade result from the execution of a bid or a ask? */
@@ -95,7 +97,7 @@ public abstract class SerializableTrade {
 
   /** Amount that was traded */
   @JsonProperty("a")
-  public abstract String originalAmount();
+  public abstract BigDecimal originalAmount();
 
   /** The currency pair */
   @JsonProperty("c")
@@ -103,7 +105,7 @@ public abstract class SerializableTrade {
 
   /** The price */
   @JsonProperty("p")
-  public abstract String price();
+  public abstract BigDecimal price();
 
   /** The timestamp of the trade according to the exchange's server, null if not provided */
   @JsonProperty("d")
@@ -122,10 +124,37 @@ public abstract class SerializableTrade {
   /** The fee that was charged by the exchange for this trade. */
   @JsonProperty("fa")
   @Nullable
-  public abstract String feeAmount();
+  public abstract BigDecimal feeAmount();
 
   /** The currency in which the fee was charged. */
   @JsonProperty("fc")
   @Nullable
   public abstract String feeCurrency();
+
+  @JsonIgnore
+  public Trade toTrade() {
+    return new Trade.Builder()
+        .currencyPair(spec().currencyPair())
+        .type(type())
+        .originalAmount(originalAmount())
+        .price(price())
+        .timestamp(timestamp())
+        .id(id())
+        .build();
+  }
+
+  @JsonIgnore
+  public UserTrade toUserTrade() {
+    return new UserTrade.Builder()
+        .currencyPair(spec().currencyPair())
+        .type(type())
+        .originalAmount(originalAmount())
+        .price(price())
+        .timestamp(timestamp())
+        .id(id())
+        .orderId(orderId())
+        .feeAmount(feeAmount())
+        .feeCurrency(Currency.getInstance(feeCurrency()))
+        .build();
+  }
 }

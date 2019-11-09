@@ -26,9 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -49,7 +47,6 @@ import org.knowm.xchange.binance.service.BinanceCancelOrderParams;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
-import org.knowm.xchange.dto.account.Balance;
 import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
@@ -67,8 +64,6 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.gruelbox.orko.exchange.MaxTradeAmountCalculator.Factory;
 import com.gruelbox.orko.spi.TickerSpec;
@@ -500,44 +495,6 @@ public class ExchangeResource implements WebResource {
       return Response.ok()
           .entity(tradeServiceFactory.getForExchange(exchange).getOrder(id))
           .build();
-    } catch (NotAvailableFromExchangeException e) {
-      return Response.status(503).build();
-    }
-  }
-
-
-  /**
-   * Fetches the current balances for the specified exchange and currencies.
-   *
-   * @param exchange The exchange.
-   * @param currenciesAsString Comma-separated list of currencies.
-   * @return The balances, by currency.
-   * @throws IOException If thrown by exchange.
-   */
-  @GET
-  @Path("{exchange}/balance/{currencies}")
-  @Timed
-  public Response balances(@PathParam("exchange") String exchange, @PathParam("currencies") String currenciesAsString) throws IOException {
-
-    Set<String> currencies = Stream.of(currenciesAsString.split(","))
-        .collect(Collectors.toSet());
-
-    try {
-
-      FluentIterable<Balance> balances = FluentIterable.from(
-          accountServiceFactory.getForExchange(exchange)
-            .getAccountInfo()
-            .getWallet()
-            .getBalances()
-            .entrySet()
-        )
-        .transform(Map.Entry::getValue)
-        .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()));
-
-      return Response.ok()
-          .entity(Maps.uniqueIndex(balances, Balance::getCurrency))
-          .build();
-
     } catch (NotAvailableFromExchangeException e) {
       return Response.status(503).build();
     }

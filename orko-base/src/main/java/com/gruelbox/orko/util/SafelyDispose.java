@@ -42,11 +42,7 @@ public final class SafelyDispose {
     disposables.forEach(d -> {
       if (d == null)
         return;
-      try {
-        d.dispose();
-      } catch (Exception e) {
-        LOGGER.error("Error disposing of subscription", e);
-      }
+      Safely.run("disposing of subscription", d::dispose);
     });
   }
 }

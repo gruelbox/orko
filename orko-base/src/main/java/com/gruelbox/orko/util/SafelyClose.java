@@ -40,11 +40,7 @@ public final class SafelyClose {
     closeables.forEach(d -> {
       if (d == null)
         return;
-      try {
-        d.close();
-      } catch (Exception e) {
-        LOGGER.error("Error when closing resource", e);
-      }
+      Safely.run("closing resource", d::close);
     });
   }
 }
