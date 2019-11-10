@@ -20,37 +20,37 @@ exchanges:
   simulated:
     apiKey: DEMO
   gdax:
-    apiKey: 
-    secretKey: 
-    passphrase: 
+    apiKey:
+    secretKey:
+    passphrase:
     sandbox: false # default
     loadRemoteData: true # default. Disable if the exchange goes down to avoid spamming it for metadata requests
   binance:
-    apiKey: 
+    apiKey:
     secretKey:
     loadRemoteData: true
   kucoin:
-    apiKey: 
-    secretKey: 
-    passphrase: 
+    apiKey:
+    secretKey:
+    passphrase:
     sandbox: false
     loadRemoteData: true
   bitfinex:
-    apiKey: 
+    apiKey:
     secretKey:
     loadRemoteData: true
   bitmex:
-    apiKey: 
-    secretKey: 
+    apiKey:
+    secretKey:
     loadRemoteData: true
   kraken:
-    apiKey: 
-    secretKey: 
+    apiKey:
+    secretKey:
     loadRemoteData: true
   bittrex:
-    apiKey: 
-    secretKey: 
-    loadRemoteData: 
+    apiKey:
+    secretKey:
+    loadRemoteData:
 jerseyClient:
   timeout: 5000ms
   connectionTimeout: 5000ms
