@@ -26,6 +26,9 @@ import static com.gruelbox.orko.notification.NotificationModule.TelegramState.TE
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
@@ -53,6 +56,8 @@ import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
  * Top level bindings.
  */
 class MonolithModule extends AbstractModule implements Configured<MonolithConfiguration> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MonolithModule.class);
 
   private final GuiceHibernateModule guiceHibernateModule;
   private MonolithConfiguration configuration;
@@ -94,16 +99,23 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     // Forwards notifications to Telegram asynchronously
     install(new NotificationModule(ASYNC, TELEGRAM_ENABLED));
 
+    LOGGER.info("Market data source config:\n  ws={}\n  api={}",
+        configuration.getRemoteMarketData().getWebSocketUri(),
+        configuration.getRemoteMarketData().getExchangeEndpointUri());
+
     if (configuration.getRemoteMarketData().isEnabled()) {
       // Remote market management
+      LOGGER.info("Using remote data source");
       install(new MarketDataModule(MANAGE_REMOTELY));
     } else {
+      LOGGER.info("Using local data source");
       // Both managing and running market data access
       install(new MarketDataModule(MANAGE_LOCALLY));
       // Monitors various status issues are fires notifications if things go wrong.
       install(new MonitorModule());
       // Runs some simulated order book activity on the simulated exchange
       if (isSimulatorEnabled()) {
+        LOGGER.info("Enabling simulator");
         install(new SimulatedExchangeActivityModule());
       }
     }
