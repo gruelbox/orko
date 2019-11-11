@@ -25,7 +25,7 @@ import Para from "../components/primitives/Para"
 import { Modal, Icon } from "semantic-ui-react"
 import { ServerContext } from "modules/server"
 
-const JobContainer: React.FC<any> = ({ match }) => {
+const JobContainer: React.FC<any> = ({ match, history }) => {
   const jobId = match.params.jobId // from uri
   const serverApi = useContext(ServerContext)
   const job = serverApi.jobs.find(j => j.id === jobId)
@@ -33,7 +33,7 @@ const JobContainer: React.FC<any> = ({ match }) => {
     <FixedModal
       data-orko={"job/" + jobId}
       closeIcon
-      onClose={() => this.props.history.push("/")}
+      onClose={() => history.push("/")}
       style={{ height: "100%" }}
     >
       <Modal.Header>

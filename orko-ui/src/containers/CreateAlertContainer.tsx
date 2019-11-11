@@ -22,7 +22,7 @@ import { isValidNumber } from "modules/common/util/numberUtils"
 import uuidv4 from "uuid/v4"
 import { FrameworkContext } from "FrameworkContainer"
 import { AlertJob, JobType, OcoJob, ServerContext, AlertLevel } from "modules/server"
-import { ServerCoin } from "modules/market"
+import { ServerCoin, Coin } from "modules/market"
 
 interface State {
   highPrice: string
@@ -31,14 +31,14 @@ interface State {
   merge: any
 }
 
-const createJob = (state: State): OcoJob => {
+const createJob = (coin: Coin, state: State): OcoJob => {
   const highPriceValid = state.highPrice && isValidNumber(state.highPrice) && Number(state.highPrice) > 0
   const lowPriceValid = state.lowPrice && isValidNumber(state.lowPrice) && Number(state.lowPrice) > 0
 
   const tickTrigger: ServerCoin = {
-    exchange: this.props.coin.exchange,
-    counter: this.props.coin.counter,
-    base: this.props.coin.base
+    exchange: coin.exchange,
+    counter: coin.counter,
+    base: coin.base
   }
 
   return {
@@ -48,17 +48,17 @@ const createJob = (state: State): OcoJob => {
     verbose: false,
     low: lowPriceValid
       ? {
-          thresholdAsString: String(this.state.job.lowPrice),
+          thresholdAsString: String(state.lowPrice),
           job: {
             jobType: JobType.ALERT,
             id: uuidv4(),
             notification: {
               message:
                 "Price of " +
-                this.props.coin.name +
+                coin.name +
                 " dropped below " +
-                this.state.job.lowPrice +
-                (this.state.job.message !== "" ? ": " + this.state.job.message : ""),
+                state.lowPrice +
+                (state.message !== "" ? ": " + state.message : ""),
               level: AlertLevel.ALERT
             }
           } as AlertJob
@@ -66,17 +66,17 @@ const createJob = (state: State): OcoJob => {
       : null,
     high: highPriceValid
       ? {
-          thresholdAsString: String(this.state.job.highPrice),
+          thresholdAsString: String(state.highPrice),
           job: {
             jobType: JobType.ALERT,
             id: uuidv4(),
             notification: {
               message:
                 "Price of " +
-                this.props.coin.name +
+                coin.name +
                 " rose above " +
-                this.state.job.highPrice +
-                (this.state.job.message !== "" ? ": " + this.state.job.message : ""),
+                state.highPrice +
+                (state.message !== "" ? ": " + state.message : ""),
               level: AlertLevel.ALERT
             }
           } as AlertJob
@@ -85,7 +85,7 @@ const createJob = (state: State): OcoJob => {
   }
 }
 
-const CreateAlertContainer: React.FC<any> = () => {
+const CreateAlertContainer: React.FC<{ coin: Coin }> = ({ coin }) => {
   const frameworkApi = useContext(FrameworkContext)
   const serverApi = useContext(ServerContext)
 
@@ -109,15 +109,15 @@ const CreateAlertContainer: React.FC<any> = () => {
   }
 
   const isValidNumber = (val: any) => !isNaN(val) && val !== "" && val > 0
-  const highPriceValid = this.state.job.highPrice && isValidNumber(this.state.job.highPrice)
-  const lowPriceValid = this.state.job.lowPrice && isValidNumber(this.state.job.lowPrice)
+  const highPriceValid = state.highPrice && isValidNumber(state.highPrice)
+  const lowPriceValid = state.lowPrice && isValidNumber(state.lowPrice)
 
   return (
     <Alert
-      job={this.state.job}
+      job={state}
       onChange={setState}
       onFocus={onFocus}
-      onSubmit={() => serverApi.submitJob(createJob(state))}
+      onSubmit={() => serverApi.submitJob(createJob(frameworkApi.alertsCoin, state))}
       highPriceValid={highPriceValid}
       lowPriceValid={lowPriceValid}
     />

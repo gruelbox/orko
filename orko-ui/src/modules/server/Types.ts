@@ -59,7 +59,9 @@ export interface SoftTrailingStopJob extends Job {
 }
 
 export enum AlertLevel {
-  ALERT
+  INFO = "INFO",
+  ERROR = "ERROR",
+  ALERT = "ALERT"
 }
 
 export interface Notification {
@@ -71,4 +73,31 @@ export interface AlertJob extends Job {
   notification: Notification
 }
 
-export interface StatusUpdateJob extends Job {}
+export enum Status {
+  /**
+   * The job is currently running.
+   */
+  RUNNING = "RUNNING",
+
+  /**
+   * The job ran successfully to completion.
+   */
+  SUCCESS = "SUCCESS",
+
+  /**
+   * The job failed permanently and should be removed.
+   */
+  FAILURE_PERMANENT = "FAILURE_PERMANENT",
+
+  /**
+   * The job failed temporarily and should be shut down
+   * locally but picked up again in the future.
+   */
+  FAILURE_TRANSIENT = "FAILURE_TRANSIENT"
+}
+
+export interface StatusUpdateJob extends Job {
+  requestId: string
+  status: Status
+  payload: object
+}

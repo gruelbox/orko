@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useContext } from "react"
+import React, { useContext, useMemo } from "react"
 import Section, { Provider as SectionProvider } from "../components/primitives/Section"
 import Window from "../components/primitives/Window"
 import CreateAlertContainer from "./CreateAlertContainer"
@@ -33,16 +33,25 @@ const ManageAlertsContainer: React.FC<ManageAlertsProps> = props => {
   const serverApi = useContext(ServerContext)
 
   const coin = frameworkApi.alertsCoin
+  const allJobs = serverApi.jobs
+  const alerts = useMemo<OcoJob[]>(
+    () =>
+      !coin
+        ? []
+        : (allJobs
+            .filter(job => isAlert(job))
+            .map(job => job as OcoJob)
+            .filter(
+              job =>
+                job.tickTrigger.exchange === coin.exchange &&
+                job.tickTrigger.base === coin.base &&
+                job.tickTrigger.counter === coin.counter
+            ) as any).asMutable(),
+    [allJobs, coin]
+  )
+
   if (!coin) return null
-  const alerts = serverApi.jobs
-    .filter(job => isAlert(job))
-    .map(job => job as OcoJob)
-    .filter(
-      job =>
-        job.tickTrigger.exchange === coin.exchange &&
-        job.tickTrigger.base === coin.base &&
-        job.tickTrigger.counter === coin.counter
-    )
+
   return (
     <Window mobile={props.mobile} large={false}>
       <SectionProvider

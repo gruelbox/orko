@@ -24,7 +24,7 @@ import { isValidNumber } from "modules/common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
 import { withSocket } from "modules/socket/"
 import { withFramework } from "FrameworkContainer"
-import { JobType, withServer } from "modules/server"
+import { JobType, withServer, TradeDirection } from "modules/server"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
@@ -56,7 +56,7 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   currentPrice = direction =>
-    direction === "BUY"
+    direction === TradeDirection.BUY
       ? this.props.socketApi.selectedCoinTicker.ask
       : this.props.socketApi.selectedCoinTicker.bid
 
@@ -100,8 +100,8 @@ class TrailingStopOrderContainer extends React.Component {
         order={this.state.order}
         onChange={this.onChange}
         onFocus={this.onFocus}
-        onBuy={() => this.onSubmit("BUY")}
-        onSell={() => this.onSubmit("SELL")}
+        onBuy={() => this.onSubmit(TradeDirection.BUY)}
+        onSell={() => this.onSubmit(TradeDirection.SELL)}
         stopPriceValid={stopPriceValid}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}

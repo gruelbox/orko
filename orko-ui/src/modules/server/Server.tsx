@@ -143,7 +143,7 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
       addSubscription,
       removeSubscription,
       coinMetadata,
-      jobs: jobs === null ? [] : jobs,
+      jobs: jobs === null ? Immutable([]) : jobs,
       jobsLoading: jobs === null,
       submitJob,
       submitScriptJob,
