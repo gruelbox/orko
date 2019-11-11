@@ -29,8 +29,8 @@ import Tab from "../components/primitives/Tab"
 import { ServerContext, Job } from "modules/server"
 
 enum Mode {
-  ONLY_COMPLEX,
-  ALL
+  ONLY_COMPLEX = "complexonly",
+  ALL = "all"
 }
 
 const JobsContainer: React.FC<any> = () => {

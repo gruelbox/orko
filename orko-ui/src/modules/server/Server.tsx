@@ -117,7 +117,9 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const addSubscription = useMemo(
     () => (coin: Coin) => {
       authApi
-        .authenticatedRequest(() => exchangesService.addSubscription(tickerFromCoin(coin)))
+        .authenticatedRequest(() => exchangesService.addSubscription(tickerFromCoin(coin)), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
         .catch((error: Error) => errorPopup("Could not add subscription: " + error.message))
         .then(() => setSubscriptions(current => Immutable(insertCoin((current as any).asMutable(), coin))))
         .then(() => fetchMetadata(coin))
@@ -142,8 +144,8 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
     () => {
       fetchJobs()
     },
-    5000,
-    [fetchJobs]
+    authApi.authorised ? 5000 : null,
+    [fetchJobs, authApi]
   )
 
   const api = useMemo(
