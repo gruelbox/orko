@@ -157,10 +157,10 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
       if (!response.ok) {
         var errorMessage = null
         if (response.status === 403) {
-          errorMessage = "Failed API request due to invalid whitelisting"
+          console.log("Failed API request due to invalid whitelisting")
           setWhitelisted(false)
         } else if (response.status === 401) {
-          errorMessage = "Failed API request due to invalid token/XSRF"
+          console.log("Failed API request due to invalid token/XSRF")
           logout()
         } else {
           try {
@@ -170,9 +170,9 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
               ? response.statusText
               : "Server error (" + response.status + ")"
           }
+          console.log(errorMessage)
+          throw new Error(errorMessage)
         }
-        console.log(errorMessage)
-        throw new Error(errorMessage)
       } else {
         switch (options.responseType) {
           case AuthenticatedRequestResponseType.JSON:
