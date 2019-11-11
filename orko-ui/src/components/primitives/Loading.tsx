@@ -15,6 +15,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const SET_JOBS = 'job.SET_JOBS';
-export const DELETE_JOB = 'job.DELETE_JOB';
-export const ADD_JOB = 'job.ADD_JOB';
+import React from "react"
+import Para from "./Para"
+import { Icon } from "semantic-ui-react"
+
+export interface LoadingProps {
+  fitted?: boolean
+  p?: number
+}
+
+const Loading: React.FC<LoadingProps> = ({ fitted, p }) =>
+  fitted ? (
+    <Icon fitted name="spinner" loading />
+  ) : (
+    <Para p={p}>
+      <Icon name="spinner" loading />
+    </Para>
+  )
+
+Loading.defaultProps = {
+  fitted: false,
+  p: null
+}
+
+export default Loading

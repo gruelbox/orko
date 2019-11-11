@@ -21,9 +21,9 @@ import ReactTable from "react-table"
 import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
 import * as dateUtils from "modules/common/util/dateUtils"
-import { Trade, UserTrade } from "modules/socket"
+import { Trade, UserTrade, OrderType } from "modules/socket"
 
-const BUY_SIDE = "BID"
+const BUY_SIDE = OrderType.BID
 
 const textStyle = {
   textAlign: "left"

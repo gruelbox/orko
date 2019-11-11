@@ -19,12 +19,10 @@ import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
 import StopTakeProfit from "../components/StopTakeProfit"
-import * as jobActions from "../store/job/actions"
-import * as jobTypes from "../services/jobTypes"
 import { getSelectedCoin } from "../selectors/coins"
 import uuidv4 from "uuid/v4"
-import { withAuth } from "modules/auth"
 import { withFramework } from "FrameworkContainer"
+import { JobType } from "modules/server"
 
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {
@@ -69,7 +67,7 @@ class StopTakeProfitContainer extends React.Component {
     }
 
     const limitOrder = limitPrice => ({
-      jobType: jobTypes.LIMIT_ORDER,
+      jobType: JobType.LIMIT_ORDER,
       id: uuidv4(),
       direction: this.state.job.direction,
       tickTrigger,
@@ -78,7 +76,7 @@ class StopTakeProfitContainer extends React.Component {
     })
 
     const trailingOrder = (startPrice, stopPrice, limitPrice) => ({
-      jobType: jobTypes.SOFT_TRAILING_STOP,
+      jobType: JobType.SOFT_TRAILING_STOP,
       id: uuidv4(),
       direction: this.state.job.direction,
       tickTrigger,
@@ -90,7 +88,7 @@ class StopTakeProfitContainer extends React.Component {
     })
 
     return {
-      jobType: jobTypes.OCO,
+      jobType: JobType.OCO,
       id: uuidv4(),
       tickTrigger: tickTrigger,
       low: this.state.job.lowPrice
@@ -121,7 +119,7 @@ class StopTakeProfitContainer extends React.Component {
   }
 
   onSubmit = async () => {
-    this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob()))
+    this.props.serverApi.submitJob(this.createJob())
   }
 
   render() {
@@ -143,4 +141,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withFramework(withAuth(connect(mapStateToProps)(StopTakeProfitContainer)))
+export default withFramework(connect(mapStateToProps)(StopTakeProfitContainer))

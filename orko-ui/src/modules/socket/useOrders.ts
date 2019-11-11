@@ -66,7 +66,7 @@ class FullUpdateAction implements BaseAction {
 
 class CreatePlaceholderAction extends FullUpdateAction {
   constructor(order: Order) {
-    super({ ...order, id: PLACEHOLDER_ID, status: "PENDING_NEW" }, new Date().getTime())
+    super({ ...order, id: PLACEHOLDER_ID, status: OrderStatus.PENDING_NEW }, new Date().getTime())
   }
 }
 
@@ -116,7 +116,11 @@ class UpdateSnapshotAction implements BaseAction {
         }
         result = orderUpdated(
           state,
-          { id: order.id, status: order.status === "PENDING_CANCEL" ? "CANCELED" : "PENDING_CANCEL" },
+          {
+            id: order.id,
+            status:
+              order.status === OrderStatus.PENDING_CANCEL ? OrderStatus.CANCELED : OrderStatus.PENDING_CANCEL
+          },
           this.timestamp
         )
       }
@@ -141,7 +145,7 @@ export function useOrders(): [Array<Order>, UseOrderArrayApi] {
         dispatch(new FullUpdateAction(order, timestamp !== undefined ? timestamp : order.timestamp))
       },
       pendingCancelOrder: (id: string, timestamp: number) => {
-        dispatch(new StateUpdateAction(id, "PENDING_CANCEL", timestamp))
+        dispatch(new StateUpdateAction(id, OrderStatus.PENDING_CANCEL, timestamp))
       },
       createPlaceholder: (order: Order) => {
         dispatch(new CreatePlaceholderAction(order))
@@ -163,7 +167,10 @@ function orderUpdated(state: Array<Order>, order: any, timestamp: number) {
     return Immutable([])
   }
 
-  const isRemoval = order.status === "EXPIRED" || order.status === "CANCELED" || order.status === "FILLED"
+  const isRemoval =
+    order.status === OrderStatus.EXPIRED ||
+    order.status === OrderStatus.CANCELED ||
+    order.status === OrderStatus.FILLED
 
   // No orders at all yet
   if (!state) {

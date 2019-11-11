@@ -16,26 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { put, get, del } from "modules/common/util/fetchUtil"
+import { Job, ScriptJob } from "./Types"
 
 class JobService {
-  async submitJob(job) {
-    return await put("jobs/" + job.id, JSON.stringify(job))
+  async submitJob(job: Job): Promise<Response> {
+    return (await put("jobs/" + job.id, JSON.stringify(job))) as Promise<Response>
   }
 
-  async submitScriptJob(job) {
-    return await put("scriptjobs/" + job.id, JSON.stringify(job))
+  async submitScriptJob(job: ScriptJob): Promise<Response> {
+    return (await put("scriptjobs/" + job.id, JSON.stringify(job))) as Promise<Response>
   }
 
-  async deleteJob(job) {
-    return await del("jobs/" + job.id)
+  async deleteJob(id: string): Promise<Response> {
+    return (await del("jobs/" + id)) as Promise<Response>
   }
 
-  async fetchJobs() {
-    return await get("jobs")
+  async fetchJobs(): Promise<Response> {
+    return (await get("jobs")) as Promise<Response>
   }
 
-  async fetchJob(jobId) {
-    return await get("jobs/" + jobId)
+  async fetchJob(jobId: string): Promise<Response> {
+    return (await get("jobs/" + jobId)) as Promise<Response>
   }
 }
 

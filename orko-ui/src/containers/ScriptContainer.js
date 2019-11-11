@@ -21,11 +21,10 @@ import { connect } from "react-redux"
 import Script from "../components/Script"
 import ViewSource from "../components/ViewSource"
 
-import * as jobActions from "../store/job/actions"
 import { getSelectedCoin } from "../selectors/coins"
 
 import uuidv4 from "uuid/v4"
-import { withAuth } from "modules/auth"
+import { withServer } from "modules/server"
 
 class ScriptContainer extends React.Component {
   constructor(props) {
@@ -103,7 +102,7 @@ class ScriptContainer extends React.Component {
   }
 
   onSubmit = async () => {
-    this.props.dispatch(jobActions.submitScriptJob(this.props.auth, this.createJob()))
+    this.props.serverApi.submitScriptJob(this.createJob())
   }
 
   render() {
@@ -134,4 +133,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withAuth(connect(mapStateToProps)(ScriptContainer))
+export default withServer(connect(mapStateToProps)(ScriptContainer))

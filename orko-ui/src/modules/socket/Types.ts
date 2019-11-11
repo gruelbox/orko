@@ -20,37 +20,63 @@ export interface OrderBook {
   timeStamp: Date
 }
 
-export type OrderType = "BID" | "ASK" | "EXIT_ASK" | "EXIT_BID"
-export type OrderStatus =
-  | "PENDING_NEW"
-  | "NEW"
-  | "PARTIALLY_FILLED"
-  | "FILLED"
-  | "PENDING_CANCEL"
-  | "PARTIALLY_CANCELED"
-  | "CANCELED"
-  | "PENDING_REPLACE"
-  | "REPLACED"
-  | "STOPPED"
-  | "REJECTED"
-  | "EXPIRED"
-  | "UNKNOWN"
+export enum OrderType {
+  BID,
+  ASK,
+  EXIT_ASK,
+  EXIT_BID
+}
 
-type RunningAtType = "SERVER" | "EXCHANGE"
+export enum OrderStatus {
+  PENDING_NEW,
+  NEW,
+  PARTIALLY_FILLED,
+  FILLED,
+  PENDING_CANCEL,
+  PARTIALLY_CANCELED,
+  CANCELED,
+  PENDING_REPLACE,
+  REPLACED,
+  STOPPED,
+  REJECTED,
+  EXPIRED,
+  UNKNOWN
+}
 
-export interface Order {
+export enum RunningAtType {
+  SERVER,
+  EXCHANGE
+}
+
+export interface BaseOrder {
   type: OrderType
   originalAmount: number
-  currencyPair: PartialServerCoin
+  remainingAmount: number
+  stopPrice: number
+  limitPrice: number
+}
+
+export interface Order extends BaseOrder {
   id: string
   timestamp: number
   status: OrderStatus
+  currencyPair: PartialServerCoin
   cumulativeAmount: number
-  remainingAmount: number
   averagePrice: number
   fee: number
   deleted: boolean
   serverTimestamp: number
+}
+
+export interface DisplayOrder extends BaseOrder {
+  runningAt: RunningAtType
+  jobId: string
+}
+
+export interface ExpandedOrder extends Order, DisplayOrder {}
+
+export interface JobOrder {
+  type: OrderType
   runningAt: RunningAtType
   jobId: string
 }

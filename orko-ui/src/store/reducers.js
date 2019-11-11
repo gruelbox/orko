@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import coins from "./coins/reducer"
-import job from "./job/reducer"
 import error from "./error/reducer"
 import scripting from "./scripting/reducer"
 import support from "./support/reducer"
@@ -28,7 +27,6 @@ export default history =>
   combineReducers({
     router: connectRouter(history),
     coins,
-    job,
     error,
     scripting,
     support

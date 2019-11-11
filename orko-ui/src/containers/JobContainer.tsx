@@ -15,45 +15,37 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React from "react"
+import React, { useContext } from "react"
 import { connect } from "react-redux"
 
-import Job from "../components/Job"
+import JobComponent from "../components/JobComponent"
 
 import FixedModal from "../components/primitives/FixedModal"
 import Para from "../components/primitives/Para"
 import { Modal, Icon } from "semantic-ui-react"
+import { ServerContext } from "modules/server"
 
-class JobContainer extends React.Component {
-  render() {
-    const job = this.props.jobs.find(
-      j => j.id === this.props.match.params.jobId
-    )
-
-    return (
-      <FixedModal
-        data-orko={"job/" + this.props.match.params.jobId}
-        closeIcon
-        onClose={() => this.props.history.push("/")}
-        style={{ height: "100%" }}
-      >
-        <Modal.Header>
-          <Icon name="code" />
-          {"Job " + this.props.match.params.jobId}
-        </Modal.Header>
-        <Modal.Content scrolling>
-          {job && <Job job={job} />}
-          {!job && <Para>Job {this.props.match.params.jobId} not found</Para>}
-        </Modal.Content>
-      </FixedModal>
-    )
-  }
+const JobContainer: React.FC<any> = ({ match }) => {
+  const jobId = match.params.jobId // from uri
+  const serverApi = useContext(ServerContext)
+  const job = serverApi.jobs.find(j => j.id === jobId)
+  return (
+    <FixedModal
+      data-orko={"job/" + jobId}
+      closeIcon
+      onClose={() => this.props.history.push("/")}
+      style={{ height: "100%" }}
+    >
+      <Modal.Header>
+        <Icon name="code" />
+        {"Job " + jobId}
+      </Modal.Header>
+      <Modal.Content scrolling>
+        {job && <JobComponent job={job} />}
+        {!job && <Para>Job {jobId} not found</Para>}
+      </Modal.Content>
+    </FixedModal>
+  )
 }
 
-function mapStateToProps(state) {
-  return {
-    jobs: state.job.jobs
-  }
-}
-
-export default connect(mapStateToProps)(JobContainer)
+export default connect(() => {})(JobContainer)

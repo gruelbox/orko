@@ -16,38 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import React, { useContext } from "react"
-import { connect } from "react-redux"
 import Section, { Provider as SectionProvider } from "../components/primitives/Section"
 import Window from "../components/primitives/Window"
 import CreateAlertContainer from "./CreateAlertContainer"
-import * as jobActions from "../store/job/actions"
 import { isAlert } from "../util/jobUtils"
-import { AuthContext } from "modules/auth"
 import Alerts from "components/Alerts"
 import { FrameworkContext } from "FrameworkContainer"
+import { ServerContext, OcoJob } from "modules/server"
 
 interface ManageAlertsProps {
   mobile: boolean
 }
 
-interface ManageAlertsConnectedProps extends ManageAlertsProps {
-  jobs
-  dispatch
-}
-
-const ManageAlertsContainer: React.FC<ManageAlertsConnectedProps> = props => {
-  const authApi = useContext(AuthContext)
+const ManageAlertsContainer: React.FC<ManageAlertsProps> = props => {
   const frameworkApi = useContext(FrameworkContext)
+  const serverApi = useContext(ServerContext)
 
   const coin = frameworkApi.alertsCoin
   if (!coin) return null
-  const alerts = props.jobs.filter(
-    job =>
-      isAlert(job) &&
-      job.tickTrigger.exchange === coin.exchange &&
-      job.tickTrigger.base === coin.base &&
-      job.tickTrigger.counter === coin.counter
-  )
+  const alerts = serverApi.jobs
+    .filter(job => isAlert(job))
+    .map(job => job as OcoJob)
+    .filter(
+      job =>
+        job.tickTrigger.exchange === coin.exchange &&
+        job.tickTrigger.base === coin.base &&
+        job.tickTrigger.counter === coin.counter
+    )
   return (
     <Window mobile={props.mobile} large={false}>
       <SectionProvider
@@ -57,7 +52,7 @@ const ManageAlertsContainer: React.FC<ManageAlertsConnectedProps> = props => {
         }}
       >
         <Section id="manageAlerts" heading={"Manage alerts for " + coin.name}>
-          <Alerts alerts={alerts} onDelete={job => props.dispatch(jobActions.deleteJob(authApi, job))} />
+          <Alerts alerts={alerts} onDelete={job => serverApi.deleteJob(job.id)} />
           <CreateAlertContainer coin={coin} />
         </Section>
       </SectionProvider>
@@ -65,10 +60,4 @@ const ManageAlertsContainer: React.FC<ManageAlertsConnectedProps> = props => {
   )
 }
 
-function mapStateToProps(state) {
-  return {
-    jobs: state.job.jobs
-  }
-}
-
-export default connect(mapStateToProps)(ManageAlertsContainer)
+export default ManageAlertsContainer
