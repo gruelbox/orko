@@ -26,6 +26,8 @@ import exchangesService from "modules/market/exchangesService"
 import { withSocket } from "modules/socket/"
 import { withFramework } from "FrameworkContainer"
 import { JobType, withServer } from "modules/server"
+import { withAuth } from "modules/auth"
+import { withLog } from "modules/log"
 
 function coinServerSideSupported(coin) {
   return !["bittrex"].includes(coin.exchange)
@@ -167,4 +169,6 @@ function mapStateToProps(state) {
   }
 }
 
-export default withServer(withFramework(withSocket(connect(mapStateToProps)(StopOrderContainer))))
+export default withServer(
+  withServer(withFramework(withSocket(withAuth(withLog(connect(mapStateToProps)(StopOrderContainer))))))
+)

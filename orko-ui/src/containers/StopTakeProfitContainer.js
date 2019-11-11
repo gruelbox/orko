@@ -22,7 +22,7 @@ import StopTakeProfit from "../components/StopTakeProfit"
 import { getSelectedCoin } from "../selectors/coins"
 import uuidv4 from "uuid/v4"
 import { withFramework } from "FrameworkContainer"
-import { JobType } from "modules/server"
+import { JobType, withServer } from "modules/server"
 
 class StopTakeProfitContainer extends React.Component {
   constructor(props) {
@@ -141,4 +141,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withFramework(connect(mapStateToProps)(StopTakeProfitContainer))
+export default withServer(withFramework(connect(mapStateToProps)(StopTakeProfitContainer)))

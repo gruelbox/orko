@@ -9,6 +9,7 @@ import { Map } from "immutable"
 import { CoinMetadata, Job, ScriptJob } from "./Types"
 import { useInterval } from "modules/common/util/hookUtils"
 import jobService from "./jobService"
+import { AuthenticatedRequestResponseType } from "modules/auth"
 
 interface ServerProps {
   children: ReactElement
@@ -68,7 +69,9 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const submitJob = useMemo(
     () => (job: Job) => {
       authApi
-        .authenticatedRequest(() => jobService.submitJob(job))
+        .authenticatedRequest(() => jobService.submitJob(job), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
         .catch((error: Error) => errorPopup("Could not submit job: " + error.message))
         .then(() => setJobs(current => (current === null ? Immutable([job]) : current.concat(job))))
     },
@@ -78,7 +81,9 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const submitScriptJob = useMemo(
     () => (job: ScriptJob) => {
       authApi
-        .authenticatedRequest(() => jobService.submitScriptJob(job))
+        .authenticatedRequest(() => jobService.submitScriptJob(job), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
         .catch((error: Error) => errorPopup("Could not submit job: " + error.message))
         .then(() => setJobs(current => (current === null ? Immutable([job]) : current.concat(job))))
     },
@@ -88,7 +93,9 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const deleteJob = useMemo(
     () => (id: string) => {
       authApi
-        .authenticatedRequest(() => jobService.deleteJob(id))
+        .authenticatedRequest(() => jobService.deleteJob(id), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
         .catch((error: Error) => errorPopup("Could not delete job: " + error.message))
         .then(() => setJobs(current => (current === null ? null : current.filter(j => j.id !== id))))
     },
@@ -121,7 +128,9 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const removeSubscription = useMemo(
     () => (coin: Coin) => {
       authApi
-        .authenticatedRequest(() => exchangesService.removeSubscription(tickerFromCoin(coin)))
+        .authenticatedRequest(() => exchangesService.removeSubscription(tickerFromCoin(coin)), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
         .catch((error: Error) => errorPopup("Could not remove subscription: " + error.message))
         .then(() => setSubscriptions(current => current.filter(c => c.key !== coin.key)))
     },
@@ -143,8 +152,8 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
       addSubscription,
       removeSubscription,
       coinMetadata,
-      jobs: jobs === null ? Immutable([]) : jobs,
-      jobsLoading: jobs === null,
+      jobs: jobs ? jobs : Immutable([]),
+      jobsLoading: !jobs,
       submitJob,
       submitScriptJob,
       deleteJob

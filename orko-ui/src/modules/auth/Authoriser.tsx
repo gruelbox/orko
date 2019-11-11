@@ -22,9 +22,14 @@ import Login from "./Login"
 import LoginDetails from "./LoginDetails"
 import authService from "./auth"
 import { setXsrfToken, clearXsrfToken } from "modules/common/util/fetchUtil"
-import { AuthContext, AuthApi } from "./AuthContext"
+import {
+  AuthContext,
+  AuthApi,
+  AuthenticatedRequestResponseType,
+  AuthenticatedRequestOptions
+} from "./AuthContext"
 
-interface AuthorizerProps {
+export interface AuthorizerProps {
   onError?(message: string): void
   children: ReactElement
 }
@@ -144,7 +149,10 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
   )
 
   const authenticatedRequest = useMemo(
-    () => async <T extends unknown>(responseGenerator: () => Promise<Response>): Promise<T> => {
+    () => async <T extends unknown>(
+      responseGenerator: () => Promise<Response>,
+      options: AuthenticatedRequestOptions = { responseType: AuthenticatedRequestResponseType.JSON }
+    ): Promise<T> => {
       const response = await responseGenerator()
       if (!response.ok) {
         var errorMessage = null
@@ -166,7 +174,14 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
         console.log(errorMessage)
         throw new Error(errorMessage)
       } else {
-        return await response.json()
+        switch (options.responseType) {
+          case AuthenticatedRequestResponseType.JSON:
+            return await response.json()
+          case AuthenticatedRequestResponseType.TEXT:
+            return (await response.text()) as T
+          default:
+            return null
+        }
       }
     },
     [logout]

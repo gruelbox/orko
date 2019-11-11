@@ -9,6 +9,7 @@ export const ErrorPopup: React.FC<{ message: string; onClose(): void }> = ({ mes
       marginLeft: "auto",
       marginRight: "auto"
     }}
+    open={true}
   >
     <Modal.Header>
       <Icon name="warning" />
