@@ -15,9 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export const LIMIT_ORDER = "LimitOrderJob"
-export const SOFT_TRAILING_STOP = "SoftTrailingStop"
-export const ALERT = "Alert"
-export const STATUS_UPDATE = "StatusUpdateJob"
-export const OCO = "OneCancelsOther"
-export const SCRIPT = "ScriptJob"
+import { JobType, Job, OcoJob } from "modules/server"
+
+export const isAlert = (job: Job) =>
+  job.jobType === JobType.OCO &&
+  ((job: OcoJob) =>
+    (job.high && job.high.job.jobType === JobType.ALERT) ||
+    (job.low && job.low.job.jobType === JobType.ALERT))(job as OcoJob)
+
+export const isStop = (job: Job) =>
+  job.jobType === JobType.OCO &&
+  ((job: OcoJob) =>
+    (!job.low && job.high && job.high.job.jobType === JobType.LIMIT_ORDER) ||
+    (!job.high && job.low && job.low.job.jobType === JobType.LIMIT_ORDER))(job as OcoJob)

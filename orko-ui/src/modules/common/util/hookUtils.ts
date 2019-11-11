@@ -1,4 +1,4 @@
-import { useEffect, useRef, useReducer, useMemo } from "react"
+import { useEffect, useRef, useReducer, useMemo, DependencyList } from "react"
 import Immutable from "seamless-immutable"
 
 /**
@@ -9,15 +9,17 @@ import Immutable from "seamless-immutable"
  * @param callback The code to call every delay milliseconds.
  * @param delay The millisecond delay time.
  */
-export function useInterval(callback: () => void, delay: number) {
+export function useInterval(callback: () => void, delay: number, dependencies: DependencyList = []) {
   const savedCallback = useRef<() => void>()
 
   // Remember the latest callback.
   useEffect(() => {
     savedCallback.current = callback
-  }, [callback])
+    // eslint-disable-next-line
+  }, [callback].concat(dependencies))
 
   // Set up the interval.
+
   useEffect(() => {
     function tick() {
       savedCallback.current()
@@ -26,7 +28,8 @@ export function useInterval(callback: () => void, delay: number) {
       let id = setInterval(tick, delay)
       return () => clearInterval(id)
     }
-  }, [delay])
+    // eslint-disable-next-line
+  }, [delay].concat(dependencies))
 }
 
 /**

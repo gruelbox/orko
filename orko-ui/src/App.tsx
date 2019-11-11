@@ -38,7 +38,6 @@ import Socket from "modules/socket"
 import * as coinActions from "store/coins/actions"
 import * as scriptActions from "store/scripting/actions"
 import * as supportActions from "store/support/actions"
-import * as jobActions from "store/job/actions"
 import * as errorActions from "store/error/actions"
 import { useInterval } from "modules/common/util/hookUtils"
 import { LogApi, LogContext, LogManager } from "modules/log"
@@ -101,13 +100,6 @@ const StoreManagement: React.FC<{ auth: AuthApi; logApi: LogApi }> = ({ auth, lo
       store.dispatch(syncFunction())
     }
   }, [auth, logTrace])
-
-  // Fetch and dispatch the job details on the server.
-  // TODO this should really move to the socket, but for the time being
-  // we'll fetch it on an interval.
-  useInterval(() => {
-    store.dispatch(jobActions.fetchJobs(auth, logApi))
-  }, 5000)
 
   // Periodically check for new versions.
   useInterval(() => {

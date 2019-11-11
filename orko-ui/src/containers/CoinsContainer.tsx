@@ -23,11 +23,11 @@ import Link from "../components/primitives/Link"
 import Coins from "../components/Coins"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
-import { getAlertJobs } from "selectors/jobs"
 import { MarketContext, Coin } from "modules/market"
 import { SocketContext } from "modules/socket"
 import { FrameworkContext } from "FrameworkContainer"
-import { ServerContext } from "modules/server"
+import { ServerContext, OcoJob } from "modules/server"
+import { isAlert } from "util/jobUtils"
 
 const buttons = () => (
   <Link to="/addCoin" data-orko="addCoin" title="Add a coin">
@@ -36,11 +36,10 @@ const buttons = () => (
 )
 
 interface CoinsContainerProps {
-  alertJobs
   referencePrices
 }
 
-const CoinsCointainer: React.FC<CoinsContainerProps> = ({ alertJobs, referencePrices }) => {
+const CoinsCointainer: React.FC<CoinsContainerProps> = ({ referencePrices }) => {
   const marketApi = useContext(MarketContext)
   const socketApi = useContext(SocketContext)
   const frameworkApi = useContext(FrameworkContext)
@@ -49,6 +48,9 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({ alertJobs, referencePr
   const coins = serverApi.subscriptions
   const tickers = socketApi.tickers
   const exchanges = marketApi.data.exchanges
+
+  const allJobs = serverApi.jobs
+  const alertJobs = useMemo<OcoJob[]>(() => allJobs.filter(j => isAlert(j)) as OcoJob[], [allJobs])
 
   const data = useMemo(
     () =>
@@ -95,7 +97,6 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({ alertJobs, referencePr
 
 const ConnectedCoinsContainer = connect(state => {
   return {
-    alertJobs: getAlertJobs(state),
     referencePrices: state.coins.referencePrices
   }
 })(CoinsCointainer)

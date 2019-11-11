@@ -22,9 +22,14 @@ import Login from "./Login"
 import LoginDetails from "./LoginDetails"
 import authService from "./auth"
 import { setXsrfToken, clearXsrfToken } from "modules/common/util/fetchUtil"
-import { AuthContext, AuthApi } from "./AuthContext"
+import {
+  AuthContext,
+  AuthApi,
+  AuthenticatedRequestResponseType,
+  AuthenticatedRequestOptions
+} from "./AuthContext"
 
-interface AuthorizerProps {
+export interface AuthorizerProps {
   onError?(message: string): void
   children: ReactElement
 }
@@ -144,15 +149,18 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
   )
 
   const authenticatedRequest = useMemo(
-    () => async <T extends unknown>(responseGenerator: () => Promise<Response>): Promise<T> => {
+    () => async <T extends unknown>(
+      responseGenerator: () => Promise<Response>,
+      options: AuthenticatedRequestOptions = { responseType: AuthenticatedRequestResponseType.JSON }
+    ): Promise<T> => {
       const response = await responseGenerator()
       if (!response.ok) {
         var errorMessage = null
         if (response.status === 403) {
-          errorMessage = "Failed API request due to invalid whitelisting"
+          console.log("Failed API request due to invalid whitelisting")
           setWhitelisted(false)
         } else if (response.status === 401) {
-          errorMessage = "Failed API request due to invalid token/XSRF"
+          console.log("Failed API request due to invalid token/XSRF")
           logout()
         } else {
           try {
@@ -162,11 +170,18 @@ export const Authorizer: React.FC<AuthorizerProps> = (props: AuthorizerProps) =>
               ? response.statusText
               : "Server error (" + response.status + ")"
           }
+          console.log(errorMessage)
+          throw new Error(errorMessage)
         }
-        console.log(errorMessage)
-        throw new Error(errorMessage)
       } else {
-        return await response.json()
+        switch (options.responseType) {
+          case AuthenticatedRequestResponseType.JSON:
+            return await response.json()
+          case AuthenticatedRequestResponseType.TEXT:
+            return (await response.text()) as T
+          default:
+            return null
+        }
       }
     },
     [logout]

@@ -6,7 +6,10 @@ import exchangesService from "modules/market/exchangesService"
 import { LogContext } from "modules/log"
 import Immutable from "seamless-immutable"
 import { Map } from "immutable"
-import { CoinMetadata } from "./Types"
+import { CoinMetadata, Job, ScriptJob } from "./Types"
+import { useInterval } from "modules/common/util/hookUtils"
+import jobService from "./jobService"
+import { AuthenticatedRequestResponseType } from "modules/auth"
 
 interface ServerProps {
   children: ReactElement
@@ -40,6 +43,7 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
 
   const [subscriptions, setSubscriptions] = useState<Coin[]>(Immutable([]))
   const [coinMetadata, setCoinMetadata] = useState<Map<string, CoinMetadata>>(Map())
+  const [jobs, setJobs] = useState<Job[]>(null)
 
   const fetchMetadata = useMemo(
     () => (coin: Coin) => {
@@ -50,6 +54,52 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
         .then(() => trace("Fetched metadata for " + coin.shortName))
     },
     [authApi, setCoinMetadata, errorPopup, trace]
+  )
+
+  const fetchJobs = useMemo(
+    () => () => {
+      authApi
+        .authenticatedRequest(() => jobService.fetchJobs())
+        .catch((error: Error) => errorPopup("Could not fetch jobs: " + error.message))
+        .then((jobs: Job[]) => setJobs(Immutable(jobs)))
+    },
+    [authApi, errorPopup]
+  )
+
+  const submitJob = useMemo(
+    () => (job: Job) => {
+      authApi
+        .authenticatedRequest(() => jobService.submitJob(job), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
+        .catch((error: Error) => errorPopup("Could not submit job: " + error.message))
+        .then(() => setJobs(current => (current === null ? Immutable([job]) : current.concat(job))))
+    },
+    [authApi, errorPopup]
+  )
+
+  const submitScriptJob = useMemo(
+    () => (job: ScriptJob) => {
+      authApi
+        .authenticatedRequest(() => jobService.submitScriptJob(job), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
+        .catch((error: Error) => errorPopup("Could not submit job: " + error.message))
+        .then(() => setJobs(current => (current === null ? Immutable([job]) : current.concat(job))))
+    },
+    [authApi, errorPopup]
+  )
+
+  const deleteJob = useMemo(
+    () => (id: string) => {
+      authApi
+        .authenticatedRequest(() => jobService.deleteJob(id), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
+        .catch((error: Error) => errorPopup("Could not delete job: " + error.message))
+        .then(() => setJobs(current => (current === null ? null : current.filter(j => j.id !== id))))
+    },
+    [authApi, errorPopup]
   )
 
   useEffect(() => {
@@ -67,7 +117,9 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const addSubscription = useMemo(
     () => (coin: Coin) => {
       authApi
-        .authenticatedRequest(() => exchangesService.addSubscription(tickerFromCoin(coin)))
+        .authenticatedRequest(() => exchangesService.addSubscription(tickerFromCoin(coin)), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
         .catch((error: Error) => errorPopup("Could not add subscription: " + error.message))
         .then(() => setSubscriptions(current => Immutable(insertCoin((current as any).asMutable(), coin))))
         .then(() => fetchMetadata(coin))
@@ -78,11 +130,22 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const removeSubscription = useMemo(
     () => (coin: Coin) => {
       authApi
-        .authenticatedRequest(() => exchangesService.removeSubscription(tickerFromCoin(coin)))
+        .authenticatedRequest(() => exchangesService.removeSubscription(tickerFromCoin(coin)), {
+          responseType: AuthenticatedRequestResponseType.NONE
+        })
         .catch((error: Error) => errorPopup("Could not remove subscription: " + error.message))
         .then(() => setSubscriptions(current => current.filter(c => c.key !== coin.key)))
     },
     [setSubscriptions, errorPopup, authApi]
+  )
+
+  // Fetch jobs every 5 seconds as this doesn't come down the websocket
+  useInterval(
+    () => {
+      fetchJobs()
+    },
+    authApi.authorised ? 5000 : null,
+    [fetchJobs, authApi]
   )
 
   const api = useMemo(
@@ -90,9 +153,23 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
       subscriptions,
       addSubscription,
       removeSubscription,
-      coinMetadata
+      coinMetadata,
+      jobs: jobs ? jobs : Immutable([]),
+      jobsLoading: !jobs,
+      submitJob,
+      submitScriptJob,
+      deleteJob
     }),
-    [subscriptions, addSubscription, removeSubscription, coinMetadata]
+    [
+      subscriptions,
+      addSubscription,
+      removeSubscription,
+      coinMetadata,
+      jobs,
+      submitJob,
+      submitScriptJob,
+      deleteJob
+    ]
   )
 
   return <ServerContext.Provider value={api}>{props.children}</ServerContext.Provider>

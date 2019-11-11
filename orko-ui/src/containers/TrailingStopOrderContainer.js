@@ -20,13 +20,11 @@ import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
 import uuidv4 from "uuid/v4"
 import TrailingStopOrder from "../components/TrailingStopOrder"
-import * as jobActions from "../store/job/actions"
-import * as jobTypes from "../services/jobTypes"
 import { isValidNumber } from "modules/common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
-import { withAuth } from "modules/auth"
 import { withSocket } from "modules/socket/"
 import { withFramework } from "FrameworkContainer"
+import { JobType, withServer, TradeDirection } from "modules/server"
 
 class TrailingStopOrderContainer extends React.Component {
   constructor(props) {
@@ -58,14 +56,14 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   currentPrice = direction =>
-    direction === "BUY"
+    direction === TradeDirection.BUY
       ? this.props.socketApi.selectedCoinTicker.ask
       : this.props.socketApi.selectedCoinTicker.bid
 
   createJob = direction => {
     const startPrice = this.currentPrice(direction)
     return {
-      jobType: jobTypes.SOFT_TRAILING_STOP,
+      jobType: JobType.SOFT_TRAILING_STOP,
       id: uuidv4(),
       tickTrigger: {
         exchange: this.props.coin.exchange,
@@ -82,7 +80,7 @@ class TrailingStopOrderContainer extends React.Component {
   }
 
   onSubmit = async direction => {
-    this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob(direction)))
+    this.props.serverApi.submitJob(this.createJob(direction))
   }
 
   render() {
@@ -102,13 +100,14 @@ class TrailingStopOrderContainer extends React.Component {
         order={this.state.order}
         onChange={this.onChange}
         onFocus={this.onFocus}
-        onBuy={() => this.onSubmit("BUY")}
-        onSell={() => this.onSubmit("SELL")}
+        onBuy={() => this.onSubmit(TradeDirection.BUY)}
+        onSell={() => this.onSubmit(TradeDirection.SELL)}
         stopPriceValid={stopPriceValid}
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
         coin={this.props.coin}
         currentPrice={this.currentPrice}
+        tickerAvailable={!!this.props.socketApi.selectedCoinTicker}
       />
     )
   }
@@ -120,4 +119,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default withFramework(withSocket(withAuth(connect(mapStateToProps)(TrailingStopOrderContainer))))
+export default withServer(withFramework(withSocket(connect(mapStateToProps)(TrailingStopOrderContainer))))

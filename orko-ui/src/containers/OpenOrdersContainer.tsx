@@ -21,25 +21,66 @@ import OpenOrders from "../components/OpenOrders"
 import AuthenticatedOnly from "./AuthenticatedOnly"
 import WithCoin from "./WithCoin"
 import WhileLoading from "../components/WhileLoading"
-import * as jobActions from "../store/job/actions"
 import { AuthContext } from "modules/auth"
 import exchangesService from "modules/market/exchangesService"
-import { Coin } from "modules/market"
-import { SocketContext, Order } from "modules/socket"
-import { getSelectedCoin, getJobsAsOrdersForSelectedCoin } from "selectors/coins"
+import { Coin, ServerCoin } from "modules/market"
+import { SocketContext, DisplayOrder, RunningAtType, OrderType } from "modules/socket"
+import { getSelectedCoin } from "selectors/coins"
 import { LogContext } from "modules/log"
+import { ServerContext, OcoJob, LimitOrderJob, TradeDirection } from "modules/server"
+import { isStop } from "util/jobUtils"
 
-const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin; dispatch }> = ({
-  jobsAsOrders,
-  coin,
-  dispatch
-}) => {
+function jobTriggerMatchesCoin(job: OcoJob, coin: ServerCoin) {
+  return (
+    job.tickTrigger.exchange === coin.exchange &&
+    job.tickTrigger.base === coin.base &&
+    job.tickTrigger.counter === coin.counter
+  )
+}
+
+const OpenOrdersContainer: React.FC<{ coin: Coin }> = ({ coin }) => {
   const socketApi = useContext(SocketContext)
   const authApi = useContext(AuthContext)
   const logApi = useContext(LogContext)
+  const serverApi = useContext(ServerContext)
 
-  const allOrders = socketApi.openOrders
-  const orders = coin && allOrders ? allOrders.filter(o => !o.deleted).concat(jobsAsOrders) : null
+  const openOrders = socketApi.openOrders
+  const allOrders = useMemo<DisplayOrder[]>(
+    () =>
+      openOrders.filter(o => !o.deleted).map(o => ({ ...o, runningAt: RunningAtType.EXCHANGE, jobId: null })),
+    [openOrders]
+  )
+  const allJobs = serverApi.jobs
+  const jobsAsOrders = useMemo<DisplayOrder[]>(() => {
+    if (!coin) return []
+    return allJobs
+      .filter(job => isStop(job))
+      .map(job => job as OcoJob)
+      .filter(job => jobTriggerMatchesCoin(job, coin))
+      .map(job => ({
+        runningAt: RunningAtType.SERVER,
+        jobId: job.id,
+        type: job.high
+          ? (job.high.job as LimitOrderJob).direction === TradeDirection.BUY
+            ? OrderType.BID
+            : OrderType.ASK
+          : (job.low.job as LimitOrderJob).direction === TradeDirection.BUY
+          ? OrderType.BID
+          : OrderType.ASK,
+        stopPrice: job.high ? Number(job.high.thresholdAsString) : Number(job.low.thresholdAsString),
+        limitPrice: job.high
+          ? Number((job.high.job as LimitOrderJob).limitPrice)
+          : Number((job.low.job as LimitOrderJob).limitPrice),
+        originalAmount: job.high
+          ? Number((job.high.job as LimitOrderJob).amount)
+          : Number((job.low.job as LimitOrderJob).amount),
+        remainingAmount: job.high
+          ? Number((job.high.job as LimitOrderJob).amount)
+          : Number((job.low.job as LimitOrderJob).amount)
+      }))
+  }, [allJobs, coin])
+
+  const orders: DisplayOrder[] = coin && allOrders ? allOrders.concat(jobsAsOrders) : null
   const authenticatedRequest = authApi.authenticatedRequest
   const logPopup = logApi.errorPopup
   const pendingCancelOrder = socketApi.pendingCancelOrder
@@ -49,20 +90,13 @@ const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin; di
       pendingCancelOrder(
         id,
         // Deliberately new enough to be relevant now but get immediately overwritten
-        orders.find((o: Order) => o.id === id).serverTimestamp + 1
+        openOrders.find(o => o.id === id).serverTimestamp + 1
       )
       authenticatedRequest(() => exchangesService.cancelOrder(coin, id)).catch(error =>
         logPopup("Could not cancel order: " + error.message)
       )
     },
-    [authenticatedRequest, logPopup, pendingCancelOrder, orders]
-  )
-
-  const onCancelServer = useMemo(
-    () => (jobId: string) => {
-      dispatch(jobActions.deleteJob(authApi, { id: jobId }))
-    },
-    [dispatch, authApi]
+    [authenticatedRequest, logPopup, pendingCancelOrder, openOrders]
   )
 
   return (
@@ -74,7 +108,7 @@ const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin; di
               <OpenOrders
                 orders={orders}
                 onCancelExchange={(id: string) => onCancelExchange(id, coin)}
-                onCancelServer={onCancelServer}
+                onCancelServer={(id: string) => serverApi.deleteJob(id)}
                 coin={coin}
               />
             )}
@@ -87,7 +121,6 @@ const OpenOrdersContainer: React.FC<{ jobsAsOrders: Array<Order>; coin: Coin; di
 
 function mapStateToProps(state) {
   return {
-    jobsAsOrders: getJobsAsOrdersForSelectedCoin(state),
     coin: getSelectedCoin(state)
   }
 }

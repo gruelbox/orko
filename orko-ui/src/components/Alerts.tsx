@@ -77,7 +77,7 @@ interface AlertsProps {
 
 const Alerts: React.FC<AlertsProps> = ({ alerts, onDelete }) => (
   <ReactTable
-    data={alerts.asMutable()}
+    data={alerts}
     style={{
       border: "1px solid rgba(0,0,0,0.3)"
     }}

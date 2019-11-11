@@ -21,13 +21,13 @@ import Immutable from "seamless-immutable"
 import StopOrder from "../components/StopOrder"
 import { isValidNumber } from "modules/common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
-import * as jobActions from "../store/job/actions"
-import * as jobTypes from "../services/jobTypes"
 import uuidv4 from "uuid/v4"
-import { withAuth } from "modules/auth"
 import exchangesService from "modules/market/exchangesService"
 import { withSocket } from "modules/socket/"
 import { withFramework } from "FrameworkContainer"
+import { JobType, withServer } from "modules/server"
+import { withAuth } from "modules/auth"
+import { withLog } from "modules/log"
 
 function coinServerSideSupported(coin) {
   return !["bittrex"].includes(coin.exchange)
@@ -88,7 +88,7 @@ class StopOrderContainer extends React.Component {
   })
 
   createJob = direction => ({
-    jobType: jobTypes.OCO,
+    jobType: JobType.OCO,
     id: uuidv4(),
     tickTrigger: {
       exchange: this.props.coin.exchange,
@@ -98,7 +98,7 @@ class StopOrderContainer extends React.Component {
     [direction === "BUY" ? "high" : "low"]: {
       thresholdAsString: this.state.order.stopPrice,
       job: {
-        jobType: jobTypes.LIMIT_ORDER,
+        jobType: JobType.LIMIT_ORDER,
         id: uuidv4(),
         direction: direction,
         tickTrigger: {
@@ -123,7 +123,7 @@ class StopOrderContainer extends React.Component {
           this.props.logApi.errorPopup("Could not submit order: " + error.message)
         })
     } else {
-      this.props.dispatch(jobActions.submitJob(this.props.auth, this.createJob(direction)))
+      this.props.serverApi.submitJob(this.createJob(direction))
     }
   }
 
@@ -169,4 +169,6 @@ function mapStateToProps(state) {
   }
 }
 
-export default withFramework(withSocket(withAuth(connect(mapStateToProps)(StopOrderContainer))))
+export default withServer(
+  withServer(withFramework(withSocket(withAuth(withLog(connect(mapStateToProps)(StopOrderContainer))))))
+)
