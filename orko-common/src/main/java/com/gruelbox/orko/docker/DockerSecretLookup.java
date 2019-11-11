@@ -78,7 +78,7 @@ class DockerSecretLookup extends StrLookup<Object> {
   @Override
   public String lookup(String key) {
     if (!enabled && !strict) {
-      return null;
+      return key.startsWith("secret-") ? "" : null;
     }
     Preconditions.checkArgument(!key.contains(File.separator) && !key.contains("/"), "Path separator in variable name");
     File file = new File(path + File.separator + key);
