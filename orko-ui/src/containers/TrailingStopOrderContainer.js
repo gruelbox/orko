@@ -107,6 +107,7 @@ class TrailingStopOrderContainer extends React.Component {
         amountValid={amountValid}
         coin={this.props.coin}
         currentPrice={this.currentPrice}
+        tickerAvailable={!!this.props.socketApi.selectedCoinTicker}
       />
     )
   }

@@ -23,8 +23,7 @@ import FormButtonBar from "./primitives/FormButtonBar"
 import { Form, Label } from "semantic-ui-react"
 
 const TrailingStopOrder = props => {
-  const valid =
-    props.stopPriceValid && props.limitPriceValid && props.amountValid
+  const valid = props.stopPriceValid && props.limitPriceValid && props.amountValid && props.tickerAvailable
 
   const onChange = props.onChange
     ? (prop, value) =>
@@ -100,20 +99,10 @@ const TrailingStopOrder = props => {
         />
       </Form.Group>
       <FormButtonBar>
-        <Form.Button
-          title="Submit sell stop order"
-          disabled={!valid}
-          onClick={props.onSell}
-          color="red"
-        >
+        <Form.Button title="Submit sell stop order" disabled={!valid} onClick={props.onSell} color="red">
           Submit sell stop
         </Form.Button>
-        <Form.Button
-          title="Submit buy stop order"
-          disabled={!valid}
-          onClick={props.onBuy}
-          color="green"
-        >
+        <Form.Button title="Submit buy stop order" disabled={!valid} onClick={props.onBuy} color="green">
           Submit buy stop
         </Form.Button>
       </FormButtonBar>
