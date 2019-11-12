@@ -288,7 +288,7 @@ public class ExchangeResource implements WebResource {
     } catch (FundsExceededException e) {
       return Response.status(400).entity(new ErrorResponse(e.getMessage())).build();
     } catch (Exception e) {
-      LOGGER.error("Failed to submit order", e);
+      LOGGER.error("Failed to submit order: {}", order, e);
       return Response.status(500).entity(new ErrorResponse("Failed to submit order. " + e.getMessage())).build();
     }
   }
@@ -587,6 +587,18 @@ public class ExchangeResource implements WebResource {
 
     public void setAmount(BigDecimal amount) {
       this.amount = amount;
+    }
+    
+    @Override
+    public String toString() {
+      return "OrderPrototype{" +
+          "counter='" + counter + '\'' +
+          ", base='" + base + '\'' +
+          ", stopPrice=" + stopPrice +
+          ", limitPrice=" + limitPrice +
+          ", type=" + type +
+          ", amount=" + amount +
+          '}';
     }
   }
 
