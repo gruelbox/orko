@@ -88,7 +88,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/badgerwithagun"><img src="https://avatars0.githubusercontent.com/u/6483013?v=4" width="100px;" alt="Graham Crockford"/><br /><sub><b>Graham Crockford</b></sub></a><br /><a href="https://github.com/gruelbox/orko/commits?author=badgerwithagun" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/badgerwithagun"><img src="https://avatars0.githubusercontent.com/u/6483013?v=4" width="100px;" alt="Graham Crockford"/><br /><sub><b>Graham Crockford</b></sub></a><br /><a href="https://github.com/gruelbox/orko/commits?author=badgerwithagun" title="Code">💻</a> <a href="#content-badgerwithagun" title="Content">🖋</a> <a href="https://github.com/gruelbox/orko/commits?author=badgerwithagun" title="Documentation">📖</a> <a href="#design-badgerwithagun" title="Design">🎨</a> <a href="#infra-badgerwithagun" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-badgerwithagun" title="Maintenance">🚧</a> <a href="#security-badgerwithagun" title="Security">🛡️</a> <a href="https://github.com/gruelbox/orko/commits?author=badgerwithagun" title="Tests">⚠️</a> <a href="#userTesting-badgerwithagun" title="User Testing">📓</a></td>
   </tr>
 </table>
 
