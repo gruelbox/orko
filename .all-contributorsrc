@@ -13,6 +13,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "lowwor",
+      "name": "lowwor",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/5444033?v=4",
+      "profile": "https://www.lowwor.com/",
+      "contributions": [
+        "code",
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,
