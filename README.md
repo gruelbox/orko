@@ -1,7 +1,5 @@
 # Orko [![Twitter](http://i.imgur.com/wWzX9uB.png)](https://twitter.com/gruelbox)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)<!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Collaborate on Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gruelbox/community)
 [![Current version](https://img.shields.io/github/release/gruelbox/orko.svg)](https://github.com/gruelbox/orko/releases/latest)
 
@@ -90,6 +88,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/badgerwithagun"><img src="https://avatars0.githubusercontent.com/u/6483013?v=4" width="100px;" alt="Graham Crockford"/><br /><sub><b>Graham Crockford</b></sub></a><br /><a href="https://github.com/gruelbox/orko/commits?author=badgerwithagun" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/lazrfocus"><img src="https://avatars3.githubusercontent.com/u/52254582?v=4" width="100px;" alt="lazrfocus"/><br /><sub><b>lazrfocus</b></sub></a><br /><a href="#ideas-lazrfocus" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
