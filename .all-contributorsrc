@@ -11,7 +11,15 @@
       "avatar_url": "https://avatars0.githubusercontent.com/u/6483013?v=4",
       "profile": "https://github.com/badgerwithagun",
       "contributions": [
-        "code"
+        "code",
+        "content",
+        "doc",
+        "design",
+        "infra",
+        "maintenance",
+        "security",
+        "test",
+        "userTesting"
       ]
     },
     {
