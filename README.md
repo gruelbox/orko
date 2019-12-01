@@ -88,7 +88,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/badgerwithagun"><img src="https://avatars0.githubusercontent.com/u/6483013?v=4" width="100px;" alt="Graham Crockford"/><br /><sub><b>Graham Crockford</b></sub></a><br /><a href="https://github.com/gruelbox/orko/commits?author=badgerwithagun" title="Code">💻</a></td>
-    <td align="center"><a href="https://www.lowwor.com/"><img src="https://avatars3.githubusercontent.com/u/5444033?v=4" width="100px;" alt="lowwor"/><br /><sub><b>lowwor</b></sub></a><br /><a href="https://github.com/gruelbox/orko/commits?author=lowwor" title="Code">💻</a></td>
+    <td align="center"><a href="https://www.lowwor.com/"><img src="https://avatars3.githubusercontent.com/u/5444033?v=4" width="100px;" alt="lowwor"/><br /><sub><b>lowwor</b></sub></a><br /><a href="https://github.com/gruelbox/orko/commits?author=lowwor" title="Code">💻</a> <a href="#userTesting-lowwor" title="User Testing">📓</a></td>
   </tr>
 </table>
 
