@@ -18,16 +18,10 @@
 
 package com.gruelbox.orko.notification;
 
-import static com.gruelbox.orko.notification.NotificationLevel.ALERT;
-import static com.gruelbox.orko.notification.NotificationLevel.ERROR;
-
-import java.util.Set;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -37,18 +31,16 @@ import com.google.inject.Singleton;
 import io.dropwizard.lifecycle.Managed;
 
 @Singleton
-final class TelegramNotificationsTask implements Managed {
+class AppriseNotificationsTask implements Managed {
 
-  private static final Set<NotificationLevel> SEND_FOR = ImmutableSet.of(ERROR, ALERT);
-
-  private final TelegramConfiguration configuration;
-  private final Provider<TelegramService> telegramService;
+  private final AppriseConfiguration configuration;
+  private final Provider<AppriseService> appriseService;
   private final EventBus eventBus;
 
   @Inject
-  TelegramNotificationsTask(@Nullable TelegramConfiguration configuration, Provider<TelegramService> telegramService, EventBus eventBus) {
+  AppriseNotificationsTask(@Nullable AppriseConfiguration configuration, Provider<AppriseService> appriseService, EventBus eventBus) {
     this.configuration = configuration;
-    this.telegramService = telegramService;
+    this.appriseService = appriseService;
     this.eventBus = eventBus;
   }
 
@@ -68,12 +60,10 @@ final class TelegramNotificationsTask implements Managed {
 
   @Subscribe
   void notify(Notification notification) {
-    if (SEND_FOR.contains(notification.level())) {
-      telegramService.get().sendMessage(notification.message());
-    }
+    appriseService.get().send(notification);
   }
 
   private boolean isEnabled() {
-    return configuration != null && StringUtils.isNotBlank(configuration.getBotToken());
+    return configuration != null && StringUtils.isNotBlank(configuration.getMicroserviceUrl());
   }
 }

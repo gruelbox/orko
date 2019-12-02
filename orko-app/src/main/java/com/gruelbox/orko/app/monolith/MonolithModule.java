@@ -21,7 +21,6 @@ package com.gruelbox.orko.app.monolith;
 import static com.gruelbox.orko.exchange.MarketDataModule.MarketDataSource.MANAGE_LOCALLY;
 import static com.gruelbox.orko.exchange.MarketDataModule.MarketDataSource.MANAGE_REMOTELY;
 import static com.gruelbox.orko.notification.NotificationModule.SubmissionType.ASYNC;
-import static com.gruelbox.orko.notification.NotificationModule.TelegramState.TELEGRAM_ENABLED;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -97,7 +96,7 @@ class MonolithModule extends AbstractModule implements Configured<MonolithConfig
     install(new SupportModule());
 
     // Forwards notifications to Telegram asynchronously
-    install(new NotificationModule(ASYNC, TELEGRAM_ENABLED));
+    install(new NotificationModule(ASYNC));
 
     LOGGER.info("Market data source config:\n  ws={}\n  api={}",
         configuration.getRemoteMarketData().getWebSocketUri(),

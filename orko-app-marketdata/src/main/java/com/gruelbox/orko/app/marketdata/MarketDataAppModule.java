@@ -20,7 +20,6 @@ package com.gruelbox.orko.app.marketdata;
 
 import static com.gruelbox.orko.exchange.MarketDataModule.MarketDataSource.MANAGE_LOCALLY;
 import static com.gruelbox.orko.notification.NotificationModule.SubmissionType.SYNC;
-import static com.gruelbox.orko.notification.NotificationModule.TelegramState.TELEGRAM_ENABLED;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
@@ -60,7 +59,7 @@ class MarketDataAppModule extends AbstractModule implements Configured<MarketDat
     install(new MarketDataModule(MANAGE_LOCALLY));
 
     // Forwards notifications to Telegram asynchronously
-    install(new NotificationModule(SYNC, TELEGRAM_ENABLED));
+    install(new NotificationModule(SYNC));
 
     // Monitors various status issues are fires notifications if things go wrong.
     install(new MonitorModule());

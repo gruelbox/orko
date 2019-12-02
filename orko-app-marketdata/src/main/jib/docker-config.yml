@@ -3,6 +3,8 @@ scriptSigningKey: '${SCRIPT_SIGNING_KEY:-}${secret-script-signing-key}'
 telegram:
   botToken: '${TELEGRAM_BOT_TOKEN:-}${secret-telegram-botToken}'
   chatId: '${TELEGRAM_CHAT_ID:-}${secret-telegram-chatId}'
+apprise:
+  microserviceUrl: '${NOTIFICATIONS_POST_URL:-}'
 exchanges:
   simulated:
     apiKey: ${SIMULATED_API_KEY:-}
