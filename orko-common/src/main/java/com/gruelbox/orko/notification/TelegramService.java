@@ -44,20 +44,24 @@ class TelegramService {
   }
 
   void sendMessage(String message) {
-    final Response response = telegramTarget
-      .path("sendMessage")
-      .request()
-      .post(
-        Entity.entity(
-          ImmutableMap.of(
-              "chat_id", configuration.getChatId(),
-              "text", message
-          ),
-          MediaType.APPLICATION_JSON
-        )
-      );
-    if (response.getStatus() != 200) {
-      LOGGER.error("Could not send telegram message: {}", response.getEntity());
+    try {
+      final Response response = telegramTarget
+          .path("sendMessage")
+          .request()
+          .post(
+              Entity.entity(
+                  ImmutableMap.of(
+                      "chat_id", configuration.getChatId(),
+                      "text", message
+                  ),
+                  MediaType.APPLICATION_JSON
+              )
+          );
+      if (response.getStatus() != 200) {
+        LOGGER.error("Could not send message: {}", response.readEntity(String.class));
+      }
+    } catch (Exception e) {
+      LOGGER.error("Could not send message: {}", e.getMessage(), e);
     }
   }
 }

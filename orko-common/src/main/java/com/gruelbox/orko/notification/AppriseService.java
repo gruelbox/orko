@@ -18,17 +18,23 @@
 
 package com.gruelbox.orko.notification;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
+import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.setup.Environment;
+import io.dropwizard.util.Duration;
 
 class AppriseService {
 
@@ -38,26 +44,43 @@ class AppriseService {
   private final AppriseConfiguration configuration;
 
   @Inject
-  AppriseService(AppriseConfiguration configuration, Client client) {
+  AppriseService(AppriseConfiguration configuration, Environment environment) {
     this.configuration = configuration;
-    this.target = client.target(configuration.getMicroServiceUrl());
+
+    // Use a custom Jersey client as the microservice is pretty sensitive to encoding
+    JerseyClientConfiguration jerseyClientConfiguration = new JerseyClientConfiguration();
+    jerseyClientConfiguration.setTimeout(Duration.seconds(10));
+    jerseyClientConfiguration.setConnectionTimeout(Duration.seconds(10));
+    jerseyClientConfiguration.setConnectionRequestTimeout(Duration.seconds(10));
+    jerseyClientConfiguration.setGzipEnabled(false);
+    jerseyClientConfiguration.setGzipEnabledForRequests(false);
+    Client client = new JerseyClientBuilder(environment)
+        .using(jerseyClientConfiguration)
+        .build("apprise");
+
+    this.target = client.target(configuration.getMicroserviceUrl());
   }
 
   void send(Notification notification) {
-    final Response response = target
-      .path("")
-      .request()
-      .post(
-        Entity.entity(
-          ImmutableMap.of(
-              "title", notification.level().name(),
-              "body", notification.message()
-          ),
-          MediaType.APPLICATION_JSON
-        )
-      );
-    if (response.getStatus() != 200) {
-      LOGGER.error("Could not send message: {}", response.getEntity());
+    try {
+      final Response response = target
+          .path("/")
+          .request()
+          .header(HttpHeaders.CONTENT_ENCODING, "identity")
+          .post(
+              Entity.entity(
+                  Map.of(
+                      "title", "",
+                      "body", notification.message()
+                  ),
+                  MediaType.APPLICATION_JSON
+              )
+          );
+      if (response.getStatus() != 200) {
+        LOGGER.error("Could not send message: {}", response.readEntity(String.class));
+      }
+    } catch (Exception e) {
+      LOGGER.error("Could not send message: {}", e.getMessage(), e);
     }
   }
 }

@@ -33,7 +33,6 @@ import io.dropwizard.lifecycle.Managed;
 @Singleton
 class AppriseNotificationsTask implements Managed {
 
-  @Nullable
   private final AppriseConfiguration configuration;
   private final Provider<AppriseService> appriseService;
   private final EventBus eventBus;
@@ -65,6 +64,6 @@ class AppriseNotificationsTask implements Managed {
   }
 
   private boolean isEnabled() {
-    return configuration != null && StringUtils.isNotBlank(configuration.getMicroServiceUrl());
+    return configuration != null && StringUtils.isNotBlank(configuration.getMicroserviceUrl());
   }
 }

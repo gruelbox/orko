@@ -22,16 +22,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AppriseConfiguration {
 
-  private String microServiceUrl;
+  private String microserviceUrl;
 
   @JsonProperty
-  public String getMicroServiceUrl() {
-    return microServiceUrl;
+  public String getMicroserviceUrl() {
+    return microserviceUrl;
   }
 
   @JsonProperty
-  public void setMicroServiceUrl(String urls) {
-    this.microServiceUrl = microServiceUrl;
+  public void setMicroserviceUrl(String microserviceUrl) {
+    this.microserviceUrl = microserviceUrl;
   }
 
 }
