@@ -19,6 +19,7 @@
 package com.gruelbox.orko.notification;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
@@ -31,41 +32,41 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Suppliers;
+import com.google.inject.Singleton;
+
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
-import com.google.inject.Singleton;
 
 @Singleton
 class AppriseService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AppriseService.class);
 
-  private final WebTarget target;
-  private final AppriseConfiguration configuration;
+  private final Supplier<WebTarget> target;
 
   @Inject
   AppriseService(AppriseConfiguration configuration, Environment environment) {
-    this.configuration = configuration;
-
-    // Use a custom Jersey client as the microservice is pretty sensitive to encoding
-    JerseyClientConfiguration jerseyClientConfiguration = new JerseyClientConfiguration();
-    jerseyClientConfiguration.setTimeout(Duration.seconds(10));
-    jerseyClientConfiguration.setConnectionTimeout(Duration.seconds(10));
-    jerseyClientConfiguration.setConnectionRequestTimeout(Duration.seconds(10));
-    jerseyClientConfiguration.setGzipEnabled(false);
-    jerseyClientConfiguration.setGzipEnabledForRequests(false);
-    Client client = new JerseyClientBuilder(environment)
-        .using(jerseyClientConfiguration)
-        .build("apprise");
-
-    this.target = client.target(configuration.getMicroserviceUrl());
+    this.target = Suppliers.memoize(() -> {
+      // Use a custom Jersey client as the microservice is pretty sensitive to encoding
+      JerseyClientConfiguration jerseyClientConfiguration = new JerseyClientConfiguration();
+      jerseyClientConfiguration.setTimeout(Duration.seconds(10));
+      jerseyClientConfiguration.setConnectionTimeout(Duration.seconds(10));
+      jerseyClientConfiguration.setConnectionRequestTimeout(Duration.seconds(10));
+      jerseyClientConfiguration.setGzipEnabled(false);
+      jerseyClientConfiguration.setGzipEnabledForRequests(false);
+      Client client = new JerseyClientBuilder(environment)
+          .using(jerseyClientConfiguration)
+          .build("apprise-" + this.hashCode());
+      return client.target(configuration.getMicroserviceUrl());
+    });
   }
 
   void send(Notification notification) {
     try {
-      final Response response = target
+      final Response response = target.get()
           .path("/")
           .request()
           .header(HttpHeaders.CONTENT_ENCODING, "identity")
