@@ -18,10 +18,16 @@
 
 package com.gruelbox.orko.notification;
 
+import static com.gruelbox.orko.notification.NotificationLevel.ALERT;
+import static com.gruelbox.orko.notification.NotificationLevel.ERROR;
+
+import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -32,6 +38,8 @@ import io.dropwizard.lifecycle.Managed;
 
 @Singleton
 class AppriseNotificationsTask implements Managed {
+
+  private static final Set<NotificationLevel> SEND_FOR = ImmutableSet.of(ERROR, ALERT);
 
   private final AppriseConfiguration configuration;
   private final Provider<AppriseService> appriseService;
@@ -60,7 +68,9 @@ class AppriseNotificationsTask implements Managed {
 
   @Subscribe
   void notify(Notification notification) {
-    appriseService.get().send(notification);
+    if (SEND_FOR.contains(notification.level())) {
+      appriseService.get().send(notification);
+    }
   }
 
   private boolean isEnabled() {
