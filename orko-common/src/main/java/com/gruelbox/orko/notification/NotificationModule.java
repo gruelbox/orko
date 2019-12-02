@@ -27,11 +27,9 @@ import io.dropwizard.lifecycle.Managed;
 public class NotificationModule extends AbstractModule {
 
   private final SubmissionType submissionType;
-  private final TelegramState telegramState;
 
-  public NotificationModule(SubmissionType submissionType, TelegramState telegramState) {
+  public NotificationModule(SubmissionType submissionType) {
     this.submissionType = submissionType;
-    this.telegramState = telegramState;
   }
 
   @Override
@@ -42,19 +40,14 @@ public class NotificationModule extends AbstractModule {
       bind(NotificationService.class).to(SynchronousNotificationService.class);
     }
     bind(StatusUpdateService.class).to(SynchronousStatusUpdateService.class);
-    if (telegramState == TelegramState.TELEGRAM_ENABLED) {
-      Multibinder.newSetBinder(binder(), Managed.class)
-          .addBinding().to(TelegramNotificationsTask.class);
-    }
+    Multibinder.newSetBinder(binder(), Managed.class)
+        .addBinding().to(TelegramNotificationsTask.class);
+    Multibinder.newSetBinder(binder(), Managed.class)
+        .addBinding().to(AppriseNotificationsTask.class);
   }
 
   public enum SubmissionType {
     ASYNC,
     SYNC
-  }
-
-  public enum TelegramState {
-    TELEGRAM_ENABLED,
-    TELEGRAM_DISABLED
   }
 }

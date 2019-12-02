@@ -30,34 +30,34 @@ import org.slf4j.LoggerFactory;
 
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
-class TelegramService {
+class AppriseService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AppriseService.class);
 
-  private final WebTarget telegramTarget;
-  private final TelegramConfiguration configuration;
+  private final WebTarget target;
+  private final AppriseConfiguration configuration;
 
   @Inject
-  TelegramService(TelegramConfiguration configuration, Client client) {
+  AppriseService(AppriseConfiguration configuration, Client client) {
     this.configuration = configuration;
-    this.telegramTarget = client.target("https://api.telegram.org/bot" + configuration.getBotToken());
+    this.target = client.target(configuration.getMicroServiceUrl());
   }
 
-  void sendMessage(String message) {
-    final Response response = telegramTarget
-      .path("sendMessage")
+  void send(Notification notification) {
+    final Response response = target
+      .path("")
       .request()
       .post(
         Entity.entity(
           ImmutableMap.of(
-              "chat_id", configuration.getChatId(),
-              "text", message
+              "title", notification.level().name(),
+              "body", notification.message()
           ),
           MediaType.APPLICATION_JSON
         )
       );
     if (response.getStatus() != 200) {
-      LOGGER.error("Could not send telegram message: {}", response.getEntity());
+      LOGGER.error("Could not send message: {}", response.getEntity());
     }
   }
 }

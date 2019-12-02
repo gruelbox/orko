@@ -30,6 +30,7 @@ import com.google.inject.util.Providers;
 import com.gruelbox.orko.BaseApplicationConfiguration;
 import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.job.script.ScriptConfiguration;
+import com.gruelbox.orko.notification.AppriseConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 
@@ -57,6 +58,10 @@ public class MarketDataAppConfiguration extends Configuration implements Backgro
   @Valid
   @JsonProperty
   private TelegramConfiguration telegram;
+
+  @Valid
+  @JsonProperty
+  private AppriseConfiguration apprise;
 
   @JsonProperty
   private String scriptSigningKey;
@@ -89,6 +94,14 @@ public class MarketDataAppConfiguration extends Configuration implements Backgro
 
   public void setTelegram(TelegramConfiguration telegram) {
     this.telegram = telegram;
+  }
+
+  public AppriseConfiguration getApprise() {
+    return apprise;
+  }
+
+  public void setApprise(AppriseConfiguration apprise) {
+    this.apprise = apprise;
   }
 
   public Map<String, ExchangeConfiguration> getExchanges() {
@@ -138,6 +151,8 @@ public class MarketDataAppConfiguration extends Configuration implements Backgro
    */
   public void bind(Binder binder) {
     binder.bind(BackgroundProcessingConfiguration.class).toInstance(this);
+    binder.bind(TelegramConfiguration.class).toProvider(Providers.of(telegram));
+    binder.bind(AppriseConfiguration.class).toProvider(Providers.of(apprise));
     binder.bind(ScriptConfiguration.class).toInstance(this);
     binder.bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {}).toProvider(Providers.of(exchanges));
   }

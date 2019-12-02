@@ -35,6 +35,7 @@ import com.gruelbox.orko.exchange.ExchangeConfiguration;
 import com.gruelbox.orko.exchange.RemoteMarketDataConfiguration;
 import com.gruelbox.orko.job.script.ScriptConfiguration;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
+import com.gruelbox.orko.notification.AppriseConfiguration;
 import com.gruelbox.orko.notification.TelegramConfiguration;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
@@ -80,6 +81,10 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
   @Valid
   @JsonProperty
   private TelegramConfiguration telegram;
+
+  @Valid
+  @JsonProperty
+  private AppriseConfiguration apprise;
 
   @JsonProperty
   private String scriptSigningKey;
@@ -134,6 +139,14 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
 
   public void setTelegram(TelegramConfiguration telegram) {
     this.telegram = telegram;
+  }
+
+  public AppriseConfiguration getApprise() {
+    return apprise;
+  }
+
+  public void setApprise(AppriseConfiguration apprise) {
+    this.apprise = apprise;
   }
 
   public Map<String, ExchangeConfiguration> getExchanges() {
@@ -214,6 +227,7 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
     binder.bind(AuthConfiguration.class).toProvider(Providers.of(auth));
     binder.bind(JerseyClientConfiguration.class).toProvider(Providers.of(jerseyClient));
     binder.bind(TelegramConfiguration.class).toProvider(Providers.of(telegram));
+    binder.bind(AppriseConfiguration.class).toProvider(Providers.of(apprise));
     binder.bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {}).toProvider(Providers.of(exchanges));
     binder.bind(RemoteMarketDataConfiguration.class).toInstance(this.remoteMarketData);
 
