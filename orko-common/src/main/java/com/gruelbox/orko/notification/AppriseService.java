@@ -35,7 +35,9 @@ import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
+import com.google.inject.Singleton;
 
+@Singleton
 class AppriseService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AppriseService.class);
