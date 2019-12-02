@@ -16,6 +16,8 @@ auth:
 telegram:
   botToken: '${TELEGRAM_BOT_TOKEN:-}${secret-telegram-botToken}'
   chatId: '${TELEGRAM_CHAT_ID:-}${secret-telegram-chatId}'
+apprise:
+  microserviceUrl: '${NOTIFICATIONS_POST_URL:-}'
 database:
   connectionString: ${JDBC_URL:-h2:file:/app/db/orko;DB_CLOSE_DELAY=-1;AUTO_SERVER=true;DEFAULT_LOCK_TIMEOUT=60000}
   lockSeconds: ${LOCK_SECONDS:-45}
