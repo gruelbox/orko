@@ -143,6 +143,14 @@
           </plugin>
         </plugins>
       </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.sonarsource.java</groupId>
+          <artifactId>sonar-jacoco-listeners</artifactId>
+          <version>5.14.0.18788</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
     </profile>
     <profile>
       <id>e2etest</id>
@@ -507,11 +515,6 @@
         <groupId>${xchange.stream.groupid}</groupId>
         <artifactId>xchange-coinbasepro</artifactId>
         <version>${xchange.stream.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.sonarsource.java</groupId>
-        <artifactId>sonar-jacoco-listeners</artifactId>
-        <version>5.14.0.18788</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
