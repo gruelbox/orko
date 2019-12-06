@@ -30,7 +30,7 @@
     "react-rnd": "^10.1.1",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
-    "react-table": "^6.10.3",
+    "react-table": "^6.11.4",
     "recompose": "^0.30.0",
     "reconnecting-websocket": "^4.2.0",
     "redux": "^4.0.4",
