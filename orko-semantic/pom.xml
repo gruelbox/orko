@@ -19,12 +19,11 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>disabled</id>
-              <phase>none</phase>
-            </execution>
-          </executions>
+          <configuration>
+            <excludes>
+              <exclude>**</exclude>
+            </excludes>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
