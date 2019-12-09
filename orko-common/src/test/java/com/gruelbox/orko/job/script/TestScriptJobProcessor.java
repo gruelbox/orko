@@ -21,7 +21,7 @@ package com.gruelbox.orko.job.script;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
 import static com.gruelbox.orko.jobrun.spi.Status.RUNNING;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,7 +46,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.job.LimitOrderJob;
@@ -55,10 +54,10 @@ import com.gruelbox.orko.job.script.ScriptJob.Builder;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.TickerEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.TickerEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 
@@ -319,8 +318,12 @@ public class TestScriptJobProcessor {
   }
 
   private ScriptJobProcessor processor(ScriptJob scriptJob) {
-    OrkoConfiguration orkoConfiguration = new OrkoConfiguration();
-    orkoConfiguration.setScriptSigningKey(SCRIPT_SIGNING_KEY);
+    ScriptConfiguration orkoConfiguration = new ScriptConfiguration() {
+      @Override
+      public String getScriptSigningKey() {
+        return SCRIPT_SIGNING_KEY;
+      }
+    };
     return new ScriptJobProcessor(scriptJob, jobControl,
         exchangeEventRegistry, notificationService,
         jobSubmitter, transactionally, hasher, orkoConfiguration);

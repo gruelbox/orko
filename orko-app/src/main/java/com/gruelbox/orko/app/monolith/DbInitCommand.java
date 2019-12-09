@@ -19,7 +19,6 @@ package com.gruelbox.orko.app.monolith;
 
 import org.alfasoftware.morf.jdbc.ConnectionResources;
 
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.db.DbDump;
 
 import io.dropwizard.cli.Cli;
@@ -31,14 +30,14 @@ import net.sourceforge.argparse4j.inf.Subparser;
 /**
  * Command line command to restore a database dump
  */
-class DbInitCommand extends ConfiguredCommand<OrkoConfiguration> {
+class DbInitCommand extends ConfiguredCommand<MonolithConfiguration> {
 
   DbInitCommand() {
     super("dbinit", "Imports a database snapshot taken using the /api/db.zip endpoint to the configured DB");
   }
 
   @Override
-  protected void run(Bootstrap<OrkoConfiguration> bootstrap, Namespace namespace, OrkoConfiguration configuration) throws Exception {
+  protected void run(Bootstrap<MonolithConfiguration> bootstrap, Namespace namespace, MonolithConfiguration configuration) throws Exception {
     ConnectionResources connectionResources = configuration.getDatabase().toConnectionResources();
     new DbDump(connectionResources).restore(namespace.getString("dbfile"));
   }

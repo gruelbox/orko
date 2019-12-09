@@ -24,6 +24,8 @@ import org.alfasoftware.morf.upgrade.TableContribution;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
+import com.gruelbox.orko.db.DbModule;
+import com.gruelbox.orko.wiring.WiringModule;
 import com.gruelbox.tools.dropwizard.guice.hibernate.EntityContribution;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
@@ -32,6 +34,8 @@ import io.dropwizard.lifecycle.Managed;
 public class JobRunModule extends AbstractModule {
   @Override
   protected void configure() {
+    install(new DbModule());
+    install(new WiringModule());
     Multibinder<TableContribution> tableContributions = Multibinder.newSetBinder(binder(), TableContribution.class);
     tableContributions.addBinding().to(JobRecordContribution.class);
     tableContributions.addBinding().to(JobLockContribution.class);

@@ -18,58 +18,75 @@
 
 package com.gruelbox.orko;
 
-import javax.inject.Inject;
+import java.util.concurrent.ExecutorService;
 
+import org.eclipse.jetty.server.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Binder;
+import com.google.inject.Inject;
 import com.google.inject.Module;
-import com.gruelbox.orko.db.DatabaseSetup;
 import com.gruelbox.orko.docker.DockerSecretSubstitutor;
 import com.gruelbox.tools.dropwizard.guice.GuiceBundle;
-import com.gruelbox.tools.dropwizard.guice.hibernate.GuiceHibernateModule;
-import com.gruelbox.tools.dropwizard.guice.hibernate.HibernateBundleFactory;
 
 import io.dropwizard.Application;
+import io.dropwizard.Configuration;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-public abstract class BaseApplication extends Application<OrkoConfiguration> {
+public abstract class BaseApplication<T extends Configuration & BaseApplicationConfiguration> extends Application<T> implements Module {
 
-  @Inject private DatabaseSetup databaseSetup;
+  private DockerSecretSubstitutor dockerSecretSubstitutor;
 
+  @Inject private ExecutorService executorService;
+
+  private ServerProvider serverProvider = new ServerProvider();
 
   @Override
-  public void initialize(final Bootstrap<OrkoConfiguration> bootstrap) {
+  public void initialize(final Bootstrap<T> bootstrap) {
 
+    dockerSecretSubstitutor = new DockerSecretSubstitutor(false, false, true);
     bootstrap.setConfigurationSourceProvider(
       new SubstitutingSourceProvider(
         new SubstitutingSourceProvider(
           bootstrap.getConfigurationSourceProvider(),
           new EnvironmentVariableSubstitutor(false)
         ),
-        new DockerSecretSubstitutor(false, false, true)
+        dockerSecretSubstitutor
       )
     );
 
-    HibernateBundleFactory<OrkoConfiguration> hibernateBundleFactory
-      = new HibernateBundleFactory<>(configuration -> configuration.getDatabase().toDataSourceFactory());
-
     bootstrap.addBundle(
-      new GuiceBundle<OrkoConfiguration>(
+      new GuiceBundle<T>(
         this,
-        new OrkoApplicationModule(),
-        new GuiceHibernateModule(hibernateBundleFactory),
+        this,
+        new ChildProcessSupportModule(),
         createApplicationModule()
       )
     );
 
-    bootstrap.addBundle(hibernateBundleFactory.bundle());
   }
 
   protected abstract Module createApplicationModule();
 
   @Override
-  public void run(final OrkoConfiguration configuration, final Environment environment) {
-    databaseSetup.setup();
+  public void configure(Binder binder) {
+    binder.install(new JerseySupportModule());
+    binder.bind(Server.class).toProvider(serverProvider);
+  }
+
+  @Override
+  public void run(T configuration, Environment environment) {
+    environment.lifecycle().addServerLifecycleListener(serverProvider);
+
+    // We can't use the logger during the docker YAML parsing, so it's delayed until here.
+    Logger dockerLogger = LoggerFactory.getLogger(DockerSecretSubstitutor.class);
+    if (dockerLogger.isDebugEnabled()) {
+      dockerSecretSubstitutor.getLog().stream()
+          .forEach(dockerLogger::debug);
+    }
   }
 }

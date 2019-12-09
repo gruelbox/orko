@@ -1,0 +1,51 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "badgerwithagun",
+      "name": "Graham Crockford",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/6483013?v=4",
+      "profile": "https://github.com/badgerwithagun",
+      "contributions": [
+        "code",
+        "content",
+        "doc",
+        "design",
+        "infra",
+        "maintenance",
+        "security",
+        "test",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "lazrfocus",
+      "name": "lazrfocus",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/52254582?v=4",
+      "profile": "https://github.com/lazrfocus",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "lowwor",
+      "name": "lowwor",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/5444033?v=4",
+      "profile": "https://www.lowwor.com/",
+      "contributions": [
+        "code",
+        "userTesting"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "orko",
+  "projectOwner": "gruelbox",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}

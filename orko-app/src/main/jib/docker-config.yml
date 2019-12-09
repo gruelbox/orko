@@ -16,9 +16,14 @@ auth:
 telegram:
   botToken: '${TELEGRAM_BOT_TOKEN:-}${secret-telegram-botToken}'
   chatId: '${TELEGRAM_CHAT_ID:-}${secret-telegram-chatId}'
+apprise:
+  microserviceUrl: '${NOTIFICATIONS_POST_URL:-}'
 database:
-  connectionString: ${JDBC_URL:-h2:file:/app/db/orko;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000}
+  connectionString: ${JDBC_URL:-h2:file:/app/db/orko;DB_CLOSE_DELAY=-1;AUTO_SERVER=true;DEFAULT_LOCK_TIMEOUT=60000}
   lockSeconds: ${LOCK_SECONDS:-45}
+remoteMarketData:
+  webSocketUri: '${REMOTE_MARKET_DATA_WEBSOCKET:-}'
+  exchangeEndpointUri: '${REMOTE_MARKET_DATA_ENDPOINT:-}'
 exchanges:
   simulated:
     apiKey: ${SIMULATED_API_KEY:-}
@@ -71,6 +76,7 @@ jerseyClient:
 logging:
   loggers:
     "com.gruelbox.orko": ${LOG_LEVEL:-INFO}
+    "com.gruelbox.orko.docker": ${LOG_LEVEL_DOCKER_SECRET:-INFO}
     "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.binance": ${LOG_LEVEL:-INFO}
     "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}

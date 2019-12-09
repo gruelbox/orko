@@ -18,7 +18,7 @@
 
 package com.gruelbox.orko.exchange;
 
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
@@ -68,10 +68,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.TickerEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyDispose;
 

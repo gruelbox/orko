@@ -21,7 +21,7 @@ package com.gruelbox.orko.auth.ipwhitelisting;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class TestIpWhitelistServletFilter {
     ServletRequest wrongRequest = mock(ServletRequest.class);
     ServletResponse wrongResponse = mock(ServletResponse.class);
     ipWhitelistServletFilter.doFilter(wrongRequest, wrongResponse, chain);
-    verifyZeroInteractions(chain, ipWhitelisting, wrongRequest, wrongResponse);
+    verifyNoInteractions(chain, ipWhitelisting, wrongRequest, wrongResponse);
   }
 
   @Test
@@ -61,7 +61,7 @@ public class TestIpWhitelistServletFilter {
     when(request.getServletPath()).thenReturn("/favicon.ico");
     ipWhitelistServletFilter.doFilter(request, response, chain);
     verify(chain).doFilter(request, response);
-    verifyZeroInteractions(ipWhitelisting, response);
+    verifyNoInteractions(ipWhitelisting, response);
   }
 
   @Test
@@ -69,7 +69,7 @@ public class TestIpWhitelistServletFilter {
     when(request.getPathInfo()).thenReturn("/favicon.ico");
     ipWhitelistServletFilter.doFilter(request, response, chain);
     verify(chain).doFilter(request, response);
-    verifyZeroInteractions(ipWhitelisting, response);
+    verifyNoInteractions(ipWhitelisting, response);
   }
 
   @Test
@@ -77,7 +77,7 @@ public class TestIpWhitelistServletFilter {
     when(request.getPathInfo()).thenReturn("/auth/and/stuff");
     ipWhitelistServletFilter.doFilter(request, response, chain);
     verify(chain).doFilter(request, response);
-    verifyZeroInteractions(ipWhitelisting, response);
+    verifyNoInteractions(ipWhitelisting, response);
   }
 
   @Test
@@ -86,7 +86,7 @@ public class TestIpWhitelistServletFilter {
     when(ipWhitelisting.authoriseIp()).thenReturn(false);
     ipWhitelistServletFilter.doFilter(request, response, chain);
     verify(response).sendError(Response.Status.FORBIDDEN.getStatusCode());
-    verifyZeroInteractions(chain);
+    verifyNoInteractions(chain);
   }
 
   @Test
@@ -95,6 +95,6 @@ public class TestIpWhitelistServletFilter {
     when(ipWhitelisting.authoriseIp()).thenReturn(true);
     ipWhitelistServletFilter.doFilter(request, response, chain);
     verify(chain).doFilter(request, response);
-    verifyZeroInteractions(response);
+    verifyNoInteractions(response);
   }
 }

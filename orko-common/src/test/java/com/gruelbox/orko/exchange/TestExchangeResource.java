@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import javax.ws.rs.core.Response;
 
@@ -42,11 +43,8 @@ import org.knowm.xchange.exceptions.FundsExceededException;
 import org.knowm.xchange.service.trade.TradeService;
 import org.mockito.Mockito;
 
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.ExchangeResource.ErrorResponse;
 import com.gruelbox.orko.exchange.ExchangeResource.OrderPrototype;
-import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.dropwizard.testing.junit.ResourceTestRule;
@@ -60,14 +58,13 @@ public class TestExchangeResource {
   private static AccountServiceFactory accountServiceFactory = mock(AccountServiceFactory.class);
   private static MarketDataSubscriptionManager subscriptionManager = mock(MarketDataSubscriptionManager.class);
   private static MaxTradeAmountCalculator.Factory calculatorFactory = mock(MaxTradeAmountCalculator.Factory.class);
-  private static OrkoConfiguration configuration = new OrkoConfiguration();
 
   private static TradeService tradeService = mock(TradeService.class);
 
   @ClassRule public static final ResourceTestRule resources = ResourceTestRule.builder()
       .addResource(new ExchangeResource(
           exchangeService, tradeServiceFactory, accountServiceFactory,
-          subscriptionManager, configuration, calculatorFactory)
+          subscriptionManager, Collections.emptyMap(), calculatorFactory)
       ).build();
 
   @Before

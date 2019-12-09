@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -7,11 +8,11 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.14.3</version>
+    <version>0.15.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <name>Orko Integration Tests</name>
+  <name>Orko End-to-End Tests</name>
 
   <dependencies>
     <dependency>

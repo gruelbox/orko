@@ -47,8 +47,7 @@ import {
   LOGIN_USER,
   LOGIN_PW,
   LOGIN_SECRET,
-  LOGIN_SECRET_INVALID,
-  LONG_WAIT
+  LOGIN_SECRET_INVALID
 } from "../util/constants"
 
 import { tokenForSecret } from "../util/token"

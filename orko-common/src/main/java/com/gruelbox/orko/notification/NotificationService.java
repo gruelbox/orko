@@ -22,12 +22,9 @@ import static com.gruelbox.orko.notification.NotificationLevel.ALERT;
 import static com.gruelbox.orko.notification.NotificationLevel.ERROR;
 import static com.gruelbox.orko.notification.NotificationLevel.INFO;
 
-import com.google.inject.ImplementedBy;
-
 /**
  * Service for notifying the user of an important event.
  */
-@ImplementedBy(RetryingMessageService.class)
 public interface NotificationService {
 
   /**

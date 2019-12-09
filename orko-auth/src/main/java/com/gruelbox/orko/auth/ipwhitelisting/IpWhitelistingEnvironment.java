@@ -41,8 +41,8 @@ public class IpWhitelistingEnvironment implements EnvironmentInitialiser {
   @Inject
   IpWhitelistingEnvironment(Provider<IpWhitelistServletFilter> ipWhitelistServletFilter,
                             AuthConfiguration authConfiguration,
-                            @Named(AuthModule.ROOT_PATH) String rootPath,
-                            @Named(AuthModule.WEBSOCKET_ENTRY_POINT) String wsEntryPoint) {
+                            @Named(AuthModule.BIND_ROOT_PATH) String rootPath,
+                            @Named(AuthModule.BIND_WEBSOCKET_ENTRY_POINT) String wsEntryPoint) {
     this.ipWhitelistServletFilter = ipWhitelistServletFilter;
     this.authConfiguration = authConfiguration;
     this.rootPath = rootPath;

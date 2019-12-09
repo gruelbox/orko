@@ -18,10 +18,11 @@
 
 package com.gruelbox.orko.exchange;
 
+import java.util.Map;
+
 import org.knowm.xchange.service.account.AccountService;
 
 import com.google.inject.Inject;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.exchange.PaperAccountService.Factory;
 
 class AccountServiceFactoryImpl extends AbstractExchangeServiceFactory<AccountService>
@@ -32,7 +33,7 @@ class AccountServiceFactoryImpl extends AbstractExchangeServiceFactory<AccountSe
 
   @Inject
   AccountServiceFactoryImpl(ExchangeService exchangeService,
-                            OrkoConfiguration configuration,
+                            Map<String, ExchangeConfiguration> configuration,
                             PaperAccountService.Factory paperAccountServiceFactory) {
     super(configuration);
     this.exchangeService = exchangeService;

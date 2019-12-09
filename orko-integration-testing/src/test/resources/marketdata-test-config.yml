@@ -1,0 +1,45 @@
+childProcess: true
+scriptSigningKey: "WHATEVS"
+server:
+  type: simple
+  rootPath: /data
+  applicationContextPath: /
+  connector:
+    type: http
+    port: 8081
+  maxThreads: 16
+exchanges:
+  simulated:
+    apiKey: DEMO
+  gdax:
+    enabled: false
+    loadRemoteData: false
+  binance:
+    enabled: false
+    loadRemoteData: false
+  kucoin:
+    enabled: false
+    loadRemoteData: false
+  bitfinex:
+    enabled: false
+    loadRemoteData: false
+  bitmex:
+    enabled: false
+    loadRemoteData: false
+  kraken:
+    enabled: false
+    loadRemoteData: false
+  bittrex:
+    enabled: false
+    loadRemoteData: false
+jerseyClient:
+  timeout: 30000ms
+  connectionTimeout: 30000ms
+  connectionRequestTimeout: 30000ms
+logging:
+  loggers:
+    "com.gruelbox.orko": INFO
+    "si.mazi.rescu": ERROR
+  appenders:
+    - type: console
+      logFormat: "   - DATA - %-5p [%t] %c: %m%n%rEx"

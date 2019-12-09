@@ -65,7 +65,6 @@ import com.google.inject.multibindings.Multibinder;
 @Category(DatabaseTest.class)
 public class TestDbDump {
 
-  @Inject private DatabaseSetup databaseSetup;
   @Inject private ConnectionResources connectionResources;
   @Inject private SqlScriptExecutorProvider sqlScriptExecutorProvider;
 
@@ -73,11 +72,12 @@ public class TestDbDump {
   public void before() {
 
     DbConfiguration dbConfig = new DbConfiguration();
-    dbConfig.setConnectionString("h2:mem:test;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000");
+    dbConfig.setConnectionString("h2:mem:test;DB_CLOSE_DELAY=-1;DEFAULT_LOCK_TIMEOUT=60000");
 
     MockitoAnnotations.initMocks(this);
 
-    Injector injector = Guice.createInjector(new DbModule(), (Module) binder -> {
+    DbModule dbModule = new DbModule();
+    Injector injector = Guice.createInjector(dbModule, (Module) binder -> {
       binder.bind(DbConfiguration.class).toInstance(dbConfig);
       Multibinder.newSetBinder(binder, TableContribution.class)
           .addBinding().toInstance(new TableContribution() {
@@ -102,7 +102,6 @@ public class TestDbDump {
           });
     });
     injector.injectMembers(this);
-    databaseSetup.setup();
   }
 
   @Test

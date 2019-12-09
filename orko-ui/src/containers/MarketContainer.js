@@ -22,7 +22,10 @@ import OrderBookContainer from "./OrderBookContainer"
 import MarketTradesContainer from "./MarketTradesContainer"
 import GetPageVisibility from "../components/GetPageVisibility"
 import RenderIf from "../components/RenderIf"
-import { getValueFromLS, saveValueToLS } from "../util/localStorage"
+import {
+  getValueFromLS,
+  saveValueToLS
+} from "modules/common/util/localStorage"
 
 const LOCAL_STORAGE_KEY = "MarketContainer.animate"
 

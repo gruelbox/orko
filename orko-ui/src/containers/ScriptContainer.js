@@ -21,10 +21,10 @@ import { connect } from "react-redux"
 import Script from "../components/Script"
 import ViewSource from "../components/ViewSource"
 
-import * as jobActions from "../store/job/actions"
 import { getSelectedCoin } from "../selectors/coins"
 
 import uuidv4 from "uuid/v4"
+import { withServer } from "modules/server"
 
 class ScriptContainer extends React.Component {
   constructor(props) {
@@ -91,8 +91,7 @@ class ScriptContainer extends React.Component {
 
     for (var property in this.state.parameters) {
       if (this.state.parameters.hasOwnProperty(property)) {
-        script +=
-          "  " + property + ": '" + this.state.parameters[property] + "',\n"
+        script += "  " + property + ": '" + this.state.parameters[property] + "',\n"
       }
     }
 
@@ -103,7 +102,7 @@ class ScriptContainer extends React.Component {
   }
 
   onSubmit = async () => {
-    this.props.dispatch(jobActions.submitScriptJob(this.createJob()))
+    this.props.serverApi.submitScriptJob(this.createJob())
   }
 
   render() {
@@ -120,9 +119,7 @@ class ScriptContainer extends React.Component {
           onViewSource={this.onViewSource}
           onSubmit={this.onSubmit}
         />
-        {this.state.viewSource && (
-          <ViewSource script={this.state.script} onClose={this.onCloseSource} />
-        )}
+        {this.state.viewSource && <ViewSource script={this.state.script} onClose={this.onCloseSource} />}
       </>
     )
   }
@@ -136,4 +133,4 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(ScriptContainer)
+export default withServer(connect(mapStateToProps)(ScriptContainer))

@@ -26,9 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -64,15 +62,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.gruelbox.orko.OrkoConfiguration;
-import com.gruelbox.orko.marketdata.Balance;
-import com.gruelbox.orko.marketdata.MarketDataSubscriptionManager;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator.Factory;
+import com.gruelbox.orko.exchange.MaxTradeAmountCalculator.Factory;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.tools.dropwizard.guice.resources.WebResource;
 
@@ -89,7 +82,7 @@ public class ExchangeResource implements WebResource {
   private final ExchangeService exchanges;
   private final TradeServiceFactory tradeServiceFactory;
   private final AccountServiceFactory accountServiceFactory;
-  private final OrkoConfiguration configuration;
+  private final Map<String, ExchangeConfiguration>  configuration;
   private final MarketDataSubscriptionManager subscriptionManager;
   private final Factory calculatorFactory;
 
@@ -99,7 +92,7 @@ public class ExchangeResource implements WebResource {
                    TradeServiceFactory tradeServiceFactory,
                    AccountServiceFactory accountServiceFactory,
                    MarketDataSubscriptionManager subscriptionManager,
-                   OrkoConfiguration configuration,
+                   Map<String, ExchangeConfiguration> configuration,
                    MaxTradeAmountCalculator.Factory calculatorFactory) {
     this.exchanges = exchanges;
     this.tradeServiceFactory = tradeServiceFactory;
@@ -120,7 +113,7 @@ public class ExchangeResource implements WebResource {
   public Collection<ExchangeMeta> list() {
     return exchanges.getExchanges().stream()
         .map(code -> {
-          ExchangeConfiguration exchangeConfig = configuration.getExchanges().get(code);
+          ExchangeConfiguration exchangeConfig = configuration.get(code);
           return new ExchangeMeta(
               code,
               Exchanges.name(code),
@@ -279,7 +272,6 @@ public class ExchangeResource implements WebResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response postOrder(@PathParam("exchange") String exchange, OrderPrototype order) {
-
     Optional<Response> error = checkOrderPreconditions(exchange, order);
     if (error.isPresent())
       return error.get();
@@ -296,7 +288,7 @@ public class ExchangeResource implements WebResource {
     } catch (FundsExceededException e) {
       return Response.status(400).entity(new ErrorResponse(e.getMessage())).build();
     } catch (Exception e) {
-      LOGGER.error("Failed to submit order", e);
+      LOGGER.error("Failed to submit order: {}", order, e);
       return Response.status(500).entity(new ErrorResponse("Failed to submit order. " + e.getMessage())).build();
     }
   }
@@ -510,45 +502,6 @@ public class ExchangeResource implements WebResource {
 
 
   /**
-   * Fetches the current balances for the specified exchange and currencies.
-   *
-   * @param exchange The exchange.
-   * @param currenciesAsString Comma-separated list of currencies.
-   * @return The balances, by currency.
-   * @throws IOException If thrown by exchange.
-   */
-  @GET
-  @Path("{exchange}/balance/{currencies}")
-  @Timed
-  public Response balances(@PathParam("exchange") String exchange, @PathParam("currencies") String currenciesAsString) throws IOException {
-
-    Set<String> currencies = Stream.of(currenciesAsString.split(","))
-        .collect(Collectors.toSet());
-
-    try {
-
-      FluentIterable<Balance> balances = FluentIterable.from(
-          accountServiceFactory.getForExchange(exchange)
-            .getAccountInfo()
-            .getWallet()
-            .getBalances()
-            .entrySet()
-        )
-        .transform(Map.Entry::getValue)
-        .filter(balance -> currencies.contains(balance.getCurrency().getCurrencyCode()))
-        .transform(Balance::create);
-
-      return Response.ok()
-          .entity(Maps.uniqueIndex(balances, Balance::currency))
-          .build();
-
-    } catch (NotAvailableFromExchangeException e) {
-      return Response.status(503).build();
-    }
-  }
-
-
-  /**
    * Gets the current ticker for the specified exchange and pair.
    *
    * @param exchange The exchange.
@@ -602,36 +555,50 @@ public class ExchangeResource implements WebResource {
       return amount;
     }
 
+    @JsonIgnore
     boolean isStop() {
       return stopPrice != null;
     }
 
+    @JsonIgnore
     boolean isLimit() {
       return limitPrice != null;
     }
 
-    void setCounter(String counter) {
+    public void setCounter(String counter) {
       this.counter = counter;
     }
 
-    void setBase(String base) {
+    public void setBase(String base) {
       this.base = base;
     }
 
-    void setStopPrice(BigDecimal stopPrice) {
+    public void setStopPrice(BigDecimal stopPrice) {
       this.stopPrice = stopPrice;
     }
 
-    void setLimitPrice(BigDecimal limitPrice) {
+    public void setLimitPrice(BigDecimal limitPrice) {
       this.limitPrice = limitPrice;
     }
 
-    void setType(Order.OrderType type) {
+    public void setType(Order.OrderType type) {
       this.type = type;
     }
 
-    void setAmount(BigDecimal amount) {
+    public void setAmount(BigDecimal amount) {
       this.amount = amount;
+    }
+    
+    @Override
+    public String toString() {
+      return "OrderPrototype{" +
+          "counter='" + counter + '\'' +
+          ", base='" + base + '\'' +
+          ", stopPrice=" + stopPrice +
+          ", limitPrice=" + limitPrice +
+          ", type=" + type +
+          ", amount=" + amount +
+          '}';
     }
   }
 

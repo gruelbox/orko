@@ -36,17 +36,19 @@ import org.alfasoftware.morf.upgrade.UpgradeStep;
 
 import com.google.common.collect.FluentIterable;
 import com.google.inject.AbstractModule;
+import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 
-public class DatabaseAccessModule extends AbstractModule {
+class DatabaseAccessModule extends AbstractModule {
 
   @Override
   protected void configure() {
     Multibinder.newSetBinder(binder(), UpgradeStep.class);
     Multibinder.newSetBinder(binder(), TableContribution.class);
     Multibinder.newSetBinder(binder(), View.class);
+    requestInjection(new DbInit());
   }
 
   @Provides
@@ -73,5 +75,16 @@ public class DatabaseAccessModule extends AbstractModule {
   @Provides
   DataSource dataSource(ConnectionResources connectionResources) {
     return connectionResources.getDataSource();
+  }
+
+  /**
+   * Performs database initialisation once the injector has been successfully
+   * constructed.
+   */
+  private static final class DbInit {
+    @Inject
+    void start(DatabaseSetup databaseSetup) {
+      databaseSetup.setup();
+    }
   }
 }

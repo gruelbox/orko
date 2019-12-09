@@ -18,7 +18,12 @@
 
 package com.gruelbox.orko.websocket;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.gruelbox.orko.auth.AuthModule;
 
 
 public class WebSocketModule extends AbstractModule {
@@ -28,5 +33,12 @@ public class WebSocketModule extends AbstractModule {
   @Override
   protected void configure() {
     // No-op
+  }
+
+  @Provides
+  @Named(AuthModule.BIND_WEBSOCKET_ENTRY_POINT)
+  @Singleton
+  String webSocketEntryPoint() {
+    return WebSocketModule.ENTRY_POINT;
   }
 }

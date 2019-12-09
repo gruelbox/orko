@@ -17,6 +17,8 @@
  */
 package com.gruelbox.orko.docker;
 
+import java.util.List;
+
 import org.apache.commons.text.StrSubstitutor;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -27,6 +29,8 @@ import io.dropwizard.configuration.UndefinedEnvironmentVariableException;
  * A custom {@link StrSubstitutor} using Docker secrets as a value source.
  */
 public class DockerSecretSubstitutor extends StrSubstitutor {
+
+  private final DockerSecretLookup lookup;
 
   /**
    * @param strict                  {@code true} if looking up undefined
@@ -51,5 +55,10 @@ public class DockerSecretSubstitutor extends StrSubstitutor {
           : lookup
       );
       this.setEnableSubstitutionInVariables(substitutionInVariables);
+    this.lookup = lookup;
+  }
+
+  public List<String> getLog() {
+    return List.copyOf(lookup.getLog());
   }
 }

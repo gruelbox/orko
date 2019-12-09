@@ -29,16 +29,16 @@ import org.alfasoftware.morf.jdbc.DatabaseType;
 import org.hibernate.cfg.AvailableSettings;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.util.Duration;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 public class DbConfiguration {
 
   @NotNull
   @JsonProperty
-  private String connectionString = "h2:file:./orko.db;DB_CLOSE_DELAY=-1;MVCC=TRUE;DEFAULT_LOCK_TIMEOUT=60000";
+  private String connectionString = "h2:file:./orko.db;DB_CLOSE_DELAY=-1;DEFAULT_LOCK_TIMEOUT=60000";
 
   /**
    * How long database locks should persist for, in seconds.  Too short and

@@ -32,45 +32,27 @@ const Aligned = styled.div`
   overflow: visible;
 
   &.collapse-enter {
-    opacity: 0.1;
     .orderbook-value {
-      color: ${props =>
-        lighten(
-          0.2,
-          props.direction === "BID" ? theme.colors.buy : theme.colors.sell
-        )};
+      color: ${props => lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
     }
     .orderbook-bar {
       background-color: ${props =>
-        lighten(
-          0.2,
-          props.direction === "BID" ? theme.colors.buy : theme.colors.sell
-        )};
+        lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
     }
     &.collapse-enter-active {
-      opacity: 1;
-      transition: opacity 200ms ease-in 100ms;
       .orderbook-value {
-        color: ${props =>
-          props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
-        transition: color 200ms ease-in 1400ms;
+        color: ${props => (props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
+        transition: color 200ms ease-in 200ms;
       }
       .orderbook-bar {
-        background-color: ${props =>
-          props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
-        transition: background-color 200ms ease-in 1400ms;
+        background-color: ${props => (props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
+        transition: background-color 200ms ease-in 200ms;
       }
     }
   }
 
   &.collapse-leave {
-    height: 24px !important;
     opacity: 0.4;
-    &.collapse-leave-active {
-      opacity: 0;
-      height: 0px !important;
-      transition: height 200ms ease-in 800ms, opacity 200ms linear 800ms;
-    }
   }
 `
 
@@ -84,8 +66,7 @@ const Bar = styled.div`
   min-width: 1px;
   width: ${props => props.size + "%"};
   transition: width 0.3s ease-out;
-  background-color: ${props =>
-    props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
+  background-color: ${props => (props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
   overflow: visible;
 `
 
@@ -93,27 +74,11 @@ const BarSize = styled.div`
   position: absolute;
   top: -1px;
   right: ${props =>
-    props.direction === "BID"
-      ? props.size < 50
-        ? "100%"
-        : "auto"
-      : props.size < 50
-        ? "auto"
-        : 0};
+    props.direction === "BID" ? (props.size < 50 ? "100%" : "auto") : props.size < 50 ? "auto" : 0};
   left: ${props =>
-    props.direction === "BID"
-      ? props.size < 50
-        ? "auto"
-        : 0
-      : props.size < 50
-        ? "100%"
-        : "auto"};
+    props.direction === "BID" ? (props.size < 50 ? "auto" : 0) : props.size < 50 ? "100%" : "auto"};
   color: ${props =>
-    props.size > 50
-      ? "black"
-      : props.direction === "BID"
-        ? theme.colors.buy
-        : theme.colors.sell};
+    props.size > 50 ? "black" : props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
   font-size: ${props => theme.fontSizes[0] + "px"}
   padding: 0 4px 0 4px;
   overflow: visible;
@@ -138,11 +103,7 @@ const Entry = ({ coin, direction, price, size, focusFn, magnitude }) => (
   <Aligned id={direction + "-" + price} direction={direction}>
     <BarColumn direction={direction}>
       <Bar direction={direction} size={magnitude} className="orderbook-bar">
-        <BarSize
-          direction={direction}
-          size={magnitude}
-          className="orderbook-value"
-        >
+        <BarSize direction={direction} size={magnitude} className="orderbook-value">
           {size}
         </BarSize>
       </Bar>

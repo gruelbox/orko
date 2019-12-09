@@ -18,17 +18,16 @@
 import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
-
 import StopOrder from "../components/StopOrder"
-
-import * as focusActions from "../store/focus/actions"
-import * as exchangesActions from "../store/exchanges/actions"
-import { isValidNumber } from "../util/numberUtils"
+import { isValidNumber } from "modules/common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
-
-import * as jobActions from "../store/job/actions"
-import * as jobTypes from "../services/jobTypes"
 import uuidv4 from "uuid/v4"
+import exchangesService from "modules/market/exchangesService"
+import { withSocket } from "modules/socket/"
+import { withFramework } from "FrameworkContainer"
+import { JobType, withServer } from "modules/server"
+import { withAuth } from "modules/auth"
+import { withLog } from "modules/log"
 
 function coinServerSideSupported(coin) {
   return !["bittrex"].includes(coin.exchange)
@@ -64,23 +63,19 @@ class StopOrderContainer extends React.Component {
       order: Immutable({
         ...order,
         // Clear the limit price if it's not supported anymore
-        limitPrice: coinAllowsLimitStops(this.props.coin, order.useExchange)
-          ? order.limitPrice
-          : ""
+        limitPrice: coinAllowsLimitStops(this.props.coin, order.useExchange) ? order.limitPrice : ""
       })
     })
   }
 
   onFocus = focusedProperty => {
-    this.props.dispatch(
-      focusActions.setUpdateAction(value => {
-        this.setState(prev => ({
-          order: prev.order.merge({
-            [focusedProperty]: value
-          })
-        }))
-      })
-    )
+    this.props.frameworkApi.setLastFocusedFieldPopulater(value => {
+      this.setState(prev => ({
+        order: prev.order.merge({
+          [focusedProperty]: value
+        })
+      }))
+    })
   }
 
   createOrder = direction => ({
@@ -93,7 +88,7 @@ class StopOrderContainer extends React.Component {
   })
 
   createJob = direction => ({
-    jobType: jobTypes.OCO,
+    jobType: JobType.OCO,
     id: uuidv4(),
     tickTrigger: {
       exchange: this.props.coin.exchange,
@@ -103,7 +98,7 @@ class StopOrderContainer extends React.Component {
     [direction === "BUY" ? "high" : "low"]: {
       thresholdAsString: this.state.order.stopPrice,
       job: {
-        jobType: jobTypes.LIMIT_ORDER,
+        jobType: JobType.LIMIT_ORDER,
         id: uuidv4(),
         direction: direction,
         tickTrigger: {
@@ -117,14 +112,18 @@ class StopOrderContainer extends React.Component {
     }
   })
 
-  onSubmit = async direction => {
+  onSubmit = direction => {
     if (this.state.order.useExchange) {
       const order = this.createOrder(direction)
-      this.props.dispatch(
-        exchangesActions.submitStopOrder(this.props.coin.exchange, order)
-      )
+      this.props.socketApi.createPlaceholder(order)
+      this.props.auth
+        .authenticatedRequest(() => exchangesService.submitOrder(this.props.coin.exchange, order))
+        .catch(error => {
+          this.props.socketApi.removePlaceholder()
+          this.props.logApi.errorPopup("Could not submit order: " + error.message)
+        })
     } else {
-      this.props.dispatch(jobActions.submitJob(this.createJob(direction)))
+      this.props.serverApi.submitJob(this.createJob(direction))
     }
   }
 
@@ -134,17 +133,12 @@ class StopOrderContainer extends React.Component {
       isValidNumber(this.state.order.stopPrice) &&
       this.state.order.stopPrice > 0
     const blankLimitPrice = this.state.order.limitPrice === ""
-    const validLimitPrice =
-      isValidNumber(this.state.order.limitPrice) &&
-      this.state.order.limitPrice > 0
+    const validLimitPrice = isValidNumber(this.state.order.limitPrice) && this.state.order.limitPrice > 0
     const limitPriceValid =
-      (validLimitPrice && coinAllowsLimitStops) ||
-      (blankLimitPrice && coinAllowsMarketStops)
+      (validLimitPrice && coinAllowsLimitStops) || (blankLimitPrice && coinAllowsMarketStops)
 
     const amountValid =
-      this.state.order.amount &&
-      isValidNumber(this.state.order.amount) &&
-      this.state.order.amount > 0
+      this.state.order.amount && isValidNumber(this.state.order.amount) && this.state.order.amount > 0
 
     return (
       <StopOrder
@@ -161,18 +155,9 @@ class StopOrderContainer extends React.Component {
         limitPriceValid={limitPriceValid}
         amountValid={amountValid}
         coin={this.props.coin}
-        allowLimit={coinAllowsLimitStops(
-          this.props.coin,
-          this.state.order.useExchange
-        )}
-        allowMarket={coinAllowsMarketStops(
-          this.props.coin,
-          this.state.order.useExchange
-        )}
-        allowServerSide={coinServerSideSupported(
-          this.props.coin,
-          this.state.order.useExchange
-        )}
+        allowLimit={coinAllowsLimitStops(this.props.coin, this.state.order.useExchange)}
+        allowMarket={coinAllowsMarketStops(this.props.coin, this.state.order.useExchange)}
+        allowServerSide={coinServerSideSupported(this.props.coin, this.state.order.useExchange)}
       />
     )
   }
@@ -184,4 +169,6 @@ function mapStateToProps(state) {
   }
 }
 
-export default connect(mapStateToProps)(StopOrderContainer)
+export default withServer(
+  withServer(withFramework(withSocket(withAuth(withLog(connect(mapStateToProps)(StopOrderContainer))))))
+)

@@ -1,0 +1,65 @@
+loopSeconds: ${LOOP_SECONDS:-15}
+scriptSigningKey: '${SCRIPT_SIGNING_KEY:-}${secret-script-signing-key}'
+telegram:
+  botToken: '${TELEGRAM_BOT_TOKEN:-}${secret-telegram-botToken}'
+  chatId: '${TELEGRAM_CHAT_ID:-}${secret-telegram-chatId}'
+apprise:
+  microserviceUrl: '${NOTIFICATIONS_POST_URL:-}'
+exchanges:
+  simulated:
+    apiKey: ${SIMULATED_API_KEY:-}
+  gdax:
+    apiKey: '${GDAX_API_KEY:-}${secret-exchanges-gdax-apiKey}'
+    secretKey: '${GDAX_SECRET:-}${secret-exchanges-gdax-secretKey}'
+    passphrase: '${GDAX_PASSPHRASE:-}${secret-exchanges-gdax-passphrase}'
+    sandbox: ${GDAX_SANDBOX:-false}
+    loadRemoteData: ${GDAX_REMOTE_META:-true}
+  binance:
+    apiKey: '${BINANCE_API_KEY:-}${secret-exchanges-binance-apiKey}'
+    secretKey: '${BINANCE_SECRET:-}${secret-exchanges-binance-secretKey}'
+    loadRemoteData: ${BINANCE_REMOTE_META:-true}
+  kucoin:
+    apiKey: '${KUCOIN_API_KEY:-}${secret-exchanges-kucoin-apiKey}'
+    secretKey: '${KUCOIN_SECRET:-}${secret-exchanges-kucoin-secretKey}'
+    passphrase: '${KUCOIN_PASSPHRASE:-}${secret-exchanges-kucoin-passphrase}'
+    sandbox: ${KUCOIN_SANDBOX:-false}
+    loadRemoteData: ${KUCOIN_REMOTE_META:-true}
+  bitfinex:
+    apiKey: '${BITFINEX_API_KEY:-}${secret-exchanges-bitfinex-apiKey}'
+    secretKey: '${BITFINEX_SECRET:-}${secret-exchanges-bitfinex-secretKey}'
+    loadRemoteData: ${BITFINEX_REMOTE_META:-true}
+  bitmex:
+    apiKey: '${BITMEX_API_KEY:-}${secret-exchanges-bitmex-apiKey}'
+    secretKey: '${BITMEX_SECRET:-}${secret-exchanges-bitmex-secretKey}'
+    loadRemoteData: ${BITMEX_REMOTE_META:-true}
+  kraken:
+    apiKey: '${KRAKEN_API_KEY:-}${secret-exchanges-kraken-apiKey}'
+    secretKey: '${KRAKEN_SECRET:-}${secret-exchanges-kraken-secretKey}'
+    loadRemoteData: ${KRAKEN_REMOTE_META:-true}
+  bittrex:
+    apiKey: '${BITTREX_API_KEY:-}${secret-exchanges-bittrex-apiKey}'
+    secretKey: '${BITTREX_SECRET:-}${secret-exchanges-bittrex-secretKey}'
+    loadRemoteData: ${BITTREX_REMOTE_META:-true}
+server:
+  type: simple
+  rootPath: /api/
+  applicationContextPath: /
+  connector:
+    type: http
+    port: 8080
+  requestLog:
+    appenders: []
+  maxThreads: 16
+jerseyClient:
+  timeout: 15000ms
+  connectionTimeout: 15000ms
+  connectionRequestTimeout: 15000ms
+logging:
+  loggers:
+    "com.gruelbox.orko": ${LOG_LEVEL:-INFO}
+    "com.gruelbox.orko.docker": ${LOG_LEVEL_DOCKER_SECRET:-INFO}
+    "info.bitrich.xchangestream.service.netty": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.binance": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.gdax": ${LOG_LEVEL:-INFO}
+    "info.bitrich.xchangestream.binance.BinanceUserDataStreamingService": ${LOG_LEVEL_BINANCE_RAW_USER:-INFO}
+    "si.mazi.rescu": ERROR

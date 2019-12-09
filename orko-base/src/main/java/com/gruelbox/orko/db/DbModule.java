@@ -22,8 +22,19 @@ package com.gruelbox.orko.db;
 import com.google.inject.AbstractModule;
 
 public class DbModule extends AbstractModule {
+
   @Override
   protected void configure() {
     install(new DatabaseAccessModule());
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof DbModule;
+  }
+
+  @Override
+  public int hashCode() {
+    return DbModule.class.getName().hashCode();
   }
 }

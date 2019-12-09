@@ -81,24 +81,20 @@ class GuardianLoop extends AbstractExecutionThreadService {
     LOGGER.info("{} started", this);
     while (isRunning() && !kill) {
       try {
-
         if (Thread.currentThread().isInterrupted()) {
           throw new OrkoAbortException("thread interrupted");
         }
 
-        // When the app is forcibly killed, this seems to happen a lot
-        // and sends the app into an endless loop, so for the time being this
-        // will break the cycle.
-        if (sessionFactory.get().isClosed()) {
-          throw new OrkoAbortException("session factory closed");
-        }
-
         rateLimiter.acquire();
+
         LOGGER.debug("{} checking and restarting jobs", this);
+        checkSessionFactoryState();
         lockAndStartInactiveJobs();
 
         rateLimiter.acquire();
+
         LOGGER.debug("{} refreshing locks", this);
+        checkSessionFactoryState();
         eventBus.post(KeepAliveEvent.INSTANCE);
 
       } catch (OrkoAbortException e) {
@@ -114,6 +110,19 @@ class GuardianLoop extends AbstractExecutionThreadService {
     } else {
       eventBus.post(StopEvent.INSTANCE);
       LOGGER.info("{} stopped", this);
+    }
+  }
+
+  /**
+   * When the app is forcibly killed, this seems to happen a lot
+   * and sends the app into an endless loop, so for the time being this
+   * will break the cycle.
+   *
+   * @throws OrkoAbortException if the session factory is closed.
+   */
+  private void checkSessionFactoryState() throws OrkoAbortException {
+    if (sessionFactory.get().isClosed()) {
+      throw new OrkoAbortException("session factory closed");
     }
   }
 

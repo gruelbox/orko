@@ -7,11 +7,19 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.14.3</version>
+    <version>0.15.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <name>Orko UI</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>orko-semantic</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
 
   <build>
     <pluginManagement>
@@ -25,7 +33,6 @@
               <include>src</include>
             </includes>
             <excludes>
-              <exclude>src/semantic/**</exclude>
               <exclude>node_modules/**</exclude>
               <exclude>node/**</exclude>
               <exclude>build/**</exclude>
@@ -55,8 +62,8 @@
               <goal>install-node-and-npm</goal>
             </goals>
             <configuration>
-              <nodeVersion>v8.11.1</nodeVersion>
-              <npmVersion>6.4.1</npmVersion>
+              <nodeVersion>v8.12.0</nodeVersion>
+              <npmVersion>6.11.3</npmVersion>
             </configuration>
           </execution>
           <execution>

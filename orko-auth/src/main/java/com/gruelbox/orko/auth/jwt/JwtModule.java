@@ -81,7 +81,7 @@ public class JwtModule extends AbstractModule {
 
   @RequestScoped
   @Provides
-  Optional<JwtContext> jwtContext(JwtConsumer jwtConsumer, @Named(AuthModule.ACCESS_TOKEN_KEY) Optional<String> accessToken) {
+  Optional<JwtContext> jwtContext(JwtConsumer jwtConsumer, @Named(AuthModule.BIND_ACCESS_TOKEN_KEY) Optional<String> accessToken) {
     if (!accessToken.isPresent())
       return Optional.empty();
     try {

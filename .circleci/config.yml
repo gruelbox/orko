@@ -6,15 +6,15 @@ alltags: &alltags
       only: /((?!SNAPSHOT).)*/
 restoremavencache: &restoremavencache
   keys:
-    - maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
-    - maven-repo-v3-{{ .Branch }}-
-    - maven-repo-v3-
+    - maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
+    - maven-repo-v5-{{ .Branch }}-
+    - maven-repo-v5-
 mainenvironment: &mainenvironment
   MAVEN_OPTS: -Xmx3200m
   BUILD_ARGS: -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 setup: &setup
   docker:
-    - image: circleci/openjdk:8-jdk-browsers
+    - image: circleci/openjdk:11-jdk-browsers
       environment: *mainenvironment
   working_directory: ~/orko
 
@@ -39,7 +39,7 @@ workflows:
           requires:
             - "Compile and build"
           <<: *alltags
-      - "Docker Hub":
+      - "Deploy release to Docker registry":
           requires:
             - "Unit tests (all)"
             - "Unit tests (MySQL)"
@@ -47,10 +47,6 @@ workflows:
           filters:
             tags:
               only: /^.*\.((?!SNAPSHOT).)*/
-            branches:
-              only:
-                - master
-                - stable
       - "Deploy release to GitHub":
           requires:
             - "Unit tests (all)"
@@ -76,11 +72,11 @@ jobs:
             - node-v5-
       - run:
           name: Build
-          command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle clean install -Dskip.failsafe.tests=true -DskipTests=true
+          command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle,services clean install -Dskip.failsafe.tests=true -DskipTests=true
       - save_cache:
           paths:
             - ~/.m2
-          key: maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
       - save_cache:
           paths:
             - ~/usr/local/lib/node_modules
@@ -122,7 +118,7 @@ jobs:
             if [[ -n "$SONARQUBE_TOKEN" ]]; then
               echo "Build and Sonar"
               export PATH=/home/circleci/apache-maven-3.6.1/bin:$PATH
-              export SONAR_TARGETS="-Pci org.jacoco:jacoco-maven-plugin:prepare-agent@default-prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report@default-report sonar:sonar"
+              export SONAR_TARGETS="-Pci,services org.jacoco:jacoco-maven-plugin:prepare-agent@default-prepare-agent surefire:test org.jacoco:jacoco-maven-plugin:report@default-report sonar:sonar"
               export SONAR_ARGS="-Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.organization=${CIRCLE_PROJECT_USERNAME} \
                   -Dsonar.login=${SONARQUBE_TOKEN}
@@ -144,10 +140,6 @@ jobs:
               echo "Test only"
               mvn ${BUILD_ARGS} -T 1C surefire:test -Dskip.failsafe.tests=true
             fi
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: maven-repo-v3-{{ .Branch }}-{{ checksum "pom.xml" }}
       - run:
           name: Saving test results (H2)
           command: |
@@ -164,7 +156,7 @@ jobs:
     steps:
       - run:
           name: apt update
-          command: sudo apt-get update -y
+          command: sudo rm -rf /var/lib/apt/lists/* && sudo apt-get update -y
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2
@@ -203,7 +195,7 @@ jobs:
 
   "Unit tests (MySQL)":
     docker:
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: circleci/openjdk:11-jdk-browsers
         environment: *mainenvironment
       - image: circleci/mysql:5.7
         environment:
@@ -229,7 +221,7 @@ jobs:
       - run:
           name: MySQL tests
           command: |
-            mvn ${BUILD_ARGS} -Pdbonly surefire:test \
+            mvn ${BUILD_ARGS} -Pdbonly,services surefire:test \
               -Dmorf.mysql.noadmin=true \
               -Dtestdb.url=mysql://open:sesame@127.0.0.1/test \
               -Dskip.failsafe.tests=true
@@ -244,32 +236,36 @@ jobs:
       - store_test_results:
           path: ~/junit
 
-  "Docker Hub":
+  "Deploy release to Docker registry":
     <<: *setup
     steps:
       - attach_workspace:
           at: /home/circleci
       - restore_cache: *restoremavencache
       - run:
-          name: Release to Docker Hub
+          name: Deploy release to Docker registry
           command: |
+            export PROFILES="-Pui,docker,services"
             if [[ (-n "$DOCKERHUB_USER") && (-n "$DOCKERHUB_PASSWORD") ]]; then
-              cd orko-app
-              if [[ -n "$CIRCLE_TAG" ]]; then
-                mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="$CIRCLE_TAG"
+              export DOCKER_TARGET="jib:build"
+            else
+              echo "Docker Hub account details not supplied. Probably an external pull request. Building locally only"
+              export DOCKERHUB_REPO=orko
+              export DOCKER_TARGET="jib:buildTar"
+            fi
+            if [[ -n "$CIRCLE_TAG" ]]; then
+              mvn ${BUILD_ARGS} $PROFILES $DOCKER_TARGET -Ddocker.tag="$CIRCLE_TAG"
+            else
+              if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
+                mvn ${BUILD_ARGS} $PROFILES $DOCKER_TARGET -Ddocker.tag="stable"
               else
-                if [[ "$CIRCLE_BRANCH" == "stable" ]]; then
-                  mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="stable"
+                if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
+                  mvn ${BUILD_ARGS} $PROFILES $DOCKER_TARGET -Ddocker.tag="latest"
                 else
-                  if [[ (-z "$CIRCLE_BRANCH") || ("$CIRCLE_BRANCH" == "master") ]]; then
-                    mvn ${BUILD_ARGS} -Pui,dockerhub jib:build -Ddocker.tag="latest"
-                  else
-                    echo "Skipping branch"
-                  fi
+                  echo "Branch. Building locally only"
+                  mvn ${BUILD_ARGS} $PROFILES jib:buildTar -Ddocker.tag="dev-$CIRCLE_SHA1"
                 fi
               fi
-            else
-              echo "Docker Hub account details not supplied. Probably an external pull request."
             fi
 
   "Deploy release to GitHub":

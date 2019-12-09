@@ -40,7 +40,6 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -205,7 +204,6 @@ public class TestJobExecution {
    * Ensures that an exception thrown during stop is handled
    */
   @Test
-  @Ignore // TODO This one seems to cause trouble on travis. Need to work out why.
   public void testFailOnStopNonResident() throws Exception {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(TestingJob.builder().id(JOB1).failOnStop(true).build());

@@ -18,13 +18,13 @@
 
 package com.gruelbox.orko.websocket;
 
-import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
-import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
-import static com.gruelbox.orko.marketdata.MarketDataType.USER_TRADE;
+import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
+import static com.gruelbox.orko.exchange.MarketDataType.OPEN_ORDERS;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDER;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
+import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
 
 import java.util.List;
 import java.util.Set;
@@ -49,20 +49,20 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.MarketDataType;
+import com.gruelbox.orko.exchange.SerializableTrade;
+import com.gruelbox.orko.exchange.SerializableTradeEvent;
+import com.gruelbox.orko.exchange.TradeEvent;
+import com.gruelbox.orko.exchange.UserTradeEvent;
 import com.gruelbox.orko.jobrun.spi.StatusUpdate;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.MarketDataType;
-import com.gruelbox.orko.marketdata.SerializableTrade;
-import com.gruelbox.orko.marketdata.TradeEvent;
-import com.gruelbox.orko.marketdata.UserTradeEvent;
 import com.gruelbox.orko.notification.Notification;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
@@ -168,6 +168,8 @@ public final class OrkoWebSocketServer {
   }
 
   private void mutateSubscriptions(MarketDataType marketDataType, Iterable<TickerSpec> tickers) {
+    if (tickers == null)
+      tickers = Set.of();
     marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
       .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(marketDataType)))
       .addAll(FluentIterable.from(tickers).transform(spec -> MarketDataSubscription.create(spec, marketDataType)))
@@ -222,7 +224,7 @@ public final class OrkoWebSocketServer {
       // Order book should be throttled globally
       private final Disposable orderBook = subscription.getOrderBooks()
           .filter(o -> isReady())
-          .throttleLast(2, TimeUnit.SECONDS)
+          .throttleLast(1, TimeUnit.SECONDS)
           .subscribe(e -> send(e, Nature.ORDERBOOK));
 
       // Trades, balances and order status changes are unthrottled - the assumption is that you need the lot
@@ -269,20 +271,14 @@ public final class OrkoWebSocketServer {
    * Workaround for lack of serializability of the XChange object
    */
   private Object serialiseUserTradeEvent(UserTradeEvent e) {
-    return ImmutableMap.of(
-      "spec", e.spec(),
-      "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
-    );
+    return SerializableTradeEvent.create(e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
   }
 
   /**
    * Workaround for lack of serializability of the XChange object
    */
   private Object serialiseTradeEvent(TradeEvent e) {
-    return ImmutableMap.of(
-      "spec", e.spec(),
-      "trade", SerializableTrade.create(e.spec().exchange(), e.trade())
-    );
+    return SerializableTradeEvent.create(e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
   }
 
   @Subscribe

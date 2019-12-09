@@ -4,14 +4,14 @@
   "description": "Runs the entire application and performs sanity checks",
   "main": "index.js",
   "scripts": {
-    "cypress:open": "cypress open",
+    "cypress:open": "cypress open --config-file \"cypress-local.json\"",
     "cypress:run": "cypress run --browser chrome",
     "cypress:verify": "cypress verify"
   },
   "author": "",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "cypress": "^3.4.1"
+    "cypress": "^3.7.0"
   },
   "dependencies": {
     "otplib": "^11.0.1"

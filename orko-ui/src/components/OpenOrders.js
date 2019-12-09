@@ -19,7 +19,7 @@ import React from "react"
 import { Icon } from "semantic-ui-react"
 import ReactTable from "react-table"
 import Href from "../components/primitives/Href"
-import * as dateUtils from "../util/dateUtils"
+import * as dateUtils from "modules/common/util/dateUtils"
 import Price from "../components/primitives/Price"
 import Amount from "../components/primitives/Amount"
 
@@ -41,17 +41,8 @@ const orderTypeColumn = {
   Cell: ({ original }) => (
     <Icon
       fitted
-      name={
-        !!original.stopPrice
-          ? "stop circle"
-          : original.type === "BID"
-          ? "arrow up"
-          : "arrow down"
-      }
-      title={
-        (!!original.stopPrice ? "STOP " : "") +
-        (original.type === "BID" ? "Buy" : "Sell")
-      }
+      name={!!original.stopPrice ? "stop circle" : original.type === "BID" ? "arrow up" : "arrow down"}
+      title={(!!original.stopPrice ? "STOP " : "") + (original.type === "BID" ? "Buy" : "Sell")}
     />
   ),
   headerStyle: textStyle,
@@ -71,11 +62,7 @@ const runningAtColumn = {
         title="On server. Slightly delayed execution which may cause slippage, but does not lock the balance."
       />
     ) : (
-      <Icon
-        fitted
-        name="server"
-        title="On exchange. Will execute immediately but locks up the balance."
-      />
+      <Icon fitted name="server" title="On exchange. Will execute immediately but locks up the balance." />
     ),
   headerStyle: textStyle,
   style: textStyle,
@@ -108,13 +95,7 @@ const limitPriceColumn = coin => ({
     !!original.stopPrice && !original.limitPrice ? (
       "MARKET"
     ) : (
-      <Price
-        data-orko="limitPrice"
-        color={original.type === "BID" ? "buy" : "sell"}
-        noflash
-        bare
-        coin={coin}
-      >
+      <Price data-orko="limitPrice" color={original.type === "BID" ? "buy" : "sell"} noflash bare coin={coin}>
         {original.limitPrice}
       </Price>
     ),
@@ -129,13 +110,7 @@ const stopPriceColumn = coin => ({
   id: "stopPrice",
   Header: "Trigger",
   Cell: ({ original }) => (
-    <Price
-      data-orko="stopPrice"
-      color={original.type === "BID" ? "buy" : "sell"}
-      noflash
-      bare
-      coin={coin}
-    >
+    <Price data-orko="stopPrice" color={original.type === "BID" ? "buy" : "sell"} noflash bare coin={coin}>
       {original.stopPrice ? original.stopPrice : "--"}
     </Price>
   ),
@@ -149,13 +124,7 @@ const stopPriceColumn = coin => ({
 const amountColumn = coin => ({
   Header: "Amount",
   Cell: ({ original }) => (
-    <Amount
-      data-orko="amount"
-      color={original.type === "BID" ? "buy" : "sell"}
-      noflash
-      bare
-      coin={coin}
-    >
+    <Amount data-orko="amount" color={original.type === "BID" ? "buy" : "sell"} noflash bare coin={coin}>
       {original.originalAmount}
     </Amount>
   ),
@@ -169,14 +138,8 @@ const amountColumn = coin => ({
 const filledColumn = coin => ({
   Header: "Filled",
   Cell: ({ original }) => (
-    <Amount
-      data-orko="filled"
-      color={original.type === "BID" ? "buy" : "sell"}
-      noflash
-      bare
-      coin={coin}
-    >
-      {original.cumulativeAmount}
+    <Amount data-orko="filled" color={original.type === "BID" ? "buy" : "sell"} noflash bare coin={coin}>
+      {original.cumulativeAmount == null ? "--" : original.cumulativeAmount}
     </Amount>
   ),
   headerStyle: numberStyle,
@@ -217,12 +180,9 @@ const OpenOrders = props => (
     data={props.orders}
     getTrProps={(state, rowInfo, column) => ({
       className:
-        (rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell") +
-        " oco-" +
-        rowInfo.original.status,
+        (rowInfo.original.type === "BID" ? "oco-buy" : "oco-sell") + " oco-" + rowInfo.original.status,
       [DATA_ATTRIBUTE]: "openOrder/" + rowInfo.original.id,
-      [DATA_TYPE]:
-        "openOrder/" + (rowInfo.original.type === "BID" ? "buy" : "sell")
+      [DATA_TYPE]: "openOrder/" + (rowInfo.original.type === "BID" ? "buy" : "sell")
     })}
     columns={[
       cancelColumn(props.onCancelExchange, props.onCancelServer),

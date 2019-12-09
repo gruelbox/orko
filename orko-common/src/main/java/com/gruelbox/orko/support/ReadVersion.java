@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 
-public final class ReadVersion {
+final class ReadVersion {
 
   private ReadVersion() {}
 

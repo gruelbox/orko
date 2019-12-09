@@ -19,7 +19,7 @@
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
-import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
+import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -50,8 +50,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
+import com.gruelbox.orko.exchange.BalanceEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.exchange.ExchangeService;
 import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.MaxTradeAmountCalculator;
 import com.gruelbox.orko.exchange.RateController;
 import com.gruelbox.orko.exchange.TradeServiceFactory;
 import com.gruelbox.orko.job.LimitOrderJob.BalanceState;
@@ -59,12 +64,6 @@ import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
-import com.gruelbox.orko.marketdata.Balance;
-import com.gruelbox.orko.marketdata.BalanceEvent;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.MaxTradeAmountCalculator;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 
@@ -891,9 +890,9 @@ public class TestLimitOrderJobProcessor {
     when(exchangeEventRegistry.subscribe(MarketDataSubscription.create(ex, BALANCE)))
       .thenReturn(subscription);
     when(subscription.getBalances()).thenReturn(Flowable.just(
-      BalanceEvent.create(EXCHANGE, currency, Balance.create(new org.knowm.xchange.dto.account.Balance(
+      BalanceEvent.create(EXCHANGE, new org.knowm.xchange.dto.account.Balance(
           Currency.getInstance(currency),
-          amount)))
+          amount))
     ));
   }
 

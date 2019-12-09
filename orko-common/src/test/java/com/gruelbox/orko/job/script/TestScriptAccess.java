@@ -37,7 +37,6 @@ import org.mockito.MockitoAnnotations;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.inject.util.Providers;
-import com.gruelbox.orko.OrkoConfiguration;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
@@ -48,7 +47,12 @@ import io.dropwizard.testing.junit.DAOTestRule;
 public class TestScriptAccess {
 
   private final Hasher hasher = new Hasher();
-  private final OrkoConfiguration config = new OrkoConfiguration();
+  private final ScriptConfiguration config = new ScriptConfiguration() {
+    @Override
+    public String getScriptSigningKey() {
+      return "UGI&T&IUGousy9d7y2he3o8dyq9182y018yfouqhwdwe2";
+    }
+  };
 
   @Rule
   public DAOTestRule database = DbTesting.rule()
@@ -61,7 +65,6 @@ public class TestScriptAccess {
   @Before
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
-    config.setScriptSigningKey("UGI&T&IUGousy9d7y2he3o8dyq9182y018yfouqhwdwe2");
     dao = new ScriptAccess(Providers.of(database.getSessionFactory()), hasher, config);
     DbTesting.clearDatabase();
     DbTesting.invalidateSchemaCache();

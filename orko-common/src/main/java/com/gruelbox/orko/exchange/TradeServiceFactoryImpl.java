@@ -18,33 +18,48 @@
 
 package com.gruelbox.orko.exchange;
 
+import java.util.Map;
+
 import org.knowm.xchange.service.trade.TradeService;
 
 import com.google.inject.Inject;
-import com.gruelbox.orko.OrkoConfiguration;
 
 class TradeServiceFactoryImpl extends AbstractExchangeServiceFactory<TradeService>
                               implements TradeServiceFactory {
 
   private final ExchangeService exchangeService;
   private final PaperTradeService.Factory paperTradeServiceFactory;
+  private final RemoteTradeService.Factory remoteTradeServiceFactory;
+  private final RemoteMarketDataConfiguration remoteConfiguration;
 
   @Inject
   TradeServiceFactoryImpl(ExchangeService exchangeService,
-                          OrkoConfiguration configuration,
-                          PaperTradeService.Factory paperTradeServiceFactory) {
+                          Map<String, ExchangeConfiguration> configuration,
+                          PaperTradeService.Factory paperTradeServiceFactory,
+                          RemoteTradeService.Factory remoteTradeServiceFactory,
+                          RemoteMarketDataConfiguration remoteConfiguration) {
     super(configuration);
     this.exchangeService = exchangeService;
     this.paperTradeServiceFactory = paperTradeServiceFactory;
+    this.remoteTradeServiceFactory = remoteTradeServiceFactory;
+    this.remoteConfiguration = remoteConfiguration;
   }
 
   @Override
   protected ExchangeServiceFactory<TradeService> getRealFactory() {
-    return exchange -> exchangeService.get(exchange).getTradeService();
+    if (remoteConfiguration.isEnabled()) {
+      return exchange -> remoteTradeServiceFactory.create(exchange);
+    } else {
+      return exchange -> exchangeService.get(exchange).getTradeService();
+    }
   }
 
   @Override
   protected ExchangeServiceFactory<TradeService> getPaperFactory() {
-    return paperTradeServiceFactory;
+    if (remoteConfiguration.isEnabled()) {
+      return exchange -> remoteTradeServiceFactory.create(exchange);
+    } else {
+      return paperTradeServiceFactory;
+    }
   }
 }

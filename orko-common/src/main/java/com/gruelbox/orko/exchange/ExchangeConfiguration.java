@@ -30,6 +30,7 @@ public class ExchangeConfiguration {
   private String passphrase;
   private boolean sandbox;
   private boolean loadRemoteData = true;
+  private boolean enabled = true;
 
   @JsonProperty
   public String getUserName() {
@@ -62,6 +63,11 @@ public class ExchangeConfiguration {
   }
 
   @JsonProperty
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  @JsonProperty
   public void setUserName(String userName) {
     this.userName = userName;
   }
@@ -89,6 +95,11 @@ public class ExchangeConfiguration {
   @JsonProperty
   public void setLoadRemoteData(boolean loadRemoteData) {
     this.loadRemoteData = loadRemoteData;
+  }
+
+  @JsonProperty
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 
   public boolean isAuthenticated() {

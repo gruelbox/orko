@@ -17,12 +17,12 @@
  */
 package com.gruelbox.orko.websocket;
 
-import static com.gruelbox.orko.marketdata.MarketDataType.BALANCE;
-import static com.gruelbox.orko.marketdata.MarketDataType.OPEN_ORDERS;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDER;
-import static com.gruelbox.orko.marketdata.MarketDataType.ORDERBOOK;
-import static com.gruelbox.orko.marketdata.MarketDataType.TICKER;
-import static com.gruelbox.orko.marketdata.MarketDataType.TRADES;
+import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
+import static com.gruelbox.orko.exchange.MarketDataType.OPEN_ORDERS;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDER;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
 import static java.math.BigDecimal.TEN;
 import static java.math.BigDecimal.ZERO;
 import static org.hamcrest.Matchers.contains;
@@ -66,17 +66,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Injector;
-import com.gruelbox.orko.marketdata.Balance;
-import com.gruelbox.orko.marketdata.BalanceEvent;
-import com.gruelbox.orko.marketdata.ExchangeEventRegistry;
-import com.gruelbox.orko.marketdata.MarketDataSubscription;
-import com.gruelbox.orko.marketdata.MarketDataType;
-import com.gruelbox.orko.marketdata.OpenOrdersEvent;
-import com.gruelbox.orko.marketdata.OrderBookEvent;
-import com.gruelbox.orko.marketdata.OrderChangeEvent;
-import com.gruelbox.orko.marketdata.TickerEvent;
-import com.gruelbox.orko.marketdata.TradeEvent;
-import com.gruelbox.orko.marketdata.UserTradeEvent;
+import com.gruelbox.orko.exchange.BalanceEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.MarketDataType;
+import com.gruelbox.orko.exchange.OpenOrdersEvent;
+import com.gruelbox.orko.exchange.OrderBookEvent;
+import com.gruelbox.orko.exchange.OrderChangeEvent;
+import com.gruelbox.orko.exchange.TickerEvent;
+import com.gruelbox.orko.exchange.TradeEvent;
+import com.gruelbox.orko.exchange.UserTradeEvent;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.reactivex.Flowable;
@@ -151,8 +150,8 @@ public class TestOrkoWebSocketServer {
 
   @Test
   public void testBalances() throws IOException, InterruptedException {
-    BalanceEvent event1 = BalanceEvent.create("binance", "USD", Balance.create(new org.knowm.xchange.dto.account.Balance.Builder().currency(USD).total(ZERO).build()));
-    BalanceEvent event2 = BalanceEvent.create("binance", "BTC", Balance.create(new org.knowm.xchange.dto.account.Balance.Builder().currency(BTC).total(ZERO).build()));
+    BalanceEvent event1 = BalanceEvent.create("binance", new org.knowm.xchange.dto.account.Balance.Builder().currency(USD).total(ZERO).build());
+    BalanceEvent event2 = BalanceEvent.create("binance", new org.knowm.xchange.dto.account.Balance.Builder().currency(BTC).total(ZERO).build());
     Flowable<BalanceEvent> events = Flowable.just(event1, event2);
     when(subscription.getBalances()).thenReturn(events);
     List<String> messagesSent = messaging("CHANGE_BALANCE", BALANCE, false);
@@ -237,6 +236,7 @@ public class TestOrkoWebSocketServer {
     List<String> messagesSent = new CopyOnWriteArrayList<>();
     CountDownLatch callCounter = new CountDownLatch(2);
     doAnswer(inv -> {
+      System.out.println("Sent:" + inv.getArgument(0));
       messagesSent.add(inv.getArgument(0));
       callCounter.countDown();
       return null;

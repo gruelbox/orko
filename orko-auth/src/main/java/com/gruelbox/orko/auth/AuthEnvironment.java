@@ -33,18 +33,23 @@ class AuthEnvironment implements EnvironmentInitialiser {
 
   private final IpWhitelistingEnvironment ipWhitelistingEnvironment;
   private final JwtEnvironment jwtEnvironment;
+  private final ClientSecurityHeadersFilter clientSecurityHeadersFilter;
 
 
   @Inject
   AuthEnvironment(IpWhitelistingEnvironment ipWhitelistingEnvironment,
-                  JwtEnvironment jwtEnvironment) {
+                  JwtEnvironment jwtEnvironment,
+                  ClientSecurityHeadersFilter clientSecurityHeadersFilter) {
     this.ipWhitelistingEnvironment = ipWhitelistingEnvironment;
     this.jwtEnvironment = jwtEnvironment;
+    this.clientSecurityHeadersFilter = clientSecurityHeadersFilter;
   }
 
   @Override
   public void init(Environment environment) {
     ipWhitelistingEnvironment.init(environment);
     jwtEnvironment.init(environment);
+    environment.servlets().addFilter(ClientSecurityHeadersFilter.class.getSimpleName(), clientSecurityHeadersFilter)
+        .addMappingForUrlPatterns(null, true, "/*");
   }
 }
