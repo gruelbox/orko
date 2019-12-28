@@ -52,7 +52,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.knowm.xchange.Exchange;
-import org.knowm.xchange.bitfinex.v1.dto.BitfinexException;
+import org.knowm.xchange.bitfinex.v1.dto.BitfinexExceptionV1;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
@@ -70,7 +70,6 @@ import org.knowm.xchange.exceptions.NonceException;
 import org.knowm.xchange.exceptions.NotAvailableFromExchangeException;
 import org.knowm.xchange.exceptions.NotYetImplementedForExchangeException;
 import org.knowm.xchange.exceptions.RateLimitExceededException;
-import org.knowm.xchange.exceptions.SystemOverloadException;
 import org.knowm.xchange.service.account.AccountService;
 import org.knowm.xchange.service.marketdata.MarketDataService;
 import org.knowm.xchange.service.trade.TradeService;
@@ -328,7 +327,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
         logger.warn("{} not available: {} ({})", dataDescription, e.getClass().getSimpleName(), exceptionMessage(e));
         Iterables.addAll(unavailableSubscriptions, toUnsubscribe.get());
 
-      } catch (SocketTimeoutException | SocketException | ExchangeUnavailableException | SystemOverloadException | NonceException e) {
+      } catch (SocketTimeoutException | SocketException | ExchangeUnavailableException | NonceException e) {
 
         // Managed connectivity issues.
         logger.warn("Throttling {} - {} ({}) when fetching {}", exchangeName, e.getClass().getSimpleName(), exceptionMessage(e), dataDescription);
@@ -355,7 +354,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
         } else {
           handleUnknownPollException(e);
         }
-      } catch (BitfinexException e) {
+      } catch (BitfinexExceptionV1 e) {
         handleUnknownPollException(new ExchangeException("Bitfinex exception: " + exceptionMessage(e) + " (error code=" + e.getError() + ")", e));
       } catch (Exception e) {
         handleUnknownPollException(e);
