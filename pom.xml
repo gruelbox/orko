@@ -222,7 +222,7 @@
     <dropwizard-https-redirect-version>0.0.6</dropwizard-https-redirect-version>
     <dropwizard-guice-box-version>0.0.8</dropwizard-guice-box-version>
 
-    <asm.version>7.2</asm.version>
+    <asm.version>7.3.1</asm.version>
 
     <!-- Sonar -->
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
