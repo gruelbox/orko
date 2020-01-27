@@ -9,7 +9,7 @@
     "@types/jest": "^24.0.25",
     "@types/node": "^12.12.14",
     "@types/react": "^16.9.17",
-    "@types/react-dom": "^16.9.4",
+    "@types/react-dom": "^16.9.5",
     "@types/react-grid-layout": "^0.17.0",
     "compare-versions": "^3.5.1",
     "connected-react-router": "^6.6.1",
