@@ -42,7 +42,7 @@
     "styled-components": "^5.0.1",
     "styled-system": "^5.1.4",
     "typescript": "^3.7.4",
-    "uuid": "^3.3.3",
+    "uuid": "^3.4.0",
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {
