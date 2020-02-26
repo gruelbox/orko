@@ -11,7 +11,7 @@
     "@types/react": "^16.9.17",
     "@types/react-dom": "^16.9.5",
     "@types/react-grid-layout": "^0.17.0",
-    "compare-versions": "^3.5.1",
+    "compare-versions": "^3.6.0",
     "connected-react-router": "^6.6.1",
     "cookies-js": "^1.2.3",
     "customize-cra": "^0.9.1",
