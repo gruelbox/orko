@@ -320,17 +320,17 @@ final class PaperTradeService implements TradeService {
   }
 
   private void addTradeHistory(LimitOrder order, BigDecimal price) {
-    tradeHistory.add(new UserTrade(
-      order.getType(),
-      order.getOriginalAmount(),
-      order.getCurrencyPair(),
-      price,
-      new Date(),
-      Long.toString(tradeCounter.incrementAndGet()),
-      order.getId(),
-      BigDecimal.ZERO,
-      order.getCurrencyPair().base
-    ));
+    tradeHistory.add(new UserTrade.Builder()
+        .type(order.getType())
+        .originalAmount(order.getOriginalAmount())
+        .currencyPair(order.getCurrencyPair())
+        .price(price)
+        .timestamp(new Date())
+        .id(Long.toString(tradeCounter.incrementAndGet()))
+        .orderId(order.getId())
+        .feeAmount(BigDecimal.ZERO)
+        .feeCurrency(order.getCurrencyPair().base)
+        .build());
   }
 
 
