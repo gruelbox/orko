@@ -32,11 +32,9 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Maps;
 import com.google.inject.Provider;
 import com.gruelbox.orko.auth.Hasher;
-
-import jersey.repackaged.com.google.common.collect.Maps;
 
 class ScriptAccess {
 
@@ -82,8 +80,7 @@ class ScriptAccess {
 
   Iterable<Script> list() {
     Map<String, Script> scripts = Maps.uniqueIndex(
-      FluentIterable.from(session().createQuery("from " + TABLE_NAME, Script.class).list())
-        .filter(this::scriptValid),
+      session().createQuery("from " + TABLE_NAME, Script.class).stream().filter(this::scriptValid).collect(toList()),
       Script::id
     );
     session().createQuery("from " + ScriptParameter.TABLE_NAME, ScriptParameter.class).list().forEach(p -> {

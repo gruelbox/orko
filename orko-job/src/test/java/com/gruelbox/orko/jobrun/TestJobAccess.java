@@ -18,50 +18,49 @@
 
 package com.gruelbox.orko.jobrun;
 
-
 import static java.math.BigDecimal.ONE;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.alfasoftware.morf.metadata.SchemaUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.google.inject.util.Providers;
-import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.jobrun.JobAccess.JobAlreadyExistsException;
 import com.gruelbox.orko.jobrun.JobAccess.JobDoesNotExistException;
 
-import io.dropwizard.testing.junit.DAOTestRule;
+import io.dropwizard.testing.junit5.DAOTestExtension;
+import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 
-@Category(DatabaseTest.class)
+@Tag("database")
+@ExtendWith(DropwizardExtensionsSupport.class)
 public class TestJobAccess {
 
   @Mock private JobLocker jobLocker;
 
-  @Rule
-  public DAOTestRule database = DbTesting.rule()
+  public DAOTestExtension database = DbTesting.extension()
     .addEntityClass(JobRecord.class)
     .build();
 
   private JobAccessImpl dao;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
     dao = new JobAccessImpl(Providers.of(database.getSessionFactory()), new ObjectMapper(), jobLocker);
@@ -169,7 +168,7 @@ public class TestJobAccess {
       });
       fail();
     } catch (RuntimeException e) {
-      assertTrue("Exception is a " + e.getClass().getName(), e.getCause() instanceof JobAlreadyExistsException);
+      assertTrue(e.getCause() instanceof JobAlreadyExistsException, "Exception is a " + e.getClass().getName());
     }
   }
 

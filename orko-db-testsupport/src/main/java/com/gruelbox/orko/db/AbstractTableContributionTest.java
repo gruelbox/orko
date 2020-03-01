@@ -26,26 +26,25 @@ import static org.alfasoftware.morf.upgrade.db.DatabaseUpgradeTableContribution.
 import org.alfasoftware.morf.metadata.Schema;
 import org.alfasoftware.morf.upgrade.TableContribution;
 import org.alfasoftware.morf.upgrade.Upgrade;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.google.common.collect.ImmutableList;
 
-import io.dropwizard.testing.junit.DAOTestRule;
+import io.dropwizard.testing.junit5.DAOTestExtension;
+import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 
-@Category(DatabaseTest.class)
+@ExtendWith(DropwizardExtensionsSupport.class)
 public abstract class AbstractTableContributionTest {
 
-  @Rule
-  public DAOTestRule database = DbTesting.rule().build();
+  public DAOTestExtension database = DbTesting.extension().build();
 
   /**
    * Test with initial schema prior to any upgrades.
    */
-  @Before
+  @BeforeEach
   public final void setup() {
     DbTesting.clearDatabase();
     DbTesting.mutateToSupportSchema(schema(
@@ -58,7 +57,7 @@ public abstract class AbstractTableContributionTest {
 
   protected abstract TableContribution tableContribution();
 
-  @After
+  @AfterEach
   public void tearDown() {
     DbTesting.invalidateSchemaCache();
   }

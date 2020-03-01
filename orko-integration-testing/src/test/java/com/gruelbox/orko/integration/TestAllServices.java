@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.Sets;
 import com.gruelbox.orko.app.marketdata.MarketDataApplication;
 import com.gruelbox.orko.app.monolith.MonolithApplication;
@@ -60,6 +61,7 @@ import com.gruelbox.orko.util.Safely;
 
 import ch.qos.logback.classic.Level;
 import info.bitrich.xchangestream.service.netty.StreamingObjectMapperHelper;
+import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.jersey.validation.Validators;
@@ -145,9 +147,12 @@ public class TestAllServices {
     Environment environment = new Environment(
         "Main app",
         StreamingObjectMapperHelper.getObjectMapper(),
-        validatorFactory.getValidator(),
+        validatorFactory,
         new MetricRegistry(),
-        null);
+        null,
+        new HealthCheckRegistry(),
+        new Configuration());
+
     JerseyClientConfiguration jerseyClientConfiguration = new JerseyClientConfiguration();
     jerseyClientConfiguration.setTimeout(Duration.seconds(30));
     jerseyClientConfiguration.setConnectionTimeout(Duration.seconds(30));

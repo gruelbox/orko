@@ -17,26 +17,26 @@
  */
 package com.gruelbox.orko.app.monolith;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.security.Permission;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestCommandLine {
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp() {
     System.setSecurityManager(new NoExitSecurityManager());
   }
 
-  @After
-  public void tearDown() throws Exception {
+  @AfterEach
+  public void tearDown() {
     System.setSecurityManager(null);
   }
 

@@ -35,7 +35,7 @@ import com.google.inject.util.Providers;
 
 import ch.qos.logback.classic.Level;
 import io.dropwizard.logging.BootstrapLogging;
-import io.dropwizard.testing.junit.DAOTestRule;
+import io.dropwizard.testing.junit5.DAOTestExtension;
 
 public final class DbTesting {
 
@@ -81,8 +81,8 @@ public final class DbTesting {
     SCHEMA_MANAGER.invalidateCache();
   }
 
-  public static DAOTestRule.Builder rule() {
-    return DAOTestRule.newBuilder()
+  public static DAOTestExtension.Builder extension() {
+    return DAOTestExtension.newBuilder()
       .setUrl(DB_CONFIGURATION.getJdbcUrl())
       .setDriver(DB_CONFIGURATION.getDriver())
       .setProperty("charset", "UTF-8")

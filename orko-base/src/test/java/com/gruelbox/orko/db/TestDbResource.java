@@ -37,11 +37,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
 
 import io.dropwizard.testing.junit.ResourceTestRule;
 
-@Category(DatabaseTest.class)
+@Tag("database")
 public class TestDbResource {
 
   private static final String TEST_DATA = "TESTDATA";

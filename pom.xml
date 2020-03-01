@@ -95,7 +95,9 @@
           <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>com.gruelbox.orko.db.DatabaseTest</groups>
+              <properties>
+                <includeTags>database</includeTags>
+              </properties>
             </configuration>
           </plugin>
         </plugins>
@@ -208,7 +210,8 @@
 
     <guice.version>4.2.2</guice.version>
     <autovalue.version>1.7</autovalue.version>
-    <dropwizard.version>1.3.17</dropwizard.version>
+    <dropwizard.version>2.0.2</dropwizard.version>
+    <junit.version>5.6.0</junit.version>
 
     <xchange.groupid>org.knowm.xchange</xchange.groupid>
     <xchange.version>4.4.2-SNAPSHOT</xchange.version>
@@ -221,7 +224,7 @@
     <morf.version>0.1.3.4</morf.version>
 
     <dropwizard-https-redirect-version>0.0.6</dropwizard-https-redirect-version>
-    <dropwizard-guice-box-version>0.0.8</dropwizard-guice-box-version>
+    <dropwizard-guice-box-version>1.0.0</dropwizard-guice-box-version>
 
     <asm.version>7.3.1</asm.version>
 
@@ -249,28 +252,6 @@
         <version>${dropwizard.version}</version>
         <type>pom</type>
         <scope>import</scope>
-      </dependency>
-
-      <!-- Required by dropwizard on JDK9+ -->
-      <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>activation</artifactId>
-        <version>1.1.1</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.xml.bind</groupId>
-        <artifactId>jaxb-api</artifactId>
-        <version>2.3.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.xml.bind</groupId>
-        <artifactId>jaxb-core</artifactId>
-        <version>2.3.0.1</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.xml.bind</groupId>
-        <artifactId>jaxb-impl</artifactId>
-        <version>2.3.2</version>
       </dependency>
 
       <dependency>
@@ -351,6 +332,24 @@
         <version>2.2</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>io.dropwizard</groupId>
+        <artifactId>dropwizard-testing</artifactId>
+        <version>${dropwizard.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.vintage</groupId>
+        <artifactId>junit-vintage-engine</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
 
       <dependency>
         <groupId>mysql</groupId>
@@ -422,6 +421,12 @@
         <groupId>com.warrenstrange</groupId>
         <artifactId>googleauth</artifactId>
         <version>1.4.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.bitbucket.b_c</groupId>

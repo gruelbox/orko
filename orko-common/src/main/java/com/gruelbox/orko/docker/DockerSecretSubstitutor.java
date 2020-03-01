@@ -19,16 +19,16 @@ package com.gruelbox.orko.docker;
 
 import java.util.List;
 
-import org.apache.commons.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 
 import com.google.common.annotations.VisibleForTesting;
 
 import io.dropwizard.configuration.UndefinedEnvironmentVariableException;
 
 /**
- * A custom {@link StrSubstitutor} using Docker secrets as a value source.
+ * A custom {@link StringSubstitutor} using Docker secrets as a value source.
  */
-public class DockerSecretSubstitutor extends StrSubstitutor {
+public class DockerSecretSubstitutor extends StringSubstitutor {
 
   private final DockerSecretLookup lookup;
 
@@ -40,8 +40,8 @@ public class DockerSecretSubstitutor extends StrSubstitutor {
    * @param substitutionInVariables a flag whether substitution is done in
    *                                variable names.
    * @param escapeYaml              indicates whether special YAML characters should be escaped.
-   * @see io.dropwizard.configuration.EnvironmentVariableLookup#EnvironmentVariableLookup(boolean)
-   * @see org.apache.commons.text.StrSubstitutor#setEnableSubstitutionInVariables(boolean)
+   * @see io.dropwizard.configuration.EnvironmentVariableLookup#EnvironmentVariableLookup()
+   * @see org.apache.commons.text.StringSubstitutor#setEnableSubstitutionInVariables(boolean)
    */
   public DockerSecretSubstitutor(boolean strict, boolean substitutionInVariables, boolean escapeYaml) {
     this(new DockerSecretLookup(strict), substitutionInVariables, escapeYaml);

@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
 
 import org.knowm.xchange.binance.dto.BinanceException;
 
-import jersey.repackaged.com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet;
 
 final class BinanceExceptionClassifier {
 
