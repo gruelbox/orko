@@ -22,9 +22,11 @@ import static org.alfasoftware.morf.metadata.SchemaUtils.schema;
 
 import org.alfasoftware.morf.metadata.Schema;
 import org.alfasoftware.morf.upgrade.TableContribution;
+import org.junit.jupiter.api.Tag;
 
 import com.gruelbox.orko.db.AbstractTableContributionTest;
 
+@Tag("database")
 public class TestScriptContribution extends AbstractTableContributionTest {
 
   @Override

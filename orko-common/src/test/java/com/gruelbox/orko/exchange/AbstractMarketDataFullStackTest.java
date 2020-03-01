@@ -40,7 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.util.SafelyDispose;
@@ -49,8 +51,6 @@ import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 import ch.qos.logback.classic.Level;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
-import jersey.repackaged.com.google.common.collect.ImmutableMap;
-import jersey.repackaged.com.google.common.collect.Maps;
 
 public abstract class AbstractMarketDataFullStackTest {
 

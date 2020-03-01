@@ -43,6 +43,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -68,7 +69,7 @@ import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
-@Category(DatabaseTest.class)
+@Tag("database")
 public class TestJobExecution {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestJobExecution.class);

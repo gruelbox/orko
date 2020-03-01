@@ -36,7 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 
-import jersey.repackaged.com.google.common.collect.Sets;
+import com.google.common.collect.Sets;
 
 public class TestMarketDataSubscriptionManager {
 

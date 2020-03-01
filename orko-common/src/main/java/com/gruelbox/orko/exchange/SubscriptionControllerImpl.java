@@ -22,7 +22,7 @@ import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
 import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
 import static java.time.LocalDateTime.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static jersey.repackaged.com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
@@ -256,7 +256,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
 
     /**
      * This may fail when the exchange is not available, so keep trying.
-     * @throws InterruptedException
+     * @throws InterruptedException If interrupted while sleeping.
      */
     private void initialise() throws InterruptedException {
       while (isRunning()) {
@@ -607,7 +607,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
       logger.info("Connecting to exchange: {}", exchangeName);
       ProductSubscriptionBuilder builder = ProductSubscription.create();
       boolean authenticated = exchangeService.isAuthenticated(exchangeName);
-      subscriptionsForExchange.stream()
+      subscriptionsForExchange
         .forEach(s -> {
           switch (s.type()) {
             case TICKER:
@@ -735,7 +735,6 @@ class SubscriptionControllerImpl extends AbstractPollingController {
     private void pollAndEmitTrades(MarketDataSubscription subscription) throws IOException {
       marketDataService.getTrades(subscription.spec().currencyPair())
         .getTrades()
-        .stream()
         .forEach(t ->
           mostRecentTrades.compute(subscription.spec(), (k, previousTiming) -> {
             Instant thisTradeTiming = t.getTimestamp().toInstant();

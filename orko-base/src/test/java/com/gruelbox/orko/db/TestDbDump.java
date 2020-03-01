@@ -52,7 +52,7 @@ import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.ImmutableList;
@@ -62,7 +62,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.multibindings.Multibinder;
 
-@Category(DatabaseTest.class)
+@Tag("database")
 public class TestDbDump {
 
   @Inject private ConnectionResources connectionResources;

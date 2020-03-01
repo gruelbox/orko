@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
 
 import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
@@ -38,7 +39,7 @@ import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
-@Category(DatabaseTest.class)
+@Tag("database")
 public class TestJobLocker {
 
   @Rule

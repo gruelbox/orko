@@ -30,13 +30,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import com.google.common.collect.ImmutableList;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
-@Category(DatabaseTest.class)
 public abstract class AbstractTableContributionTest {
 
   @Rule

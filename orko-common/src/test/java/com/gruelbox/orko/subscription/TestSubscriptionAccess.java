@@ -30,16 +30,15 @@ import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
 
 import com.google.inject.util.Providers;
-import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.spi.TickerSpec;
 
 import io.dropwizard.testing.junit.DAOTestRule;
 
-@Category(DatabaseTest.class)
+@Tag("database")
 public class TestSubscriptionAccess {
 
   @Rule
