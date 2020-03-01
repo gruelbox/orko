@@ -560,7 +560,6 @@
             <skipTests>${skip.surefire.tests}</skipTests>
             <argLine>${surefireArgLine}</argLine>
             <excludes>
-              <excludeTags>database</excludeTags>
               <exclude>**/*Integration.java</exclude>
             </excludes>
             <useSystemClassLoader>false</useSystemClassLoader>
