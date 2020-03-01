@@ -21,28 +21,29 @@ package com.gruelbox.orko.subscription;
 import static java.math.BigDecimal.ONE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
 import org.alfasoftware.morf.metadata.SchemaUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.google.inject.util.Providers;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.spi.TickerSpec;
 
-import io.dropwizard.testing.junit.DAOTestRule;
+import io.dropwizard.testing.junit5.DAOTestExtension;
+import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 
 @Tag("database")
+@ExtendWith(DropwizardExtensionsSupport.class)
 public class TestSubscriptionAccess {
 
-  @Rule
-  public DAOTestRule database = DbTesting.rule()
+  public DAOTestExtension database = DbTesting.extension()
     .addEntityClass(Subscription.class)
     .build();
 
@@ -52,7 +53,7 @@ public class TestSubscriptionAccess {
 
   private SubscriptionAccess dao;
 
-  @Before
+  @BeforeEach
   public void setup() {
     dao = new SubscriptionAccess(Providers.of(database.getSessionFactory()));
     DbTesting.clearDatabase();

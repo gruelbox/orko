@@ -18,20 +18,20 @@
 
 package com.gruelbox.orko.job.script;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.alfasoftware.morf.metadata.SchemaUtils;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.FluentIterable;
@@ -40,9 +40,11 @@ import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.DbTesting;
 
-import io.dropwizard.testing.junit.DAOTestRule;
+import io.dropwizard.testing.junit5.DAOTestExtension;
+import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 
 @Tag("database")
+@ExtendWith(DropwizardExtensionsSupport.class)
 public class TestScriptAccess {
 
   private final Hasher hasher = new Hasher();
@@ -53,15 +55,14 @@ public class TestScriptAccess {
     }
   };
 
-  @Rule
-  public DAOTestRule database = DbTesting.rule()
+  public DAOTestExtension database = DbTesting.extension()
     .addEntityClass(Script.class)
     .addEntityClass(ScriptParameter.class)
     .build();
 
   private ScriptAccess dao;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     MockitoAnnotations.initMocks(this);
     dao = new ScriptAccess(Providers.of(database.getSessionFactory()), hasher, config);

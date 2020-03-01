@@ -20,8 +20,8 @@ package com.gruelbox.orko.jobrun;
 
 
 import static org.alfasoftware.morf.metadata.SchemaUtils.schema;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -37,13 +37,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -56,7 +55,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Injector;
 import com.google.inject.util.Providers;
-import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.TestingJobEvent.EventType;
@@ -67,15 +65,16 @@ import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
 
-import io.dropwizard.testing.junit.DAOTestRule;
+import io.dropwizard.testing.junit5.DAOTestExtension;
+import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 
 @Tag("database")
+@ExtendWith(DropwizardExtensionsSupport.class)
 public class TestJobExecution {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TestJobExecution.class);
 
-  @Rule
-  public DAOTestRule database = DbTesting.rule()
+  public DAOTestExtension database = DbTesting.extension()
     .addEntityClass(JobRecord.class)
     .build();
 
@@ -99,7 +98,7 @@ public class TestJobExecution {
 
   private ExecutorService executorService;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
 
     MockitoAnnotations.initMocks(this);
@@ -181,9 +180,9 @@ public class TestJobExecution {
       start();
 
       LOGGER.info("Waiting for success");
-      Assert.assertTrue(listener1.awaitFinish());
-      Assert.assertTrue(listener2.awaitFinish());
-      Assert.assertTrue(listener3.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener2.awaitFinish());
+      Assertions.assertTrue(listener3.awaitFinish());
     }
   }
 
@@ -195,7 +194,7 @@ public class TestJobExecution {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(TestingJob.builder().id(JOB1).failOnStart(true).build());
       start();
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
       verify(statusUpdateService).status(JOB1, Status.FAILURE_TRANSIENT);
       verifyNoMoreInteractions(statusUpdateService);
     }
@@ -209,7 +208,7 @@ public class TestJobExecution {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(TestingJob.builder().id(JOB1).failOnStop(true).build());
       start();
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
       verify(statusUpdateService).status(JOB1, Status.SUCCESS);
       verifyNoMoreInteractions(statusUpdateService);
     }
@@ -223,7 +222,7 @@ public class TestJobExecution {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(false).failOnStop(true).build());
       start();
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
 
       InOrder inOrder = inOrder(statusUpdateService);
       inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
@@ -241,7 +240,7 @@ public class TestJobExecution {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(AsynchronouslySelfStoppingJob.builder().id(JOB1).build());
       start();
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
 
       InOrder inOrder = inOrder(statusUpdateService);
       inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
@@ -258,7 +257,7 @@ public class TestJobExecution {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(CounterJob.builder().id(JOB1).build());
       start();
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
 
       InOrder inOrder = inOrder(statusUpdateService);
       inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
@@ -282,7 +281,7 @@ public class TestJobExecution {
     try (Listener listener1 = new Listener(JOB1)) {
       addJob(TestingJob.builder().id(JOB1).runAsync(true).stayResident(true).failOnTick(true).build());
       start();
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
 
       InOrder inOrder = inOrder(statusUpdateService);
       inOrder.verify(statusUpdateService).status(JOB1, Status.RUNNING);
@@ -302,10 +301,10 @@ public class TestJobExecution {
       start();
 
       // Make sure we're up and running
-      Assert.assertTrue(listener1.awaitStart());
+      Assertions.assertTrue(listener1.awaitStart());
 
       // Should still be running after a pause
-      Assert.assertFalse(listener1.awaitFinishShort());
+      Assertions.assertFalse(listener1.awaitFinishShort());
 
       // Kill the guardians so the lock stops getting refreshed
       guardianLoop1.kill();
@@ -316,7 +315,7 @@ public class TestJobExecution {
       executorService.execute(() -> eventBus.post(KeepAliveEvent.INSTANCE));
 
       // Should die
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
     }
   }
 
@@ -332,16 +331,16 @@ public class TestJobExecution {
       start();
 
       // Make sure we're up and running
-      Assert.assertTrue(listener1.awaitStart());
+      Assertions.assertTrue(listener1.awaitStart());
 
       // Should still be running after a pause
-      Assert.assertFalse(listener1.awaitFinishShort());
+      Assertions.assertFalse(listener1.awaitFinishShort());
 
       // Shut down
       stopGuardians();
 
       // Should die
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
     }
   }
 
@@ -356,14 +355,14 @@ public class TestJobExecution {
 
       start();
 
-      Assert.assertTrue(listener1.awaitStart());
-      Assert.assertFalse(listener1.awaitFinishShort());
+      Assertions.assertTrue(listener1.awaitStart());
+      Assertions.assertFalse(listener1.awaitFinishShort());
 
       // Shut down
       stopGuardians();
 
       // Should die
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
     }
   }
 
@@ -381,9 +380,9 @@ public class TestJobExecution {
 
       start();
 
-      Assert.assertTrue(listener1.awaitFinish());
-      Assert.assertTrue(listener1.awaitFinish());
-      Assert.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
+      Assertions.assertTrue(listener1.awaitFinish());
     }
   }
 
@@ -410,7 +409,7 @@ public class TestJobExecution {
 
       start();
 
-      Assert.assertFalse(listener1.awaitStartShort());
+      Assertions.assertFalse(listener1.awaitStartShort());
 
       backgroundLock.cancel(true);
     }
@@ -431,7 +430,7 @@ public class TestJobExecution {
     guardianLoop2.awaitRunning();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     jobLocker.stop();
     stopGuardians();

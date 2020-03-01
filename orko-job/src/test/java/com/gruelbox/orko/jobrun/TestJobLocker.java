@@ -19,31 +19,30 @@
 package com.gruelbox.orko.jobrun;
 
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.alfasoftware.morf.metadata.SchemaUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.gruelbox.orko.db.DatabaseTest;
 import com.gruelbox.orko.db.DbTesting;
 import com.gruelbox.orko.db.Transactionally;
 import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
-import io.dropwizard.testing.junit.DAOTestRule;
+import io.dropwizard.testing.junit5.DAOTestExtension;
+import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 
 @Tag("database")
+@ExtendWith(DropwizardExtensionsSupport.class)
 public class TestJobLocker {
 
-  @Rule
-  public DAOTestRule database = DbTesting.rule().build();
+  public DAOTestExtension database = DbTesting.extension().build();
 
   private static final UUID OWNER_1 = UUID.randomUUID();
   private static final UUID OWNER_2 = UUID.randomUUID();
@@ -52,7 +51,7 @@ public class TestJobLocker {
   private static final String JOB_2 = "JOB2";
   private JobLockerImpl dao;
 
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     JobRunConfiguration configuration = new JobRunConfiguration();
     configuration.setDatabaseLockSeconds(3);
