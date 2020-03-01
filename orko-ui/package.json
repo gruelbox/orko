@@ -8,7 +8,7 @@
     "@types/history": "^4.7.5",
     "@types/jest": "^24.0.25",
     "@types/node": "^13.7.0",
-    "@types/react": "^16.9.17",
+    "@types/react": "^16.9.23",
     "@types/react-dom": "^16.9.5",
     "@types/react-grid-layout": "^0.17.0",
     "compare-versions": "^3.6.0",
