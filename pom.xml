@@ -216,7 +216,7 @@
     <xchange.groupid>org.knowm.xchange</xchange.groupid>
     <xchange.version>4.4.2-SNAPSHOT</xchange.version>
 
-    <xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid>-->
+    <xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid>
     <xchange.stream.version>4.4.2-SNAPSHOT</xchange.stream.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
