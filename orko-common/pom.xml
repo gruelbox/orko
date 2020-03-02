@@ -163,15 +163,15 @@
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-coinbasepro</artifactId>
+      <artifactId>xchange-stream-coinbasepro</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-binance</artifactId>
+      <artifactId>xchange-stream-binance</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-bitfinex</artifactId>
+      <artifactId>xchange-stream-bitfinex</artifactId>
     </dependency>
 
   </dependencies>
