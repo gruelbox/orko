@@ -49,6 +49,11 @@
             <exclude>node/**</exclude>
             <exclude>build/**</exclude>
           </excludes>
+          <mapping>
+            <ts>SLASHSTAR_STYLE</ts>
+            <tsx>SLASHSTAR_STYLE</tsx>
+            <jsx>SLASHSTAR_STYLE</jsx>
+          </mapping>
         </configuration>
       </plugin>
       <plugin>
