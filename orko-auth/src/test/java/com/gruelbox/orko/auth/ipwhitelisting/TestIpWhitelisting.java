@@ -1,23 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.auth.ipwhitelisting;
-
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -25,22 +20,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Enumeration;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
 import com.google.inject.util.Providers;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.Headers;
 import com.gruelbox.orko.auth.RequestUtils;
 import com.gruelbox.orko.db.Transactionally;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
+import java.util.Enumeration;
+import javax.servlet.http.HttpServletRequest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 public class TestIpWhitelisting {
 
@@ -62,11 +54,12 @@ public class TestIpWhitelisting {
 
     when(request.getRemoteAddr()).thenReturn(ORIGIN);
 
-    ontest = new IpWhitelistingService(
-        Providers.of(new RequestUtils(request, configuration)),
-        googleAuthenticator, configuration,
-        Providers.of(ipWhitelistAccess)
-    );
+    ontest =
+        new IpWhitelistingService(
+            Providers.of(new RequestUtils(request, configuration)),
+            googleAuthenticator,
+            configuration,
+            Providers.of(ipWhitelistAccess));
   }
 
   @Test
@@ -110,7 +103,8 @@ public class TestIpWhitelisting {
     enabled();
     when(ipWhitelistAccess.exists(MOST_RECENT_FORWARD)).thenReturn(false);
     configuration.setProxied(true);
-    when(request.getHeader(Headers.X_FORWARDED_FOR)).thenReturn(MOST_RECENT_FORWARD + ",OldForward,OlderForward");
+    when(request.getHeader(Headers.X_FORWARDED_FOR))
+        .thenReturn(MOST_RECENT_FORWARD + ",OldForward,OlderForward");
     assertFalse(ontest.authoriseIp());
   }
 
@@ -119,7 +113,8 @@ public class TestIpWhitelisting {
     enabled();
     when(ipWhitelistAccess.exists(MOST_RECENT_FORWARD)).thenReturn(true);
     configuration.setProxied(true);
-    when(request.getHeader(Headers.X_FORWARDED_FOR)).thenReturn(MOST_RECENT_FORWARD + ",OldForward,OlderForward");
+    when(request.getHeader(Headers.X_FORWARDED_FOR))
+        .thenReturn(MOST_RECENT_FORWARD + ",OldForward,OlderForward");
     assertTrue(ontest.authoriseIp());
   }
 
@@ -181,16 +176,19 @@ public class TestIpWhitelisting {
   public void testWhitelistProxiedNoForwardHeader() {
     enabled();
     when(request.getHeader(Headers.X_FORWARDED_FOR)).thenReturn(null);
-    when(request.getHeaderNames()).thenReturn(new Enumeration<String>() {
-      @Override
-      public String nextElement() {
-        return null;
-      }
-      @Override
-      public boolean hasMoreElements() {
-        return false;
-      }
-    });
+    when(request.getHeaderNames())
+        .thenReturn(
+            new Enumeration<String>() {
+              @Override
+              public String nextElement() {
+                return null;
+              }
+
+              @Override
+              public boolean hasMoreElements() {
+                return false;
+              }
+            });
     configuration.setProxied(true);
     when(googleAuthenticator.authorize(SECRET_KEY, 1234)).thenReturn(true);
     ontest.whiteListRequestIp(1234);

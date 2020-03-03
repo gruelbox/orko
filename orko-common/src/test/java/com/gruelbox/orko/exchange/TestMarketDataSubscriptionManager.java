@@ -1,19 +1,16 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.exchange;
 
@@ -22,21 +19,18 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+import com.gruelbox.orko.notification.NotificationService;
+import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.Exchange;
 import org.mockito.Mock;
-
-import com.google.common.collect.ImmutableList;
-import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
-
-import com.google.common.collect.Sets;
 
 public class TestMarketDataSubscriptionManager {
 
@@ -66,25 +60,33 @@ public class TestMarketDataSubscriptionManager {
     when(exchangeService.getExchanges()).thenReturn(ImmutableList.of(EXCHANGE1, EXCHANGE2));
     when(exchangeService.get(EXCHANGE1)).thenReturn(exchangeOne);
     when(exchangeService.get(EXCHANGE2)).thenReturn(exchangeTwo);
-    subscriptionManager = new SubscriptionControllerImpl(exchangeService, configuration, tradeServiceFactory,
-        accountServiceFactory, notificationService, new SubscriptionPublisher(), Map.of());
-    subscriptionManager.setLifecycleListener(new LifecycleListener() {
-      @Override
-      public void onBlocked(String exchange) {
-        threads.add(Thread.currentThread());
-        allExchangesBlocked.countDown();
-      }
+    subscriptionManager =
+        new SubscriptionControllerImpl(
+            exchangeService,
+            configuration,
+            tradeServiceFactory,
+            accountServiceFactory,
+            notificationService,
+            new SubscriptionPublisher(),
+            Map.of());
+    subscriptionManager.setLifecycleListener(
+        new LifecycleListener() {
+          @Override
+          public void onBlocked(String exchange) {
+            threads.add(Thread.currentThread());
+            allExchangesBlocked.countDown();
+          }
 
-      @Override
-      public void onStop(String exchange) {
-        shutdown.countDown();
-      }
+          @Override
+          public void onStop(String exchange) {
+            shutdown.countDown();
+          }
 
-      @Override
-      public void onStopMain() {
-        shutdown.countDown();
-      }
-    });
+          @Override
+          public void onStopMain() {
+            shutdown.countDown();
+          }
+        });
   }
 
   @Test
@@ -94,7 +96,8 @@ public class TestMarketDataSubscriptionManager {
   }
 
   @Test
-  public void testControlledStartupShutdownFromBlockedState() throws TimeoutException, InterruptedException {
+  public void testControlledStartupShutdownFromBlockedState()
+      throws TimeoutException, InterruptedException {
     subscriptionManager.startAsync().awaitRunning(WAIT, SECONDS);
     try {
       awaitAllExchangesBlocked();

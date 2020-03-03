@@ -1,38 +1,29 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.exchange;
-
-import java.util.Date;
-import java.util.Set;
-
-import org.knowm.xchange.dto.Order;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.spi.TickerSpec;
-
 import io.reactivex.Flowable;
+import java.util.Date;
+import java.util.Set;
+import org.knowm.xchange.dto.Order;
 
-/**
- * Central fanout point for market data.
- */
+/** Central fanout point for market data. */
 @VisibleForTesting
 @Singleton
 public final class SubscriptionPublisher implements MarketDataSubscriptionManager {
@@ -53,9 +44,16 @@ public final class SubscriptionPublisher implements MarketDataSubscriptionManage
     this.openOrdersOut = new CachingPersistentPublisher<>(OpenOrdersEvent::spec);
     this.orderbookOut = new CachingPersistentPublisher<>(OrderBookEvent::spec);
     this.tradesOut = new PersistentPublisher<>();
-    this.userTradesOut = new CachingPersistentPublisher<>((UserTradeEvent e) -> e.trade().getId())
-        .orderInitialSnapshotBy(iterable -> Ordering.natural().onResultOf((UserTradeEvent e) -> e.trade().getTimestamp()).sortedCopy(iterable));
-    this.balanceOut = new CachingPersistentPublisher<>((BalanceEvent e) -> e.exchange() + "/" + e.balance().getCurrency());
+    this.userTradesOut =
+        new CachingPersistentPublisher<>((UserTradeEvent e) -> e.trade().getId())
+            .orderInitialSnapshotBy(
+                iterable ->
+                    Ordering.natural()
+                        .onResultOf((UserTradeEvent e) -> e.trade().getTimestamp())
+                        .sortedCopy(iterable));
+    this.balanceOut =
+        new CachingPersistentPublisher<>(
+            (BalanceEvent e) -> e.exchange() + "/" + e.balance().getCurrency());
     this.orderStatusChangeOut = new PersistentPublisher<>();
   }
 
@@ -66,7 +64,8 @@ public final class SubscriptionPublisher implements MarketDataSubscriptionManage
   @Override
   public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
     if (this.controller == null) {
-      throw new IllegalStateException(SubscriptionPublisher.class.getSimpleName() + " not initialised");
+      throw new IllegalStateException(
+          SubscriptionPublisher.class.getSimpleName() + " not initialised");
     }
     this.controller.updateSubscriptions(subscriptions);
   }
@@ -145,6 +144,7 @@ public final class SubscriptionPublisher implements MarketDataSubscriptionManage
     openOrdersOut.removeFromCache(subscription.spec());
     userTradesOut.removeFromCache(t -> t.spec().equals(subscription.spec()));
     balanceOut.removeFromCache(subscription.spec().exchange() + "/" + subscription.spec().base());
-    balanceOut.removeFromCache(subscription.spec().exchange() + "/" + subscription.spec().counter());
+    balanceOut.removeFromCache(
+        subscription.spec().exchange() + "/" + subscription.spec().counter());
   }
 }

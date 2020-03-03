@@ -1,41 +1,32 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.auth.jwt.login;
-
-
-import java.util.Optional;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.auth.jwt.JwtConfiguration;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
-
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.PrincipalImpl;
+import java.util.Optional;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
@@ -47,14 +38,16 @@ class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
   private final Hasher hasher;
 
   @Inject
-  JwtLoginVerifier(JwtConfiguration config, IGoogleAuthenticator googleAuthenticator, Hasher hasher) {
+  JwtLoginVerifier(
+      JwtConfiguration config, IGoogleAuthenticator googleAuthenticator, Hasher hasher) {
     this.config = config;
     this.googleAuthenticator = googleAuthenticator;
     this.hasher = hasher;
   }
 
   @Override
-  public Optional<PrincipalImpl> authenticate(LoginRequest credentials) throws AuthenticationException {
+  public Optional<PrincipalImpl> authenticate(LoginRequest credentials)
+      throws AuthenticationException {
     Preconditions.checkNotNull(config, "No JWT auth configuration");
     Preconditions.checkNotNull(config, "No JWT auth username");
     Preconditions.checkNotNull(config, "No JWT auth username");
@@ -70,10 +63,10 @@ class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
   }
 
   private boolean valid(LoginRequest credentials) {
-    return credentials != null &&
-           userMatches(credentials) &&
-           passwordMatches(credentials) &&
-           passesSecondFactor(credentials);
+    return credentials != null
+        && userMatches(credentials)
+        && passwordMatches(credentials)
+        && passesSecondFactor(credentials);
   }
 
   private boolean userMatches(LoginRequest credentials) {
@@ -82,18 +75,20 @@ class JwtLoginVerifier implements Authenticator<LoginRequest, PrincipalImpl> {
 
   private boolean passwordMatches(LoginRequest credentials) {
     if (hasher.isHash(config.getPassword())) {
-      return config.getPassword().equals(hasher.hash(credentials.getPassword(), config.getPasswordSalt()));
+      return config
+          .getPassword()
+          .equals(hasher.hash(credentials.getPassword(), config.getPasswordSalt()));
     } else {
       return config.getPassword().equals(credentials.getPassword());
     }
   }
 
   private boolean passesSecondFactor(LoginRequest credentials) {
-    if (StringUtils.isEmpty(config.getSecondFactorSecret()))
-      return true;
+    if (StringUtils.isEmpty(config.getSecondFactorSecret())) return true;
     if (credentials.getSecondFactor() == null) {
       return false;
     }
-    return googleAuthenticator.authorize(config.getSecondFactorSecret(), credentials.getSecondFactor());
+    return googleAuthenticator.authorize(
+        config.getSecondFactorSecret(), credentials.getSecondFactor());
   }
 }

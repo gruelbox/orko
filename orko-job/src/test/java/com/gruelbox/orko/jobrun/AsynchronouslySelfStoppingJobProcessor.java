@@ -1,27 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.jobrun;
-
-
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
@@ -33,11 +24,13 @@ import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.util.SafelyDispose;
-
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 
-class AsynchronouslySelfStoppingJobProcessor implements JobProcessor<AsynchronouslySelfStoppingJob> {
+class AsynchronouslySelfStoppingJobProcessor
+    implements JobProcessor<AsynchronouslySelfStoppingJob> {
 
   private volatile AsynchronouslySelfStoppingJob job;
   private final JobControl jobControl;
@@ -47,7 +40,10 @@ class AsynchronouslySelfStoppingJobProcessor implements JobProcessor<Asynchronou
   private Disposable subscription2;
 
   @Inject
-  public AsynchronouslySelfStoppingJobProcessor(@Assisted AsynchronouslySelfStoppingJob job, @Assisted JobControl jobControl, EventBus eventBus) {
+  public AsynchronouslySelfStoppingJobProcessor(
+      @Assisted AsynchronouslySelfStoppingJob job,
+      @Assisted JobControl jobControl,
+      EventBus eventBus) {
     this.job = job;
     this.jobControl = jobControl;
     this.eventBus = eventBus;
@@ -55,12 +51,18 @@ class AsynchronouslySelfStoppingJobProcessor implements JobProcessor<Asynchronou
 
   @Override
   public Status start() {
-    subscription1 = Observable.timer(5, TimeUnit.MILLISECONDS).subscribe(x -> {
-      jobControl.finish(Status.SUCCESS);
-    });
-    subscription2 = Observable.timer(6, TimeUnit.MILLISECONDS).subscribe(x -> {
-      jobControl.replace(job);
-    });
+    subscription1 =
+        Observable.timer(5, TimeUnit.MILLISECONDS)
+            .subscribe(
+                x -> {
+                  jobControl.finish(Status.SUCCESS);
+                });
+    subscription2 =
+        Observable.timer(6, TimeUnit.MILLISECONDS)
+            .subscribe(
+                x -> {
+                  jobControl.replace(job);
+                });
     eventBus.post(TestingJobEvent.create(job.id(), EventType.START));
     return Status.RUNNING;
   }
@@ -76,14 +78,17 @@ class AsynchronouslySelfStoppingJobProcessor implements JobProcessor<Asynchronou
     eventBus.post(TestingJobEvent.create(job.id(), EventType.FINISH));
   }
 
-  public interface Factory extends JobProcessor.Factory<AsynchronouslySelfStoppingJob> { }
+  public interface Factory extends JobProcessor.Factory<AsynchronouslySelfStoppingJob> {}
 
   public static final class Module extends AbstractModule {
     @Override
     protected void configure() {
-      install(new FactoryModuleBuilder()
-          .implement(new TypeLiteral<JobProcessor<AsynchronouslySelfStoppingJob>>() {}, AsynchronouslySelfStoppingJobProcessor.class)
-          .build(AsynchronouslySelfStoppingJobProcessor.class));
+      install(
+          new FactoryModuleBuilder()
+              .implement(
+                  new TypeLiteral<JobProcessor<AsynchronouslySelfStoppingJob>>() {},
+                  AsynchronouslySelfStoppingJobProcessor.class)
+              .build(AsynchronouslySelfStoppingJobProcessor.class));
     }
   }
 }

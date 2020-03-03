@@ -1,26 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.job;
-
-import java.math.BigDecimal;
-
-import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,6 +25,8 @@ import com.gruelbox.orko.jobrun.spi.JobBuilder;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.spi.TickerSpec;
+import java.math.BigDecimal;
+import javax.annotation.Nullable;
 
 @AutoValue
 @JsonDeserialize(builder = OneCancelsOther.Builder.class)
@@ -45,12 +39,20 @@ public abstract class OneCancelsOther implements Job {
   @AutoValue.Builder
   @JsonPOJOBuilder(withPrefix = "")
   public abstract static class Builder implements JobBuilder<OneCancelsOther> {
-    @JsonCreator private static Builder create() { return OneCancelsOther.builder(); }
+    @JsonCreator
+    private static Builder create() {
+      return OneCancelsOther.builder();
+    }
+
     @Override
     public abstract Builder id(String value);
+
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
+
     public abstract Builder low(ThresholdAndJob thresholdAndJob);
+
     public abstract Builder high(ThresholdAndJob thresholdAndJob);
+
     public abstract Builder verbose(boolean verbose);
 
     @Override
@@ -88,17 +90,21 @@ public abstract class OneCancelsOther implements Job {
       if (low() == null) {
         return toStringHighOnly();
       } else {
-        return toStringHighOnly() + "; " +toStringLowOnly();
+        return toStringHighOnly() + "; " + toStringLowOnly();
       }
     }
   }
 
   private String toStringHighOnly() {
-    return String.format("when price rises above %s on %s, execute: %s", high().threshold(), tickTrigger(), high().job());
+    return String.format(
+        "when price rises above %s on %s, execute: %s",
+        high().threshold(), tickTrigger(), high().job());
   }
 
   private String toStringLowOnly() {
-    return String.format("when price drops below %s on %s, execute: %s", low().threshold(), tickTrigger(), low().job());
+    return String.format(
+        "when price drops below %s on %s, execute: %s",
+        low().threshold(), tickTrigger(), low().job());
   }
 
   @JsonIgnore
@@ -122,7 +128,8 @@ public abstract class OneCancelsOther implements Job {
     }
 
     @JsonCreator
-    public static ThresholdAndJob createJson(@JsonProperty("thresholdAsString") String threshold, @JsonProperty("job") Job job) {
+    public static ThresholdAndJob createJson(
+        @JsonProperty("thresholdAsString") String threshold, @JsonProperty("job") Job job) {
       return new AutoValue_OneCancelsOther_ThresholdAndJob(new BigDecimal(threshold), job);
     }
 

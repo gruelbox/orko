@@ -1,28 +1,24 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.docker;
 
 import org.apache.commons.text.StrLookup;
 
 /**
- * Adapter for {@link StrLookup}s which escapes the result for use
- * in YAML. Note that it's assumed the result will be replacing
- * a value which is already expressed inside SINGLE quotes.
+ * Adapter for {@link StrLookup}s which escapes the result for use in YAML. Note that it's assumed
+ * the result will be replacing a value which is already expressed inside SINGLE quotes.
  */
 public class YamlEscapingStrLookupAdapter<T> extends StrLookup<T> {
 
@@ -35,8 +31,7 @@ public class YamlEscapingStrLookupAdapter<T> extends StrLookup<T> {
   @Override
   public String lookup(String key) {
     String result = delegate.lookup(key);
-    if (result == null)
-      return null;
+    if (result == null) return null;
     return result.replace("'", "''");
   }
 }

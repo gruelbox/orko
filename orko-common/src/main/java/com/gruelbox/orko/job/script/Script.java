@@ -1,34 +1,27 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.job.script;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
-
 import org.hibernate.validator.constraints.Length;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A reusable template for a {@link ScriptJob}.
@@ -47,7 +40,7 @@ class Script {
   @Id
   @JsonProperty
   @Length(min = 1, max = 45)
-  @Column(name = ID_FIELD, nullable = false, updatable=false)
+  @Column(name = ID_FIELD, nullable = false, updatable = false)
   private String id;
 
   @JsonProperty
@@ -69,7 +62,8 @@ class Script {
   // POJOs well. For the time being, hitting abort and dealing with the child
   // collection manually.
   @Transient
-//  @OneToMany(mappedBy="parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+  //  @OneToMany(mappedBy="parent", fetch = FetchType.EAGER, cascade = CascadeType.ALL,
+  // orphanRemoval = true)
   private List<ScriptParameter> params = new ArrayList<>();
 
   public String id() {
@@ -117,11 +111,20 @@ class Script {
   @Override
   public String toString() {
     return "Script{"
-         + "id=" + id + ", "
-         + "name=" + name + ", "
-         + "script=" + script + ", "
-         + "scriptHash=" + scriptHash + ", "
-         + "parameters=" + params
+        + "id="
+        + id
+        + ", "
+        + "name="
+        + name
+        + ", "
+        + "script="
+        + script
+        + ", "
+        + "scriptHash="
+        + scriptHash
+        + ", "
+        + "parameters="
+        + params
         + "}";
   }
 
@@ -139,38 +142,25 @@ class Script {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     Script other = (Script) obj;
     if (id == null) {
-      if (other.id != null)
-        return false;
-    } else if (!id.equals(other.id))
-      return false;
+      if (other.id != null) return false;
+    } else if (!id.equals(other.id)) return false;
     if (name == null) {
-      if (other.name != null)
-        return false;
-    } else if (!name.equals(other.name))
-      return false;
+      if (other.name != null) return false;
+    } else if (!name.equals(other.name)) return false;
     if (params == null) {
-      if (other.params != null)
-        return false;
-    } else if (!params.equals(other.params))
-      return false;
+      if (other.params != null) return false;
+    } else if (!params.equals(other.params)) return false;
     if (script == null) {
-      if (other.script != null)
-        return false;
-    } else if (!script.equals(other.script))
-      return false;
+      if (other.script != null) return false;
+    } else if (!script.equals(other.script)) return false;
     if (scriptHash == null) {
-      if (other.scriptHash != null)
-        return false;
-    } else if (!scriptHash.equals(other.scriptHash))
-      return false;
+      if (other.scriptHash != null) return false;
+    } else if (!scriptHash.equals(other.scriptHash)) return false;
     return true;
   }
 }
