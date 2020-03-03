@@ -82,6 +82,41 @@
 
   <profiles>
     <profile>
+      <id>format</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>com.coveo</groupId>
+              <artifactId>fmt-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <goals>
+                    <goal>format</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+            <plugin>
+              <groupId>com.mycila</groupId>
+              <artifactId>license-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <phase>process-sources</phase>
+                  <goals>
+                    <goal>format</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+    <profile>
       <id>services</id>
       <modules>
         <module>orko-app-marketdata</module>
@@ -614,15 +649,22 @@
           </executions>
         </plugin>
         <plugin>
+          <groupId>com.coveo</groupId>
+          <artifactId>fmt-maven-plugin</artifactId>
+          <version>2.9</version>
+          <configuration>
+            <filesNamePattern>.*\.java</filesNamePattern>
+            <skip>false</skip>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>3.0</version>
           <configuration>
-            <header>etc/HEADER</header>
+            <header>etc/HEADER-JAVA</header>
             <includes>
-              <include>**/*.java</include>
               <include>**/*.js</include>
-              <include>src</include>
             </includes>
             <excludes>
               <exclude>src/test/resources/**</exclude>
@@ -723,55 +765,52 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>1.4.1</version>
+          <executions>
+            <execution>
+              <id>enforce-maven-version</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <rules>
+                  <requireMavenVersion>
+                    <version>[${min.maven.version},)</version>
+                  </requireMavenVersion>
+                  <bannedDependencies>
+                    <excludes>
+                      <exclude>log4j:log4j</exclude>
+                      <exclude>commons-logging:commons-logging</exclude>
+                    </excludes>
+                  </bannedDependencies>
+                </rules>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>3.0.0-M4</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <skipTests>${skip.failsafe.tests}</skipTests>
+            <includes>
+              <include>**/*Integration.java</include>
+            </includes>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
-
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>1.4.1</version>
-        <executions>
-          <execution>
-            <id>enforce-maven-version</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <version>[${min.maven.version},)</version>
-                </requireMavenVersion>
-                <bannedDependencies>
-                  <excludes>
-                    <exclude>log4j:log4j</exclude>
-                    <exclude>commons-logging:commons-logging</exclude>
-                  </excludes>
-                </bannedDependencies>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>3.0.0-M4</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <skipTests>${skip.failsafe.tests}</skipTests>
-          <includes>
-            <include>**/*Integration.java</include>
-          </includes>
-        </configuration>
-      </plugin>
-    </plugins>
   </build>
 </project>
