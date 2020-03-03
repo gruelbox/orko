@@ -84,7 +84,9 @@
     <profile>
       <id>format</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>!skipFormat</name>
+        </property>
       </activation>
       <build>
         <pluginManagement>
@@ -664,11 +666,12 @@
           <configuration>
             <header>etc/HEADER-JAVA</header>
             <includes>
-              <include>**/*.js</include>
+              <include>**/*.java</include>
             </includes>
             <excludes>
               <exclude>src/test/resources/**</exclude>
               <exclude>src/main/resources/**</exclude>
+              <exclude>target/**</exclude>
             </excludes>
           </configuration>
         </plugin>
