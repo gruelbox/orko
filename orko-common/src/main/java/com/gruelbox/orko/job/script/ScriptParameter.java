@@ -1,33 +1,26 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.job.script;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-
 import org.hibernate.validator.constraints.Length;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A parameter for a {@link Script}.
@@ -81,29 +74,21 @@ class ScriptParameter {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj)
-        return true;
-      if (obj == null)
-        return false;
-      if (getClass() != obj.getClass())
-        return false;
+      if (this == obj) return true;
+      if (obj == null) return false;
+      if (getClass() != obj.getClass()) return false;
       Id other = (Id) obj;
       if (name == null) {
-        if (other.name != null)
-          return false;
-      } else if (!name.equals(other.name))
-        return false;
+        if (other.name != null) return false;
+      } else if (!name.equals(other.name)) return false;
       if (scriptId == null) {
-        if (other.scriptId != null)
-          return false;
-      } else if (!scriptId.equals(other.scriptId))
-        return false;
+        if (other.scriptId != null) return false;
+      } else if (!scriptId.equals(other.scriptId)) return false;
       return true;
     }
   }
 
-  @EmbeddedId
-  private final Id id = new Id();
+  @EmbeddedId private final Id id = new Id();
 
   @JsonProperty
   @Length(min = 1, max = 255)
@@ -180,33 +165,31 @@ class ScriptParameter {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     ScriptParameter other = (ScriptParameter) obj;
     if (defaultValue == null) {
-      if (other.defaultValue != null)
-        return false;
-    } else if (!defaultValue.equals(other.defaultValue))
-      return false;
+      if (other.defaultValue != null) return false;
+    } else if (!defaultValue.equals(other.defaultValue)) return false;
     if (description == null) {
-      if (other.description != null)
-        return false;
-    } else if (!description.equals(other.description))
-      return false;
-    if (!id.equals(other.id))
-      return false;
-    if (mandatory != other.mandatory)
-      return false;
+      if (other.description != null) return false;
+    } else if (!description.equals(other.description)) return false;
+    if (!id.equals(other.id)) return false;
+    if (mandatory != other.mandatory) return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return "ScriptParameter [id=" + id + ", description=" + description + ", defaultValue=" + defaultValue
-        + ", mandatory=" + mandatory + "]";
+    return "ScriptParameter [id="
+        + id
+        + ", description="
+        + description
+        + ", defaultValue="
+        + defaultValue
+        + ", mandatory="
+        + mandatory
+        + "]";
   }
 }

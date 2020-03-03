@@ -1,30 +1,23 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.jobrun;
-
 
 import com.google.inject.ImplementedBy;
 import com.gruelbox.orko.jobrun.spi.Job;
 
-/**
- * Allows CRUD access to jobs.
- */
+/** Allows CRUD access to jobs. */
 @ImplementedBy(JobAccessImpl.class)
 interface JobAccess {
 
@@ -65,15 +58,12 @@ interface JobAccess {
    */
   void delete(String jobId);
 
-  /**
-   * Deletes all jobs.
-   */
+  /** Deletes all jobs. */
   void deleteAll();
 
-
   /**
-   * Thrown on attempting to insert a job that has been created before (even if
-   * it no longer exists).
+   * Thrown on attempting to insert a job that has been created before (even if it no longer
+   * exists).
    */
   public static final class JobAlreadyExistsException extends Exception {
 
@@ -88,9 +78,7 @@ interface JobAccess {
     }
   }
 
-  /**
-   * Thrown on attempting to access a job that does not exist.
-   */
+  /** Thrown on attempting to access a job that does not exist. */
   public static final class JobDoesNotExistException extends RuntimeException {
 
     private static final long serialVersionUID = 9086830214079119838L;

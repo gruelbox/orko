@@ -14,19 +14,6 @@
   <name>Orko Semantic UI Theme</name>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>com.mycila</groupId>
-          <artifactId>license-maven-plugin</artifactId>
-          <configuration>
-            <excludes>
-              <exclude>**</exclude>
-            </excludes>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <resources>
       <resource>
         <targetPath>assets</targetPath>

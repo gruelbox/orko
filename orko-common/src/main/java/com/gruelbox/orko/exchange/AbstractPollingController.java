@@ -1,44 +1,39 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.exchange;
 
 import static java.util.Collections.emptySet;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 import java.util.Set;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
-
 /**
- * Background process implementation of {@link MarketDataSubscriptionManager} which
- * decouples the incoming and outgoing streams using publishers to allow streams
- * to be disconnected and reconnected, and allows snapshot-type streams to cache
- * the last snapshot for immediate delivery upon subscription.
+ * Background process implementation of {@link MarketDataSubscriptionManager} which decouples the
+ * incoming and outgoing streams using publishers to allow streams to be disconnected and
+ * reconnected, and allows snapshot-type streams to cache the last snapshot for immediate delivery
+ * upon subscription.
  */
-abstract class AbstractPollingController extends AbstractExecutionThreadService implements SubscriptionController {
+abstract class AbstractPollingController extends AbstractExecutionThreadService
+    implements SubscriptionController {
 
   protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -48,18 +43,18 @@ abstract class AbstractPollingController extends AbstractExecutionThreadService 
 
   private LifecycleListener lifecycleListener = new LifecycleListener() {};
 
-  protected AbstractPollingController(BackgroundProcessingConfiguration configuration, SubscriptionPublisher publisher) {
+  protected AbstractPollingController(
+      BackgroundProcessingConfiguration configuration, SubscriptionPublisher publisher) {
     this.configuration = configuration;
     this.publisher = publisher;
     this.publisher.setController(this);
   }
 
   /**
-   * Updates the subscriptions for the specified exchanges on the next loop
-   * tick. The delay is to avoid a large number of new subscriptions in quick
-   * succession causing rate bans on exchanges. Call with an empty set to cancel
-   * all subscriptions. None of the streams will return anything until this is
-   * called, but there is no strict order in which they need to be called.
+   * Updates the subscriptions for the specified exchanges on the next loop tick. The delay is to
+   * avoid a large number of new subscriptions in quick succession causing rate bans on exchanges.
+   * Call with an empty set to cancel all subscriptions. None of the streams will return anything
+   * until this is called, but there is no strict order in which they need to be called.
    *
    * @param subscriptions The subscriptions.
    */
@@ -113,7 +108,8 @@ abstract class AbstractPollingController extends AbstractExecutionThreadService 
     phaser.forceTermination();
   }
 
-  protected void suspend(String subTaskName, int phase, boolean failed) throws InterruptedException {
+  protected void suspend(String subTaskName, int phase, boolean failed)
+      throws InterruptedException {
     logger.debug("{} - poll going to sleep", subTaskName);
     try {
       if (failed) {

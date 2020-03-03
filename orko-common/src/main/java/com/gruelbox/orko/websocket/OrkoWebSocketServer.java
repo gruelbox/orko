@@ -1,21 +1,17 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.websocket;
 
 import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
@@ -25,23 +21,6 @@ import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
 import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
-
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.websocket.CloseReason;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Metered;
@@ -68,8 +47,21 @@ import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
 import com.gruelbox.orko.util.SafelyDispose;
 import com.gruelbox.orko.websocket.OrkoWebSocketOutgoingMessage.Nature;
-
 import io.reactivex.disposables.Disposable;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.websocket.CloseReason;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Metered
 @Timed
@@ -85,7 +77,8 @@ public final class OrkoWebSocketServer {
   private EventBus eventBus;
 
   private final AtomicLong lastReadyTime = new AtomicLong();
-  private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions = new AtomicReference<>(ImmutableSet.of());
+  private final AtomicReference<ImmutableSet<MarketDataSubscription>> marketDataSubscriptions =
+      new AtomicReference<>(ImmutableSet.of());
 
   private Session session;
   private Disposable disposable;
@@ -102,7 +95,8 @@ public final class OrkoWebSocketServer {
   }
 
   @Inject
-  void inject(ExchangeEventRegistry exchangeEventRegistry, ObjectMapper objectMapper, EventBus eventBus) {
+  void inject(
+      ExchangeEventRegistry exchangeEventRegistry, ObjectMapper objectMapper, EventBus eventBus) {
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.objectMapper = objectMapper;
     this.eventBus = eventBus;
@@ -162,19 +156,21 @@ public final class OrkoWebSocketServer {
 
   private boolean isReady() {
     boolean result = (System.currentTimeMillis() - lastReadyTime.get()) < READY_TIMEOUT;
-    if (!result)
-      LOGGER.debug("Suppressing outgoing message as client is not ready");
+    if (!result) LOGGER.debug("Suppressing outgoing message as client is not ready");
     return result;
   }
 
   private void mutateSubscriptions(MarketDataType marketDataType, Iterable<TickerSpec> tickers) {
-    if (tickers == null)
-      tickers = Set.of();
-    marketDataSubscriptions.set(ImmutableSet.<MarketDataSubscription>builder()
-      .addAll(FluentIterable.from(marketDataSubscriptions.get()).filter(sub -> !sub.type().equals(marketDataType)))
-      .addAll(FluentIterable.from(tickers).transform(spec -> MarketDataSubscription.create(spec, marketDataType)))
-      .build()
-    );
+    if (tickers == null) tickers = Set.of();
+    marketDataSubscriptions.set(
+        ImmutableSet.<MarketDataSubscription>builder()
+            .addAll(
+                FluentIterable.from(marketDataSubscriptions.get())
+                    .filter(sub -> !sub.type().equals(marketDataType)))
+            .addAll(
+                FluentIterable.from(tickers)
+                    .transform(spec -> MarketDataSubscription.create(spec, marketDataType)))
+            .build());
   }
 
   @OnClose
@@ -211,74 +207,88 @@ public final class OrkoWebSocketServer {
     } else {
       subscription = subscription.replace(target);
     }
-    disposable = new Disposable() {
+    disposable =
+        new Disposable() {
 
-      // Apply a 1-second throttle on a PER TICKER basis
-      private final List<Disposable> tickers = FluentIterable.from(subscription.getTickersSplit())
-          .transform(f -> f
-              .filter(e -> isReady())
-              .throttleLast(1, TimeUnit.SECONDS)
-              .subscribe(e -> send(e, Nature.TICKER)))
-          .toList();
+          // Apply a 1-second throttle on a PER TICKER basis
+          private final List<Disposable> tickers =
+              FluentIterable.from(subscription.getTickersSplit())
+                  .transform(
+                      f ->
+                          f.filter(e -> isReady())
+                              .throttleLast(1, TimeUnit.SECONDS)
+                              .subscribe(e -> send(e, Nature.TICKER)))
+                  .toList();
 
-      // Order book should be throttled globally
-      private final Disposable orderBook = subscription.getOrderBooks()
-          .filter(o -> isReady())
-          .throttleLast(1, TimeUnit.SECONDS)
-          .subscribe(e -> send(e, Nature.ORDERBOOK));
+          // Order book should be throttled globally
+          private final Disposable orderBook =
+              subscription
+                  .getOrderBooks()
+                  .filter(o -> isReady())
+                  .throttleLast(1, TimeUnit.SECONDS)
+                  .subscribe(e -> send(e, Nature.ORDERBOOK));
 
-      // Trades, balances and order status changes are unthrottled - the assumption is that you need the lot
-      private final Disposable trades = subscription.getTrades()
-          .filter(o -> isReady())
-          .map(OrkoWebSocketServer.this::serialiseTradeEvent)
-          .subscribe(e -> send(e, Nature.TRADE));
-      private final Disposable orders = subscription.getOrderChanges()
-          .filter(o -> isReady())
-          .subscribe(e -> send(e, Nature.ORDER_STATUS_CHANGE));
-      private final Disposable userTrades = subscription.getUserTrades()
-          .filter(o -> isReady())
-          .map(OrkoWebSocketServer.this::serialiseUserTradeEvent)
-          .subscribe(e -> send(e, Nature.USER_TRADE));
-      private final Disposable balance = subscription.getBalances()
-          .filter(o -> isReady())
-          .subscribe(e -> send(e, Nature.BALANCE));
+          // Trades, balances and order status changes are unthrottled - the assumption is that you
+          // need the lot
+          private final Disposable trades =
+              subscription
+                  .getTrades()
+                  .filter(o -> isReady())
+                  .map(OrkoWebSocketServer.this::serialiseTradeEvent)
+                  .subscribe(e -> send(e, Nature.TRADE));
+          private final Disposable orders =
+              subscription
+                  .getOrderChanges()
+                  .filter(o -> isReady())
+                  .subscribe(e -> send(e, Nature.ORDER_STATUS_CHANGE));
+          private final Disposable userTrades =
+              subscription
+                  .getUserTrades()
+                  .filter(o -> isReady())
+                  .map(OrkoWebSocketServer.this::serialiseUserTradeEvent)
+                  .subscribe(e -> send(e, Nature.USER_TRADE));
+          private final Disposable balance =
+              subscription
+                  .getBalances()
+                  .filter(o -> isReady())
+                  .subscribe(e -> send(e, Nature.BALANCE));
 
-      // And the rest are fetched by poll, so there's no benefit to throttling
-      private final Disposable openOrders = subscription.getOrderSnapshots()
-          .filter(o -> isReady())
-          .subscribe(e -> send(e, Nature.OPEN_ORDERS));
+          // And the rest are fetched by poll, so there's no benefit to throttling
+          private final Disposable openOrders =
+              subscription
+                  .getOrderSnapshots()
+                  .filter(o -> isReady())
+                  .subscribe(e -> send(e, Nature.OPEN_ORDERS));
 
-      @Override
-      public boolean isDisposed() {
-        return openOrders.isDisposed() &&
-            orderBook.isDisposed() &&
-            tickers.stream().allMatch(Disposable::isDisposed) &&
-            trades.isDisposed() &&
-            orders.isDisposed() &&
-            userTrades.isDisposed() &&
-            balance.isDisposed();
-      }
+          @Override
+          public boolean isDisposed() {
+            return openOrders.isDisposed()
+                && orderBook.isDisposed()
+                && tickers.stream().allMatch(Disposable::isDisposed)
+                && trades.isDisposed()
+                && orders.isDisposed()
+                && userTrades.isDisposed()
+                && balance.isDisposed();
+          }
 
-      @Override
-      public void dispose() {
-        SafelyDispose.of(openOrders, orderBook, trades, orders, userTrades, balance);
-        SafelyDispose.of(tickers);
-      }
-    };
+          @Override
+          public void dispose() {
+            SafelyDispose.of(openOrders, orderBook, trades, orders, userTrades, balance);
+            SafelyDispose.of(tickers);
+          }
+        };
   }
 
-  /**
-   * Workaround for lack of serializability of the XChange object
-   */
+  /** Workaround for lack of serializability of the XChange object */
   private Object serialiseUserTradeEvent(UserTradeEvent e) {
-    return SerializableTradeEvent.create(e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
+    return SerializableTradeEvent.create(
+        e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
   }
 
-  /**
-   * Workaround for lack of serializability of the XChange object
-   */
+  /** Workaround for lack of serializability of the XChange object */
   private Object serialiseTradeEvent(TradeEvent e) {
-    return SerializableTradeEvent.create(e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
+    return SerializableTradeEvent.create(
+        e.spec(), SerializableTrade.create(e.spec().exchange(), e.trade()));
   }
 
   @Subscribe
@@ -292,14 +302,13 @@ public final class OrkoWebSocketServer {
   }
 
   /**
-   * Synchronized so we send backpressure down the channels and feed data through
-   * as fast as it can be used.
+   * Synchronized so we send backpressure down the channels and feed data through as fast as it can
+   * be used.
    */
   private synchronized void send(Object object, Nature nature) {
     LOGGER.debug("{}: {}", nature, object);
     try {
-      if (session.isOpen())
-        session.getBasicRemote().sendText(message(nature, object));
+      if (session.isOpen()) session.getBasicRemote().sendText(message(nature, object));
     } catch (Exception e) {
       LOGGER.warn("Failed to send {} to socket ({})", nature, e.getMessage());
     }

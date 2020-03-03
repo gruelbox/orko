@@ -1,19 +1,16 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.app.monolith;
 
@@ -23,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.security.Permission;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,14 +52,17 @@ public class TestCommandLine {
   @Test
   public void testHashWithSaltLongArg() throws Exception {
     String salt = "bIR3DvCFPKLfY410OR2u5g==";
-    String result = captureStdOut(() -> MonolithApplication.main("hash", "--salt", salt, "porky pig the beast"));
+    String result =
+        captureStdOut(
+            () -> MonolithApplication.main("hash", "--salt", salt, "porky pig the beast"));
     assertEquals("HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)", result);
   }
 
   @Test
   public void testHashWithSaltShortArg() throws Exception {
     String salt = "bIR3DvCFPKLfY410OR2u5g==";
-    String result = captureStdOut(() -> MonolithApplication.main("hash", "-s", salt, "porky pig the beast"));
+    String result =
+        captureStdOut(() -> MonolithApplication.main("hash", "-s", salt, "porky pig the beast"));
     assertEquals("HASH(9NBwT2wpCuA2bCNw8d6JqRIVoxN+GOQzC4PgoH6I4j0=)", result);
   }
 
@@ -75,7 +74,8 @@ public class TestCommandLine {
 
   private String captureStdOut(ExceptionThrowingRunnable runnable) throws Exception {
     PrintStream old = System.out;
-    try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); PrintStream ps = new PrintStream(baos)) {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos)) {
       System.setOut(ps);
       runnable.run();
       System.out.flush();

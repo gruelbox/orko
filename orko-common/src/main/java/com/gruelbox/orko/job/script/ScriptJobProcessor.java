@@ -1,45 +1,25 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.job.script;
 
+import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static com.gruelbox.orko.job.LimitOrderJob.Direction.BUY;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
 import static com.gruelbox.orko.jobrun.spi.Status.RUNNING;
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
-import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import javax.script.Bindings;
-import javax.script.Invocable;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.google.inject.AbstractModule;
@@ -48,33 +28,45 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.TickerEvent;
 import com.gruelbox.orko.job.LimitOrderJob;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.Status;
-import com.gruelbox.orko.exchange.ExchangeEventRegistry;
-import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.exchange.MarketDataSubscription;
-import com.gruelbox.orko.exchange.TickerEvent;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
 import com.gruelbox.orko.util.SafelyDispose;
-
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import javax.script.Bindings;
+import javax.script.Invocable;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Processor for {@link ScriptJob}.
  *
- * TODO move to Rhino or GraalVM.
+ * <p>TODO move to Rhino or GraalVM.
  *
  * @author Graham Crockford
  */
-@SuppressWarnings({ "deprecation", "removal" })
+@SuppressWarnings({"deprecation", "removal"})
 class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final String PERMANENTLY_FAILED = "' permanently failed: ";
@@ -96,14 +88,15 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   private volatile boolean done;
 
   @AssistedInject
-  public ScriptJobProcessor(@Assisted ScriptJob job,
-                            @Assisted JobControl jobControl,
-                            ExchangeEventRegistry exchangeEventRegistry,
-                            NotificationService notificationService,
-                            JobSubmitter jobSubmitter,
-                            Transactionally transactionally,
-                            Hasher hasher,
-                            ScriptConfiguration configuration) {
+  public ScriptJobProcessor(
+      @Assisted ScriptJob job,
+      @Assisted JobControl jobControl,
+      ExchangeEventRegistry exchangeEventRegistry,
+      NotificationService notificationService,
+      JobSubmitter jobSubmitter,
+      Transactionally transactionally,
+      Hasher hasher,
+      ScriptConfiguration configuration) {
     this.job = job;
     this.jobControl = jobControl;
     this.exchangeEventRegistry = exchangeEventRegistry;
@@ -124,7 +117,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     try {
       initialiseEngine();
     } catch (Exception e) {
-      notificationService.error(SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
+      notificationService.error(
+          SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
       LOGGER.error("Failed script:\n{}", job.script());
       return Status.FAILURE_PERMANENT;
     }
@@ -132,11 +126,13 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       Invocable invocable = (Invocable) engine;
       return (Status) invocable.invokeFunction("start");
     } catch (NoSuchMethodException e) {
-      notificationService.error(SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
+      notificationService.error(
+          SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
       LOGGER.error("Failed script:\n{}", job.script());
       return Status.FAILURE_PERMANENT;
     } catch (Exception e) {
-      notifyAndLogError(SCRIPT_JOB_PREFIX + job.name() + "' failed and will retry: " + e.getMessage(), e);
+      notifyAndLogError(
+          SCRIPT_JOB_PREFIX + job.name() + "' failed and will retry: " + e.getMessage(), e);
       throw new RuntimeException(e.getMessage(), e);
     }
   }
@@ -148,8 +144,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   @Override
   public void stop() {
-    if (engine == null)
-      return;
+    if (engine == null) return;
     Invocable invocable = (Invocable) engine;
     try {
       invocable.invokeFunction("stop");
@@ -183,18 +178,19 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     bindings.put("console", new Console());
     bindings.put("trading", new Trading());
     bindings.put("state", new State());
-    bindings.put("decimal", (Function<String, BigDecimal>) value ->
-      new BigDecimal(value));
-    bindings.put("setInterval", (BiFunction<JSObject, Integer, Disposable>) (callback, timeout) ->
-      events.setInterval(callback, timeout));
-    bindings.put("clearInterval", (Consumer<Disposable>) disposable ->
-      events.clear(disposable));
+    bindings.put("decimal", (Function<String, BigDecimal>) value -> new BigDecimal(value));
+    bindings.put(
+        "setInterval",
+        (BiFunction<JSObject, Integer, Disposable>)
+            (callback, timeout) -> events.setInterval(callback, timeout));
+    bindings.put("clearInterval", (Consumer<Disposable>) disposable -> events.clear(disposable));
 
     engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
   }
 
   private static final class PermanentFailureException extends RuntimeException {
     private static final long serialVersionUID = 5862312296152854315L;
+
     PermanentFailureException() {
       super();
     }
@@ -202,6 +198,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final class TransientFailureException extends RuntimeException {
     private static final long serialVersionUID = -7935634777240490608L;
+
     TransientFailureException() {
       super();
     }
@@ -225,7 +222,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     public String toString() {
       return "console";
     }
-
   }
 
   public final class Control {
@@ -250,7 +246,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     public String toString() {
       return "control";
     }
-
   }
 
   public final class Events {
@@ -259,18 +254,14 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     public Disposable setTick(JSObject callback, JSObject tickerSpec) {
       return onTick(
-        event -> processEvent(() -> callback.call(null, event)),
-        convertTickerSpec(tickerSpec),
-        callback.toString()
-      );
+          event -> processEvent(() -> callback.call(null, event)),
+          convertTickerSpec(tickerSpec),
+          callback.toString());
     }
 
     public Disposable setInterval(JSObject callback, Integer timeout) {
       return onInterval(
-        () -> processEvent(() -> callback.call(null)),
-        timeout,
-        callback.toString()
-      );
+          () -> processEvent(() -> callback.call(null)), timeout, callback.toString());
     }
 
     private void successfulPoll() {
@@ -288,16 +279,16 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
 
     private synchronized void processEvent(Runnable runnable) {
-      if (done)
-        return;
+      if (done) return;
       try {
-        transactionally.run(() -> {
-          try {
-            runnable.run();
-          } catch (ExitException e) {
-            // Fine. We're done
-          }
-        });
+        transactionally.run(
+            () -> {
+              try {
+                runnable.run();
+              } catch (ExitException e) {
+                // Fine. We're done
+              }
+            });
         successfulPoll();
       } catch (PermanentFailureException e) {
         notifyAndLogError(SCRIPT_JOB_PREFIX + job.name() + PERMANENTLY_FAILED + e.getMessage(), e);
@@ -315,50 +306,51 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     public String toString() {
       return "events";
     }
-
   }
 
   public final class State {
 
-    public final StateManager<String> persistent = new StateManager<>() {
+    public final StateManager<String> persistent =
+        new StateManager<>() {
 
-      @Override
-      public void set(String key, String value) {
-        HashMap<String, String> newState = new HashMap<>();
-        newState.putAll(job.state());
-        newState.put(key, value);
-        jobControl.replace(job.toBuilder().state(newState).build());
-      }
+          @Override
+          public void set(String key, String value) {
+            HashMap<String, String> newState = new HashMap<>();
+            newState.putAll(job.state());
+            newState.put(key, value);
+            jobControl.replace(job.toBuilder().state(newState).build());
+          }
 
-      @Override
-      public String get(String key) {
-        return job.state().get(key);
-      }
+          @Override
+          public String get(String key) {
+            return job.state().get(key);
+          }
 
-      @Override
-      public void remove(String key) {
-        HashMap<String, String> newState = new HashMap<>();
-        newState.putAll(job.state());
-        newState.remove(key);
-        jobControl.replace(job.toBuilder().state(newState).build());
-      }
+          @Override
+          public void remove(String key) {
+            HashMap<String, String> newState = new HashMap<>();
+            newState.putAll(job.state());
+            newState.remove(key);
+            jobControl.replace(job.toBuilder().state(newState).build());
+          }
 
-      @Override
-      public String toString() {
-        return job.state().toString();
-      }
+          @Override
+          public String toString() {
+            return job.state().toString();
+          }
 
-      @Override
-      public void increment(String key) {
-        String value = get(key);
-        try {
-          long asLong = Long.parseLong(value);
-          set(key, Long.toString(asLong + 1));
-        } catch (NumberFormatException e) {
-          throw new IllegalStateException(key + " is not a precise numeric value, so cannot be incremented");
-        }
-      }
-    };
+          @Override
+          public void increment(String key) {
+            String value = get(key);
+            try {
+              long asLong = Long.parseLong(value);
+              set(key, Long.toString(asLong + 1));
+            } catch (NumberFormatException e) {
+              throw new IllegalStateException(
+                  key + " is not a precise numeric value, so cannot be incremented");
+            }
+          }
+        };
 
     @Override
     public String toString() {
@@ -366,38 +358,43 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
   }
 
-
   public final class Trading {
 
     public void limitOrder(JSObject request) {
       TickerSpec spec = convertTickerSpec((JSObject) request.getMember("market"));
       Direction direction = (Direction) request.getMember("direction");
-      BigDecimal price =  new BigDecimal(request.getMember("price").toString());
-      BigDecimal amount =  new BigDecimal(request.getMember("amount").toString());
-      LOGGER.info("Script job '{}' Submitting limit order: {} {} {} on {} at {}",
-          job.name(), direction, amount, spec.base(), spec, price);
+      BigDecimal price = new BigDecimal(request.getMember("price").toString());
+      BigDecimal amount = new BigDecimal(request.getMember("amount").toString());
+      LOGGER.info(
+          "Script job '{}' Submitting limit order: {} {} {} on {} at {}",
+          job.name(),
+          direction,
+          amount,
+          spec.base(),
+          spec,
+          price);
       jobSubmitter.submitNewUnchecked(
-        LimitOrderJob.builder()
-          .direction(direction)
-          .tickTrigger(spec)
-          .amount(amount)
-          .limitPrice(price)
-          .build()
-      );
+          LimitOrderJob.builder()
+              .direction(direction)
+              .tickTrigger(spec)
+              .amount(amount)
+              .limitPrice(price)
+              .build());
     }
 
     @Override
     public String toString() {
       return "trading";
     }
-
   }
-
 
   public interface StateManager<T> {
     public T get(String key);
+
     public void set(String key, T value);
+
     public void remove(String key);
+
     public void increment(String key);
   }
 
@@ -428,14 +425,18 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
   private TickerSpec convertTickerSpec(JSObject tickerSpec) {
     return TickerSpec.builder()
-      .exchange((String) tickerSpec.getMember("exchange"))
-      .base((String) tickerSpec.getMember("base"))
-      .counter((String) tickerSpec.getMember("counter"))
-      .build();
+        .exchange((String) tickerSpec.getMember("exchange"))
+        .base((String) tickerSpec.getMember("base"))
+        .counter((String) tickerSpec.getMember("counter"))
+        .build();
   }
 
-  public Disposable onTick(io.reactivex.functions.Consumer<TickerEvent> handler, TickerSpec tickerSpec, String description) {
-    ExchangeEventSubscription subscription = exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, TICKER));
+  public Disposable onTick(
+      io.reactivex.functions.Consumer<TickerEvent> handler,
+      TickerSpec tickerSpec,
+      String description) {
+    ExchangeEventSubscription subscription =
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, TICKER));
     Disposable disposable = subscription.getTickers().subscribe(handler);
 
     return new Disposable() {
@@ -469,16 +470,16 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public static final class Module extends AbstractModule {
     @Override
     protected void configure() {
-      install(new FactoryModuleBuilder()
-          .implement(ScriptJob.Processor.class, ScriptJobProcessor.class)
-          .build(ScriptJob.Processor.ProcessorFactory.class));
+      install(
+          new FactoryModuleBuilder()
+              .implement(ScriptJob.Processor.class, ScriptJobProcessor.class)
+              .build(ScriptJob.Processor.ProcessorFactory.class));
     }
   }
 
   /**
-   * Slightly filthy. Exception which forces execution to
-   * exit after calling control.done(). Otherwise it's too easy for
-   * a scriptwriter to cause an endless loop by not realising that
+   * Slightly filthy. Exception which forces execution to exit after calling control.done().
+   * Otherwise it's too easy for a scriptwriter to cause an endless loop by not realising that
    * control.done() doesn't cause exit.
    */
   private static final class ExitException extends RuntimeException {

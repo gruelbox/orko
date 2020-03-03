@@ -1,19 +1,16 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.monitor;
 
@@ -28,6 +25,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.base.Ticker;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.TradeEvent;
+import com.gruelbox.orko.notification.NotificationService;
+import com.gruelbox.orko.spi.TickerSpec;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.subjects.PublishSubject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,16 +40,6 @@ import org.knowm.xchange.dto.marketdata.Trade;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import com.google.common.base.Ticker;
-import com.gruelbox.orko.exchange.ExchangeEventRegistry;
-import com.gruelbox.orko.exchange.MarketDataSubscription;
-import com.gruelbox.orko.exchange.TradeEvent;
-import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.spi.TickerSpec;
-
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.subjects.PublishSubject;
 
 public class TestExchangeSocketHealthMonitor {
 
@@ -64,13 +59,13 @@ public class TestExchangeSocketHealthMonitor {
     MockitoAnnotations.initMocks(this);
     when(exchangeEventRegistry.subscribe(Mockito.<MarketDataSubscription[]>any()))
         .thenReturn(subscription);
-    when(subscription.getTrades())
-        .thenReturn(trades.toFlowable(BackpressureStrategy.MISSING));
+    when(subscription.getTrades()).thenReturn(trades.toFlowable(BackpressureStrategy.MISSING));
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(10));
 
-    monitor = new ExchangeSocketHealthMonitor(exchangeEventRegistry,
-        notificationService, interval, ticker, t -> failure = t);
+    monitor =
+        new ExchangeSocketHealthMonitor(
+            exchangeEventRegistry, notificationService, interval, ticker, t -> failure = t);
     monitor.start();
   }
 
@@ -106,7 +101,10 @@ public class TestExchangeSocketHealthMonitor {
   @Test
   public void testTradeInUntrackedExchange() {
     when(ticker.read()).thenReturn(MINUTES.toNanos(19));
-    trades.onNext(TradeEvent.create(TickerSpec.builder().exchange("NOTME").base("BTC").counter("USDT").build(), mock(Trade.class)));
+    trades.onNext(
+        TradeEvent.create(
+            TickerSpec.builder().exchange("NOTME").base("BTC").counter("USDT").build(),
+            mock(Trade.class)));
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(20));
     interval.onNext(1);
@@ -119,9 +117,18 @@ public class TestExchangeSocketHealthMonitor {
   @Test
   public void testTradeResetsAllCounters() {
     when(ticker.read()).thenReturn(MINUTES.toNanos(19));
-    trades.onNext(TradeEvent.create(TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), mock(Trade.class)));
-    trades.onNext(TradeEvent.create(TickerSpec.builder().exchange(BITFINEX).base("BTC").counter("USDT").build(), mock(Trade.class)));
-    trades.onNext(TradeEvent.create(TickerSpec.builder().exchange(GDAX).base("BTC").counter("USDT").build(), mock(Trade.class)));
+    trades.onNext(
+        TradeEvent.create(
+            TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(),
+            mock(Trade.class)));
+    trades.onNext(
+        TradeEvent.create(
+            TickerSpec.builder().exchange(BITFINEX).base("BTC").counter("USDT").build(),
+            mock(Trade.class)));
+    trades.onNext(
+        TradeEvent.create(
+            TickerSpec.builder().exchange(GDAX).base("BTC").counter("USDT").build(),
+            mock(Trade.class)));
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(28));
     interval.onNext(1);
@@ -140,7 +147,10 @@ public class TestExchangeSocketHealthMonitor {
   @Test
   public void testTradeResetsIndividualCounter() {
     when(ticker.read()).thenReturn(MINUTES.toNanos(19));
-    trades.onNext(TradeEvent.create(TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), mock(Trade.class)));
+    trades.onNext(
+        TradeEvent.create(
+            TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(),
+            mock(Trade.class)));
 
     when(ticker.read()).thenReturn(MINUTES.toNanos(20));
     interval.onNext(1);

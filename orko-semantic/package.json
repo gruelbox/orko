@@ -2,7 +2,9 @@
   "name": "orko-semantic",
   "version": "0.0.1",
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "gulp-line-ending-corrector": "^1.0.3"
+  },
   "scripts": {
     "build": "gulp build-css build-assets",
     "watch": "gulp watch"

@@ -1,31 +1,20 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.auth.blacklist;
 
-
 import static java.util.concurrent.TimeUnit.MINUTES;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -36,10 +25,13 @@ import com.google.inject.Singleton;
 import com.gruelbox.orko.auth.AuthConfiguration;
 import com.gruelbox.orko.auth.RequestUtils;
 import com.gruelbox.orko.util.SafelyDispose;
-
 import io.dropwizard.lifecycle.Managed;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class Blacklisting implements Managed {
@@ -58,7 +50,10 @@ public class Blacklisting implements Managed {
   public Blacklisting(Provider<RequestUtils> requestUtils, AuthConfiguration authConfiguration) {
     this.requestUtils = requestUtils;
     this.authConfiguration = authConfiguration;
-    this.blacklist = CacheBuilder.newBuilder().expireAfterAccess(authConfiguration.getBlacklistingExpirySeconds(), TimeUnit.SECONDS).build();
+    this.blacklist =
+        CacheBuilder.newBuilder()
+            .expireAfterAccess(authConfiguration.getBlacklistingExpirySeconds(), TimeUnit.SECONDS)
+            .build();
   }
 
   @Override
@@ -79,8 +74,7 @@ public class Blacklisting implements Managed {
 
   private void logGlobalFailure() {
     int attempt = attemptTickets.incrementAndGet();
-    if (attempt > 50)
-      LOGGER.warn("Failed authentication attempt {} in last minute", attempt);
+    if (attempt > 50) LOGGER.warn("Failed authentication attempt {} in last minute", attempt);
   }
 
   private void logIpFailure() {
@@ -104,8 +98,7 @@ public class Blacklisting implements Managed {
   }
 
   public boolean isBlacklisted() {
-    if (isGloballyBlacklisted())
-      return true;
+    if (isGloballyBlacklisted()) return true;
     return isIpBlacklisted();
   }
 
@@ -116,9 +109,9 @@ public class Blacklisting implements Managed {
   private boolean isIpBlacklisted() {
     String ip = requestUtils.get().sourceIp();
     AtomicInteger count = blacklist.getIfPresent(ip);
-    boolean result = count != null && count.get() >= authConfiguration.getAttemptsBeforeBlacklisting();
-    if (result)
-      LOGGER.warn("Access attempt from banned IP: {}", ip);
+    boolean result =
+        count != null && count.get() >= authConfiguration.getAttemptsBeforeBlacklisting();
+    if (result) LOGGER.warn("Access attempt from banned IP: {}", ip);
     return result;
   }
 

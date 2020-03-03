@@ -1,34 +1,26 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.auth;
 
-
+import com.google.common.collect.FluentIterable;
 import java.util.Optional;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.NewCookie;
 
-import com.google.common.collect.FluentIterable;
-
 public enum CookieHandlers {
-
   ACCESS_TOKEN(AuthModule.BIND_ACCESS_TOKEN_KEY);
 
   private final String name;
@@ -42,8 +34,7 @@ public enum CookieHandlers {
   }
 
   public Optional<String> read(HttpServletRequest request) {
-    if (request.getCookies() == null)
-      return Optional.empty();
+    if (request.getCookies() == null) return Optional.empty();
     return FluentIterable.from(request.getCookies())
         .firstMatch(cookie -> getName().equals(cookie.getName()))
         .transform(Cookie::getValue)
@@ -51,8 +42,16 @@ public enum CookieHandlers {
   }
 
   public NewCookie create(String token, AuthConfiguration authConfiguration) {
-    return new NewCookie(getName(), token, "/", null, 1, null,
-        authConfiguration.getJwt().getExpirationMinutes() * 60, null,
-        authConfiguration.isHttpsOnly(), true);
+    return new NewCookie(
+        getName(),
+        token,
+        "/",
+        null,
+        1,
+        null,
+        authConfiguration.getJwt().getExpirationMinutes() * 60,
+        null,
+        authConfiguration.isHttpsOnly(),
+        true);
   }
 }

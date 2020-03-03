@@ -1,21 +1,17 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
@@ -25,10 +21,28 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
+import com.gruelbox.orko.exchange.BalanceEvent;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.exchange.ExchangeService;
+import com.gruelbox.orko.exchange.Exchanges;
+import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.MaxTradeAmountCalculator;
+import com.gruelbox.orko.exchange.RateController;
+import com.gruelbox.orko.exchange.TradeServiceFactory;
+import com.gruelbox.orko.job.LimitOrderJob.BalanceState;
+import com.gruelbox.orko.job.LimitOrderJob.Direction;
+import com.gruelbox.orko.jobrun.spi.JobControl;
+import com.gruelbox.orko.jobrun.spi.Status;
+import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
+import com.gruelbox.orko.notification.NotificationService;
+import com.gruelbox.orko.spi.TickerSpec;
+import io.reactivex.Flowable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import junit.framework.AssertionFailedError;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,27 +62,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.exchange.BalanceEvent;
-import com.gruelbox.orko.exchange.ExchangeEventRegistry;
-import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.exchange.ExchangeService;
-import com.gruelbox.orko.exchange.Exchanges;
-import com.gruelbox.orko.exchange.MarketDataSubscription;
-import com.gruelbox.orko.exchange.MaxTradeAmountCalculator;
-import com.gruelbox.orko.exchange.RateController;
-import com.gruelbox.orko.exchange.TradeServiceFactory;
-import com.gruelbox.orko.job.LimitOrderJob.BalanceState;
-import com.gruelbox.orko.job.LimitOrderJob.Direction;
-import com.gruelbox.orko.jobrun.spi.JobControl;
-import com.gruelbox.orko.jobrun.spi.Status;
-import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
-import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.spi.TickerSpec;
-
-import io.reactivex.Flowable;
-import junit.framework.AssertionFailedError;
 
 public class TestLimitOrderJobProcessor {
 
@@ -106,47 +99,52 @@ public class TestLimitOrderJobProcessor {
 
     when(tradeServiceFactory.getForExchange(EXCHANGE)).thenReturn(tradeService);
     when(tradeServiceFactory.getForExchange(Exchanges.BINANCE)).thenReturn(tradeService);
-    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class))).thenAnswer(args -> newTradeId());
+    when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
+        .thenAnswer(args -> newTradeId());
     when(exchangeService.rateController(EXCHANGE)).thenReturn(rateController);
     when(exchangeService.rateController(BINANCE)).thenReturn(rateController);
     when(exchangeService.get(EXCHANGE)).thenReturn(exchange);
     when(exchangeService.get(BINANCE)).thenReturn(exchange);
     when(exchange.getExchangeMetaData()).thenReturn(exchangeMetaData);
-    when(exchangeMetaData.getCurrencyPairs()).thenReturn(ImmutableMap.of(
-      CURRENCY_PAIR, currencyPairMetaData
-    ));
+    when(exchangeMetaData.getCurrencyPairs())
+        .thenReturn(ImmutableMap.of(CURRENCY_PAIR, currencyPairMetaData));
     when(currencyPairMetaData.getPriceScale()).thenReturn(PRICE_SCALE);
     when(currencyPairMetaData.getMinimumAmount()).thenReturn(MIN_AMOUNT);
     when(currencyPairMetaData.getMinimumAmount()).thenReturn(MIN_AMOUNT);
 
-    Mockito.doAnswer(inv -> {
-      LOGGER.info(inv.getArgument(0, String.class));
-      return null;
-    }).when(notificationService).alert(Mockito.anyString());
-    Mockito.doAnswer(inv -> {
-      LOGGER.error(inv.getArgument(0, String.class));
-      return null;
-    }).when(notificationService).error(Mockito.anyString());
-    Mockito.doAnswer(inv -> {
-      LOGGER.error(inv.getArgument(0, String.class), inv.getArgument(1, Exception.class));
-      return null;
-    }).when(notificationService).error(Mockito.anyString(), Mockito.any(Exception.class));
-
+    Mockito.doAnswer(
+            inv -> {
+              LOGGER.info(inv.getArgument(0, String.class));
+              return null;
+            })
+        .when(notificationService)
+        .alert(Mockito.anyString());
+    Mockito.doAnswer(
+            inv -> {
+              LOGGER.error(inv.getArgument(0, String.class));
+              return null;
+            })
+        .when(notificationService)
+        .error(Mockito.anyString());
+    Mockito.doAnswer(
+            inv -> {
+              LOGGER.error(inv.getArgument(0, String.class), inv.getArgument(1, Exception.class));
+              return null;
+            })
+        .when(notificationService)
+        .error(Mockito.anyString(), Mockito.any(Exception.class));
   }
 
   @Test
   public void testSell() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(MIN_AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(MIN_AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -164,20 +162,16 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testSellLotSizeReduction() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(new BigDecimal("0.018"))
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(new BigDecimal("0.018"))
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
-    when(currencyPairMetaData.getAmountStepSize())
-        .thenReturn(new BigDecimal("0.005"));
+    when(currencyPairMetaData.getAmountStepSize()).thenReturn(new BigDecimal("0.005"));
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -194,17 +188,14 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testBuy() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(MIN_AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(MIN_AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -222,17 +213,14 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testSellAlertBalanceLow() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -240,29 +228,28 @@ public class TestLimitOrderJobProcessor {
     processor.validate();
 
     verify(notificationService).alert(Mockito.anyString());
-    verify(jobControl).replace(LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
-        .build());
+    verify(jobControl)
+        .replace(
+            LimitOrderJob.builder()
+                .amount(AMOUNT)
+                .limitPrice(PRICE)
+                .tickTrigger(ex)
+                .direction(Direction.SELL)
+                .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+                .build());
   }
 
   @Test
   public void testSellAlertBalanceBackUp() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -270,28 +257,27 @@ public class TestLimitOrderJobProcessor {
     processor.validate();
 
     verify(notificationService).alert(Mockito.anyString());
-    verify(jobControl).replace(LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .balanceState(BalanceState.SUFFICIENT_BALANCE)
-        .build());
+    verify(jobControl)
+        .replace(
+            LimitOrderJob.builder()
+                .amount(AMOUNT)
+                .limitPrice(PRICE)
+                .tickTrigger(ex)
+                .direction(Direction.SELL)
+                .balanceState(BalanceState.SUFFICIENT_BALANCE)
+                .build());
   }
 
   @Test
   public void testBuyAlertBalanceLow() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -299,29 +285,28 @@ public class TestLimitOrderJobProcessor {
     processor.validate();
 
     verify(notificationService).alert(Mockito.anyString());
-    verify(jobControl).replace(LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
-        .build());
+    verify(jobControl)
+        .replace(
+            LimitOrderJob.builder()
+                .amount(AMOUNT)
+                .limitPrice(PRICE)
+                .tickTrigger(ex)
+                .direction(Direction.BUY)
+                .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+                .build());
   }
 
   @Test
   public void testBuyAlertBalanceBackUp() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -329,29 +314,28 @@ public class TestLimitOrderJobProcessor {
     processor.validate();
 
     verify(notificationService).alert(Mockito.anyString());
-    verify(jobControl).replace(LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .balanceState(BalanceState.SUFFICIENT_BALANCE)
-        .build());
+    verify(jobControl)
+        .replace(
+            LimitOrderJob.builder()
+                .amount(AMOUNT)
+                .limitPrice(PRICE)
+                .tickTrigger(ex)
+                .direction(Direction.BUY)
+                .balanceState(BalanceState.SUFFICIENT_BALANCE)
+                .build());
   }
 
   @Test
   public void testBuyAlertBalanceLowAlreadyAlerted() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -363,18 +347,15 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testSellAlertBalanceLowAlreadyAlerted() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .balanceState(BalanceState.INSUFFICIENT_BALANCE)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .balanceState(BalanceState.INSUFFICIENT_BALANCE)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
 
@@ -386,17 +367,14 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testBuyNoTrack() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -410,20 +388,17 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testSellFailed() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
-      .thenThrow(new RuntimeException());
+        .thenThrow(new RuntimeException());
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -437,20 +412,17 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testBuyFailed() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
-      .thenThrow(new RuntimeException());
+        .thenThrow(new RuntimeException());
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -465,17 +437,14 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testBuyFailedFundsExceeded() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     // Even on a second attempt, return insufficient balance
     balanceAvailable(ex, COUNTER, MIN_AMOUNT.multiply(PRICE).subtract(new BigDecimal("0.001")));
@@ -496,17 +465,14 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testBuyFailedFundsExceededButCanReduce() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     // On second attempt, return the minimum balance
     balanceAvailable(ex, COUNTER, MIN_AMOUNT.multiply(PRICE));
@@ -526,17 +492,14 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testBuyFailedFundsExceededButCanReduceWithScaling() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     // On second attempt, return the minimum balance plus a tiny amount which
     // should be rounded down.
@@ -555,7 +518,8 @@ public class TestLimitOrderJobProcessor {
     Assert.assertEquals(CURRENCY_PAIR, captor.getAllValues().get(0).getCurrencyPair());
     Assert.assertEquals(Order.OrderType.BID, captor.getAllValues().get(0).getType());
     Assert.assertEquals(PRICE, captor.getAllValues().get(1).getLimitPrice());
-    Assert.assertEquals(MIN_AMOUNT.stripTrailingZeros(),
+    Assert.assertEquals(
+        MIN_AMOUNT.stripTrailingZeros(),
         captor.getAllValues().get(1).getOriginalAmount().stripTrailingZeros());
     Assert.assertEquals(CURRENCY_PAIR, captor.getAllValues().get(1).getCurrencyPair());
     Assert.assertEquals(Order.OrderType.BID, captor.getAllValues().get(1).getType());
@@ -568,17 +532,15 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testBuyFailedFundsExceededBinance() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(Exchanges.BINANCE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex =
+        TickerSpec.builder().base(BASE).counter(COUNTER).exchange(Exchanges.BINANCE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     // Even on a second attempt, return insufficient balance
     balanceAvailable(ex, COUNTER, MIN_AMOUNT.multiply(PRICE).subtract(new BigDecimal("0.001")));
@@ -597,17 +559,14 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testSellFailedFundsExceeded() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
     // Even on a second attempt, return insufficient balance
     balanceAvailable(ex, BASE, MIN_AMOUNT.subtract(new BigDecimal("0.0001")));
@@ -628,17 +587,15 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testSellFailedFundsExceededBinance() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(Exchanges.BINANCE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex =
+        TickerSpec.builder().base(BASE).counter(COUNTER).exchange(Exchanges.BINANCE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
     // Even on a second attempt, return insufficient balance
     balanceAvailable(ex, BASE, MIN_AMOUNT.subtract(new BigDecimal("0.0001")));
@@ -657,17 +614,14 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testSellFailedFundsExceededButCanReduce() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
     // On second attempt, return the minimum balance
     balanceAvailable(ex, BASE, MIN_AMOUNT);
@@ -687,17 +641,14 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testSellFailedFundsExceededButCanReduceWithScaling() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
     // On second attempt, return the minimum balance plus a roundable amount
     balanceAvailable(ex, BASE, MIN_AMOUNT.add(new BigDecimal("0.0001")));
@@ -715,7 +666,8 @@ public class TestLimitOrderJobProcessor {
     Assert.assertEquals(CURRENCY_PAIR, captor.getAllValues().get(0).getCurrencyPair());
     Assert.assertEquals(Order.OrderType.ASK, captor.getAllValues().get(0).getType());
     Assert.assertEquals(PRICE, captor.getAllValues().get(1).getLimitPrice());
-    Assert.assertEquals(MIN_AMOUNT.stripTrailingZeros(),
+    Assert.assertEquals(
+        MIN_AMOUNT.stripTrailingZeros(),
         captor.getAllValues().get(1).getOriginalAmount().stripTrailingZeros());
     Assert.assertEquals(CURRENCY_PAIR, captor.getAllValues().get(1).getCurrencyPair());
     Assert.assertEquals(Order.OrderType.ASK, captor.getAllValues().get(1).getType());
@@ -728,20 +680,16 @@ public class TestLimitOrderJobProcessor {
   @Test
   public void testSellFailedFundsExceededButCanReduceWithLotSize() throws Exception {
 
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(EXCHANGE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.SELL)
-        .build();
+    TickerSpec ex = TickerSpec.builder().base(BASE).counter(COUNTER).exchange(EXCHANGE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.SELL)
+            .build();
 
-    when(currencyPairMetaData.getAmountStepSize())
-        .thenReturn(new BigDecimal(10));
+    when(currencyPairMetaData.getAmountStepSize()).thenReturn(new BigDecimal(10));
 
     // On second attempt, return an amount we must round down to
     // hit the lot size.
@@ -760,7 +708,8 @@ public class TestLimitOrderJobProcessor {
     Assert.assertEquals(CURRENCY_PAIR, captor.getAllValues().get(0).getCurrencyPair());
     Assert.assertEquals(Order.OrderType.ASK, captor.getAllValues().get(0).getType());
     Assert.assertEquals(PRICE, captor.getAllValues().get(1).getLimitPrice());
-    Assert.assertEquals(new BigDecimal("30").stripTrailingZeros(),
+    Assert.assertEquals(
+        new BigDecimal("30").stripTrailingZeros(),
         captor.getAllValues().get(1).getOriginalAmount().stripTrailingZeros());
     Assert.assertEquals(CURRENCY_PAIR, captor.getAllValues().get(1).getCurrencyPair());
     Assert.assertEquals(Order.OrderType.ASK, captor.getAllValues().get(1).getType());
@@ -772,20 +721,18 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testBuyFailedBinance() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(Exchanges.BINANCE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex =
+        TickerSpec.builder().base(BASE).counter(COUNTER).exchange(Exchanges.BINANCE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
-      .thenThrow(new RuntimeException());
+        .thenThrow(new RuntimeException());
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -799,20 +746,18 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testBuyFailedBinancePermanent() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(Exchanges.BINANCE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex =
+        TickerSpec.builder().base(BASE).counter(COUNTER).exchange(Exchanges.BINANCE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
-      .thenThrow(new BinanceException(-1100, "Foo"));
+        .thenThrow(new BinanceException(-1100, "Foo"));
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -826,20 +771,18 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testBuyFailedBinanceTransient() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(Exchanges.BINANCE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex =
+        TickerSpec.builder().base(BASE).counter(COUNTER).exchange(Exchanges.BINANCE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
-      .thenThrow(new BinanceException(-1000, "Foo"));
+        .thenThrow(new BinanceException(-1000, "Foo"));
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -853,20 +796,18 @@ public class TestLimitOrderJobProcessor {
 
   @Test
   public void testBuyFailedBinanceDuplicate() throws Exception {
-    TickerSpec ex = TickerSpec.builder()
-        .base(BASE)
-        .counter(COUNTER)
-        .exchange(Exchanges.BINANCE)
-        .build();
-    LimitOrderJob job = LimitOrderJob.builder()
-        .amount(AMOUNT)
-        .limitPrice(PRICE)
-        .tickTrigger(ex)
-        .direction(Direction.BUY)
-        .build();
+    TickerSpec ex =
+        TickerSpec.builder().base(BASE).counter(COUNTER).exchange(Exchanges.BINANCE).build();
+    LimitOrderJob job =
+        LimitOrderJob.builder()
+            .amount(AMOUNT)
+            .limitPrice(PRICE)
+            .tickTrigger(ex)
+            .direction(Direction.BUY)
+            .build();
 
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
-      .thenThrow(new BinanceException(-2010, "Foo"));
+        .thenThrow(new BinanceException(-2010, "Foo"));
 
     LimitOrderJobProcessor processor = newProcessor(job);
     Status result = processor.start();
@@ -881,33 +822,47 @@ public class TestLimitOrderJobProcessor {
   /* ---------------------------------- Utility methods  ---------------------------------------------------- */
 
   private LimitOrderJobProcessor newProcessor(LimitOrderJob job) {
-    return new LimitOrderJobProcessor(job, jobControl, statusUpdateService, notificationService,
-        tradeServiceFactory, exchangeEventRegistry, exchangeService, new MaxTradeAmountCalculator.Factory(exchangeEventRegistry, exchangeService));
+    return new LimitOrderJobProcessor(
+        job,
+        jobControl,
+        statusUpdateService,
+        notificationService,
+        tradeServiceFactory,
+        exchangeEventRegistry,
+        exchangeService,
+        new MaxTradeAmountCalculator.Factory(exchangeEventRegistry, exchangeService));
   }
 
   private void balanceAvailable(TickerSpec ex, String currency, BigDecimal amount) {
     ExchangeEventSubscription subscription = Mockito.mock(ExchangeEventSubscription.class);
     when(exchangeEventRegistry.subscribe(MarketDataSubscription.create(ex, BALANCE)))
-      .thenReturn(subscription);
-    when(subscription.getBalances()).thenReturn(Flowable.just(
-      BalanceEvent.create(EXCHANGE, new org.knowm.xchange.dto.account.Balance(
-          Currency.getInstance(currency),
-          amount))
-    ));
+        .thenReturn(subscription);
+    when(subscription.getBalances())
+        .thenReturn(
+            Flowable.just(
+                BalanceEvent.create(
+                    EXCHANGE,
+                    new org.knowm.xchange.dto.account.Balance(
+                        Currency.getInstance(currency), amount))));
   }
 
   private void orderSuccessOnSecondAttempt() throws IOException {
     AtomicInteger attempt = new AtomicInteger(0);
     when(tradeService.placeLimitOrder(Mockito.any(LimitOrder.class)))
-      .thenAnswer(inv -> {
-        if (attempt.getAndIncrement() == 0) {
-          throw new FundsExceededException("Not enough cash");
-        } else if (inv.getArgument(0, LimitOrder.class).getOriginalAmount().stripTrailingZeros().scale() > PRICE_SCALE) {
-          throw new AssertionFailedError("Invalid scale on trade attempt");
-        } else {
-          return "1";
-        }
-      });
+        .thenAnswer(
+            inv -> {
+              if (attempt.getAndIncrement() == 0) {
+                throw new FundsExceededException("Not enough cash");
+              } else if (inv.getArgument(0, LimitOrder.class)
+                      .getOriginalAmount()
+                      .stripTrailingZeros()
+                      .scale()
+                  > PRICE_SCALE) {
+                throw new AssertionFailedError("Invalid scale on trade attempt");
+              } else {
+                return "1";
+              }
+            });
   }
 
   private void verifyDidNothingElse() {
@@ -923,7 +878,10 @@ public class TestLimitOrderJobProcessor {
   }
 
   private void verifySentTransientError() {
-    verify(notificationService).error(Mockito.anyString(), Mockito.any(BinanceExceptionClassifier.RetriableBinanceException.class));
+    verify(notificationService)
+        .error(
+            Mockito.anyString(),
+            Mockito.any(BinanceExceptionClassifier.RetriableBinanceException.class));
   }
 
   private void verifySentMessage() {

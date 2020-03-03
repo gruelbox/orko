@@ -1,21 +1,17 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.exchange;
 
 import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
@@ -24,30 +20,27 @@ import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
 
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.spi.TickerSpec;
-
 import io.reactivex.Flowable;
-
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 class ExchangeEventBus implements ExchangeEventRegistry {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeEventBus.class);
 
-  private final ConcurrentMap<MarketDataSubscription, AtomicInteger> allSubscriptions = Maps.newConcurrentMap();
+  private final ConcurrentMap<MarketDataSubscription, AtomicInteger> allSubscriptions =
+      Maps.newConcurrentMap();
   private final MarketDataSubscriptionManager marketDataSubscriptionManager;
 
   @Inject
@@ -58,7 +51,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
   @Override
   public ExchangeEventSubscription subscribe(Set<MarketDataSubscription> targetSubscriptions) {
     SubscriptionImpl subscription = new SubscriptionImpl(targetSubscriptions);
-    LOGGER.debug("Created subscriber {} with subscriptions {}", subscription.name, targetSubscriptions);
+    LOGGER.debug(
+        "Created subscriber {} with subscriptions {}", subscription.name, targetSubscriptions);
     return subscription;
   }
 
@@ -74,31 +68,34 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     SubscriptionImpl(Set<MarketDataSubscription> subscriptions, String name) {
       this.subscriptions = subscriptions;
       this.name = name;
-      if (subscribeAll())
-        updateSubscriptions();
+      if (subscribeAll()) updateSubscriptions();
     }
 
     @Override
     public Flowable<TickerEvent> getTickers() {
       Set<TickerSpec> filtered = subscriptionsFor(TICKER);
-      return marketDataSubscriptionManager.getTickers()
+      return marketDataSubscriptionManager
+          .getTickers()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
 
     @Override
     public Iterable<Flowable<TickerEvent>> getTickersSplit() {
-      return FluentIterable
-          .from(subscriptionsFor(TICKER))
-          .transform(spec -> marketDataSubscriptionManager.getTickers()
-              .filter(e -> e.spec().equals(spec))
-              .onBackpressureLatest());
+      return FluentIterable.from(subscriptionsFor(TICKER))
+          .transform(
+              spec ->
+                  marketDataSubscriptionManager
+                      .getTickers()
+                      .filter(e -> e.spec().equals(spec))
+                      .onBackpressureLatest());
     }
 
     @Override
     public Flowable<OpenOrdersEvent> getOrderSnapshots() {
       Set<TickerSpec> filtered = subscriptionsFor(OPEN_ORDERS);
-      return marketDataSubscriptionManager.getOrderSnapshots()
+      return marketDataSubscriptionManager
+          .getOrderSnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -106,7 +103,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     @Override
     public Flowable<OrderBookEvent> getOrderBooks() {
       Set<TickerSpec> filtered = subscriptionsFor(ORDERBOOK);
-      return marketDataSubscriptionManager.getOrderBookSnapshots()
+      return marketDataSubscriptionManager
+          .getOrderBookSnapshots()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureLatest();
     }
@@ -114,7 +112,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     @Override
     public Flowable<TradeEvent> getTrades() {
       Set<TickerSpec> filtered = subscriptionsFor(TRADES);
-      return marketDataSubscriptionManager.getTrades()
+      return marketDataSubscriptionManager
+          .getTrades()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureBuffer();
     }
@@ -122,7 +121,8 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     @Override
     public Flowable<OrderChangeEvent> getOrderChanges() {
       Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.ORDER);
-      return marketDataSubscriptionManager.getOrderChanges()
+      return marketDataSubscriptionManager
+          .getOrderChanges()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureBuffer();
     }
@@ -130,25 +130,33 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     @Override
     public Flowable<UserTradeEvent> getUserTrades() {
       Set<TickerSpec> filtered = subscriptionsFor(MarketDataType.USER_TRADE);
-      return marketDataSubscriptionManager.getUserTrades()
+      return marketDataSubscriptionManager
+          .getUserTrades()
           .filter(e -> filtered.contains(e.spec()))
           .onBackpressureBuffer();
     }
 
     @Override
     public Flowable<BalanceEvent> getBalances() {
-      ImmutableSet<String> exchangeCurrenciesSubscribed = FluentIterable.from(subscriptionsFor(BALANCE))
-        .transformAndConcat(s -> ImmutableSet.of(s.exchange() + "/" + s.base(), s.exchange() + "/" + s.counter()))
-        .toSet();
-      return marketDataSubscriptionManager.getBalances()
-          .filter(e -> exchangeCurrenciesSubscribed.contains(e.exchange() + "/" + e.balance().getCurrency()))
+      ImmutableSet<String> exchangeCurrenciesSubscribed =
+          FluentIterable.from(subscriptionsFor(BALANCE))
+              .transformAndConcat(
+                  s ->
+                      ImmutableSet.of(
+                          s.exchange() + "/" + s.base(), s.exchange() + "/" + s.counter()))
+              .toSet();
+      return marketDataSubscriptionManager
+          .getBalances()
+          .filter(
+              e ->
+                  exchangeCurrenciesSubscribed.contains(
+                      e.exchange() + "/" + e.balance().getCurrency()))
           .onBackpressureLatest();
     }
 
     @Override
     public void close() {
-      if (unsubscribeAll())
-        updateSubscriptions();
+      if (unsubscribeAll()) updateSubscriptions();
     }
 
     private void updateSubscriptions() {
@@ -158,8 +166,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     private boolean unsubscribeAll() {
       boolean updated = false;
       for (MarketDataSubscription sub : subscriptions) {
-        if (unsubscribe(sub))
-          updated = true;
+        if (unsubscribe(sub)) updated = true;
       }
       return updated;
     }
@@ -167,17 +174,19 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     private boolean subscribeAll() {
       boolean updated = false;
       for (MarketDataSubscription sub : subscriptions) {
-        if (subscribe(sub))
-          updated = true;
+        if (subscribe(sub)) updated = true;
       }
       return updated;
     }
 
     private boolean subscribe(MarketDataSubscription subscription) {
       LOGGER.debug("... subscribing {}", subscription);
-      boolean newGlobally = allSubscriptions.computeIfAbsent(subscription, s -> new AtomicInteger(0)).incrementAndGet() == 1;
-      if (newGlobally)
-        LOGGER.debug("   ... new global subscription");
+      boolean newGlobally =
+          allSubscriptions
+                  .computeIfAbsent(subscription, s -> new AtomicInteger(0))
+                  .incrementAndGet()
+              == 1;
+      if (newGlobally) LOGGER.debug("   ... new global subscription");
       return newGlobally;
     }
 
@@ -209,8 +218,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
 
     @Override
     public ExchangeEventSubscription replace(Set<MarketDataSubscription> targetSubscriptions) {
-      if (targetSubscriptions.equals(subscriptions))
-        return this;
+      if (targetSubscriptions.equals(subscriptions)) return this;
       if (unsubscribeAll()) {
         updateSubscriptions();
       }

@@ -1,21 +1,17 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.job;
 
 import static com.gruelbox.orko.jobrun.spi.Status.SUCCESS;
@@ -34,7 +30,10 @@ class AlertProcessor implements Alert.Processor {
   private final Alert job;
 
   @AssistedInject
-  public AlertProcessor(@Assisted Alert job, @Assisted JobControl jobControl, SynchronousNotificationService notificationService) {
+  public AlertProcessor(
+      @Assisted Alert job,
+      @Assisted JobControl jobControl,
+      SynchronousNotificationService notificationService) {
     this.job = job;
     this.notificationService = notificationService;
   }
@@ -53,9 +52,10 @@ class AlertProcessor implements Alert.Processor {
   public static final class Module extends AbstractModule {
     @Override
     protected void configure() {
-      install(new FactoryModuleBuilder()
-          .implement(Alert.Processor.class, AlertProcessor.class)
-          .build(Alert.Processor.ProcessorFactory.class));
+      install(
+          new FactoryModuleBuilder()
+              .implement(Alert.Processor.class, AlertProcessor.class)
+              .build(Alert.Processor.ProcessorFactory.class));
     }
   }
 }

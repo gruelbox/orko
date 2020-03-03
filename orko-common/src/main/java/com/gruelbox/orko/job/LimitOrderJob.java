@@ -1,26 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.job;
-
-import java.math.BigDecimal;
-
-import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,13 +25,14 @@ import com.gruelbox.orko.jobrun.spi.JobBuilder;
 import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.spi.TickerSpec;
+import java.math.BigDecimal;
+import javax.annotation.Nullable;
 
 /**
- * A job which immediately submits a limit order. Mainly exists to provide a
- * means for more complex orders such as {@link OneCancelsOther} and
- * {@link SoftTrailingStop} to issue trades in a transactional fashion, thus
- * moving the job of working out how to make this task idempotent into one
- * place.
+ * A job which immediately submits a limit order. Mainly exists to provide a means for more complex
+ * orders such as {@link OneCancelsOther} and {@link SoftTrailingStop} to issue trades in a
+ * transactional fashion, thus moving the job of working out how to make this task idempotent into
+ * one place.
  *
  * @author Graham Crockford
  */
@@ -55,14 +48,20 @@ public abstract class LimitOrderJob implements Job {
   @JsonPOJOBuilder(withPrefix = "")
   public abstract static class Builder implements JobBuilder<LimitOrderJob> {
 
-    @JsonCreator private static Builder create() { return LimitOrderJob.builder(); }
+    @JsonCreator
+    private static Builder create() {
+      return LimitOrderJob.builder();
+    }
 
     @Override
     public abstract Builder id(String value);
 
     public abstract Builder tickTrigger(TickerSpec tickTrigger);
+
     public abstract Builder amount(BigDecimal amount);
+
     public abstract Builder limitPrice(BigDecimal value);
+
     public abstract Builder direction(Direction direction);
 
     abstract Builder balanceState(BalanceState balanceState);
@@ -83,15 +82,23 @@ public abstract class LimitOrderJob implements Job {
   @JsonProperty
   public abstract TickerSpec tickTrigger();
 
-  @JsonProperty public abstract Direction direction();
-  @JsonProperty public abstract BigDecimal amount();
-  @JsonProperty public abstract BigDecimal limitPrice();
+  @JsonProperty
+  public abstract Direction direction();
 
-  @JsonProperty abstract BalanceState balanceState();
+  @JsonProperty
+  public abstract BigDecimal amount();
+
+  @JsonProperty
+  public abstract BigDecimal limitPrice();
+
+  @JsonProperty
+  abstract BalanceState balanceState();
 
   @Override
   public String toString() {
-    return String.format("%s order: %s %s at %s on %s", direction(), amount(), tickTrigger().base(), limitPrice(), tickTrigger());
+    return String.format(
+        "%s order: %s %s at %s on %s",
+        direction(), amount(), tickTrigger().base(), limitPrice(), tickTrigger());
   }
 
   @JsonIgnore
@@ -101,11 +108,13 @@ public abstract class LimitOrderJob implements Job {
   }
 
   public enum Direction {
-    BUY, SELL
+    BUY,
+    SELL
   }
 
   public enum BalanceState {
-    SUFFICIENT_BALANCE, INSUFFICIENT_BALANCE
+    SUFFICIENT_BALANCE,
+    INSUFFICIENT_BALANCE
   }
 
   public interface Processor extends JobProcessor<LimitOrderJob> {

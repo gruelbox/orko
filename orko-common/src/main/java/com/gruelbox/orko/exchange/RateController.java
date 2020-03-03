@@ -1,29 +1,24 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.exchange;
 
+import com.google.common.util.concurrent.RateLimiter;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.RateLimiter;
 
 /**
  * Wraps {@link RateLimiter} to perform exponential backoff.
@@ -60,9 +55,7 @@ public class RateController {
     this.defaultRate = rateLimiter.getRate();
   }
 
-  /**
-   * @see RateLimiter#acquire()
-   */
+  /** @see RateLimiter#acquire() */
   public void acquire() {
     rateLimiter.acquire();
     LOGGER.debug("Acquired API ticket for {}", exchangeName);
@@ -72,15 +65,18 @@ public class RateController {
           throttleExpiryTime = 0L;
           throttleLevel = 0;
           rateLimiter.setRate(defaultRate * (reducedRate.get() ? BACKOFF_RATIO : 1));
-          LOGGER.info("Throttle on {} expired. Restored rate to {} calls/sec", exchangeName, rateLimiter.getRate());
+          LOGGER.info(
+              "Throttle on {} expired. Restored rate to {} calls/sec",
+              exchangeName,
+              rateLimiter.getRate());
         }
       }
     }
   }
 
   /**
-   * Cuts the throughput rate significantly on a temporary basis. This throttle
-   * will expire after a period of time.
+   * Cuts the throughput rate significantly on a temporary basis. This throttle will expire after a
+   * period of time.
    */
   public void throttle() {
     if (canThrottleFurther()) {
@@ -96,8 +92,8 @@ public class RateController {
   }
 
   /**
-   * Slightly reduces the throughput permanently. Use on encountering rate limiting errors
-   * to reduce the likelihood of hitting it again.
+   * Slightly reduces the throughput permanently. Use on encountering rate limiting errors to reduce
+   * the likelihood of hitting it again.
    */
   public void backoff() {
     if (reducedRate.compareAndSet(false, true)) {
@@ -108,12 +104,9 @@ public class RateController {
     }
   }
 
-  /**
-   * Applies maximum throttling, effectively pausing.
-   */
+  /** Applies maximum throttling, effectively pausing. */
   public void pause() {
-    for (int i = 0 ; i < DEGREES_PERMITTED ; i++)
-      throttle();
+    for (int i = 0; i < DEGREES_PERMITTED; i++) throttle();
   }
 
   private boolean canThrottleFurther() {

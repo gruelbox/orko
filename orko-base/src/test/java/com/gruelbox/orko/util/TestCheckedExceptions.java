@@ -1,19 +1,16 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.util;
 
@@ -27,7 +24,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -38,14 +34,12 @@ import org.mockito.MockitoAnnotations;
  * Tests for {@link CheckedExceptions}.
  *
  * @author grahamc (Graham Crockford)
- *
  */
 public class TestCheckedExceptions {
 
   private static final int VALUE = 5;
 
-  @Mock
-  private Dummy mock;
+  @Mock private Dummy mock;
 
   @Before
   public void setup() throws SQLException, InterruptedException {
@@ -56,8 +50,7 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Make sure we can pass a lambda which throws no exceptions and it just acts
-   * as a passthrough.
+   * Make sure we can pass a lambda which throws no exceptions and it just acts as a passthrough.
    */
   @Test
   public void testNonThrowingRunnable() {
@@ -66,8 +59,8 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Make sure we can pass a value-returning lambda which throws no exceptions
-   * and it just acts as a passthrough.
+   * Make sure we can pass a value-returning lambda which throws no exceptions and it just acts as a
+   * passthrough.
    */
   @Test
   public void testNonThrowingCallable() {
@@ -76,8 +69,8 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Make sure we can pass a lambda which throws a checked exception and we
-   * don't need to check the exception
+   * Make sure we can pass a lambda which throws a checked exception and we don't need to check the
+   * exception
    */
   @Test
   public void testThrowingRunnableOK() {
@@ -89,10 +82,9 @@ public class TestCheckedExceptions {
     }
   }
 
-
   /**
-   * Make sure we can pass a value-returning lambda which throws a checked exception and we
-   * don't need to check the exception
+   * Make sure we can pass a value-returning lambda which throws a checked exception and we don't
+   * need to check the exception
    */
   @Test
   public void testThrowingCallableOK() {
@@ -101,8 +93,8 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Make sure we can pass a lambda which throws a checked exception and if an
-   * exception is thrown, it is wrapped in an unchecked exceptions
+   * Make sure we can pass a lambda which throws a checked exception and if an exception is thrown,
+   * it is wrapped in an unchecked exceptions
    */
   @Test
   public void testThrowingRunnableThrows() {
@@ -123,9 +115,8 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Make sure we can pass a value-returning lambda which throws a checked
-   * exception and if an exception is thrown, it is wrapped in an unchecked
-   * exceptions
+   * Make sure we can pass a value-returning lambda which throws a checked exception and if an
+   * exception is thrown, it is wrapped in an unchecked exceptions
    */
   @Test
   public void testThrowingCallableThrows() {
@@ -146,9 +137,9 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Make sure we can pass a lambda which throws {@link InterruptedException}
-   * without having to rethrow/catch. Such exceptions are wrapped in
-   * {@link RuntimeException} but the interrupted flag is preserved.
+   * Make sure we can pass a lambda which throws {@link InterruptedException} without having to
+   * rethrow/catch. Such exceptions are wrapped in {@link RuntimeException} but the interrupted flag
+   * is preserved.
    */
   @Test
   public void testThrowingRunnableIsInterrupted() {
@@ -170,10 +161,9 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Make sure we can pass a value-returning lambda which throws
-   * {@link InterruptedException} without having to rethrow/catch. Such
-   * exceptions are wrapped in {@link RuntimeException} but the interrupted flag
-   * is preserved.
+   * Make sure we can pass a value-returning lambda which throws {@link InterruptedException}
+   * without having to rethrow/catch. Such exceptions are wrapped in {@link RuntimeException} but
+   * the interrupted flag is preserved.
    */
   @Test
   public void testThrowingCallableIsInterrupted() {
@@ -195,34 +185,37 @@ public class TestCheckedExceptions {
   }
 
   /**
-   * Test that we can wrap a lambda which throws exceptions and pass it to a
-   * method that doesn't expect them.
+   * Test that we can wrap a lambda which throws exceptions and pass it to a method that doesn't
+   * expect them.
    */
   @Test
   public void testHandleCheckedExceptionsInLambda() {
 
-    Mockito.doAnswer(invocation -> {
-      Runnable argument = invocation.getArgument(0);
-      argument.run();
-      return null;
-    }).when(mock).receiveRunnable(Mockito.any(Runnable.class));
+    Mockito.doAnswer(
+            invocation -> {
+              Runnable argument = invocation.getArgument(0);
+              argument.run();
+              return null;
+            })
+        .when(mock)
+        .receiveRunnable(Mockito.any(Runnable.class));
 
-    mock.receiveRunnable(CheckedExceptions.uncheck(() -> {
-      mock.doSomethingWithCheckedException();
-    }));
+    mock.receiveRunnable(
+        CheckedExceptions.uncheck(
+            () -> {
+              mock.doSomethingWithCheckedException();
+            }));
 
     try {
       verify(mock).doSomethingWithCheckedException();
     } catch (IOException e) {
       fail();
     }
-
   }
 
   /**
-   * Test that we can wrap a lambda which throws exceptions and pass it to a
-   * method that doesn't expect them, but the exception is correctly
-   * wrapped and rethrown as a {@link RuntimeException}.
+   * Test that we can wrap a lambda which throws exceptions and pass it to a method that doesn't
+   * expect them, but the exception is correctly wrapped and rethrown as a {@link RuntimeException}.
    */
   @Test
   public void testThrowCheckedExceptionsInLambda() {
@@ -233,16 +226,21 @@ public class TestCheckedExceptions {
       fail();
     }
 
-    Mockito.doAnswer(invocation -> {
-      Runnable argument = invocation.getArgument(0);
-      argument.run();
-      return null;
-    }).when(mock).receiveRunnable(Mockito.any(Runnable.class));
+    Mockito.doAnswer(
+            invocation -> {
+              Runnable argument = invocation.getArgument(0);
+              argument.run();
+              return null;
+            })
+        .when(mock)
+        .receiveRunnable(Mockito.any(Runnable.class));
 
     try {
-      mock.receiveRunnable(CheckedExceptions.uncheck(() -> {
-        mock.doSomethingWithCheckedException();
-      }));
+      mock.receiveRunnable(
+          CheckedExceptions.uncheck(
+              () -> {
+                mock.doSomethingWithCheckedException();
+              }));
     } catch (RuntimeException e) {
       assertEquals(IOException.class, e.getCause().getClass());
       return;
@@ -254,12 +252,19 @@ public class TestCheckedExceptions {
 
   private interface Dummy {
     public void doSomething();
+
     public void doSomethingWithCheckedException() throws IOException;
+
     public void doSomethingWithInterruptedException() throws InterruptedException;
+
     public int returnSomething();
+
     public int returnSomethingWithCheckedException() throws SQLException;
+
     public int returnSomethingWithInterruptedException() throws InterruptedException;
+
     public void receiveRunnable(Runnable runnable);
+
     public void receiveCallable(Callable<?> callable);
   }
 }

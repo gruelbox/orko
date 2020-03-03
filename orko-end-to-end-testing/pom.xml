@@ -23,26 +23,23 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>com.mycila</groupId>
-          <artifactId>license-maven-plugin</artifactId>
-          <configuration>
-            <includes>
-              <include>**/*.js</include>
-              <include>cypress/**</include>
-            </includes>
-            <excludes>
-              <exclude>node_modules/**</exclude>
-              <exclude>node/**</exclude>
-              <exclude>build/**</exclude>
-            </excludes>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <header>../etc/HEADER</header>
+          <includes>
+            <include>cypress/**/*.js</include>
+            <include>cypress/**/*.ts</include>
+          </includes>
+          <excludes>
+            <exclude>node_modules/**</exclude>
+            <exclude>node/**</exclude>
+            <exclude>build/**</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>com.bazaarvoice.maven.plugins</groupId>
         <artifactId>process-exec-maven-plugin</artifactId>
