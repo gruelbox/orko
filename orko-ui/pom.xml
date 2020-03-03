@@ -39,8 +39,10 @@
         <configuration>
           <header>../etc/HEADER</header>
           <includes>
-            <include>**/*.js</include>
-            <include>src/**</include>
+            <include>src/**/*.js</include>
+            <include>src/**/*.jsx</include>
+            <include>src/**/*.ts</include>
+            <include>src/**/*.tsx</include>
           </includes>
           <excludes>
             <exclude>node_modules/**</exclude>

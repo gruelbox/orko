@@ -30,8 +30,8 @@
         <configuration>
           <header>../etc/HEADER</header>
           <includes>
-            <include>**/*.js</include>
-            <include>cypress/**</include>
+            <include>cypress/**/*.js</include>
+            <include>cypress/**/*.ts</include>
           </includes>
           <excludes>
             <exclude>node_modules/**</exclude>
