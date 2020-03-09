@@ -15,7 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { useEffect, ReactElement, useContext, useState, useMemo, useCallback } from "react"
+import React, { useEffect, ReactElement, useContext, useState, useMemo, useCallback, useRef } from "react"
+import ReactDOM from "react-dom";
+
+import { useInterval } from "modules/common/util/hookUtils"
 
 import { AuthContext } from "modules/auth"
 import { LogContext, LogRequest } from "modules/log"
@@ -31,10 +34,25 @@ import { useOrders } from "./useOrders"
 import { ServerContext } from "modules/server"
 
 const MAX_PUBLIC_TRADES = 48
+const UPDATE_FREQUENCY = 1000
 
 export interface SocketProps {
   getLocation()
   children: ReactElement
+}
+
+enum BatchScope {
+  GLOBAL,
+  COIN
+}
+
+class BatchItem {
+  scope: BatchScope
+  process: () => void
+  constructor(scope: BatchScope, process: () => void) {
+    this.scope = scope;
+    this.process = process;
+  }
 }
 
 /**
@@ -48,6 +66,27 @@ export interface SocketProps {
  * @param props
  */
 export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
+  ////////////////////// BATCHED REFRESHES /////////////////////////
+  const batch = useRef(new Array<BatchItem>())
+  useInterval(
+    () => {
+      ReactDOM.unstable_batchedUpdates(() => {
+        if (batch.current.length > 1) {
+          batch.current.forEach(it => it.process())
+          batch.current = new Array<BatchItem>()
+        }
+      })
+    },
+    UPDATE_FREQUENCY,
+    [batch]
+  )
+  const clearBatchItemsForCoin = () => {
+    batch.current = batch.current.filter(it => it.scope !== BatchScope.COIN);
+  }
+  const addToBatch = (scope: BatchScope, process: () => void) => {
+    batch.current.push(new BatchItem(scope, process))
+  }
+
   //////////////////////// SOCKET STATE ////////////////////////////
 
   // Contexts required
@@ -84,42 +123,42 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
   const logNotification = logApi.add
   const getSelectedCoin = useCallback(() => locationToCoin(getLocation()), [getLocation])
   useEffect(() => {
-    socketClient.onError((message: string) => logError(message))
-    socketClient.onNotification((logEntry: LogRequest) => logNotification(logEntry))
+    socketClient.onError((message: string) => addToBatch(BatchScope.GLOBAL, () => logError(message)))
+    socketClient.onNotification((logEntry: LogRequest) => addToBatch(BatchScope.GLOBAL, () => logNotification(logEntry)))
 
     const sameCoin = (left: Coin, right: Coin) => left && right && left.key === right.key
-    socketClient.onTicker((coin: Coin, ticker: Ticker) =>
-      setTickers(tickers => tickers.set(coin.key, ticker))
-    )
+    socketClient.onTicker((coin: Coin, ticker: Ticker) => {
+      addToBatch(BatchScope.GLOBAL, () => setTickers(tickers => tickers.set(coin.key, ticker)))
+    })
     socketClient.onBalance((exchange: string, currency: string, balance: Balance) => {
       const coin = getSelectedCoin()
       if (coin && coin.exchange === exchange) {
         if (coin.base === currency) {
-          setBalances(balances => Map.of(currency, balance, coin.counter, balances.get(coin.counter)))
+          addToBatch(BatchScope.COIN, () => setBalances(balances => Map.of(currency, balance, coin.counter, balances.get(coin.counter))))
         }
         if (coin.counter === currency) {
-          setBalances(balances => Map.of(currency, balance, coin.base, balances.get(coin.base)))
+          addToBatch(BatchScope.COIN, () => setBalances(balances => Map.of(currency, balance, coin.base, balances.get(coin.base))))
         }
       }
     })
     socketClient.onOrderBook((coin: Coin, orderBook: OrderBook) => {
-      if (sameCoin(coin, getSelectedCoin())) setOrderBook(orderBook)
+      if (sameCoin(coin, getSelectedCoin())) addToBatch(BatchScope.COIN, () => setOrderBook(orderBook))
     })
     socketClient.onTrade((coin: Coin, trade: Trade) => {
-      if (sameCoin(coin, getSelectedCoin())) tradesUpdateApi.unshift(trade, { maxLength: MAX_PUBLIC_TRADES })
+      if (sameCoin(coin, getSelectedCoin())) addToBatch(BatchScope.COIN, () => tradesUpdateApi.unshift(trade, { maxLength: MAX_PUBLIC_TRADES }))
     })
     socketClient.onUserTrade((coin: Coin, trade: UserTrade) => {
       if (sameCoin(coin, getSelectedCoin()))
-        userTradesUpdateApi.unshift(trade, {
+        addToBatch(BatchScope.COIN, () => userTradesUpdateApi.unshift(trade, {
           skipIfAnyMatch: existing => !!trade.id && existing.id === trade.id
-        })
+        }))
     })
     socketClient.onOrderUpdate((coin: Coin, order: Order, timestamp: number) => {
-      if (sameCoin(coin, getSelectedCoin())) openOrdersUpdateApi.orderUpdated(order, timestamp)
+      if (sameCoin(coin, getSelectedCoin())) addToBatch(BatchScope.COIN, () => openOrdersUpdateApi.orderUpdated(order, timestamp))
     })
     socketClient.onOrdersSnapshot((coin: Coin, orders: Array<Order>, timestamp: number) => {
       if (sameCoin(coin, getSelectedCoin())) {
-        openOrdersUpdateApi.updateSnapshot(orders, timestamp)
+        addToBatch(BatchScope.COIN, () => openOrdersUpdateApi.updateSnapshot(orders, timestamp))
       }
     })
   }, [getSelectedCoin, tradesUpdateApi, userTradesUpdateApi, openOrdersUpdateApi, logError, logNotification])
@@ -173,6 +212,7 @@ export const Socket: React.FC<SocketProps> = (props: SocketProps) => {
     openOrdersUpdateApi.clear()
     tradesUpdateApi.clear()
     setBalances(Map<String, Balance>())
+    clearBatchItemsForCoin()
   }, [selectedCoin, userTradesUpdateApi, tradesUpdateApi, openOrdersUpdateApi, setBalances, setOrderBook])
 
   const createdOrder = openOrdersUpdateApi.orderUpdated
