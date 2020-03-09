@@ -1,28 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.app.monolith;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Binder;
@@ -40,69 +30,58 @@ import com.gruelbox.orko.notification.TelegramConfiguration;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpEnforcementConfiguration;
 import com.gruelbox.tools.dropwizard.httpsredirect.HttpsResponsibility;
-
 import io.dropwizard.Configuration;
 import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.server.AbstractServerFactory;
+import java.util.HashMap;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 
-/**
- * Configuration for the monolith application.
- */
-public class MonolithConfiguration extends Configuration implements HttpEnforcementConfiguration, BackgroundProcessingConfiguration, ScriptConfiguration, BaseApplicationConfiguration {
+/** Configuration for the monolith application. */
+public class MonolithConfiguration extends Configuration
+    implements HttpEnforcementConfiguration,
+        BackgroundProcessingConfiguration,
+        ScriptConfiguration,
+        BaseApplicationConfiguration {
 
   /**
-   * Some operations require polling (exchanges with no websocket support,
-   * cache timeouts etc).  This is the loop time.
+   * Some operations require polling (exchanges with no websocket support, cache timeouts etc). This
+   * is the loop time.
    */
   @Min(1L)
   @JsonProperty
   private int loopSeconds = 15;
 
-  /**
-   * Authentication configuration
-   */
-  @Valid
-  @JsonProperty
-  private AuthConfiguration auth;
+  /** Authentication configuration */
+  @Valid @JsonProperty private AuthConfiguration auth;
 
   /**
-   * Database configuration. If not provided, the application will use
-   * volatile in-memory storage, which is obviously fine for trying things
-   * out but quickly becomes useless in real life.
+   * Database configuration. If not provided, the application will use volatile in-memory storage,
+   * which is obviously fine for trying things out but quickly becomes useless in real life.
    */
-  @Valid
-  @JsonProperty
-  private DbConfiguration database = new DbConfiguration();
+  @Valid @JsonProperty private DbConfiguration database = new DbConfiguration();
 
   /**
-   * Telegram configuration. Currently required for notifications.  Can
-   * be left out but then you have no idea what the application is doing.
+   * Telegram configuration. Currently required for notifications. Can be left out but then you have
+   * no idea what the application is doing.
    */
-  @Valid
-  @JsonProperty
-  private TelegramConfiguration telegram;
+  @Valid @JsonProperty private TelegramConfiguration telegram;
 
-  @Valid
-  @JsonProperty
-  private AppriseConfiguration apprise;
+  @Valid @JsonProperty private AppriseConfiguration apprise;
 
-  @JsonProperty
-  private String scriptSigningKey;
+  @JsonProperty private String scriptSigningKey;
 
   @Valid
   @JsonProperty("jerseyClient")
   private JerseyClientConfiguration jerseyClient;
 
-  @Valid
-  @JsonProperty
-  private Map<String, ExchangeConfiguration> exchanges = new HashMap<>();
+  @Valid @JsonProperty private Map<String, ExchangeConfiguration> exchanges = new HashMap<>();
 
-  @Valid
-  @JsonProperty
+  @Valid @JsonProperty
   private RemoteMarketDataConfiguration remoteMarketData = new RemoteMarketDataConfiguration();
 
   private boolean childProcess;
-
 
   public MonolithConfiguration() {
     super();
@@ -167,11 +146,11 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
   }
 
   public JerseyClientConfiguration getJerseyClientConfiguration() {
-      return jerseyClient;
+    return jerseyClient;
   }
 
   public void setJerseyClientConfiguration(JerseyClientConfiguration jerseyClient) {
-      this.jerseyClient = jerseyClient;
+    this.jerseyClient = jerseyClient;
   }
 
   public RemoteMarketDataConfiguration getRemoteMarketData() {
@@ -209,14 +188,12 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
     if (auth == null) {
       return HttpsResponsibility.HTTPS_DIRECT;
     }
-    return auth.isProxied()
-        ? HttpsResponsibility.HTTPS_AT_PROXY
-        : HttpsResponsibility.HTTPS_DIRECT;
+    return auth.isProxied() ? HttpsResponsibility.HTTPS_AT_PROXY : HttpsResponsibility.HTTPS_DIRECT;
   }
 
   /**
-   * Takes all the configuration components and binds them to the injector
-   * so they become available to modules throughout the application.
+   * Takes all the configuration components and binds them to the injector so they become available
+   * to modules throughout the application.
    *
    * @param binder The Guice binder.
    */
@@ -228,7 +205,9 @@ public class MonolithConfiguration extends Configuration implements HttpEnforcem
     binder.bind(JerseyClientConfiguration.class).toProvider(Providers.of(jerseyClient));
     binder.bind(TelegramConfiguration.class).toProvider(Providers.of(telegram));
     binder.bind(AppriseConfiguration.class).toProvider(Providers.of(apprise));
-    binder.bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {}).toProvider(Providers.of(exchanges));
+    binder
+        .bind(new TypeLiteral<Map<String, ExchangeConfiguration>>() {})
+        .toProvider(Providers.of(exchanges));
     binder.bind(RemoteMarketDataConfiguration.class).toInstance(this.remoteMarketData);
 
     JobRunConfiguration jobRunConfiguration = new JobRunConfiguration();

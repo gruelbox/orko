@@ -1,25 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.notification;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -29,11 +22,14 @@ import com.gruelbox.orko.job.StatusUpdateJob;
 import com.gruelbox.orko.jobrun.JobSubmitter;
 import com.gruelbox.orko.jobrun.spi.StatusUpdate;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 class AsynchronousNotificationService implements NotificationService, StatusUpdateService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AsynchronousNotificationService.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(AsynchronousNotificationService.class);
 
   private final JobSubmitter jobSubmitter;
   private final Transactionally transactionally;
@@ -44,12 +40,14 @@ class AsynchronousNotificationService implements NotificationService, StatusUpda
     this.transactionally = transactionally;
   }
 
-
   @Override
   public void send(Notification notification) {
-    transactionally.allowingNested().run(() ->
-      jobSubmitter.submitNewUnchecked(Alert.builder().notification(notification).build())
-    );
+    transactionally
+        .allowingNested()
+        .run(
+            () ->
+                jobSubmitter.submitNewUnchecked(
+                    Alert.builder().notification(notification).build()));
   }
 
   @Override
@@ -58,11 +56,13 @@ class AsynchronousNotificationService implements NotificationService, StatusUpda
     error(message);
   }
 
-
   @Override
   public void send(StatusUpdate statusUpdate) {
-    transactionally.allowingNested().run(() ->
-      jobSubmitter.submitNewUnchecked(StatusUpdateJob.builder().statusUpdate(statusUpdate).build())
-    );
+    transactionally
+        .allowingNested()
+        .run(
+            () ->
+                jobSubmitter.submitNewUnchecked(
+                    StatusUpdateJob.builder().statusUpdate(statusUpdate).build()));
   }
 }

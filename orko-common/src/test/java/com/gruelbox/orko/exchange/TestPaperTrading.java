@@ -1,19 +1,16 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.exchange;
 
@@ -37,11 +34,14 @@ import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
+import com.gruelbox.orko.spi.TickerSpec;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.subjects.PublishSubject;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,12 +64,6 @@ import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import com.google.common.collect.ImmutableMap;
-import com.gruelbox.orko.spi.TickerSpec;
-
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.subjects.PublishSubject;
 
 public class TestPaperTrading {
 
@@ -95,19 +89,23 @@ public class TestPaperTrading {
     MockitoAnnotations.initMocks(this);
     when(exchangeService.get(EXCHANGE)).thenReturn(exchange);
     when(exchange.getExchangeMetaData()).thenReturn(exchangeMetaData);
-    when(exchangeMetaData.getCurrencies()).thenReturn(ImmutableMap.of(
-      BTC, currencyMetaData,
-      USD, currencyMetaData
-    ));
+    when(exchangeMetaData.getCurrencies())
+        .thenReturn(
+            ImmutableMap.of(
+                BTC, currencyMetaData,
+                USD, currencyMetaData));
     when(exchangeEventRegistry.subscribe()).thenReturn(subscription);
     when(subscription.replace(Mockito.any(Set.class))).thenReturn(subscription);
-    when(subscription.getTickers()).thenReturn(tickerSubject.toFlowable(BackpressureStrategy.BUFFER));
+    when(subscription.getTickers())
+        .thenReturn(tickerSubject.toFlowable(BackpressureStrategy.BUFFER));
 
-    PaperAccountService.Factory accountServiceFactory = new PaperAccountService.Factory(exchangeService);
+    PaperAccountService.Factory accountServiceFactory =
+        new PaperAccountService.Factory(exchangeService);
     accountService = accountServiceFactory.getForExchange(EXCHANGE);
-    tradeService = (PaperTradeService) new PaperTradeService.Factory(
-      exchangeEventRegistry, accountServiceFactory
-    ).getForExchange(EXCHANGE);
+    tradeService =
+        (PaperTradeService)
+            new PaperTradeService.Factory(exchangeEventRegistry, accountServiceFactory)
+                .getForExchange(EXCHANGE);
   }
 
   @After
@@ -117,17 +115,18 @@ public class TestPaperTrading {
 
   @Test(expected = ExchangeException.class)
   public void testInitialOpenOrdersInvalidParameter() throws IOException {
-    tradeService.getOpenOrders(new OpenOrdersParams() {
-      @Override
-      public boolean accept(LimitOrder order) {
-        return false;
-      }
-    });
+    tradeService.getOpenOrders(
+        new OpenOrdersParams() {
+          @Override
+          public boolean accept(LimitOrder order) {
+            return false;
+          }
+        });
   }
 
   @Test(expected = ExchangeException.class)
   public void testInitialTradeHistoryInvalidParameter() throws IOException {
-    tradeService.getTradeHistory(new TradeHistoryParams() { });
+    tradeService.getTradeHistory(new TradeHistoryParams() {});
   }
 
   @Test(expected = ExchangeException.class)
@@ -137,7 +136,7 @@ public class TestPaperTrading {
 
   @Test(expected = ExchangeException.class)
   public void testInitialCancelOrderByInvalidParameter() throws IOException {
-    tradeService.cancelOrder(new CancelOrderParams() { });
+    tradeService.cancelOrder(new CancelOrderParams() {});
   }
 
   @Test(expected = ExchangeException.class)
@@ -145,9 +144,7 @@ public class TestPaperTrading {
     tradeService.cancelOrder(new DefaultCancelOrderParamId(ORDER_ID));
   }
 
-  /**
-   * Checks that the initial account state is correct with no trades having been placed.
-   */
+  /** Checks that the initial account state is correct with no trades having been placed. */
   @Test
   public void testInitialState() throws IOException {
     assertThat(tradeService.getOpenOrders().getAllOpenOrders(), empty());
@@ -163,8 +160,8 @@ public class TestPaperTrading {
   }
 
   /**
-   * Tests the order/trade workflow to ensure that balances, open orders and trades
-   * are correctly reported at each stage and matching is processed correctly
+   * Tests the order/trade workflow to ensure that balances, open orders and trades are correctly
+   * reported at each stage and matching is processed correctly
    */
   @Test
   public void testPlaceLimitOrderAsk() throws Exception {
@@ -172,73 +169,93 @@ public class TestPaperTrading {
     BigDecimal limitPrice = new BigDecimal(100);
     BigDecimal amount = new BigDecimal(5);
     BigDecimal counterAmount = amount.multiply(limitPrice);
-    String id = tradeService.placeLimitOrder(new LimitOrder.Builder(ASK, BTC_USD)
-        .limitPrice(limitPrice)
-        .originalAmount(amount)
-        .build());
+    String id =
+        tradeService.placeLimitOrder(
+            new LimitOrder.Builder(ASK, BTC_USD)
+                .limitPrice(limitPrice)
+                .originalAmount(amount)
+                .build());
 
     // Orders which should not fill
-    tradeService.placeLimitOrder(new LimitOrder.Builder(ASK, ETH_USD)
-        .limitPrice(limitPrice)
-        .originalAmount(amount)
-        .build());
-    tradeService.placeLimitOrder(new LimitOrder.Builder(ASK, BTC_USD)
-        .limitPrice(limitPrice.add(new BigDecimal("0.02")))
-        .originalAmount(ONE)
-        .build());
-    tradeService.placeLimitOrder(new LimitOrder.Builder(BID, BTC_USD)
-        .limitPrice(new BigDecimal("0.03"))
-        .originalAmount(ONE)
-        .build());
+    tradeService.placeLimitOrder(
+        new LimitOrder.Builder(ASK, ETH_USD).limitPrice(limitPrice).originalAmount(amount).build());
+    tradeService.placeLimitOrder(
+        new LimitOrder.Builder(ASK, BTC_USD)
+            .limitPrice(limitPrice.add(new BigDecimal("0.02")))
+            .originalAmount(ONE)
+            .build());
+    tradeService.placeLimitOrder(
+        new LimitOrder.Builder(BID, BTC_USD)
+            .limitPrice(new BigDecimal("0.03"))
+            .originalAmount(ONE)
+            .build());
 
     // Check all state matches
-    ThrowingRunnable checkUnchangedState = () -> {
-      List<Order> allOpenOrders = tradeService.getOpenOrders().getAllOpenOrders();
-      assertThat(allOpenOrders, hasSize(4));
-      LimitOrder order = (LimitOrder) allOpenOrders.stream()
-          .filter(o -> o.getId().equals(id))
-          .reduce((a, b) -> {
-            fail("Multiple orders with same id");
-            return null;
-          })
-          .get();
-      assertThat(order.getStatus(), equalTo(NEW));
-      assertThat(order.getType(), equalTo(ASK));
-      assertThat(order.getLimitPrice(), equalTo(limitPrice));
-      assertThat(order.getOriginalAmount(), equalTo(amount));
-      assertThat(order.getCumulativeAmount(), equalTo(new BigDecimal(0)));
+    ThrowingRunnable checkUnchangedState =
+        () -> {
+          List<Order> allOpenOrders = tradeService.getOpenOrders().getAllOpenOrders();
+          assertThat(allOpenOrders, hasSize(4));
+          LimitOrder order =
+              (LimitOrder)
+                  allOpenOrders.stream()
+                      .filter(o -> o.getId().equals(id))
+                      .reduce(
+                          (a, b) -> {
+                            fail("Multiple orders with same id");
+                            return null;
+                          })
+                      .get();
+          assertThat(order.getStatus(), equalTo(NEW));
+          assertThat(order.getType(), equalTo(ASK));
+          assertThat(order.getLimitPrice(), equalTo(limitPrice));
+          assertThat(order.getOriginalAmount(), equalTo(amount));
+          assertThat(order.getCumulativeAmount(), equalTo(new BigDecimal(0)));
 
-      assertThat(tradeService.getOpenOrders(openOrdersParams()).getAllOpenOrders(), hasSize(3));
-      assertThat(tradeService.getTradeHistory(tradeHistoryParams()).getTrades(), empty());
-      Wallet wallet = accountService.getAccountInfo().getWallet();
-      Balance btcBalance = wallet.getBalance(BTC);
-      Balance ethBalance = wallet.getBalance(ETH);
-      Balance usdBalance = wallet.getBalance(USD);
+          assertThat(tradeService.getOpenOrders(openOrdersParams()).getAllOpenOrders(), hasSize(3));
+          assertThat(tradeService.getTradeHistory(tradeHistoryParams()).getTrades(), empty());
+          Wallet wallet = accountService.getAccountInfo().getWallet();
+          Balance btcBalance = wallet.getBalance(BTC);
+          Balance ethBalance = wallet.getBalance(ETH);
+          Balance usdBalance = wallet.getBalance(USD);
 
-      assertThat(btcBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount).subtract(ONE)));
-      assertThat(btcBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
-      assertThat(btcBalance.getFrozen(), equalTo(amount.add(ONE)));
+          assertThat(
+              btcBalance.getAvailable(),
+              equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount).subtract(ONE)));
+          assertThat(btcBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
+          assertThat(btcBalance.getFrozen(), equalTo(amount.add(ONE)));
 
-      assertThat(ethBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount)));
-      assertThat(ethBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
-      assertThat(ethBalance.getFrozen(), equalTo(amount));
+          assertThat(ethBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount)));
+          assertThat(ethBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
+          assertThat(ethBalance.getFrozen(), equalTo(amount));
 
-      assertThat(usdBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(new BigDecimal("0.03"))));
-      assertThat(usdBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
-      assertThat(usdBalance.getFrozen(), equalTo(new BigDecimal("0.03")));
-    };
+          assertThat(
+              usdBalance.getAvailable(),
+              equalTo(EXPECTED_INITIAL_BALANCE.subtract(new BigDecimal("0.03"))));
+          assertThat(usdBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
+          assertThat(usdBalance.getFrozen(), equalTo(new BigDecimal("0.03")));
+        };
 
     checkUnchangedState.run();
 
     // Fire a ticker below our target price
     BigDecimal insufficientPrice = new BigDecimal("99.99");
-    fireTicker(new Ticker.Builder().ask(insufficientPrice).bid(insufficientPrice).last(insufficientPrice).build());
+    fireTicker(
+        new Ticker.Builder()
+            .ask(insufficientPrice)
+            .bid(insufficientPrice)
+            .last(insufficientPrice)
+            .build());
 
     // Check nothing changed
     checkUnchangedState.run();
 
     // Now fill the order
-    fireTicker(new Ticker.Builder().ask(insufficientPrice).bid(limitPrice).last(insufficientPrice).build());
+    fireTicker(
+        new Ticker.Builder()
+            .ask(insufficientPrice)
+            .bid(limitPrice)
+            .last(insufficientPrice)
+            .build());
 
     // Check end state
     assertThat(tradeService.getOpenOrders().getAllOpenOrders(), hasSize(3));
@@ -257,21 +274,22 @@ public class TestPaperTrading {
     Balance btcBalance = wallet.getBalance(BTC);
     Balance ethBalance = wallet.getBalance(ETH);
     Balance usdBalance = wallet.getBalance(USD);
-    assertThat(btcBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount).subtract(ONE)));
+    assertThat(
+        btcBalance.getAvailable(),
+        equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount).subtract(ONE)));
     assertThat(btcBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount)));
     assertThat(btcBalance.getFrozen(), equalTo(ONE));
     assertThat(ethBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(amount)));
     assertThat(ethBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
     assertThat(ethBalance.getFrozen(), equalTo(amount));
-    assertThat(usdBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.add(counterAmount).subtract(new BigDecimal("0.03"))));
+    assertThat(
+        usdBalance.getAvailable(),
+        equalTo(EXPECTED_INITIAL_BALANCE.add(counterAmount).subtract(new BigDecimal("0.03"))));
     assertThat(usdBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE.add(counterAmount)));
     assertThat(usdBalance.getFrozen(), equalTo(new BigDecimal("0.03")));
   }
 
-  /**
-   * Confirms that a specific order is processed correctly when buying instead
-   * of selling.
-   */
+  /** Confirms that a specific order is processed correctly when buying instead of selling. */
   @Test
   public void testPlaceLimitOrderBid() throws Exception {
 
@@ -279,49 +297,64 @@ public class TestPaperTrading {
     BigDecimal limitPrice = new BigDecimal(100);
     BigDecimal amount = new BigDecimal(5);
     BigDecimal counterAmount = amount.multiply(limitPrice);
-    String id = tradeService.placeLimitOrder(new LimitOrder.Builder(BID, BTC_USD)
-        .limitPrice(limitPrice)
-        .originalAmount(amount)
-        .build());
+    String id =
+        tradeService.placeLimitOrder(
+            new LimitOrder.Builder(BID, BTC_USD)
+                .limitPrice(limitPrice)
+                .originalAmount(amount)
+                .build());
 
     // Check all state matches
-    ThrowingRunnable checkUnchangedState = () -> {
-      List<Order> allOpenOrders = tradeService.getOpenOrders().getAllOpenOrders();
-      assertThat(allOpenOrders, hasSize(1));
-      LimitOrder order = (LimitOrder) allOpenOrders.get(0);
-      assertThat(order.getId(), equalTo(id));
-      assertThat(order.getStatus(), equalTo(NEW));
-      assertThat(order.getType(), equalTo(BID));
-      assertThat(order.getLimitPrice(), equalTo(limitPrice));
-      assertThat(order.getOriginalAmount(), equalTo(amount));
-      assertThat(order.getCumulativeAmount(), equalTo(new BigDecimal(0)));
+    ThrowingRunnable checkUnchangedState =
+        () -> {
+          List<Order> allOpenOrders = tradeService.getOpenOrders().getAllOpenOrders();
+          assertThat(allOpenOrders, hasSize(1));
+          LimitOrder order = (LimitOrder) allOpenOrders.get(0);
+          assertThat(order.getId(), equalTo(id));
+          assertThat(order.getStatus(), equalTo(NEW));
+          assertThat(order.getType(), equalTo(BID));
+          assertThat(order.getLimitPrice(), equalTo(limitPrice));
+          assertThat(order.getOriginalAmount(), equalTo(amount));
+          assertThat(order.getCumulativeAmount(), equalTo(new BigDecimal(0)));
 
-      assertThat(tradeService.getOpenOrders(openOrdersParams()).getAllOpenOrders(), contains(order));
-      assertThat(tradeService.getTradeHistory(tradeHistoryParams()).getTrades(), empty());
-      Wallet wallet = accountService.getAccountInfo().getWallet();
-      Balance btcBalance = wallet.getBalance(BTC);
-      Balance usdBalance = wallet.getBalance(USD);
+          assertThat(
+              tradeService.getOpenOrders(openOrdersParams()).getAllOpenOrders(), contains(order));
+          assertThat(tradeService.getTradeHistory(tradeHistoryParams()).getTrades(), empty());
+          Wallet wallet = accountService.getAccountInfo().getWallet();
+          Balance btcBalance = wallet.getBalance(BTC);
+          Balance usdBalance = wallet.getBalance(USD);
 
-      assertThat(btcBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE));
-      assertThat(btcBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
-      assertThat(btcBalance.getFrozen(), equalTo(ZERO));
+          assertThat(btcBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE));
+          assertThat(btcBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
+          assertThat(btcBalance.getFrozen(), equalTo(ZERO));
 
-      assertThat(usdBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(counterAmount)));
-      assertThat(usdBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
-      assertThat(usdBalance.getFrozen(), equalTo(counterAmount));
-    };
+          assertThat(
+              usdBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(counterAmount)));
+          assertThat(usdBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE));
+          assertThat(usdBalance.getFrozen(), equalTo(counterAmount));
+        };
 
     checkUnchangedState.run();
 
     // Fire a ticker above our target price
     BigDecimal insufficientPrice = new BigDecimal("100.01");
-    fireTicker(new Ticker.Builder().ask(insufficientPrice).bid(insufficientPrice).last(insufficientPrice).build());
+    fireTicker(
+        new Ticker.Builder()
+            .ask(insufficientPrice)
+            .bid(insufficientPrice)
+            .last(insufficientPrice)
+            .build());
 
     // Check nothing changed
     checkUnchangedState.run();
 
     // Fire a ticker at our target price
-    fireTicker(new Ticker.Builder().ask(limitPrice).bid(insufficientPrice).last(insufficientPrice).build());
+    fireTicker(
+        new Ticker.Builder()
+            .ask(limitPrice)
+            .bid(insufficientPrice)
+            .last(insufficientPrice)
+            .build());
 
     // Check end state
     assertThat(tradeService.getOpenOrders().getAllOpenOrders(), empty());
@@ -342,7 +375,8 @@ public class TestPaperTrading {
     assertThat(btcBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.add(amount)));
     assertThat(btcBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE.add(amount)));
     assertThat(btcBalance.getFrozen(), equalTo(ZERO));
-    assertThat(usdBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(counterAmount)));
+    assertThat(
+        usdBalance.getAvailable(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(counterAmount)));
     assertThat(usdBalance.getTotal(), equalTo(EXPECTED_INITIAL_BALANCE.subtract(counterAmount)));
     assertThat(usdBalance.getFrozen(), equalTo(ZERO));
   }
@@ -351,34 +385,36 @@ public class TestPaperTrading {
   public void testCancelBuyOrder() throws IOException {
 
     // Place a buy order
-    String id = tradeService.placeLimitOrder(new LimitOrder.Builder(BID, BTC_USD)
-        .limitPrice(new BigDecimal(100))
-        .originalAmount(new BigDecimal(5))
-        .build());
+    String id =
+        tradeService.placeLimitOrder(
+            new LimitOrder.Builder(BID, BTC_USD)
+                .limitPrice(new BigDecimal(100))
+                .originalAmount(new BigDecimal(5))
+                .build());
 
     // Cancel it
     tradeService.cancelOrder(id);
 
     // Make sure we're back where we started.
     testInitialState();
-
   }
 
   @Test
   public void testCancelSellOrder() throws IOException {
 
     // Place a sell order
-    String id = tradeService.placeLimitOrder(new LimitOrder.Builder(ASK, BTC_USD)
-        .limitPrice(new BigDecimal(100))
-        .originalAmount(new BigDecimal(5))
-        .build());
+    String id =
+        tradeService.placeLimitOrder(
+            new LimitOrder.Builder(ASK, BTC_USD)
+                .limitPrice(new BigDecimal(100))
+                .originalAmount(new BigDecimal(5))
+                .build());
 
     // Cancel it
     tradeService.cancelOrder(id);
 
     // Make sure we're back where we started.
     testInitialState();
-
   }
 
   private OpenOrdersParamCurrencyPair openOrdersParams() {
@@ -395,11 +431,8 @@ public class TestPaperTrading {
 
   private void fireTicker(Ticker ticker) {
     tickerSubject.onNext(
-      TickerEvent.create(
-        TickerSpec.builder().base("BTC").counter("USD").exchange(EXCHANGE).build(),
-        ticker
-      )
-    );
+        TickerEvent.create(
+            TickerSpec.builder().base("BTC").counter("USD").exchange(EXCHANGE).build(), ticker));
   }
 
   private interface ThrowingRunnable {

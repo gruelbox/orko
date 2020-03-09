@@ -1,19 +1,16 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.jobrun;
 
@@ -27,20 +24,18 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.google.common.eventbus.EventBus;
+import com.google.inject.util.Providers;
+import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.hibernate.SessionFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import com.google.common.eventbus.EventBus;
-import com.google.inject.util.Providers;
-import com.gruelbox.orko.db.Transactionally;
-import com.gruelbox.orko.jobrun.spi.JobRunConfiguration;
 
 public class TestGuardianLoop {
 
@@ -60,13 +55,18 @@ public class TestGuardianLoop {
   public void setup() throws TimeoutException {
     initMocks(this);
     when(jobAccess.list()).thenReturn(emptyList());
-    doAnswer(i -> {
-      thread.set(Thread.currentThread());
-      oneLoopCompleted.countDown();
-      return null;
-    }).when(eventBus).post(KeepAliveEvent.INSTANCE);
+    doAnswer(
+            i -> {
+              thread.set(Thread.currentThread());
+              oneLoopCompleted.countDown();
+              return null;
+            })
+        .when(eventBus)
+        .post(KeepAliveEvent.INSTANCE);
     when(config.getGuardianLoopSeconds()).thenReturn(1);
-    guardianLoop = new GuardianLoop(jobAccess, jobRunner, eventBus, config, transactionally, Providers.of(sessionFactory));
+    guardianLoop =
+        new GuardianLoop(
+            jobAccess, jobRunner, eventBus, config, transactionally, Providers.of(sessionFactory));
   }
 
   @Test

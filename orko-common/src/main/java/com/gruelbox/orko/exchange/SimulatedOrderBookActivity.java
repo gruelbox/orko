@@ -1,19 +1,16 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.exchange;
 
@@ -26,10 +23,12 @@ import static org.knowm.xchange.dto.Order.OrderType.BID;
 import static org.knowm.xchange.simulated.SimulatedExchange.ACCOUNT_FACTORY_PARAM;
 import static org.knowm.xchange.simulated.SimulatedExchange.ENGINE_FACTORY_PARAM;
 
+import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Random;
-
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.ExchangeSpecification;
 import org.knowm.xchange.dto.Order.OrderType;
@@ -42,14 +41,9 @@ import org.knowm.xchange.simulated.SimulatedExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
 /**
- * A background process which places trades back and forth to simulate
- * market activity. Enabled if an API key is provided for
- * {@link SimulatedExchange}.
+ * A background process which places trades back and forth to simulate market activity. Enabled if
+ * an API key is provided for {@link SimulatedExchange}.
  *
  * @author Graham Crockford
  */
@@ -65,12 +59,16 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
   private final Random random;
 
   @Inject
-  SimulatedOrderBookActivity(AccountFactory accountFactory, MatchingEngineFactory matchingEngineFactory) {
-    ExchangeSpecification exchangeSpecification = new ExchangeSpecification(SimulatedExchange.class);
+  SimulatedOrderBookActivity(
+      AccountFactory accountFactory, MatchingEngineFactory matchingEngineFactory) {
+    ExchangeSpecification exchangeSpecification =
+        new ExchangeSpecification(SimulatedExchange.class);
     exchangeSpecification.setApiKey("MarketMakers");
-    exchangeSpecification.setExchangeSpecificParametersItem(ENGINE_FACTORY_PARAM, matchingEngineFactory);
+    exchangeSpecification.setExchangeSpecificParametersItem(
+        ENGINE_FACTORY_PARAM, matchingEngineFactory);
     exchangeSpecification.setExchangeSpecificParametersItem(ACCOUNT_FACTORY_PARAM, accountFactory);
-    marketMakerExchange = (SimulatedExchange) ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
+    marketMakerExchange =
+        (SimulatedExchange) ExchangeFactory.INSTANCE.createExchange(exchangeSpecification);
     random = new Random();
   }
 
@@ -127,32 +125,42 @@ class SimulatedOrderBookActivity extends AbstractExecutionThreadService {
     BigDecimal amount = startAmount;
     while (diff.compareTo(range) < 0) {
       LOGGER.debug("Building order book, price diff {}", diff);
-      marketMakerOrder(ASK, startPrice.add(diff).setScale(2, HALF_UP), amount.add(randomAmount(10)));
-      marketMakerOrder(BID, startPrice.subtract(diff).setScale(2, HALF_UP), amount.add(randomAmount(10)));
+      marketMakerOrder(
+          ASK, startPrice.add(diff).setScale(2, HALF_UP), amount.add(randomAmount(10)));
+      marketMakerOrder(
+          BID, startPrice.subtract(diff).setScale(2, HALF_UP), amount.add(randomAmount(10)));
       diff = diff.multiply(multiplicator).setScale(2, HALF_UP);
       amount = amount.divide(multiplicator, 2, HALF_UP);
     }
   }
 
-  private void placeLimitOrder(OrderType orderType, BigDecimal price, BigDecimal amount) throws IOException {
+  private void placeLimitOrder(OrderType orderType, BigDecimal price, BigDecimal amount)
+      throws IOException {
     LOGGER.debug("Simulated limit order: {} {} @ {}", orderType, amount, price);
-    marketMakerExchange.getTradeService().placeLimitOrder(new LimitOrder.Builder(orderType, BTC_USD)
-        .limitPrice(price)
-        .originalAmount(amount)
-        .build());
+    marketMakerExchange
+        .getTradeService()
+        .placeLimitOrder(
+            new LimitOrder.Builder(orderType, BTC_USD)
+                .limitPrice(price)
+                .originalAmount(amount)
+                .build());
   }
 
   private void placeMarketOrder(OrderType orderType, BigDecimal amount) throws IOException {
     LOGGER.debug("Simulated market order: {} {}", orderType, amount);
-    marketMakerExchange.getTradeService().placeMarketOrder(new MarketOrder.Builder(orderType, BTC_USD)
-        .originalAmount(amount)
-        .build());
+    marketMakerExchange
+        .getTradeService()
+        .placeMarketOrder(
+            new MarketOrder.Builder(orderType, BTC_USD).originalAmount(amount).build());
   }
 
   private void marketMakerOrder(OrderType orderType, BigDecimal price, BigDecimal amount) {
-    marketMakerExchange.getTradeService().placeLimitOrderUnrestricted(new LimitOrder.Builder(orderType, BTC_USD)
-        .limitPrice(price)
-        .originalAmount(amount)
-        .build());
+    marketMakerExchange
+        .getTradeService()
+        .placeLimitOrderUnrestricted(
+            new LimitOrder.Builder(orderType, BTC_USD)
+                .limitPrice(price)
+                .originalAmount(amount)
+                .build());
   }
 }

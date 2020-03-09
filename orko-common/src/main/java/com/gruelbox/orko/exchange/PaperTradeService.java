@@ -1,26 +1,33 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.exchange;
 
 import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static java.util.stream.Collectors.toList;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.FluentIterable;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
+import com.gruelbox.orko.spi.TickerSpec;
+import com.gruelbox.orko.util.SafelyDispose;
+import io.reactivex.disposables.Disposable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -36,7 +43,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.Order.OrderStatus;
@@ -61,22 +67,9 @@ import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.FluentIterable;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
-import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.util.SafelyDispose;
-
-import io.reactivex.disposables.Disposable;
-
 /**
- * Paper trading implementation.  Note: doesn't work between restarts. Probably not thread
- * safe either yet.
+ * Paper trading implementation. Note: doesn't work between restarts. Probably not thread safe
+ * either yet.
  */
 final class PaperTradeService implements TradeService {
 
@@ -95,7 +88,10 @@ final class PaperTradeService implements TradeService {
   private Disposable disposable;
   private ExchangeEventSubscription subscription;
 
-  private PaperTradeService(String exchange, ExchangeEventRegistry exchangeEventRegistry, PaperAccountService paperAccountService) {
+  private PaperTradeService(
+      String exchange,
+      ExchangeEventRegistry exchangeEventRegistry,
+      PaperAccountService paperAccountService) {
     this.exchange = exchange;
     this.paperAccountService = paperAccountService;
     this.subscription = exchangeEventRegistry.subscribe();
@@ -115,9 +111,13 @@ final class PaperTradeService implements TradeService {
     OpenOrders all = getOpenOrders();
     CurrencyPair pair = ((OpenOrdersParamCurrencyPair) params).getCurrencyPair();
     return new OpenOrders(
-      all.getOpenOrders().stream().filter(o -> o.getCurrencyPair().equals(pair)).collect(Collectors.toList()),
-      (List<Order>) all.getHiddenOrders().stream().filter(o -> o.getCurrencyPair().equals(pair)).collect(Collectors.toList())
-    );
+        all.getOpenOrders().stream()
+            .filter(o -> o.getCurrencyPair().equals(pair))
+            .collect(Collectors.toList()),
+        (List<Order>)
+            all.getHiddenOrders().stream()
+                .filter(o -> o.getCurrencyPair().equals(pair))
+                .collect(Collectors.toList()));
   }
 
   @Override
@@ -130,18 +130,18 @@ final class PaperTradeService implements TradeService {
     randomDelay();
     final long id = orderCounter.incrementAndGet();
     String strId = String.valueOf(id);
-    LimitOrder newOrder = new LimitOrder(
-      limitOrder.getType(),
-      limitOrder.getOriginalAmount(),
-      limitOrder.getCurrencyPair(),
-      strId,
-      limitOrder.getTimestamp() == null ? new Date() : limitOrder.getTimestamp(),
-      limitOrder.getLimitPrice(),
-      BigDecimal.ZERO,
-      BigDecimal.ZERO,
-      BigDecimal.ZERO,
-      Order.OrderStatus.NEW
-    );
+    LimitOrder newOrder =
+        new LimitOrder(
+            limitOrder.getType(),
+            limitOrder.getOriginalAmount(),
+            limitOrder.getCurrencyPair(),
+            strId,
+            limitOrder.getTimestamp() == null ? new Date() : limitOrder.getTimestamp(),
+            limitOrder.getLimitPrice(),
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            Order.OrderStatus.NEW);
     paperAccountService.reserve(limitOrder);
     openOrders.put(id, newOrder);
     placedDates.put(id, new Date());
@@ -156,16 +156,19 @@ final class PaperTradeService implements TradeService {
 
   private void updateTickerRegistry() {
     SafelyDispose.of(disposable);
-    subscription = subscription.replace(
-      FluentIterable.from(openOrders.values()).transform(o -> MarketDataSubscription.create(
-          TickerSpec.builder()
-            .exchange(exchange)
-            .counter(o.getCurrencyPair().counter.getCurrencyCode())
-            .base(o.getCurrencyPair().base.getCurrencyCode())
-            .build(),
-          TICKER
-      )).toSet()
-    );
+    subscription =
+        subscription.replace(
+            FluentIterable.from(openOrders.values())
+                .transform(
+                    o ->
+                        MarketDataSubscription.create(
+                            TickerSpec.builder()
+                                .exchange(exchange)
+                                .counter(o.getCurrencyPair().counter.getCurrencyCode())
+                                .base(o.getCurrencyPair().base.getCurrencyCode())
+                                .build(),
+                            TICKER))
+                .toSet());
     disposable = subscription.getTickers().subscribe(this::updateAgainstMarket);
   }
 
@@ -199,8 +202,7 @@ final class PaperTradeService implements TradeService {
   @Override
   public boolean cancelOrder(CancelOrderParams params) throws IOException {
     if (!(params instanceof CancelOrderByIdParams)) {
-      throw new ExchangeException(
-          "You need to provide the order id to cancel an order.");
+      throw new ExchangeException("You need to provide the order id to cancel an order.");
     }
     CancelOrderByIdParams paramId = (CancelOrderByIdParams) params;
     return cancelOrder(paramId.getOrderId());
@@ -213,11 +215,10 @@ final class PaperTradeService implements TradeService {
     }
     TradeHistoryParamCurrencyPair currencyPairParams = (TradeHistoryParamCurrencyPair) params;
     return new UserTrades(
-      tradeHistory.stream()
-        .filter(t -> t.getCurrencyPair().equals(currencyPairParams.getCurrencyPair()))
-        .collect(toList()),
-      TradeSortType.SortByTimestamp
-    );
+        tradeHistory.stream()
+            .filter(t -> t.getCurrencyPair().equals(currencyPairParams.getCurrencyPair()))
+            .collect(toList()),
+        TradeSortType.SortByTimestamp);
   }
 
   @Override
@@ -255,13 +256,17 @@ final class PaperTradeService implements TradeService {
 
   @Override
   public Collection<Order> getOrder(String... orderIds) throws IOException {
-    final Set<Long> ids = Arrays.asList(orderIds).stream().map(Long::valueOf).collect(Collectors.toSet());
-    return openOrders.entrySet().stream().filter(e -> ids.contains(e.getKey())).map(Entry::getValue).collect(Collectors.toList());
+    final Set<Long> ids =
+        Arrays.asList(orderIds).stream().map(Long::valueOf).collect(Collectors.toSet());
+    return openOrders.entrySet().stream()
+        .filter(e -> ids.contains(e.getKey()))
+        .map(Entry::getValue)
+        .collect(Collectors.toList());
   }
 
   /**
-   * Mimics reality by ensuring some operations have an indeterminate completion time,
-   * so trades might be out of date.
+   * Mimics reality by ensuring some operations have an indeterminate completion time, so trades
+   * might be out of date.
    */
   private void randomDelay() {
     try {
@@ -272,25 +277,29 @@ final class PaperTradeService implements TradeService {
     }
   }
 
-  /**
-   * Handles a tick by updating any affected orders.
-   */
+  /** Handles a tick by updating any affected orders. */
   private synchronized void updateAgainstMarket(TickerEvent tickerEvent) {
     lastTickers.put(tickerEvent.spec().currencyPair(), tickerEvent.ticker());
     Set<LimitOrder> filledOrders = new HashSet<>();
     openOrders.values().stream()
-      .filter(o -> o.getCurrencyPair().counter.getCurrencyCode().equals(tickerEvent.spec().counter()) &&
-                   o.getCurrencyPair().base.getCurrencyCode().equals(tickerEvent.spec().base())
-      ).forEach(order -> {
-        if (fillOrder(tickerEvent.ticker(), order)) {
-          paperAccountService.fillLimitOrder(order);
-          filledOrders.add(order);
-        }
-      });
-    filledOrders.stream().map(o -> Long.valueOf(o.getId())).forEach(o -> {
-      openOrders.remove(o);
-      placedDates.remove(o);
-    });
+        .filter(
+            o ->
+                o.getCurrencyPair().counter.getCurrencyCode().equals(tickerEvent.spec().counter())
+                    && o.getCurrencyPair().base.getCurrencyCode().equals(tickerEvent.spec().base()))
+        .forEach(
+            order -> {
+              if (fillOrder(tickerEvent.ticker(), order)) {
+                paperAccountService.fillLimitOrder(order);
+                filledOrders.add(order);
+              }
+            });
+    filledOrders.stream()
+        .map(o -> Long.valueOf(o.getId()))
+        .forEach(
+            o -> {
+              openOrders.remove(o);
+              placedDates.remove(o);
+            });
   }
 
   private boolean fillOrder(Ticker ticker, LimitOrder order) {
@@ -314,25 +323,26 @@ final class PaperTradeService implements TradeService {
         }
         break;
       default:
-        throw new NotAvailableFromExchangeException("Order type " + order.getType() + " not supported");
+        throw new NotAvailableFromExchangeException(
+            "Order type " + order.getType() + " not supported");
     }
     return false;
   }
 
   private void addTradeHistory(LimitOrder order, BigDecimal price) {
-    tradeHistory.add(new UserTrade(
-      order.getType(),
-      order.getOriginalAmount(),
-      order.getCurrencyPair(),
-      price,
-      new Date(),
-      Long.toString(tradeCounter.incrementAndGet()),
-      order.getId(),
-      BigDecimal.ZERO,
-      order.getCurrencyPair().base
-    ));
+    tradeHistory.add(
+        new UserTrade.Builder()
+            .type(order.getType())
+            .originalAmount(order.getOriginalAmount())
+            .currencyPair(order.getCurrencyPair())
+            .price(price)
+            .timestamp(new Date())
+            .id(Long.toString(tradeCounter.incrementAndGet()))
+            .orderId(order.getId())
+            .feeAmount(BigDecimal.ZERO)
+            .feeCurrency(order.getCurrencyPair().base)
+            .build());
   }
-
 
   @Singleton
   public static class Factory implements TradeServiceFactory {
@@ -342,16 +352,26 @@ final class PaperTradeService implements TradeService {
     private final ExchangeEventRegistry exchangeEventRegistry;
     private final PaperAccountService.Factory accountServiceFactory;
 
-    private final LoadingCache<String, TradeService> services = CacheBuilder.newBuilder().initialCapacity(1000).build(new CacheLoader<String, TradeService>() {
-      @Override
-      public TradeService load(String exchange) throws Exception {
-        LOGGER.debug("No API connection details for {}. Using paper trading.", exchange);
-        return new PaperTradeService(exchange, exchangeEventRegistry, accountServiceFactory.getForExchange(exchange));
-      }
-    });
+    private final LoadingCache<String, TradeService> services =
+        CacheBuilder.newBuilder()
+            .initialCapacity(1000)
+            .build(
+                new CacheLoader<String, TradeService>() {
+                  @Override
+                  public TradeService load(String exchange) throws Exception {
+                    LOGGER.debug(
+                        "No API connection details for {}. Using paper trading.", exchange);
+                    return new PaperTradeService(
+                        exchange,
+                        exchangeEventRegistry,
+                        accountServiceFactory.getForExchange(exchange));
+                  }
+                });
 
     @Inject
-    Factory(ExchangeEventRegistry exchangeEventRegistry, PaperAccountService.Factory accountServiceFactory) {
+    Factory(
+        ExchangeEventRegistry exchangeEventRegistry,
+        PaperAccountService.Factory accountServiceFactory) {
       this.exchangeEventRegistry = exchangeEventRegistry;
       this.accountServiceFactory = accountServiceFactory;
     }

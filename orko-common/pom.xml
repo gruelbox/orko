@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.gruelbox</groupId>
     <artifactId>orko-parent</artifactId>
-    <version>0.15.1</version>
+    <version>0.15.2</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -102,13 +102,16 @@
       <artifactId>mockito-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
     </dependency>
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-testing</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -160,15 +163,15 @@
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-coinbasepro</artifactId>
+      <artifactId>xchange-stream-coinbasepro</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-binance</artifactId>
+      <artifactId>xchange-stream-binance</artifactId>
     </dependency>
     <dependency>
       <groupId>${xchange.stream.groupid}</groupId>
-      <artifactId>xchange-bitfinex</artifactId>
+      <artifactId>xchange-stream-bitfinex</artifactId>
     </dependency>
 
   </dependencies>
@@ -185,6 +188,22 @@
       </resource>
     </resources>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>com.coveo</groupId>
+        <artifactId>fmt-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

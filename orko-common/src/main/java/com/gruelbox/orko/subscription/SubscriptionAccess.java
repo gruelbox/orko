@@ -1,34 +1,20 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.subscription;
 
 import static com.gruelbox.orko.subscription.Subscription.TABLE_NAME;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
@@ -37,6 +23,14 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.spi.TickerSpec;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Subscription persistence.
@@ -66,12 +60,12 @@ class SubscriptionAccess {
   void remove(TickerSpec spec) {
     LOGGER.info("Removing permanent subscription to {}", spec);
     Subscription subscription = session().get(Subscription.class, spec.key());
-    if (subscription != null)
-      session().delete(subscription);
+    if (subscription != null) session().delete(subscription);
   }
 
   Set<TickerSpec> all() {
-    List<Subscription> results = session().createQuery("from " + TABLE_NAME, Subscription.class).list();
+    List<Subscription> results =
+        session().createQuery("from " + TABLE_NAME, Subscription.class).list();
     return FluentIterable.from(results).transform(Subscription::getTicker).toSet();
   }
 
@@ -80,11 +74,12 @@ class SubscriptionAccess {
   }
 
   Map<TickerSpec, BigDecimal> getReferencePrices() {
-    List<Subscription> results = session().createQuery("from " + TABLE_NAME, Subscription.class).list();
+    List<Subscription> results =
+        session().createQuery("from " + TABLE_NAME, Subscription.class).list();
     Builder<TickerSpec, BigDecimal> builder = ImmutableMap.builder();
     results.stream()
-      .filter(r -> r.getReferencePrice() != null)
-      .forEach(r -> builder.put(r.getTicker(), r.getReferencePrice()));
+        .filter(r -> r.getReferencePrice() != null)
+        .forEach(r -> builder.put(r.getTicker(), r.getReferencePrice()));
     return builder.build();
   }
 

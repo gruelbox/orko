@@ -1,27 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.jobrun;
-
-
-import java.util.concurrent.TimeUnit;
-
-import javax.inject.Inject;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
@@ -33,9 +24,10 @@ import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.util.SafelyDispose;
-
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 
 class CounterJobProcessor implements JobProcessor<CounterJob> {
 
@@ -48,7 +40,8 @@ class CounterJobProcessor implements JobProcessor<CounterJob> {
   private volatile boolean done;
 
   @Inject
-  public CounterJobProcessor(@Assisted CounterJob job, @Assisted JobControl jobControl, EventBus eventBus) {
+  public CounterJobProcessor(
+      @Assisted CounterJob job, @Assisted JobControl jobControl, EventBus eventBus) {
     this.job = job;
     this.jobControl = jobControl;
     this.eventBus = eventBus;
@@ -62,8 +55,7 @@ class CounterJobProcessor implements JobProcessor<CounterJob> {
   }
 
   private synchronized void tick() {
-    if (done)
-      return;
+    if (done) return;
     if (job.counter() == 100) {
       done = true;
       jobControl.finish(Status.SUCCESS);
@@ -84,14 +76,15 @@ class CounterJobProcessor implements JobProcessor<CounterJob> {
     eventBus.post(TestingJobEvent.create(job.id(), EventType.FINISH));
   }
 
-  public interface Factory extends JobProcessor.Factory<CounterJob> { }
+  public interface Factory extends JobProcessor.Factory<CounterJob> {}
 
   public static final class Module extends AbstractModule {
     @Override
     protected void configure() {
-      install(new FactoryModuleBuilder()
-          .implement(new TypeLiteral<JobProcessor<CounterJob>>() {}, CounterJobProcessor.class)
-          .build(CounterJobProcessor.class));
+      install(
+          new FactoryModuleBuilder()
+              .implement(new TypeLiteral<JobProcessor<CounterJob>>() {}, CounterJobProcessor.class)
+              .build(CounterJobProcessor.class));
     }
   }
 }

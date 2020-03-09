@@ -1,30 +1,21 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.auth.jwt.login;
-
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.MockitoAnnotations;
 
 import com.gruelbox.orko.auth.GenerateSecretKey;
 import com.gruelbox.orko.auth.Hasher;
@@ -32,14 +23,16 @@ import com.gruelbox.orko.auth.jwt.JwtConfiguration;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorConfig;
 import com.warrenstrange.googleauth.IGoogleAuthenticator;
-
 import io.dropwizard.auth.AuthenticationException;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.MockitoAnnotations;
 
 public class TestJwtLoginVerifier {
 
-  private final IGoogleAuthenticator googleAuthenticator = new GoogleAuthenticator(
-    new GoogleAuthenticatorConfig.GoogleAuthenticatorConfigBuilder().build()
-  );
+  private final IGoogleAuthenticator googleAuthenticator =
+      new GoogleAuthenticator(
+          new GoogleAuthenticatorConfig.GoogleAuthenticatorConfigBuilder().build());
 
   private final GenerateSecretKey generateSecretKey = new GenerateSecretKey(googleAuthenticator);
 
@@ -68,7 +61,11 @@ public class TestJwtLoginVerifier {
     config.setUserName("joe");
     config.setPassword("HASH(yxnd7ycRqxkqLMUYqsD8xN49fsDI3snc00fijIdTXVc=)");
     assertTrue(verifier.authenticate(new LoginRequest("joe", "tester", null)).isPresent());
-    assertFalse(verifier.authenticate(new LoginRequest("joe", "HASH(yxnd7ycRqxkqLMUYqsD8xN49fsDI3snc00fijIdTXVc=)", null)).isPresent());
+    assertFalse(
+        verifier
+            .authenticate(
+                new LoginRequest("joe", "HASH(yxnd7ycRqxkqLMUYqsD8xN49fsDI3snc00fijIdTXVc=)", null))
+            .isPresent());
   }
 
   @Test
@@ -78,23 +75,21 @@ public class TestJwtLoginVerifier {
     config.setSecret("ksdhflsdhfoliDSFSDFdjfp93ur3piruj3pf");
     config.setSecondFactorSecret(generateSecretKey.createNewKey());
     assertFalse(
-      verifier.authenticate(
-        new LoginRequest(
-          "joe",
-          "tester",
-          generateSecretKey.generateValidInput(config.getSecondFactorSecret()) + 1
-        )
-      ).isPresent()
-    );
+        verifier
+            .authenticate(
+                new LoginRequest(
+                    "joe",
+                    "tester",
+                    generateSecretKey.generateValidInput(config.getSecondFactorSecret()) + 1))
+            .isPresent());
     assertTrue(
-        verifier.authenticate(
-          new LoginRequest(
-            "joe",
-            "tester",
-            generateSecretKey.generateValidInput(config.getSecondFactorSecret())
-          )
-        ).isPresent()
-      );
+        verifier
+            .authenticate(
+                new LoginRequest(
+                    "joe",
+                    "tester",
+                    generateSecretKey.generateValidInput(config.getSecondFactorSecret())))
+            .isPresent());
   }
 
   @Test
@@ -104,22 +99,20 @@ public class TestJwtLoginVerifier {
     config.setSecret("ksdhflsdhfoliDSFSDFdjfp93ur3piruj3pf");
     config.setSecondFactorSecret(generateSecretKey.createNewKey());
     assertFalse(
-      verifier.authenticate(
-        new LoginRequest(
-          "joe",
-          "tester",
-          generateSecretKey.generateValidInput(config.getSecondFactorSecret()) + 1
-        )
-      ).isPresent()
-    );
+        verifier
+            .authenticate(
+                new LoginRequest(
+                    "joe",
+                    "tester",
+                    generateSecretKey.generateValidInput(config.getSecondFactorSecret()) + 1))
+            .isPresent());
     assertTrue(
-        verifier.authenticate(
-          new LoginRequest(
-            "joe",
-            "tester",
-            generateSecretKey.generateValidInput(config.getSecondFactorSecret())
-          )
-        ).isPresent()
-      );
+        verifier
+            .authenticate(
+                new LoginRequest(
+                    "joe",
+                    "tester",
+                    generateSecretKey.generateValidInput(config.getSecondFactorSecret())))
+            .isPresent());
   }
 }

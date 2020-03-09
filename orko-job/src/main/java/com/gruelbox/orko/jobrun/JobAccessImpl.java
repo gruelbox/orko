@@ -1,36 +1,20 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.jobrun;
 
-
 import static com.gruelbox.orko.jobrun.JobRecord.TABLE_NAME;
-
-import java.io.IOException;
-import java.util.List;
-
-import javax.persistence.PersistenceException;
-
-import org.hibernate.LockMode;
-import org.hibernate.NonUniqueObjectException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.exception.ConstraintViolationException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +23,14 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.jobrun.spi.Job;
+import java.io.IOException;
+import java.util.List;
+import javax.persistence.PersistenceException;
+import org.hibernate.LockMode;
+import org.hibernate.NonUniqueObjectException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.exception.ConstraintViolationException;
 
 @Singleton
 class JobAccessImpl implements JobAccess {
@@ -48,7 +40,8 @@ class JobAccessImpl implements JobAccess {
   private final JobLocker joblocker;
 
   @Inject
-  JobAccessImpl(Provider<SessionFactory> sessionFactory, ObjectMapper objectMapper, JobLocker joblocker) {
+  JobAccessImpl(
+      Provider<SessionFactory> sessionFactory, ObjectMapper objectMapper, JobLocker joblocker) {
     this.sessionFactory = sessionFactory;
     this.objectMapper = objectMapper;
     this.joblocker = joblocker;
@@ -84,18 +77,23 @@ class JobAccessImpl implements JobAccess {
 
   @Override
   public Iterable<Job> list() {
-    List<JobRecord> results = session().createQuery("from " + TABLE_NAME + " where processed = false", JobRecord.class).list();
-    return FluentIterable.from(results)
-        .transform(JobRecord::getContent)
-        .transform(this::decode);
+    List<JobRecord> results =
+        session()
+            .createQuery("from " + TABLE_NAME + " where processed = false", JobRecord.class)
+            .list();
+    return FluentIterable.from(results).transform(JobRecord::getContent).transform(this::decode);
   }
 
   @Override
   public void delete(String jobId) {
-    int updated = session()
-      .createQuery("update " + TABLE_NAME + " set processed = true where id = :id and processed = false")
-      .setParameter("id", jobId)
-      .executeUpdate();
+    int updated =
+        session()
+            .createQuery(
+                "update "
+                    + TABLE_NAME
+                    + " set processed = true where id = :id and processed = false")
+            .setParameter("id", jobId)
+            .executeUpdate();
     if (updated == 0) {
       throw new JobDoesNotExistException();
     }
@@ -105,8 +103,8 @@ class JobAccessImpl implements JobAccess {
   @Override
   public void deleteAll() {
     session()
-      .createQuery("update " + TABLE_NAME + " set processed = true where processed = false")
-      .executeUpdate();
+        .createQuery("update " + TABLE_NAME + " set processed = true where processed = false")
+        .executeUpdate();
   }
 
   private Session session() {

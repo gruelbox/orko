@@ -1,31 +1,18 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.jobrun;
-
-
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-
-import org.hibernate.BaseSessionEventListener;
-import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.eventbus.EventBus;
@@ -41,6 +28,12 @@ import com.gruelbox.orko.jobrun.spi.JobControl;
 import com.gruelbox.orko.jobrun.spi.JobProcessor;
 import com.gruelbox.orko.jobrun.spi.Status;
 import com.gruelbox.orko.jobrun.spi.StatusUpdateService;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import org.hibernate.BaseSessionEventListener;
+import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 class JobRunner {
@@ -58,12 +51,15 @@ class JobRunner {
   private final Provider<SessionFactory> sessionFactory;
 
   @Inject
-  JobRunner(JobAccess advancedOrderAccess, JobLocker jobLocker,
-            Injector injector, EventBus eventBus,
-            StatusUpdateService statusUpdateService,
-            Transactionally transactionally,
-            ExecutorService executorService,
-            Provider<SessionFactory> sessionFactory) {
+  JobRunner(
+      JobAccess advancedOrderAccess,
+      JobLocker jobLocker,
+      Injector injector,
+      EventBus eventBus,
+      StatusUpdateService statusUpdateService,
+      Transactionally transactionally,
+      ExecutorService executorService,
+      Provider<SessionFactory> sessionFactory) {
     jobAccess = advancedOrderAccess;
     this.jobLocker = jobLocker;
     this.injector = injector;
@@ -76,11 +72,10 @@ class JobRunner {
   }
 
   /**
-   * Attempts to submit a job that already exists.  Used by the poll loop.
+   * Attempts to submit a job that already exists. Used by the poll loop.
    *
-   * <p>Note that if the lock is successful, the job is only unlocked
-   * on success or, if the job fails, due to the TTL removing it.
-   * This creates an automatic delay on retries.</p>
+   * <p>Note that if the lock is successful, the job is only unlocked on success or, if the job
+   * fails, due to the TTL removing it. This creates an automatic delay on retries.
    *
    * @param job The job.
    * @return True if the job could be locked and run successfully.
@@ -96,24 +91,23 @@ class JobRunner {
   /**
    * Attempts to insert and run a new job.
    *
-   * <p>Given that inserting into the database guarantees that it will run at
-   * some point, provides the ability to acknowledge this with a callback before
-   * actually starting. This can be used to acknowledge the upstream
-   * request.</p>
+   * <p>Given that inserting into the database guarantees that it will run at some point, provides
+   * the ability to acknowledge this with a callback before actually starting. This can be used to
+   * acknowledge the upstream request.
    *
-   * <p>The request is ignored (and the callback called) if the job has already
-   * been created, to avoid double-calling.</p>
+   * <p>The request is ignored (and the callback called) if the job has already been created, to
+   * avoid double-calling.
    *
-   * <p>Note that if the lock is successful, the job is only unlocked
-   * on success or, if the job fails, due to the TTL removing it.
-   * This creates an automatic delay on retries.</p>
+   * <p>Note that if the lock is successful, the job is only unlocked on success or, if the job
+   * fails, due to the TTL removing it. This creates an automatic delay on retries.
    *
    * @param job The job.
    * @param ack The insertion callback.
    * @param reject If insertion failed
    * @throws Exception If any errors occured.
    */
-  public void submitNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+  public void submitNew(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject)
+      throws Exception {
     createJob(job, ack, reject);
     if (!attemptLock(job, reject)) {
       throw new RuntimeException("Created but could not immediately lock new job");
@@ -122,15 +116,20 @@ class JobRunner {
   }
 
   private void startAfterCommit(Job job) {
-    sessionFactory.get().getCurrentSession().addEventListeners(new BaseSessionEventListener() {
-      private static final long serialVersionUID = 4340675209658497123L;
-      @Override
-      public void transactionCompletion(boolean successful) {
-        if (successful) {
-          executorService.execute(() -> new JobLifetimeManager(job).start());
-        }
-      }
-    });
+    sessionFactory
+        .get()
+        .getCurrentSession()
+        .addEventListeners(
+            new BaseSessionEventListener() {
+              private static final long serialVersionUID = 4340675209658497123L;
+
+              @Override
+              public void transactionCompletion(boolean successful) {
+                if (successful) {
+                  executorService.execute(() -> new JobLifetimeManager(job).start());
+                }
+              }
+            });
   }
 
   private boolean attemptLock(Job job, ExceptionThrowingRunnable reject) throws Exception {
@@ -145,7 +144,8 @@ class JobRunner {
     return locked;
   }
 
-  private void createJob(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject) throws Exception {
+  private void createJob(Job job, ExceptionThrowingRunnable ack, ExceptionThrowingRunnable reject)
+      throws Exception {
     try {
       jobAccess.insert(job);
     } catch (JobAlreadyExistsException e) {
@@ -187,7 +187,8 @@ class JobRunner {
 
       // Ensure this lifetime manager can only be used once
       if (!status.equals(JobStatus.CREATED))
-        throw new IllegalStateException("Job lifecycle status indicates re-use of lifetime manager: " + job);
+        throw new IllegalStateException(
+            "Job lifecycle status indicates re-use of lifetime manager: " + job);
 
       status = JobStatus.STARTING;
       LOGGER.info("{} starting...", job);
@@ -234,13 +235,11 @@ class JobRunner {
     @Subscribe
     public synchronized void onKeepAlive(KeepAliveEvent keepAlive) {
       LOGGER.debug("{} checking lock...", job);
-      if (!status.equals(JobStatus.RUNNING))
-        return;
+      if (!status.equals(JobStatus.RUNNING)) return;
       LOGGER.debug("{} updating lock...", job);
       if (!transactionally.call(() -> jobLocker.updateLock(job.id(), uuid))) {
         LOGGER.debug("{} stopping due to loss of lock...", job);
-        if (stopAndUnregister())
-          LOGGER.debug("{} stopped due to loss of lock", job);
+        if (stopAndUnregister()) LOGGER.debug("{} stopped due to loss of lock", job);
       }
     }
 
@@ -261,15 +260,18 @@ class JobRunner {
 
       LOGGER.debug("{} replacing...", newVersion);
       if (!JobStatus.RUNNING.equals(status) && !JobStatus.STARTING.equals(status)) {
-        LOGGER.warn("Illegal state", new IllegalStateException("Replacement of job which is already shutting down. Status=" + status +
-            ", job=" + newVersion));
+        LOGGER.warn(
+            "Illegal state",
+            new IllegalStateException(
+                "Replacement of job which is already shutting down. Status="
+                    + status
+                    + ", job="
+                    + newVersion));
         return;
       }
 
       // The job might be transactional, so participate if necessary
-      transactionally.allowingNested().run(() ->
-        jobAccess.update(newVersion)
-      );
+      transactionally.allowingNested().run(() -> jobAccess.update(newVersion));
 
       job = newVersion;
       processor.setReplacedJob(newVersion);
@@ -279,12 +281,15 @@ class JobRunner {
 
     @Override
     public synchronized void finish(Status status) {
-      Preconditions.checkArgument(status == Status.FAILURE_PERMANENT || status == Status.SUCCESS, "Finish condition must be success or permanent failure");
+      Preconditions.checkArgument(
+          status == Status.FAILURE_PERMANENT || status == Status.SUCCESS,
+          "Finish condition must be success or permanent failure");
 
       LOGGER.info("{} finishing ({})...", job, status);
       statusUpdateService.status(job.id(), status);
       if (!stopAndUnregister()) {
-        LOGGER.warn("Finish of job which is already shutting down. Status={}, job={}", this.status, job);
+        LOGGER.warn(
+            "Finish of job which is already shutting down. Status={}, job={}", this.status, job);
         return;
       }
       // If this gets rolled back due to the job itself being transactional, that's

@@ -1,34 +1,23 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.gruelbox.orko.monitor;
 
 import static com.gruelbox.orko.exchange.Exchanges.BINANCE;
 import static com.gruelbox.orko.exchange.Exchanges.BITFINEX;
 import static com.gruelbox.orko.exchange.Exchanges.GDAX;
 import static com.gruelbox.orko.exchange.MarketDataType.TRADES;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
@@ -45,10 +34,14 @@ import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.SafelyClose;
 import com.gruelbox.orko.util.SafelyDispose;
-
 import io.dropwizard.lifecycle.Managed;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 final class ExchangeSocketHealthMonitor implements Managed {
@@ -68,8 +61,10 @@ final class ExchangeSocketHealthMonitor implements Managed {
   private Disposable poll;
 
   @Inject
-  ExchangeSocketHealthMonitor(ExchangeEventRegistry exchangeEventRegistry, NotificationService notificationService) {
-    this(exchangeEventRegistry,
+  ExchangeSocketHealthMonitor(
+      ExchangeEventRegistry exchangeEventRegistry, NotificationService notificationService) {
+    this(
+        exchangeEventRegistry,
         notificationService,
         Observable.interval(10, TimeUnit.MINUTES),
         Ticker.systemTicker(),
@@ -77,30 +72,34 @@ final class ExchangeSocketHealthMonitor implements Managed {
   }
 
   @VisibleForTesting
-  ExchangeSocketHealthMonitor(ExchangeEventRegistry exchangeEventRegistry,
-                              NotificationService notificationService, Observable<?> interval,
-                              Ticker ticker, Consumer<? super Throwable> onError) {
+  ExchangeSocketHealthMonitor(
+      ExchangeEventRegistry exchangeEventRegistry,
+      NotificationService notificationService,
+      Observable<?> interval,
+      Ticker ticker,
+      Consumer<? super Throwable> onError) {
     this.exchangeEventRegistry = exchangeEventRegistry;
     this.notificationService = notificationService;
     this.interval = interval;
     this.onError = onError;
-    this.stopwatches = ImmutableMap.of(
-        BINANCE, Stopwatch.createUnstarted(ticker),
-        BITFINEX, Stopwatch.createUnstarted(ticker),
-        GDAX, Stopwatch.createUnstarted(ticker));
+    this.stopwatches =
+        ImmutableMap.of(
+            BINANCE, Stopwatch.createUnstarted(ticker),
+            BITFINEX, Stopwatch.createUnstarted(ticker),
+            GDAX, Stopwatch.createUnstarted(ticker));
   }
 
   @Override
   public void start() throws Exception {
     stopwatches.values().forEach(Stopwatch::start);
-    subscription = exchangeEventRegistry.subscribe(
-        MarketDataSubscription.create(
-            TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), TRADES),
-        MarketDataSubscription.create(
-            TickerSpec.builder().exchange(BITFINEX).base("BTC").counter("USD").build(), TRADES),
-        MarketDataSubscription.create(
-            TickerSpec.builder().exchange(GDAX).base("BTC").counter("USD").build(), TRADES)
-    );
+    subscription =
+        exchangeEventRegistry.subscribe(
+            MarketDataSubscription.create(
+                TickerSpec.builder().exchange(BINANCE).base("BTC").counter("USDT").build(), TRADES),
+            MarketDataSubscription.create(
+                TickerSpec.builder().exchange(BITFINEX).base("BTC").counter("USD").build(), TRADES),
+            MarketDataSubscription.create(
+                TickerSpec.builder().exchange(GDAX).base("BTC").counter("USD").build(), TRADES));
     trades = subscription.getTrades().subscribe(this::onTrade, onError::accept);
     poll = interval.subscribe(i -> runOneIteration(), onError::accept);
   }
@@ -123,7 +122,8 @@ final class ExchangeSocketHealthMonitor implements Managed {
     long elapsed = stopwatch.elapsed(TimeUnit.MINUTES);
     String name = Exchanges.name(exchange);
     if (elapsed >= MINUTES_BEFORE_WARNING) {
-      notificationService.error(name + " trade stream has not sent a trade for " + MINUTES_BEFORE_WARNING + "m");
+      notificationService.error(
+          name + " trade stream has not sent a trade for " + MINUTES_BEFORE_WARNING + "m");
       reset(stopwatch);
     } else {
       LOGGER.debug("{} socket healthy", name);
@@ -131,7 +131,7 @@ final class ExchangeSocketHealthMonitor implements Managed {
   }
 
   private void reset(Stopwatch stopwatch) {
-    synchronized(stopwatch) {
+    synchronized (stopwatch) {
       stopwatch.reset().start();
     }
   }

@@ -1,33 +1,28 @@
 /**
- * Orko
- * Copyright © 2018-2019 Graham Crockford
+ * Orko - Copyright © 2018-2019 Graham Crockford
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * <p>This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Affero General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <p>You should have received a copy of the GNU Affero General Public License along with this
+ * program. If not, see <http://www.gnu.org/licenses/>.
  */
 package com.gruelbox.orko.exchange;
 
+import com.gruelbox.orko.spi.TickerSpec;
+import io.reactivex.Flowable;
 import org.knowm.xchange.dto.Order;
 
-import com.gruelbox.orko.spi.TickerSpec;
-
-import io.reactivex.Flowable;
-
 /**
- * Allows an application to subscribe to market data from any exchange. Note that
- * this should normally be used via {@link ExchangeEventRegistry}; the
- * subscriptions managed here are process-global and include the aggregated
- * total of all subscriptions made to {@code ExchangeEventRegistry}.
+ * Allows an application to subscribe to market data from any exchange. Note that this should
+ * normally be used via {@link ExchangeEventRegistry}; the subscriptions managed here are
+ * process-global and include the aggregated total of all subscriptions made to {@code
+ * ExchangeEventRegistry}.
  */
 public interface MarketDataSubscriptionManager extends SubscriptionController {
 
@@ -81,11 +76,10 @@ public interface MarketDataSubscriptionManager extends SubscriptionController {
   Flowable<OrderChangeEvent> getOrderChanges();
 
   /**
-   * Call immediately after submitting an order to ensure the full order details appear
-   * in the event stream at some point (allows for Coinbase not providing everything).
+   * Call immediately after submitting an order to ensure the full order details appear in the event
+   * stream at some point (allows for Coinbase not providing everything).
    *
-   * TODO temporary until better support is arrange in xchange-stream
+   * <p>TODO temporary until better support is arrange in xchange-stream
    */
   void postOrder(TickerSpec spec, Order order);
-
 }
