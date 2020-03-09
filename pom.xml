@@ -12,7 +12,7 @@
     <connection>scm:git:https://github.com/gruelbox/orko.git</connection>
     <developerConnection>scm:git:git@github.com:gruelbox/orko.git</developerConnection>
     <url>https://github.com/gruelbox/orko</url>
-    <tag>HEAD</tag>
+    <tag>0.15.2</tag>
   </scm>
 
   <issueManagement>
@@ -41,7 +41,7 @@
 
   <groupId>com.gruelbox</groupId>
   <artifactId>orko-parent</artifactId>
-  <version>0.15.2-SNAPSHOT</version>
+  <version>0.15.2</version>
   <packaging>pom</packaging>
 
   <modules>
