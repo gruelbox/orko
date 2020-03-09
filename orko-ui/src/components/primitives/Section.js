@@ -51,7 +51,8 @@ const SectionInner = styled.section`
   padding-bottom: ${props => (props.nopadding ? 0 : props.theme.space[2] + "px")};
   padding-left: ${props => (props.nopadding ? 0 : props.theme.space[2] + "px")};
   padding-right: ${props => (props.nopadding ? 0 : props.theme.space[2] + "px")};
-  flex: 1
+  flex: 1;
+  flex-grow: 1;
   position: relative;
   overflow-x: ${props => (props.scroll === "horizontal" || props.scroll === "both" ? "scroll" : "auto")};
   overflow-y: ${props => (props.scroll === "vertical" || props.scroll === "both" ? "scroll" : "auto")};
