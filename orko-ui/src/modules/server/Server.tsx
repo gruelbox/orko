@@ -56,6 +56,7 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const authApi = useContext(AuthContext)
   const logApi = useContext(LogContext)
   const errorPopup = logApi.errorPopup
+  const errorLog = logApi.localError
   const trace = logApi.trace
 
   const [subscriptions, setSubscriptions] = useState<Coin[]>(Immutable([]))
@@ -77,10 +78,10 @@ const Server: React.FC<ServerProps> = (props: ServerProps) => {
     () => () => {
       authApi
         .authenticatedRequest(() => jobService.fetchJobs())
-        .catch((error: Error) => errorPopup("Could not fetch jobs: " + error.message))
+        .catch((error: Error) => errorLog("Could not fetch jobs: " + error.message))
         .then((jobs: Job[]) => setJobs(Immutable(jobs)))
     },
-    [authApi, errorPopup]
+    [authApi, errorLog]
   )
 
   const submitJob = useMemo(
