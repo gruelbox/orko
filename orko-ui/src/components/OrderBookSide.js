@@ -37,7 +37,7 @@ const Aligned = styled.div`
     }
     .orderbook-bar {
       background-color: ${props =>
-        lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
+    lighten(0.2, props.direction === "BID" ? theme.colors.buy : theme.colors.sell)};
     }
     &.collapse-enter-active {
       .orderbook-value {
@@ -79,7 +79,7 @@ const BarSize = styled.div`
     props.direction === "BID" ? (props.size < 50 ? "auto" : 0) : props.size < 50 ? "100%" : "auto"};
   color: ${props =>
     props.size > 50 ? "black" : props.direction === "BID" ? theme.colors.buy : theme.colors.sell};
-  font-size: ${props => theme.fontSizes[0] + "px"}
+  font-size: ${props => theme.fontSizes[0] + "px"};
   padding: 0 4px 0 4px;
   overflow: visible;
   white-space: nowrap;
@@ -148,7 +148,7 @@ const OrderBookSide = props =>
       {entries(props)}
     </ReactCSSTransitionGroup>
   ) : (
-    <div>{entries(props)}</div>
-  )
+      <div>{entries(props)}</div>
+    )
 
 export default OrderBookSide
