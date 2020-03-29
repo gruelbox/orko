@@ -52,7 +52,6 @@ public abstract class AbstractMarketDataFullStackTest {
   private SubscriptionControllerImpl controller;
   private ExchangeEventBus exchangeEventBus;
   private final NotificationService notificationService = mock(NotificationService.class);
-  private BackgroundProcessingConfiguration backgroundProcessingConfiguration;
   private Map<String, ExchangeConfiguration> exchangeConfiguration;
 
   @Before
@@ -62,7 +61,7 @@ public abstract class AbstractMarketDataFullStackTest {
             LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME))
         .setLevel(Level.INFO);
 
-    backgroundProcessingConfiguration =
+    BackgroundProcessingConfiguration backgroundProcessingConfiguration =
         new BackgroundProcessingConfiguration() {
           @Override
           public int getLoopSeconds() {
