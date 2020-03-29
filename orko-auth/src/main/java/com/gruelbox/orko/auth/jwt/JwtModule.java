@@ -76,6 +76,7 @@ public class JwtModule extends AbstractModule {
         .build();
   }
 
+  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
   @RequestScoped
   @Provides
   Optional<JwtContext> jwtContext(

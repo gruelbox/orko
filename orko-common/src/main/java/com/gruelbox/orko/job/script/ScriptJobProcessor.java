@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Graham Crockford
  */
-@SuppressWarnings({"deprecation", "removal"})
+@SuppressWarnings({"removal"})
 class ScriptJobProcessor implements ScriptJob.Processor {
 
   private static final String PERMANENTLY_FAILED = "' permanently failed: ";
@@ -88,7 +88,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   private volatile boolean done;
 
   @AssistedInject
-  public ScriptJobProcessor(
+  ScriptJobProcessor(
       @Assisted ScriptJob job,
       @Assisted JobControl jobControl,
       ExchangeEventRegistry exchangeEventRegistry,
@@ -178,12 +178,12 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     bindings.put("console", new Console());
     bindings.put("trading", new Trading());
     bindings.put("state", new State());
-    bindings.put("decimal", (Function<String, BigDecimal>) value -> new BigDecimal(value));
+    bindings.put("decimal", (Function<String, BigDecimal>) BigDecimal::new);
     bindings.put(
         "setInterval",
         (BiFunction<JSObject, Integer, Disposable>)
-            (callback, timeout) -> events.setInterval(callback, timeout));
-    bindings.put("clearInterval", (Consumer<Disposable>) disposable -> events.clear(disposable));
+            events::setInterval);
+    bindings.put("clearInterval", (Consumer<Disposable>) events::clear);
 
     engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
   }
