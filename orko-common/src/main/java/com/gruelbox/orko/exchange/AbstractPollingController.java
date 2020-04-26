@@ -19,6 +19,7 @@ import static java.util.Collections.emptySet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
+import io.reactivex.Completable;
 import java.util.Set;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
@@ -39,9 +40,9 @@ abstract class AbstractPollingController extends AbstractExecutionThreadService
 
   private final BackgroundProcessingConfiguration configuration;
   protected final SubscriptionPublisher publisher;
-  private final Phaser phaser = new Phaser(1);
+  protected final Phaser phaser = new Phaser(1);
 
-  private LifecycleListener lifecycleListener = new LifecycleListener() {};
+  protected LifecycleListener lifecycleListener = new LifecycleListener() {};
 
   protected AbstractPollingController(
       BackgroundProcessingConfiguration configuration, SubscriptionPublisher publisher) {
@@ -59,7 +60,7 @@ abstract class AbstractPollingController extends AbstractExecutionThreadService
    * @param subscriptions The subscriptions.
    */
   @Override
-  public abstract void updateSubscriptions(Set<MarketDataSubscription> subscriptions);
+  public abstract Completable updateSubscriptions(Set<MarketDataSubscription> subscriptions);
 
   @Override
   protected final void run() {
@@ -76,7 +77,7 @@ abstract class AbstractPollingController extends AbstractExecutionThreadService
     } catch (Exception e) {
       logger.error("{} stopping due to uncaught exception", this, e);
     } finally {
-      updateSubscriptions(emptySet());
+      updateSubscriptions(emptySet()).blockingAwait();
       logger.info("{} stopped", this);
       lifecycleListener.onStopMain();
     }

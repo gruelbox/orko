@@ -18,6 +18,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.spi.TickerSpec;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.Date;
 import java.util.Set;
@@ -62,12 +63,12 @@ public final class SubscriptionPublisher implements MarketDataSubscriptionManage
   }
 
   @Override
-  public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
+  public Completable updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
     if (this.controller == null) {
-      throw new IllegalStateException(
-          SubscriptionPublisher.class.getSimpleName() + " not initialised");
+      return Completable.error(new IllegalStateException(
+          SubscriptionPublisher.class.getSimpleName() + " not initialised"));
     }
-    this.controller.updateSubscriptions(subscriptions);
+    return this.controller.updateSubscriptions(subscriptions);
   }
 
   @Override

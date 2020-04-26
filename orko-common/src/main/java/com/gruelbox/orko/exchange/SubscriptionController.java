@@ -14,6 +14,7 @@
  */
 package com.gruelbox.orko.exchange;
 
+import io.reactivex.Completable;
 import java.util.Set;
 
 interface SubscriptionController {
@@ -23,5 +24,5 @@ interface SubscriptionController {
    *
    * @param subscriptions The subscriptions.
    */
-  void updateSubscriptions(Set<MarketDataSubscription> subscriptions);
+  Completable updateSubscriptions(Set<MarketDataSubscription> subscriptions);
 }

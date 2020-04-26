@@ -38,9 +38,11 @@ import info.bitrich.xchangestream.service.netty.JsonNettyStreamingService;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +68,9 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
 
   @Override
   public Completable connect() {
-    Completable completable = super.connect();
-    return completable.doOnComplete(
-        () -> {
+    return super.connect()
+        .subscribeOn(Schedulers.computation())
+        .doOnComplete(() -> {
           LOG.info("Connected to {}", apiUrl);
           this.interval =
               Observable.interval(2, TimeUnit.SECONDS)
@@ -80,37 +82,42 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
   @Override
   public Completable disconnect() {
     LOG.info("Disconnecting from {}", apiUrl);
-    SafelyDispose.of(interval);
-    return super.disconnect();
+    return Completable.fromRunnable(() -> SafelyDispose.of(interval))
+        .observeOn(Schedulers.computation())
+        .subscribeOn(Schedulers.io())
+        .andThen(Completable.defer(super::disconnect))
+        .cache();
   }
 
-  public synchronized void updateSubscriptions(final Set<MarketDataSubscription> newSubscriptions) {
+  public synchronized Completable updateSubscriptions(final Set<MarketDataSubscription> newSubscriptions) {
     if (!currentSubscriptions.equals(newSubscriptions)) {
-      sendSubscriptions(newSubscriptions);
-      this.currentSubscriptions = Set.copyOf(newSubscriptions);
+      return sendSubscriptions(newSubscriptions)
+          .doOnComplete(() -> this.currentSubscriptions = Set.copyOf(newSubscriptions));
     } else {
       LOG.info("No subscriptions on {}", apiUrl);
+      return Completable.complete();
     }
   }
 
-  private void sendSubscriptions(Set<MarketDataSubscription> subscriptions) {
+  private Completable sendSubscriptions(Set<MarketDataSubscription> subscriptions) {
     LOG.debug("Sending {} resubscriptions on {}", subscriptions.size(), apiUrl);
-    sendSubscription(subscriptions, MarketDataType.TICKER, CHANGE_TICKERS);
-    sendSubscription(subscriptions, BALANCE, CHANGE_BALANCE);
-    sendSubscription(subscriptions, OPEN_ORDERS, CHANGE_OPEN_ORDERS);
-    sendSubscription(subscriptions, ORDER, CHANGE_ORDER_STATUS_CHANGE);
-    sendSubscription(subscriptions, MarketDataType.ORDERBOOK, CHANGE_ORDER_BOOK);
-    sendSubscription(subscriptions, TRADES, CHANGE_TRADES);
-    sendSubscription(subscriptions, USER_TRADE, CHANGE_USER_TRADES);
-    sendMessage(UPDATE_SUBSCRIPTIONS, null);
-    LOG.debug("{} resubscriptions sent on {}", subscriptions.size(), apiUrl);
+    return Completable.mergeArray(
+        sendSubscription(subscriptions, MarketDataType.TICKER, CHANGE_TICKERS),
+        sendSubscription(subscriptions, BALANCE, CHANGE_BALANCE),
+        sendSubscription(subscriptions, OPEN_ORDERS, CHANGE_OPEN_ORDERS),
+        sendSubscription(subscriptions, ORDER, CHANGE_ORDER_STATUS_CHANGE),
+        sendSubscription(subscriptions, MarketDataType.ORDERBOOK, CHANGE_ORDER_BOOK),
+        sendSubscription(subscriptions, TRADES, CHANGE_TRADES),
+        sendSubscription(subscriptions, USER_TRADE, CHANGE_USER_TRADES),
+        sendMessage(UPDATE_SUBSCRIPTIONS, null)
+    ).doOnComplete(() -> LOG.debug("{} resubscriptions sent on {}", subscriptions.size(), apiUrl));
   }
 
-  private void sendSubscription(
+  private Completable sendSubscription(
       Set<MarketDataSubscription> subscriptions,
       MarketDataType marketDataType,
       OrkoWebSocketIncomingMessage.Command command) {
-    sendMessage(
+    return sendMessage(
         command,
         subscriptions.stream()
             .filter(it -> it.type() == marketDataType)
@@ -118,9 +125,9 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
             .collect(toSet()));
   }
 
-  private void sendMessage(
+  private Completable sendMessage(
       OrkoWebSocketIncomingMessage.Command command, Collection<TickerSpec> tickers) {
-    sendObjectMessage(OrkoWebSocketIncomingMessage.create(command, tickers));
+    return sendObjectMessage(OrkoWebSocketIncomingMessage.create(command, tickers));
   }
 
   protected String getChannelNameFromMessage(JsonNode message) {
@@ -128,18 +135,18 @@ public class OrkoWebsocketStreamingService extends JsonNettyStreamingService {
   }
 
   @Override
-  public String getSubscribeMessage(String s, Object... objects) throws IOException {
+  public String getSubscribeMessage(String s, Object... objects) {
     return null;
   }
 
   @Override
-  public String getUnsubscribeMessage(String s) throws IOException {
+  public String getUnsubscribeMessage(String s) {
     return null;
   }
 
   @Override
-  public void resubscribeChannels() {
-    sendSubscriptions(currentSubscriptions);
+  public Completable resubscribeChannels() {
+    return sendSubscriptions(currentSubscriptions);
   }
 
   public Observable<OrkoWebSocketOutgoingMessage> subscribeChannel(

@@ -23,6 +23,8 @@ import com.gruelbox.orko.websocket.OrkoWebSocketServer;
 import com.gruelbox.orko.websocket.OrkoWebsocketStreamingService;
 import info.bitrich.xchangestream.service.netty.StreamingObjectMapperHelper;
 import io.dropwizard.lifecycle.Managed;
+import io.reactivex.Completable;
+import io.reactivex.CompletableObserver;
 import io.reactivex.Observable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -57,32 +59,29 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   }
 
   @Override
-  public void start() throws Exception {
+  public void start() {
     LOGGER.info("Opening connection to {}", configuration.getWebSocketUri());
     this.streamingService
         .connect()
-        .subscribe(
-            () -> {
-              LOGGER.info("Connection opened to {}", configuration.getWebSocketUri());
-              openChannels();
-              this.streamingService.updateSubscriptions(subscriptions);
-            },
-            t -> {
-              if (disconnected) {
-                LOGGER.info(
-                    "Connection failed to {}. Disconnected and will not re-attempt",
-                    configuration.getWebSocketUri());
-              } else {
-                LOGGER.info(
-                    "Connection failed to {}. Scheduling re-attempt in 20s",
-                    configuration.getWebSocketUri());
-                Observable.timer(20, TimeUnit.SECONDS).subscribe(i -> start());
-              }
-            });
+        .andThen(Completable.defer(() -> Completable.fromRunnable(this::openChannels)))
+        .andThen(Completable.defer(() -> this.streamingService.updateSubscriptions(subscriptions)))
+        .doOnError(t -> {
+          if (disconnected) {
+            LOGGER.info(
+                "Connection failed to {}. Disconnected and will not re-attempt",
+                configuration.getWebSocketUri());
+          } else {
+            LOGGER.info(
+                "Connection failed to {}. Scheduling re-attempt in 20s",
+                configuration.getWebSocketUri());
+            Observable.timer(20, TimeUnit.SECONDS).subscribe(i -> start());
+          }
+        })
+        .subscribe();
   }
 
   @Override
-  public void stop() throws Exception {
+  public void stop() {
     LOGGER.info("Closing connection to {}", configuration.getWebSocketUri());
     try {
       disconnected = true;
@@ -149,13 +148,14 @@ public class SubscriptionControllerRemoteImpl implements Managed, SubscriptionCo
   }
 
   @Override
-  public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
+  public Completable updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
     this.subscriptions = subscriptions;
     if (this.streamingService.isSocketOpen()) {
-      this.streamingService.updateSubscriptions(subscriptions);
+      return this.streamingService.updateSubscriptions(subscriptions);
     } else {
       LOGGER.debug(
           "Not sending subscriptions to {}, socket not ready", configuration.getWebSocketUri());
+      return Completable.complete();
     }
   }
 }

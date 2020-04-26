@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.spi.TickerSpec;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.Set;
 import java.util.UUID;
@@ -160,7 +161,7 @@ class ExchangeEventBus implements ExchangeEventRegistry {
     }
 
     private void updateSubscriptions() {
-      marketDataSubscriptionManager.updateSubscriptions(allSubscriptions.keySet());
+      marketDataSubscriptionManager.updateSubscriptions(allSubscriptions.keySet()).blockingAwait();
     }
 
     private boolean unsubscribeAll() {

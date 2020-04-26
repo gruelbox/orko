@@ -254,7 +254,7 @@
     <xchange.version>4.4.2</xchange.version>
 
     <xchange.stream.groupid>info.bitrich.xchange-stream</xchange.stream.groupid>
-    <xchange.stream.version>4.4.2</xchange.stream.version>
+    <xchange.stream.version>4.4.3-SNAPSHOT</xchange.stream.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.4</morf.version>

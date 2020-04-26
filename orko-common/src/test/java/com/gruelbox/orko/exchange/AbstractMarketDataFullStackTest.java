@@ -107,27 +107,27 @@ public abstract class AbstractMarketDataFullStackTest {
   }
 
   @Test
-  public void testBase() throws InterruptedException {
-    manager.updateSubscriptions(emptySet());
+  public void testBase() {
+    manager.updateSubscriptions(emptySet()).blockingAwait();
   }
 
   @Test
-  public void testSubscribeUnsubscribe() throws InterruptedException {
-    manager.updateSubscriptions(subscriptions());
-    manager.updateSubscriptions(emptySet());
+  public void testSubscribeUnsubscribe() {
+    manager.updateSubscriptions(subscriptions()).blockingAwait();
+    manager.updateSubscriptions(emptySet()).blockingAwait();
   }
 
   @Test
   public void testSubscribePauseAndUnsubscribe() throws InterruptedException {
-    manager.updateSubscriptions(subscriptions());
+    manager.updateSubscriptions(subscriptions()).blockingAwait();
     Thread.sleep(2500);
-    manager.updateSubscriptions(emptySet());
+    manager.updateSubscriptions(emptySet()).blockingAwait();
   }
 
   @Test
-  public void testSubscriptionsDirect() throws InterruptedException {
+  public void testSubscriptionsDirect() {
     Set<MarketDataSubscription> subscriptions = subscriptions();
-    manager.updateSubscriptions(subscriptions);
+    manager.updateSubscriptions(subscriptions).blockingAwait();
     Set<Disposable> disposables = null;
     try {
       ImmutableMap<MarketDataSubscription, List<CountDownLatch>> latchesBySubscriber =
@@ -170,7 +170,7 @@ public abstract class AbstractMarketDataFullStackTest {
               });
     } finally {
       SafelyDispose.of(disposables);
-      manager.updateSubscriptions(emptySet());
+      manager.updateSubscriptions(emptySet()).blockingAwait();
     }
   }
 

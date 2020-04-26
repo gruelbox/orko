@@ -19,31 +19,34 @@ import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
 import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
 import static java.time.LocalDateTime.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
-import com.gruelbox.orko.util.CheckedExceptions;
+import com.gruelbox.orko.util.CheckedExceptions.ThrowingRunnable;
 import com.gruelbox.orko.util.SafelyDispose;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
+import io.reactivex.Completable;
 import io.reactivex.disposables.Disposable;
 import java.io.IOException;
 import java.net.SocketException;
@@ -61,14 +64,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.bitfinex.v1.dto.BitfinexExceptionV1;
 import org.knowm.xchange.currency.Currency;
@@ -98,6 +106,8 @@ import org.knowm.xchange.service.trade.params.TradeHistoryParams;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import si.mazi.rescu.HttpStatusIOException;
 
 /**
@@ -113,20 +123,9 @@ class SubscriptionControllerImpl extends AbstractPollingController {
   private static final int MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS = 15;
 
   private final ExchangeService exchangeService;
-  private final TradeServiceFactory tradeServiceFactory;
-  private final AccountServiceFactory accountServiceFactory;
-  private final NotificationService notificationService;
   private final Map<String, ExchangeConfiguration> exchangeConfiguration;
 
-  private final Map<String, AtomicReference<Set<MarketDataSubscription>>> nextSubscriptions;
-  private final ConcurrentMap<String, Set<MarketDataSubscription>> subscriptionsPerExchange =
-      Maps.newConcurrentMap();
-  private final ConcurrentMap<String, Set<MarketDataSubscription>> pollsPerExchange =
-      Maps.newConcurrentMap();
-  private final Multimap<String, Disposable> disposablesPerExchange = HashMultimap.create();
-  private final Set<MarketDataSubscription> unavailableSubscriptions = Sets.newConcurrentHashSet();
-
-  private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
+  private final Map<String, Poller> pollers;
 
   @Inject
   @VisibleForTesting
@@ -140,33 +139,32 @@ class SubscriptionControllerImpl extends AbstractPollingController {
       Map<String, ExchangeConfiguration> exchangeConfiguration) {
     super(configuration, publisher);
     this.exchangeService = exchangeService;
-    this.tradeServiceFactory = tradeServiceFactory;
-    this.accountServiceFactory = accountServiceFactory;
-    this.notificationService = notificationService;
-    this.nextSubscriptions =
-        FluentIterable.from(exchangeService.getExchanges()).toMap(e -> new AtomicReference<>());
+    this.pollers =
+        exchangeService.getExchanges().stream()
+            .collect(toMap(identity(), e -> new Poller(e,
+                exchangeService.get(e),
+                () -> accountServiceFactory.getForExchange(e),
+                () -> tradeServiceFactory.getForExchange(e),
+                exchangeService.rateController(e),
+                notificationService,
+                publisher,
+                phaser,
+                lifecycleListener,
+                configuration.getLoopSeconds(),
+                exchangeService.isAuthenticated(e))));
     this.exchangeConfiguration = exchangeConfiguration;
-    exchangeService
-        .getExchanges()
-        .forEach(
-            e -> {
-              subscriptionsPerExchange.put(e, ImmutableSet.of());
-              pollsPerExchange.put(e, ImmutableSet.of());
-            });
   }
 
   @Override
-  public void updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
-
+  public Completable updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
     // Queue them up for each exchange's processing thread individually
-    ImmutableListMultimap<String, MarketDataSubscription> byExchange =
-        Multimaps.index(subscriptions, s -> s.spec().exchange());
-    for (String exchangeName : exchangeService.getExchanges()) {
-      nextSubscriptions.get(exchangeName).set(ImmutableSet.copyOf(byExchange.get(exchangeName)));
-    }
-
-    // Give the loops a kick
-    wake();
+    return Completable.fromRunnable(() -> {
+      ImmutableListMultimap<String, MarketDataSubscription> byExchange =
+          Multimaps.index(subscriptions, s -> s.spec().exchange());
+      for (String exchangeName : exchangeService.getExchanges()) {
+        pollers.get(exchangeName).updateSubscriptions(byExchange.get(exchangeName));
+      }
+    }).cache();
   }
 
   @Override
@@ -192,7 +190,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
     Map<String, Future<?>> futures = new HashMap<>();
     for (String exchange : exchangeService.getExchanges()) {
       if (exchangeConfiguration.getOrDefault(exchange, new ExchangeConfiguration()).isEnabled()) {
-        futures.put(exchange, threadPool.submit(new Poller(exchange)));
+        futures.put(exchange, threadPool.submit(pollers.get(exchange)));
       }
     }
     for (Entry<String, Future<?>> entry : futures.entrySet()) {
@@ -209,10 +207,23 @@ class SubscriptionControllerImpl extends AbstractPollingController {
    *
    * @author Graham Crockford
    */
-  private final class Poller implements Runnable {
+  private static final class Poller implements Runnable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Poller.class);
 
     private final String exchangeName;
-    private StreamingExchange streamingExchange;
+    private final Exchange exchange;
+    private final StreamingExchange streamingExchange;
+    private final Supplier<AccountService> accountServiceSupplier;
+    private final Supplier<TradeService> tradeServiceSupplier;
+    private final RateController rateController;
+    private final NotificationService notificationService;
+    private final SubscriptionPublisher publisher;
+    private final Phaser phaser;
+    private final LifecycleListener lifecycleListener;
+    private final long blockSeconds;
+    private final boolean authenticated;
+
     private AccountService accountService;
     private MarketDataService marketDataService;
     private TradeService tradeService;
@@ -222,34 +233,71 @@ class SubscriptionControllerImpl extends AbstractPollingController {
     private Exception lastPollException;
     private LocalDateTime lastPollErrorNotificationTime;
 
-    private Poller(String exchangeName) {
+    private AtomicReference<Set<MarketDataSubscription>> nextSubscriptions = new AtomicReference<>();
+    private Set<MarketDataSubscription> subscriptions = Set.of();
+    private Set<MarketDataSubscription> polls = Set.of();
+    private Collection<Disposable> disposables = List.of();
+    private Set<MarketDataSubscription> unavailableSubscriptions = Set.of();
+
+    // TODO FIx this
+    private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
+
+    private Poller(String exchangeName, Exchange exchange,
+        Supplier<AccountService> accountServiceSupplier,
+        Supplier<TradeService> tradeServiceSupplier,
+        RateController rateController,
+        NotificationService notificationService,
+        SubscriptionPublisher publisher,
+        Phaser phaser,
+        LifecycleListener lifecycleListener,
+        long blockSeconds,
+        boolean authenticated) {
       this.exchangeName = exchangeName;
+      this.exchange = exchange;
+      this.streamingExchange =
+          exchange instanceof StreamingExchange
+              ? (StreamingExchange) exchange
+              : null;
+      this.accountServiceSupplier = accountServiceSupplier;
+      this.tradeServiceSupplier = tradeServiceSupplier;
+      this.rateController = rateController;
+      this.notificationService = notificationService;
+      this.publisher = publisher;
+      this.phaser = phaser;
+      this.lifecycleListener = lifecycleListener;
+      this.blockSeconds = blockSeconds;
+      this.authenticated = authenticated;
+    }
+
+    public void updateSubscriptions(Iterable<MarketDataSubscription> subscriptions) {
+      nextSubscriptions.set(ImmutableSet.copyOf(subscriptions));
+      wake();
     }
 
     @Override
     public void run() {
       Thread.currentThread().setName(exchangeName);
-      logger.info("{} starting", exchangeName);
+      LOGGER.info("{} starting", exchangeName);
       try {
         initialise();
-        while (!isTerminated()) {
+        while (!phaser.isTerminated()) {
 
           // Before we check for the presence of polls, determine which phase
           // we are going to wait for if there's no work to do - i.e. the
           // next wakeup.
-          phase = getPhase();
+          phase = phaser.getPhase();
           if (phase == -1) break;
 
           loop();
         }
-        logger.info("{} shutting down due to termination", exchangeName);
+        LOGGER.info("{} shutting down due to termination", exchangeName);
       } catch (InterruptedException e) {
-        logger.info("{} shutting down due to interrupt", exchangeName);
+        LOGGER.info("{} shutting down due to interrupt", exchangeName);
         Thread.currentThread().interrupt();
       } catch (Exception e) {
-        logger.error(exchangeName + " shutting down due to uncaught exception", e);
+        LOGGER.error(exchangeName + " shutting down due to uncaught exception", e);
       } finally {
-        subtaskStopped(exchangeName);
+        lifecycleListener.onStop(exchangeName);
       }
     }
 
@@ -259,17 +307,19 @@ class SubscriptionControllerImpl extends AbstractPollingController {
      * @throws InterruptedException If interrupted while sleeping.
      */
     private void initialise() throws InterruptedException {
-      while (isRunning()) {
+      while (!phaser.isTerminated()) {
         try {
-          Exchange exchange = exchangeService.get(exchangeName);
-          this.streamingExchange =
-              exchange instanceof StreamingExchange ? (StreamingExchange) exchange : null;
-          this.accountService = accountServiceFactory.getForExchange(exchangeName);
+          if (Thread.interrupted()) {
+            throw new InterruptedException();
+          }
+          this.accountService = accountServiceSupplier.get();
           this.marketDataService = exchange.getMarketDataService();
-          this.tradeService = tradeServiceFactory.getForExchange(exchangeName);
+          this.tradeService = tradeServiceSupplier.get();
           break;
+        } catch (InterruptedException e) {
+          throw e;
         } catch (Exception e) {
-          logger.error(exchangeName + " - failing initialising. Will retry in one minute.", e);
+          LOGGER.error(exchangeName + " - failing initialising. Will retry in one minute.", e);
           Thread.sleep(60000);
         }
       }
@@ -289,10 +339,10 @@ class SubscriptionControllerImpl extends AbstractPollingController {
         return;
       }
 
-      logger.debug("{} - start poll", exchangeName);
+      LOGGER.debug("{} - start poll", exchangeName);
       Set<String> balanceCurrencies = new HashSet<>();
       for (MarketDataSubscription subscription : polls) {
-        if (isTerminated()) break;
+        if (phaser.isTerminated()) break;
         if (subscription.type().equals(BALANCE)) {
           balanceCurrencies.add(subscription.spec().base());
           balanceCurrencies.add(subscription.spec().counter());
@@ -301,7 +351,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
         }
       }
 
-      if (isTerminated()) return;
+      if (phaser.isTerminated()) return;
 
       // We'll be extending this sort of batching to more market data types...
       if (!balanceCurrencies.isEmpty()) {
@@ -314,9 +364,34 @@ class SubscriptionControllerImpl extends AbstractPollingController {
       }
     }
 
+    private void suspend(String subTaskName, int phase, boolean failed) throws InterruptedException {
+      LOGGER.debug("{} - poll going to sleep", subTaskName);
+      try {
+        if (failed) {
+          phaser.awaitAdvanceInterruptibly(phase, blockSeconds * 1000L, TimeUnit.MILLISECONDS);
+        } else {
+          LOGGER.debug("{} - sleeping until phase {}", subTaskName, phase);
+          lifecycleListener.onBlocked(subTaskName);
+          phaser.awaitAdvanceInterruptibly(phase);
+          LOGGER.debug("{} - poll woken up on request", subTaskName);
+        }
+      } catch (TimeoutException e) {
+        // fine
+      } catch (InterruptedException e) {
+        throw e;
+      } catch (Exception e) {
+        LOGGER.error("Failure in phaser wait for " + subTaskName, e);
+      }
+    }
+
+    protected void wake() {
+      int phase = phaser.arrive();
+      LOGGER.debug("Progressing to phase {}", phase);
+    }
+
     private void manageExchangeExceptions(
         String dataDescription,
-        CheckedExceptions.ThrowingRunnable runnable,
+        ThrowingRunnable runnable,
         Supplier<Iterable<MarketDataSubscription>> toUnsubscribe)
         throws InterruptedException {
       try {
@@ -328,7 +403,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
       } catch (UnsupportedOperationException e) {
 
         // Disable the feature since XChange doesn't provide support for it.
-        logger.warn(
+        LOGGER.warn(
             "{} not available: {} ({})",
             dataDescription,
             e.getClass().getSimpleName(),
@@ -341,13 +416,13 @@ class SubscriptionControllerImpl extends AbstractPollingController {
           | NonceException e) {
 
         // Managed connectivity issues.
-        logger.warn(
+        LOGGER.warn(
             "Throttling {} - {} ({}) when fetching {}",
             exchangeName,
             e.getClass().getSimpleName(),
             exceptionMessage(e),
             dataDescription);
-        exchangeService.rateController(exchangeName).throttle();
+        rateController.throttle();
 
       } catch (HttpStatusIOException e) {
 
@@ -355,14 +430,13 @@ class SubscriptionControllerImpl extends AbstractPollingController {
 
       } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
 
-        logger.error(
+        LOGGER.error(
             "Hit rate limiting on {} when fetching {}. Backing off", exchangeName, dataDescription);
         notificationService.error(
             "Getting rate limiting errors on "
                 + exchangeName
                 + ". Pausing access and will "
                 + "resume at a lower rate.");
-        RateController rateController = exchangeService.rateController(exchangeName);
         rateController.backoff();
         rateController.pause();
 
@@ -391,15 +465,15 @@ class SubscriptionControllerImpl extends AbstractPollingController {
           || e.getHttpStatusCode() == 521) {
         // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or
         // connection timeouts.
-        if (logger.isWarnEnabled()) {
-          logger.warn(
+        if (LOGGER.isWarnEnabled()) {
+          LOGGER.warn(
               "Throttling {} - failed at gateway ({} - {}) when fetching {}",
               exchangeName,
               e.getHttpStatusCode(),
               exceptionMessage(e),
               dataDescription);
         }
-        exchangeService.rateController(exchangeName).throttle();
+        rateController.throttle();
       } else {
         handleUnknownPollException(e);
       }
@@ -426,7 +500,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
           || lastPollErrorNotificationTime.until(now, MINUTES)
               > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
         lastPollErrorNotificationTime = now;
-        logger.error("Error fetching data for {}", exchangeName, e);
+        LOGGER.error("Error fetching data for {}", exchangeName, e);
         notificationService.error(
             "Throttling access to "
                 + exchangeName
@@ -436,43 +510,39 @@ class SubscriptionControllerImpl extends AbstractPollingController {
                 + exceptionMessage
                 + ")");
       } else {
-        logger.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
+        LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
       }
       lastPollException = e;
-      exchangeService.rateController(exchangeName).throttle();
+      rateController.throttle();
     }
 
     /** Actually performs the subscription changes. Occurs synchronously in the poll loop. */
     private void doSubscriptionChanges() {
-      logger.debug("{} - start subscription check", exchangeName);
+      LOGGER.debug("{} - start subscription check", exchangeName);
       subscriptionsFailed = false;
 
       // Pull the subscription change off the queue. If there isn't one,
       // we're done
-      Set<MarketDataSubscription> subscriptions =
-          nextSubscriptions.get(exchangeName).getAndSet(null);
-      if (subscriptions == null) return;
+      Set<MarketDataSubscription> newSubscriptions = nextSubscriptions.getAndSet(null);
+      if (newSubscriptions == null) return;
 
       try {
 
         // Get the current subscriptions
         Set<MarketDataSubscription> oldSubscriptions =
-            FluentIterable.from(
-                    Iterables.concat(
-                        subscriptionsPerExchange.get(exchangeName),
-                        pollsPerExchange.get(exchangeName)))
-                .toSet();
+            Streams.concat(subscriptions.stream(), polls.stream())
+                .collect(toSet());
 
         // If there's no difference, we're good, done
-        if (subscriptions.equals(oldSubscriptions)) {
+        if (newSubscriptions.equals(oldSubscriptions)) {
           return;
         }
 
         // Otherwise, let's crack on
-        logger.info(
+        LOGGER.info(
             "{} - updating subscriptions to: {} from {}",
             exchangeName,
-            subscriptions,
+            newSubscriptions,
             oldSubscriptions);
 
         // Disconnect any streaming exchanges where the tickers currently
@@ -483,72 +553,70 @@ class SubscriptionControllerImpl extends AbstractPollingController {
 
         // Clear cached tickers and order books for anything we've unsubscribed so that we don't
         // feed out-of-date data
-        Sets.difference(oldSubscriptions, subscriptions)
+        Sets.difference(oldSubscriptions, newSubscriptions)
             .forEach(publisher::clearCacheForSubscription);
 
         // Add new subscriptions if we have any
-        if (subscriptions.isEmpty()) {
-          pollsPerExchange.put(exchangeName, ImmutableSet.of());
-          logger.debug("{} - polls cleared", exchangeName);
+        if (newSubscriptions.isEmpty()) {
+          polls = Set.of();
+          LOGGER.debug("{} - polls cleared", exchangeName);
         } else {
-          subscribe(subscriptions);
+          subscribe(newSubscriptions);
         }
       } catch (Exception e) {
         subscriptionsFailed = true;
-        logger.error("Error updating subscriptions", e);
-        if (nextSubscriptions.get(exchangeName).compareAndSet(null, subscriptions)) {
+        LOGGER.error("Error updating subscriptions", e);
+        if (nextSubscriptions.compareAndSet(null, newSubscriptions)) {
           wake();
         }
         throw e;
       }
     }
 
-    private ImmutableSet<MarketDataSubscription> activePolls() {
-      return FluentIterable.from(pollsPerExchange.get(exchangeName))
+    private Set<MarketDataSubscription> activePolls() {
+      return polls.stream()
           .filter(s -> !unavailableSubscriptions.contains(s))
-          .toSet();
+          .collect(toSet());
     }
 
     private void disconnect() {
       if (streamingExchange != null) {
-        SafelyDispose.of(disposablesPerExchange.removeAll(exchangeName));
+        SafelyDispose.of(disposables);
+        disposables = Set.of();
         try {
           streamingExchange.disconnect().blockingAwait();
         } catch (Exception e) {
-          logger.error("Error disconnecting from " + exchangeName, e);
+          LOGGER.error("Error disconnecting from " + exchangeName, e);
         }
       } else {
-        Iterator<Entry<TickerSpec, Instant>> iterator = mostRecentTrades.entrySet().iterator();
-        while (iterator.hasNext()) {
-          if (iterator.next().getKey().exchange().equals(exchangeName)) iterator.remove();
-        }
+        mostRecentTrades.entrySet().removeIf(
+            entry -> entry.getKey().exchange().equals(exchangeName));
       }
     }
 
-    private void subscribe(Set<MarketDataSubscription> subscriptions) {
+    private void subscribe(Set<MarketDataSubscription> newSubscriptions) {
 
       Builder<MarketDataSubscription> pollingBuilder = ImmutableSet.builder();
 
       if (streamingExchange != null) {
         Set<MarketDataSubscription> remainingSubscriptions =
-            openSubscriptionsWherePossible(subscriptions);
+            openSubscriptionsWherePossible(newSubscriptions);
         pollingBuilder.addAll(remainingSubscriptions);
       } else {
-        pollingBuilder.addAll(subscriptions);
+        pollingBuilder.addAll(newSubscriptions);
       }
 
-      Set<MarketDataSubscription> polls = pollingBuilder.build();
-      pollsPerExchange.put(exchangeName, pollingBuilder.build());
-      logger.debug("{} - polls now set to: {}", exchangeName, polls);
+      polls = pollingBuilder.build();
+      LOGGER.debug("{} - polls now set to: {}", exchangeName, polls);
     }
 
     private Set<MarketDataSubscription> openSubscriptionsWherePossible(
-        Set<MarketDataSubscription> subscriptions) {
+        Set<MarketDataSubscription> newSubscriptions) {
 
-      connectExchange(subscriptions);
+      connectExchange(newSubscriptions);
 
-      HashSet<MarketDataSubscription> connected = new HashSet<>(subscriptions);
-      ImmutableSet.Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
+      HashSet<MarketDataSubscription> connected = new HashSet<>(newSubscriptions);
+      Builder<MarketDataSubscription> remainder = ImmutableSet.builder();
       List<Disposable> disposables = new ArrayList<>();
 
       Consumer<MarketDataSubscription> markAsNotSubscribed =
@@ -558,7 +626,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
           };
 
       Set<String> balanceCurrencies = new HashSet<>();
-      for (MarketDataSubscription s : subscriptions) {
+      for (MarketDataSubscription s : newSubscriptions) {
 
         // User trade and balance subscriptions, for now, we will poll even if we are
         // already getting them from the socket. This will persist until we can
@@ -575,7 +643,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
           try {
             disposables.add(connectSubscription(s));
           } catch (UnsupportedOperationException | ExchangeSecurityException e) {
-            logger.debug(
+            LOGGER.debug(
                 "Not subscribing to {} on socket due to {}: {}",
                 s.key(),
                 e.getClass().getSimpleName(),
@@ -597,23 +665,23 @@ class SubscriptionControllerImpl extends AbstractPollingController {
                   .subscribe(
                       publisher::emit,
                       e ->
-                          logger.error(
+                          LOGGER.error(
                               "Error in balance stream for " + exchangeName + "/" + currency, e)));
         }
       } catch (NotAvailableFromExchangeException e) {
-        subscriptions.stream().filter(s -> s.type().equals(BALANCE)).forEach(markAsNotSubscribed);
+        newSubscriptions.stream().filter(s -> s.type().equals(BALANCE)).forEach(markAsNotSubscribed);
       } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
-        logger.debug(
+        LOGGER.debug(
             "Not subscribing to {}/{} on socket due to {}: {}",
             exchangeName,
             "Balances",
             e.getClass().getSimpleName(),
             e.getMessage());
-        subscriptions.stream().filter(s -> s.type().equals(BALANCE)).forEach(markAsNotSubscribed);
+        newSubscriptions.stream().filter(s -> s.type().equals(BALANCE)).forEach(markAsNotSubscribed);
       }
 
-      subscriptionsPerExchange.put(exchangeName, Collections.unmodifiableSet(connected));
-      disposablesPerExchange.putAll(exchangeName, disposables);
+      this.subscriptions = Collections.unmodifiableSet(connected);
+      this.disposables = disposables;
       return remainder.build();
     }
 
@@ -625,28 +693,28 @@ class SubscriptionControllerImpl extends AbstractPollingController {
               .getOrderBook(sub.spec().currencyPair())
               .map(t -> OrderBookEvent.create(sub.spec(), t))
               .subscribe(
-                  publisher::emit, e -> logger.error("Error in order book stream for " + sub, e));
+                  publisher::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
         case TICKER:
-          logger.debug("Subscribing to {}", sub.spec());
+          LOGGER.debug("Subscribing to {}", sub.spec());
           return streamingExchange
               .getStreamingMarketDataService()
               .getTicker(sub.spec().currencyPair())
               .map(t -> TickerEvent.create(sub.spec(), t))
               .subscribe(
-                  publisher::emit, e -> logger.error("Error in ticker stream for " + sub, e));
+                  publisher::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
         case TRADES:
           return streamingExchange
               .getStreamingMarketDataService()
               .getTrades(sub.spec().currencyPair())
               .map(t -> convertBinanceOrderType(sub, t))
               .map(t -> TradeEvent.create(sub.spec(), t))
-              .subscribe(publisher::emit, e -> logger.error("Error in trade stream for " + sub, e));
+              .subscribe(publisher::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case USER_TRADE:
           return streamingExchange
               .getStreamingTradeService()
               .getUserTrades(sub.spec().currencyPair())
               .map(t -> UserTradeEvent.create(sub.spec(), t))
-              .subscribe(publisher::emit, e -> logger.error("Error in trade stream for " + sub, e));
+              .subscribe(publisher::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
         case ORDER:
           return streamingExchange
               .getStreamingTradeService()
@@ -655,7 +723,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
                   t ->
                       OrderChangeEvent.create(
                           sub.spec(), t, new Date())) // TODO need server side timestamping
-              .subscribe(publisher::emit, e -> logger.error("Error in order stream for " + sub, e));
+              .subscribe(publisher::emit, e -> LOGGER.error("Error in order stream for " + sub, e));
         default:
           throw new NotAvailableFromExchangeException();
       }
@@ -674,9 +742,8 @@ class SubscriptionControllerImpl extends AbstractPollingController {
 
     private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
       if (subscriptionsForExchange.isEmpty()) return;
-      logger.info("Connecting to exchange: {}", exchangeName);
+      LOGGER.info("Connecting to exchange: {}", exchangeName);
       ProductSubscriptionBuilder builder = ProductSubscription.create();
-      boolean authenticated = exchangeService.isAuthenticated(exchangeName);
       subscriptionsForExchange.forEach(
           s -> {
             switch (s.type()) {
@@ -709,9 +776,9 @@ class SubscriptionControllerImpl extends AbstractPollingController {
                 // Not available from socket
             }
           });
-      exchangeService.rateController(exchangeName).acquire();
+      rateController.acquire();
       streamingExchange.connect(builder.build()).blockingAwait();
-      logger.info("Connected to exchange: {}", exchangeName);
+      LOGGER.info("Connected to exchange: {}", exchangeName);
     }
 
     private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException {
@@ -721,14 +788,14 @@ class SubscriptionControllerImpl extends AbstractPollingController {
           .map(Balance::zero)
           .forEach(balance -> result.put(balance.getCurrency().getCurrencyCode(), balance));
       wallet().getBalances().entrySet().stream()
-          .map(Map.Entry::getValue)
+          .map(Entry::getValue)
           .filter(balance -> currencyCodes.contains(balance.getCurrency().getCurrencyCode()))
           .forEach(balance -> result.put(balance.getCurrency().getCurrencyCode(), balance));
       return result.values();
     }
 
     private Wallet wallet() throws IOException {
-      exchangeService.rateController(exchangeName).acquire();
+      rateController.acquire();
       Wallet wallet;
       if (exchangeName.equals(Exchanges.BITFINEX)) {
         wallet = accountService.getAccountInfo().getWallet("exchange");
@@ -746,7 +813,7 @@ class SubscriptionControllerImpl extends AbstractPollingController {
 
     private void fetchAndBroadcast(MarketDataSubscription subscription)
         throws InterruptedException {
-      exchangeService.rateController(exchangeName).acquire();
+      rateController.acquire();
       TickerSpec spec = subscription.spec();
       manageExchangeExceptions(
           subscription.key(),
