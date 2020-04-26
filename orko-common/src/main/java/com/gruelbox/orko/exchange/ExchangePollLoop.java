@@ -135,8 +135,6 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   // TODO FIx this
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
-  private final BlockingQueue<CompletableEmitter> statusEmitters = new ArrayBlockingQueue<>(1);
-
   ExchangePollLoop(String exchangeName, Exchange exchange,
       Supplier<AccountService> accountServiceSupplier,
       Supplier<TradeService> tradeServiceSupplier,
@@ -159,38 +157,6 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     this.publisher = publisher;
     this.blockSeconds = blockSeconds;
     this.authenticated = authenticated;
-
-    this.addListener(new Listener() {
-      @Override
-      public void running() {
-        log.debug("Got {} running state from service", exchangeName);
-        Optional.ofNullable(statusEmitters.poll())
-            .ifPresent(emitter -> {
-              log.debug("Emitting {} onComplete for running state", exchangeName);
-              emitter.onComplete();
-            });
-      }
-
-      @Override
-      public void terminated(State from) {
-        log.debug("Got {} terminated state from service", exchangeName);
-        Optional.ofNullable(statusEmitters.poll())
-            .ifPresent(emitter -> {
-              log.debug("Emitting {} onComplete for terminated state", exchangeName);
-              emitter.onComplete();
-            });
-      }
-
-      @Override
-      public void failed(State from, Throwable failure) {
-        log.debug("Got {} failed from {} state from service", exchangeName, from);
-        Optional.ofNullable(statusEmitters.poll())
-            .ifPresent(emitter -> {
-              log.debug("Emitting {} onError for failure from {} state", exchangeName, from);
-              emitter.onError(failure);
-            });
-      }
-    }, Schedulers.computation()::scheduleDirect);
   }
 
   @VisibleForTesting
@@ -206,34 +172,6 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     log.debug("Requesting update of subscriptions for {} to {}", exchangeName, subscriptions);
     nextSubscriptions.set(ImmutableSet.copyOf(subscriptions));
     wake();
-  }
-
-  public Completable startAsCompletable() {
-    return Completable.create(emitter -> {
-      statusEmitters.put(emitter); // Implicit block as 1-length queue
-      if (isRunning()) {
-        log.debug("Not requesting startup of {} poll loop - already started", exchangeName);
-        emitter.onComplete();
-        statusEmitters.clear();
-      } else {
-        log.debug("Requesting startup of {} poll loop", exchangeName);
-        this.startAsync();
-      }
-    });
-  }
-
-  public Completable stopAsCompletable() {
-    return Completable.create(emitter -> {
-      statusEmitters.put(emitter); // Implicit block as 1-length queue
-      if (!isRunning()) {
-        log.debug("Not requesting shut down of {} poll loop - already stopped", exchangeName);
-        emitter.onComplete();
-        statusEmitters.clear();
-      } else {
-        log.debug("Requesting shut down of {} poll loop", exchangeName);
-        this.stopAsync();
-      }
-    });
   }
 
   @Override

@@ -47,7 +47,7 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
 
   private final ExchangeService exchangeService;
   private final BackgroundProcessingConfiguration configuration;
-  private final Map<String, ExchangePollLoop> pollers;
+  private final Map<String, RxServiceWrapper<ExchangePollLoop>> pollers;
 
   @Inject
   @VisibleForTesting
@@ -62,7 +62,7 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
     this.exchangeService = exchangeService;
     this.pollers =
         exchangeService.getExchanges().stream()
-            .collect(toMap(identity(), e -> new ExchangePollLoop(e,
+            .collect(toMap(identity(), e -> new RxServiceWrapper<>(new ExchangePollLoop(e,
                 exchangeService.get(e),
                 () -> accountServiceFactory.getForExchange(e),
                 () -> tradeServiceFactory.getForExchange(e),
@@ -70,7 +70,7 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
                 notificationService,
                 publisher,
                 configuration.getLoopSeconds(),
-                exchangeService.isAuthenticated(e))));
+                exchangeService.isAuthenticated(e)))));
     publisher.setController(this);
   }
 
@@ -78,10 +78,10 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
   public void start() {
     boolean started = Observable.fromIterable(pollers.values())
         .flatMapCompletable(poller ->
-            poller.startAsCompletable()
+            poller.start()
                 .doOnError(e -> log
                     .error("{} start failed with uncaught exception and will not restart",
-                        poller.getExchangeName(), e))
+                        poller.getDelegate().getExchangeName(), e))
                 .onErrorComplete())
         .blockingAwait(configuration.getLoopSeconds() * 2, TimeUnit.SECONDS);
     if (!started) {
@@ -93,9 +93,9 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
   public void stop() {
     boolean stopped = Observable.fromIterable(pollers.values())
         .flatMapCompletable(poller ->
-            poller.stopAsCompletable()
+            poller.stop()
                 .doOnError(e -> log
-                    .error("{} stop failed with uncaught exception", poller.getExchangeName(), e))
+                    .error("{} stop failed with uncaught exception", poller.getDelegate().getExchangeName(), e))
                 .onErrorComplete())
         .blockingAwait(configuration.getLoopSeconds() * 2, TimeUnit.SECONDS);
     if (!stopped) {
@@ -118,13 +118,13 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
       ImmutableListMultimap<String, MarketDataSubscription> byExchange =
           Multimaps.index(subscriptions, s -> s.spec().exchange());
       for (String exchangeName : exchangeService.getExchanges()) {
-        pollers.get(exchangeName).updateSubscriptions(byExchange.get(exchangeName));
+        pollers.get(exchangeName).getDelegate().updateSubscriptions(byExchange.get(exchangeName));
       }
     }).cache();
   }
 
   @VisibleForTesting
   void setLifecycleListener(LifecycleListener listener) {
-    pollers.values().forEach(poller-> poller.setLifecycleListener(listener));
+    pollers.values().forEach(poller-> poller.getDelegate().setLifecycleListener(listener));
   }
 }
