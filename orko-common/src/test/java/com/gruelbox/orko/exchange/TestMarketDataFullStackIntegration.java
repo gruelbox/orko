@@ -28,7 +28,7 @@ import java.util.Set;
 import org.knowm.xchange.simulated.AccountFactory;
 import org.knowm.xchange.simulated.MatchingEngineFactory;
 
-/** Stack tests for {@link SubscriptionControllerImpl}. Actually connects to exchanges. */
+/** Stack tests for {@link SubscriptionControllerLocalImpl}. Actually connects to exchanges. */
 public class TestMarketDataFullStackIntegration extends AbstractMarketDataFullStackTest {
 
   private static final TickerSpec BINANCE =

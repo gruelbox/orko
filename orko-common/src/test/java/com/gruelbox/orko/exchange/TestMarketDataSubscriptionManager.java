@@ -52,7 +52,7 @@ public class TestMarketDataSubscriptionManager {
 
   private final Set<Thread> threads = Sets.newConcurrentHashSet();
 
-  private SubscriptionControllerImpl subscriptionManager;
+  private SubscriptionControllerLocalImpl subscriptionManager;
 
   @Before
   public void setup() throws TimeoutException {
@@ -61,7 +61,7 @@ public class TestMarketDataSubscriptionManager {
     when(exchangeService.get(EXCHANGE1)).thenReturn(exchangeOne);
     when(exchangeService.get(EXCHANGE2)).thenReturn(exchangeTwo);
     subscriptionManager =
-        new SubscriptionControllerImpl(
+        new SubscriptionControllerLocalImpl(
             exchangeService,
             configuration,
             tradeServiceFactory,

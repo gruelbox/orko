@@ -49,7 +49,7 @@ public abstract class AbstractMarketDataFullStackTest {
 
   private ExchangeService exchangeService;
   private MarketDataSubscriptionManager manager;
-  private SubscriptionControllerImpl controller;
+  private SubscriptionControllerLocalImpl controller;
   private ExchangeEventBus exchangeEventBus;
   private final NotificationService notificationService = mock(NotificationService.class);
   private Map<String, ExchangeConfiguration> exchangeConfiguration;
@@ -72,7 +72,7 @@ public abstract class AbstractMarketDataFullStackTest {
     exchangeService = buildExchangeService();
     manager = new SubscriptionPublisher();
     controller =
-        new SubscriptionControllerImpl(
+        new SubscriptionControllerLocalImpl(
             exchangeService,
             backgroundProcessingConfiguration,
             exchange -> exchangeService.get(exchange).getTradeService(),

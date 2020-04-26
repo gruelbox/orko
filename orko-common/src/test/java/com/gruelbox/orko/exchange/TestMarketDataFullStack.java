@@ -31,7 +31,7 @@ import org.knowm.xchange.simulated.AccountFactory;
 import org.knowm.xchange.simulated.MatchingEngineFactory;
 
 /**
- * Stack tests for {@link SubscriptionControllerImpl} which use the simulated exchange. These can
+ * Stack tests for {@link SubscriptionControllerLocalImpl} which use the simulated exchange. These can
  * run as part of the main build.
  */
 public class TestMarketDataFullStack extends AbstractMarketDataFullStackTest {

@@ -40,10 +40,10 @@ public class MarketDataModule extends AbstractModule {
     bind(MarketDataSubscriptionManager.class).to(SubscriptionPublisher.class);
     switch (marketDataSource) {
       case MANAGE_LOCALLY:
-        bind(SubscriptionController.class).to(SubscriptionControllerImpl.class);
+        bind(SubscriptionController.class).to(SubscriptionControllerLocalImpl.class);
         Multibinder.newSetBinder(binder(), Service.class)
             .addBinding()
-            .to(SubscriptionControllerImpl.class);
+            .to(SubscriptionControllerLocalImpl.class);
         Multibinder.newSetBinder(binder(), HealthCheck.class)
             .addBinding()
             .to(ExchangeAccessHealthCheck.class);
