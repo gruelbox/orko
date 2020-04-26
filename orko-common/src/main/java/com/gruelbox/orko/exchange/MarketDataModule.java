@@ -41,7 +41,7 @@ public class MarketDataModule extends AbstractModule {
     switch (marketDataSource) {
       case MANAGE_LOCALLY:
         bind(SubscriptionController.class).to(SubscriptionControllerLocalImpl.class);
-        Multibinder.newSetBinder(binder(), Service.class)
+        Multibinder.newSetBinder(binder(), Managed.class)
             .addBinding()
             .to(SubscriptionControllerLocalImpl.class);
         Multibinder.newSetBinder(binder(), HealthCheck.class)

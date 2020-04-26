@@ -21,20 +21,19 @@ import static java.util.stream.Collectors.toMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
+import io.dropwizard.lifecycle.Managed;
 import io.reactivex.Completable;
-import java.util.HashMap;
+import io.reactivex.CompletableSource;
+import io.reactivex.Observable;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -44,11 +43,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Singleton
 @Slf4j
-class SubscriptionControllerLocalImpl extends AbstractExecutionThreadService implements SubscriptionController {
+class SubscriptionControllerLocalImpl implements SubscriptionController, Managed {
 
   private final ExchangeService exchangeService;
-  private final Map<String, ExchangeConfiguration> exchangeConfiguration;
-  private LifecycleListener lifecycleListener = new LifecycleListener() {};
+  private final BackgroundProcessingConfiguration configuration;
   private final Map<String, ExchangePollLoop> pollers;
 
   @Inject
@@ -59,9 +57,8 @@ class SubscriptionControllerLocalImpl extends AbstractExecutionThreadService imp
       TradeServiceFactory tradeServiceFactory,
       AccountServiceFactory accountServiceFactory,
       NotificationService notificationService,
-      SubscriptionPublisher publisher,
-      Map<String, ExchangeConfiguration> exchangeConfiguration) {
-    publisher.setController(this);
+      SubscriptionPublisher publisher) {
+    this.configuration = configuration;
     this.exchangeService = exchangeService;
     this.pollers =
         exchangeService.getExchanges().stream()
@@ -72,10 +69,38 @@ class SubscriptionControllerLocalImpl extends AbstractExecutionThreadService imp
                 exchangeService.rateController(e),
                 notificationService,
                 publisher,
-                lifecycleListener,
                 configuration.getLoopSeconds(),
                 exchangeService.isAuthenticated(e))));
-    this.exchangeConfiguration = exchangeConfiguration;
+    publisher.setController(this);
+  }
+
+  @Override
+  public void start() {
+    boolean started = Observable.fromIterable(pollers.values())
+        .flatMapCompletable(poller ->
+            poller.startAsCompletable()
+                .doOnError(e -> log
+                    .error("{} start failed with uncaught exception and will not restart",
+                        poller.getExchangeName(), e))
+                .onErrorComplete())
+        .blockingAwait(configuration.getLoopSeconds() * 2, TimeUnit.SECONDS);
+    if (!started) {
+      throw new IllegalStateException("Failed to start pollers within time limit");
+    }
+  }
+
+  @Override
+  public void stop() {
+    boolean stopped = Observable.fromIterable(pollers.values())
+        .flatMapCompletable(poller ->
+            poller.stopAsCompletable()
+                .doOnError(e -> log
+                    .error("{} stop failed with uncaught exception", poller.getExchangeName(), e))
+                .onErrorComplete())
+        .blockingAwait(configuration.getLoopSeconds() * 2, TimeUnit.SECONDS);
+    if (!stopped) {
+      throw new IllegalStateException("Failed to stop pollers within time limit");
+    }
   }
 
   /**
@@ -86,6 +111,7 @@ class SubscriptionControllerLocalImpl extends AbstractExecutionThreadService imp
    *
    * @param subscriptions The subscriptions.
    */
+  @Override
   public Completable updateSubscriptions(Set<MarketDataSubscription> subscriptions) {
     // Queue them up for each exchange's processing thread individually
     return Completable.fromRunnable(() -> {
@@ -97,70 +123,8 @@ class SubscriptionControllerLocalImpl extends AbstractExecutionThreadService imp
     }).cache();
   }
 
-  @Override
-  protected final void run() {
-    Thread.currentThread().setName(getClass().getSimpleName());
-    log.info("{} started", this);
-    try {
-      doRun();
-      if (Thread.interrupted()) {
-        throw new InterruptedException();
-      }
-    } catch (InterruptedException e) {
-      log.error("{} stopping due to interrupt", this, e);
-      Thread.currentThread().interrupt();
-    } catch (Exception e) {
-      log.error("{} stopping due to uncaught exception", this, e);
-    } finally {
-      updateSubscriptions(emptySet()).blockingAwait();
-      log.info("{} stopped", this);
-      lifecycleListener.onStopMain();
-    }
-  }
-
   @VisibleForTesting
   void setLifecycleListener(LifecycleListener listener) {
-    this.lifecycleListener = listener;
+    pollers.values().forEach(poller-> poller.setLifecycleListener(listener));
   }
-
-  private void doRun() throws InterruptedException {
-    ExecutorService threadPool =
-        Executors.newFixedThreadPool(exchangeService.getExchanges().size());
-    try {
-      try {
-        submitExchangesAndWaitForCompletion(threadPool);
-        log.info("{} stopping; all exchanges have shut down", this);
-      } catch (InterruptedException e) {
-        throw e;
-      } catch (Exception e) {
-        log.error(this + " stopping due to uncaught exception", e);
-      }
-    } finally {
-      threadPool.shutdownNow();
-    }
-  }
-
-  @Override
-  protected void triggerShutdown() {
-    super.triggerShutdown();
-    pollers.values().forEach(ExchangePollLoop::stop);
-  }
-
-  private void submitExchangesAndWaitForCompletion(ExecutorService threadPool)
-      throws InterruptedException {
-    Map<String, Future<?>> futures = new HashMap<>();
-    for (String exchange : exchangeService.getExchanges()) {
-      if (exchangeConfiguration.getOrDefault(exchange, new ExchangeConfiguration()).isEnabled()) {
-        futures.put(exchange, threadPool.submit(pollers.get(exchange)));
-      }
-    }
-    for (Entry<String, Future<?>> entry : futures.entrySet()) {
-      try {
-        entry.getValue().get();
-      } catch (ExecutionException e) {
-        log.error(entry.getKey() + " failed with uncaught exception and will not restart", e);
-      }
-    }
-  }
-
 }

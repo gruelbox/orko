@@ -9,6 +9,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.knowm.xchange.dto.Order.OrderType.ASK;
 import static org.knowm.xchange.dto.Order.OrderType.BID;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -17,6 +18,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
+import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.Service;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions.ThrowingRunnable;
@@ -24,7 +27,11 @@ import com.gruelbox.orko.util.SafelyDispose;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
+import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
+import io.reactivex.CompletableOnSubscribe;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -39,14 +46,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.bitfinex.v1.dto.BitfinexExceptionV1;
 import org.knowm.xchange.currency.Currency;
@@ -85,10 +97,9 @@ import si.mazi.rescu.HttpStatusIOException;
  *
  * @author Graham Crockford
  */
-final class ExchangePollLoop implements Runnable {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangePollLoop.class);
-
+@Slf4j
+final class ExchangePollLoop extends AbstractExecutionThreadService {
+  
   private static final int MAX_TRADES = 20;
   private static final int ORDERBOOK_DEPTH = 20;
   private static final int MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS = 15;
@@ -101,10 +112,10 @@ final class ExchangePollLoop implements Runnable {
   private final RateController rateController;
   private final NotificationService notificationService;
   private final SubscriptionPublisher publisher;
-  private final LifecycleListener lifecycleListener;
   private final long blockSeconds;
   private final boolean authenticated;
 
+  private LifecycleListener lifecycleListener = new LifecycleListener() {};
   private AccountService accountService;
   private MarketDataService marketDataService;
   private TradeService tradeService;
@@ -124,15 +135,17 @@ final class ExchangePollLoop implements Runnable {
   // TODO FIx this
   private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
+  private final BlockingQueue<CompletableEmitter> statusEmitters = new ArrayBlockingQueue<>(1);
+
   ExchangePollLoop(String exchangeName, Exchange exchange,
       Supplier<AccountService> accountServiceSupplier,
       Supplier<TradeService> tradeServiceSupplier,
       RateController rateController,
       NotificationService notificationService,
       SubscriptionPublisher publisher,
-      LifecycleListener lifecycleListener,
       long blockSeconds,
       boolean authenticated) {
+
     this.exchangeName = exchangeName;
     this.exchange = exchange;
     this.streamingExchange =
@@ -144,20 +157,89 @@ final class ExchangePollLoop implements Runnable {
     this.rateController = rateController;
     this.notificationService = notificationService;
     this.publisher = publisher;
-    this.lifecycleListener = lifecycleListener;
     this.blockSeconds = blockSeconds;
     this.authenticated = authenticated;
+
+    this.addListener(new Listener() {
+      @Override
+      public void running() {
+        log.debug("Got {} running state from service", exchangeName);
+        Optional.ofNullable(statusEmitters.poll())
+            .ifPresent(emitter -> {
+              log.debug("Emitting {} onComplete for running state", exchangeName);
+              emitter.onComplete();
+            });
+      }
+
+      @Override
+      public void terminated(State from) {
+        log.debug("Got {} terminated state from service", exchangeName);
+        Optional.ofNullable(statusEmitters.poll())
+            .ifPresent(emitter -> {
+              log.debug("Emitting {} onComplete for terminated state", exchangeName);
+              emitter.onComplete();
+            });
+      }
+
+      @Override
+      public void failed(State from, Throwable failure) {
+        log.debug("Got {} failed from {} state from service", exchangeName, from);
+        Optional.ofNullable(statusEmitters.poll())
+            .ifPresent(emitter -> {
+              log.debug("Emitting {} onError for failure from {} state", exchangeName, from);
+              emitter.onError(failure);
+            });
+      }
+    }, Schedulers.computation()::scheduleDirect);
+  }
+
+  @VisibleForTesting
+  public void setLifecycleListener(LifecycleListener lifecycleListener) {
+    this.lifecycleListener = lifecycleListener;
+  }
+
+  public String getExchangeName() {
+    return exchangeName;
   }
 
   public void updateSubscriptions(Iterable<MarketDataSubscription> subscriptions) {
+    log.debug("Requesting update of subscriptions for {} to {}", exchangeName, subscriptions);
     nextSubscriptions.set(ImmutableSet.copyOf(subscriptions));
     wake();
   }
 
+  public Completable startAsCompletable() {
+    return Completable.create(emitter -> {
+      statusEmitters.put(emitter); // Implicit block as 1-length queue
+      if (isRunning()) {
+        log.debug("Not requesting startup of {} poll loop - already started", exchangeName);
+        emitter.onComplete();
+        statusEmitters.clear();
+      } else {
+        log.debug("Requesting startup of {} poll loop", exchangeName);
+        this.startAsync();
+      }
+    });
+  }
+
+  public Completable stopAsCompletable() {
+    return Completable.create(emitter -> {
+      statusEmitters.put(emitter); // Implicit block as 1-length queue
+      if (!isRunning()) {
+        log.debug("Not requesting shut down of {} poll loop - already stopped", exchangeName);
+        emitter.onComplete();
+        statusEmitters.clear();
+      } else {
+        log.debug("Requesting shut down of {} poll loop", exchangeName);
+        this.stopAsync();
+      }
+    });
+  }
+
   @Override
-  public void run() {
+  protected void run() {
     Thread.currentThread().setName(exchangeName);
-    LOGGER.info("{} starting", exchangeName);
+    log.info("{} starting", exchangeName);
     try {
       initialise();
       while (!phaser.isTerminated()) {
@@ -170,18 +252,21 @@ final class ExchangePollLoop implements Runnable {
 
         loop();
       }
-      LOGGER.info("{} shutting down due to termination", exchangeName);
+      log.info("{} shutting down due to termination", exchangeName);
     } catch (InterruptedException e) {
-      LOGGER.info("{} shutting down due to interrupt", exchangeName);
+      log.info("{} shutting down due to interrupt", exchangeName);
       Thread.currentThread().interrupt();
     } catch (Exception e) {
-      LOGGER.error(exchangeName + " shutting down due to uncaught exception", e);
+      log.error(exchangeName + " shutting down due to uncaught exception", e);
     } finally {
+      log.debug("{} sending shutdown event", exchangeName);
       lifecycleListener.onStop(exchangeName);
     }
   }
 
-  public void stop() {
+  @Override
+  protected void triggerShutdown() {
+    log.debug("Triggering shut down of {} poll loop", exchangeName);
     phaser.arriveAndDeregister();
     phaser.forceTermination();
   }
@@ -204,7 +289,7 @@ final class ExchangePollLoop implements Runnable {
       } catch (InterruptedException e) {
         throw e;
       } catch (Exception e) {
-        LOGGER.error(exchangeName + " - failing initialising. Will retry in one minute.", e);
+        log.error(exchangeName + " - failing initialising. Will retry in one minute.", e);
         Thread.sleep(60000);
       }
     }
@@ -224,7 +309,7 @@ final class ExchangePollLoop implements Runnable {
       return;
     }
 
-    LOGGER.debug("{} - start poll", exchangeName);
+    log.debug("{} - start poll", exchangeName);
     Set<String> balanceCurrencies = new HashSet<>();
     for (MarketDataSubscription subscription : polls) {
       if (phaser.isTerminated()) break;
@@ -250,28 +335,28 @@ final class ExchangePollLoop implements Runnable {
   }
 
   private void suspend(String subTaskName, int phase, boolean failed) throws InterruptedException {
-    LOGGER.debug("{} - poll going to sleep", subTaskName);
+    log.debug("{} - poll going to sleep", subTaskName);
     try {
       if (failed) {
         phaser.awaitAdvanceInterruptibly(phase, blockSeconds * 1000L, TimeUnit.MILLISECONDS);
       } else {
-        LOGGER.debug("{} - sleeping until phase {}", subTaskName, phase);
+        log.debug("{} - sleeping until phase {}", subTaskName, phase);
         lifecycleListener.onBlocked(subTaskName);
         phaser.awaitAdvanceInterruptibly(phase);
-        LOGGER.debug("{} - poll woken up on request", subTaskName);
+        log.debug("{} - poll woken up on request", subTaskName);
       }
     } catch (TimeoutException e) {
       // fine
     } catch (InterruptedException e) {
       throw e;
     } catch (Exception e) {
-      LOGGER.error("Failure in phaser wait for " + subTaskName, e);
+      log.error("Failure in phaser wait for " + subTaskName, e);
     }
   }
 
   protected void wake() {
     int phase = phaser.arrive();
-    LOGGER.debug("Progressing to phase {}", phase);
+    log.debug("Progressing to phase {}", phase);
   }
 
   private void manageExchangeExceptions(
@@ -288,7 +373,7 @@ final class ExchangePollLoop implements Runnable {
     } catch (UnsupportedOperationException e) {
 
       // Disable the feature since XChange doesn't provide support for it.
-      LOGGER.warn(
+      log.warn(
           "{} not available: {} ({})",
           dataDescription,
           e.getClass().getSimpleName(),
@@ -301,7 +386,7 @@ final class ExchangePollLoop implements Runnable {
         | NonceException e) {
 
       // Managed connectivity issues.
-      LOGGER.warn(
+      log.warn(
           "Throttling {} - {} ({}) when fetching {}",
           exchangeName,
           e.getClass().getSimpleName(),
@@ -315,7 +400,7 @@ final class ExchangePollLoop implements Runnable {
 
     } catch (RateLimitExceededException | FrequencyLimitExceededException e) {
 
-      LOGGER.error(
+      log.error(
           "Hit rate limiting on {} when fetching {}. Backing off", exchangeName, dataDescription);
       notificationService.error(
           "Getting rate limiting errors on "
@@ -350,8 +435,8 @@ final class ExchangePollLoop implements Runnable {
         || e.getHttpStatusCode() == 521) {
       // Usually these are rejections at CloudFlare (Coinbase Pro & Kraken being common cases) or
       // connection timeouts.
-      if (LOGGER.isWarnEnabled()) {
-        LOGGER.warn(
+      if (log.isWarnEnabled()) {
+        log.warn(
             "Throttling {} - failed at gateway ({} - {}) when fetching {}",
             exchangeName,
             e.getHttpStatusCode(),
@@ -385,7 +470,7 @@ final class ExchangePollLoop implements Runnable {
         || lastPollErrorNotificationTime.until(now, MINUTES)
             > MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS) {
       lastPollErrorNotificationTime = now;
-      LOGGER.error("Error fetching data for {}", exchangeName, e);
+      log.error("Error fetching data for {}", exchangeName, e);
       notificationService.error(
           "Throttling access to "
               + exchangeName
@@ -395,7 +480,7 @@ final class ExchangePollLoop implements Runnable {
               + exceptionMessage
               + ")");
     } else {
-      LOGGER.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
+      log.error("Repeated error fetching data for {} ({})", exchangeName, exceptionMessage);
     }
     lastPollException = e;
     rateController.throttle();
@@ -403,7 +488,7 @@ final class ExchangePollLoop implements Runnable {
 
   /** Actually performs the subscription changes. Occurs synchronously in the poll loop. */
   private void doSubscriptionChanges() {
-    LOGGER.debug("{} - start subscription check", exchangeName);
+    log.debug("{} - start subscription check", exchangeName);
     subscriptionsFailed = false;
 
     // Pull the subscription change off the queue. If there isn't one,
@@ -424,7 +509,7 @@ final class ExchangePollLoop implements Runnable {
       }
 
       // Otherwise, let's crack on
-      LOGGER.info(
+      log.info(
           "{} - updating subscriptions to: {} from {}",
           exchangeName,
           newSubscriptions,
@@ -444,13 +529,13 @@ final class ExchangePollLoop implements Runnable {
       // Add new subscriptions if we have any
       if (newSubscriptions.isEmpty()) {
         polls = Set.of();
-        LOGGER.debug("{} - polls cleared", exchangeName);
+        log.debug("{} - polls cleared", exchangeName);
       } else {
         subscribe(newSubscriptions);
       }
     } catch (Exception e) {
       subscriptionsFailed = true;
-      LOGGER.error("Error updating subscriptions", e);
+      log.error("Error updating subscriptions", e);
       if (nextSubscriptions.compareAndSet(null, newSubscriptions)) {
         wake();
       }
@@ -471,7 +556,7 @@ final class ExchangePollLoop implements Runnable {
       try {
         streamingExchange.disconnect().blockingAwait();
       } catch (Exception e) {
-        LOGGER.error("Error disconnecting from " + exchangeName, e);
+        log.error("Error disconnecting from " + exchangeName, e);
       }
     } else {
       mostRecentTrades.entrySet().removeIf(
@@ -492,7 +577,7 @@ final class ExchangePollLoop implements Runnable {
     }
 
     polls = pollingBuilder.build();
-    LOGGER.debug("{} - polls now set to: {}", exchangeName, polls);
+    log.debug("{} - polls now set to: {}", exchangeName, polls);
   }
 
   private Set<MarketDataSubscription> openSubscriptionsWherePossible(
@@ -528,7 +613,7 @@ final class ExchangePollLoop implements Runnable {
         try {
           disposables.add(connectSubscription(s));
         } catch (UnsupportedOperationException | ExchangeSecurityException e) {
-          LOGGER.debug(
+          log.debug(
               "Not subscribing to {} on socket due to {}: {}",
               s.key(),
               e.getClass().getSimpleName(),
@@ -550,13 +635,13 @@ final class ExchangePollLoop implements Runnable {
                 .subscribe(
                     publisher::emit,
                     e ->
-                        LOGGER.error(
+                        log.error(
                             "Error in balance stream for " + exchangeName + "/" + currency, e)));
       }
     } catch (NotAvailableFromExchangeException e) {
       newSubscriptions.stream().filter(s -> s.type().equals(BALANCE)).forEach(markAsNotSubscribed);
     } catch (ExchangeSecurityException | NotYetImplementedForExchangeException e) {
-      LOGGER.debug(
+      log.debug(
           "Not subscribing to {}/{} on socket due to {}: {}",
           exchangeName,
           "Balances",
@@ -578,28 +663,28 @@ final class ExchangePollLoop implements Runnable {
             .getOrderBook(sub.spec().currencyPair())
             .map(t -> OrderBookEvent.create(sub.spec(), t))
             .subscribe(
-                publisher::emit, e -> LOGGER.error("Error in order book stream for " + sub, e));
+                publisher::emit, e -> log.error("Error in order book stream for " + sub, e));
       case TICKER:
-        LOGGER.debug("Subscribing to {}", sub.spec());
+        log.debug("Subscribing to {}", sub.spec());
         return streamingExchange
             .getStreamingMarketDataService()
             .getTicker(sub.spec().currencyPair())
             .map(t -> TickerEvent.create(sub.spec(), t))
             .subscribe(
-                publisher::emit, e -> LOGGER.error("Error in ticker stream for " + sub, e));
+                publisher::emit, e -> log.error("Error in ticker stream for " + sub, e));
       case TRADES:
         return streamingExchange
             .getStreamingMarketDataService()
             .getTrades(sub.spec().currencyPair())
             .map(t -> convertBinanceOrderType(sub, t))
             .map(t -> TradeEvent.create(sub.spec(), t))
-            .subscribe(publisher::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
+            .subscribe(publisher::emit, e -> log.error("Error in trade stream for " + sub, e));
       case USER_TRADE:
         return streamingExchange
             .getStreamingTradeService()
             .getUserTrades(sub.spec().currencyPair())
             .map(t -> UserTradeEvent.create(sub.spec(), t))
-            .subscribe(publisher::emit, e -> LOGGER.error("Error in trade stream for " + sub, e));
+            .subscribe(publisher::emit, e -> log.error("Error in trade stream for " + sub, e));
       case ORDER:
         return streamingExchange
             .getStreamingTradeService()
@@ -608,7 +693,7 @@ final class ExchangePollLoop implements Runnable {
                 t ->
                     OrderChangeEvent.create(
                         sub.spec(), t, new Date())) // TODO need server side timestamping
-            .subscribe(publisher::emit, e -> LOGGER.error("Error in order stream for " + sub, e));
+            .subscribe(publisher::emit, e -> log.error("Error in order stream for " + sub, e));
       default:
         throw new NotAvailableFromExchangeException();
     }
@@ -627,7 +712,7 @@ final class ExchangePollLoop implements Runnable {
 
   private void connectExchange(Collection<MarketDataSubscription> subscriptionsForExchange) {
     if (subscriptionsForExchange.isEmpty()) return;
-    LOGGER.info("Connecting to exchange: {}", exchangeName);
+    log.info("Connecting to exchange: {}", exchangeName);
     ProductSubscriptionBuilder builder = ProductSubscription.create();
     subscriptionsForExchange.forEach(
         s -> {
@@ -663,7 +748,7 @@ final class ExchangePollLoop implements Runnable {
         });
     rateController.acquire();
     streamingExchange.connect(builder.build()).blockingAwait();
-    LOGGER.info("Connected to exchange: {}", exchangeName);
+    log.info("Connected to exchange: {}", exchangeName);
   }
 
   private Iterable<Balance> fetchBalances(Collection<String> currencyCodes) throws IOException {

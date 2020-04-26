@@ -27,11 +27,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.knowm.xchange.Exchange;
 import org.mockito.Mock;
 
+@Slf4j
 public class TestMarketDataSubscriptionManager {
 
   private static final int WAIT = 20;
@@ -48,18 +50,19 @@ public class TestMarketDataSubscriptionManager {
   @Mock private Exchange exchangeTwo;
 
   private final CountDownLatch allExchangesBlocked = new CountDownLatch(2);
-  private final CountDownLatch shutdown = new CountDownLatch(3);
+  private final CountDownLatch shutdown = new CountDownLatch(2);
 
   private final Set<Thread> threads = Sets.newConcurrentHashSet();
 
   private SubscriptionControllerLocalImpl subscriptionManager;
 
   @Before
-  public void setup() throws TimeoutException {
+  public void setup() {
     initMocks(this);
     when(exchangeService.getExchanges()).thenReturn(ImmutableList.of(EXCHANGE1, EXCHANGE2));
     when(exchangeService.get(EXCHANGE1)).thenReturn(exchangeOne);
     when(exchangeService.get(EXCHANGE2)).thenReturn(exchangeTwo);
+    when(configuration.getLoopSeconds()).thenReturn(1);
     subscriptionManager =
         new SubscriptionControllerLocalImpl(
             exchangeService,
@@ -67,12 +70,12 @@ public class TestMarketDataSubscriptionManager {
             tradeServiceFactory,
             accountServiceFactory,
             notificationService,
-            new SubscriptionPublisher(),
-            Map.of());
+            new SubscriptionPublisher());
     subscriptionManager.setLifecycleListener(
         new LifecycleListener() {
           @Override
           public void onBlocked(String exchange) {
+            log.info("{} blocked", exchange);
             threads.add(Thread.currentThread());
             allExchangesBlocked.countDown();
           }
@@ -90,31 +93,30 @@ public class TestMarketDataSubscriptionManager {
   }
 
   @Test
-  public void testImmediateStartupShutdown() throws TimeoutException {
-    subscriptionManager.startAsync().awaitRunning(WAIT, SECONDS);
-    subscriptionManager.stopAsync().awaitTerminated(WAIT, SECONDS);
+  public void testImmediateStartupShutdown() {
+    subscriptionManager.start();
+    subscriptionManager.stop();
   }
 
   @Test
-  public void testControlledStartupShutdownFromBlockedState()
-      throws TimeoutException, InterruptedException {
-    subscriptionManager.startAsync().awaitRunning(WAIT, SECONDS);
+  public void testControlledStartupShutdownFromBlockedState() throws InterruptedException {
+    subscriptionManager.start();
     try {
       awaitAllExchangesBlocked();
     } finally {
-      subscriptionManager.stopAsync().awaitTerminated(WAIT, SECONDS);
+      subscriptionManager.stop();
     }
   }
 
   @Test
-  public void testInterrupt() throws TimeoutException, InterruptedException {
-    subscriptionManager.startAsync().awaitRunning(WAIT, SECONDS);
+  public void testInterrupt() throws InterruptedException {
+    subscriptionManager.start();
     try {
       awaitAllExchangesBlocked();
       threads.forEach(Thread::interrupt);
       assertTrue(shutdown.await(WAIT, SECONDS));
     } finally {
-      subscriptionManager.stopAsync().awaitTerminated(WAIT, SECONDS);
+      subscriptionManager.stop();
     }
   }
 

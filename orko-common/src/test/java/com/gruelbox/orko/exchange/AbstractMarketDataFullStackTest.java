@@ -83,10 +83,9 @@ public abstract class AbstractMarketDataFullStackTest {
               }
             },
             notificationService,
-            (SubscriptionPublisher) manager,
-            exchangeConfiguration);
+            (SubscriptionPublisher) manager);
     exchangeEventBus = new ExchangeEventBus(manager);
-    controller.startAsync().awaitRunning(20, SECONDS);
+    controller.start();
   }
 
   protected abstract Map<String, ExchangeConfiguration> buildConfig();
@@ -103,7 +102,7 @@ public abstract class AbstractMarketDataFullStackTest {
 
   @After
   public void tearDown() throws TimeoutException {
-    controller.stopAsync().awaitTerminated(20, SECONDS);
+    controller.stop();
   }
 
   @Test
