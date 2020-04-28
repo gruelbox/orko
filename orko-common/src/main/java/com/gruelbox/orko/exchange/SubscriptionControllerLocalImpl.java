@@ -19,6 +19,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.inject.Inject;
@@ -118,7 +119,9 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
       ImmutableListMultimap<String, MarketDataSubscription> byExchange =
           Multimaps.index(subscriptions, s -> s.spec().exchange());
       for (String exchangeName : exchangeService.getExchanges()) {
-        pollers.get(exchangeName).getDelegate().updateSubscriptions(byExchange.get(exchangeName));
+        pollers.get(exchangeName).getDelegate()
+            .updateSubscriptions(FluentIterable.from(byExchange.get(exchangeName))
+                .transform(MarketDataSubscription::toSubscription));
       }
     }).cache();
   }
