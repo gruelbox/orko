@@ -21,4 +21,20 @@ interface LifecycleListener {
   default void onStop(String exchange) {}
 
   default void onStopMain() {}
+
+  default ExchangePollLoopLifecycleListener toExchangeListener(String exchangeName) {
+    return new ExchangePollLoopLifecycleListener() {
+
+      @Override
+      public void onBlocked() {
+        LifecycleListener.this.onBlocked(exchangeName);
+      }
+
+      @Override
+      public void onStop() {
+        LifecycleListener.this.onStop(exchangeName);
+      }
+
+    };
+  }
 }

@@ -70,7 +70,7 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
                 exchangeService.rateController(e),
                 notificationService,
                 publisher.toPollLoopPublisher(e),
-                configuration.getLoopSeconds(),
+                configuration.getLoopSeconds() * 1000L,
                 exchangeService.isAuthenticated(e)))));
     publisher.setController(this);
   }
@@ -128,6 +128,6 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
 
   @VisibleForTesting
   void setLifecycleListener(LifecycleListener listener) {
-    pollers.values().forEach(poller-> poller.getDelegate().setLifecycleListener(listener));
+    pollers.values().forEach(poller-> poller.getDelegate().setLifecycleListener(listener.toExchangeListener(poller.getDelegate().getExchangeName())));
   }
 }

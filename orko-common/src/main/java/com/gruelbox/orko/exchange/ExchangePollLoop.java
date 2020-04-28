@@ -93,6 +93,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   private static final int MAX_TRADES = 20;
   private static final int ORDERBOOK_DEPTH = 20;
   private static final int MINUTES_BETWEEN_EXCEPTION_NOTIFICATIONS = 15;
+  private static final int DEFAULT_BLOCK_ON_ERROR_MS = 10000;
 
   private final String exchangeName;
   private final Exchange exchange;
@@ -102,10 +103,10 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   private final RateController rateController;
   private final NotificationService notificationService;
   private final ExchangePollLoopPublisher publisher;
-  private final long blockSeconds;
+  private final long blockOnErrorMs;
   private final boolean authenticated;
 
-  private LifecycleListener lifecycleListener = new LifecycleListener() {};
+  private ExchangePollLoopLifecycleListener lifecycleListener = new ExchangePollLoopLifecycleListener() {};
   private AccountService accountService;
   private MarketDataService marketDataService;
   private TradeService tradeService;
@@ -125,13 +126,34 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   // TODO FIx this
   private final ConcurrentMap<CurrencyPair, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
-  ExchangePollLoop(String exchangeName, Exchange exchange,
+  ExchangePollLoop(Exchange exchange,
+                   RateController rateController,
+                   NotificationService notificationService,
+                   ExchangePollLoopPublisher publisher,
+                   boolean authenticated) {
+    this(
+        exchange.getClass().getSimpleName()
+            .toLowerCase()
+            .replace("streaming", "")
+            .replace("exchange", ""),
+        exchange,
+        exchange::getAccountService,
+        exchange::getTradeService,
+        rateController,
+        notificationService,
+        publisher,
+        DEFAULT_BLOCK_ON_ERROR_MS,
+        authenticated);
+  }
+
+  ExchangePollLoop(String exchangeName,
+      Exchange exchange,
       Supplier<AccountService> accountServiceSupplier,
       Supplier<TradeService> tradeServiceSupplier,
       RateController rateController,
       NotificationService notificationService,
       ExchangePollLoopPublisher publisher,
-      long blockSeconds,
+      long blockOnErrorMs,
       boolean authenticated) {
 
     this.exchangeName = exchangeName;
@@ -145,12 +167,12 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     this.rateController = rateController;
     this.notificationService = notificationService;
     this.publisher = publisher;
-    this.blockSeconds = blockSeconds;
+    this.blockOnErrorMs = blockOnErrorMs;
     this.authenticated = authenticated;
   }
 
   @VisibleForTesting
-  public void setLifecycleListener(LifecycleListener lifecycleListener) {
+  public void setLifecycleListener(ExchangePollLoopLifecycleListener lifecycleListener) {
     this.lifecycleListener = lifecycleListener;
   }
 
@@ -185,10 +207,10 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
       log.info("{} shutting down due to interrupt", exchangeName);
       Thread.currentThread().interrupt();
     } catch (Exception e) {
-      log.error(exchangeName + " shutting down due to uncaught exception", e);
+      log.error("{} shutting down due to uncaught exception", exchangeName, e);
     } finally {
       log.debug("{} sending shutdown event", exchangeName);
-      lifecycleListener.onStop(exchangeName);
+      lifecycleListener.onStop();
     }
   }
 
@@ -233,7 +255,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     // in which case wake ourselves up in a few seconds to try again
     Set<ExchangePollLoopSubscription> polls = activePolls();
     if (polls.isEmpty()) {
-      suspend(exchangeName, phase, subscriptionsFailed);
+      suspend(phase, subscriptionsFailed);
       return;
     }
 
@@ -262,23 +284,23 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     }
   }
 
-  private void suspend(String subTaskName, int phase, boolean failed) throws InterruptedException {
-    log.debug("{} - poll going to sleep", subTaskName);
+  private void suspend(int phase, boolean failed) throws InterruptedException {
+    log.debug("{} - poll going to sleep", exchangeName);
     try {
       if (failed) {
-        phaser.awaitAdvanceInterruptibly(phase, blockSeconds * 1000L, TimeUnit.MILLISECONDS);
+        phaser.awaitAdvanceInterruptibly(phase, blockOnErrorMs, TimeUnit.MILLISECONDS);
       } else {
-        log.debug("{} - sleeping until phase {}", subTaskName, phase);
-        lifecycleListener.onBlocked(subTaskName);
+        log.debug("{} - sleeping until phase {}", exchangeName, phase);
+        lifecycleListener.onBlocked();
         phaser.awaitAdvanceInterruptibly(phase);
-        log.debug("{} - poll woken up on request", subTaskName);
+        log.debug("{} - poll woken up on request", exchangeName);
       }
     } catch (TimeoutException e) {
       // fine
     } catch (InterruptedException e) {
       throw e;
     } catch (Exception e) {
-      log.error("Failure in phaser wait for " + subTaskName, e);
+      log.error("Failure in phaser wait for {}", exchangeName, e);
     }
   }
 
