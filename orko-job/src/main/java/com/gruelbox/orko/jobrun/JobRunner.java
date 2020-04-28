@@ -160,7 +160,7 @@ class JobRunner {
   }
 
   public interface ExceptionThrowingRunnable {
-    public void run() throws Exception;
+    void run() throws Exception;
   }
 
   private enum JobStatus {

@@ -20,14 +20,14 @@ import java.util.Set;
 
 public interface ExchangeEventRegistry {
 
-  public ExchangeEventSubscription subscribe(Set<MarketDataSubscription> targetSubscriptions);
+  ExchangeEventSubscription subscribe(Set<MarketDataSubscription> targetSubscriptions);
 
-  public default ExchangeEventSubscription subscribe(
+  default ExchangeEventSubscription subscribe(
       MarketDataSubscription... targetSubscriptions) {
     return subscribe(ImmutableSet.copyOf(targetSubscriptions));
   }
 
-  public interface ExchangeEventSubscription extends AutoCloseable {
+  interface ExchangeEventSubscription extends AutoCloseable {
     Flowable<TickerEvent> getTickers();
 
     Flowable<OpenOrdersEvent> getOrderSnapshots();
@@ -44,9 +44,9 @@ public interface ExchangeEventRegistry {
 
     Iterable<Flowable<TickerEvent>> getTickersSplit();
 
-    public ExchangeEventSubscription replace(Set<MarketDataSubscription> targetSubscriptions);
+    ExchangeEventSubscription replace(Set<MarketDataSubscription> targetSubscriptions);
 
-    public default ExchangeEventSubscription replace(
+    default ExchangeEventSubscription replace(
         MarketDataSubscription... targetSubscriptions) {
       return replace(ImmutableSet.copyOf(targetSubscriptions));
     }

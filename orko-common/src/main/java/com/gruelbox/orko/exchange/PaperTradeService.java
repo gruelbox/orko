@@ -114,10 +114,9 @@ final class PaperTradeService implements TradeService {
         all.getOpenOrders().stream()
             .filter(o -> o.getCurrencyPair().equals(pair))
             .collect(Collectors.toList()),
-        (List<Order>)
-            all.getHiddenOrders().stream()
-                .filter(o -> o.getCurrencyPair().equals(pair))
-                .collect(Collectors.toList()));
+        all.getHiddenOrders().stream()
+            .filter(o -> o.getCurrencyPair().equals(pair))
+            .collect(Collectors.toList()));
   }
 
   @Override

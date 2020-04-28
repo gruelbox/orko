@@ -27,14 +27,14 @@ import javax.servlet.http.HttpServletResponse;
 public abstract class AbstractHttpServletFilter implements Filter {
 
   @Override
-  public void init(FilterConfig filterConfig) throws ServletException {
+  public void init(FilterConfig filterConfig) {
     // No-op
   }
 
   @Override
   public final void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    if (!HttpServletResponse.class.isInstance(response)) {
+    if (!(response instanceof HttpServletResponse)) {
       return;
     }
     doFilter((HttpServletRequest) request, (HttpServletResponse) response, chain);

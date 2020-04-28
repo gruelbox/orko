@@ -124,13 +124,9 @@ public class ImmutableOrderBook {
       return false;
     }
     if (bids == null) {
-      if (other.bids != null) {
-        return false;
-      }
-    } else if (!bids.equals(other.bids)) {
-      return false;
-    }
-    return true;
+      return other.bids == null;
+    } else
+      return bids.equals(other.bids);
   }
 
   @Override

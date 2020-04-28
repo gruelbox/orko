@@ -73,7 +73,7 @@ public class SubscriptionResource implements WebResource {
   public Map<String, BigDecimal> listReferencePrices() {
     Map<String, Entry<TickerSpec, BigDecimal>> rekeyed =
         Maps.uniqueIndex(subscriptionAccess.getReferencePrices().entrySet(), e -> e.getKey().key());
-    return Maps.transformValues(rekeyed, Entry<TickerSpec, BigDecimal>::getValue);
+    return Maps.transformValues(rekeyed, Entry::getValue);
   }
 
   @PUT

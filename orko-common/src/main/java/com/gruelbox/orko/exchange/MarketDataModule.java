@@ -38,7 +38,6 @@ public class MarketDataModule extends AbstractModule {
     install(new WiringModule());
     bind(ExchangeEventRegistry.class).to(ExchangeEventBus.class);
     bind(MarketDataSubscriptionManager.class).to(SubscriptionPublisher.class);
-    bind(RateController.class).to(GuavaRateController.class);
     switch (marketDataSource) {
       case MANAGE_LOCALLY:
         bind(SubscriptionController.class).to(SubscriptionControllerLocalImpl.class);

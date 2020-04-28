@@ -43,11 +43,11 @@ class ScriptParameter {
     private static final long serialVersionUID = -1103388707546786957L;
 
     @Length(min = 1, max = 45)
-    @Column(name = SCRIPT_ID_FIELD, nullable = false, updatable = false, insertable = true)
+    @Column(name = SCRIPT_ID_FIELD, nullable = false, updatable = false)
     private String scriptId;
 
     @Length(min = 1, max = 255)
-    @Column(name = NAME_FIELD, nullable = false, updatable = false, insertable = true)
+    @Column(name = NAME_FIELD, nullable = false, updatable = false)
     private String name;
 
     public Id() {}
@@ -82,9 +82,9 @@ class ScriptParameter {
         if (other.name != null) return false;
       } else if (!name.equals(other.name)) return false;
       if (scriptId == null) {
-        if (other.scriptId != null) return false;
-      } else if (!scriptId.equals(other.scriptId)) return false;
-      return true;
+        return other.scriptId == null;
+      } else
+        return scriptId.equals(other.scriptId);
     }
   }
 
@@ -176,8 +176,7 @@ class ScriptParameter {
       if (other.description != null) return false;
     } else if (!description.equals(other.description)) return false;
     if (!id.equals(other.id)) return false;
-    if (mandatory != other.mandatory) return false;
-    return true;
+    return mandatory == other.mandatory;
   }
 
   @Override

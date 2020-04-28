@@ -39,7 +39,7 @@ public class GenerateSecretKey {
     }
     displayKey(key);
     if (doCheck) {
-      System.out.println("");
+      System.out.println();
       checkKey(generator, key);
     }
   }

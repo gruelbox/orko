@@ -136,7 +136,7 @@ public abstract class AbstractMarketDataFullStackTest {
           FluentIterable.from(subscriptions)
               .transformAndConcat(
                   sub ->
-                      ImmutableSet.<Disposable>of(
+                      ImmutableSet.of(
                           getSubscription(manager, sub)
                               .subscribe(
                                   t -> {
@@ -189,7 +189,7 @@ public abstract class AbstractMarketDataFullStackTest {
           FluentIterable.from(subscriptions)
               .transformAndConcat(
                   sub ->
-                      ImmutableSet.<Disposable>of(
+                      ImmutableSet.of(
                           getSubscription(subscription, sub)
                               .subscribe(
                                   t -> {

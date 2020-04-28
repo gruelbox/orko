@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
 @JsonDeserialize(builder = SoftTrailingStop.Builder.class)
 public abstract class SoftTrailingStop implements Job {
 
-  public static final Builder builder() {
+  public static Builder builder() {
     return new AutoValue_SoftTrailingStop.Builder()
         .limitPrice(BigDecimal.ZERO)
         .balanceState(BalanceState.SUFFICIENT_BALANCE);
@@ -77,7 +77,7 @@ public abstract class SoftTrailingStop implements Job {
 
     @Override
     public SoftTrailingStop build() {
-      if (!lastSyncPrice().isPresent()) {
+      if (lastSyncPrice().isEmpty()) {
         lastSyncPrice(startPrice());
       }
       return autoBuild();
@@ -131,7 +131,7 @@ public abstract class SoftTrailingStop implements Job {
   }
 
   public interface Processor extends JobProcessor<SoftTrailingStop> {
-    public interface ProcessorFactory extends JobProcessor.Factory<SoftTrailingStop> {
+    interface ProcessorFactory extends JobProcessor.Factory<SoftTrailingStop> {
       @Override
       Processor create(SoftTrailingStop job, JobControl jobControl);
     }

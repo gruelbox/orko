@@ -65,7 +65,7 @@ interface JobAccess {
    * Thrown on attempting to insert a job that has been created before (even if it no longer
    * exists).
    */
-  public static final class JobAlreadyExistsException extends Exception {
+  final class JobAlreadyExistsException extends Exception {
 
     private static final long serialVersionUID = 6959971340282376242L;
 
@@ -79,7 +79,7 @@ interface JobAccess {
   }
 
   /** Thrown on attempting to access a job that does not exist. */
-  public static final class JobDoesNotExistException extends RuntimeException {
+  final class JobDoesNotExistException extends RuntimeException {
 
     private static final long serialVersionUID = 9086830214079119838L;
 

@@ -26,7 +26,7 @@ public interface JobControl {
    *
    * @param job The updated version.
    */
-  public void replace(Job job);
+  void replace(Job job);
 
   /**
    * A job should call this once it has finished processing to ensure it is shut down and removed.
@@ -34,5 +34,5 @@ public interface JobControl {
    *
    * @param status The completion state.
    */
-  public void finish(Status status);
+  void finish(Status status);
 }

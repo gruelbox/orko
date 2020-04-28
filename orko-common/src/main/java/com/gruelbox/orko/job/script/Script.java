@@ -159,8 +159,8 @@ class Script {
       if (other.script != null) return false;
     } else if (!script.equals(other.script)) return false;
     if (scriptHash == null) {
-      if (other.scriptHash != null) return false;
-    } else if (!scriptHash.equals(other.scriptHash)) return false;
-    return true;
+      return other.scriptHash == null;
+    } else
+      return scriptHash.equals(other.scriptHash);
   }
 }

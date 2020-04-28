@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 @JsonDeserialize(builder = StatusUpdateJob.Builder.class)
 public abstract class StatusUpdateJob implements Job {
 
-  public static final Builder builder() {
+  public static Builder builder() {
     return new AutoValue_StatusUpdateJob.Builder();
   }
 
@@ -76,7 +76,7 @@ public abstract class StatusUpdateJob implements Job {
   }
 
   public interface Processor extends JobProcessor<StatusUpdateJob> {
-    public interface ProcessorFactory extends JobProcessor.Factory<StatusUpdateJob> {
+    interface ProcessorFactory extends JobProcessor.Factory<StatusUpdateJob> {
       @Override
       Processor create(StatusUpdateJob job, JobControl jobControl);
     }

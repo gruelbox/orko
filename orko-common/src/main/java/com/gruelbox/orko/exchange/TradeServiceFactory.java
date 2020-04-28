@@ -21,5 +21,5 @@ import org.knowm.xchange.service.trade.TradeService;
 public interface TradeServiceFactory extends ExchangeServiceFactory<TradeService> {
 
   @Override
-  public TradeService getForExchange(String exchange);
+  TradeService getForExchange(String exchange);
 }

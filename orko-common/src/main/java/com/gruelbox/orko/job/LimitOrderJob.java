@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 @JsonDeserialize(builder = LimitOrderJob.Builder.class)
 public abstract class LimitOrderJob implements Job {
 
-  public static final Builder builder() {
+  public static Builder builder() {
     return new AutoValue_LimitOrderJob.Builder().balanceState(BalanceState.SUFFICIENT_BALANCE);
   }
 
@@ -118,7 +118,7 @@ public abstract class LimitOrderJob implements Job {
   }
 
   public interface Processor extends JobProcessor<LimitOrderJob> {
-    public interface ProcessorFactory extends JobProcessor.Factory<LimitOrderJob> {
+    interface ProcessorFactory extends JobProcessor.Factory<LimitOrderJob> {
       @Override
       Processor create(LimitOrderJob job, JobControl jobControl);
     }

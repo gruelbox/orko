@@ -32,13 +32,13 @@ public interface JobProcessor<T extends Job> {
    *     Status#SUCCESS} or {@link Status#FAILURE_TRANSIENT} to finish (the latter two will cause a
    *     call to {@link #stop()}).
    */
-  public Status start();
+  Status start();
 
   /**
    * Called to terminate a job. This may occur due to a shutdown, a loss of the processing lock, or
    * explicitly after a job calls {@link JobControl#finish(Status)}.
    */
-  public default void stop() {
+  default void stop() {
     // default no--op
   }
 
@@ -49,7 +49,7 @@ public interface JobProcessor<T extends Job> {
    *
    * @param job The replacement job.
    */
-  public void setReplacedJob(T job);
+  void setReplacedJob(T job);
 
   /**
    * A factory for {@link JobProcessor}s.
@@ -57,8 +57,8 @@ public interface JobProcessor<T extends Job> {
    * @author Graham Crockford
    * @param <T> The job type.
    */
-  public interface Factory<T extends Job> {
-    public JobProcessor<T> create(T job, JobControl jobControl);
+  interface Factory<T extends Job> {
+    JobProcessor<T> create(T job, JobControl jobControl);
   }
 
   /**
@@ -70,7 +70,7 @@ public interface JobProcessor<T extends Job> {
    * @return The {@link JobProcessor}.
    */
   @SuppressWarnings("unchecked")
-  public static JobProcessor<Job> createProcessor(
+  static JobProcessor<Job> createProcessor(
       Job job, JobControl jobControl, Injector injector) {
     return ((JobProcessor.Factory<Job>) injector.getInstance(job.processorFactory()))
         .create(job, jobControl);

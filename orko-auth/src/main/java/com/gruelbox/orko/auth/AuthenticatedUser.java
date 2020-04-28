@@ -38,7 +38,7 @@ public class AuthenticatedUser implements Principal {
     return name;
   }
 
-  public Set<String> getRoles() {
+  Set<String> getRoles() {
     return roles;
   }
 
@@ -61,8 +61,8 @@ public class AuthenticatedUser implements Principal {
       if (other.name != null) return false;
     } else if (!name.equals(other.name)) return false;
     if (roles == null) {
-      if (other.roles != null) return false;
-    } else if (!roles.equals(other.roles)) return false;
-    return true;
+      return other.roles == null;
+    } else
+      return roles.equals(other.roles);
   }
 }

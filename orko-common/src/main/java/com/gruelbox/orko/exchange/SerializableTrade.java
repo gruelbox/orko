@@ -89,7 +89,7 @@ public abstract class SerializableTrade {
         timestamp,
         id,
         orderId,
-        feeAmount == null ? null : feeAmount,
+        feeAmount,
         feeCurrency);
   }
 

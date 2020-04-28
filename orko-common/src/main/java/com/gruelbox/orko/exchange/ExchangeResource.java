@@ -109,9 +109,7 @@ public class ExchangeResource implements WebResource {
                   code,
                   Exchanges.name(code),
                   Exchanges.refLink(code),
-                  exchangeConfig == null
-                      ? false
-                      : StringUtils.isNotBlank(exchangeConfig.getApiKey()));
+                  exchangeConfig != null && StringUtils.isNotBlank(exchangeConfig.getApiKey()));
             })
         .sorted(Ordering.natural().onResultOf(ExchangeMeta::getName))
         .collect(toList());

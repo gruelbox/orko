@@ -16,7 +16,7 @@ public class RxServiceWrapper<T extends Service> {
 
   private final BlockingQueue<CompletableEmitter> statusEmitters = new ArrayBlockingQueue<>(1);
 
-  public RxServiceWrapper(T service) {
+  RxServiceWrapper(T service) {
     this.service = service;
     service.addListener(new Listener() {
       @Override
@@ -63,20 +63,12 @@ public class RxServiceWrapper<T extends Service> {
     });
   }
 
-  public boolean isRunning() {
+  boolean isRunning() {
     return service.isRunning();
   }
 
-  public State state() {
-    return service.state();
-  }
-
-  public Throwable failureCause() {
-    return service.failureCause();
-  }
-
   T getDelegate() {
-    return (T) service;
+    return service;
   }
 
 }

@@ -389,13 +389,13 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   }
 
   public interface StateManager<T> {
-    public T get(String key);
+    T get(String key);
 
-    public void set(String key, T value);
+    void set(String key, T value);
 
-    public void remove(String key);
+    void remove(String key);
 
-    public void increment(String key);
+    void increment(String key);
   }
 
   Disposable onInterval(Runnable runnable, long timeout, String description) {

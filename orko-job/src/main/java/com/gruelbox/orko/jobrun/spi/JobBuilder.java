@@ -28,12 +28,12 @@ public interface JobBuilder<T extends Job> {
    * @param id The job id.
    * @return this, for method chaining.
    */
-  public JobBuilder<T> id(String id);
+  JobBuilder<T> id(String id);
 
   /**
    * Builds the completed job.
    *
    * @return The job.
    */
-  public T build();
+  T build();
 }

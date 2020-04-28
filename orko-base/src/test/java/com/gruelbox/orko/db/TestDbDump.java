@@ -74,30 +74,29 @@ public class TestDbDump {
     Injector injector =
         Guice.createInjector(
             dbModule,
-            (Module)
-                binder -> {
-                  binder.bind(DbConfiguration.class).toInstance(dbConfig);
-                  Multibinder.newSetBinder(binder, TableContribution.class)
-                      .addBinding()
-                      .toInstance(
-                          new TableContribution() {
-                            @Override
-                            public Collection<Table> tables() {
-                              return ImmutableList.of(
-                                  table(TABLE_NAME)
-                                      .columns(
-                                          column(ID, STRING, 45).primaryKey(),
-                                          column(FIELD_1, STRING, 255))
-                                      .indexes(index(TABLE_NAME + "_1").columns(ID)));
-                            }
+            binder -> {
+              binder.bind(DbConfiguration.class).toInstance(dbConfig);
+              Multibinder.newSetBinder(binder, TableContribution.class)
+                  .addBinding()
+                  .toInstance(
+                      new TableContribution() {
+                        @Override
+                        public Collection<Table> tables() {
+                          return ImmutableList.of(
+                              table(TABLE_NAME)
+                                  .columns(
+                                      column(ID, STRING, 45).primaryKey(),
+                                      column(FIELD_1, STRING, 255))
+                                  .indexes(index(TABLE_NAME + "_1").columns(ID)));
+                        }
 
-                            @Override
-                            public Collection<Class<? extends UpgradeStep>>
-                                schemaUpgradeClassses() {
-                              return Collections.emptyList();
-                            }
-                          });
-                });
+                        @Override
+                        public Collection<Class<? extends UpgradeStep>>
+                            schemaUpgradeClassses() {
+                          return Collections.emptyList();
+                        }
+                      });
+            });
     injector.injectMembers(this);
   }
 

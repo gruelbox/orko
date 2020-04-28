@@ -251,20 +251,20 @@ public class TestCheckedExceptions {
   }
 
   private interface Dummy {
-    public void doSomething();
+    void doSomething();
 
-    public void doSomethingWithCheckedException() throws IOException;
+    void doSomethingWithCheckedException() throws IOException;
 
-    public void doSomethingWithInterruptedException() throws InterruptedException;
+    void doSomethingWithInterruptedException() throws InterruptedException;
 
-    public int returnSomething();
+    int returnSomething();
 
-    public int returnSomethingWithCheckedException() throws SQLException;
+    int returnSomethingWithCheckedException() throws SQLException;
 
-    public int returnSomethingWithInterruptedException() throws InterruptedException;
+    int returnSomethingWithInterruptedException() throws InterruptedException;
 
-    public void receiveRunnable(Runnable runnable);
+    void receiveRunnable(Runnable runnable);
 
-    public void receiveCallable(Callable<?> callable);
+    void receiveCallable(Callable<?> callable);
   }
 }

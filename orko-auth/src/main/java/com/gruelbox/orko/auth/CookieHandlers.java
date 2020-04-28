@@ -25,7 +25,7 @@ public enum CookieHandlers {
 
   private final String name;
 
-  private CookieHandlers(String name) {
+  CookieHandlers(String name) {
     this.name = name;
   }
 

@@ -16,23 +16,23 @@ package com.gruelbox.orko.jobrun;
 
 class TestingJobEvent {
 
-  public static final TestingJobEvent create(String jobId, EventType eventType) {
+  public static TestingJobEvent create(String jobId, EventType eventType) {
     return new TestingJobEvent(jobId, eventType);
   }
 
   private final String jobId;
   private final EventType eventType;
 
-  public TestingJobEvent(String jobId, EventType eventType) {
+  TestingJobEvent(String jobId, EventType eventType) {
     this.jobId = jobId;
     this.eventType = eventType;
   }
 
-  public String jobId() {
+  String jobId() {
     return jobId;
   }
 
-  public EventType eventType() {
+  EventType eventType() {
     return eventType;
   }
 
@@ -58,9 +58,9 @@ class TestingJobEvent {
     TestingJobEvent other = (TestingJobEvent) obj;
     if (eventType != other.eventType) return false;
     if (jobId == null) {
-      if (other.jobId != null) return false;
-    } else if (!jobId.equals(other.jobId)) return false;
-    return true;
+      return other.jobId == null;
+    } else
+      return jobId.equals(other.jobId);
   }
 
   @Override

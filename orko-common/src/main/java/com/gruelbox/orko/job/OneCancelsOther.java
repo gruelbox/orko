@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 @JsonDeserialize(builder = OneCancelsOther.Builder.class)
 public abstract class OneCancelsOther implements Job {
 
-  public static final Builder builder() {
+  public static Builder builder() {
     return new AutoValue_OneCancelsOther.Builder().verbose(true);
   }
 
@@ -114,7 +114,7 @@ public abstract class OneCancelsOther implements Job {
   }
 
   public interface Processor extends JobProcessor<OneCancelsOther> {
-    public interface ProcessorFactory extends JobProcessor.Factory<OneCancelsOther> {
+    interface ProcessorFactory extends JobProcessor.Factory<OneCancelsOther> {
       @Override
       Processor create(OneCancelsOther job, JobControl jobControl);
     }

@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
 @JsonDeserialize(builder = ScriptJob.Builder.class)
 public abstract class ScriptJob implements Job {
 
-  public static final Builder builder() {
+  public static Builder builder() {
     return new AutoValue_ScriptJob.Builder().state(ImmutableMap.of());
   }
 
@@ -97,7 +97,7 @@ public abstract class ScriptJob implements Job {
   }
 
   public interface Processor extends JobProcessor<ScriptJob> {
-    public interface ProcessorFactory extends JobProcessor.Factory<ScriptJob> {
+    interface ProcessorFactory extends JobProcessor.Factory<ScriptJob> {
       @Override
       Processor create(ScriptJob job, JobControl jobControl);
     }

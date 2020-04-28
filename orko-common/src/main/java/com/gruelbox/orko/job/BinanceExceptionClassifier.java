@@ -42,7 +42,7 @@ final class BinanceExceptionClassifier {
               ));
 
   static <T> T call(Callable<T> callable)
-      throws DuplicateOrderException, RetriableBinanceException, Exception {
+      throws Exception {
     try {
       return callable.call();
     } catch (BinanceException e) {
