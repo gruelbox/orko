@@ -182,14 +182,14 @@ class ExchangeServiceImpl implements ExchangeService {
                             })
                         .map(
                             rateLimiter ->
-                                new RateController(exchangeName, rateLimiter, THROTTLE_DURATION))
+                                new GuavaRateController(exchangeName, rateLimiter, THROTTLE_DURATION))
                         .orElseGet(
                             () -> {
                               LOGGER.info(
                                   "Rate limit for [{}] is unknown, defaulting to: {}",
                                   exchangeName,
                                   DEFAULT_RATE);
-                              return new RateController(
+                              return new GuavaRateController(
                                   exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
                             });
                   } catch (Exception e) {
@@ -199,7 +199,7 @@ class ExchangeServiceImpl implements ExchangeService {
                             + "], defaulting to "
                             + DEFAULT_RATE,
                         e);
-                    return new RateController(
+                    return new GuavaRateController(
                         exchangeName, asLimiter(DEFAULT_RATE), THROTTLE_DURATION);
                   }
                 }
