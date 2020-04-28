@@ -186,7 +186,7 @@ public final class SubscriptionPublisher implements MarketDataSubscriptionManage
 
       @Override
       public void emitBalance(Balance balance) {
-        SubscriptionPublisher.this.emit(BalanceEvent.create(balance.getCurrency().getCurrencyCode(), balance));
+        SubscriptionPublisher.this.emit(BalanceEvent.create(exchangeName, balance));
       }
 
       @Override
