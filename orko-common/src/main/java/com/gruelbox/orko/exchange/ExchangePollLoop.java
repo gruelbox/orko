@@ -19,19 +19,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
-import com.google.common.util.concurrent.Service;
 import com.gruelbox.orko.notification.NotificationService;
-import com.gruelbox.orko.spi.TickerSpec;
 import com.gruelbox.orko.util.CheckedExceptions.ThrowingRunnable;
 import com.gruelbox.orko.util.SafelyDispose;
 import info.bitrich.xchangestream.core.ProductSubscription;
 import info.bitrich.xchangestream.core.ProductSubscription.ProductSubscriptionBuilder;
 import info.bitrich.xchangestream.core.StreamingExchange;
-import io.reactivex.Completable;
-import io.reactivex.CompletableEmitter;
-import io.reactivex.CompletableOnSubscribe;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -45,20 +39,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.bitfinex.v1.dto.BitfinexExceptionV1;
 import org.knowm.xchange.currency.Currency;
@@ -67,6 +58,7 @@ import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.account.Balance;
 import org.knowm.xchange.dto.account.Wallet;
 import org.knowm.xchange.dto.marketdata.OrderBook;
+import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
@@ -88,8 +80,6 @@ import org.knowm.xchange.service.trade.params.TradeHistoryParams;
 import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import si.mazi.rescu.HttpStatusIOException;
 
 /**
@@ -111,7 +101,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   private final Supplier<TradeService> tradeServiceSupplier;
   private final RateController rateController;
   private final NotificationService notificationService;
-  private final SubscriptionPublisher publisher;
+  private final ExchangePollLoopPublisher publisher;
   private final long blockSeconds;
   private final boolean authenticated;
 
@@ -126,21 +116,21 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   private Exception lastPollException;
   private LocalDateTime lastPollErrorNotificationTime;
 
-  private AtomicReference<Set<Subscription>> nextSubscriptions = new AtomicReference<>();
-  private Set<Subscription> subscriptions = Set.of();
-  private Set<Subscription> polls = Set.of();
+  private AtomicReference<Set<ExchangePollLoopSubscription>> nextSubscriptions = new AtomicReference<>();
+  private Set<ExchangePollLoopSubscription> subscriptions = Set.of();
+  private Set<ExchangePollLoopSubscription> polls = Set.of();
   private Collection<Disposable> disposables = List.of();
-  private Set<Subscription> unavailableSubscriptions = Set.of();
+  private Set<ExchangePollLoopSubscription> unavailableSubscriptions = Set.of();
 
   // TODO FIx this
-  private final ConcurrentMap<TickerSpec, Instant> mostRecentTrades = Maps.newConcurrentMap();
+  private final ConcurrentMap<CurrencyPair, Instant> mostRecentTrades = Maps.newConcurrentMap();
 
   ExchangePollLoop(String exchangeName, Exchange exchange,
       Supplier<AccountService> accountServiceSupplier,
       Supplier<TradeService> tradeServiceSupplier,
       RateController rateController,
       NotificationService notificationService,
-      SubscriptionPublisher publisher,
+      ExchangePollLoopPublisher publisher,
       long blockSeconds,
       boolean authenticated) {
 
@@ -168,7 +158,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     return exchangeName;
   }
 
-  public void updateSubscriptions(Iterable<Subscription> subscriptions) {
+  public void updateSubscriptions(Iterable<ExchangePollLoopSubscription> subscriptions) {
     log.debug("Requesting update of subscriptions for {} to {}", exchangeName, subscriptions);
     nextSubscriptions.set(ImmutableSet.copyOf(subscriptions));
     wake();
@@ -241,7 +231,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     // Check if we have any polling to do. If not, go to sleep until awoken
     // by a subscription change, unless we failed to process subscriptions,
     // in which case wake ourselves up in a few seconds to try again
-    Set<Subscription> polls = activePolls();
+    Set<ExchangePollLoopSubscription> polls = activePolls();
     if (polls.isEmpty()) {
       suspend(exchangeName, phase, subscriptionsFailed);
       return;
@@ -249,7 +239,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
 
     log.debug("{} - start poll", exchangeName);
     Set<Currency> balanceCurrencies = new HashSet<>();
-    for (Subscription subscription : polls) {
+    for (ExchangePollLoopSubscription subscription : polls) {
       if (phaser.isTerminated()) break;
       if (subscription.type().equals(BALANCE)) {
         balanceCurrencies.add(subscription.currencyPair().base);
@@ -267,7 +257,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
           "Balances",
           () ->
               fetchBalances(balanceCurrencies)
-                  .forEach(b -> publisher.emit(BalanceEvent.create(exchangeName, b))),
+                  .forEach(publisher::emitBalance),
           () -> FluentIterable.from(polls).filter(s -> s.type().equals(BALANCE)));
     }
   }
@@ -300,7 +290,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   private void manageExchangeExceptions(
       String dataDescription,
       ThrowingRunnable runnable,
-      Supplier<Iterable<Subscription>> toUnsubscribe)
+      Supplier<Iterable<ExchangePollLoopSubscription>> toUnsubscribe)
       throws InterruptedException {
     try {
       runnable.run();
@@ -431,13 +421,13 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
 
     // Pull the subscription change off the queue. If there isn't one,
     // we're done
-    Set<Subscription> newSubscriptions = nextSubscriptions.getAndSet(null);
+    Set<ExchangePollLoopSubscription> newSubscriptions = nextSubscriptions.getAndSet(null);
     if (newSubscriptions == null) return;
 
     try {
 
       // Get the current subscriptions
-      Set<Subscription> oldSubscriptions =
+      Set<ExchangePollLoopSubscription> oldSubscriptions =
           Streams.concat(subscriptions.stream(), polls.stream())
               .collect(toSet());
 
@@ -462,7 +452,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
       // Clear cached tickers and order books for anything we've unsubscribed so that we don't
       // feed out-of-date data
       Sets.difference(oldSubscriptions, newSubscriptions)
-          .forEach(s -> publisher.clearCacheForSubscription(toMarketDataSubscription(s)));
+          .forEach(publisher::clearCacheForSubscription);
 
       // Add new subscriptions if we have any
       if (newSubscriptions.isEmpty()) {
@@ -481,23 +471,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     }
   }
 
-  private MarketDataSubscription toMarketDataSubscription(Subscription s) {
-    return MarketDataSubscription.create(toSpec(s), s.type());
-  }
-
-  private TickerSpec toSpec(Subscription s) {
-    return toSpec(s.currencyPair());
-}
-
-  private TickerSpec toSpec(CurrencyPair currencyPair) {
-    return TickerSpec.builder()
-        .exchange(exchangeName)
-        .base(currencyPair.base.getCurrencyCode())
-        .counter(currencyPair.counter.getCurrencyCode())
-        .build();
-  }
-
-  private Set<Subscription> activePolls() {
+  private Set<ExchangePollLoopSubscription> activePolls() {
     return polls.stream()
         .filter(s -> !unavailableSubscriptions.contains(s))
         .collect(toSet());
@@ -513,17 +487,16 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
         log.error("Error disconnecting from " + exchangeName, e);
       }
     } else {
-      mostRecentTrades.entrySet().removeIf(
-          entry -> entry.getKey().exchange().equals(exchangeName));
+      mostRecentTrades.clear();
     }
   }
 
-  private void subscribe(Set<Subscription> newSubscriptions) {
+  private void subscribe(Set<ExchangePollLoopSubscription> newSubscriptions) {
 
-    Builder<Subscription> pollingBuilder = ImmutableSet.builder();
+    Builder<ExchangePollLoopSubscription> pollingBuilder = ImmutableSet.builder();
 
     if (streamingExchange != null) {
-      Set<Subscription> remainingSubscriptions =
+      Set<ExchangePollLoopSubscription> remainingSubscriptions =
           openSubscriptionsWherePossible(newSubscriptions);
       pollingBuilder.addAll(remainingSubscriptions);
     } else {
@@ -534,23 +507,23 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     log.debug("{} - polls now set to: {}", exchangeName, polls);
   }
 
-  private Set<Subscription> openSubscriptionsWherePossible(
-      Set<Subscription> newSubscriptions) {
+  private Set<ExchangePollLoopSubscription> openSubscriptionsWherePossible(
+      Set<ExchangePollLoopSubscription> newSubscriptions) {
 
     connectExchange(newSubscriptions);
 
-    HashSet<Subscription> connected = new HashSet<>(newSubscriptions);
-    Builder<Subscription> remainder = ImmutableSet.builder();
+    HashSet<ExchangePollLoopSubscription> connected = new HashSet<>(newSubscriptions);
+    Builder<ExchangePollLoopSubscription> remainder = ImmutableSet.builder();
     List<Disposable> disposables = new ArrayList<>();
 
-    Consumer<Subscription> markAsNotSubscribed =
+    Consumer<ExchangePollLoopSubscription> markAsNotSubscribed =
         s -> {
           remainder.add(s);
           connected.remove(s);
         };
 
     Set<Currency> balanceCurrencies = new HashSet<>();
-    for (Subscription s : newSubscriptions) {
+    for (ExchangePollLoopSubscription s : newSubscriptions) {
 
       // User trade and balance subscriptions, for now, we will poll even if we are
       // already getting them from the socket. This will persist until we can
@@ -583,9 +556,8 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
             streamingExchange
                 .getStreamingAccountService()
                 .getBalanceChanges(currency, "exchange") // TODO bitfinex walletId. Should manage multiple wallets properly
-                .map(b -> BalanceEvent.create(exchangeName, b)) // TODO consider timestamping?
                 .subscribe(
-                    publisher::emit,
+                    publisher::emitBalance,
                     e ->
                         log.error(
                             "Error in balance stream for " + exchangeName + "/" + currency, e)));
@@ -607,45 +579,37 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     return remainder.build();
   }
 
-  private Disposable connectSubscription(Subscription sub) {
-    TickerSpec spec = toSpec(sub);
+  private Disposable connectSubscription(ExchangePollLoopSubscription sub) {
     switch (sub.type()) {
       case ORDERBOOK:
         return streamingExchange
             .getStreamingMarketDataService()
             .getOrderBook(sub.currencyPair())
-            .map(t -> OrderBookEvent.create(spec, t))
+            .map(ob -> Pair.of(sub.currencyPair(), ob))
             .subscribe(
-                publisher::emit, e -> log.error("Error in order book stream for " + sub, e));
+                publisher::emitOrderBook, e -> log.error("Error in order book stream for " + sub, e));
       case TICKER:
         return streamingExchange
             .getStreamingMarketDataService()
             .getTicker(sub.currencyPair())
-            .map(t -> TickerEvent.create(spec, t))
             .subscribe(
-                publisher::emit, e -> log.error("Error in ticker stream for " + sub, e));
+                publisher::emitTicker, e -> log.error("Error in ticker stream for " + sub, e));
       case TRADES:
         return streamingExchange
             .getStreamingMarketDataService()
             .getTrades(sub.currencyPair())
-            .map(t -> convertBinanceOrderType(sub, t))
-            .map(t -> TradeEvent.create(spec, t))
-            .subscribe(publisher::emit, e -> log.error("Error in trade stream for " + sub, e));
+            .map(this::convertBinanceOrderType)
+            .subscribe(publisher::emitTrade, e -> log.error("Error in trade stream for " + sub, e));
       case USER_TRADE:
         return streamingExchange
             .getStreamingTradeService()
             .getUserTrades(sub.currencyPair())
-            .map(t -> UserTradeEvent.create(spec, t))
-            .subscribe(publisher::emit, e -> log.error("Error in trade stream for " + sub, e));
+            .subscribe(publisher::emitUserTrade, e -> log.error("Error in trade stream for " + sub, e));
       case ORDER:
         return streamingExchange
             .getStreamingTradeService()
             .getOrderChanges(sub.currencyPair())
-            .map(
-                t ->
-                    OrderChangeEvent.create(
-                        spec, t, new Date())) // TODO need server side timestamping
-            .subscribe(publisher::emit, e -> log.error("Error in order stream for " + sub, e));
+            .subscribe(publisher::emitOrder, e -> log.error("Error in order stream for " + sub, e));
       default:
         throw new NotAvailableFromExchangeException();
     }
@@ -654,7 +618,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   /**
    * TODO Temporary fix for https://github.com/knowm/XChange/issues/2468#issuecomment-441440035
    */
-  private Trade convertBinanceOrderType(Subscription sub, Trade t) {
+  private Trade convertBinanceOrderType(Trade t) {
     if (exchangeName.equals(Exchanges.BINANCE)) {
       return Trade.Builder.from(t).type(t.getType() == BID ? ASK : BID).build();
     } else {
@@ -662,7 +626,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     }
   }
 
-  private void connectExchange(Collection<Subscription> subscriptionsForExchange) {
+  private void connectExchange(Collection<ExchangePollLoopSubscription> subscriptionsForExchange) {
     if (subscriptionsForExchange.isEmpty()) return;
     log.info("Connecting to exchange: {}", exchangeName);
     ProductSubscriptionBuilder builder = ProductSubscription.create();
@@ -705,10 +669,8 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
 
   private Iterable<Balance> fetchBalances(Collection<Currency> currencies) throws IOException {
     Map<Currency, Balance> result = new HashMap<>();
-    currencies.stream()
-        .forEach(currency -> result.put(currency, Balance.zero(currency)));
-    wallet().getBalances().entrySet().stream()
-        .map(Entry::getValue)
+    currencies.forEach(currency -> result.put(currency, Balance.zero(currency)));
+    wallet().getBalances().values().stream()
         .filter(balance -> currencies.contains(balance.getCurrency()))
         .forEach(balance -> result.put(balance.getCurrency(), balance));
     return result.values();
@@ -731,7 +693,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     return wallet;
   }
 
-  private void fetchAndBroadcast(Subscription subscription)
+  private void fetchAndBroadcast(ExchangePollLoopSubscription subscription)
       throws InterruptedException {
     rateController.acquire();
     manageExchangeExceptions(
@@ -769,7 +731,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
     tradeService
         .getTradeHistory(tradeHistoryParams)
         .getUserTrades()
-        .forEach(trade -> publisher.emit(UserTradeEvent.create(toSpec(currencyPair), trade)));
+        .forEach(publisher::emitUserTrade);
   }
 
   @SuppressWarnings("unchecked")
@@ -781,25 +743,24 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
 
     // TODO GDAX PR required
     if (exchangeName.equals(Exchanges.GDAX)) {
-      ImmutableList<LimitOrder> filteredOpen =
-          FluentIterable.from(fetched.getOpenOrders()).filter(openOrdersParams::accept).toList();
-      ImmutableList<? extends Order> filteredHidden =
-          FluentIterable.from(fetched.getHiddenOrders()).toList();
+      List<LimitOrder> filteredOpen =
+          fetched.getOpenOrders().stream().filter(openOrdersParams::accept)
+              .collect(Collectors.toList());
+      List<? extends Order> filteredHidden = new ArrayList<>(fetched.getHiddenOrders());
       fetched = new OpenOrders(filteredOpen, (List<Order>) filteredHidden);
     }
 
-    publisher.emit(OpenOrdersEvent.create(toSpec(currencyPair), fetched, originatingTimestamp));
+    publisher.emitOpenOrders(Pair.of(currencyPair, fetched), originatingTimestamp);
   }
 
   private void pollAndEmitTrades(CurrencyPair currencyPair) throws IOException {
-    var spec = toSpec(currencyPair);
     marketDataService
         .getTrades(currencyPair)
         .getTrades()
         .forEach(
             t ->
                 mostRecentTrades.compute(
-                    spec,
+                    currencyPair,
                     (k, previousTiming) -> {
                       Instant thisTradeTiming = t.getTimestamp().toInstant();
                       Instant newMostRecent = previousTiming;
@@ -807,7 +768,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
                         newMostRecent = thisTradeTiming;
                       } else if (thisTradeTiming.isAfter(previousTiming)) {
                         newMostRecent = thisTradeTiming;
-                        publisher.emit(TradeEvent.create(spec, t));
+                        publisher.emitTrade(t);
                       }
                       return newMostRecent;
                     }));
@@ -816,7 +777,7 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   private void pollAndEmitOrderbook(CurrencyPair currencyPair) throws IOException {
     OrderBook orderBook =
         marketDataService.getOrderBook(currencyPair, exchangeOrderbookArgs());
-    publisher.emit(OrderBookEvent.create(toSpec(currencyPair), orderBook));
+    publisher.emitOrderBook(Pair.of(currencyPair, orderBook));
   }
 
   private Object[] exchangeOrderbookArgs() {
@@ -828,7 +789,26 @@ final class ExchangePollLoop extends AbstractExecutionThreadService {
   }
 
   private void pollAndEmitTicker(CurrencyPair currencyPair) throws IOException {
-    publisher.emit(TickerEvent.create(toSpec(currencyPair), marketDataService.getTicker(currencyPair)));
+    Ticker ticker = marketDataService.getTicker(currencyPair);
+    // TODO bug in XChange simulated exchange to fix
+    if (ticker.getCurrencyPair() == null) {
+      ticker = new Ticker.Builder()
+          .bid(ticker.getBid())
+          .ask(ticker.getAsk())
+          .last(ticker.getLast())
+          .timestamp(ticker.getTimestamp())
+          .currencyPair(currencyPair)
+          .volume(ticker.getVolume())
+          .askSize(ticker.getAskSize())
+          .bidSize(ticker.getBidSize())
+          .high(ticker.getHigh())
+          .low(ticker.getLow())
+          .open(ticker.getOpen())
+          .quoteVolume(ticker.getQuoteVolume())
+          .vwap(ticker.getVwap())
+          .build();
+    }
+    publisher.emitTicker(ticker);
   }
 
   private TradeHistoryParams tradeHistoryParams(CurrencyPair currencyPair) {

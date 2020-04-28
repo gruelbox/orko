@@ -69,7 +69,7 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
                 () -> tradeServiceFactory.getForExchange(e),
                 exchangeService.rateController(e),
                 notificationService,
-                publisher,
+                publisher.toPollLoopPublisher(e),
                 configuration.getLoopSeconds(),
                 exchangeService.isAuthenticated(e)))));
     publisher.setController(this);

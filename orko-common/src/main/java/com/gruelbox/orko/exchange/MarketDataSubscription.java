@@ -47,7 +47,7 @@ public abstract class MarketDataSubscription {
     return key();
   }
 
-  Subscription toSubscription() {
-    return new Subscription(spec().currencyPair(), type());
+  ExchangePollLoopSubscription toSubscription() {
+    return new ExchangePollLoopSubscription(spec().currencyPair(), type());
   }
 }

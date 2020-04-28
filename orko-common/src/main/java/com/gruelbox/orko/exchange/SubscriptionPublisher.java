@@ -22,7 +22,15 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import java.util.Date;
 import java.util.Set;
+import org.apache.commons.lang3.tuple.Pair;
+import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order;
+import org.knowm.xchange.dto.account.Balance;
+import org.knowm.xchange.dto.marketdata.OrderBook;
+import org.knowm.xchange.dto.marketdata.Ticker;
+import org.knowm.xchange.dto.marketdata.Trade;
+import org.knowm.xchange.dto.trade.OpenOrders;
+import org.knowm.xchange.dto.trade.UserTrade;
 
 /** Central fanout point for market data. */
 @VisibleForTesting
@@ -147,5 +155,66 @@ public final class SubscriptionPublisher implements MarketDataSubscriptionManage
     balanceOut.removeFromCache(subscription.spec().exchange() + "/" + subscription.spec().base());
     balanceOut.removeFromCache(
         subscription.spec().exchange() + "/" + subscription.spec().counter());
+  }
+
+  ExchangePollLoopPublisher toPollLoopPublisher(String exchangeName) {
+    return new ExchangePollLoopPublisher() {
+      @Override
+      public void emitTicker(Ticker ticker) {
+        SubscriptionPublisher.this.emit(TickerEvent.create(toSpec(ticker.getCurrencyPair()), ticker));
+      }
+
+      @Override
+      public void emitOpenOrders(Pair<CurrencyPair, OpenOrders> openOrders, Date timestamp) {
+        SubscriptionPublisher.this.emit(OpenOrdersEvent.create(toSpec(openOrders.getLeft()), openOrders.getRight(), timestamp));
+      }
+
+      @Override
+      public void emitOrderBook(Pair<CurrencyPair, OrderBook> currencyPairOrderBookPair) {
+        SubscriptionPublisher.this.emit(OrderBookEvent.create(toSpec(currencyPairOrderBookPair.getLeft()), currencyPairOrderBookPair.getRight()));
+      }
+
+      @Override
+      public void emitTrade(Trade trade) {
+        SubscriptionPublisher.this.emit(TradeEvent.create(toSpec(trade.getCurrencyPair()), trade));
+      }
+
+      @Override
+      public void emitUserTrade(UserTrade trade) {
+        SubscriptionPublisher.this.emit(UserTradeEvent.create(toSpec(trade.getCurrencyPair()), trade));
+      }
+
+      @Override
+      public void emitBalance(Balance balance) {
+        SubscriptionPublisher.this.emit(BalanceEvent.create(balance.getCurrency().getCurrencyCode(), balance));
+      }
+
+      @Override
+      public void emitOrder(Order order) {
+        // TODO need server side timestamping
+        SubscriptionPublisher.this.emit(OrderChangeEvent.create(toSpec(order.getCurrencyPair()), order, new Date()));
+      }
+
+      @Override
+      public void clearCacheForSubscription(ExchangePollLoopSubscription subscription) {
+        SubscriptionPublisher.this.clearCacheForSubscription(toMarketDataSubscription(subscription));
+      }
+
+      private MarketDataSubscription toMarketDataSubscription(ExchangePollLoopSubscription s) {
+        return MarketDataSubscription.create(toSpec(s), s.type());
+      }
+
+      private TickerSpec toSpec(ExchangePollLoopSubscription s) {
+        return toSpec(s.currencyPair());
+      }
+
+      private TickerSpec toSpec(CurrencyPair currencyPair) {
+        return TickerSpec.builder()
+            .exchange(exchangeName)
+            .base(currencyPair.base.getCurrencyCode())
+            .counter(currencyPair.counter.getCurrencyCode())
+            .build();
+      }
+    };
   }
 }

@@ -21,7 +21,7 @@ import org.knowm.xchange.currency.CurrencyPair;
 
 @Value
 @Accessors(fluent = true)
-public class Subscription {
+public class ExchangePollLoopSubscription {
 
   CurrencyPair currencyPair;
   MarketDataType type;
