@@ -18,7 +18,7 @@
     "fetch": "^1.1.0",
     "http-proxy-middleware": "^1.0.3",
     "immutable": "^3.8.2",
-    "polished": "^3.5.1",
+    "polished": "^3.6.1",
     "react": "^16.13.1",
     "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.13.1",
