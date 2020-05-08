@@ -179,10 +179,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     bindings.put("trading", new Trading());
     bindings.put("state", new State());
     bindings.put("decimal", (Function<String, BigDecimal>) BigDecimal::new);
-    bindings.put(
-        "setInterval",
-        (BiFunction<JSObject, Integer, Disposable>)
-            events::setInterval);
+    bindings.put("setInterval", (BiFunction<JSObject, Integer, Disposable>) events::setInterval);
     bindings.put("clearInterval", (Consumer<Disposable>) events::clear);
 
     engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
