@@ -54,7 +54,7 @@ class ClientSecurityHeadersFilter extends AbstractHttpServletFilter {
                   authConfiguration.get().isHttpsOnly() ? "wss" : "ws",
                   httpServletRequest.get().getServerName(),
                   0); // TODO either use httpServletRequest.get().getServerPort() or proxy header if
-                      // behind a proxy
+              // behind a proxy
               // TODO can bind these as plugins in the future to suit different apps if that's ever
               // an issue
               return "default-src 'none'; "
