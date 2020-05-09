@@ -246,16 +246,15 @@
     <skip.surefire.tests>${skipTests}</skip.surefire.tests>
 
     <guice.version>4.2.3</guice.version>
-    <autovalue.version>1.7</autovalue.version>
-    <dropwizard.version>2.0.6</dropwizard.version>
+    <autovalue.version>1.7.1</autovalue.version>
+    <dropwizard.version>2.0.9</dropwizard.version>
     <junit.version>5.6.1</junit.version>
 
     <xchange.groupid>org.knowm.xchange</xchange.groupid>
-    <xchange.version>4.4.2</xchange.version>
+    <xchange.version>5.0.0-SNAPSHOT</xchange.version>
 
-    <xchange.stream.groupid>com.github.badgerwithagun.xchange-stream</xchange.stream.groupid>
-    <xchange.stream.version>refactor-non-blocking-SNAPSHOT</xchange.stream.version>
-
+    <xchange.stream.groupid>com.github.badgerwithagun.xchange</xchange.stream.groupid>
+    <xchange.stream.version>improve-rx-non-blocking-SNAPSHOT</xchange.stream.version>
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.4</morf.version>
 
@@ -396,7 +395,7 @@
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.19</version>
+        <version>8.0.20</version>
       </dependency>
       <dependency>
         <groupId>${morf.groupid}</groupId>
@@ -446,7 +445,7 @@
       <dependency>
         <groupId>org.jooq</groupId>
         <artifactId>jooq</artifactId>
-        <version>3.13.1</version>
+        <version>3.13.2</version>
       </dependency>
 
       <dependency>
@@ -543,24 +542,24 @@
       </dependency>
 
       <dependency>
-        <groupId>${xchange.stream.groupid}</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-stream-core</artifactId>
-        <version>${xchange.stream.version}</version>
+        <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>${xchange.stream.groupid}</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-stream-binance</artifactId>
-        <version>${xchange.stream.version}</version>
+        <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>${xchange.stream.groupid}</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-stream-bitfinex</artifactId>
-        <version>${xchange.stream.version}</version>
+        <version>${xchange.version}</version>
       </dependency>
       <dependency>
-        <groupId>${xchange.stream.groupid}</groupId>
+        <groupId>${xchange.groupid}</groupId>
         <artifactId>xchange-stream-coinbasepro</artifactId>
-        <version>${xchange.stream.version}</version>
+        <version>${xchange.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -632,7 +631,7 @@
             <dependency>
               <groupId>com.puppycrawl.tools</groupId>
               <artifactId>checkstyle</artifactId>
-              <version>8.31</version>
+              <version>8.32</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -736,7 +735,7 @@
         <plugin>
           <groupId>com.google.cloud.tools</groupId>
           <artifactId>jib-maven-plugin</artifactId>
-          <version>2.1.0</version>
+          <version>2.2.0</version>
           <configuration>
             <skip>true</skip>
             <to>

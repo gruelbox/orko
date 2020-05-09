@@ -162,19 +162,19 @@
     </dependency>
 
     <dependency>
-      <groupId>${xchange.stream.groupid}</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-stream-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>${xchange.stream.groupid}</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-stream-coinbasepro</artifactId>
     </dependency>
     <dependency>
-      <groupId>${xchange.stream.groupid}</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-stream-binance</artifactId>
     </dependency>
     <dependency>
-      <groupId>${xchange.stream.groupid}</groupId>
+      <groupId>${xchange.groupid}</groupId>
       <artifactId>xchange-stream-bitfinex</artifactId>
     </dependency>
 
