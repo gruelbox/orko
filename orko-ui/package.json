@@ -14,7 +14,7 @@
     "compare-versions": "^3.6.0",
     "connected-react-router": "^6.8.0",
     "cookies-js": "^1.2.3",
-    "customize-cra": "^0.9.1",
+    "customize-cra": "^1.0.0",
     "fetch": "^1.1.0",
     "http-proxy-middleware": "^1.0.4",
     "immutable": "^3.8.2",
