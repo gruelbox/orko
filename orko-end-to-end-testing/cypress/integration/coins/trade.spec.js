@@ -192,7 +192,7 @@ context("Trading", () => {
     limitTrade("sell", 100, "0.02")
   })
 
-  it("Hidden orders", () => {
+  it("Hidden orders", async () => {
     const createHiddenOrder = ({
       direction,
       amount,
@@ -244,17 +244,18 @@ context("Trading", () => {
     cy.get("@price").then(priceText => {
       const price = Number(priceText)
 
-      /*createHiddenOrder({
+      createHiddenOrder({
         direction: "BUY",
         highPrice: price + 1000,
         highLimitPrice: price + 1100,
         amount: 1
-      })
-      checkCancelServerSideOrder({
-        direction: "buy",
-        amount: "1",
-        stopPrice: price + 1000,
-        limitPrice: price + 1100
+      }).then(response => {
+        checkCancelServerSideOrder({
+          direction: "buy",
+          amount: "1",
+          stopPrice: price + 1000,
+          limitPrice: price + 1100
+        })
       })
 
       createHiddenOrder({
@@ -262,12 +263,13 @@ context("Trading", () => {
         lowPrice: price - 900,
         lowLimitPrice: price - 1000,
         amount: 1
-      })
-      checkCancelServerSideOrder({
-        direction: "buy",
-        amount: "1",
-        stopPrice: price - 900,
-        limitPrice: price - 1000
+      }).then(response => {
+        checkCancelServerSideOrder({
+          direction: "buy",
+          amount: "1",
+          stopPrice: price - 900,
+          limitPrice: price - 1000
+        })
       })
 
       createHiddenOrder({
@@ -275,12 +277,13 @@ context("Trading", () => {
         lowPrice: price - 1000,
         lowLimitPrice: price - 900,
         amount: 1
-      })
-      checkCancelServerSideOrder({
-        direction: "sell",
-        amount: "1",
-        stopPrice: price - 1000,
-        limitPrice: price - 900
+      }).then (response => {
+        checkCancelServerSideOrder({
+          direction: "sell",
+          amount: "1",
+          stopPrice: price - 1000,
+          limitPrice: price - 900
+        })
       })
 
       createHiddenOrder({
@@ -288,13 +291,15 @@ context("Trading", () => {
         highPrice: price + 1100,
         highLimitPrice: price + 1000,
         amount: 1
+      }).then(response => {
+        checkCancelServerSideOrder({
+          direction: "sell",
+          amount: "1",
+          stopPrice: price + 1100,
+          limitPrice: price + 1000
+        })
       })
-      checkCancelServerSideOrder({
-        direction: "sell",
-        amount: "1",
-        stopPrice: price + 1100,
-        limitPrice: price + 1000
-      })*/
+      
     })
   })
 
