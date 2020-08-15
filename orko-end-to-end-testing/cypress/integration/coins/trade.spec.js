@@ -244,7 +244,7 @@ context("Trading", () => {
     cy.get("@price").then(priceText => {
       const price = Number(priceText)
 
-      createHiddenOrder({
+      /*createHiddenOrder({
         direction: "BUY",
         highPrice: price + 1000,
         highLimitPrice: price + 1100,
@@ -294,7 +294,7 @@ context("Trading", () => {
         amount: "1",
         stopPrice: price + 1100,
         limitPrice: price + 1000
-      })
+      })*/
     })
   })
 
