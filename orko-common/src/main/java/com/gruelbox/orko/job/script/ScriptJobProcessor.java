@@ -14,6 +14,7 @@
  */
 package com.gruelbox.orko.job.script;
 
+import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
 import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static com.gruelbox.orko.job.LimitOrderJob.Direction.BUY;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
@@ -28,6 +29,7 @@ import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.gruelbox.orko.auth.Hasher;
 import com.gruelbox.orko.db.Transactionally;
+import com.gruelbox.orko.exchange.BalanceEvent;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
@@ -178,6 +180,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     bindings.put("console", new Console());
     bindings.put("trading", new Trading());
     bindings.put("state", new State());
+    bindings.put("balance", new Balance());
     bindings.put("decimal", (Function<String, BigDecimal>) BigDecimal::new);
     bindings.put("setInterval", (BiFunction<JSObject, Integer, Disposable>) events::setInterval);
     bindings.put("clearInterval", (Consumer<Disposable>) events::clear);
@@ -355,6 +358,42 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
   }
 
+  public final class Balance {
+    public Disposable get(
+        io.reactivex.functions.Consumer<BalanceEvent> handler, JSObject tickerSpec) {
+
+      ExchangeEventSubscription subscription =
+          exchangeEventRegistry.subscribe(
+              MarketDataSubscription.create(convertTickerSpec(tickerSpec), BALANCE));
+
+      Disposable disposable = subscription.getBalances().subscribe(handler);
+
+      return new Disposable() {
+
+        @Override
+        public boolean isDisposed() {
+          return disposable.isDisposed();
+        }
+
+        @Override
+        public void dispose() {
+          SafelyDispose.of(disposable);
+          SafelyClose.the(subscription);
+        }
+
+        @Override
+        public String toString() {
+          return handler.toString();
+        }
+      };
+    }
+
+    @Override
+    public String toString() {
+      return "balance";
+    }
+  }
+
   public final class Trading {
 
     public void limitOrder(JSObject request) {
@@ -432,8 +471,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       io.reactivex.functions.Consumer<TickerEvent> handler,
       TickerSpec tickerSpec,
       String description) {
+
     ExchangeEventSubscription subscription =
         exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, TICKER));
+
     Disposable disposable = subscription.getTickers().subscribe(handler);
 
     return new Disposable() {
