@@ -15,6 +15,8 @@
 package com.gruelbox.orko.job.script;
 
 import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
+import static com.gruelbox.orko.exchange.MarketDataType.OPEN_ORDERS;
+import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
 import static com.gruelbox.orko.job.LimitOrderJob.Direction.BUY;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
@@ -34,6 +36,8 @@ import com.gruelbox.orko.exchange.ExchangeEventRegistry;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
 import com.gruelbox.orko.exchange.MarketDataType;
+import com.gruelbox.orko.exchange.OpenOrdersEvent;
+import com.gruelbox.orko.exchange.OrderBookEvent;
 import com.gruelbox.orko.exchange.TickerEvent;
 import com.gruelbox.orko.job.LimitOrderJob;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
@@ -268,6 +272,22 @@ class ScriptJobProcessor implements ScriptJob.Processor {
           callback.toString());
     }
 
+    public Disposable setOpenOrders(JSObject callback, JSObject tickerSpec) {
+      return onTick(
+          event -> processEvent(() -> callback.call(null, event)),
+          convertTickerSpec(tickerSpec),
+          OPEN_ORDERS,
+          callback.toString());
+    }
+
+    public Disposable setOrderBook(JSObject callback, JSObject tickerSpec) {
+      return onTick(
+          event -> processEvent(() -> callback.call(null, event)),
+          convertTickerSpec(tickerSpec),
+          ORDERBOOK,
+          callback.toString());
+    }
+
     public Disposable setInterval(JSObject callback, Integer timeout) {
       return onInterval(
           () -> processEvent(() -> callback.call(null)), timeout, callback.toString());
@@ -462,6 +482,18 @@ class ScriptJobProcessor implements ScriptJob.Processor {
             subscription
                 .getTickers()
                 .subscribe((io.reactivex.functions.Consumer<TickerEvent>) handler);
+        break;
+      case ORDERBOOK:
+        disposable =
+            subscription
+                .getOrderBooks()
+                .subscribe((io.reactivex.functions.Consumer<OrderBookEvent>) handler);
+        break;
+      case OPEN_ORDERS:
+        disposable =
+            subscription
+                .getOrderSnapshots()
+                .subscribe((io.reactivex.functions.Consumer<OpenOrdersEvent>) handler);
         break;
       default:
         disposable =
