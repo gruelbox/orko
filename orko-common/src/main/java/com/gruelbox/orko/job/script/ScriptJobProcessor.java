@@ -18,6 +18,7 @@ import static com.gruelbox.orko.exchange.MarketDataType.BALANCE;
 import static com.gruelbox.orko.exchange.MarketDataType.OPEN_ORDERS;
 import static com.gruelbox.orko.exchange.MarketDataType.ORDERBOOK;
 import static com.gruelbox.orko.exchange.MarketDataType.TICKER;
+import static com.gruelbox.orko.exchange.MarketDataType.USER_TRADE;
 import static com.gruelbox.orko.job.LimitOrderJob.Direction.BUY;
 import static com.gruelbox.orko.jobrun.spi.Status.FAILURE_PERMANENT;
 import static com.gruelbox.orko.jobrun.spi.Status.RUNNING;
@@ -39,6 +40,7 @@ import com.gruelbox.orko.exchange.MarketDataType;
 import com.gruelbox.orko.exchange.OpenOrdersEvent;
 import com.gruelbox.orko.exchange.OrderBookEvent;
 import com.gruelbox.orko.exchange.TickerEvent;
+import com.gruelbox.orko.exchange.UserTradeEvent;
 import com.gruelbox.orko.job.LimitOrderJob;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
 import com.gruelbox.orko.jobrun.JobSubmitter;
@@ -288,6 +290,14 @@ class ScriptJobProcessor implements ScriptJob.Processor {
           callback.toString());
     }
 
+    public Disposable setUserTrades(JSObject callback, JSObject tickerSpec) {
+      return onTick(
+          event -> processEvent(() -> callback.call(null, event)),
+          convertTickerSpec(tickerSpec),
+          USER_TRADE,
+          callback.toString());
+    }
+
     public Disposable setInterval(JSObject callback, Integer timeout) {
       return onInterval(
           () -> processEvent(() -> callback.call(null)), timeout, callback.toString());
@@ -494,6 +504,12 @@ class ScriptJobProcessor implements ScriptJob.Processor {
             subscription
                 .getOrderSnapshots()
                 .subscribe((io.reactivex.functions.Consumer<OpenOrdersEvent>) handler);
+        break;
+      case USER_TRADE:
+        disposable =
+            subscription
+                .getUserTrades()
+                .subscribe((io.reactivex.functions.Consumer<UserTradeEvent>) handler);
         break;
       default:
         disposable =
