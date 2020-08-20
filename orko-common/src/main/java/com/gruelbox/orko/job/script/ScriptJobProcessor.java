@@ -33,6 +33,7 @@ import com.gruelbox.orko.exchange.BalanceEvent;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
+import com.gruelbox.orko.exchange.MarketDataType;
 import com.gruelbox.orko.exchange.TickerEvent;
 import com.gruelbox.orko.job.LimitOrderJob;
 import com.gruelbox.orko.job.LimitOrderJob.Direction;
@@ -180,7 +181,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     bindings.put("console", new Console());
     bindings.put("trading", new Trading());
     bindings.put("state", new State());
-    bindings.put("balance", new Balance());
     bindings.put("decimal", (Function<String, BigDecimal>) BigDecimal::new);
     bindings.put("setInterval", (BiFunction<JSObject, Integer, Disposable>) events::setInterval);
     bindings.put("clearInterval", (Consumer<Disposable>) events::clear);
@@ -256,6 +256,15 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       return onTick(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
+          TICKER,
+          callback.toString());
+    }
+
+    public Disposable setBalance(JSObject callback, JSObject tickerSpec) {
+      return onTick(
+          event -> processEvent(() -> callback.call(null, event)),
+          convertTickerSpec(tickerSpec),
+          BALANCE,
           callback.toString());
     }
 
@@ -358,42 +367,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
   }
 
-  public final class Balance {
-    public Disposable get(
-        io.reactivex.functions.Consumer<BalanceEvent> handler, JSObject tickerSpec) {
-
-      ExchangeEventSubscription subscription =
-          exchangeEventRegistry.subscribe(
-              MarketDataSubscription.create(convertTickerSpec(tickerSpec), BALANCE));
-
-      Disposable disposable = subscription.getBalances().subscribe(handler);
-
-      return new Disposable() {
-
-        @Override
-        public boolean isDisposed() {
-          return disposable.isDisposed();
-        }
-
-        @Override
-        public void dispose() {
-          SafelyDispose.of(disposable);
-          SafelyClose.the(subscription);
-        }
-
-        @Override
-        public String toString() {
-          return handler.toString();
-        }
-      };
-    }
-
-    @Override
-    public String toString() {
-      return "balance";
-    }
-  }
-
   public final class Trading {
 
     public void limitOrder(JSObject request) {
@@ -467,15 +440,35 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         .build();
   }
 
-  public Disposable onTick(
-      io.reactivex.functions.Consumer<TickerEvent> handler,
+  public <T> Disposable onTick(
+      io.reactivex.functions.Consumer<T> handler,
       TickerSpec tickerSpec,
+      MarketDataType type,
       String description) {
 
     ExchangeEventSubscription subscription =
-        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, TICKER));
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
 
-    Disposable disposable = subscription.getTickers().subscribe(handler);
+    Disposable disposable;
+    switch (type) {
+      case BALANCE:
+        disposable =
+            subscription
+                .getBalances()
+                .subscribe((io.reactivex.functions.Consumer<BalanceEvent>) handler);
+        break;
+      case TICKER:
+        disposable =
+            subscription
+                .getTickers()
+                .subscribe((io.reactivex.functions.Consumer<TickerEvent>) handler);
+        break;
+      default:
+        disposable =
+            subscription
+                .getTickers()
+                .subscribe((io.reactivex.functions.Consumer<TickerEvent>) handler);
+    }
 
     return new Disposable() {
 
