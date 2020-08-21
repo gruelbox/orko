@@ -43,7 +43,7 @@
     "styled-system": "^5.1.5",
     "typescript": "^3.9.7",
     "uuid": "^7.0.3",
-    "whatwg-fetch": "^3.2.0"
+    "whatwg-fetch": "^3.4.0"
   },
   "scripts": {
     "start": "craco start",
