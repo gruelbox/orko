@@ -49,6 +49,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "AwooOOoo",
+      "name": "Paul Matthews",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/17175274?v=4",
+      "profile": "https://github.com/AwooOOoo",
+      "contributions": [
+        "code",
+        "bug",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
