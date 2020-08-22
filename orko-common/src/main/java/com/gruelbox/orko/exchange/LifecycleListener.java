@@ -14,6 +14,8 @@
  */
 package com.gruelbox.orko.exchange;
 
+import com.gruelbox.orko.xtension.ExchangePollLoopLifecycleListener;
+
 /** For testing. Fires signals at key events allowing tests to orchestrate. */
 interface LifecycleListener {
   default void onBlocked(String exchange) {}

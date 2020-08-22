@@ -14,7 +14,6 @@
  */
 package com.gruelbox.orko.exchange;
 
-import static java.util.Collections.emptySet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -26,15 +25,14 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.notification.NotificationService;
 import com.gruelbox.orko.wiring.BackgroundProcessingConfiguration;
+import com.gruelbox.orko.xtension.ExchangePollLoop;
+import com.gruelbox.orko.xtension.RxServiceWrapper;
 import io.dropwizard.lifecycle.Managed;
 import io.reactivex.Completable;
-import io.reactivex.CompletableSource;
 import io.reactivex.Observable;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -48,7 +46,7 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
 
   private final ExchangeService exchangeService;
   private final BackgroundProcessingConfiguration configuration;
-  private final Map<String, RxServiceWrapper<ExchangePollLoop>> pollers;
+  private final Map<String, Polling> pollers;
 
   @Inject
   @VisibleForTesting
@@ -63,15 +61,17 @@ class SubscriptionControllerLocalImpl implements SubscriptionController, Managed
     this.exchangeService = exchangeService;
     this.pollers =
         exchangeService.getExchanges().stream()
-            .collect(toMap(identity(), e -> new RxServiceWrapper<>(new ExchangePollLoop(e,
-                exchangeService.get(e),
-                () -> accountServiceFactory.getForExchange(e),
-                () -> tradeServiceFactory.getForExchange(e),
-                exchangeService.rateController(e),
-                notificationService,
-                publisher.toPollLoopPublisher(e),
-                configuration.getLoopSeconds() * 1000L,
-                exchangeService.isAuthenticated(e)))));
+            .collect(toMap(identity(), e ->
+                new RxServiceWrapper<>(
+                    new ExchangePollLoop(e,
+                        exchangeService.get(e),
+                        () -> accountServiceFactory.getForExchange(e),
+                        () -> tradeServiceFactory.getForExchange(e),
+                        exchangeService.rateController(e),
+                        notificationService,
+                        publisher.toPollLoopPublisher(e),
+                        configuration.getLoopSeconds() * 1000L,
+                        exchangeService.isAuthenticated(e)))));
     publisher.setController(this);
   }
 

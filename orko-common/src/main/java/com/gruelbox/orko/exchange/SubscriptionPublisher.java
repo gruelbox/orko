@@ -18,8 +18,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
 import com.google.inject.Singleton;
 import com.gruelbox.orko.spi.TickerSpec;
+import com.gruelbox.orko.xtension.ExchangePollLoopPublisher;
+import com.gruelbox.orko.xtension.ExchangePollLoopSubscription;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
@@ -185,19 +188,24 @@ public final class SubscriptionPublisher implements MarketDataSubscriptionManage
       }
 
       @Override
-      public void emitBalance(Balance balance) {
+      public void emitBalance(Balance balance, Instant instant) {
         SubscriptionPublisher.this.emit(BalanceEvent.create(exchangeName, balance));
       }
 
       @Override
-      public void emitOrder(Order order) {
+      public void emitOrder(Order order, Instant instant) {
         // TODO need server side timestamping
-        SubscriptionPublisher.this.emit(OrderChangeEvent.create(toSpec(order.getCurrencyPair()), order, new Date()));
+        SubscriptionPublisher.this.emit(OrderChangeEvent.create(toSpec(order.getCurrencyPair()), order, Date.from(instant)));
       }
 
       @Override
       public void clearCacheForSubscription(ExchangePollLoopSubscription subscription) {
         SubscriptionPublisher.this.clearCacheForSubscription(toMarketDataSubscription(subscription));
+      }
+
+      @Override
+      public void clearCaches() {
+        // TODO
       }
 
       private MarketDataSubscription toMarketDataSubscription(ExchangePollLoopSubscription s) {

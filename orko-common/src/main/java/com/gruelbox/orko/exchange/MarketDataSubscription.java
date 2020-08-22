@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.auto.value.AutoValue;
 import com.gruelbox.orko.spi.TickerSpec;
+import com.gruelbox.orko.xtension.ExchangePollLoopSubscription;
 
 @AutoValue
 @JsonDeserialize
