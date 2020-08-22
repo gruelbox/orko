@@ -176,16 +176,29 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
     }
 
     // If we've hit the stop price, we're done
-    if ((job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice) <= 0)
-        || (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(stopPrice) >= 0)) {
-
+    if (job.direction().equals(Direction.SELL) && ticker.getBid().compareTo(stopPrice) <= 0) {
       notificationService.info(
           String.format(
-              "Trailing stop on %s %s/%s market hit stop price (%s < %s)",
+              "Trailing stop on %s %s/%s market hit exit price (%s < %s)",
               job.tickTrigger().exchange(),
               job.tickTrigger().base(),
               job.tickTrigger().counter(),
               ticker.getBid(),
+              stopPrice));
+
+      jobSubmitter.submitNewUnchecked(limitOrderJob);
+
+      jobControl.finish(SUCCESS);
+      done = true;
+      return;
+    } else if (job.direction().equals(Direction.BUY) && ticker.getAsk().compareTo(stopPrice) >= 0) {
+      notificationService.info(
+          String.format(
+              "Trailing stop on %s %s/%s market hit entry price (%s > %s)",
+              job.tickTrigger().exchange(),
+              job.tickTrigger().base(),
+              job.tickTrigger().counter(),
+              ticker.getAsk(),
               stopPrice));
 
       jobSubmitter.submitNewUnchecked(limitOrderJob);
@@ -223,9 +236,7 @@ class SoftTrailingStopProcessor implements SoftTrailingStop.Processor {
           @Override
           public void replace(Job replacement) {
             jobControl.replace(
-                SoftTrailingStopProcessor.this
-                    .job
-                    .toBuilder()
+                SoftTrailingStopProcessor.this.job.toBuilder()
                     .balanceState(((LimitOrderJob) replacement).balanceState())
                     .build());
           }
