@@ -73,7 +73,7 @@ export function listOrders(tickerSpec) {
     })
     .should(response => {
       expect(response.status).to.eq(200)
-      expect(response.body).to.be.an.object
+      expect(response.body).to.be.a("object")
     })
     .its("body")
 }
