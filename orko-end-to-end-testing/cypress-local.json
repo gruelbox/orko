@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://localhost:3000",
-  "blacklistHosts": ["accounts.google.com", "clientservices.googleapis.com"],
+  "blockHosts": ["accounts.google.com", "clientservices.googleapis.com"],
   "video": false,
   "reporter": "junit",
   "reporterOptions": {

@@ -23,7 +23,7 @@ export function clearSubscriptions() {
     })
     .should(response => {
       expect(response.status).to.eq(200)
-      expect(response.body).to.be.an.array
+      expect(response.body).to.be.a("array")
       response.body.forEach(ticker => {
         cy.secureRequest({
           url: "/api/subscriptions",
@@ -73,7 +73,7 @@ export function listOrders(tickerSpec) {
     })
     .should(response => {
       expect(response.status).to.eq(200)
-      expect(response.body).to.be.an.object
+      expect(response.body).to.be.a("object")
     })
     .its("body")
 }
