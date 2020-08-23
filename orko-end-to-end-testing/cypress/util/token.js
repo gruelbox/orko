@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import crypto from "crypto"
-import authenticator from "otplib/authenticator"
+import { authenticator } from "@otplib/preset-v11"
 
 authenticator.options = {
   crypto
