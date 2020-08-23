@@ -267,7 +267,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
 
     public Disposable setBalance(JSObject callback, JSObject tickerSpec) {
-      return onTick(
+      return onBalance(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
           BALANCE,
@@ -275,7 +275,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
 
     public Disposable setOpenOrders(JSObject callback, JSObject tickerSpec) {
-      return onTick(
+      return onOpenOrders(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
           OPEN_ORDERS,
@@ -283,7 +283,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
 
     public Disposable setOrderBook(JSObject callback, JSObject tickerSpec) {
-      return onTick(
+      return onOrderBook(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
           ORDERBOOK,
@@ -291,7 +291,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
 
     public Disposable setUserTrades(JSObject callback, JSObject tickerSpec) {
-      return onTick(
+      return onUserTrades(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
           USER_TRADE,
@@ -470,8 +470,8 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         .build();
   }
 
-  public <T> Disposable onTick(
-      io.reactivex.functions.Consumer<T> handler,
+  public Disposable onTick(
+      io.reactivex.functions.Consumer<TickerEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
       String description) {
@@ -479,44 +479,131 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     ExchangeEventSubscription subscription =
         exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
 
-    Disposable disposable;
-    switch (type) {
-      case BALANCE:
-        disposable =
-            subscription
-                .getBalances()
-                .subscribe((io.reactivex.functions.Consumer<BalanceEvent>) handler);
-        break;
-      case TICKER:
-        disposable =
-            subscription
-                .getTickers()
-                .subscribe((io.reactivex.functions.Consumer<TickerEvent>) handler);
-        break;
-      case ORDERBOOK:
-        disposable =
-            subscription
-                .getOrderBooks()
-                .subscribe((io.reactivex.functions.Consumer<OrderBookEvent>) handler);
-        break;
-      case OPEN_ORDERS:
-        disposable =
-            subscription
-                .getOrderSnapshots()
-                .subscribe((io.reactivex.functions.Consumer<OpenOrdersEvent>) handler);
-        break;
-      case USER_TRADE:
-        disposable =
-            subscription
-                .getUserTrades()
-                .subscribe((io.reactivex.functions.Consumer<UserTradeEvent>) handler);
-        break;
-      default:
-        disposable =
-            subscription
-                .getTickers()
-                .subscribe((io.reactivex.functions.Consumer<TickerEvent>) handler);
-    }
+    Disposable disposable = subscription.getTickers().subscribe(handler);
+
+    return new Disposable() {
+
+      @Override
+      public boolean isDisposed() {
+        return disposable.isDisposed();
+      }
+
+      @Override
+      public void dispose() {
+        SafelyDispose.of(disposable);
+        SafelyClose.the(subscription);
+      }
+
+      @Override
+      public String toString() {
+        return description;
+      }
+    };
+  }
+
+  public Disposable onBalance(
+      io.reactivex.functions.Consumer<BalanceEvent> handler,
+      TickerSpec tickerSpec,
+      MarketDataType type,
+      String description) {
+
+    ExchangeEventSubscription subscription =
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+
+    Disposable disposable = subscription.getBalances().subscribe(handler);
+
+    return new Disposable() {
+
+      @Override
+      public boolean isDisposed() {
+        return disposable.isDisposed();
+      }
+
+      @Override
+      public void dispose() {
+        SafelyDispose.of(disposable);
+        SafelyClose.the(subscription);
+      }
+
+      @Override
+      public String toString() {
+        return description;
+      }
+    };
+  }
+
+  public Disposable onOpenOrders(
+      io.reactivex.functions.Consumer<OpenOrdersEvent> handler,
+      TickerSpec tickerSpec,
+      MarketDataType type,
+      String description) {
+
+    ExchangeEventSubscription subscription =
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+
+    Disposable disposable = subscription.getOrderSnapshots().subscribe(handler);
+
+    return new Disposable() {
+
+      @Override
+      public boolean isDisposed() {
+        return disposable.isDisposed();
+      }
+
+      @Override
+      public void dispose() {
+        SafelyDispose.of(disposable);
+        SafelyClose.the(subscription);
+      }
+
+      @Override
+      public String toString() {
+        return description;
+      }
+    };
+  }
+
+  public Disposable onOrderBook(
+      io.reactivex.functions.Consumer<OrderBookEvent> handler,
+      TickerSpec tickerSpec,
+      MarketDataType type,
+      String description) {
+
+    ExchangeEventSubscription subscription =
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+
+    Disposable disposable = subscription.getOrderBooks().subscribe(handler);
+
+    return new Disposable() {
+
+      @Override
+      public boolean isDisposed() {
+        return disposable.isDisposed();
+      }
+
+      @Override
+      public void dispose() {
+        SafelyDispose.of(disposable);
+        SafelyClose.the(subscription);
+      }
+
+      @Override
+      public String toString() {
+        return description;
+      }
+    };
+  }
+
+  public Disposable onUserTrades(
+      io.reactivex.functions.Consumer<UserTradeEvent> handler,
+      TickerSpec tickerSpec,
+      MarketDataType type,
+      String description) {
+
+    ExchangeEventSubscription subscription =
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+
+    Disposable disposable = subscription.getUserTrades().subscribe(handler);
 
     return new Disposable() {
 
