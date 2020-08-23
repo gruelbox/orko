@@ -20,7 +20,7 @@ import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
 import StopTakeProfit from "../components/StopTakeProfit"
 import { getSelectedCoin } from "../selectors/coins"
-import uuidv4 from "uuid/v4"
+import { v4 as uuidv4 } from "uuid"
 import { withFramework } from "FrameworkContainer"
 import { JobType, withServer } from "modules/server"
 

@@ -26,7 +26,7 @@ import { newScript, newParameter } from "../store/scripting/reducer"
 import * as scriptActions from "../store/scripting/actions"
 import { replaceInArray } from "modules/common/util/objectUtils"
 
-import uuidv4 from "uuid/v4"
+import { v4 as uuidv4 } from "uuid"
 import { withAuth } from "modules/auth"
 
 const NEW_SCRIPT_ROUTE = "new"
