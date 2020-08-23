@@ -18,7 +18,7 @@
 import React from "react"
 import { connect } from "react-redux"
 import Immutable from "seamless-immutable"
-import uuidv4 from "uuid/v4"
+import { v4 as uuidv4 } from "uuid"
 import TrailingStopOrder from "../components/TrailingStopOrder"
 import { isValidNumber } from "modules/common/util/numberUtils"
 import { getSelectedCoin } from "../selectors/coins"
