@@ -23,7 +23,7 @@ import ViewSource from "../components/ViewSource"
 
 import { getSelectedCoin } from "../selectors/coins"
 
-import uuidv4 from "uuid/v4"
+import { v4 as uuidv4 } from "uuid"
 import { withServer } from "modules/server"
 
 class ScriptContainer extends React.Component {
@@ -33,42 +33,42 @@ class ScriptContainer extends React.Component {
       name: "",
       script: undefined,
       parameters: {},
-      viewSource: false
+      viewSource: false,
     }
   }
 
-  onChangeName = name => {
+  onChangeName = (name) => {
     this.setState({
-      name
+      name,
     })
   }
 
-  onChangeScript = script => {
+  onChangeScript = (script) => {
     this.setState({
       name: script.name,
       script,
       parameters: script.parameters.reduce((o, p) => {
         o[p.name] = p.default ? p.default : ""
         return o
-      }, {})
+      }, {}),
     })
   }
 
-  onChangeParameters = parameters => {
+  onChangeParameters = (parameters) => {
     this.setState({
-      parameters
+      parameters,
     })
   }
 
   onViewSource = () => {
     this.setState({
-      viewSource: true
+      viewSource: true,
     })
   }
 
   onCloseSource = () => {
     this.setState({
-      viewSource: false
+      viewSource: false,
     })
   }
 
@@ -76,7 +76,7 @@ class ScriptContainer extends React.Component {
     return {
       id: uuidv4(),
       name: this.state.name,
-      script: this.generateScript()
+      script: this.generateScript(),
     }
   }
 
@@ -129,7 +129,7 @@ function mapStateToProps(state) {
   return {
     auth: state.auth,
     scripts: state.scripting.scripts,
-    coin: getSelectedCoin(state)
+    coin: getSelectedCoin(state),
   }
 }
 
