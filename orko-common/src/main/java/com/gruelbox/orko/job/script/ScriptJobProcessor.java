@@ -354,8 +354,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
           @Override
           public void set(String key, String value) {
-            HashMap<String, String> newState = new HashMap<>();
-            newState.putAll(job.state());
+            HashMap<String, String> newState = new HashMap<>(job.state());
             newState.put(key, value);
             jobControl.replace(job.toBuilder().state(newState).build());
           }
@@ -367,8 +366,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
           @Override
           public void remove(String key) {
-            HashMap<String, String> newState = new HashMap<>();
-            newState.putAll(job.state());
+            HashMap<String, String> newState = new HashMap<>(job.state());
             newState.remove(key);
             jobControl.replace(job.toBuilder().state(newState).build());
           }
@@ -428,13 +426,13 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   }
 
   public interface StateManager<T> {
-    public T get(String key);
+    T get(String key);
 
-    public void set(String key, T value);
+    void set(String key, T value);
 
-    public void remove(String key);
+    void remove(String key);
 
-    public void increment(String key);
+    void increment(String key);
   }
 
   Disposable onInterval(Runnable runnable, long timeout, String description) {
@@ -470,7 +468,35 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         .build();
   }
 
-  public Disposable onTick(
+  public class DisposableSubscription implements Disposable {
+    private ExchangeEventSubscription subscription;
+    private Disposable disposable;
+    private String description;
+
+    public DisposableSubscription(ExchangeEventSubscription subs, Disposable disp, String desc) {
+      subscription = subs;
+      disposable = disp;
+      description = desc;
+    }
+
+    @Override
+    public boolean isDisposed() {
+      return disposable.isDisposed();
+    }
+
+    @Override
+    public void dispose() {
+      SafelyDispose.of(disposable);
+      SafelyClose.the(subscription);
+    }
+
+    @Override
+    public String toString() {
+      return description;
+    }
+  }
+
+  public DisposableSubscription onTick(
       io.reactivex.functions.Consumer<TickerEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -481,27 +507,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     Disposable disposable = subscription.getTickers().subscribe(handler);
 
-    return new Disposable() {
-
-      @Override
-      public boolean isDisposed() {
-        return disposable.isDisposed();
-      }
-
-      @Override
-      public void dispose() {
-        SafelyDispose.of(disposable);
-        SafelyClose.the(subscription);
-      }
-
-      @Override
-      public String toString() {
-        return description;
-      }
-    };
+    return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public Disposable onBalance(
+  public DisposableSubscription onBalance(
       io.reactivex.functions.Consumer<BalanceEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -512,27 +521,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     Disposable disposable = subscription.getBalances().subscribe(handler);
 
-    return new Disposable() {
-
-      @Override
-      public boolean isDisposed() {
-        return disposable.isDisposed();
-      }
-
-      @Override
-      public void dispose() {
-        SafelyDispose.of(disposable);
-        SafelyClose.the(subscription);
-      }
-
-      @Override
-      public String toString() {
-        return description;
-      }
-    };
+    return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public Disposable onOpenOrders(
+  public DisposableSubscription onOpenOrders(
       io.reactivex.functions.Consumer<OpenOrdersEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -543,27 +535,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     Disposable disposable = subscription.getOrderSnapshots().subscribe(handler);
 
-    return new Disposable() {
-
-      @Override
-      public boolean isDisposed() {
-        return disposable.isDisposed();
-      }
-
-      @Override
-      public void dispose() {
-        SafelyDispose.of(disposable);
-        SafelyClose.the(subscription);
-      }
-
-      @Override
-      public String toString() {
-        return description;
-      }
-    };
+    return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public Disposable onOrderBook(
+  public DisposableSubscription onOrderBook(
       io.reactivex.functions.Consumer<OrderBookEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -574,27 +549,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     Disposable disposable = subscription.getOrderBooks().subscribe(handler);
 
-    return new Disposable() {
-
-      @Override
-      public boolean isDisposed() {
-        return disposable.isDisposed();
-      }
-
-      @Override
-      public void dispose() {
-        SafelyDispose.of(disposable);
-        SafelyClose.the(subscription);
-      }
-
-      @Override
-      public String toString() {
-        return description;
-      }
-    };
+    return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public Disposable onUserTrades(
+  public DisposableSubscription onUserTrades(
       io.reactivex.functions.Consumer<UserTradeEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -605,24 +563,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
 
     Disposable disposable = subscription.getUserTrades().subscribe(handler);
 
-    return new Disposable() {
-
-      @Override
-      public boolean isDisposed() {
-        return disposable.isDisposed();
-      }
-
-      @Override
-      public void dispose() {
-        SafelyDispose.of(disposable);
-        SafelyClose.the(subscription);
-      }
-
-      @Override
-      public String toString() {
-        return description;
-      }
-    };
+    return new DisposableSubscription(subscription, disposable, description);
   }
 
   private void notifyAndLogError(String message) {
