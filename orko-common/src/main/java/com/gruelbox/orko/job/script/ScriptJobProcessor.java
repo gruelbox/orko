@@ -353,31 +353,31 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         new StateManager<>() {
 
           @Override
-          public void set(String key, String value) {
+          public final void set(String key, String value) {
             HashMap<String, String> newState = new HashMap<>(job.state());
             newState.put(key, value);
             jobControl.replace(job.toBuilder().state(newState).build());
           }
 
           @Override
-          public String get(String key) {
+          public final String get(String key) {
             return job.state().get(key);
           }
 
           @Override
-          public void remove(String key) {
+          public final void remove(String key) {
             HashMap<String, String> newState = new HashMap<>(job.state());
             newState.remove(key);
             jobControl.replace(job.toBuilder().state(newState).build());
           }
 
           @Override
-          public String toString() {
+          public final String toString() {
             return job.state().toString();
           }
 
           @Override
-          public void increment(String key) {
+          public final void increment(String key) {
             String value = get(key);
             try {
               long asLong = Long.parseLong(value);
@@ -468,15 +468,16 @@ class ScriptJobProcessor implements ScriptJob.Processor {
         .build();
   }
 
-  public class DisposableSubscription implements Disposable {
-    private ExchangeEventSubscription subscription;
-    private Disposable disposable;
-    private String description;
+  public final class DisposableSubscription implements Disposable {
+    private final ExchangeEventSubscription subscription;
+    private final Disposable disposable;
+    private final String description;
 
-    public DisposableSubscription(ExchangeEventSubscription subs, Disposable disp, String desc) {
-      subscription = subs;
-      disposable = disp;
-      description = desc;
+    public DisposableSubscription(
+        ExchangeEventSubscription subscription, Disposable disposable, String description) {
+      this.subscription = subscription;
+      this.disposable = disposable;
+      this.description = description;
     }
 
     @Override
@@ -496,7 +497,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     }
   }
 
-  public DisposableSubscription onTick(
+  public final DisposableSubscription onTick(
       io.reactivex.functions.Consumer<TickerEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -510,7 +511,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public DisposableSubscription onBalance(
+  public final DisposableSubscription onBalance(
       io.reactivex.functions.Consumer<BalanceEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -524,7 +525,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public DisposableSubscription onOpenOrders(
+  public final DisposableSubscription onOpenOrders(
       io.reactivex.functions.Consumer<OpenOrdersEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -538,7 +539,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public DisposableSubscription onOrderBook(
+  public final DisposableSubscription onOrderBook(
       io.reactivex.functions.Consumer<OrderBookEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
@@ -552,7 +553,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
     return new DisposableSubscription(subscription, disposable, description);
   }
 
-  public DisposableSubscription onUserTrades(
+  public final DisposableSubscription onUserTrades(
       io.reactivex.functions.Consumer<UserTradeEvent> handler,
       TickerSpec tickerSpec,
       MarketDataType type,
