@@ -537,7 +537,7 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       String description) {
 
     ExchangeEventSubscription subscription =
-        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, ORDER_BOOK));
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, ORDERBOOK));
 
     Disposable disposable = subscription.getOrderBooks().subscribe(handler);
 
