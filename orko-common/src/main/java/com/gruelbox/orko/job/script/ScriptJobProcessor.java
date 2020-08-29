@@ -262,7 +262,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       return onTick(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
-          TICKER,
           callback.toString());
     }
 
@@ -270,7 +269,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       return onBalance(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
-          BALANCE,
           callback.toString());
     }
 
@@ -278,7 +276,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       return onOpenOrders(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
-          OPEN_ORDERS,
           callback.toString());
     }
 
@@ -286,7 +283,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       return onOrderBook(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
-          ORDERBOOK,
           callback.toString());
     }
 
@@ -294,7 +290,6 @@ class ScriptJobProcessor implements ScriptJob.Processor {
       return onUserTrades(
           event -> processEvent(() -> callback.call(null, event)),
           convertTickerSpec(tickerSpec),
-          USER_TRADE,
           callback.toString());
     }
 
@@ -500,11 +495,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public final DisposableSubscription onTick(
       io.reactivex.functions.Consumer<TickerEvent> handler,
       TickerSpec tickerSpec,
-      MarketDataType type,
       String description) {
 
     ExchangeEventSubscription subscription =
-        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, TICKER));
 
     Disposable disposable = subscription.getTickers().subscribe(handler);
 
@@ -514,11 +508,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public final DisposableSubscription onBalance(
       io.reactivex.functions.Consumer<BalanceEvent> handler,
       TickerSpec tickerSpec,
-      MarketDataType type,
       String description) {
 
     ExchangeEventSubscription subscription =
-        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, BALANCE));
 
     Disposable disposable = subscription.getBalances().subscribe(handler);
 
@@ -528,11 +521,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public final DisposableSubscription onOpenOrders(
       io.reactivex.functions.Consumer<OpenOrdersEvent> handler,
       TickerSpec tickerSpec,
-      MarketDataType type,
       String description) {
 
     ExchangeEventSubscription subscription =
-        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, OPEN_ORDERS));
 
     Disposable disposable = subscription.getOrderSnapshots().subscribe(handler);
 
@@ -542,11 +534,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public final DisposableSubscription onOrderBook(
       io.reactivex.functions.Consumer<OrderBookEvent> handler,
       TickerSpec tickerSpec,
-      MarketDataType type,
       String description) {
 
     ExchangeEventSubscription subscription =
-        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, ORDER_BOOK));
 
     Disposable disposable = subscription.getOrderBooks().subscribe(handler);
 
@@ -556,11 +547,10 @@ class ScriptJobProcessor implements ScriptJob.Processor {
   public final DisposableSubscription onUserTrades(
       io.reactivex.functions.Consumer<UserTradeEvent> handler,
       TickerSpec tickerSpec,
-      MarketDataType type,
       String description) {
 
     ExchangeEventSubscription subscription =
-        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, type));
+        exchangeEventRegistry.subscribe(MarketDataSubscription.create(tickerSpec, USER_TRADE));
 
     Disposable disposable = subscription.getUserTrades().subscribe(handler);
 
