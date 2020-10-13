@@ -16,7 +16,7 @@
     "cookies-js": "^1.2.3",
     "customize-cra": "^1.0.0",
     "fetch": "^1.1.0",
-    "http-proxy-middleware": "^1.0.5",
+    "http-proxy-middleware": "^1.0.6",
     "immutable": "^3.8.2",
     "polished": "^3.6.6",
     "react": "^16.13.1",
