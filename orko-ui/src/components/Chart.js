@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import React, { Component } from "react"
+import React, { Component, useEffect, useMemo, useState } from "react"
 import styled from "styled-components"
 
 import Section from "./primitives/Section"
@@ -121,22 +121,35 @@ class TradingViewChartContent extends Component {
   }
 }
 
-class Chart extends React.Component {
-  constructor(props) {
-    super(props)
-    var interval = localStorage.getItem(CHART_INTERVAL_KEY)
-    if (!interval) {
-      interval = "240"
-    }
-    this.state = { interval }
-  }
+const useSelectedInterval = () => {
 
-  Interval = ({ name, code, selected, description }) => (
+  const [interval, setRawInterval] = useState()
+
+  useEffect(() => {
+    var fetched = localStorage.getItem(CHART_INTERVAL_KEY)
+    if (!fetched) {
+      fetched = "240"
+    }
+    setRawInterval(fetched)
+  }, [setRawInterval])
+
+  const setInterval = useMemo(() => newValue => {
+    localStorage.setItem(CHART_INTERVAL_KEY, newValue)
+    setRawInterval(newValue)
+  }, [setRawInterval])
+
+  return [interval, setInterval]
+}
+
+const Chart = () => {
+
+  const [interval, setInterval] = useSelectedInterval()
+
+  const Interval = ({ name, code, description }) => (
     <Tab
-      selected={selected === code}
+      selected={interval === code}
       onClick={() => {
-        localStorage.setItem(CHART_INTERVAL_KEY, code)
-        this.setState({ interval: code })
+        setInterval(code)
       }}
       title={
         "Select the " +
@@ -148,73 +161,37 @@ class Chart extends React.Component {
     </Tab>
   )
 
-  Buttons = () => (
-    <>
-      <this.Interval
-        selected={this.state.interval}
-        code="W"
-        name="W"
-        description="weekly"
-      />
-      <this.Interval
-        selected={this.state.interval}
-        code="D"
-        name="D"
-        description="daily"
-      />
-      <this.Interval
-        selected={this.state.interval}
-        code="240"
-        name="4H"
-        description="4 hour"
-      />
-      <this.Interval
-        selected={this.state.interval}
-        code="60"
-        name="1H"
-        description="1 hour"
-      />
-      <this.Interval
-        selected={this.state.interval}
-        code="15"
-        name="15m"
-        description="15 minute"
-      />
-    </>
+  return (
+    <Section id="chart" heading="Chart" buttons={() => <>
+      <Interval code="W" name="W" description="weekly" />
+      <Interval code="D" name="D" description="daily" />
+      <Interval code="240" name="4H" description="4 hour" />
+      <Interval code="60" name="1H" description="1 hour" />
+      <Interval code="15" name="15m" description="15 minute" />
+    </>}>
+      <WithCoin>
+        {coin => {
+          if (coin.exchange === "kucoin") {
+            return (
+              <NewWindowChartContent
+                coin={coin}
+                url={
+                  "https://www.kucoin.com/trade/" +
+                  coin.base +
+                  "-" +
+                  coin.counter
+                }
+              />
+            )
+          } else if (coin.exchange === "simulated") {
+            return <SimulatedExchangeContent />
+          } else {
+            return <TradingViewChartContent coin={coin} interval={interval} />
+          }
+        }}
+      </WithCoin>
+    </Section>
   )
-
-  render() {
-    return (
-      <Section id="chart" heading="Chart" buttons={this.Buttons}>
-        <WithCoin>
-          {coin => {
-            if (coin.exchange === "kucoin") {
-              return (
-                <NewWindowChartContent
-                  coin={coin}
-                  url={
-                    "https://www.kucoin.com/trade/" +
-                    coin.base +
-                    "-" +
-                    coin.counter
-                  }
-                />
-              )
-            } else if (coin.exchange === "simulated") {
-              return <SimulatedExchangeContent />
-            } else {
-              return (
-                <TradingViewChartContent
-                  coin={coin}
-                  interval={this.state.interval}
-                />
-              )
-            }
-          }}
-        </WithCoin>
-      </Section>
-    )
-  }
 }
 
 export default Chart
