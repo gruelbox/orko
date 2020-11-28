@@ -455,8 +455,7 @@ public class TestSoftTrailingStopProcessorBuy {
               LimitOrderJob limitOrderJob = inv.getArgument(0, LimitOrderJob.class);
               inv.getArgument(1, JobControl.class)
                   .replace(
-                      limitOrderJob
-                          .toBuilder()
+                      limitOrderJob.toBuilder()
                           .balanceState(BalanceState.INSUFFICIENT_BALANCE)
                           .build());
               return null;
@@ -511,8 +510,7 @@ public class TestSoftTrailingStopProcessorBuy {
               LimitOrderJob limitOrderJob = inv.getArgument(0, LimitOrderJob.class);
               inv.getArgument(1, JobControl.class)
                   .replace(
-                      limitOrderJob
-                          .toBuilder()
+                      limitOrderJob.toBuilder()
                           .balanceState(BalanceState.SUFFICIENT_BALANCE)
                           .build());
               return null;

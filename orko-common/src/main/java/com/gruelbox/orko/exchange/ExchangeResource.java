@@ -394,9 +394,11 @@ public class ExchangeResource implements WebResource {
                           throw new RuntimeException(e);
                         }
                         try {
-                          return exchange.getTradeService()
+                          return exchange
+                              .getTradeService()
                               .getOpenOrders(new DefaultOpenOrdersParamCurrencyPair(p))
-                              .getOpenOrders().stream();
+                              .getOpenOrders()
+                              .stream();
                         } catch (IOException e) {
                           throw new RuntimeException(e);
                         }

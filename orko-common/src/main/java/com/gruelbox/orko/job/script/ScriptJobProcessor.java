@@ -36,7 +36,6 @@ import com.gruelbox.orko.exchange.BalanceEvent;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry;
 import com.gruelbox.orko.exchange.ExchangeEventRegistry.ExchangeEventSubscription;
 import com.gruelbox.orko.exchange.MarketDataSubscription;
-import com.gruelbox.orko.exchange.MarketDataType;
 import com.gruelbox.orko.exchange.OpenOrdersEvent;
 import com.gruelbox.orko.exchange.OrderBookEvent;
 import com.gruelbox.orko.exchange.TickerEvent;
