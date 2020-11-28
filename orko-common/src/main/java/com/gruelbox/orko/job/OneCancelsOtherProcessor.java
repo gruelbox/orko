@@ -211,9 +211,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
             @Override
             public void replace(Job job) {
               jobControl.replace(
-                  OneCancelsOtherProcessor.this
-                      .job
-                      .toBuilder()
+                  OneCancelsOtherProcessor.this.job.toBuilder()
                       .low(
                           ThresholdAndJob.create(
                               OneCancelsOtherProcessor.this.job.low().threshold(), job))
@@ -237,9 +235,7 @@ class OneCancelsOtherProcessor implements OneCancelsOther.Processor {
             @Override
             public void replace(Job job) {
               jobControl.replace(
-                  OneCancelsOtherProcessor.this
-                      .job
-                      .toBuilder()
+                  OneCancelsOtherProcessor.this.job.toBuilder()
                       .high(
                           ThresholdAndJob.create(
                               OneCancelsOtherProcessor.this.job.high().threshold(), job))
