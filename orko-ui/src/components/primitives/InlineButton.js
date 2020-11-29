@@ -51,7 +51,9 @@ const Button = styled.button`
   ${space}
 `
 
-export default {
+const InlineButton = {
   Button,
   Container
 }
+
+export default InlineButton

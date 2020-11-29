@@ -34,7 +34,7 @@ const Release = ({ name, body }) => (
   </Segment>
 )
 
-export default ({ enabled, releases, onClose, onIgnore }) =>
+const NewRelease = ({ enabled, releases, onClose, onIgnore }) =>
   enabled && releases && releases.length > 0 ? (
     <FixedModal data-orko="newReleases" closeIcon onClose={onClose}>
       <Modal.Header id="news">
@@ -56,3 +56,5 @@ export default ({ enabled, releases, onClose, onIgnore }) =>
       </Modal.Actions>
     </FixedModal>
   ) : null
+
+export default NewRelease
