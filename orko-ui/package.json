@@ -19,7 +19,7 @@
     "http-proxy-middleware": "^1.0.6",
     "immutable": "^3.8.2",
     "polished": "^4.0.5",
-    "react": "^16.13.1",
+    "react": "^16.14.0",
     "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.13.1",
     "react-grid-layout": "^1.1.1",
