@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@craco/craco": "^5.7.0",
+    "@craco/craco": "^5.9.0",
     "@mars/heroku-js-runtime-env": "^3.0.2",
     "@types/history": "^4.7.8",
     "@types/jest": "^26.0.14",
