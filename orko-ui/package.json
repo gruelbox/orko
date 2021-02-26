@@ -12,7 +12,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/react-grid-layout": "^1.1.1",
     "compare-versions": "^3.6.0",
-    "connected-react-router": "^6.8.0",
+    "connected-react-router": "^6.9.1",
     "cookies-js": "^1.2.3",
     "customize-cra": "^1.0.0",
     "fetch": "^1.1.0",
