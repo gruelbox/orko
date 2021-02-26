@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@craco/craco": "^5.9.0",
+    "@craco/craco": "6.1.1",
     "@mars/heroku-js-runtime-env": "^3.0.2",
     "@types/history": "^4.7.8",
     "@types/jest": "^26.0.14",
@@ -29,7 +29,7 @@
     "react-redux": "^7.2.2",
     "react-rnd": "^10.2.4",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.0",
+    "react-scripts": "4.0.3",
     "react-table": "^6.11.5",
     "recompose": "^0.30.0",
     "reconnecting-websocket": "^4.4.0",
