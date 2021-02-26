@@ -23,11 +23,14 @@ import support from "./support/reducer"
 import { combineReducers } from "redux"
 import { connectRouter } from "connected-react-router"
 
-export default history =>
-  combineReducers({
+function reducers(history) {
+  return combineReducers({
     router: connectRouter(history),
     coins,
     error,
     scripting,
     support
   })
+}
+
+export default reducers;

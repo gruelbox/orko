@@ -19,7 +19,7 @@ import React from "react"
 import Loading from "./primitives/Loading"
 import { isFunction } from "modules/common/util/objectUtils"
 
-export default ({ data, padded, children }) => {
+const WhileLoading = ({ data, padded, children }) => {
   if (data) {
     if (isFunction(children)) return children()
     else return children
@@ -27,3 +27,5 @@ export default ({ data, padded, children }) => {
     return <Loading p={padded ? 2 : 0} />
   }
 }
+
+export default WhileLoading

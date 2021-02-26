@@ -21,7 +21,7 @@ import Href from "./primitives/Href"
 import { Button } from "semantic-ui-react"
 import { WIKI_URL } from "../util/support"
 
-export default ({ exchange, onEnablePaperTrading }) => (
+const NotAuthenticated = ({ exchange, onEnablePaperTrading }) => (
   <>
     <Para color="deemphasis">
       No API details provided for {exchange.name}. Find out how to add yours on
@@ -48,3 +48,5 @@ export default ({ exchange, onEnablePaperTrading }) => (
     </Button>
   </>
 )
+
+export default NotAuthenticated
