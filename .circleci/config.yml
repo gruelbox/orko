@@ -50,7 +50,7 @@ workflows:
                 - master
 
 jobs:
-  "Compile and build":
+  "Compile, build and test":
     <<: *setup
     steps:
       - checkout
