@@ -4,6 +4,11 @@ alltags: &alltags
   filters:
     tags:
       only: /((?!SNAPSHOT).)*/
+restoremavencache: &restoremavencache
+  keys:
+    - maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
+    - maven-repo-v5-{{ .Branch }}-
+    - maven-repo-v5-
 mainenvironment: &mainenvironment
   MAVEN_OPTS: -Xmx3200m
   BUILD_ARGS: -B -DskipFormat -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
@@ -55,11 +60,7 @@ jobs:
       - run:
           name: Install packages
           command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libgbm-dev
-      - restore_cache:
-          keys:
-            - maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - maven-repo-v5-{{ .Branch }}-
-            - maven-repo-v5-
+      - restore_cache: *restoremavencache
       - restore_cache:
           keys:
             - node-all-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
