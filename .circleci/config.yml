@@ -4,11 +4,6 @@ alltags: &alltags
   filters:
     tags:
       only: /((?!SNAPSHOT).)*/
-restoremavencache: &restoremavencache
-  keys:
-    - maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
-    - maven-repo-v5-{{ .Branch }}-
-    - maven-repo-v5-
 mainenvironment: &mainenvironment
   MAVEN_OPTS: -Xmx3200m
   BUILD_ARGS: -B -DskipFormat -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
@@ -16,6 +11,12 @@ setup: &setup
   docker:
     - image: circleci/openjdk:11-jdk-browsers
       environment: *mainenvironment
+    - image: circleci/mysql:5.7
+      environment:
+        MYSQL_ROOT_PASSWORD: rootpw
+        MYSQL_DATABASE: test
+        MYSQL_USER: open
+        MYSQL_PASSWORD: sesame
   working_directory: ~/orko
 
 notify:
@@ -26,32 +27,16 @@ workflows:
   version: 2
   all:
     jobs:
-      - "Compile and build": *alltags
-      - "Unit tests (all)":
-          requires:
-            - "Compile and build"
-          <<: *alltags
-      - "Unit tests (MySQL)":
-          requires:
-            - "Compile and build"
-          <<: *alltags
-      - "End-to-end tests":
-          requires:
-            - "Compile and build"
-          <<: *alltags
+      - "Compile, build and test": *alltags
       - "Deploy release to Docker registry":
           requires:
-            - "Unit tests (all)"
-            - "Unit tests (MySQL)"
-            - "End-to-end tests"
+            - "Compile, build and test"
           filters:
             tags:
               only: /^.*\.((?!SNAPSHOT).)*/
       - "Deploy release to GitHub":
           requires:
-            - "Unit tests (all)"
-            - "Unit tests (MySQL)"
-            - "End-to-end tests"
+            - "Compile, build and test"
           filters:
             tags:
               only: /^.*\.((?!SNAPSHOT).)*/
@@ -64,23 +49,32 @@ jobs:
     <<: *setup
     steps:
       - checkout
-      - restore_cache: *restoremavencache
+      - run:
+          name: apt update
+          command: sudo rm -rf /var/lib/apt/lists/* && sudo apt-get update -y
+      - run:
+          name: Install packages
+          command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libgbm-dev
       - restore_cache:
           keys:
-            - node-v5-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}
-            - node-v5-{{ .Branch }}-
-            - node-v5-
+            - maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - maven-repo-v5-{{ .Branch }}-
+            - maven-repo-v5-
+      - restore_cache:
+          keys:
+            - node-all-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
+            - node-all-v1-{{ .Branch }}-
+            - node-all-v1-
+      - run:
+          name: Upgrade Maven
+          command: |
+            cd
+            cp ~/orko/.circleci/apache-maven-3.6.1-bin.tar.gz .
+            tar xzvf apache-maven-3.6.1-bin.tar.gz
+            cd ~/orko
       - run:
           name: Build
           command: mvn ${BUILD_ARGS} -T 1C -U -Pui,bundle,services clean install -Dskip.failsafe.tests=true -DskipTests=true
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
-      - save_cache:
-          paths:
-            - ~/usr/local/lib/node_modules
-          key: node-v5-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}}
       - run:
           name: Remove unnecessary node artifacts before saving workspace
           command: |
@@ -90,28 +84,6 @@ jobs:
           root: /home/circleci
           paths:
             - orko
-      - run:
-          name: Saving checkstyle reports
-          command: |
-            mkdir -p ~/checkstyle/
-            find . -type f -regex ".*/target/checkstyle-result.xml" -exec cp {} ~/checkstyle \;
-          when: always
-      - store_artifacts:
-          path: ~/checkstyle
-
-  "Unit tests (all)":
-    <<: *setup
-    steps:
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache: *restoremavencache
-      - run:
-          name: Upgrade Maven
-          command: |
-            cd
-            cp ~/orko/.circleci/apache-maven-3.6.1-bin.tar.gz .
-            tar xzvf apache-maven-3.6.1-bin.tar.gz
-            cd ~/orko
       - run:
           name: Tests (plus Sonar if possible)
           command: |
@@ -144,70 +116,8 @@ jobs:
           name: Saving test results (H2)
           command: |
             mkdir -p ~/junit/h2
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/h2 \;
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec mv {} ~/junit/h2 \;
           when: always
-      - store_artifacts:
-          path: ~/junit
-      - store_test_results:
-          path: ~/junit
-
-  "End-to-end tests":
-    <<: *setup
-    steps:
-      - run:
-          name: apt update
-          command: sudo rm -rf /var/lib/apt/lists/* && sudo apt-get update -y
-      - run:
-          name: Install packages
-          command: sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libgbm-dev
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache: *restoremavencache
-      - restore_cache:
-          keys:
-            - node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
-            - node-e2e-v1-{{ .Branch }}-
-            - node-e2e-v1-
-      - run:
-          name: Run integration tests
-          command: |
-            cd orko-end-to-end-testing
-            mvn ${BUILD_ARGS} -Pe2etest verify
-            cd ..
-      - save_cache:
-          paths:
-            - ~/usr/local/lib/node_modules
-          key: node-e2e-v1-{{ .Branch }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
-      - run:
-          name: Saving test results (Integration)
-          command: |
-            mkdir -p ~/junit/integration
-            find . -type f -regex ".*/target/mocha-reports/.*xml" -exec cp {} ~/junit/integration \;
-          when: always
-      - store_artifacts:
-          path: ~/junit
-      - store_test_results:
-          path: ~/junit
-      - store_artifacts:
-          path: orko-end-to-end-testing/cypress/screenshots
-      - store_artifacts:
-          path: orko-end-to-end-testing/app.log
-
-  "Unit tests (MySQL)":
-    docker:
-      - image: circleci/openjdk:11-jdk-browsers
-        environment: *mainenvironment
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_ROOT_PASSWORD: rootpw
-          MYSQL_DATABASE: test
-          MYSQL_USER: open
-          MYSQL_PASSWORD: sesame
-    working_directory: ~/orko
-    steps:
-      - attach_workspace:
-          at: /home/circleci
-      - restore_cache: *restoremavencache
       - run:
           name: Waiting for MySQL to be ready
           command: |
@@ -229,12 +139,44 @@ jobs:
           name: Saving test results (MySQL)
           command: |
             mkdir -p ~/junit/mysql
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/mysql \;
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec mv {} ~/junit/mysql \;
+          when: always
+      - run:
+          name: Run integration tests
+          command: |
+            cd orko-end-to-end-testing
+            mvn ${BUILD_ARGS} -Pe2etest verify
+            cd ..
+      - run:
+          name: Saving test results (Integration)
+          command: |
+            mkdir -p ~/junit/integration
+            find . -type f -regex ".*/target/mocha-reports/.*xml" -exec mv {} ~/junit/integration \;
+          when: always
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-v5-{{ .Branch }}-{{ checksum "pom.xml" }}
+      - save_cache:
+          paths:
+            - ~/usr/local/lib/node_modules
+          key: node-all-v1-{{ .Branch }}-{{ checksum "orko-ui/package-lock.json" }}-{{ checksum "orko-end-to-end-testing/package-lock.json" }}
+      - run:
+          name: Saving checkstyle reports
+          command: |
+            mkdir -p ~/checkstyle/
+            find . -type f -regex ".*/target/checkstyle-result.xml" -exec cp {} ~/checkstyle \;
           when: always
       - store_artifacts:
           path: ~/junit
       - store_test_results:
           path: ~/junit
+      - store_artifacts:
+          path: ~/checkstyle
+      - store_artifacts:
+          path: orko-end-to-end-testing/cypress/screenshots
+      - store_artifacts:
+          path: orko-end-to-end-testing/app.log
 
   "Deploy release to Docker registry":
     <<: *setup
