@@ -26,14 +26,14 @@ export const PERCENT_CHANGE_REGEX = /-?[0-9]\d*(\.\d+)?%/
 export const NUMBER_REGEX = /-?[0-9]\d*(\.\d+)?/
 export const LONG_WAIT = 60000
 
-export const BINANCE_ETH = {
-  exchange: "binance",
-  counter: "USDT",
+export const EXCHANGE_ETH = {
+  exchange: "gdax",
+  counter: "USD",
   base: "ETH"
 }
 
-export const BINANCE_BTC = {
-  exchange: "binance",
-  counter: "USDT",
+export const EXCHANGE_BTC = {
+  exchange: "gdax",
+  counter: "USD",
   base: "BTC"
 }

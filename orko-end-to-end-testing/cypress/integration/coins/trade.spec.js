@@ -26,8 +26,8 @@ import {
 import {
   NUMBER_REGEX,
   LONG_WAIT,
-  BINANCE_ETH,
-  BINANCE_BTC
+  EXCHANGE_ETH,
+  EXCHANGE_BTC
 } from "../../util/constants"
 
 function checkCancelServerSideOrder({
@@ -78,18 +78,18 @@ function checkCancelServerSideOrder({
 }
 
 context("Trading", () => {
-  beforeEach(function() {
+  beforeEach(function () {
     // Unload the site so that XHR requests overlapping setup don't
     // log the app back out again
     cy.visit("/empty.html")
     // Now start the login process
     cy.whitelist()
     cy.loginApi().then(() => {
-      clearOrders(BINANCE_ETH)
-      clearOrders(BINANCE_BTC)
+      clearOrders(EXCHANGE_ETH)
+      clearOrders(EXCHANGE_BTC)
       clearSubscriptions().then(() => {
-        addSubscription(BINANCE_ETH)
-        addSubscription(BINANCE_BTC)
+        addSubscription(EXCHANGE_ETH)
+        addSubscription(EXCHANGE_BTC)
       })
       clearJobs()
     })
@@ -107,7 +107,7 @@ context("Trading", () => {
         })
       })
       cy.o("section/coinList").within(() => {
-        cy.o("binance/USDT/BTC/price")
+        cy.o("gdax/USD/BTC/price")
           .contains(NUMBER_REGEX, {
             timeout: LONG_WAIT
           })
@@ -146,7 +146,7 @@ context("Trading", () => {
               .should("eq", tradePrice(tickerPrice))
           })
         })
-        listOrders(BINANCE_BTC).should($orders => {
+        listOrders(EXCHANGE_BTC).should($orders => {
           expect($orders.openOrders.length, "Open order count").to.eql(1)
           expect($orders.hiddenOrders, "Hidden orders").to.be.empty
           expect(
@@ -168,7 +168,7 @@ context("Trading", () => {
           cy.get("[data-type='openOrder/" + button + "']", {
             timeout: LONG_WAIT
           }).should("not.exist")
-          listOrders(BINANCE_BTC).should($orders => {
+          listOrders(EXCHANGE_BTC).should($orders => {
             expect($orders.openOrders, "Open orders").to.be.empty
             expect($orders.hiddenOrders, "Hidden orders").to.be.empty
           })
@@ -177,9 +177,9 @@ context("Trading", () => {
     }
 
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/name").click()
+      cy.o("gdax/USD/BTC/name").click()
     })
-    cy.o("selectedCoin").contains("Binance")
+    cy.o("selectedCoin").contains("Coinbase Pro")
     cy.o("selectedCoin").contains("BTC/USD")
     cy.o("section/trading/tabs").within(() => {
       cy.o("limit").click()
@@ -225,16 +225,16 @@ context("Trading", () => {
     }
 
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/name").click()
-      cy.o("binance/USDT/BTC/price")
+      cy.o("gdax/USD/BTC/name").click()
+      cy.o("gdax/USD/BTC/price")
         .contains(NUMBER_REGEX, {
           timeout: LONG_WAIT
         })
         .invoke("text")
         .as("price")
     })
-    cy.o("selectedCoin").contains("Binance")
-    cy.o("selectedCoin").contains("BTC/USDT")
+    cy.o("selectedCoin").contains("Coinbase Pro")
+    cy.o("selectedCoin").contains("BTC/USD")
     cy.o("section/trading/tabs").within(() => {
       cy.o("stopTakeProfit").click()
     })
@@ -277,7 +277,7 @@ context("Trading", () => {
         lowPrice: price - 1000,
         lowLimitPrice: price - 900,
         amount: 1
-      }).then (response => {
+      }).then(response => {
         checkCancelServerSideOrder({
           direction: "sell",
           amount: "1",
@@ -299,22 +299,22 @@ context("Trading", () => {
           limitPrice: price + 1000
         })
       })
-      
+
     })
   })
 
   it("Stops (server)", () => {
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/name").click()
-      cy.o("binance/USDT/BTC/price")
+      cy.o("gdax/USD/BTC/name").click()
+      cy.o("gdax/USD/BTC/price")
         .contains(NUMBER_REGEX, {
           timeout: LONG_WAIT
         })
         .invoke("text")
         .as("price")
     })
-    cy.o("selectedCoin").contains("Binance")
-    cy.o("selectedCoin").contains("BTC/USDT")
+    cy.o("selectedCoin").contains("Coinbase Pro")
+    cy.o("selectedCoin").contains("BTC/USD")
     cy.o("section/trading/tabs").within(() => {
       cy.o("stop").click()
     })
@@ -345,12 +345,12 @@ context("Trading", () => {
 
   it("Stops (exchange)", () => {
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/price").contains(NUMBER_REGEX, {
+      cy.o("gdax/USD/BTC/price").contains(NUMBER_REGEX, {
         timeout: 20000
       })
-      cy.o("binance/USDT/BTC/name").click()
+      cy.o("gdax/USD/BTC/name").click()
     })
-    cy.o("selectedCoin").contains("Binance")
+    cy.o("selectedCoin").contains("Coinbase Pro")
     cy.o("selectedCoin").contains("BTC/USD")
     cy.o("section/trading/tabs").within(() => {
       cy.o("stop").click()
@@ -363,7 +363,7 @@ context("Trading", () => {
       })
     })
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/price").click()
+      cy.o("gdax/USD/BTC/price").click()
     })
     cy.o("stopOrder").within(() => {
       cy.o("limitPrice").contains(/^[0-9\\.]*/)

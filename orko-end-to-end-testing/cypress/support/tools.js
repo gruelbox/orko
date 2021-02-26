@@ -59,6 +59,7 @@ export function cancelOrder(tickerSpec, order) {
 }
 
 export function listOrders(tickerSpec) {
+  console.log("Listing orders for ", tickerSpec)
   return cy
     .secureRequest({
       url:

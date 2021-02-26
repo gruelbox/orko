@@ -25,12 +25,12 @@ import {
   NUMBER_REGEX,
   PERCENT_CHANGE_REGEX,
   LONG_WAIT,
-  BINANCE_ETH,
-  BINANCE_BTC
+  EXCHANGE_ETH,
+  EXCHANGE_BTC
 } from "../../util/constants"
 
 context("Coins", () => {
-  beforeEach(function() {
+  beforeEach(function () {
     // Unload the site so that XHR requests overlapping setup don't
     // log the app back out again
     cy.visit("/empty.html")
@@ -40,7 +40,7 @@ context("Coins", () => {
 
   it("Add and remove a coin", () => {
     cy.loginApi().then(() => {
-      clearOrders(BINANCE_BTC)
+      clearOrders(EXCHANGE_BTC)
       clearJobs()
       clearSubscriptions()
     })
@@ -50,50 +50,50 @@ context("Coins", () => {
     cy.o("addCoinModal").within(() => {
       cy.o("selectExchange").click()
       cy.get("[class='visible menu transition']")
-        .contains("Binance")
+        .contains("Coinbase Pro")
         .click()
       cy.o("selectPair").click()
       cy.get("[class='visible menu transition']")
-        .contains("BTC/USDT")
+        .contains("BTC/USD")
         .click()
       cy.o("addCoinSubmit").click()
     })
-    cy.o("selectedCoin").contains("Binance")
-    cy.o("selectedCoin").contains("BTC/USDT")
+    cy.o("selectedCoin").contains("Coinbase Pro")
+    cy.o("selectedCoin").contains("BTC/USD")
     cy.o("addCoinModal").should("not.exist")
     cy.o("errorModal").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/BTC/exchange").contains("Binance")
-      cy.o("binance/USDT/BTC/name").contains("BTC/USDT")
-      cy.o("binance/USDT/BTC/price").contains(NUMBER_REGEX, {
+      cy.o("gdax/USD/BTC/exchange").contains("Coinbase Pro")
+      cy.o("gdax/USD/BTC/name").contains("BTC/USD")
+      cy.o("gdax/USD/BTC/price").contains(NUMBER_REGEX, {
         timeout: LONG_WAIT
       })
-      cy.o("binance/USDT/BTC/remove").safeClick()
-      cy.o("binance/USDT/BTC/exchange").should("not.exist")
+      cy.o("gdax/USD/BTC/remove").safeClick()
+      cy.o("gdax/USD/BTC/exchange").should("not.exist")
     })
   })
 
   it("Visit a coin directly and work with it", () => {
     cy.loginApi().then(() => {
-      clearOrders(BINANCE_ETH)
-      clearOrders(BINANCE_BTC)
+      clearOrders(EXCHANGE_ETH)
+      clearOrders(EXCHANGE_BTC)
       clearJobs()
-      clearSubscriptions().then(() => addSubscription(BINANCE_ETH))
+      clearSubscriptions().then(() => addSubscription(EXCHANGE_ETH))
     })
-    cy.visit("/coin/binance/USDT/ETH")
+    cy.visit("/coin/gdax/USD/ETH")
     cy.o("loginModal").should("not.exist")
-    cy.o("selectedCoin").contains("Binance")
+    cy.o("selectedCoin").contains("Coinbase Pro")
     cy.o("selectedCoin").contains("ETH/USD")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/exchange").contains("Binance")
-      cy.o("binance/USDT/ETH/name").contains("ETH/USD")
-      cy.o("binance/USDT/ETH/price")
+      cy.o("gdax/USD/ETH/exchange").contains("Coinbase Pro")
+      cy.o("gdax/USD/ETH/name").contains("ETH/USD")
+      cy.o("gdax/USD/ETH/price")
         .contains(NUMBER_REGEX, {
           timeout: LONG_WAIT
         })
         .invoke("text")
         .as("currentPrice")
-      cy.o("binance/USDT/ETH/setReferencePrice")
+      cy.o("gdax/USD/ETH/setReferencePrice")
         .should("have.text", "--")
         .safeClick()
     })
@@ -109,18 +109,18 @@ context("Coins", () => {
       //and I can't work out why. This pause seems
       //to resolve it.
       cy.wait(1000)
-      cy.o("binance/USDT/ETH/setReferencePrice")
+      cy.o("gdax/USD/ETH/setReferencePrice")
         .invoke("text")
         .should("match", PERCENT_CHANGE_REGEX)
-      cy.o("binance/USDT/ETH/setReferencePrice").safeClick()
+      cy.o("gdax/USD/ETH/setReferencePrice").safeClick()
     })
     cy.o("section/referencePrice").within(() => {
       cy.o("doClear").click()
     })
     cy.o("section/referencePrice").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/setReferencePrice").should("have.text", "--")
-      cy.o("binance/USDT/ETH/alerts").safeClick()
+      cy.o("gdax/USD/ETH/setReferencePrice").should("have.text", "--")
+      cy.o("gdax/USD/ETH/alerts").safeClick()
     })
     cy.o("section/manageAlerts").within(() => {
       cy.get("@currentPrice").then(currentPrice =>
@@ -135,8 +135,8 @@ context("Coins", () => {
     })
     cy.o("section/manageAlerts").should("not.exist")
     cy.o("section/coinList").within(() => {
-      cy.o("binance/USDT/ETH/remove").safeClick()
-      cy.o("binance/USDT/ETH/exchange").should("not.exist")
+      cy.o("gdax/USD/ETH/remove").safeClick()
+      cy.o("gdax/USD/ETH/exchange").should("not.exist")
     })
   })
 })
