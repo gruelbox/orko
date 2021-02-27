@@ -104,8 +104,8 @@ public class TestDbDump {
   @Test
   public void testDbDump() throws IOException, SQLException {
     DataSource dataSource = connectionResources.getDataSource();
-    try (Connection conn = dataSource.getConnection();
-        DSLContext dsl = DSL.using(conn, jooqDialect(H2.IDENTIFIER))) {
+    try (Connection conn = dataSource.getConnection()) {
+      DSLContext dsl = DSL.using(conn, jooqDialect(H2.IDENTIFIER));
 
       conn.setAutoCommit(true);
 
