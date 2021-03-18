@@ -11,7 +11,7 @@
   "author": "",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "cypress": "^6.6.0",
+    "cypress": "^6.8.0",
     "typescript": "^4.2.3"
   },
   "dependencies": {
