@@ -251,7 +251,7 @@
     <junit.version>5.7.1</junit.version>
 
     <xchange.groupid>org.knowm.xchange</xchange.groupid>
-    <xchange.version>5.0.6</xchange.version>
+    <xchange.version>5.0.7</xchange.version>
 
     <morf.groupid>com.github.badgerwithagun.morf</morf.groupid>
     <morf.version>0.1.3.4</morf.version>
