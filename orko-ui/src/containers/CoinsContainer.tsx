@@ -95,7 +95,7 @@ const CoinsCointainer: React.FC<CoinsContainerProps> = ({ referencePrices }) => 
   )
 }
 
-const ConnectedCoinsContainer = connect(state => {
+const ConnectedCoinsContainer = connect((state: {coins: {referencePrices: any}}) => {
   return {
     referencePrices: state.coins.referencePrices
   }
