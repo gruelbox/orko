@@ -87,7 +87,7 @@ const ToolbarContainer: React.FC<ToolbarReduxProps> = props => {
   )
 }
 
-export default connect(state => {
+export default connect((state: any) => {
   return {
     version: state.support.meta.version,
     coin: getSelectedCoin(state)
