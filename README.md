@@ -39,15 +39,6 @@ Orko is a new application which has missing features and some well-known bugs. I
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gruelbox/orko/tree/stable)
 
-## Demo
-
-- **Address:** https://orko-demo.herokuapp.com/
-- **Username:** trader1
-- **Password:** givemeshitcoins
-- **Second factor:** Leave blank
-
-Paper trading only. Can take 30 seconds to spin up when accessed. Don't expect the full experience.
-
 ## Exchange Support
 
 ### General
